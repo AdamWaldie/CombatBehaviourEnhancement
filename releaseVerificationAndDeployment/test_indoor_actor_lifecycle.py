@@ -1,8 +1,41 @@
 """Staged actor investigation must retain finite, scoped ownership contracts."""
 from pathlib import Path
+import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class IndoorActorLifecycleTests(unittest.TestCase):
+    def test_plain_route_door_assistance_never_takes_movement_or_opens_an_unrelated_door(self):
+        route=(ROOT/'addons/infantry/functions/cortexRouteDoors.sqf').read_text()
+        door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        body=route.split('params [[',1)[1]
+        self.assertEqual(body.count('lineIntersectsSurfaces'),1)
+        self.assertNotIn('nearestObjects',body)
+        for proof in ('select [0,16]','routeDoorNextAt','serverTime+2','routeDoorCursor',
+                      '(3 min _length)/_length','_hit select 2','_hit select 3',
+                      '_target vectorDistance _goal <= 3','CBE_fnc_CortexBuildingDoor'):
+            self.assertIn(proof,body)
+        for forbidden in ('doMove','doFollow','doStop','setDestination','spawn','waitAndExecute','animateSource'):
+            self.assertNotIn(forbidden,body)
+        admission=door.split('== "ROUTE") exitWith',1)[1].split('if (count _context != 2',1)[0]
+        for proof in ('CBE_AIPass_Epoch','CortexIsPaused','STEALTH','currentCommand _unit != "MOVE"',
+                      'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
+                      'waypointAttachedObject','CortexActorMoveReserved','IndoorActorGroupAvailable'):
+            self.assertIn(proof,admission)
+        self.assertEqual(door.count('call _routeDoorRelevant'),2)
+        hook=tick.split('// Native authored travel keeps its own planner.',1)[1].split('if !(["CBE_AIPass_Contact_Enable"',1)[0]
+        self.assertIn('!_dangerActive',hook)
+        self.assertNotIn('{_ordered}',hook)
+        self.assertLess(tick.index('call CBE_fnc_CortexRouteDoors'),tick.index('if !(["CBE_AIPass_Contact_Enable"'))
+        self.assertIn('!_groupMovementOwned',hook)
+        self.assertIn('CBE_fnc_CortexRouteDoors',hook)
+        # Geometric admission only: a doorway must lie along, before the native
+        # goal and within the narrow approach strip. This proves no Arma entry.
+        def relevant(along,lateral,length):return 0<=along<=length and abs(lateral)<=0.8
+        self.assertTrue(relevant(2,0.5,20))
+        for values in ((-1,0,20),(2,2,20),(4,0,2)):
+            self.assertFalse(relevant(*values))
+
     def test_start_cannot_replace_existing_actor_or_group_owners(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         start=s.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
@@ -39,6 +72,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '(_hit select 2) == _building','NO_PROGRESS','VISITED','BUILDING_CHANGED'):
             self.assertIn(guard,s)
         self.assertNotIn('_cleared pushBack',s)
+        self.assertIn('_positionASL vectorDistance (AGLToASL _target) <= 1.5',s)
+        self.assertIn('["progressPosition",getPosASL _actor]',s)
+        self.assertNotIn('["progressPosition",getPosATL _actor]',s)
+        # Different terrain cells can describe the same actual floor at different ATL heights.
+        import math
+        self.assertGreater(math.dist((0,0,1),(1,0,4)),1.5)
+        self.assertLessEqual(math.dist((0,0,11),(1,0,11)),1.5)
+
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         self.assertNotIn('CBE_fnc_IndoorActorOperation',tick)
         fsm=(ROOT/'addons/main/fsm/indoorActor.fsm').read_text()
@@ -51,7 +92,62 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'private _hit=_hits select 0','_selected isNotEqualTo []'):
             self.assertIn(guard,s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        for proof in ('count _probed >= 12','_previousBinding isNotEqualTo _binding',
+                      '_probed findIf {_x vectorDistance _nodeASL < 0.1}',
+                      '_search set ["pending"','count _ranked > 3'):
+            self.assertIn(proof,s)
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        self.assertIn('_brain set ["nodeSearch",_nodeSearch]',operation)
+        self.assertIn('if (_nodeSearch getOrDefault ["pending",false]) then {-1}',operation)
+        # Later native nodes remain selectable without increasing the per-call ray budget.
+        def search(nodes,roofed):
+            probed=[];counts=[]
+            while len(probed)<12:
+                batch=[x for x in nodes if x not in probed][:min(3,12-len(probed))]
+                if not batch:return None,counts
+                counts.append(0)
+                for node in batch:
+                    probed.append(node);counts[-1]+=1
+                    if node in roofed:return node,counts
+            return None,counts
+        self.assertEqual(search(list(range(20)),{3}),(3,[3,1]))
+        self.assertEqual(search(list(range(20)),{11}),(11,[3,3,3,3]))
+        self.assertEqual(search(list(range(20)),{12}),(None,[3,3,3,3]))
+        self.assertEqual(search([0,1],set()),(None,[2]))
+
         self.assertNotIn('getPosATL _enemy',s)
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        self.assertIn('private _initialTarget=if ((_admission select 0) == "OBSERVE")',operation)
+        self.assertIn('call _copyArray,+_initialTarget,_lease call _copyArray,false],true]',operation)
+        reservation=operation.split('private _reserved=[];',1)[1].split('private _node=',1)[0]
+        self.assertIn('_x != _actor',reservation)
+        self.assertIn('(_order select 6) isNotEqualTo []',reservation)
+        self.assertNotIn('_order select 8',reservation)
+
+    def test_planner_avoids_current_squad_body_overlap_without_enemy_or_world_scan(self):
+        s=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
+        bodies=s.split('private _bodies=[];',1)[1].split('private _ranked=[];',1)[0]
+        for guard in ('_x != _actor','alive _x','isNull objectParent _x',
+                      'simulationEnabled _x','!isObjectHidden _x','getPosASL _x',
+                      '(units group _actor) select [0,16]'):
+            self.assertIn(guard,bodies)
+        self.assertLess(s.index('_bodies findIf'),s.index('_ranked pushBack'))
+        self.assertIn('_x distance2D _nodeASL < 1.5',s)
+        self.assertIn('_reservedASL=_reserved apply {AGLToASL _x}',s)
+        self.assertIn('_reservedASL findIf {_x vectorDistance _nodeASL < 1.5}',s)
+        self.assertIn('_failedNodes findIf {_x vectorDistance _nodeASL < 1.5}',s)
+
+        self.assertIn('abs ((_x select 2)-_height) <= 1',s)
+        for forbidden in ('allUnits','nearEntities','nearestObjects','setVariable','_enemy'):
+            self.assertNotIn(forbidden,s)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertIn('_ranked select [0,3]',s)
+        # Occupancy is floor-specific and temporary, not a failed-node cache entry.
+        def occupied(body,node):
+            return ((body[0]-node[0])**2+(body[1]-node[1])**2)**0.5<1.5 and abs(body[2]-node[2])<=1
+        self.assertTrue(occupied((0.5,0,10),(0,0,10)))
+        self.assertFalse(occupied((0.5,0,13),(0,0,10)))
+        self.assertFalse(occupied((2,0,10),(0,0,10)))
 
     def test_physical_fixture_has_real_prerequisites_and_no_positive_shortcuts(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runIndoorActors.sqf').read_text()
@@ -87,6 +183,23 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         early=stop.split('call CBE_fnc_IndoorActorOperation',1)[0].rsplit('private _indoor=',1)[1]
         self.assertIn('count _indoor > 0',early)
         self.assertNotIn('select [0,16]',stop.split('call CBE_fnc_IndoorActorOperation',1)[1].split('CortexHearingLocal',1)[0])
+        actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        reap=actor.split('if (_mode == "REAP") exitWith {',1)[1].split('if (_mode == "QUEUE")',1)[0]
+        self.assertIn('!_current || {!local _actor} || {!local _group}',reap)
+        self.assertIn('!completedFSM _handle',reap)
+        self.assertIn('if (_alive) exitWith {false}',reap)
+        self.assertIn('!(_brain getOrDefault ["finished",false])',reap)
+        self.assertIn('(_brain getOrDefault ["reason",""]) == ""',reap)
+        self.assertIn('["FINISH",_actor,_brain]',reap)
+        self.assertNotIn('doMove',reap)
+        self.assertNotIn('"START"',reap)
+        self.assertNotIn('serverTime+',reap)
+        discovery=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text()
+        self.assertIn('count _indoorActors <= 2',discovery)
+        self.assertIn('["REAP",_x,_indoorBrain]',discovery)
+        self.assertIn('group _x == _group',discovery)
+        self.assertIn('"FSM_START_FAILED"',actor)
+
     def test_owner_helpers_are_installed_and_server_authenticated(self):
         init=(ROOT/'releaseVerificationAndDeployment/auditMission/init.sqf').read_text()
         for name in ('cortexQAPerformanceOwner.sqf','cortexQAIndoorActorOwner.sqf'):
@@ -125,9 +238,42 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '_unitState == "BUSY"','_nativeFiringClear','_destination vectorDistance _belief <= 2.5'):
             self.assertIn(guard,s)
         self.assertIn('["OBSERVE","COMBAT_APPROACH"',s)
+        self.assertIn('_unitState in ["INIT","PLANNING","REPLAN"]',s)
+        # Preflight shares task vetoes but cannot issue a usable native receipt or ray query.
+        self.assertIn('["_preflight",false,[true]]',s)
+        self.assertIn('if (!_preflight && {_contactValid}',s)
+        self.assertIn('if (_observe && {_preflight}) exitWith {["PREFLIGHT"]}',s)
+        self.assertLess(s.index('if (_observe && {_preflight})'),s.index('boundingBoxReal _building'))
+        self.assertIn('if (_preflight) exitWith {["PREFLIGHT"]}',s)
+        self.assertLess(s.index('if (!_mayIssue)'),s.index('if (_preflight) exitWith {["PREFLIGHT"]}'))
+        dispatch=(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()
+        self.assertIn('[_x,_target,_position,objNull,true] call CBE_fnc_IndoorActorNativeContext',dispatch)
+        self.assertLess(dispatch.index('call CBE_fnc_IndoorActorNativeContext'),dispatch.index('call CBE_fnc_BuildingContactSelect'))
         self.assertNotIn('getPosATL _contact',s)
         for command in (' doMove ','doFollow','doTarget','doFire','setDestination'):
             self.assertNotIn(command,s)
+    def test_native_ignore_cancels_only_contact_driven_indoor_work(self):
+        admission=(ROOT/'addons/infantry/functions/indoorActorNativeContext.sqf').read_text()
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
+        self.assertIn('!((_actor targetKnowledge _contact) param [7,false,[true]])',admission)
+
+        selection=(ROOT/'addons/infantry/functions/buildingContactSelect.sqf').read_text()
+        self.assertIn('!captive _enemy',selection)
+        for text in (admission,operation,door):
+            self.assertIn('captive _contact',text)
+        for marker in ('ace_captives_isSurrendering','ace_captives_isHandcuffed'):
+            for text in (selection,admission,operation,door):
+                self.assertIn(marker,text)
+        stop=operation.index('["TARGET_IGNORED"] call _finish')
+        self.assertLess(stop,operation.index('private _phase=_brain get "phase";'))
+        self.assertIn('(_actor targetKnowledge _contact) param [7,false,[true]]',operation[:stop])
+        indoor=door.split('if ((_context select 0) == "INDOOR") exitWith {',1)[1].split('private _combatCommand=',1)[0]
+        self.assertIn('(_unit targetKnowledge _contact) param [7,false,[true]]',indoor)
+        for source in (admission,operation,door):
+            code=re.sub(r'/\*.*?\*/|//[^\n]*','',source,flags=re.S)
+            self.assertNotIn(' ignoreTarget ',code)
+
     def test_native_observation_does_not_issue_until_a_measured_stall(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         observe=s.split('if ((_admission select 0) == "OBSERVE" && {!_escalate}) exitWith {',1)[1].split('if (_escalate',1)[0]
@@ -135,20 +281,103 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertNotIn('set ["issued",true]',observe)
         for guard in ('serverTime-(_brain get "progressAt") < 12','["escalations",1]',
                       '_reserved pushBack +(_brain get "target")','currentCommand _actor == "FIRE"',
-                      'getUnitState _actor == "PLANNING"','contactRequired','vectorDistance (_brain get "progressPosition") >= 1','_admission isNotEqualTo (_brain get "admission")'):
+                      'getUnitState _actor in ["INIT","PLANNING","REPLAN"]','contactRequired','vectorDistance (_brain get "progressPosition") >= 1','_admission isNotEqualTo (_brain get "admission")'):
             self.assertIn(guard,s)
-        self.assertEqual(s.count('["deadline",_deadline]'),1)
+        self.assertEqual(s.split("_brain=createHashMapFromArray",1)[1].count('["deadline",_deadline]'),1)
+        self.assertNotIn('_brain set ["deadline",',s)
+        self.assertIn('_deadline=_deadline min _requestedDeadline',s)
+        self.assertIn('finite _requestedDeadline',s)
+        dispatch=(ROOT/'addons/infantry/functions/indoorObservationDispatch.sqf').read_text()
+        for guard in ('_expires <= _observed+20','CBE_AIPass_Epoch','select [0,16]',
+                      'select [0,4]','select [0,2]','["deadline",_expires]','["observationOnly",true]',
+                      'count _nodes <= 512','serverTime >= _expires'):
+            self.assertIn(guard,dispatch)
+        self.assertEqual(dispatch.count('setVariable ["CBE_Danger_BuildingClue",nil,true]'),1)
+        self.assertIn('["observationClue",_clue]',dispatch)
+        validation=dispatch.split('private _valid=',1)[1].split('if (!_valid)',1)[0]
+        self.assertIn('_witness isEqualType objNull',validation)
+        for obsolete in ('!isNull _witness','group _witness','local _witness','[_witness] call CBE_fnc_CortexCombatEffective'):
+            self.assertNotIn(obsolete,validation)
+        for retained in ('_expires <= _observed+20','serverTime < _expires',
+                         '_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])'):
+            self.assertIn(retained,validation)
+        roster=dispatch.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
+        self.assertIn('local _x',roster)
+        self.assertIn('CortexCombatEffective',roster)
+        self.assertIn('CortexActorMoveReserved',roster)
+        for name in ('indoorActorOperation','pointActorOperation'):
+            operation=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            available=operation.split('private _available=',1)[1].split('if (_mode',1)[0]
+            self.assertIn('unitCombatMode _actor in ["YELLOW","RED","WHITE"]',available)
+            release=operation.split('private _releaseAvailable=',1)[1].split('private _available=',1)[0]
+            self.assertNotIn('unitCombatMode',release)
+            step=operation.split('if (_mode != "STEP")',1)[1] if name=='pointActorOperation' else operation.split('if (serverTime >= (_brain get "deadline"))',1)[1]
+            self.assertIn('call _available',step)
+        def permitted(group_mode,actor_mode):
+            return group_mode in ('YELLOW','RED','WHITE') and actor_mode in ('YELLOW','RED','WHITE')
+        self.assertTrue(permitted('RED','YELLOW'))
+        self.assertTrue(permitted('YELLOW','WHITE'))
+        self.assertFalse(permitted('RED','GREEN'))
+        self.assertFalse(permitted('RED','BLUE'))
+        self.assertFalse(permitted('BLUE','RED'))
+        for candidate_source in (dispatch,(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()):
+            candidates=candidate_source.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
+            for gate in ('simulationEnabled _x','!isObjectHidden _x',
+                         'checkAIFeature "MOVE"','checkAIFeature "PATH"',
+                         'getSuppression _x < 0.5','currentWeapon _x != ""','CortexExternalOwner','unitCombatMode _x in ["YELLOW","RED","WHITE"]'):
+                self.assertIn(gate,candidates)
+            for query in ('lineIntersectsSurfaces','nearestObjects','checkVisibility'):
+                self.assertNotIn(query,candidates)
+        self.assertIn('!(behaviour _x in ["STEALTH","CARELESS"])',roster)
+        self.assertIn('(_rankedActors select [0,2])',dispatch)
+
+
+        actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        visits=actor.split('// Keep only historical physical visits',1)[1].split('CBE_IndoorActor_Result',1)[0]
+        for proof in ('== "VISITED"','== "OBSERVE"','vectorDistance (AGLToASL _target) <= 2',
+                      'isEqualTo _transform','serverTime < (_clue select 2)','count _visits < 16'):
+            self.assertIn(proof,visits)
+        self.assertNotIn('serverTime+',visits)
+        nodes=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
+        self.assertIn('count _reservedASL >= 16',nodes)
+        self.assertIn('(_history select 0) isEqualTo _clue',nodes)
+        self.assertIn('CBE_Danger_BuildingVisits",nil', (ROOT/'addons/core/functions/cortexStop.sqf').read_text())
+
+        self.assertNotIn(' doMove ',dispatch)
+        self.assertNotIn('["contact",',dispatch)
+        self.assertIn('!_observationOnly ||',s)
+        self.assertIn('CBE_AIPass_Investigate_Enable',s)
+
+        approach=s.split('if (_phase == "APPROACH") exitWith {',1)[1]
+        self.assertLess(approach.index('if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1}'),approach.index('if (serverTime-(_brain get "progressAt") >= 12)'))
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         self.assertIn('private _ownsLeg=_issued',finish)
         self.assertIn('_actor doMove waypointPosition _waypoint;',finish)
+        # A native issue may not acknowledge its new target before the next callback.
+        acknowledgement=s.split('private _awaitingMove=false;',1)[1].split('if (_phase == "APPROACH") exitWith',1)[0]
+        for guard in ('"APPROACH"','"issued",false','serverTime-_requestAt < 2',
+                      '(expectedDestination _actor) isEqualTo (_before select 1)',
+                      'formLeader _actor isEqualTo (_before select 2)',
+                      'currentCommand _actor in [_before select 0,"MOVE"]'):
+            self.assertIn(guard,acknowledgement)
+        self.assertNotIn('doMove',acknowledgement)
+        self.assertNotIn('set ["requestIssuedAt"',acknowledgement)
+        self.assertLess(s.index('_brain set ["requestIssuedAt",serverTime]'),s.index('_actor doMove _node'))
+        self.assertEqual(s.count('_brain set ["requestIssuedAt",serverTime]'),1)
+
     def test_routine_group_reposition_cannot_steal_an_actor_leg(self):
         s=(ROOT/'addons/infantry/functions/cortexTacticalReposition.sqf').read_text()
-        guard=s.index('if ((units _group) findIf {_x call _actorReserved}')
+        guard=s.index('if ((units _group) findIf {alive _x && {getUnitState _x == "PLANNING"')
         self.assertLess(s.index('call CBE_fnc_CortexRetreat'),guard)
         self.assertLess(guard,s.index('call CBE_fnc_CortexFindCover'))
         self.assertLess(guard,s.index('call CBE_fnc_CortexOwnershipLease'))
+        self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',s[guard:s.index('private _toward=',guard)])
+        task=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
+        self.assertIn('[_actor] call CBE_fnc_CortexActorMoveReserved',task)
+        self.assertIn('"HEAL"',task)
+        shared=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text()
         for marker in ('_lease isEqualTo []','finite (_lease select 2)','!_expired'):
-            self.assertIn(marker,s)
+            self.assertIn(marker,shared)
 
     def test_door_side_effect_rechecks_contact_and_higher_priority_tasks(self):
         s=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
@@ -196,6 +425,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,s)
         for forbidden in ('doMove','doFollow','getPosATL _contact','setVariable ["CBE_Operation"'):
             self.assertNotIn(forbidden,s)
+        # Availability must constrain contact choice before any roof queries, not only
+        # reject the selected contact afterward. Preserve the bounded shared selector.
+        self.assertLess(s.index('private _actors='),s.index('private _actionable='))
+        self.assertLess(s.index('private _actionable='),s.index('call CBE_fnc_BuildingContactSelect'))
+        self.assertIn('_enemies select [0,8]',s)
+        self.assertIn('_actors findIf',s)
+        self.assertIn('[_group,_actionable,_range]',s)
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         self.assertLess(tick.index('call CBE_fnc_CortexBuildingContact'),tick.index('call CBE_fnc_IndoorActorDispatch'))
         self.assertLess(tick.index('call CBE_fnc_IndoorActorDispatch'),tick.index('call CBE_fnc_CortexTacticalStart'))

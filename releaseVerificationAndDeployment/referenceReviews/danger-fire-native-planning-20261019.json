@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "fd82d6f8",
+  "scope": "Native infantry planning and suppression readiness carried through actual fire-control execution",
+  "reference": {
+    "workshopId": "1858075458",
+    "reviewCopy": ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf",
+    "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    "runtimeDependency": false,
+    "originalsModified": false
+  },
+  "finding": "Reference brainEngage refuses scripted engagement during PLANNING and requires unitReady for CANFIRE suppression. CBE cover admission preserved planning, but its fire-control roster could still inject targeting during that native phase, and suppression lacked a unitReady gate.",
+  "implementation": [
+    "Existing eligible roster excludes native PLANNING actors before close targeting and target distribution.",
+    "Existing suppression opportunity additionally requires native unitReady before ammunition scans and firing-lane queries.",
+    "No new worker, sensing, target knowledge, geometry or policy change to native enabled combat features."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/cortexFireControl.sqf": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f",
+    "docs/Smart-AI-Pass.md": "9ace736fe90d1896b9a796cba653c42a0e8eac9f6c91ddc4b20654ae88422d6a"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-fire-native-planning-hemtt.log",
+    "focused": ".qa/cbe-fire-native-planning-focused-final.log",
+    "existingTestsPassed": 607,
+    "initialFinding": "Existing coordinated suppression exact-source assertion updated to include the stronger readiness predicate, retaining close-response and held-target exclusions."
+  },
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "remaining": [
+    "Physical engagement latency, native path preservation and suppression timing are unverified.",
+    "Full standalone close-assault correspondence, depleted/singleton behaviour and stealth discipline require further call-path comparison; this narrow guard does not establish parity.",
+    "Historical .qa/workshop-comparison-20261014/WORKSHOP-COMPARISON.md is absent in this checkout; preserved LAMBS source and tracked reviews are available. Missing index is not proof that archived sources were lost."
+  ],
+  "audits": "PAUSED",
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-infantry-native-depleted-batch-final-build.log",
+    "independentVerify": ".qa/cbe-infantry-native-depleted-independent.log",
+    "manifestCommit": "fd82d6f87dda4c9d3ec45b4b35517b395c9c0cdb",
+    "manifestDirty": true,
+    "fingerprint": "df46b5f6699c2029b6481d43e535682dfdf608afa9e3a36cf2f0ab088f9dc416",
+    "tests": 1476,
+    "newTestCases": 0,
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "initialFinding": "Existing indoor ownership test expected a direct reservation call. It now traces the shared task predicate into that same reservation boundary, retaining ordering before geometry/ownership and protected task checks."
+  }
+}

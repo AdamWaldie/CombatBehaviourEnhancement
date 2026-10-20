@@ -6,7 +6,7 @@ class NativeAdmissionTests(unittest.TestCase):
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):
             source=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
-            helper=source.split('private _nativeAdmissionReady={',1)[1].split('};',1)[0]
+            helper=source.split('private _nativeAdmissionReady={',1)[1].split('\n};',1)[0]
             for marker in ('[_driver,_operator] findIf','toUpperANSI currentCommand _x','_command != ""',
                            '_command != "MOVE"','expectedDestination _x','vectorDistance _destination > 3'):
                 self.assertIn(marker,helper)
@@ -36,6 +36,55 @@ class NativeAdmissionTests(unittest.TestCase):
             text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
             self.assertLess(text.index(f'!([{actor}] call CBE_fnc_CortexActorMoveReserved)'),text.index('doStop _driver'))
             self.assertNotIn('setVariable ["CBE_Cortex_ActorMove",nil]',text)
+
+    def test_recovery_release_validates_route_and_mobility_before_any_stop(self):
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        transaction=release.split('private _released=false;',1)[1]
+        self.assertIn('isNil {',transaction)
+        self.assertLess(transaction.index('isNil {'),transaction.index('CBE_DrivingRecovery_Work'))
+        for check in ('alive _vehicle','canMove _vehicle','simulationEnabled _vehicle',
+                      '!isObjectHidden _vehicle','waypointType _waypoint == "MOVE"',
+                      '_condition == "true"','waypointScript _waypoint == ""',
+                      '(synchronizedTriggers _waypoint) isEqualTo []',
+                      '(synchronizedWaypoints _waypoint) isEqualTo []'):
+            self.assertLess(transaction.index(check),transaction.index('doStop _driver'))
+        self.assertLess(transaction.index('doStop _driver'),transaction.index('_operator doMove'))
+        self.assertIn('if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work)',transaction)
+        for forbidden in ('sleep ', 'waitUntil', 'spawn ', 'setCurrentWaypoint', 'deleteWaypoint', 'enableAI'):
+            self.assertNotIn(forbidden,transaction)
+
+    def test_recovery_holds_without_dismounted_or_disabled_follow_target(self):
+        text=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        target=text.split('private _mountedTarget=',1)[1].split('doStop _driver',1)[0]
+        for check in ('CortexCombatEffective','_leaderVehicle != _leader',
+                      '_leaderVehicle isKindOf "LandVehicle"','alive _leaderVehicle',
+                      'canMove _leaderVehicle','simulationEnabled _leaderVehicle',
+                      '!isObjectHidden _leaderVehicle'):
+            self.assertIn(check,target)
+        handback=text.split('_handback="STOP_ONLY";',1)[1].split('if ((_vehicle getVariable',1)[0]
+        gate='if (_leaderVehicle == _vehicle || {_mountedTarget}) then {'
+        for command in ('_driver doFollow _operator','_operator doFollow _leader','_operator doMove'):
+            self.assertLess(handback.index(gate),handback.index(command))
+        for outcome in ('METADATA_ONLY','STOP_ONLY','AUTHORED_ROUTE','MOUNTED_LEADER'):
+            self.assertIn(f'"{outcome}"',text)
+        self.assertIn('_work get "hardDeadline",_handback],true]',text)
+        self.assertNotIn('getIn',handback)
+        self.assertNotIn('moveIn',handback)
+
+    def test_unavailable_reverse_handback_retains_proof_and_retries_before_acquisition(self):
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        defer=release.split('if (_owned && {!_executable}) exitWith {',1)[1].split('if (_owned) then {',1)[0]
+        self.assertIn('_work set ["releasePending",true]',defer)
+        self.assertIn('"DEFERRED"',defer)
+        self.assertLess(defer.index('if !(_work getOrDefault ["releasePending",false])'),defer.index('_vehicle setVariable'))
+        for forbidden in ('nil,true','doMove','doStop','forceSpeed','serverTime+','waitAndExecute','spawn'):
+            self.assertNotIn(forbidden,defer)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        pending=assist.split('_recoveryWork getOrDefault ["releasePending",false]',1)[1].split('private _recoveryOwned=',1)[0]
+        self.assertIn('"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease',pending)
+        self.assertIn('_recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]',pending)
+        self.assertLess(assist.index('"DEFERRED_HANDBACK"'),assist.index('private _mayIssueDriving'))
+        self.assertLess(release.index('if (_owned && {!_executable}) exitWith'),release.index('doStop _driver'))
 
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')

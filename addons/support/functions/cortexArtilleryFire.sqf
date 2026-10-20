@@ -14,6 +14,7 @@
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
  * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
+ * Counter missions retain the server cancellation generation through their queued shots.
  * Return Value: Boolean, request queued or accepted.
  * Current callers: ArtilleryRequest, CounterBattery, Retreat and server mission scripts.
  * Example: [_gun, _reportedPosition, 40] call CBE_fnc_CortexArtilleryFire;
@@ -21,6 +22,11 @@
 params [["_battery", objNull, [objNull]], ["_target", [], [[]]], ["_error", 0, [0]], ["_mode", "HE", [""]],
     ["_rounds", -1, [0]], ["_scoot", -1, [0, true]], ["_purpose", "SUPPORT", [""]], ["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_requester", grpNull, [grpNull]], ["_observedAt",-1,[0]]];
 if (!isServer) exitWith {_this remoteExecCall ["CBE_fnc_CortexArtilleryFire", 2]; true};
+// Capture before planning so an off/on during admission cannot adopt the new session.
+private _fireEpochs=[missionNamespace getVariable ["CBE_Artillery_SupportFireGeneration",0],
+    missionNamespace getVariable ["CBE_Artillery_DangerFireGeneration",0],
+    missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0],
+    missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]];
 private _retreatSmoke = !isNull _requester;
 private _danger = _purpose == "DANGER";
 if (_retreatSmoke && {_mode != "SMOKE" || {_purpose != "SUPPORT"} || {!isNull _spotter}}) exitWith {false};
@@ -113,6 +119,9 @@ missionNamespace setVariable ["CBE_AIPass_FireSerial", _serial];
 private _token = format ["%1:%2", netId _battery, _serial];
 private _mission = createHashMapFromArray [
     ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
+    ["counterGeneration",_fireEpochs select 3],["shotSerial",0],
+    ["fireGeneration",_fireEpochs select (if (_counter) then {3} else {[0,1] select _danger})],
+    ["smokeGeneration",_fireEpochs select 2],
     ["spotter", _spotter], ["enemy", _enemy], ["requester",_requester], ["remaining", (round _rounds max 1) min 10], ["fired", 0], ["burstSize", (round _rounds max 1) min 10],
     ["burstsLeft", if (_mode == "SMOKE" || {_danger}) then {1} else {(round (missionNamespace getVariable ["CBE_AIPass_Artillery_Bursts", 3]) max 1) min 5}],
     ["burstsCompleted", 0], ["opening", !_danger], ["location", +_target],

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "scope": "Individual indoor investigation request acknowledgement and physical coordinate consistency",
+  "findings": [
+    "APPROACH could cancel a newly issued native doMove on its first callback while expectedDestination still held the original target. Explicit clearance already has a finite acknowledgement policy.",
+    "Investigation progress/arrival and reserved/failed node separation used ATL distances across different terrain cells, unlike existing absolute floor/body checks."
+  ],
+  "implementation": [
+    "Capture native command/full destination/form leader and original server issue time immediately before actual doMove. Wait at most2seconds only for the unchanged original state or MOVE transition; no command replay, deadline renewal, visit or cleanup rights.",
+    "Measure all investigation progress and arrival in ASL; compare preconverted reserved/failed candidate positions in ASL. Native destinations and identity receipts remain ATL.",
+    "Existing ownership, contact, ignore-target, building-transform, actor availability and deadline checks remain ahead of the acknowledgement wait."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/indoorActorOperation.sqf": "8143b8c7b5f765067bd20edfcf5d1e287c22099487207335fc0120a79d723564",
+    "addons/infantry/functions/indoorActorNodeSelect.sqf": "b30fd0d06e2e4f7b978c5ca4bef136438504471e0a14b4ed235f1a4a4122d72f"
+  },
+  "sourceIntent": "Preserve useful native indoor movement while retaining bounded failed-point observations; no upstream code imported and no addon dependency added.",
+  "focused": ".qa/cbe-indoor-ack-focused.log (31 existing cases); .qa/cbe-indoor-ack-hemtt.log",
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Native acknowledgement timing and actual repeated entry/exit remain unverified.",
+    "Read-only native positions/roof tests do not prove reachability of modded building nodes.",
+    "Full normal/actual-provider HC and measured overhead evidence remain missing."
+  ],
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-indoor-native-request-build.log",
+    "independentFingerprint": "9fd2213e824d88a6935f5d25d61489a4fc09204312ec9f077c639689ed85e3b4",
+    "manifestCommit": "86fb9f46af55aee5c45f4590c3d61351779d7377",
+    "manifestDirty": true,
+    "physicalAcceptance": false
+  }
+}

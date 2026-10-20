@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-18",
+  "scope": "Actual vehicle-owner shutdown cleanup dispatch",
+  "source": "addons/core/functions/cortexStop.sqf",
+  "sha256": "6969920f471c44eedeccc87e46b0716d2a4412d79b5950d0831f644c8c6e991b",
+  "finding": "Vehicle cleanup pass was inside isServer; local-only cap restoration skipped remote HC vehicles, but unconditional token clearing erased their public restoration proof. HC/interface owners did not execute that pass.",
+  "implementation": [
+    "Server global support/artillery bookkeeping remains server-only.",
+    "Vehicle pass executes on each machine before interface early exit and selects actual local vehicles.",
+    "Each vehicle gets a fresh locality check and its cleanup in one unscheduled block.",
+    "Existing driving/unload/safe-stop exact cap guards and receipt fields retained; no remote endpoint or recurring observer."
+  ],
+  "rejected_shortcut": "No removal of mobility/simulation gates or speculative receipt retirement to hide deferred cleanup. Whole-subsystem pending observation remains unresolved.",
+  "validation": {
+    "tests": 1143,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-shutdown-vehicle-owner-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "e566b3a8dff495ce20cc49f196ce2394ac4b17daa31300ac7599b5b1d4574f52",
+    "retained_failure": ".qa/cbe-shutdown-vehicle-owner-build.log: existing test required unrestricted forEach vehicles. Updated to local-owner loop while retaining every token-invalidation assertion and adding stronger owner/atomic/interface-scope contracts.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Actual CBA disable callback ordering across dedicated server, HC and interface vehicle owners.",
+    "Ownership transfer during shutdown/late settings delivery and repeated disable/enable.",
+    "Exact external-controller baseline and disabled-simulation deferred recovery observation.",
+    "Whole-feature acceptance and measured performance budget remain incomplete."
+  ]
+}

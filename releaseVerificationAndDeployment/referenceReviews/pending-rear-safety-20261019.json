@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-19",
+  "scope": "Rear safety during pending native destination acknowledgement",
+  "finding": "The active-reverse predicate excluded PENDING native requests. That predicate also selected rear pedestrian intent, rear-clear observation and path/damage monitoring. A native destination can start motion before acknowledgement is observed, leaving the waiting interval sampled as forward travel. Pending was also classified as expired solely because it was not an active acknowledged leg.",
+  "sourceIntent": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": "1635-1645",
+    "interpretation": "HBQ jam replan comments explicitly retain rear-looking observation while reversing. CBE retains that directional safety intent using its bounded native recovery and current ownership receipts; no push or route-authority shortcut copied."
+  },
+  "implementation": "Current owned issued REVERSE with pending acknowledgement now retains rear safety envelope, damage/path checks and negative pedestrian travel intent. Pending is not reverse expiry unless path safety rejected it. Forward retry remains vetoed by pending command state. Existing zero-cap writer consumes rear hazards. No new command, worker, query type, renewed deadline, acknowledgement or completion inference.",
+  "cost": "Existing bounded rear and pedestrian observations now also execute during the original pending acknowledgement window on the existing rear-stage cadence. No world scan outside an issued owned rear episode. Live overhead unmeasured.",
+  "validation": {
+    "focused": "642 existing tests passed .qa/cbe-pending-rear-safety-focused.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-pending-rear-safety-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-pending-rear-safety-independent.log",
+    "package": {
+      "commit": "325c9d4189dd80c21eaa74754f1259f4a5f04232",
+      "dirty": true,
+      "fingerprint": "cc96d0f3592a5083c5717f5b4a51276c84a687b59a67a34f9483a705b020d0fa",
+      "signed": false
+    }
+  },
+  "limits": "Sampling is not continuous collision prevention. Expired unresolved requests retain existing cleanup semantics. Queue leaf execution and moving-context authorization remain incomplete; automatic queue initiation remains disabled.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "96cc823861d9d62177afc0954d23ea7ebd4d7a0049aeb0000a4e320116ace169"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
+      "sha256": "5aa5459573085850a600859b78732e1db201ba9daf4ead08373eae0074bad152"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearClear.sqf",
+      "sha256": "f39f82669e827442e17beb11ea34e6fc553a984d60815ad7b7a222c4bf6f500f"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_rear_monitor.py",
+      "sha256": "eb9ce41bf980fdda9103f2998c7158727e3b88e03edca015bb9b321f8052ef93"
+    }
+  ]
+}

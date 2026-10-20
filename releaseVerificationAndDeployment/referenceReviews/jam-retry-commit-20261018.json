@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-18",
+  "scope": "Atomic existing native jam route retry; queue cascade still absent",
+  "sources": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "76a411380d1e2b61b4470073f304d2856305a55aeed671c183315f44d14468e2"
+  },
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "ranges": "1345-1515 traffic hold, moving-behind veto, obstacle backoff, JamBack/cascade and jam dwell/replan intent",
+    "intent": "Make rear room before upstream vehicle reverses; stop backing as front drives away. Source applies forced-velocity push and public unscoped back requests; neither is imported."
+  },
+  "finding": "CBE implements only bounded native route reissues; it had shared journal mutation and scheduled command/publication separation. No authenticated chain/backing executor exists.",
+  "change": "Clone prior retry journal; require current brain/epoch, route/actor admission and traffic sample<=1.5s in unscheduled retry/publication section. Successor journal or authority changes veto publication. Preserve original3attempts/20s spacing/80s deadline and15m route-progress reset.",
+  "validation": {
+    "tests": 1189,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-jam-retry-commit-verified-build.log",
+    "fingerprint": "0d043dd60662b29d2d12c6339d5ec0344e0cf139f5a1a6089450a429e7d1d000",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "initial_failure": "Added test was appended after module main sentinel causing IndentationError; moved into class, no checks removed. Initial .qa/cbe-jam-retry-commit-build.log retained.",
+    "receipt": "Parentf8f77e73 plus tracked diff/dirty Build, not signed Release."
+  },
+  "next_implementation_requirements": [
+    "Separate queue intent and role-scoped broker; do not disguise queue as a passing proposal.",
+    "Authenticate current owner acknowledgements for every participant, native orders/crew and original finite episode.",
+    "Bound participant count and rear-to-front dependencies; reject cycles, deliberate STOP/HOLD, players and foreign controller ownership.",
+    "Rear vehicle must actually reverse under fresh support/body/traffic and current native task authority; no velocity/teleport/ignore windows.",
+    "Advance dependencies from observed physical room and hand back each unchanged authored route; preserve newer orders, migration, expiry and failures."
+  ],
+  "limits": [
+    "No bilateral queue or passing parity, jam physical outcome or measured performance acceptance.",
+    "Synchronous native reentrant events and same-value external orders remain unproven.",
+    "All65 families partial; audits paused; whole HBQ and subsystem-off cleanup gaps remain."
+  ]
+}

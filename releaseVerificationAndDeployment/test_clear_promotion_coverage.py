@@ -10,7 +10,8 @@ class ClearPromotionCoverageTests(unittest.TestCase):
                        'CBE_Cortex_ClearExitWatchLocal','vectorDistance (AGLToASL _post) <= 2',
                        '<= 0.75','terrainIntersectASL','"VIEW","NONE"'):
             self.assertIn(marker,gate)
-        self.assertIn('if ((_stage param [2,""]) != "ARRIVED") exitWith {true}',gate)
+        self.assertIn('if ((_stage param [2,""]) != "ARRIVED") exitWith {',gate)
+        self.assertIn('_promotionProofs set [netId _candidate,_proof];true',gate)
         self.assertIn('_promotionViewBudget=_promotionViewBudget-1',gate)
         self.assertIn('if (_promotionViewBudget <= 0) exitWith {false}',gate)
         self.assertEqual(gate.count('lineIntersectsSurfaces'),1)
@@ -19,11 +20,30 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _replacementIndex=-1',s)
         self.assertIn('[_x] call _mayPromoteReserve',s)
-        guard=s.index('if (_replacementIndex < 0) then {continue}')
-        self.assertLess(guard,s.index('private _replacement=_reserves deleteAt _replacementIndex'))
+        guard=s.index('if (_replacementIndex < 0) then {')
+        refusal=s[guard:s.index('private _replacement=_reserves select _replacementIndex')]
+        self.assertIn('call _requestExitRelief',refusal)
+        self.assertIn('continue',refusal)
+        self.assertLess(guard,s.index('private _replacement=_reserves select _replacementIndex'))
         self.assertIn('private _promotionViewBudget=1',s)
         self.assertIn('promotionCandidateCursor',s)
         self.assertIn('!(_candidate in _reserves)',s)
+        window=s.split('// Window the full roster',1)[1].split('private _promotionProofs=',1)[0]
+        self.assertIn('(_candidateCount min 16)-1',window)
+        self.assertIn('(_observerCount min 24)-1',window)
+        self.assertIn('(_cursor+_offset) mod _candidateCount',window)
+        self.assertIn('(_cursor+1) mod _candidateCount',window)
+        self.assertNotIn('_reserves select [0,16]',window)
+        # Independent bounded-roster model: every late candidate/observer can be reached.
+        for count,limit in ((40,16),(48,24),(8,16),(1,24)):
+            seen=set()
+            for cursor in range(count):
+                batch=[(cursor+offset)%count for offset in range(min(count,limit))]
+                self.assertLessEqual(len(batch),limit)
+                self.assertEqual(len(batch),len(set(batch)))
+                seen.update(batch)
+            self.assertEqual(seen,set(range(count)))
+
         self.assertIn('_replacementIndex=_reserves find _x',s)
     def test_two_simultaneous_losses_cannot_spend_both_duplicate_observers(self):
         reserves=['a','b'];posts={'a':'exit','b':'exit'}
@@ -62,7 +82,9 @@ class ClearReserveAdmissionTests(unittest.TestCase):
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         gate=step.split('private _reserveReady=',1)[1].split('private _reserves=',1)[0]
         self.assertNotIn('private _stageCommandFree=!_stagedHere',gate)
-        self.assertIn('_command in ["","STOP"]',gate)
+        self.assertIn('_command == "" || {[_candidate] call _ownsCurrentMove}',gate)
+        self.assertIn('_stagedHere} && {_command == "STOP"}',gate)
+        self.assertIn('vectorDistance (AGLToASL _post) <= 2',gate)
         self.assertIn('call _ownsCurrentMove',gate)
         self.assertIn('(_admitted select 1) == _command',gate)
         self.assertIn('_native isEqualTo _original',gate)

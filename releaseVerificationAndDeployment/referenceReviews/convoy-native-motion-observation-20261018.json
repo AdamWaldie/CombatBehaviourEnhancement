@@ -1,0 +1,42 @@
+{
+  "baseline": "5aadd53a",
+  "scope": "native convoy stopped-state observations",
+  "source_reference": {
+    "workshop_id": "3812620045",
+    "file": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "line": 593,
+    "intent": "Obstacle marker waits for total vector motion to settle; this is not its convoy controller or angular-rest policy."
+  },
+  "official_contracts": {
+    "speed": "https://community.bistudio.com/wiki/speed",
+    "velocity": "https://community.bistudio.com/wiki/velocity",
+    "angularVelocity": "https://community.bistudio.com/wiki/angularVelocity"
+  },
+  "implementation": [
+    "finite total linear <1 km/h and angular <0.01 rad/s at native lead retry and finished leg",
+    "no steering or spacing gain change",
+    "capture-only motion vectors appended to native endpoint event",
+    "prepared normal tracked/mixed continuation checks captured full motion"
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/convoyTick.sqf": "153d05417033208f03db9efe63ed673545a3886ebc042b78692665ea4d2bdba3",
+    "releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf": "615ef19828d8f6efe100bfd955053be06fb5ceda68ddc5e8b266512c6d0d55d4"
+  },
+  "validation": {
+    "tests": 1432,
+    "sqf": 331,
+    "pbos": 9,
+    "exit": 0,
+    "independent_verify": true,
+    "log": ".qa/cbe-convoy-native-motion-final-build.log",
+    "fingerprint": "eb3a82c1f9a4defdb54bdba154ee8eebb018a2338517af772749325a87a4aab0"
+  },
+  "remaining": [
+    "eight-metre moving-goal refresh cadence",
+    "real native tracked/mixed step-off and braking",
+    "separate HC variants",
+    "5 percent median/10 percent p95 overhead acceptance"
+  ],
+  "acceptance": "offline only; no physical improvement claim"
+}

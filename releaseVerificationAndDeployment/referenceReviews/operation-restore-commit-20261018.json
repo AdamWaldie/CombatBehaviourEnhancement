@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "scope": "Operation native attack-permission restore",
+  "implementation": [
+    "Atomic exact current operation/locality/epoch and bounded roster checks",
+    "Lease consumption and unchanged-setting write in same block",
+    "Remote-controlled member exclusion"
+  ],
+  "validation": {
+    "tests": 1251,
+    "exit": 0,
+    "log": ".qa/cbe-operation-restore-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Same-value external setting edits",
+    "Danger-posture cleanup identity",
+    "Nested remote caller audit",
+    "Physical lifecycle and overhead"
+  ],
+  "acceptance": "partial"
+}

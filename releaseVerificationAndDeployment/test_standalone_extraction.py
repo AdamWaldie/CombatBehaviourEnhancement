@@ -116,6 +116,47 @@ class StandaloneExtractionContracts(unittest.TestCase):
         launcher = (ROOT / "releaseVerificationAndDeployment/launch_mod_audit.ps1").read_text(encoding="utf-8")
         self.assertIn('if ($WithZen)', launcher)
 
+    def test_curator_waypoint_edit_uses_native_group_and_id_payload(self):
+        watcher = (ROOT / "addons/core/functions/cortexZeusWatchLocal.sqf").read_text(encoding="utf-8")
+        native = watcher.split('params ["", "_group", "_waypointID"];', 1)[1]
+        group_events, array_events = native.split('} forEach ["CuratorWaypointPlaced", "CuratorWaypointEdited"];', 1)
+        self.assertIn('[_group,true,_waypointID] call CBE_fnc_CortexZeusMark', group_events)
+        self.assertIn('params ["", "_waypoint"];', array_events)
+        self.assertIn('["CuratorWaypointDeleted", "CuratorWaypointDoubleClicked"]', array_events)
+        self.assertNotIn('"CuratorWaypointEdited"', array_events)
+        self.assertNotIn('CuratorGroupSelectionChanged', watcher)
+        self.assertNotIn('CuratorObjectSelectionChanged', watcher)
+
+    def test_temporary_group_routes_preserve_non_geometric_authored_edits(self):
+        move=(ROOT/"addons/infantry/functions/cortexGroupMove.sqf").read_text(encoding="utf-8")
+        clear=(ROOT/"addons/infantry/functions/cortexGroupMoveClear.sqf").read_text(encoding="utf-8")
+        self.assertIn('["nativePolicy",[_committedRow select 3,_committedRow select [6]]]',move)
+        self.assertIn('private _scheduledPolicy=canSuspend;',move)
+        self.assertIn('if (_scheduledPolicy) then {call _readPolicy} else {_observedPolicy}',move)
+        self.assertLess(move.index('private _scheduledPolicy=canSuspend;'),move.index('private _policyUnchanged='))
+        self.assertGreaterEqual(move.count('call _policyUnchanged'),2)
+        self.assertIn('_priorPolicy isEqualTo [] || {_policy isNotEqualTo _priorPolicy}',clear)
+        self.assertLess(clear.index('_policy isNotEqualTo _priorPolicy'),clear.index('deleteWaypoint _ownedWaypoint'))
+        self.assertIn('_ownedWaypoint setWaypointDescription ""',clear)
+        receipt=(ROOT/"addons/core/functions/authoredRouteReceipt.sqf").read_text(encoding="utf-8")
+        for field in ('waypointStatements','waypointTimeout','waypointSpeed','waypointBehaviour',
+                      'waypointCombatMode','waypointFormation','waypointScript','waypointAttachedVehicle',
+                      'waypointAttachedObject','synchronizedTriggers','synchronizedWaypoints',
+                      'waypointHousePosition','waypointLoiterType','waypointForceBehaviour'):
+            self.assertIn(field,receipt)
+
+    def test_group_route_cleanup_is_atomic_and_intent_scoped(self):
+        clear=(ROOT/"addons/infantry/functions/cortexGroupMoveClear.sqf").read_text(encoding="utf-8")
+        atomic=clear.split('isNil {',1)[1].rsplit('};',1)[0]
+        for marker in ('if (!local _group) exitWith {};','private _intent =',
+                       'operationGeneration",-1]) != _operationGeneration',
+                       'CBE_Cortex_GroupMoveIntent", nil, true','deleteWaypoint _ownedWaypoint'):
+            self.assertIn(marker,atomic)
+        self.assertEqual(clear.count('deleteWaypoint'),2)  # header command documentation + exact deletion
+        self.assertNotIn('for "_index" from',clear)
+        self.assertNotIn('uiSleep',atomic)
+        self.assertNotIn('remoteExec',atomic)
+
     def test_product_boundary_is_documented(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for name in ("Dynamic AA", "Dynamic AO", "CBA_A3", "Zeus", "JIP"):

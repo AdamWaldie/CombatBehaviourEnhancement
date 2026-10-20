@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "finding": "Convoy arrival could classify sideways/vertical motion or rotation as stationary because it checked only forward speed before its five-second settlement window.",
+  "implementation": "Require finite total linear velocity below1km/h and angular velocity below0.01rad/s for every vehicle during the existing continuous settlement window. Existing route and spacing conditions retained.",
+  "scope": "Arrival classification only; catch-up, compression, contact and safety gains unchanged.",
+  "validation": {
+    "tests": 1422,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-convoy-arrival-motion-build.log",
+    "unsigned_fingerprint": "e825014e4b5168c573bfe827559c3ddd0b332efea9ed59e691e52091ab13f738",
+    "physical": false
+  },
+  "cost": "At most20 vehicles use fixed vector reads/magnitudes at existing tick; no new worker or discovery. Actual overhead unmeasured.",
+  "remaining": [
+    "Mixed tracked/wheeled stop/start and native movement remain physically unverified",
+    "Angular threshold calibration requires engine evidence",
+    "Existing spatial criteria do not establish full path/formation coherence",
+    "Audits paused"
+  ]
+}

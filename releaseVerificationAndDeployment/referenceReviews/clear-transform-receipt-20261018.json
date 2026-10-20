@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-18",
+  "scope": "Durable CQB building-transform admission and resume receipt",
+  "sources": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "912befa00f6e62da45ae9112cd33e4d6aca32cdfe053a1b0254af213a6c072c0",
+    "addons/infantry/functions/buildingOperationStep.sqf": "f9a3594669ab5c40f266fea8058107c354309e368b3481aabbf0a8668ff770fd",
+    "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf": "cf1389ef1a978b9ec84f2f41148636f37c30d302ec64755fa7eafc55cb1cc6d6"
+  },
+  "finding": "Owner resume could reuse durable visited indices without proof that the building retained their original transform. Geometry planning also recaptured the worker pose after queries.",
+  "change": "Append original transform as ClearOrder field13; refuse changed or unproven resume before shared coverage and handoff; recheck admission pose before replacement and publication; publish original pose on progress. Existing fields0..12 remain unchanged.",
+  "fixture": "Require a real original visit, exact active generation at building-only move, BUILDING_MOVED cancellation, fresh zero coverage and both actors physically inside new target volume using independent observation.",
+  "validation": {
+    "tests": 1151,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-clear-transform-receipt-final-build.log",
+    "fingerprint": "f992fa4e37b1703ccca6e15dc828e5dfb82e326222f5723bab88fea11bd1f8c7",
+    "physical": "PREPARED_NOT_RUN_AUDITS_PAUSED"
+  },
+  "retained_failures": [
+    "Initial full build: three stale payload-tail contract assertions; extended for appended transform while preserving previous indices.",
+    "Second full build: old inline proximity assertion; now requires shared independent observer and both actors."
+  ],
+  "limits": [
+    "Not demonstrated as the cause of the historical fresh-order admission failure.",
+    "Target changes after authorized task handoff do not roll back the retired previous task.",
+    "No actual-provider HC moved-resume acceptance, physical repeatability or measured runtime performance."
+  ]
+}

@@ -6,6 +6,10 @@
  * Crossing ownership includes both seat receipts. A separate same-vehicle driver rejoins only
  * its unchanged owned commander before native-route wakeup; other actors/features are untouched.
  * New individual reservations prevent movement cleanup; actor leases remain untouched.
+ * Native BACK/direct-commander/turn input also revokes path cleanup, even with unchanged destinations.
+ * Current work observation, native handback, cooldown/result and exact episode deletion share
+ * one unscheduled transaction. APPROACH rejects STOP; CROSS retains its own stop admission.
+ * No geometry/query or suspended work occurs inside the bounded retirement transaction.
  * Repeat/JIP: Retires public work once; retains a bounded 120-second context cooldown and terminal
  * diagnostic. No movement is replayed to joining clients or over a changed command/seat/route.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 group <GROUP, grpNull>; 2 reason <STRING, RELEASED>;
@@ -17,6 +21,11 @@
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
     ["_reason","RELEASED",[""]],["_resume",true,[true]],["_stopOnly",false,[true]]];
+private _retired=false;
+// At most two actors and32 cooldown rows: command retirement and metadata deletion
+// cannot suspend between reading the original work and retiring that exact episode.
+isNil {
+    _retired=call {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle} || {isNull _group} || {!local _group}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 if (count _work == 0 || {(_work getOrDefault ["group",grpNull]) != _group}) exitWith {false};
@@ -34,7 +43,10 @@ private _successor=_convoy && {_convoyConfiguration isNotEqualTo []}
 // Only the validated current executor's explicit transition may retire the previous revision.
 // Generic old cleanup cannot stop a retained successor's path; exact native receipts still apply.
 private _transition=_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"];
-private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {local _operator}
+private _pathInput=vehicleMoveInfo _vehicle;
+private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+    && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
+private _owned=_nativePathFree && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
     && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
     && {group _driver == _group} && {group _operator == _group}
     && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
@@ -57,12 +69,15 @@ private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {loc
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+        && {toUpperANSI currentCommand _actor in
+            (["","MOVE","WAIT"]+([[],["STOP"]] select ((_work getOrDefault ["phase",""]) == "CROSS")))}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
             "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
             "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
 // The owned doStop cancels fixed steering; native-ready is not a path-completion receipt.
 if (_owned && {_resume || {_stopOnly}}) then {
+    [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
     doStop _driver;
     if (_operator != _driver) then {doStop _operator};
     private _index=currentWaypoint _group;
@@ -92,3 +107,7 @@ _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
 _vehicle setVariable ["CBE_DrivingCorridor_Result",[_reason,serverTime,_work get "area",_work get "phase"],true];
 _vehicle setVariable ["CBE_DrivingCorridor_Work",nil,true];
 true
+    };
+    false
+};
+_retired

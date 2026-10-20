@@ -1,5 +1,24 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary new-bound admission rechecks main-muzzle ammunition for the surviving mover
+ * minimum and at least one cover actor. Road-exit/consolidation and coordinated roles retain
+ * their existing policy. No per-movement-sample inventory poll or forced reload is added.
+ * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
+ * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
+ * Coordinated route-refresh budgets remain in the parent, one per actor/server sequence, across reconstruction.
+ * Exact coordinated MOVE observations can migrate without command replay or acknowledgement grace. Initial admission and indistinguishable replacement
+ * STOP over an unchanged owned hold remain limits; no native command-origin identity is available.
+ * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
+ * policy ends admission rather than allowing unowned autonomous attack delegation.
+ * Progress: bound approach and physical motion use ASL3D; arrival and recovery rejoin also
+ * require the destination floor band. Recovery selects a real eligible peer, preferring its buddy,
+ * rather than an average position between floors. Legacy progress conversion retains clocks.
+ * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
+ * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
+ * Casualty roster proposals remain isolated until current drill/operation/epoch and actor-native
+ * observations pass an unscheduled publication boundary; refusal defers without renewing deadlines.
+ * Main bound cover geometry is prepared before the local write block; its native movement/cover and bound journals commit
+ * together only under unchanged point/roster/phase, owner/operation and actor-native observations.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
  * Advances a running drill (flank, bounding advance, direct assault or coordinated bound) by one step: issue a bound, wait for arrival,
@@ -7,6 +26,8 @@
  *
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
+ * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
+ * strength permits. Minimum surviving movement and cover capacity may require splitting a pair.
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
  * water or a cliff-like side slope contracts towards the bound centre rather than stranding that soldier. Ordinary
  * bounds, the final position and the assault position are snapped to cover facing the enemy
@@ -93,13 +114,14 @@
  * A casualty during movement restarts the same bound so the surviving formation cannot inherit another
  * soldier's destination.
  * Arguments:
- * 0: job <HASHMAP> - contains "group" and the matching "drillToken" (required)
+ * 0: job <HASHMAP> - current FSM-owned job with group, drillToken, ownerEpoch,
+ * operationGeneration and fsmHandle; direct reconstructed jobs have no movement authority.
  *
  * Return Value:
  * Number - seconds until the next step, or -1 when the drill ended
  *
  * Example:
- * [createHashMapFromArray [["group", _group],["drillToken",_drill get "token"]]] call CBE_fnc_CortexFlankStep;
+ * [_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap]] call CBE_fnc_CortexFlankStep;
  * Result: the element moves one stage further.
  *
  * Current caller: the finite tacticalDrill FSM launched by CBE_fnc_CortexDrillStart.
@@ -116,9 +138,27 @@ if (count _drill == 0) exitWith {-1};
 private _token = _job getOrDefault ["drillToken",""];
 if (_token == "" || {_token != (_drill getOrDefault ["token",""])}) exitWith {-1};
 private _end = {
-    [_group, _state, _this] call CBE_fnc_CortexFlankEnd;
+    [_group, _state, _this, _token] call CBE_fnc_CortexFlankEnd;
     -1
 };
+// A surviving callback is not an alternate lifecycle controller. Only the registered
+// job of this exact owner/operation/FSM may advance; an old job cannot retire a successor.
+if (_job getOrDefault ["cancelled",false]
+    || {(_group getVariable ["CBE_Cortex_DrillFSMJob",createHashMap]) isNotEqualTo _job}
+    || {(_job getOrDefault ["ownerEpoch",-1]) != (_drill getOrDefault ["ownerEpoch",-2])}
+    || {(_job getOrDefault ["operationGeneration",-1]) != (_drill getOrDefault ["operationGeneration",-2])}) exitWith {-1};
+private _executor=_job getOrDefault ["fsmHandle",-1];
+private _executorRecord=_group getVariable ["CBE_Cortex_DrillFSM",[]];
+if (count _executorRecord != 2 || {(_executorRecord select 0) != _token}
+    || {(_executorRecord select 1) isNotEqualTo _executor}) exitWith {-1};
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
+    || {completedFSM _executor}) exitWith {"FSM_EXECUTOR_ENDED" call _end};
+// A waypoint edit may leave its index and position intact. Preserve conditions,
+// scripts, attachments and synchronisation through the same frozen authored receipt.
+private _authoredOrder=_drill getOrDefault ["authoredOrder",[]];
+if (_authoredOrder isNotEqualTo [] && {
+    _authoredOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+}) exitWith {"REPLACED" call _end};
 // The generic lifecycle owns interruption and physical-progress accounting.  The drill remains
 // responsible for its own finite bound recovery, but it cannot continue after a replacement
 // order, Zeus intervention, ownership migration or external controller handover.
@@ -148,12 +188,80 @@ if (!isNull _intentTarget && {captive _intentTarget
 
 // A queued drill can run after a new direct owner appears. Recheck only at actual command
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
+// These local receipts belong to this already-validated token/epoch/generation only.
+// Checkpoints may carry acknowledged coordinated MOVE observations. No acknowledgement grace migrates.
+private _recordNativeCommand={
+    params ["_actor","_kind",["_goal",[],[[]]]];
+    private _commands=_drill getOrDefault ["nativeCommands",createHashMap];
+    private _key=netId _actor;
+    if (count _commands >= 64 && {!(_key in _commands)}) then {
+        {private _row=_commands get _x;
+            if (isNull (_row select 0) || {!alive (_row select 0)} || {group (_row select 0) != _group}) then {_commands deleteAt _x};
+        } forEach (keys _commands);
+    };
+    if (count _commands >= 64 && {!(_key in _commands)}) exitWith {_drill set ["nativeCommandsFull",true]};
+    private _previous=_commands getOrDefault [_key,[]];
+    // Only our previous covering/arrival hold can survive the short native MOVE acknowledgement.
+    private _priorHold=if (_kind == "MOVE" && {count _previous == 7} && {(_previous select 1) == "HOLD"}) then {
+        _previous select [0,4]
+    } else {[]};
+    _commands set [_key,[_actor,_kind,+(expectedDestination _actor),formLeader _actor,serverTime+2,_priorHold,+_goal]];
+    _drill set ["nativeCommands",_commands];
+};
+// One refresh per actor/server bound survives child reconstruction. This shares the
+// parent operation, not a second retry controller; standalone policy is unchanged.
+private _supportRetryAvailable={
+    params ["_retryActor"];
+    if ((_drill getOrDefault ["supportToken",""]) == "") exitWith {true};
+    private _retryParent=_group getVariable ["CBE_Operation",createHashMap];
+    private _budget=_retryParent getOrDefault ["boundRetryAttempts",createHashMap];
+    if (!(_budget isEqualType createHashMap) || {count _budget > 64}
+        || {count _budget >= 64 && {!(netId _retryActor in _budget)}}) exitWith {false};
+    if (!(netId _retryActor in _budget)) exitWith {true};
+    private _used=_budget get (netId _retryActor);
+    _used isEqualType [] && {count _used == 2}
+        && {_used findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} < 0}
+        && {(_used select 0) < (_drill get "supportSequence") || {
+            (_used select 0) == (_drill get "supportSequence") && {(_used select 1) < 1}
+        }}
+};
+private _nativeCommandAvailable={
+    params ["_actor"];
+    private _command=currentCommand _actor;
+    if !(_command in ["STOP","MOVE"]) exitWith {true};
+    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
+    // Natural starts preflight STOP and may transfer only exact completed CBE holds.
+    // Coordinated and resumed starts transfer only their exact separately validated HOLD proof.
+    if (_row isEqualTo []) exitWith {
+        !(_drill getOrDefault ["nativeCommandsFull",false])
+            && {_command != "STOP" || {!(_drill getOrDefault ["nativeAdmissionChecked",false])}}
+    };
+    if (count _row != 7 || {(_row select 0) != _actor}) exitWith {false};
+    private _native=expectedDestination _actor;
+    private _acknowledging=serverTime <= (_row select 4);
+    if (_command == "MOVE") exitWith {
+        private _position=_native param [0,[],[[]]];
+        private _goal=_row select 6;
+        private _owned=(_row select 1) == "MOVE" && {count _position == 3} && {count _goal == 3}
+            && {_position vectorDistance _goal <= 0.25};
+        // Native command/destination acknowledgement may lag our admitted write. Only the
+        // unchanged sampled native receipt can bridge that original two-second interval.
+        (_owned || {_acknowledging && {_native isEqualTo (_row select 2)}})
+            && {formLeader _actor == (_row select 3)}
+    };
+    private _hold=if ((_row select 1) == "HOLD") then {_row select [0,4]} else {
+        if (_acknowledging) then {_row select 5} else {[]}
+    };
+    count _hold == 4 && {(_hold select 0) == _actor} && {(_hold select 1) == "HOLD"}
+        && {_native isEqualTo (_hold select 2)
+            || {(_row select 1) == "MOVE" && {_native isEqualTo (_row select 2)}}}
+        && {formLeader _actor == (_hold select 3)
+            || {(_row select 1) == "MOVE" && {formLeader _actor == (_row select 3)}}}
+};
 private _actorTaskFree={
     params ["_actor"];
-    private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-        && {(_reservation param [2,1e12,[0]]) <= time}};
-    _free && {[_actor] call CBE_fnc_CortexCombatEffective}
+    private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
+    _free && {[_actor] call _nativeCommandAvailable} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
@@ -163,29 +271,32 @@ private _actorTaskFree={
 private _mayIssueMovement = {
     params ["_actor"];
     !([_group] call CBE_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
+        && {(_drill getOrDefault ["supportToken",""]) == "" || {
+            serverTime < (_drill getOrDefault ["supportDeadline",-1])
+                && {(_drill getOrDefault ["supportClock",[]]) isEqualTo
+                    (_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]])}
+        }}
 };
+// The original server clock caps every child/owner lifetime. A transient missing
+// or successor receipt suspends new commands without renewing this finite deadline.
+private _supportExpired=false;private _supportAwaitClock=false;
+if ((_drill getOrDefault ["supportToken",""]) != "") then {
+    private _supportUntil=_drill getOrDefault ["supportDeadline",-1];
+    _supportExpired=!(_supportUntil isEqualType 0) || {!finite _supportUntil} || {serverTime >= _supportUntil};
+    _supportAwaitClock=(_drill getOrDefault ["supportClock",[]]) isNotEqualTo
+        (_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]]);
+};
+if (_supportExpired) exitWith {"TIME_LIMIT" call _end};
+if (_supportAwaitClock) exitWith {_drill set ["lastStep",time];0.25};
 // A committed bound owns movement, not weapon aiming. Prevent the native leader from
 // delegating a competing ATTACK route while TARGET/AUTOTARGET/FIREWEAPON remain untouched.
 // The common operation consumes this exact-value lease on release; an external policy edit
 // ends the drill rather than being forced back on every callback.
 private _movementOperation=_group getVariable ["CBE_Operation",createHashMap];
 if (_operationGeneration >= 0 && {(_movementOperation getOrDefault ["generation",-1]) == _operationGeneration}) then {
-    private _restore=_movementOperation getOrDefault ["restore",createHashMap];
-    private _attackLease=_restore getOrDefault ["groupAttack",[]];
-    if (_attackLease isEqualTo []) then {
-        private _delegates=units _group;
-        if (count _delegates <= 64 && {_delegates findIf {
-            isPlayer _x || {!isNull remoteControlled _x}
-                || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
-                || {[_x] call CBE_fnc_CompatibilityExternalControl}
-        } < 0}) then {
-            _restore set ["groupAttack",[attackEnabled _group,false]];
-            _movementOperation set ["restore",_restore];
-            _group setVariable ["CBE_Operation",_movementOperation,true];
-            _group enableAttack false;
-        };
-    } else {
-        if (attackEnabled _group != (_attackLease select 1)) then {_operationEndReason="ATTACK_POLICY_CHANGED"};
+    private _policy=[_group,_movementOperation,false] call CBE_fnc_OperationAttackPolicy;
+    if !(_policy in ["ACQUIRED","OWNED"]) then {
+        _operationEndReason=if (_policy == "POLICY_CHANGED") then {"ATTACK_POLICY_CHANGED"} else {"ATTACK_POLICY_REFUSED"};
     };
 };
 if (_operationEndReason != "") exitWith {_operationEndReason call _end};
@@ -241,28 +352,58 @@ if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}
 // There is no casualty event handler or per-unit scheduler. A change during a live bound restarts
 // that bound from the same route point so spot indexes cannot drift after a casualty.
 private _ownedPathUnits=(_drill getOrDefault ["disabled",[]]) select {(_x select 1) == "PATH"} apply {_x select 0};
-private _unavailable=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]];
+private _rosterEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _unavailable=+((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]]);
+private _entryTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+private _entryUnits=+(_drill get "units");
+private _entryPhase=[_drill getOrDefault ["stage",""],_drill getOrDefault ["index",0],_drill getOrDefault ["teamTurn",0]];
 private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call CBE_fnc_CortexCombatEffective && {local _x}
     && {isNull objectParent _x} && {group _x == _group} && {_x checkAIFeature "MOVE"}
     && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}} && {[_x] call _actorTaskFree}};
-private _teams=_drill getOrDefault ["teams",[]];
+private _rosterNative=_fitSquad apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+private _teams=_entryTeams apply {+_x};
 private _desiredStrength=_drill getOrDefault ["desiredStrength",count (_drill get "units")];
 private _reinforcements=[];
+// Prefer an orphan over breaking a surviving buddy pair. If only intact pairs remain,
+// transfer a whole pair when the donor can retain its required cover; otherwise surviving
+// movement/cover capacity takes priority over cohesion. Selection never issues actor commands.
+private _buddyPairs=_group getVariable ["CBE_CombatPairs",[]];
+if !(_buddyPairs isEqualType []) then {_buddyPairs=[]};
+_buddyPairs=_buddyPairs select [0,16];
+private _selectRelief={
+    params ["_donors","_keep"];
+    if (count _donors <= _keep) exitWith {[]};
+    private _intact=[];
+    private _paired=[];
+    {
+        if (_x isEqualType [] && {count _x == 2}
+            && {(_x select 0) != (_x select 1)}
+            && {_x findIf {!(_x in _donors) || {_x in _paired}} < 0}) then {
+            _intact pushBack _x;
+            _paired append _x;
+        };
+    } forEach _buddyPairs;
+    private _orphan=_donors findIf {!(_x in _paired)};
+    if (_orphan >= 0) exitWith {[_donors select _orphan]};
+    if (count _donors-_keep >= 2 && {_intact isNotEqualTo []}) exitWith {+(_intact select 0)};
+    [_donors select ((count _donors)-1)]
+};
 private _rankCandidates={
     params ["_candidates"];
     // Reserve selection must honour finite actor tasks before the drill mutates its own roster;
     // the later shared operation roster check cannot undo a carrier already added to a fire team.
+    // These are unassigned replacements, so no current drill cover/arrival hold grants a STOP override.
     _candidates=_candidates select {
         private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
-        _reservationFree
+        _reservationFree && {currentCommand _x != "STOP"}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
     private _rifles=_candidates select {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
-    private _support=_candidates select {!(_x in _rifles) && {_x != _anchor}};
-    _rifles+_support+(_candidates select {_x == _anchor})
+    private _supportRoles=_candidates select {!(_x in _rifles) && {_x != _anchor}};
+    _rifles+_supportRoles+(_candidates select {_x == _anchor})
 };
 private _units=[];
 if (_teams isEqualTo []) then {
@@ -292,20 +433,59 @@ if (_teams isEqualTo []) then {
         private _first=_teams select 0;
         private _second=_teams select 1;
         if (count _first < 2 && {count _second > 2}) then {
-            private _replacement=_second deleteAt ((count _second)-1);
-            _first pushBack _replacement;
-            _reinforcements pushBack ["TEAM_1_REBALANCE",netId _replacement];
+            {
+                private _replacement=_x;
+                _second deleteAt (_second find _replacement);
+                _first pushBack _replacement;
+                _reinforcements pushBack ["TEAM_1_REBALANCE",netId _replacement];
+            } forEach ([_second,2] call _selectRelief);
         };
         if (count _second < 2 && {count _first > 2}) then {
-            private _replacement=_first deleteAt ((count _first)-1);
-            _second pushBack _replacement;
-            _reinforcements pushBack ["TEAM_2_REBALANCE",netId _replacement];
+            {
+                private _replacement=_x;
+                _first deleteAt (_first find _replacement);
+                _second pushBack _replacement;
+                _reinforcements pushBack ["TEAM_2_REBALANCE",netId _replacement];
+            } forEach ([_first,2] call _selectRelief);
         };
     };
     {_units append _x} forEach _teams;
     _units=_units arrayIntersect _units;
-    _drill set ["teams",_teams];
 };
+// Candidate selection prepares private arrays before local publication. Do not publish a roster,
+// transition or replacement history through a superseded task/native actor observation.
+private _rosterCommitted=false;
+isNil {
+    private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+    private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+    if (!local _group || {_rosterEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+        || {(_liveDrill getOrDefault ["teams",[]]) isNotEqualTo _entryTeams}
+        || {(_liveDrill getOrDefault ["units",[]]) isNotEqualTo _entryUnits}
+        || {[_liveDrill getOrDefault ["stage",""],_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _entryPhase}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {[] call CBE_fnc_CortexIsPaused}
+        || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+        || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {
+            (_liveState getOrDefault ["phase",""]) != "CONTACT"
+        }}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}
+        || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+        || {_operationGeneration >= 0 && {
+            (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _rosterEpoch}
+                || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+                || {(_liveOperation getOrDefault ["unavailable",[]]) isNotEqualTo _unavailable}
+        }}
+        || {_units findIf {!([_x] call _actorTaskFree) || {!(_x checkAIFeature "MOVE")}
+            || {!(_x checkAIFeature "PATH") && {!(_x in _ownedPathUnits)}}} >= 0}
+        || {_rosterNative findIf {
+            _x params ["_actor","_command","_destination","_leader"];
+            currentCommand _actor != _command || {(expectedDestination _actor) isNotEqualTo _destination}
+                || {formLeader _actor != _leader}
+        } >= 0}) exitWith {};
+_drill set ["teams",_teams];
 _drill set ["units",_units];
 if (_operationGeneration >= 0) then {
     // The drill's live units are the desired operation participants, not an exclusion list. Passing
@@ -328,64 +508,163 @@ if (_reinforcements isNotEqualTo []) then {
         _drill set ["boundStart",time];
     };
 };
+_rosterCommitted=true;
+};
+// Reconsider from fresh observations without recalling actors, releasing a successor or
+// renewing progress/deadlines. A replaced token retires at the next normal callback entry.
+if (!_rosterCommitted) exitWith {0.25};
+// Shared admission for small no-geometry helper transactions. The original callback
+// token/epoch and parent operation must still own this current state and feature.
+private _helperCurrent={
+    private _currentState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _currentDrill=_currentState getOrDefault ["drill",createHashMap];
+    private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {_rosterEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_currentState isEqualTo _state} && {(_currentDrill getOrDefault ["token",""]) == _token}
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+        && {!([] call CBE_fnc_CortexIsPaused)}
+        && {[_group,_gate,true] call CBE_fnc_CortexFeatureEnabled}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {if (_support) then {
+            _currentState getOrDefault ["assaulting",false]
+                && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _supportRole}
+        } else {(_currentState getOrDefault ["phase",""]) == "CONTACT"}}
+        && {_operationGeneration < 0 || {
+            (_currentOperation getOrDefault ["generation",-2]) == _operationGeneration
+                && {(_currentOperation getOrDefault ["ownerEpoch",-1]) == _rosterEpoch}
+                && {(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"}
+        }}
+};
 // Two ordinary survivors can still alternate a covered movement pair. Loss of half the
 // original roster alone is not a reason to discard their committed route; morale owns retreat.
 // Reserved multi-squad roles retain their existing three-person admission contract.
 private _minimumStrength=[2,3] select _support;
 if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
-private _minimumMovers=[2,1] select (!_support && {count _units == 2});
+// A three-person coordinated responder admits a 2+1 partition. Once the first
+// element has arrived, the singleton follows under its two-person cover. Do not
+// steal a soldier back out of that arrived pair merely to make the follow team two.
+private _movingMinimum={
+    params ["_total"];
+    private _singletonFollow=_support && {_total == 3}
+        && {(_drill getOrDefault ["teamTurn",0]) == 1}
+        && {count _teams == 2} && {count (_teams select 0) == 2} && {count (_teams select 1) == 1};
+    [2,1] select ((!_support && {_total == 2}) || {_singletonFollow})
+};
+private _minimumMovers=[count _units] call _movingMinimum;
 // Recovery stays in this existing bounded group job; no per-soldier loop is spawned.
-private _recovery = (_drill getOrDefault ["recovery",[]]) select {(_x select 0) in _units};
+private _recoveryEntry=(_drill getOrDefault ["recovery",[]]) apply {+_x};
+private _recoveryIdentity=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
+private _recovery = (_recoveryEntry select {(_x select 0) in _units}) apply {+_x};
+private _recoveryCurrent={
+    call _helperCurrent
+        && {(_drill getOrDefault ["recovery",[]]) isEqualTo _recoveryEntry}
+        && {[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _recoveryIdentity}
+};
+private _recoveryDeferred=false;
 private _recovering = _recovery apply {_x select 0};
 private _main = _units - _recovering;
 private _rejoined = [];
+private _rejoinWitnesses=[];
 if (_main isNotEqualTo []) then {
     {
         _x params ["_actor","_attempts","_next"];
+        private _recoveryNative=[currentCommand _actor,+(expectedDestination _actor),formLeader _actor];
         // Rejoin this actor's element, not the empty space between separated bounds.
         private _peers = _main;
         private _teamIndex = _teams findIf {_actor in _x};
         if (_teamIndex >= 0) then {_peers = (_teams select _teamIndex) select {_x in _main}};
-        private _rally = getPosATL ([_group] call CBE_fnc_CortexGroupAnchor);
+        private _rallyActor=[_group] call CBE_fnc_CortexGroupAnchor;
+        private _rally = getPosATL _rallyActor;
         if (_peers isNotEqualTo []) then {
-            _rally = [0,0,0];
-            {_rally = _rally vectorAdd getPosATL _x} forEach _peers;
-            _rally = _rally vectorMultiply (1/count _peers);
+            // A centroid across floors may be empty air. Recover toward an actual
+            // eligible teammate, preferring the surviving buddy in this fire team.
+            private _buddy=objNull;
+            {
+                if (!isNull _buddy) exitWith {};
+                if (_x isEqualType [] && {_actor in _x}) then {
+                    private _partners=_x select {_x != _actor && {_x in _peers}};
+                    if (_partners isNotEqualTo []) exitWith {_buddy=_partners select 0};
+                };
+            } forEach _buddyPairs;
+            if (isNull _buddy) then {
+                private _nearest=1e12;
+                {
+                    private _distance=(getPosASL _actor) vectorDistance (getPosASL _x);
+                    if (_distance < _nearest) then {_nearest=_distance;_buddy=_x};
+                } forEach _peers;
+            };
+            _rallyActor=_buddy;
+            _rally=getPosATL _buddy;
         };
-        if (_actor distance2D _rally <= 12 && {_actor checkAIFeature "PATH"}
+        private _rallyASL=ATLToASL _rally;
+        if ((getPosASL _actor) vectorDistance _rallyASL <= 12
+            && {abs (((getPosASL _actor) select 2)-(_rallyASL select 2)) <= 1.5} && {_actor checkAIFeature "PATH"}
             && {_actor checkAIFeature "MOVE"} && {(_drill getOrDefault ["stage",""]) != "MOVE"}) then {
-            _rejoined pushBack _actor;
+            _rejoinWitnesses pushBack [_actor,_rallyActor];
         } else {
             if (time >= _next && {_attempts < 1} && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}) then {
                 // Recovery owns only movement. Preserve the actor's current target so a
                 // separated soldier can fight while closing on the correct fire team.
-                private _recoveryResult="YIELDED";
-                if (_operationGeneration >= 0) then {
-                    _recoveryResult=[_group,_operationGeneration,_actor,_rally] call CBE_fnc_RecoveryStep;
-                } else {
-                    if ([_actor] call _mayIssueMovement) then {
-                        _actor doMove _rally;
-                        _recoveryResult="RECOVERING";
+                isNil {
+                    if (!(call _recoveryCurrent)
+                        || {!([_actor] call _mayIssueMovement)}
+                        || {[currentCommand _actor,expectedDestination _actor,formLeader _actor] isNotEqualTo _recoveryNative}) exitWith {_recoveryDeferred=true};
+                    private _recoveryResult="YIELDED";
+                    if (_operationGeneration >= 0) then {
+                        _recoveryResult=[_group,_operationGeneration,_actor,_rally] call CBE_fnc_RecoveryStep;
+                    } else {
+                        if ([_actor] call _mayIssueMovement) then {
+                            _actor doMove _rally;
+                            _recoveryResult="RECOVERING";
+                        };
                     };
-                };
-                // Refused movement is not an issued attempt. Preserve the retry budget
-                // while another finite task owns this actor; the remaining element continues.
-                switch (_recoveryResult) do {
-                    case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
-                    case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
-                    default {_x set [2,time+2]};
+                    if (_recoveryResult == "RECOVERING") then {[_actor,"MOVE",_rally] call _recordNativeCommand};
+                    // Refused movement is not an issued attempt. Preserve the retry budget
+                    // while another finite task owns this actor; the remaining element continues.
+                    switch (_recoveryResult) do {
+                        case "RECOVERING": {_x set [1,_attempts+1]; _x set [2,time+8]};
+                        case "EXHAUSTED": {_x set [1,1]; _x set [2,time]};
+                        default {_x set [2,time+2]};
+                    };
+                    // Persist this exact attempt with its command, even if a later actor
+                    // or the final roster publication must yield. Never refund an issued move.
+                    private _retryRecord=+_x;
+                    private _retryIndex=_recoveryEntry findIf {(_x select 0) == _actor};
+                    _recoveryEntry set [_retryIndex,_retryRecord];
+                    _drill set ["recovery",_recoveryEntry apply {+_x}];
                 };
             };
         };
     } forEach _recovery;
 };
-_recovery = _recovery select {!((_x select 0) in _rejoined)};
-_drill set ["recovery",_recovery];
-_recovering = _recovery apply {_x select 0};
-private _recoverySnapshot = [["NONE","REJOINING"] select (_recovering isNotEqualTo []),_recovering,_drill getOrDefault ["index",-1]];
-if (_recoverySnapshot isNotEqualTo (_group getVariable ["CBE_Cortex_DrillRecovery",[]])) then {
-    _group setVariable ["CBE_Cortex_DrillRecovery",_recoverySnapshot,true];
+private _recoveryPublished=false;
+isNil {
+    if (_recoveryDeferred || {!(call _recoveryCurrent)}) exitWith {};
+    // A moving/dead/transferred peer cannot prove present cohesion at a stale rally.
+    _rejoined=(_rejoinWitnesses select {
+        _x params ["_actor","_peer"];
+        private _pose=getPosASL _actor;
+        private _peerPose=getPosASL _peer;
+        !isNull _peer && {local _actor} && {local _peer}
+            && {group _actor == _group} && {group _peer == _group}
+            && {_peer in _main} && {isNull objectParent _actor} && {isNull objectParent _peer}
+            && {[_actor] call CBE_fnc_CortexCombatEffective} && {[_peer] call CBE_fnc_CortexCombatEffective}
+            && {[_actor] call _actorTaskFree} && {[_peer] call _actorTaskFree}
+            && {_actor checkAIFeature "PATH"} && {_actor checkAIFeature "MOVE"}
+            && {(_drill getOrDefault ["stage",""]) != "MOVE"}
+            && {_pose vectorDistance _peerPose <= 12}
+            && {abs ((_pose select 2)-(_peerPose select 2)) <= 1.5}
+    }) apply {_x select 0};
+    _recovery = _recovery select {!((_x select 0) in _rejoined)};
+    _drill set ["recovery",_recovery];
+    _recovering = _recovery apply {_x select 0};
+    private _recoverySnapshot = [["NONE","REJOINING"] select (_recovering isNotEqualTo []),_recovering,_drill getOrDefault ["index",-1]];
+    if (_recoverySnapshot isNotEqualTo (_group getVariable ["CBE_Cortex_DrillRecovery",[]])) then {
+        _group setVariable ["CBE_Cortex_DrillRecovery",_recoverySnapshot,true];
+    };
+    _recoveryPublished=true;
 };
+if (!_recoveryPublished) exitWith {0.25};
 _units = _units - _recovering;
 // Validate the actual moving element after recovery actors have been removed. The earlier
 // squad-wide strength gate cannot prevent a two-person team becoming a one-man assault.
@@ -393,8 +672,17 @@ _units = _units - _recovering;
 // Never wait for a recovery actor which does not exist.
 private _waitForTeam=false;
 private _teamRecoveryFailed=false;
+private _teamDeferred=false;
 private _ensureMovingTeam={
     params ["_turn","_available"];
+    private _answer=[[],[]];
+    private _committed=false;
+    isNil {
+    if (!(call _helperCurrent)
+        || {_turn != (_drill getOrDefault ["teamTurn",0])}
+        || {_teams isNotEqualTo (_drill getOrDefault ["teams",[]])}
+        || {_available findIf {!([_x] call _actorTaskFree) || {!(_x checkAIFeature "MOVE")}
+            || {!(_x checkAIFeature "PATH") && {!(_x in _ownedPathUnits)}}} >= 0}) exitWith {};
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
@@ -411,10 +699,13 @@ private _ensureMovingTeam={
         };
     };
     while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
-        private _replacement=_coverAvailable deleteAt ((count _coverAvailable)-1);
-        (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _replacement);
-        (_teams select _turn) pushBack _replacement;
-        _movingAvailable pushBack _replacement;
+        private _relief=[_coverAvailable,1] call _selectRelief;
+        {
+            _coverAvailable deleteAt (_coverAvailable find _x);
+            (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _x);
+            (_teams select _turn) pushBack _x;
+            _movingAvailable pushBack _x;
+        } forEach _relief;
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
             // Membership changed: rebuild slots for this same committed bound before indexing them.
@@ -423,11 +714,15 @@ private _ensureMovingTeam={
         };
         private _history=_group getVariable ["CBE_Cortex_DrillReinforcements",[]];
         _history pushBack [serverTime,_drill getOrDefault ["type",""],_drill getOrDefault ["index",-1],
-            [[format ["TEAM_%1_RECOVERY",_turn+1],netId _replacement]]];
+            _relief apply {[format ["TEAM_%1_RECOVERY",_turn+1],netId _x]}];
         if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
         _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     };
-    [_movingAvailable,_coverAvailable]
+    _answer=[_movingAvailable,_coverAvailable];
+    _committed=true;
+    };
+    if (!_committed) then {_teamDeferred=true};
+    _answer
 };
 if (_teams isNotEqualTo []) then {
     private _turn=_drill getOrDefault ["teamTurn",0];
@@ -441,6 +736,7 @@ if (_teams isNotEqualTo []) then {
         if (_exhausted) then {_teamRecoveryFailed=true} else {_waitForTeam=true};
     };
 };
+if (_teamDeferred) exitWith {0.25};
 if (_teamRecoveryFailed) exitWith {"RECOVERY_FAILED" call _end};
 if (_waitForTeam) exitWith {1.5};
 if (count _units < 2) exitWith {"RECOVERY_FAILED" call _end};
@@ -467,6 +763,9 @@ if (_units isEqualTo [] || {_teams isNotEqualTo [] && {count (_fit - _units) == 
 private _points = _drill get "points";
 private _now = time;
 private _restoreFeatures = {
+    private _restored=false;
+    isNil {
+    if !(call _helperCurrent) exitWith {};
     private _stillRecovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
     private _keptBehaviours = [];
     {
@@ -496,9 +795,14 @@ private _restoreFeatures = {
         };
     } forEach (_drill get "disabled");
     _drill set ["disabled", _kept];
+    _restored=true;
+    };
+    _restored
 };
 private _issue = {
-    [] call _restoreFeatures;
+    // PAUSE can change teamTurn in this callback; derive the new turn minimum now.
+    _minimumMovers=[count _fit] call _movingMinimum;
+    if !([] call _restoreFeatures) exitWith {_result=0.25};
     private _viable=true;
     if (_teams isNotEqualTo []) then {
         // PAUSE can swap the team inside this same callback. Rebalance the newly selected
@@ -507,8 +811,28 @@ private _issue = {
         _units=_roster select 0;
         _viable=count _units >= _minimumMovers && {count (_roster select 1) >= 1};
     };
+    if (_teamDeferred) exitWith {_result=0.25};
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
+    // Check ammunition only at the next bound, not every movement sample.
+    // Finishing a road crossing or consolidating must not strand dry actors in place.
+    // Coordinated dispatch capacity cannot replace this current local team check.
+    if (!(_kind in ["CROSS_FAR","CONSOLIDATE"])) then {
+        private _armedMovers={unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _units;
+        private _coverCandidates=if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units};
+        private _armedCover=_coverCandidates findIf {unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} >= 0;
+        if (_armedMovers < _minimumMovers || {!_armedCover}) then {_viable=false};
+    };
+    if (!_viable) exitWith {_result="FIRE_CAPACITY_LOST" call _end};
+    _point=+_point;
+    private _issueEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+    private _issuePhase=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
+    private _issueTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+    private _issueUnits=+(_drill get "units");
+    private _issueNative=_fit apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+    private _planned=[];
     private _direction = if (_kind in ["ASSAULT","CLEAR","CONSOLIDATE"]) then {_drill get "assaultDirection"} else {_point getDir _enemyPos};
     private _spots = [];
     // Retain only still-owned recovery overrides across the main element's next bound.
@@ -516,27 +840,8 @@ private _issue = {
     private _disabled = +(_drill get "disabled");
     private _combatModes = +(_drill getOrDefault ["combatModes",[]]);
     private _combatBehaviours = +(_drill getOrDefault ["combatBehaviours",[]]);
-    if (_teams isNotEqualTo []) then {
-        {
-            // Cover is a movement command too. A specialist or newer actor task may
-            // have claimed this soldier since the roster was selected.
-            if ([_x] call _mayIssueMovement) then {
-                doStop _x;
-                _x doWatch _enemyPos;
-            };
-        } forEach (_fit - _units);
-    };
     {
         private _unit = _x;
-        // Release only Cortex's matching cover stance when this soldier starts moving.
-        // A later mission-maker or Zeus stance remains authoritative.
-        if ([_unit] call _mayIssueMovement
-            && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
-            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
-            _unit setUnitPos "AUTO";
-            _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
-            _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
-        };
         private _spacing = [5, 3] select (_kind == "CLEAR");
         private _lateral = (_forEachIndex - (count _units - 1) / 2) * _spacing;
         // Tactical bounds form a shallow threat-facing line. Copying the group's
@@ -567,6 +872,62 @@ private _issue = {
             };
         };
         _spots pushBack _spot;
+        _planned pushBack [_unit,+_spot];
+    } forEach _units;
+    // Geometry is prepared above the local commit. Native writes and their journals commit only while
+    // the same drill point, roster and observed actor tasks still own this entire bound.
+    private _issued=false;
+    isNil {
+        private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+        private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+        private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+        if (!local _group || {_issueEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+            || {[_liveDrill getOrDefault ["stage",""],_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _issuePhase}
+            || {(_liveDrill getOrDefault ["teams",[]]) isNotEqualTo _issueTeams}
+            || {(_liveDrill getOrDefault ["units",[]]) isNotEqualTo _issueUnits}
+            || {((_liveDrill getOrDefault ["points",[]]) param [_issuePhase select 1,[]]) isNotEqualTo [_point,_kind]}
+            || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+            || {[] call CBE_fnc_CortexIsPaused}
+            || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+            || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {
+                (_liveState getOrDefault ["phase",""]) != "CONTACT"
+            }}
+            || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+            || {[_group] call CBE_fnc_CortexExternalTakeover}
+            || {_operationGeneration >= 0 && {
+                (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                    || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _issueEpoch}
+                    || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+            }}
+            || {_issueNative findIf {
+                _x params ["_actor","_command","_destination","_leader"];
+                !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                    || {(expectedDestination _actor) isNotEqualTo _destination}
+                    || {formLeader _actor != _leader}
+            } >= 0}) exitWith {};
+    if (_teams isNotEqualTo []) then {
+        {
+            // Cover is a movement command too. A specialist or newer actor task may
+            // have claimed this soldier since the roster was selected.
+            if ([_x] call _mayIssueMovement) then {
+                doStop _x;
+                [_x,"HOLD"] call _recordNativeCommand;
+                _x doWatch _enemyPos;
+            };
+        } forEach (_fit - _units);
+    };
+    {
+        _x params ["_unit","_spot"];
+        // Release only Cortex's matching cover stance when this soldier starts moving.
+        // A later mission-maker or Zeus stance remains authoritative.
+        if ([_unit] call _mayIssueMovement
+            && {_unit getVariable ["CBE_AIPass_StanceSet",false]}
+            && {toUpperANSI (unitPos _unit) == (_unit getVariable ["CBE_Cortex_AppliedStance",""])}) then {
+            _unit setUnitPos "AUTO";
+            _unit setVariable ["CBE_AIPass_StanceSet",nil,true];
+            _unit setVariable ["CBE_Cortex_AppliedStance",nil,true];
+        };
         // Preserve native target acquisition, autonomous combat and the actor's current behaviour.
         // CBE commits a route and role but leaves moment-to-moment combat to the engine.
         // Do not issue doFollow or setDestination: either can create a second movement owner.
@@ -590,8 +951,13 @@ private _issue = {
             };
             _unit setVariable ["CBE_Cortex_FireTarget",nil];
             if ([_unit] call _mayIssueMovement) then {
-                _unit doWatch _enemyPos;
-                _unit doMove _spot;
+                // A transferred exact native leg continues in the engine. Observing it grants
+                // neither another doMove nor a fresh command-acknowledgement interval.
+                if !(_unit in (_drill getOrDefault ["resumeNativeMoves",[]])) then {
+                    _unit doWatch _enemyPos;
+                    _unit doMove _spot;
+                    [_unit,"MOVE",_spot] call _recordNativeCommand;
+                };
             };
             // Keep a bounded pre-command record; native aiming remains untouched.
             private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
@@ -600,7 +966,7 @@ private _issue = {
                 _drill set ["movementHandoffs",_handoffs];
             };
         };
-    } forEach _units;
+    } forEach _planned;
     private _waypointIndex = currentWaypoint _group;
     private _waypointSnapshot = [];
     if (_waypointIndex < count waypoints _group) then {
@@ -614,14 +980,40 @@ private _issue = {
     _drill set ["movers", +_units];
     _drill set ["arrivedUnits",[]];
     private _progress = [];
-    {_progress pushBack [_x distance2D (_spots select _forEachIndex),_now,getPosATL _x,_now]} forEach _units;
+    {
+        private _actor=_x;
+        private _savedProgress=(_drill getOrDefault ["resumeProgress",[]]) select {(_x select 0) == _actor};
+        private _distanceClock=_now; private _motionClock=_now;
+        private _distance=(getPosASL _actor) vectorDistance (ATLToASL (_spots select _forEachIndex));
+        private _lastPose=getPosASL _actor;
+        if (_savedProgress isNotEqualTo []) then {
+            _distanceClock=time+((_savedProgress select 0) select 1)-serverTime;
+            _motionClock=time+((_savedProgress select 0) select 2)-serverTime;
+            _distance=(_savedProgress select 0) select 3;
+            _lastPose=+((_savedProgress select 0) select 4);
+        };
+        _progress pushBack [_distance,_distanceClock,_lastPose,_motionClock];
+    } forEach _units;
     _drill set ["progress",_progress];
+    _drill set ["progressCoordinates","ASL3D"];
     private _resumeRetries=_drill getOrDefault ["resumeRetries",[]];
     _drill set ["retries",_units apply {
         private _actor=_x;
         private _record=_resumeRetries findIf {(_x select 0) == _actor};
-        [if (_record < 0) then {0} else {(_resumeRetries select _record) select 1},_now]
+        private _count=if (_record < 0) then {0} else {(_resumeRetries select _record) select 1};
+        if (_support) then {
+            private _budget=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["boundRetryAttempts",createHashMap];
+            private _used=if (_budget isEqualType createHashMap && {count _budget <= 64}) then {
+                _budget getOrDefault [netId _actor,[]]
+            } else {[]};
+            if (_used isEqualType [] && {count _used == 2}
+                && {(_used select 0) == (_drill get "supportSequence")}
+                && {(_used select 1) isEqualType 0} && {finite (_used select 1)}) then {_count=_count max (_used select 1)};
+        };
+        [_count,_now]
     }];
+    _drill deleteAt "resumeNativeMoves";
+    _drill deleteAt "resumeProgress";
     _drill deleteAt "resumeSpots";
     _drill deleteAt "resumeRetries";
     _drill set ["disabled", _disabled];
@@ -635,32 +1027,54 @@ private _issue = {
     // Replacing casualties or blocked movers cannot renew this bound's hard travel limit.
     _drill set ["boundStart", _now];
     [_group,_drill,"MOVE",format ["BOUND_%1_ISSUED",_drill get "index"]] call CBE_fnc_CortexDrillSetStage;
+    _issued=true;
+    };
+    if (!_issued) then {_result=0.25};
 };
 
 private _result = 1.5;
 switch (_drill get "stage") do {
     case "START": {call _issue};
     case "MOVE": {
-        private _spots = _drill get "spots";
-        private _movers = _drill get "movers";
+        private _spots = (_drill get "spots") apply {+_x};
+        private _movers = +(_drill get "movers");
+        private _moveIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+        private _moveNative=(_movers select {_x in _units}) apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
+        private _moveWaypointIndex=currentWaypoint _group;
+        private _moveRoute=[_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt;
+        private _moveActions=[];
         private _arrived = true;
         private _arrivedUnits = [];
         private _stalled = false;
         private _blocked = [];
         private _timeout = missionNamespace getVariable ["CBE_AIPass_Flank_BoundTimeout",25];
-        private _progress = _drill get "progress";
-        private _retries = _drill getOrDefault ["retries",_movers apply {[0,_now]}];
-        private _previousArrivals=_drill getOrDefault ["arrivedUnits",[]];
+        private _moveDeadline=_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4];
+        private _entryMoveProgress=(_drill get "progress") apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _progress = _entryMoveProgress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _entryMoveCoordinates=_drill getOrDefault ["progressCoordinates",""];
+        if (_entryMoveCoordinates != "ASL3D") then {
+            // Legacy live records used ATL positions and 2D range. Convert the recorded
+            // pose without inventing movement, resetting clocks or renewing retry budget.
+            {
+                private _pose=ATLToASL (_x select 2);
+                _x set [2,_pose];
+                _x set [0,_pose vectorDistance (ATLToASL (_spots select _forEachIndex))];
+            } forEach _progress;
+        };
+        private _entryMoveRetries=(_drill getOrDefault ["retries",_movers apply {[0,_now]}]) apply {+_x};
+        private _retries = _entryMoveRetries apply {+_x};
+        private _previousArrivals=+(_drill getOrDefault ["arrivedUnits",[]]);
         {
             private _unit = _x;
             if (alive _unit && {_unit in _units}) then {
-                private _remaining = _unit distance2D (_spots select _forEachIndex);
-                if (_remaining <= 3) then {
+                private _pose=getPosASL _unit;
+                private _targetASL=ATLToASL (_spots select _forEachIndex);
+                private _remaining = _pose vectorDistance _targetASL;
+                if (_remaining <= 3 && {abs ((_pose select 2)-(_targetASL select 2)) <= 1.5}) then {
                     _arrivedUnits pushBack _unit;
                     if !(_unit in _previousArrivals) then {
                         if ([_unit] call _mayIssueMovement) then {
-                            doStop _unit;
-                            _unit doWatch _enemyPos;
+                            _moveActions pushBack ["ARRIVE",_unit,_forEachIndex,+_pose];
                         };
                     };
                 } else {
@@ -669,8 +1083,9 @@ switch (_drill get "stage") do {
                     if ((_last select 0)-_remaining >= 0.5) then {_last set [0,_remaining]; _last set [1,_now]};
                     // A valid obstacle detour can temporarily increase target distance.
                     // Keep net approach and physical movement clocks separate.
-                    if (_unit distance2D (_last select 2) >= 0.5) then {_last set [2,getPosATL _unit]; _last set [3,_now]};
+                    if (_pose vectorDistance (_last select 2) >= 0.5) then {_last set [2,+_pose]; _last set [3,_now]};
                     private _retry = _retries select _forEachIndex;
+                    private _retryPending=false;
                     // Native formation movement can resume the group's original waypoint
                     // while this actor is still outside its bound. Physical movement alone
                     // is not evidence that the owned destination is still being followed.
@@ -681,21 +1096,141 @@ switch (_drill get "stage") do {
                         && {(_waypoint select 1) distance2D (_spots select _forEachIndex) > 5}
                         && {((expectedDestination _unit) select 0) distance2D (_waypoint select 1) < 1};
                     if ((_now-(_last select 3) >= 8 || {_returnedToWaypoint}) && {_now-(_retry select 1) >= 8}
-                        && {(_retry select 0) < 1} && {_unit checkAIFeature "PATH"}
-                        && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}) then {
+                        && {(_retry select 0) < 1} && {_now <= _moveDeadline}
+                        && {_unit checkAIFeature "PATH"}
+                        && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}
+                        && {[_unit] call _supportRetryAvailable}) then {
                         // Replan the same destination; do not move the actor or waive arrival.
                         // One native route refresh is allowed only after measured no-progress.
                         // Target and combat behaviour remain engine-owned.
-                        _unit doMove (_spots select _forEachIndex);
-                        _retry set [0,(_retry select 0)+1];
-                        _retry set [1,_now];
-                        diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,_remaining,currentCommand _unit,expectedDestination _unit,_spots select _forEachIndex,assignedTarget _unit];
+                        _moveActions pushBack ["RETRY",_unit,_forEachIndex,+_pose];
+                        _retryPending=true;
                     };
-                    if (_now-(_last select 3) > _timeout) then {_stalled = true; _blocked pushBack _unit};
+                    // A delayed callback must not issue its sole retry and immediately
+                    // cancel it using pre-retry no-progress age. Retain real progress clocks;
+                    // only the existing8-second observation interval applies, never past
+                    // the unchanged hard deadline checked below and at native admission.
+                    if (_now-(_last select 3) > _timeout && {!_retryPending}
+                        && {(_retry select 0) == 0 || {_now-(_retry select 1) >= 8}}) then {
+                        _stalled = true; _blocked pushBack _unit
+                    };
                 };
             };
         } forEach _movers;
-        _drill set ["arrivedUnits",_arrivedUnits];
+        private _moveCommitted=false;
+        isNil {
+            private _liveState=_group getVariable ["CBE_AIPass_State",createHashMap];
+            private _liveDrill=_liveState getOrDefault ["drill",createHashMap];
+            private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
+            if (!local _group || {_rosterEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+                || {_liveState isNotEqualTo _state} || {(_liveDrill getOrDefault ["token",""]) != _token}
+                || {(_liveDrill getOrDefault ["stage",""]) != "MOVE"}
+                || {[_liveDrill getOrDefault ["index",0],_liveDrill getOrDefault ["teamTurn",0]] isNotEqualTo _moveIdentity}
+                || {(_liveDrill getOrDefault ["spots",[]]) isNotEqualTo _spots}
+                || {(_liveDrill getOrDefault ["movers",[]]) isNotEqualTo _movers}
+                || {(_liveDrill getOrDefault ["progress",[]]) isNotEqualTo _entryMoveProgress}
+                || {(_liveDrill getOrDefault ["progressCoordinates",""]) != _entryMoveCoordinates}
+                || {(_liveDrill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4]) != _moveDeadline}
+                || {(_liveDrill getOrDefault ["retries",_movers apply {[0,_now]}]) isNotEqualTo _entryMoveRetries}
+                || {(_liveDrill getOrDefault ["arrivedUnits",[]]) isNotEqualTo _previousArrivals}
+                || {currentWaypoint _group != _moveWaypointIndex}
+                || {([_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _moveRoute}
+                || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+                || {[] call CBE_fnc_CortexIsPaused}
+                || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
+                || {[_group] call CBE_fnc_CortexExternalTakeover}
+                || {if (_support) then {!(_liveState getOrDefault ["assaulting",false])} else {(_liveState getOrDefault ["phase",""]) != "CONTACT"}}
+                || {_support && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _supportRole}}
+                || {_operationGeneration >= 0 && {
+                    (_liveOperation getOrDefault ["generation",-2]) != _operationGeneration
+                        || {(_liveOperation getOrDefault ["ownerEpoch",-1]) != _rosterEpoch}
+                        || {(_liveOperation getOrDefault ["phase",""]) == "CANCELLED"}
+                }}
+                || {_moveNative findIf {
+                    _x params ["_actor","_command","_destination","_leader"];
+                    !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                        || {(expectedDestination _actor) isNotEqualTo _destination}
+                        || {formLeader _actor != _leader}
+                } >= 0}
+                || {_arrivedUnits findIf {
+                    private _pose=getPosASL _x;
+                    private _target=ATLToASL (_spots select (_movers find _x));
+                    _pose vectorDistance _target > 3 || {abs ((_pose select 2)-(_target select 2)) > 1.5}
+                } >= 0}
+                || {_moveActions findIf {
+                    _x params ["_action","_actor","_slot","_observedPose"];
+                    private _pose=getPosASL _actor;
+                    private _target=ATLToASL (_spots select _slot);
+                    private _atTarget=_pose vectorDistance _target <= 3 && {abs ((_pose select 2)-(_target select 2)) <= 1.5};
+                    if (_action == "ARRIVE") then {!_atTarget} else {
+                        time > _moveDeadline || {_atTarget} || {_pose vectorDistance _observedPose >= 0.5}
+                    }
+                } >= 0}) exitWith {};
+            {
+                _x params ["_action","_unit","_slot"];
+                if ([_unit] call _mayIssueMovement) then {
+                    if (_action == "ARRIVE") then {
+                        doStop _unit;
+                        [_unit,"HOLD"] call _recordNativeCommand;
+                        _unit doWatch _enemyPos;
+                    } else {
+                        if ([_unit] call _supportRetryAvailable) then {
+                            if (_support) then {
+                                private _budget=_liveOperation getOrDefault ["boundRetryAttempts",createHashMap];
+                                _budget set [netId _unit,[_drill get "supportSequence",1]];
+                                _liveOperation set ["boundRetryAttempts",_budget];
+                                _group setVariable ["CBE_Operation",_liveOperation,true];
+                            };
+                            _unit doMove (_spots select _slot);
+                            [_unit,"MOVE",_spots select _slot] call _recordNativeCommand;
+                            private _retry=_retries select _slot;
+                            _retry set [0,(_retry select 0)+1];
+                            _retry set [1,time];
+                            diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _slot)),currentCommand _unit,expectedDestination _unit,_spots select _slot,assignedTarget _unit];
+                        };
+                    };
+                };
+            } forEach _moveActions;
+            _drill set ["progress",_progress];
+            _drill set ["progressCoordinates","ASL3D"];
+            _drill set ["retries",_retries];
+            _drill set ["arrivedUnits",_arrivedUnits];
+            _moveCommitted=true;
+        };
+        if (!_moveCommitted) exitWith {_result=0.25};
+        // Later recovery/failure decisions may be separated from measurement by a
+        // deferred callback or synchronous helper re-entry. Bind them to the committed records and current native tasks.
+        private _decisionProgress=_progress apply {[_x select 0,_x select 1,+(_x select 2),_x select 3]};
+        private _decisionRetries=_retries apply {+_x};
+        private _decisionRecovery=(_drill getOrDefault ["recovery",[]]) apply {+_x};
+        _recovery=_recovery apply {+_x};
+        private _decisionNative=_units apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x,getPosASL _x]};
+        private _decisionCurrent={
+            call _helperCurrent && {(_drill getOrDefault ["stage",""]) == "MOVE"}
+                && {[_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _moveIdentity}
+                && {(_drill getOrDefault ["spots",[]]) isEqualTo _spots}
+                && {(_drill getOrDefault ["movers",[]]) isEqualTo _movers}
+                && {(_drill getOrDefault ["progress",[]]) isEqualTo _decisionProgress}
+                && {(_drill getOrDefault ["retries",[]]) isEqualTo _decisionRetries}
+                && {(_drill getOrDefault ["arrivedUnits",[]]) isEqualTo _arrivedUnits}
+                && {(_drill getOrDefault ["recovery",[]]) isEqualTo _decisionRecovery}
+                && {(_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4]) == _moveDeadline}
+                && {currentWaypoint _group == _moveWaypointIndex}
+                && {([_group,"",false,_moveWaypointIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _moveRoute}
+                && {_decisionNative findIf {
+                    _x params ["_actor","_command","_destination","_leader","_pose"];
+                    !([_actor] call _actorTaskFree) || {currentCommand _actor != _command}
+                        || {(expectedDestination _actor) isNotEqualTo _destination}
+                        || {formLeader _actor != _leader}
+                        || {_actor in _blocked && {(getPosASL _actor) vectorDistance _pose >= 0.5}}
+                } < 0}
+                && {_arrivedUnits findIf {
+                    private _pose=getPosASL _x;
+                    private _target=ATLToASL (_spots select (_movers find _x));
+                    _pose vectorDistance _target > 3 || {abs ((_pose select 2)-(_target select 2)) > 1.5}
+                } < 0}
+        };
+        private _decisionDeferred=false;
         private _originalElement = if (_teams isEqualTo []) then {_allUnits} else {_teams select (_drill getOrDefault ["teamTurn",0])};
         // Use the live assigned movers for this bound. Casualty replacement, recovery and
         // consolidation can change the original team; a stale denominator must not hold the
@@ -712,6 +1247,8 @@ switch (_drill get "stage") do {
             && {count _arrivedUnits >= _minimumArrivals}
             && {!_lateMoverProgressing || {_boundAge >= 12}};
         if (_quorumReady) then {
+            isNil {
+            if !(call _decisionCurrent) exitWith {_decisionDeferred=true};
             private _stragglers = _units - _arrivedUnits;
             {
                 private _straggler = _x;
@@ -724,21 +1261,32 @@ switch (_drill get "stage") do {
             diag_log format ["[CBE] Bound role complete group=%1 arrived=%2/%3 recovery=%4",_group,count _arrivedUnits,count _units,_stragglers];
             _arrived = true;
             _stalled = false;
+            _decisionRecovery=_recovery apply {+_x};
+            };
         };
+        if (_decisionDeferred) exitWith {_result=0.25};
         if (_stalled && {count (_units - _blocked) >= 2}
             && {count (_units - _blocked) >= ceil (count _originalElement * 0.6)}) then {
+            isNil {
+            if !(call _decisionCurrent) exitWith {_decisionDeferred=true};
             // Continue with a viable majority. These actors are separated, not arrived.
             {_recovery pushBack [_x,0,_now]} forEach _blocked;
             _drill set ["recovery",_recovery];
             _group setVariable ["CBE_Cortex_DrillRecovery",["REJOINING",_recovery apply {_x select 0},_drill get "index"],true];
             diag_log format ["[CBE] Bound continues with stragglers group=%1 separated=%2 continuing=%3",_group,_blocked,_units-_blocked];
             _stalled = false;
+            _decisionRecovery=_recovery apply {+_x};
+            };
         };
+        if (_decisionDeferred) exitWith {_result=0.25};
         private _neededReplacements=(2-count (_units-_blocked)) max 0;
         private _availableCover=(_fit-_units)-_recovering;
         if (!_arrived && {_stalled} && {_teams isNotEqualTo []}
             && {_neededReplacements > 0} && {count _availableCover >= (_neededReplacements+1)}
             && {_now <= (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}) exitWith {
+            _result=0.25;
+            isNil {
+            if !(call _decisionCurrent) exitWith {};
             {
                 private _blockedActor=_x;
                 if (_recovery findIf {(_x select 0) == _blockedActor} < 0) then {
@@ -751,14 +1299,15 @@ switch (_drill get "stage") do {
             [_group,_drill,"START","STALLED_ELEMENT_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
             diag_log format ["[CBE] Bound replacement pending group=%1 isolated=%2 reserve=%3",_group,_blocked,_availableCover];
             _result=1.5;
+            };
         };
         if (!_arrived && {_stalled || {_now > (_drill getOrDefault ["boundDeadline",(_drill get "boundStart")+_timeout*4])}}) exitWith {
-            private _reason = ["TIME_LIMIT","STALLED"] select _stalled;
+            private _reason = ["TIME_LIMIT","STALLED"] select (_stalled && {_now <= _moveDeadline});
             private _measurements = [];
             {
                 private _unit = _x;
                 if (_unit in _units) then {
-                    _measurements pushBack [netId _unit,_unit distance2D (_spots select _forEachIndex),
+                    _measurements pushBack [netId _unit,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _forEachIndex)),
                         _now-((_progress select _forEachIndex) select 1),currentCommand _unit,expectedDestination _unit,
                         _now-((_progress select _forEachIndex) select 3),
                         ["movementOwner",attackEnabled _group,behaviour _unit,unitCombatMode _unit,
@@ -769,89 +1318,155 @@ switch (_drill get "stage") do {
             } forEach _movers;
             private _failure = [_reason,_drill get "index",(_points select (_drill get "index")) select 1,
                 _now-(_drill get "boundStart"),_timeout,_measurements];
-            _group setVariable ["CBE_Cortex_DrillFailure",_failure,true];
-            diag_log format ["[CBE] Drill movement ended group=%1 details=%2",_group,_failure];
-            _result = _reason call _end;
+            private _failureCommitted=false;
+            isNil {
+                if !(call _decisionCurrent) exitWith {};
+                _group setVariable ["CBE_Cortex_DrillFailure",_failure,true];
+                diag_log format ["[CBE] Drill movement ended group=%1 details=%2",_group,_failure];
+                _failureCommitted=true;
+            };
+            if (_failureCommitted) then {_result = _reason call _end} else {_result=0.25};
         };
         if (_arrived) then {
-            call _restoreFeatures;
-            if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
-                [_group,_drill,"PAUSE","FIRE_TEAM_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                // A separate squad already covers a coordinated bound. Avoid stacking
-                // a fixed team pause on top of the inter-squad handoff.
-                private _teamPause=if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
-                _drill set ["pauseUntil",_now + _teamPause];
-            } else {
-            switch ((_points select (_drill get "index")) select 1) do {
-                case "CROSS_NEAR": {
-                    [_group,_drill,"PAUSE","ROAD_EDGE_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil", _now];
-                    // Smoke is opportunistic support, never a mandatory movement gate.
-                    // One empty inventory must not suppress another member's carried smoke.
-                    // Stop after the first accepted throw; the helper owns safety and cooldowns.
-                    {
-                        if ([_x, _enemyPos, "SMOKE"] call CBE_fnc_CortexThrowGrenade) exitWith {};
-                    } forEach _units;
-                };
-                case "FINAL": {
-                    [_group,_drill,"HOLD","FINAL_BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                    private _pause = if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
-                    private _multiplier = [1,2] select (!_support && {(_drill getOrDefault ["type","FLANK"]) == "FLANK"});
-                    _drill set ["pauseUntil",_now + _pause * _multiplier];
-                };
-                case "ASSAULT": {
-                    private _objective = _drill get "assaultObjective";
-                    // Both advance elements have arrived here. Check available carriers
-                    // across the fit assault force; one empty inventory must not suppress
-                    // every other soldier's carried grenade. The helper owns ammo/safety checks.
-                    private _throwers = _fit select {_x distance2D _objective <= 40};
-                    private _thrower = objNull;
-                    private _queued = false;
-                    if (_drill getOrDefault ["assaultGrenade",false]) then {
-                        {
-                            if ([_x,_objective,"FRAG"] call CBE_fnc_CortexThrowGrenade) exitWith {
-                                _thrower = _x;
-                                _queued = true;
-                            };
-                        } forEach _throwers;
+            // Revalidate the actual witnesses, not a centroid or a historical arrival flag.
+            // Recovery may leave stragglers behind; retain the existing required quorum.
+            private _arrivalWitnesses=_arrivedUnits apply {[_x,ATLToASL (_spots select (_movers find _x))]};
+            private _arrivalPresent={
+                count _arrivalWitnesses >= _minimumArrivals && {_arrivalWitnesses findIf {
+                    _x params ["_actor","_targetASL"];
+                    private _pose=getPosASL _actor;
+                    !local _actor || {group _actor != _group} || {!isNull objectParent _actor}
+                        || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                        || {!([_actor] call _actorTaskFree)}
+                        || {_pose vectorDistance _targetASL > 3}
+                        || {abs ((_pose select 2)-(_targetASL select 2)) > 1.5}
+                } < 0}
+            };
+            if !(call _restoreFeatures) exitWith {_result=0.25};
+            private _arrivalRoster=+(_drill get "units");
+            private _arrivalTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+            private _arrivalKind=(_points select (_drill get "index")) select 1;
+            private _arrivalCommitted=false;
+            private _arrivalSmoke=false;
+            private _arrivalAssault=false;
+            isNil {
+                if (!(call _helperCurrent) || {!(call _arrivalPresent)}
+                    || {(_drill getOrDefault ["stage",""]) != "MOVE"}
+                    || {!([_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _moveIdentity)}
+                    || {(_drill get "units") isNotEqualTo _arrivalRoster}
+                    || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _arrivalTeams}
+                    || {(_drill getOrDefault ["spots",[]]) isNotEqualTo _spots}
+                    || {(((_drill get "points") select (_moveIdentity select 0)) select 1) != _arrivalKind}) exitWith {};
+                if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
+                    [_group,_drill,"PAUSE","FIRE_TEAM_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                    // A separate squad already covers a coordinated bound. Avoid stacking
+                    // a fixed team pause on top of the inter-squad handoff.
+                    private _teamPause=if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
+                    _drill set ["pauseUntil",_now + _teamPause];
+                } else {
+                switch ((_points select (_drill get "index")) select 1) do {
+                    case "CROSS_NEAR": {
+                        [_group,_drill,"PAUSE","ROAD_EDGE_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                        _drill set ["pauseUntil", _now];
+                        _arrivalSmoke=true;
                     };
-                    // Grenades support the assault but never reserve its movement phase. The helper
-                    // owns the asynchronous throw and safety cancellation; the element commits its
-                    // clear-through in this same owner-local step.
-                    [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call CBE_fnc_CortexDrillSetStage;
+                    case "FINAL": {
+                        [_group,_drill,"HOLD","FINAL_BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                        private _pause = if (_support) then {0} else {missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0]};
+                        private _multiplier = [1,2] select (!_support && {(_drill getOrDefault ["type","FLANK"]) == "FLANK"});
+                        _drill set ["pauseUntil",_now + _pause * _multiplier];
+                    };
+                    case "ASSAULT": {_arrivalAssault=true};
+                    case "CONSOLIDATE": {
+                        [_group,_drill,"HOLD","CONSOLIDATION_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                        _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
+                    };
+                    case "CLEAR": {
+                        [_group,_drill,"HOLD","CLEAR_THROUGH_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                        _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
+                    };
+                    default {
+                        [_group,_drill,"PAUSE","BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
+                        _drill set ["pauseUntil", _now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause", 0])];
+                    };
+                };
+                };
+                _arrivalCommitted=true;
+            };
+            if (!_arrivalCommitted) exitWith {_result=0.25};
+            // Grenade inventory/safety preparation stays outside the local stage commit.
+            if (_arrivalSmoke) then {
+                {
+                    if ([_x, _enemyPos, "SMOKE",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade) exitWith {};
+                } forEach _units;
+            };
+            if (_arrivalAssault) then {
+                private _objective = +(_drill get "assaultObjective");
+                private _clearIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+                private _clearRoster=+(_drill get "units");
+                private _clearTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+                private _clearPoints=_points apply {[+(_x select 0),_x select 1]};
+                // Both advance elements have arrived here. Check available carriers
+                // across the fit assault force; one empty inventory must not suppress
+                // every other soldier's carried grenade. The helper owns ammo/safety checks.
+                private _throwers = _fit select {_x distance2D _objective <= 40};
+                private _thrower = objNull;
+                private _queued = false;
+                if (_drill getOrDefault ["assaultGrenade",false]) then {
+                    {
+                        if ([_x,_objective,"FRAG",["DRILL",_group,_token,_operationGeneration,_rosterEpoch]] call CBE_fnc_CortexThrowGrenade) exitWith {
+                            _thrower = _x;
+                            _queued = true;
+                        };
+                    } forEach _throwers;
+                };
+                // Grenades support the assault but never reserve its movement phase. The helper
+                // owns the asynchronous throw and safety cancellation; the element commits its
+                // clear-through in this same owner-local step.
+                private _clearCommitted=false;
+                isNil {
+                    if (!(call _helperCurrent) || {!(call _arrivalPresent)}
+                        || {(_drill getOrDefault ["stage",""]) != "MOVE"}
+                        || {!([_drill get "index",_drill getOrDefault ["teamTurn",0]] isEqualTo _clearIdentity)}
+                        || {(_drill get "units") isNotEqualTo _clearRoster}
+                        || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _clearTeams}
+                        || {(_drill get "points") isNotEqualTo _clearPoints}
+                        || {(_drill get "assaultObjective") isNotEqualTo _objective}
+                        || {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {};
                     _drill set ["pauseUntil",_now];
                     _drill set ["grenadeThrower",_thrower];
                     _drill set ["grenadeActionUntil",_now];
                     _drill set ["teamTurn",0];
                     _drill set ["index",(_drill get "index")+1];
-                    call _issue;
+                    [_group,_drill,"START",["ASSAULT_POSITION","ASSAULT_GRENADE_DISPATCHED"] select _queued] call CBE_fnc_CortexDrillSetStage;
+                    _clearCommitted=true;
                 };
-                case "CONSOLIDATE": {
-                    [_group,_drill,"HOLD","CONSOLIDATION_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
-                };
-                case "CLEAR": {
-                    [_group,_drill,"HOLD","CLEAR_THROUGH_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil",_now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause",0])];
-                };
-                default {
-                    [_group,_drill,"PAUSE","BOUND_ARRIVED"] call CBE_fnc_CortexDrillSetStage;
-                    _drill set ["pauseUntil", _now + (missionNamespace getVariable ["CBE_AIPass_Flank_BoundPause", 0])];
-                };
-            };
+                if (!_clearCommitted) exitWith {_result=0.25};
+                call _issue;
             };
         };
     };
     case "PAUSE": {
-        if (_now >= (_drill get "pauseUntil")) then {
+        private _pauseIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+        private _pauseCommitted=false;
+        isNil {
+            if (!(call _helperCurrent)
+                || {(_drill getOrDefault ["stage",""]) != "PAUSE"}
+                || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _pauseIdentity)}
+                || {time < (_drill get "pauseUntil")}) exitWith {};
             if (_teams isNotEqualTo [] && {(_drill get "teamTurn") == 0}) then {
                 _drill set ["teamTurn",1];
             } else {
                 _drill set ["teamTurn",0];
-            _drill set ["index", (_drill get "index") + 1];
+                _drill set ["index", (_drill get "index") + 1];
             };
-            if ((_drill get "index") >= count _points) then {_result = "COMPLETE" call _end} else {call _issue};
+            // Persist the pending bound before attempting movement. A refused issue
+            // retries START rather than advancing this PAUSE a second time.
+            [_group,_drill,"START","PAUSE_ELAPSED"] call CBE_fnc_CortexDrillSetStage;
+            _pauseCommitted=true;
         };
+        if (!_pauseCommitted) exitWith {_result=0.25};
+        if ((_drill get "index") >= count _points) then {_result = "COMPLETE" call _end} else {call _issue};
     };
     case "HOLD": {
         if (_now >= (_drill get "pauseUntil")) then {
@@ -861,20 +1476,53 @@ switch (_drill get "stage") do {
             if ((_assaulting || {_drill getOrDefault ["finishFlank",false]}) && {_teams isEqualTo []} && {!(_drill getOrDefault ["consolidating",false])}) exitWith {
                 // Recovery and independent actor tasks are not spare consolidation participants.
                 // Reuse the capable roster instead of bypassing its ownership/path checks.
-                private _support = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
-                if (_support isEqualTo []) then {
+                // _support is the outer BOOL consumed dynamically by helper CODE. Never
+                // shadow it with this actor array before calling _issue/_helperCurrent.
+                private _consolidationActors = (_fitSquad - (_allUnits + _recovering)) select {[_x] call _actorTaskFree};
+                if (_consolidationActors isEqualTo []) then {
                     _result = "COMPLETE" call _end;
                 } else {
-                    if (!_assaulting) then {_drill set ["assaultDirection",_centroid getDir _enemyPos]};
-                    _drill set ["consolidating",true];
-                    _teams = [+_allUnits,+_support];
-                    _drill set ["teams",_teams];
-                    _drill set ["units",_allUnits + _support];
-                    _fit append _support;
-                    _drill set ["teamTurn",1];
-                    _drill set ["index",count _points];
+                    private _consolidationIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+                    private _consolidationRoster=+(_drill get "units");
+                    private _consolidationPoints=_points apply {[+(_x select 0),_x select 1]};
+                    private _consolidationNative=_consolidationActors apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
                     private _rally = if (_assaulting) then {(_drill get "assaultObjective") getPos [12,_drill get "assaultDirection"]} else {+_centroid};
-                    _points pushBack [_rally,"CONSOLIDATE"];
+                    private _consolidationCommitted=false;
+                    isNil {
+                        if (!(call _helperCurrent)
+                            || {(_drill getOrDefault ["stage",""]) != "HOLD"}
+                            || {_drill getOrDefault ["consolidating",false]}
+                            || {(_drill getOrDefault ["teams",[]]) isNotEqualTo []}
+                            || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _consolidationIdentity)}
+                            || {time < (_drill get "pauseUntil")}
+                            || {(_drill get "units") isNotEqualTo _consolidationRoster}
+                            || {(_drill get "points") isNotEqualTo _consolidationPoints}
+                            || {_consolidationNative findIf {
+                                _x params ["_actor","_command","_destination","_formationLeader"];
+                                !local _actor || {group _actor != _group} || {!isNull objectParent _actor}
+                                    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                                    || {!([_actor] call _actorTaskFree)}
+                                    || {!(_actor checkAIFeature "MOVE")}
+                                    || {!(_actor checkAIFeature "PATH") && {!(_actor in _ownedPathUnits)}}
+                                    || {_actor in ((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]])}
+                                    || {currentCommand _actor != _command}
+                                    || {(expectedDestination _actor) isNotEqualTo _destination}
+                                    || {formLeader _actor != _formationLeader}
+                            } >= 0}) exitWith {};
+                        if (!_assaulting) then {_drill set ["assaultDirection",_centroid getDir _enemyPos]};
+                        _drill set ["consolidating",true];
+                        _teams = [+_allUnits,+_consolidationActors];
+                        _drill set ["teams",_teams];
+                        _drill set ["units",_allUnits + _consolidationActors];
+                        _fit append _consolidationActors;
+                        _drill set ["teamTurn",1];
+                        _drill set ["index",count _points];
+                        _points pushBack [_rally,"CONSOLIDATE"];
+                        // Retain this pending movement if movement admission refuses it.
+                        [_group,_drill,"START","CONSOLIDATION_PENDING"] call CBE_fnc_CortexDrillSetStage;
+                        _consolidationCommitted=true;
+                    };
+                    if (!_consolidationCommitted) exitWith {_result=0.25};
                     call _issue;
                 };
             };
@@ -899,43 +1547,74 @@ switch (_drill get "stage") do {
                 private _clear=_enemyPos getPos [20,_crossingDirection];
                 _assaultCandidates pushBack [_approach,_clear];
             } forEach [0,-15,15,-30,30];
+            private _holdIdentity=[_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"];
+            private _holdPoints=_points apply {[+(_x select 0),_x select 1]};
+            private _holdRoster=+(_drill get "units");
+            private _holdTeams=(_drill getOrDefault ["teams",[]]) apply {+_x};
+            private _holdNative=_fit apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
             private _assaultRoute=if (_assault) then {
                 [_centroid,_assaultCandidates,_enemyPos] call CBE_fnc_CortexSelectAvenue
             } else {[]};
-            if (_assaultRoute isNotEqualTo []) then {
-                private _approachPoint=+(_assaultRoute select 0);
-                private _clearPoint=+(_assaultRoute select 1);
-                _assaultDirection=_approachPoint getDir _clearPoint;
-                // Snapshot the reported objective. New reports must not drag this crossing
-                // behind the actors or reverse their frontage halfway through the assault.
-                _drill set ["assaulting", true];
-                _drill set ["assaultObjective",+_enemyPos];
-                _drill set ["assaultDirection",_assaultDirection];
-                _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call CBE_fnc_CortexProfile)];
-                _points pushBack [_approachPoint, "ASSAULT"];
-                _points pushBack [_clearPoint, "CLEAR"];
-                missionNamespace setVariable ["CBE_AIPass_Assaults", (missionNamespace getVariable ["CBE_AIPass_Assaults", 0]) + 1];
-                // Route selection already committed a safe avenue. Preserve the diagnostic
-                // transition, then issue its first approach in this same budgeted group step.
-                [_group,_drill,"START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
-                _drill set ["teamTurn",0];
-                _drill set ["index",count _points-2];
-                call _issue;
-            } else {
-                if ((_drill getOrDefault ["type","FLANK"]) == "FLANK" && {_teams isEqualTo []}) then {
-                    // No assault is a valid tactical choice, not permission to leave
-                    // the leader and covering element permanently at the old position.
-                    _drill set ["finishFlank",true];
-                    _drill set ["pauseUntil",_now];
-                } else {_result = "COMPLETE" call _end};
+            private _holdCommitted=false;
+            private _holdComplete=false;
+            private _holdIssue=false;
+            isNil {
+                if (!(call _helperCurrent)
+                    || {(_drill getOrDefault ["stage",""]) != "HOLD"}
+                    || {!([_drill get "index",_drill getOrDefault ["teamTurn",0],_drill get "pauseUntil"] isEqualTo _holdIdentity)}
+                    || {time < (_drill get "pauseUntil")}
+                    || {(_drill get "points") isNotEqualTo _holdPoints}
+                    || {(_drill get "units") isNotEqualTo _holdRoster}
+                    || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _holdTeams}
+                    || {(_drill getOrDefault ["assaulting",false]) != _assaulting}
+                    || {([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled) != _assaultEnabled}
+                    || {(_state getOrDefault ["moraleState","STEADY"]) != "STEADY" && {_assault}}
+                    || {!_support && {(_state getOrDefault ["enemyPos",_drill get "enemyPos"]) isNotEqualTo _enemyPos}}
+                    || {_holdNative findIf {
+                        _x params ["_actor","_command","_destination","_formationLeader"];
+                        !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
+                            || {(expectedDestination _actor) isNotEqualTo _destination}
+                            || {formLeader _actor != _formationLeader}
+                    } >= 0}) exitWith {};
+                if (_assaultRoute isNotEqualTo []) then {
+                    private _approachPoint=+(_assaultRoute select 0);
+                    private _clearPoint=+(_assaultRoute select 1);
+                    _assaultDirection=_approachPoint getDir _clearPoint;
+                    // Snapshot the reported objective. New reports must not drag this crossing
+                    // behind the actors or reverse their frontage halfway through the assault.
+                    _drill set ["assaulting", true];
+                    _drill set ["assaultObjective",+_enemyPos];
+                    _drill set ["assaultDirection",_assaultDirection];
+                    _drill set ["assaultGrenade",random 1 < ([_group,"assaultChance"] call CBE_fnc_CortexProfile)];
+                    _points pushBack [_approachPoint, "ASSAULT"];
+                    _points pushBack [_clearPoint, "CLEAR"];
+                    missionNamespace setVariable ["CBE_AIPass_Assaults", (missionNamespace getVariable ["CBE_AIPass_Assaults", 0]) + 1];
+                    // Route selection already committed a safe avenue. Preserve the diagnostic
+                    // transition, then issue its first approach in this same budgeted group step.
+                    [_group,_drill,"START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
+                    _drill set ["teamTurn",0];
+                    _drill set ["index",count _points-2];
+                    _holdIssue=true;
+                } else {
+                    if ((_drill getOrDefault ["type","FLANK"]) == "FLANK" && {_teams isEqualTo []}) then {
+                        // No assault is a valid tactical choice, not permission to leave
+                        // the leader and covering element permanently at the old position.
+                        _drill set ["finishFlank",true];
+                        _drill set ["pauseUntil",_now];
+                    } else {_holdComplete=true};
+                };
+                _holdCommitted=true;
             };
+            if (!_holdCommitted) exitWith {_result=0.25};
+            if (_holdIssue) then {call _issue};
+            if (_holdComplete) then {_result = "COMPLETE" call _end};
         };
     };
 };
 // PAUSE and HOLD remain explicit observable FSM phases, but a ready zero-duration handoff must not
 // inherit the ordinary movement observation cadence. Queue it for the next bounded scheduler
 // opportunity; the scheduler still enforces its global work budget and never spins this callback.
-if (_result >= 0
+if (_result >= 0 && {_result != 0.25}
     && {(_drill getOrDefault ["stage",""]) in ["PAUSE","HOLD"]}
     && {_now >= (_drill getOrDefault ["pauseUntil",_now])}) then {
     _result=0;

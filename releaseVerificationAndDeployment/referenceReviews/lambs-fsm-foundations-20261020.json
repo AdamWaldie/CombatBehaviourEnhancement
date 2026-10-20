@@ -1,0 +1,163 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "49efc839",
+  "scope": "Initial semantic foundation/FSM comparison, not complete LAMBS parity",
+  "sourceHashes": {
+    ".qa/lambs-2621-review/danger/scripts/lambs_danger.fsm": "a47032f3cd6d722d97b700ec44f253ae27ce77e15cc2c6a304b31424c0a21510",
+    ".qa/lambs-2621-review/danger/functions/fnc_isForced.sqf": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+    ".qa/lambs-2621-review/danger/functions/fnc_isForcedExit.sqf": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/danger/functions/fnc_isLeader.sqf": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
+    ".qa/lambs-2621-review/danger/functions/fnc_tactics.sqf": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
+    ".qa/lambs-2621-review/danger/functions/fnc_tacticsAssess.sqf": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
+    ".qa/lambs-2621-review/danger/functions/fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+  },
+  "branches": [
+    {
+      "source": "Forced exit: disableAI, CARELESS, MOVE disabled",
+      "CBE": "Owner/feature/Zeus/specialist/pause/dormancy gates in DangerEngineMode/CanContinue/Act; MOVE-disabled actors retain sensing and weak posture, movement helpers independently gate movement.",
+      "disposition": "Deliberate stationary-defender improvement; physical proof pending."
+    },
+    {
+      "source": "Forced work: fleeing, forceMove, ATTACK/GET IN/ACTION/HEAL/REARM/JOIN, incapacitation, ACE heal queue, player-led group exclusion",
+      "CBE": "Explicit actor reservations, native concrete task commands, combat effectiveness and ownership guards; autonomous ATTACK deliberately remains combat-enabled. No ace_medical_ai_healQueue reference found in addons.",
+      "disposition": "Queued ACE medical work is a candidate lifecycle gap. Verify current ACE source/queue semantics before adding guard; no speculative provider marker."
+    },
+    {
+      "source": "Evaluate infantry -> Immediate/Hide/Engage/Assess, then reset/leader/group memory queue",
+      "CBE": "Native bridge plus group danger assessment and existing group-brain operation owner; immediate weak posture/evasion and domain handoff stay finite.",
+      "disposition": "Topology exists; individual brain/action semantics require complete branch-by-branch comparison. No parity awarded from states/names."
+    },
+    {
+      "source": "Vehicle evaluation and queue reset",
+      "CBE": "Exact actor vehicle-domain context routed to vehicle/air/artillery paths; commander-only finite recycling and original response generation.",
+      "disposition": "Existing implementation with recent ground suppression qualification; full crew-domain parity and physical evidence incomplete."
+    }
+  ],
+  "nextAction": "Verify ACE medical AI queued-work API from installed/current source; then trace actual reaction and cleanup command boundaries, including group DangerReact, without altering roster membership.",
+  "validation": "No product edits in this comparison; prior candidate full1477/HEMTT/package verified. Audits PAUSED.",
+  "sourceProtection": "No raw source copied into product; protected original sources unchanged.",
+  "queuedMedicalFollowup": {
+    "verifiedAgainst": "Installed ACE medical_ai PBO, signature filename ace3.21.2.113",
+    "sourceSHA256": "01dd4a81ae48e6f1570a754e489fea0755d5e249d9efc0cc5fef9542f08ca9b8",
+    "contract": "requestMedic and addHealingCommandActions put patient objects in healer ace_medical_ai_healQueue; healUnit takes first and removes completed/invalid entries; wasRequested tests nonempty.",
+    "change": "Nonempty queue forces danger classification to FORCED and stops engine continuation/action; group action classification and posture application yield; weak-stance restore defers through existing NATIVE_TASK_OR_MEDICAL pending path. CBE never writes queue.",
+    "scopeLimit": "Danger bridge/group posture only. General movement/fire owners may need equivalent queued-task protection; not complete ACE compatibility or provider handover.",
+    "validation": "607 focused and full1477/HEMTT/build passed .qa/danger-medical-queue-build.log. Initial focused failure was stale source-spelling assertion; retained .qa/danger-medical-queue-focused.log; corrected assertion keeps feature-before-task ordering.",
+    "candidate": ".qa\\candidates\\danger-medical-queue-49efc839",
+    "fingerprint": "7585cf5b94e39262690b6b8e9b5d2efb25dd5702d95691db72598abdbce133ca",
+    "physicalAcceptance": false
+  },
+  "queuedCareAdmission": {
+    "scope": "Shared fire task admission, routine infantry fire roster and CQB task-free callback",
+    "intent": "Do not issue movement/targeting over a pending ACE treatment queue; retain physical operation membership.",
+    "implementation": "Read-only nonempty ace_medical_ai_healQueue refuses scripted fire and CQB task commands. Building actorAvailable roster intentionally unchanged; only actorTaskFree defers execution.",
+    "limits": "Not exhaustive whole-addon medical-task protection; group-wide native waypoint movement, other actor movement/release helpers and actual ACE interactions still require trace/physical evidence. No queue mutation or provider resume acknowledgement.",
+    "validation": "607 focused/full1477/HEMTT/build passed .qa/queued-care-admission-build.log; existing tests extended, no new cases.",
+    "candidate": ".qa\\candidates\\queued-care-admission-49efc839",
+    "fingerprint": "7a2c2368f9c866cca093cd7c770807b753dde492884cac608a7c02f8de55a861",
+    "audits": "PAUSED"
+  },
+  "engagementComparison": {
+    "sourceIntent": [
+      "STEALTH plus hold-fire and stationary causes hide; otherwise stealth/hold-fire/planning and fast target gate engagement.",
+      "Near dismounted hostile plus PATH allows per-actor doAssault; visible close threat watches without moving, otherwise chooses native believed location/building points.",
+      "Stationary ready CANFIRE beyond configured minimum calls suppression with believed position and geometry handling.",
+      "Brain separates immediate, hide, engage and assess, prioritises causes and may share proximity information."
+    ],
+    "CBEPaths": [
+      "dangerEngineAct ENGAGE weak posture and bounded recycle",
+      "CortexTacticalAssess/Start -> CortexAssaultStart/FlankStart/AdvanceStart",
+      "CortexFireControl protected owner-local distribution/suppression",
+      "buildingOperationStep / indoorActorOperation bounded building execution"
+    ],
+    "deliberateDepartures": [
+      "Do not copy exact hidden target height/velocity, forgetTarget, free doMove or ACE lastFired mutation without justified authority.",
+      "Do not duplicate group fire/movement ownership in the native danger bridge."
+    ],
+    "nextDesign": "Trace existing dispatcher/executor constraints and open-ground response before adding any actor controller. Do not duplicate existing building routing.",
+    "claims": "No implementation or parity credit from this review. Physical and performance evidence remain absent; audits PAUSED.",
+    "supersededFinding": "CortexAssaultStart requires at least2 on-foot actors; TacticalAssess only proposes close assault with at least2 armedFoot. DangerEngineAct ENGAGE issues no actor pursuit/building-position selection. Lone spontaneous pursuit relies on native AI, so LAMBS actor-level assault/building-selection functionality is not fully reproduced.",
+    "correctedFinding": "The previous missing-singleton-building claim was too broad: CortexGroupTick CONTACT calls IndoorActorDispatch after group building ownership declines; it may admit one or two actors without a two-actor minimum. IndoorActorOperation/NativeContext already provide bounded belief-based building routing and native-approach observation. Open-ground actor pursuit is not established as equivalent; physical admission frequency remains unverified.",
+    "correctionEvidence": [
+      "addons/infantry/functions/cortexGroupTick.sqf CONTACT -> CortexBuildingContact then IndoorActorDispatch then TacticalStart",
+      "addons/infantry/functions/indoorActorDispatch.sqf has no minimum2 condition, ranks up to16 actors/eight beliefs and admits0..2",
+      "addons/infantry/functions/indoorActorNativeContext.sqf protects native orders and can observe same-contact approach without resetting it"
+    ]
+  },
+  "queuedCareIndoorFollowup": {
+    "change": "Indoor native-context admission/revalidation refuses pending heal queue. Point/indoor release availability refuses cleanup commands during queued care; indoor execution availability also checks queue. No queue writes, roster removal or new timer.",
+    "validation": "607 focused/full1477/HEMTT/build passed .qa/indoor-queued-care-build.log",
+    "candidate": ".qa\\candidates\\indoor-queued-care-49efc839",
+    "fingerprint": "42cb43283ce4291130ab2c427e45cd41c581904f88fdbffdf8418ea933d1b2e3",
+    "limits": "Existing journals and finite deadlines remain authoritative; delayed cleanup availability is not confirmed resumed travel. Physical treatment/re-entry/cleanup not tested; auditsPAUSED."
+  },
+  "openGroundDistinction": {
+    "source": "doAssault no-building fallback uses native getHideFrom and setDestination LEADER PLANNED unless visibility/building branch requests doMove; it avoids repeating destinations within1m and may stay indoors.",
+    "CBE": "TacticalAssess NATIVE_CLOSE_CONTACT explicitly preserves native engagement for one armed actor/one dismounted hostile within20m and5s. IndoorActorDispatch is independent of group assault headcount.",
+    "finding": "An actor-level open-ground destination augmentation is a source functionality difference, not evidence native AI is broken. Need a witnessed stagnation/admission contract and mission-order preservation before extending existing actor FSM; do not force a new move every danger callback."
+  },
+  "hideImmediateComparison": {
+    "LAMBSHide": "Scream watches position; own body calls doCheckBody; unknown body seeds nearby building memory; rare indoor random reposition; otherwise weak prone.",
+    "CBE": "Existing body point operation, body-clue indoor memory and finite danger posture/cover paths cover selected intent; casualty equipment recovery only scoped one-magazine subset. Do not claim full hide parity from presence.",
+    "LAMBSImmediate": "Writes ACE lastHit, then cover for suppression>0.5/REPLAN/STOP/fire; otherwise dodge.",
+    "CBEReviewRequired": "Trace DangerCoverStep/DangerGroupHideStep and actor evasion against source route/STOP semantics; do not copy ACE timer mutation or unconditional movement over authored STOP.",
+    "nextAction": "Review actual finite cover selection/issue/cleanup and group-hide membership, keeping medical safeguards as established baseline."
+  },
+  "coverHideAuthority": {
+    "sourceIntent": "Lower silhouette, choose nearby concealment/protection and react directionally. LAMBS cover chooses terrain6m away then moveTo/setDestination; dodge chooses directional animations and can force posture.",
+    "CBEComparison": "Finite cover has original deadline, generation/owner/native-order receipts, screening geometry and arrival/timeout evidence; group hide retains exact applied/prior stance proof. These controls improve authority, not demonstrated tactical quality.",
+    "finding": "Group-hide application/restoration lacked hidden/simulation/queued-care checks. Cover maintenance and timeout follow cleanup could continue over queued treatment before native command changed.",
+    "change": "Group-hide admission/restoration now guard dormancy and queued care; failed restore uses existing deferred actor proof. Cover maintenance/new issue/recall boundaries guard actor dormancy and queued care. No queue writes, roster mutation or new worker.",
+    "validation": "607 focused/full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/danger-cover-hide-authority-build.log; no new test cases.",
+    "remaining": "Physical cover approach quality, gesture blend, renewed danger, treatment overlap and deferred stance cleanup remain unverified. Audits PAUSED.",
+    "candidate": ".qa\\candidates\\danger-cover-hide-76c1c2e3",
+    "fingerprint": "f15350859f018bcc460fb181fca8742003ea02d04bbff3e1ce98dd651e540bd2",
+    "ongoingLeaseReview": "Existing same-generation group-hide leases retain exact proof without reapplying commands. Generation change/ending calls guarded restore or existing deferred engine-stance cleanup. Cover issue/maintenance/recall checks prevent commands during dormancy/queuedcare; existing deadlines remain unchanged."
+  },
+  "leaderAssessmentMemory": {
+    "sourceExecution": [
+      "FSM isLeader gate -> tactics; tactics invokes first contact or leader tacticsAssess while no tactic executes.",
+      "Assessment suppresses autonomous group attack, evaluates environment/armour/launcher/indoor/HOLD/elevation/fortification and chooses a weighted random plan with delayed execution.",
+      "Before plan launch, support includes artillery, smoke, illumination and static find/deploy. Individual tactic executors must be reviewed before judging delayed handover safety.",
+      "brainAssess uses shared groupMemory through doAssaultMemory: positions ranked by floor and leader distance, near/visible nodes removed, group follows leader when memory drains."
+    ],
+    "CBEExecution": [
+      "GroupBrainStep/CortexGroupTick provide persistent owner-local group decision layer; TacticalAssess/Start selects bounded candidate intents and finite operation starts.",
+      "CortexKnowledge supplies finite native beliefs; contact/support/static/illumination and manoeuvre paths are distinct composed helpers. Actual effectiveness and full branch parity remain unverified.",
+      "DangerStep body clue -> IndoorObservationDispatch -> IndoorActorOperation gives original20s expiry, owner epoch, visit preference and no room-clearance claim. Live-contact indoor routing is separate."
+    ],
+    "openScope": [
+      "General shared suspicious-position memory beyond the body-clue/current-contact cases is not yet shown equivalent to source groupMemory. Need complete intake/retention/consumption/expiry and actor allocation trace before implementation.",
+      "Source autonomous garrison/hide/full attack, illumination/static support and delayed tactic lifecycle require function-level comparison; states/names do not establish parity."
+    ],
+    "intentToPreserve": [
+      "Group cooperation continues after an individual loses its exact target, using finite uncertain observations rather than live hidden positions.",
+      "Lower-floor preference and actual visit history support natural investigation flow, while stale clues cannot renew task authority."
+    ],
+    "methodsNotBlindlyCopied": [
+      "Unbounded persistent groupMemory without explicit timestamp/provenance.",
+      "Whole-group doFollow when memory empties, random position churn, or replacing authored paths.",
+      "Delayed plan admission without current generation/owner/order revalidation; assess actual executors first."
+    ],
+    "nextAction": "Trace CBE post-contact search and existing observation/visit records as the likely shared-memory building block; determine missing behaviour with actual caller coverage before adding state."
+  },
+  "postContactSearch": {
+    "existingPath": "CortexGroupTick SECURITY selects two available riflemen and issues distinct offset destinations with native-order receipts. SEARCH previously ended when actors were within15m of last enemyPos, not issued destinations.",
+    "change": "All surviving search actors must physically arrive within2m horizontal/1.5m floor band of exact still-owned issued destination before SEARCH_COMPLETE. Original45s configurable deadline stays unchanged. Deadline yields SEARCH_TIMEOUT, empty team NO_SEARCH_ACTORS; sighting returns CONTACT. No new destination or actor worker.",
+    "scope": "This fixes point-visit completion evidence; it does not implement general shared suspicious-position/building memory or prove a room safe.",
+    "validation": "607 focused/full1477/HEMTT/build passed .qa/search-arrival-build.log; existing tests extended, no new cases.",
+    "candidate": ".qa\\candidates\\search-arrival-f4b41822",
+    "fingerprint": "c25d103eefe6d9b5546f361b21995ccede439275e6379065e83886859ec23821",
+    "limits": "Actual search navigation and later handback unverified; auditsPAUSED. Native receipt ownership must remain valid to count arrival."
+  }
+}

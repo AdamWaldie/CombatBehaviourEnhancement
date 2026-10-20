@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "c68a8eb7",
+  "scope": "Finite danger observation inputs before individual-point movement",
+  "finding": [
+    "Engine cause was numeric but not integral before array indexing.",
+    "Engine/group position validation accepted non-finite numeric elements; engine expiry and group created/expiry timestamps likewise lacked finite proof."
+  ],
+  "implementation": [
+    "Engine selectors/submission reject non-finite or fractional cause indices before selecting priority/name.",
+    "Engine selection/submission and direct group request/selection reject non-finite position coordinates.",
+    "Engine expiry and group selection time/created/expiry must be finite. Direct group request rejects invalid geometry before consuming cadence."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineSelect.sqf": "807ae67888c5f7665417358735846acb47f4ec54207199a6c8af3b817669df35",
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "9a8dd9b8b183d50004f8c017b66bdb20f105fb7fd998fb6585cd93577fabb2c2",
+    "addons/infantry/functions/dangerRequest.sqf": "6bd80a3e01fb4b9dc565105c52fd4884573515997ae0dbe2af700f4aeb172a38",
+    "addons/infantry/functions/dangerSelect.sqf": "648b04327d2309d79c522dcb61206b26dc95d6d7c8c9aab31d8ac4ad430f9c2d"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-danger-finite-intake-hemtt.log",
+    "focused": ".qa/cbe-danger-finite-intake-focused.log",
+    "existingCases": 607,
+    "buildoutEvidence": "passed; scores unchanged",
+    "fullPipeline": "Included in .qa/cbe-casualty-point-batch-build.log and independent verification; 1476 unchanged tests"
+  },
+  "newWorkers": 0,
+  "newScans": 0,
+  "newTestCases": 0,
+  "physicalAcceptance": false,
+  "bodyTaskImplemented": "Identified own-group casualty subset now implemented; see casualty-point-investigation-20261019.json",
+  "audits": "PAUSED",
+  "engineReference": "https://community.bistudio.com/wiki/Arma_2:_Operation_Arrowhead:_AI_FSM",
+  "referenceLimit": "Historical engine-event documentation describes cause/position/expiry/source; it is not current physical proof or a definitive coordinate-frame contract. Source uses native positions; future corpse discovery must establish its coordinate interpretation."
+}

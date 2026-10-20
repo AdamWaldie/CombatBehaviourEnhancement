@@ -1,0 +1,94 @@
+{
+  "reviewed": "2026-10-18",
+  "baselineCBECommit": "babb9d8f",
+  "scope": "Complete HBQ damageInit, protectBriefly and initVehicle helpers; not whole-HBQ parity",
+  "installedPackageSHA256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+  "installedPackageMatchesPriorProvenance": true,
+  "sources": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_damageInit.sqf",
+      "sha256": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_protectBriefly.sqf",
+      "sha256": "a5968313440ea8292bd0e997547cc6ad10bf7e4f1cd402f75337889717092ba7",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_initVehicle.sqf",
+      "sha256": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "area": "low-speed collision filter",
+      "evidence": "damageInit applies current damage for events with empty ammo, null instigator, speed below20km/h, eligible feature and living AI driver. It leaves other events without an override. It does not read the source argument. Jitter counting precedes feature/driver checks and counts HandleDamage invocations, not proven unique physical collisions.",
+      "disposition": "Retain damage-category discrimination and jitter escape intent. CBE currently has no general vehicle collision-damage filter; parachute exit protection is not equivalent. Do not import broad invulnerability or claim weapons/other-mod handler compatibility from this predicate alone."
+    },
+    {
+      "area": "temporary protection overlap",
+      "evidence": "protectBriefly captures vehicle/crew permissions, applies false, then restores captured true permissions after a scheduled sleep. A second overlapping capture observes false while the first timer may enable damage before the second interval ends. Delayed restoration has no token/current-owner or newer-controller proof.",
+      "disposition": "Reject independent baseline/timer restoration. Future CBE protection needs exact current-owner receipt and coordinated overlapping-owner semantics. Same-value external false writes remain unobservable without cooperation. No repair/teleport/recreate protection imported."
+    },
+    {
+      "area": "initialization authority",
+      "evidence": "initVehicle excludes static weapons, coalesces local initialization, waits5s, checks enabled, installs damage and native Local handlers, and starts current-local driving. The complete runtime settings/reenablement callgraph was not re-established in this scoped review.",
+      "disposition": "Retain dynamic object/locality intent. Do not infer whole-addon enable/disable behaviour from this helper alone; CBE owner-local lifetime and cleanup require separate validation."
+    },
+    {
+      "area": "CBE parachute admission",
+      "evidence": "CortexParachuteJump previously accepted matching supplied object without proving Air/non-parachute class and performed admission before exit geometry work.",
+      "disposition": "Added real-airframe and simulation/visibility checks plus unscheduled actor authority recheck before damage baseline capture and exit mutation. This does not fix existing delayed damage overlap or mid-exit migration."
+    }
+  ],
+  "validation": {
+    "log": ".qa/cbe-parachute-exit-admission-build.log",
+    "tests": 1125,
+    "compiledSQF": 313,
+    "PBOs": 9,
+    "exitCode": 0
+  },
+  "physicalAcceptance": false,
+  "auditsLaunched": false,
+  "upstreamModified": false,
+  "nextWork": [
+    "Design exact current-owner protection release before replacing bare allowDamage remote callbacks.",
+    "Persist and adopt the actual in-progress exit phase on locality change without replaying seat/velocity mutations.",
+    "Physically test invalid context, direct/queued admission, failed exit/boarding, overlap, preexisting invulnerability and migration once audits resume."
+  ],
+  "currentStateReconciliation20261020": {
+    "reviewed": "2026-10-20",
+    "baselineCommit": "ee133151",
+    "scope": "Current-state reconciliation; historical findings retained, no product change",
+    "sources": {
+      "addons/infantry/functions/cortexParachuteJump.sqf": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+      "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+      "addons/main/XEH_postInit.sqf": "bbdeda2519c79f65bd83fc44a7f795636f726454a7acf39eeae1be35c3918c0b",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+    },
+    "supersededWork": [
+      "Exact receipt and original-deadline protection release already implemented; no bare remote allowDamage timer remains in this jump path.",
+      "Native actor init/Local already adopts the accepted finite deployment phase without replaying exit motion.",
+      "Airborne roster rotation advances before attempted exit; rejected passenger cannot monopolize the next selection."
+    ],
+    "currentLimits": [
+      "Receipt delivery after init/Local observation has no guaranteed replay path.",
+      "Same-value external allowDamage false writes cannot be attributed without cooperation.",
+      "Actual migration, failed boarding, repeated use and frame-time acceptance remain unverified.",
+      "No general HBQ-style low-speed vehicle collision damage filter is implemented; parachute protection is a different scope."
+    ],
+    "nextAction": "Investigate guaranteed bounded late-receipt observation and cooperating protection authority before claiming full migration reliability; do not rebuild existing cleanup or fairness paths.",
+    "physicalAcceptance": false,
+    "auditsLaunched": false,
+    "scoresChanged": false
+  }
+}

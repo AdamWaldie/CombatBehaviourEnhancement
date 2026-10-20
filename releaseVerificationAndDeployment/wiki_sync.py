@@ -12,7 +12,7 @@ import tempfile
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REPO = 'https://github.com/AdamWaldie/WaldosAITweaks'
+DEFAULT_REPO = 'https://github.com/AdamWaldie/CombatBehaviourEnhancement'
 LINK = re.compile(r'(!?\[[^\]]*\]\()([^)\s]+)((?:\s+"[^"]*")?\))')
 FENCE = re.compile(r'(```.*?```)', re.S)
 # Sidebar sections; generated pages missing here are listed under "More guides".

@@ -200,7 +200,7 @@
       "id": "SKILL",
       "title": "AI skill rebalance",
       "setup": "Spawn eligible and filtered units before/after enabling; sample actual subskills, day/night variants and restoration.",
-      "expected": "Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.",
+      "expected": "Skill profiles are opt-in; default startup preserves mission skills. Explicit profiles use original baselines without multiplier accumulation. Later native skill/aim edits or declared skill ownership yield the optional profile while preserving changed values, including through transfer/restart. Excluded/player units retain values and stop restores only unchanged owned settings.",
       "settings": [
         "CBE_AIRebalance_Enable",
         "CBE_AIRebalance_Profile",
@@ -228,7 +228,9 @@
         "addons/core/functions/aiRestoreProfile.sqf",
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
-        "addons/core/functions/AISkillAdjustmentSystem.sqf"
+        "addons/core/functions/AISkillAdjustmentSystem.sqf",
+        "addons/core/functions/aiProfileYield.sqf",
+        "addons/core/functions/aiProfileReceipt.sqf"
       ]
     },
     {
@@ -263,7 +265,7 @@
       "live_evidence": [
         "runtime-20260927-041916: all ten LAND checks passed; server zero findings."
       ],
-      "automation": "runLanding.sqf: malformed payload rejection without mutation, physical touchdown and hold, landing cancellation and real redirected flight. Passed server cases in runtime-20260927-041916. Terrain, boundary, JIP and ownership variants remain unverified.",
+      "automation": "runLanding.sqf: malformed payload rejection, physical touchdown/hold and cancelled-order redirection. Historical server checks passed in runtime-20260927-041916 on older source. New normal/server-owned successor-lease feature handover case is PREPARED_NOT_RUN: real controller admission, deferred cleanup, immutable deadline, exact acknowledgement and physical fresh-MOVE return. It does not establish Workshop-controller parity. Terrain, boundary, JIP and ownership variants remain unverified.",
       "executable_sources": [
         "runLanding.sqf"
       ],
@@ -273,6 +275,7 @@
         "addons/aircraft/functions/improvedHelicopterLandingExecuteLocal.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingInit.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingRestoreLocal.sqf",
+        "addons/aircraft/functions/improvedHelicopterLandingFeatureReleaseLocal.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingSetting.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingStep.sqf"
       ]
@@ -408,7 +411,9 @@
         "addons/infantry/functions/dangerReact.sqf",
         "addons/infantry/functions/cortexGroupAnchor.sqf",
         "addons/infantry/functions/cortexStaticSupport.sqf",
-        "addons/infantry/functions/cortexStaticDeployStep.sqf"
+        "addons/infantry/functions/cortexStaticDeployStep.sqf",
+        "addons/infantry/functions/pointActorOperation.sqf",
+        "addons/infantry/functions/casualtyObservationSelect.sqf"
       ]
     },
     {
@@ -430,7 +435,10 @@
         "runMechanics.sqf",
         "runContact.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexSearchMoveOwned.sqf",
+        "addons/infantry/functions/cortexSearchHoldRelease.sqf"
+      ]
     },
     {
       "id": "FLANK",
@@ -461,7 +469,9 @@
         "addons/infantry/functions/cortexFlankEnd.sqf",
         "addons/infantry/functions/cortexFlankStart.sqf",
         "addons/infantry/functions/cortexFlankStep.sqf",
-        "addons/infantry/functions/cortexSelectAvenue.sqf"
+        "addons/infantry/functions/cortexSelectAvenue.sqf",
+        "addons/infantry/functions/cortexHolderRecallOwned.sqf",
+        "addons/infantry/functions/cortexHolderRecallPending.sqf"
       ]
     },
     {
@@ -734,11 +744,12 @@
         "CBE_AIPass_DrivingAssist_Enable",
         "CBE_AIPass_DrivingAssist_Passing_Enable",
         "CBE_AIPass_DrivingAssist_MaxSpeed",
-        "CBE_AIPass_DrivingAssist_Recovery_Enable"
+        "CBE_AIPass_DrivingAssist_Recovery_Enable",
+        "CBE_AIPass_DrivingAssist_Queue_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success.",
+      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Native hold/reverse/dependency/handback remains unimplemented. Distinct finite queue-role server broker/actual-owner acknowledgements are wired; consent never grants movement. Native hold/reverse/dependency/cleanup executor and physical protocol acceptance remain missing.",
       "executable_sources": [
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
@@ -771,6 +782,8 @@
         "addons/vehicles/functions/moduleDrivingCorridor.sqf",
         "addons/vehicles/functions/drivingGeometryCap.sqf",
         "addons/vehicles/functions/drivingPathGeometry.sqf",
+        "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "addons/vehicles/functions/drivingBypassApproach.sqf",
         "addons/vehicles/functions/drivingBypassPlan.sqf",
         "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
         "addons/vehicles/functions/drivingPassPlan.sqf",
@@ -790,11 +803,37 @@
         "addons/vehicles/functions/drivingPassAgreementServer.sqf",
         "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
         "addons/vehicles/functions/drivingBypassStep.sqf",
+        "addons/vehicles/functions/drivingAbortHandback.sqf",
         "addons/vehicles/functions/drivingBypassRelease.sqf",
         "addons/vehicles/functions/drivingTurnTrack.sqf",
         "addons/vehicles/functions/drivingNativePathWatch.sqf",
         "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-        "addons/vehicles/functions/drivingCrewStep.sqf"
+        "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
+        "addons/vehicles/functions/drivingRecoveryCleanup.sqf",
+        "addons/vehicles/functions/drivingRecoveryAdopt.sqf",
+        "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
+        "addons/vehicles/functions/drivingCrewStep.sqf",
+        "addons/vehicles/functions/drivingCrewBoarding.sqf",
+        "addons/vehicles/functions/drivingQueueContext.sqf",
+        "addons/vehicles/functions/drivingQueueHold.sqf",
+        "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+        "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+        "addons/vehicles/functions/drivingQueueTokenClosed.sqf",
+        "addons/vehicles/functions/drivingDamageReceipt.sqf",
+        "addons/vehicles/functions/moduleDrivingCorridorMission.sqf",
+        "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+        "addons/vehicles/functions/drivingOwnerReceipt.sqf",
+        "addons/vehicles/functions/drivingHullInterval.sqf",
+        "addons/vehicles/functions/drivingRearPlan.sqf",
+        "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "addons/vehicles/functions/drivingQueueAutoStep.sqf"
       ]
     },
     {
@@ -811,7 +850,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified.",
+      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified. Prepared normal-only runConvoyNativeStop.sqf (focus convoynativestop) requires real native movement, operator STOP yield, total-motion rest, sampled unchanged intent and fresh native physical travel; isolated fixtures and no test-side cleanup/reset before outcomes. UNRUN; no new acceptance.",
       "executable_sources": [
         "runServer.sqf",
         "runConvoyMatrix.sqf"
@@ -826,7 +865,8 @@
         "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
         "addons/vehicles/functions/convoyUnloadPolicy.sqf",
         "addons/vehicles/functions/convoyCorridorStep.sqf",
-        "addons/vehicles/functions/convoyBypassStep.sqf"
+        "addons/vehicles/functions/convoyBypassStep.sqf",
+        "addons/vehicles/functions/convoyRetireMoveReceipt.sqf"
       ]
     },
     {
@@ -1083,7 +1123,11 @@
         "addons/aircraft/functions/cortexAirborneCheck.sqf",
         "addons/aircraft/functions/cortexAirborneDrop.sqf",
         "addons/aircraft/functions/cortexAirborneDropStep.sqf",
-        "addons/infantry/functions/cortexParachuteJump.sqf"
+        "addons/infantry/functions/cortexParachuteJump.sqf",
+        "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+        "addons/infantry/functions/cortexParachuteDeploy.sqf",
+        "addons/infantry/functions/cortexParachuteObserve.sqf",
+        "addons/infantry/functions/cortexParachutePublish.sqf"
       ]
     },
     {
@@ -1200,7 +1244,8 @@
         "addons/infantry/functions/cortexAdvanceStart.sqf",
         "addons/infantry/functions/cortexTacticalStart.sqf",
         "addons/infantry/functions/cortexTacticalAssess.sqf",
-        "addons/infantry/functions/cortexTacticalReposition.sqf"
+        "addons/infantry/functions/cortexTacticalReposition.sqf",
+        "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf"
       ]
     },
     {
@@ -1242,7 +1287,8 @@
         "addons/support/functions/cortexSupportStep.sqf",
         "addons/support/functions/supportRequestStart.sqf",
         "addons/support/functions/supportRequestQueue.sqf",
-        "addons/support/functions/supportRequestStep.sqf"
+        "addons/support/functions/supportRequestStep.sqf",
+        "addons/support/functions/cortexSupportStopOwned.sqf"
       ]
     },
     {
@@ -1390,16 +1436,24 @@
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",
         "addons/infantry/functions/buildingOperationStep.sqf",
+        "addons/infantry/functions/buildingActorMotion.sqf",
+        "addons/infantry/functions/buildingRoofTop.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
+        "addons/infantry/functions/cortexClearSettingsRelease.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
         "addons/infantry/functions/combatPairs.sqf",
+        "addons/infantry/functions/combatPairsPublish.sqf",
         "addons/infantry/functions/zenClearModule.sqf",
         "addons/core/functions/positionBucketAdmit.sqf",
         "addons/infantry/functions/indoorActorNativeContext.sqf",
         "addons/infantry/functions/indoorActorGroupAvailable.sqf",
-        "addons/infantry/functions/indoorActorDispatch.sqf"
+        "addons/infantry/functions/indoorActorDispatch.sqf",
+        "addons/infantry/functions/cortexClearSettingsApply.sqf",
+        "addons/infantry/functions/indoorObservationDispatch.sqf",
+        "addons/infantry/functions/cortexRouteDoors.sqf",
+        "addons/infantry/functions/buildingActorHoldOwned.sqf"
       ]
     },
     {
@@ -1455,7 +1509,9 @@
         "addons/core/functions/operationStep.sqf",
         "addons/core/functions/operationCancel.sqf",
         "addons/core/functions/operationRelease.sqf",
-        "addons/core/functions/operationRestore.sqf"
+        "addons/core/functions/operationRestore.sqf",
+        "addons/core/functions/operationAttackPolicy.sqf",
+        "addons/core/functions/actorSettings.sqf"
       ]
     },
     {

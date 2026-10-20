@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-19",
+  "scope": "Post-clear handback under split actor/group locality",
+  "finding": "Both command issue and deferred retention required actor locality. When new group intent arrived during a split, a living stopped actor lost its receipt before the owner could perform handback.",
+  "implementation": "Retain original receipt metadata for living same-group on-foot non-player remote actors still observed STOP. No remote command or new position. Local re-observation retains all strict task, authority and recorded-position requirements. Existing public row filtering carries only retained original posts.",
+  "validation": {
+    "physical": "Unverified; audits paused.",
+    "focusedExistingTests": 642,
+    "fullPipeline": "1477 tests and sequential compiler/FSM/config/docs/parity/performance/package gates passed",
+    "fullLog": ".qa/cbe-split-hold-final-build.log",
+    "independentLog": ".qa/cbe-split-hold-final-independent.log",
+    "packageSource": "f4b06167+dirty",
+    "packageFingerprint": "6777f094857096d2619a1883606d774bbbb6aa2cb71533d0a3c24cb10cc51e4c"
+  },
+  "limits": [
+    "Remote observations can be stale; retention grants no authority or movement.",
+    "No migration/HC physical success claimed.",
+    "Addon shutdown remains a terminal release path, not an indefinite handback observer."
+  ]
+}

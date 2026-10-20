@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-19",
+  "scope": "Exact private queue cancellation after vehicle locality loss",
+  "finding": "CortexLocality invokes DrivingOperationFinish before changing the old driving epoch. Finish deliberately retires queue consent before its current-local-brain native cleanup guard. DrivingQueueAgreementRelease nevertheless required local vehicle both at entry and mutation, so this intended old-owner cancellation could not run after migration.",
+  "implementation": "Remove vehicle-locality requirement from machine-private consent retirement only. Still require original captured vehicle owner==clientOwner, both captured crew group/epoch/generation matching the retiring brain, allowed caller and exact unchanged consent at unscheduled mutation. Reject deleted objects and successors. Broker RELEASE still requires sender among the original accepted owners and can cancel after ownership changed; it grants no movement. Native Finish cleanup retains current group/brain/epoch/generation locality guards.",
+  "cost": "Removes two metadata-path locality vetoes, no new state, timer, worker, query, native command or cap publication.",
+  "validation": {
+    "focusedExistingTests": 661,
+    "focusedLog": ".qa/cbe-consent-owner-identity-fixed-focused.log",
+    "hemttLog": ".qa/cbe-queue-loss-cancel-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests, compiler/FSM/config/documentation/parity/performance gates and sealed unsigned development package passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-owner-consent-final-build.log",
+    "independentLog": ".qa/cbe-owner-consent-final-independent.log",
+    "packageSource": "8b6a15b187636a58a753c8a2ca388b72dbb0433a+dirty",
+    "packageFingerprint": "6fc9a636e93b88a6d7904169c0f5325b19fe84b8cc2e36063dd925a193019bbb"
+  },
+  "limits": "Live HC transfer, packet timing, successor consent, object deletion and peer hold retirement remain physical acceptance items. This is not native cap replay or completed queue movement. Original broker admission cooldown remains unchanged.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+      "sha256": "4849eead4c31915a2943e27ea471ac33f6626b47237534735f251c0660648322"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
+      "sha256": "bce811c3534a8b9cc4cddc2b7f8a3b7cc6240a00cd937f63e36bc743dbe10918"
+    },
+    {
+      "path": "addons/core/functions/cortexLocality.sqf",
+      "sha256": "eeb4a3db150487665d70b5b7e695f57d4316009a35a8bf9e1cdd63ff6b182c9b"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "sha256": "f16e2fcb0c78f22395bed06eb3fffb27d59515cc7fc47c7b49a1e65ffed4ced0"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_queue_expiry.py",
+      "sha256": "5253a1a1fd56e393c1cbfa64eb52555c94dfcd936d977eceddbafeca6143db58"
+    }
+  ]
+}

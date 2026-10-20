@@ -8,6 +8,10 @@
  * An unconfirmed native shot reaches the original deadline without renewal, then parks its
  * registry/token reservation with no recurring scheduler work or duplicate fire request.
  * Qualified event/rejection callbacks restart settlement only; parking is not completion.
+ * Executor failure parks an uncertain native shot without replay or deadline renewal; otherwise it retires the registry.
+ * Counter-generation cancellation blocks future shots while uncertain native shots retain
+ * their token/quarantine; re-enabling cannot revive queued counter missions.
+ * Each dispatched native shot has a monotonic per-mission serial, independent of fired counts.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
  * Current caller: CBE_fnc_ArtilleryMissionStep as one bounded action under the artillery mission FSM.
@@ -28,6 +32,15 @@ private _finish = {
     _battery setVariable ["CBE_AIPass_BusyUntil", nil, true];
     -1
 };
+// Executor loss is not proof that an owner-issued round failed. Keep uncertain
+// native work reserved and parked; qualified callbacks may only settle it later.
+if ((_mission getOrDefault ["executorFailure",""]) != "") exitWith {
+    _mission set ["remaining",0];_mission set ["burstsLeft",0];_mission set ["scoot",false];
+    if (alive _battery && {(_mission get "phase") in ["PENDING","UNCERTAIN"]}) then {
+        _mission set ["phase","UNCERTAIN"];_mission set ["parked",true];
+        -1
+    } else {call _finish}
+};
 if ((_mission get "phase") in ["PENDING", "UNCERTAIN"] && {alive _battery}
     && {time > (_mission get "deadline")}) exitWith {
     // Retire polling, not the unresolved native command. Keep registry/token
@@ -46,7 +59,17 @@ private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner
 private _requesterBlocked=!isNull _requester && {!([_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled) || {!([_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}};
 private _smokeBlocked=(_mission get "mode") == "SMOKE"
     && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)};
-private _blocked = _smokeBlocked || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
+private _counterExpired=(_mission get "purpose") == "COUNTER"
+    && {(_mission getOrDefault ["counterGeneration",-1]) != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])};
+private _fireGenerationName=switch (_mission get "purpose") do {
+    case "SUPPORT": {"CBE_Artillery_SupportFireGeneration"};
+    case "DANGER": {"CBE_Artillery_DangerFireGeneration"};
+    default {"CBE_AIPass_CounterGeneration"};
+};
+private _fireExpired=(_mission getOrDefault ["fireGeneration",-1]) != (missionNamespace getVariable [_fireGenerationName,0]);
+private _smokeExpired=(_mission get "mode") == "SMOKE"
+    && {(_mission getOrDefault ["smokeGeneration",-1]) != (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])};
+private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
@@ -81,10 +104,20 @@ if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {
 if ((_mission get "burstsLeft") <= 0) exitWith {
     if (_mission get "scoot" && {(_mission get "fired") > 0} && {!(_battery isKindOf "StaticWeapon")}) then {
         private _scootToken = _mission get "token";
+        private _scootPurpose=_mission get "purpose";
+        private _scootGenerationName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select (_scootPurpose == "COUNTER");
+        private _scootSession=[_scootToken,missionNamespace getVariable [_scootGenerationName,0],
+            _mission getOrDefault ["counterGeneration",-1],serverTime+120,_scootPurpose];
+        // Retain the original observation identity after the fire registry retires.
+        // Pending admission is at most120s and a started native move at most another120s.
+        _mission set ["scootSession",+_scootSession];
+        _mission set ["scootGroup",group driver _battery];
+        _mission set ["scootObserveUntil",(_scootSession select 3)+120];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootSession",_scootSession,true];
         _battery setVariable ["CBE_Cortex_ArtilleryScootToken",_scootToken,true];
-        _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",serverTime+120,true];
+        _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",_scootSession select 3,true];
         _battery setVariable ["CBE_Cortex_ArtilleryScootPurpose",_mission get "purpose",true];
-        [_battery,_scootToken] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _battery];
+        [_battery,_scootToken,_scootSession] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _battery];
     };
     call _finish
 };
@@ -140,8 +173,9 @@ if ((_mission get "phase") == "READY" && {(_mission get "mode") == "HE"}) exitWi
     diag_log format ["[CBE] Artillery warning token=%1 burst=%2 target=%3 smoke=%4",_mission get "token",(_mission get "burstsCompleted")+1,_target,count _smokes];
     10
 };
+_mission set ["shotSerial",(_mission getOrDefault ["shotSerial",0])+1];
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token"] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1

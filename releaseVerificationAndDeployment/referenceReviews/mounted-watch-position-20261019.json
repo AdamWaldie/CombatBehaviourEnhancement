@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-19",
+  "scope": "Mounted danger suppression watch position format",
+  "finding": "CortexVehicles builds aimPosition from ATLToASL believed contact plus one metre, then previously supplied that ASL array unchanged to both doWatch and doSuppressiveFire. Source vehicle suppression explicitly converts the watch target with ASLToAGL while retaining its ASL firing point.",
+  "change": "Convert the existing aimPosition with ASLToAGL only at doWatch. Existing ASL line-of-fire checks and doSuppressiveFire target remain unchanged; no new detection, target assignment, movement, worker, cadence or rounds.",
+  "engineReferences": [
+    "https://community.bistudio.com/wiki/doWatch?useskin=vector",
+    "https://community.bohemia.net/wiki/doSuppressiveFire",
+    "https://community.bohemia.net/wiki/PositionWorld"
+  ],
+  "referenceLimit": "doWatch page labels the parameter Position rather than an explicit ASL contract. Its marker-position example, generic ground-relative position conventions and the reviewed upstream conversion support the watch conversion; actual elevation/sea cases still require in-game verification. doSuppressiveFire explicitly requires PositionASL.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/cortexVehicles.sqf",
+      "sha256": "d9766c331c1bb1e12eff0f3899a8d79b7ff1f91912f53da01db840ad3978bc3b"
+    },
+    {
+      "path": ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleSuppress.sqf",
+      "sha256": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a"
+    }
+  ],
+  "validation": {
+    "existingFocusedTests": 654,
+    "focusedLog": ".qa/cbe-mounted-watch-consent-focused.log",
+    "hemttLog": ".qa/cbe-mounted-watch-consent-hemtt.log",
+    "newTestCases": 0,
+    "physical": "Unverified; audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-vehicle-consent-watch-build.log",
+    "independentLog": ".qa/cbe-vehicle-consent-watch-independent.log",
+    "packageFingerprint": "9304f5d3b71145b42bffa161ee6648b1718a02045d01ef36d93ba72c5d29a188",
+    "packageSource": "6f0f6e15+dirty unsigned development",
+    "package": "Full local pipeline and independent verification passed; precommit dirty-source artifact, not later clean commit."
+  },
+  "remaining": "This scoped correction does not implement building demolition, weapon/effect selection or prove combined-arms parity."
+}

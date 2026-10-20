@@ -38,4 +38,32 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertIn('private _sampleStartedTick=diag_tickTime;', s)
         self.assertIn('overwritten between samples', s)
 
+class SchedulerExecutionContextTests(unittest.TestCase):
+    def test_context_is_observed_and_old_samples_remain_unknown(self):
+        tick=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        self.assertIn('private _callbackCanSuspend=canSuspend;',tick)
+        self.assertIn('_callbackMs,_queueLatency,_callbackStarted,_callbackCanSuspend',tick)
+        self.assertIn('"lastCallbackCanSuspend",_callbackCanSuspend',tick)
+        report=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
+        self.assertIn('(_x select 5) isEqualTo true',report)
+        self.assertIn('(_x select 5) isEqualTo false',report)
+        self.assertIn('_sampleCount-_scheduledSamples-_unscheduledSamples',report)
+        reconcile=(ROOT/'addons/core/functions/schedulerReconcile.sqf').read_text()
+        self.assertIn('CBA_fnc_addPerFrameHandler',reconcile)
+        self.assertIn('{[_state] call _job}',tick)
+
+class DistributedCallbackSchemaTests(unittest.TestCase):
+    def test_owner_sampler_keeps_both_ring_schemas_and_unknown_absence(self):
+        source=(ROOT/'releaseVerificationAndDeployment/cortexQA/runPerformanceOwner.sqf').read_text()
+        sample=source.split('private _completed=',1)[1].split('sleep 1;',1)[0]
+        self.assertIn('count _x in [5,6]',sample)
+        self.assertIn('!finite _x',sample)
+        self.assertIn('(_x select 5) isEqualType true',sample)
+        self.assertIn('_sawUnknownContext=true',sample)
+        self.assertIn('private _maxCallbackMs=-1;',source)
+        self.assertIn('private _maxCompletedLatency=-1;',source)
+        self.assertIn('[_sawUnscheduled,_sawScheduled,_sawUnknownContext]',source)
+        self.assertIn('(_x select 4) >= _sampleStartedTick',sample)
+        self.assertIn('(_x select 4) <= _observedAt',sample)
+
 if __name__=='__main__':unittest.main()

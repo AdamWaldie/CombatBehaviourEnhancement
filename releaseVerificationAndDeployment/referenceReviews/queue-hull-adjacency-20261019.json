@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-19",
+  "scope": "Whole-hull rear-chain adjacency",
+  "finding": "The fixed25m centre-distance cutoff can omit long rear vehicles even when their bodies are close enough to obstruct a reverse dependency. Ordered centres alone also admit overlapping projected bodies.",
+  "implementation": "Share the existing four-transform affine whole-box projection with passing. Cache projections once for up to64 discovery candidates. Select the nearest rear body by padded gap, refuse negative/unknown clearance; revalidate adjacent chain bodies within0..25m using at mostfour projections. Preserve original root role, heading, lateral/height checks, owner consent,120m query, four-participant ceiling and original expiry.",
+  "cost": "Discovery at most64 cached candidate projections plus up tothree predecessor projections; each is four native transforms. Deferred checks at mostfour projections. No additional world query/rays/timer/worker. Passing retains four transforms per object. Actual overhead unmeasured.",
+  "limits": "Conservative longitudinal bounding boxes; not collision mesh or physical path proof. Existing120m query/lateral6m/height2m scope remains. Automatic queue initiation and physical native dependency executor remain absent; audits paused.",
+  "validation": {
+    "focusedExistingTests": 652,
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests and full sequential build gates passed.",
+    "fullLog": ".qa/cbe-queue-hull-final-build.log",
+    "independentLog": ".qa/cbe-queue-hull-final-independent.log",
+    "packageSource": "1bb57bed15aa366643b17e91bab1db9d9bf651b7+dirty",
+    "packageFingerprint": "ddda6bdbbbd815335fd006d49f890618509a4e2231d942721c8c746ee5dfef15"
+  },
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingHullInterval.sqf",
+      "sha256": "66bba25b175f63c88ab0ed9561d926b8b0bb409c642887fe48ae85bd04669ec4"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassStep.sqf",
+      "sha256": "50337aa60b3484df8462eb0036a639430c3bddaa712b5bb01cc66125114b957e"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "sha256": "136d0ae67406b468e79a766f77c1e8127c899cc451f958617468cd4116325a08"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "46929207b2d54c518097d32d03554df5f2b86f9b966a8ad7d9460c80897f497d"
+    }
+  ]
+}

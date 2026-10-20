@@ -31,8 +31,8 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertNotIn(forbidden,code)
     def test_deferred_scan_is_bound_to_both_crews_and_authored_orders(self):
         context=(ROOT/'addons/vehicles/functions/drivingPassContext.sqf').read_text()
-        for guard in ('owner _x','driver _x','effectiveCommander _x','groupOwner _group',
-                      'CBE_AIPass_Epoch','remoteControlled _actor','currentCommand _actor',
+        for guard in ('owner _x','driver _x','effectiveCommander _x','call CBE_fnc_DrivingOwnerReceipt',
+                      'if (!_receiptsReady) exitWith {[]}','remoteControlled _actor','currentCommand _actor',
                       'expectedDestination _actor','call CBE_fnc_NativeOrderReceipt'):
             self.assertIn(guard,context)
         planner=(ROOT/'addons/vehicles/functions/drivingPassPlan.sqf').read_text()
@@ -53,6 +53,18 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('_enter=_enter max (_first min _last)',code)
         self.assertIn('_leave=_leave min (_first max _last)',code)
         self.assertNotIn('private _closing=-',code)
+        # Only live monitoring may shorten the observation, and only behind the full hull.
+        self.assertIn('getOrDefault ["monitorRemaining",false]',code)
+        for guard in ('_nearRuns == 1','_distance <= 3','<= 2','>= cos 35',
+                      'sqrt (_halfLength^2+_width^2)+2','_back >= _rearBuffer',
+                      '_monitorPose isNotEqualTo'):
+            self.assertIn(guard,code)
+        self.assertIn('_guide=_guide select [_start]',code)
+        step=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text()
+        self.assertEqual(step.count('["monitorRemaining",true]'),3)
+        issue=step.split('private _issue={',1)[1].split('if (!(_work get "issued")',1)[0]
+        self.assertNotIn('monitorRemaining',issue)
+
         for forbidden in ('setVariable','doMove','setDriveOnPath','forceSpeed','setVelocity','remoteExec'):
             self.assertNotIn(forbidden,code)
     def test_query_envelope_covers_fast_road_approach_for_entire_proposal(self):
@@ -99,6 +111,12 @@ class DrivingPassPlanTests(unittest.TestCase):
                       'call CBE_fnc_CortexActorMoveReserved','call CBE_fnc_DrivingGateIntent',
                       'waypointTimeout','synchronizedTriggers'):
             self.assertIn(guard,consent)
+        executor=consent[consent.index('private _brain='):consent.index('if !([_group,_vehicle,_route]')]
+        for proof in ('CBE_Driving_FSM','CBE_Driving_Generation','CBE_AIPass_Epoch',
+                      'finite _executor','completedFSM _executor','isNotEqualTo _route'):
+            self.assertIn(proof,executor)
+        for forbidden in ('execFSM','setVariable','forceSpeed','doMove'):
+            self.assertNotIn(forbidden,executor)
         prepare=(ROOT/'addons/vehicles/functions/drivingPassPrepare.sqf').read_text()
         gate=prepare.split('private _remoteOwners=',1)[1].split('if (_phase == "SCANNING")',1)[0]
         self.assertIn('if (local _x) exitWith',gate)
@@ -128,12 +146,38 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('_registry deleteAt _token',release)
     def test_driving_shutdown_retires_only_recorded_group_and_exact_consent(self):
         release=(ROOT/'addons/vehicles/functions/drivingPassAgreementRelease.sqf').read_text()
-        for guard in ('!local _vehicle','remoteExecutedOwner != 2','(_driverReceipt select 2) != _expectedGroup',
+        for guard in ('select 1) != clientOwner','remoteExecutedOwner != 2','(_driverReceipt select 2) != _expectedGroup',
                       '(_agreement select 0) isEqualTo _token','isEqualTo _consent','isEqualTo _agreement',
                       '(_request select 0) isEqualTo _context','["RELEASE",[_token]] remoteExecCall'):
             self.assertIn(guard,release)
         for command in ('doMove','doFollow','setDriveOnPath','forceSpeed','setVelocity','setPosATL'):
             self.assertNotIn(command,release)
+        self.assertNotIn('local _vehicle',release.split('params [[',1)[1])
+        self.assertIn('isNil {',release)
+        finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
+        boundary=finish.index('if (isNull _group || {!local _group}')
+        self.assertLess(finish.index('["CANCEL",_group,_x,_brain]'),boundary)
+        self.assertLess(finish.index('call CBE_fnc_DrivingPassAgreementRelease'),boundary)
+        self.assertIn('[_x,_group,"",_retireEpoch,_retireGeneration]',finish)
+        self.assertIn('(_actorReceipt select 4) isNotEqualTo _expectedEpoch',release)
+        self.assertIn('(_actorReceipt select 10) isNotEqualTo _expectedGeneration',release)
+        context=(ROOT/'addons/vehicles/functions/drivingPassContext.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingOwnerReceipt',context)
+        owner=(ROOT/'addons/vehicles/functions/drivingOwnerReceipt.sqf').read_text()
+        self.assertIn('if (local _group)',owner)
+        self.assertIn('"CBE_Driving_Generation",-1',owner)
+        self.assertIn('count _status == 6',owner)
+        self.assertIn('(_status select 4) isEqualTo _owner',owner)
+        self.assertIn('_epoch=_status select 5;_generation=_status select 1',owner)
+        server=(ROOT/'addons/vehicles/functions/drivingPassAgreementServer.sqf').read_text()
+        self.assertIn('count _ar != 11',server)
+        self.assertIn('(_ar select 10) isNotEqualTo (_er select 10)',server)
+        admission=(ROOT/'addons/vehicles/functions/drivingPassAdmission.sqf').read_text()
+        cancel=admission.split('if (_mode == "CANCEL") exitWith {',1)[1].split('if !(_mode in',1)[0]
+        for proof in ('isNil {','isNotEqualTo _brain','"generation",-2','"ownerEpoch",-2',
+                      '[_group,_generation,_epoch]','[_group,_epoch,_generation]'):
+            self.assertIn(proof,cancel)
+        self.assertLess(cancel.index('isNotEqualTo _brain'),cancel.index('["CANCELLED"] call _finish'))
         driving=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         self.assertLess(driving.index('call CBE_fnc_DrivingPassAgreementRelease'),driving.index('private _recovery='))
     def test_broker_ack_does_not_rescan_registry_and_private_state_cannot_replay(self):
@@ -180,15 +224,30 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertNotIn('forceSpeed',s)
         self.assertEqual(s.split('params [[',1)[1].count('setDriveOnPath'),1)
         self.assertIn('call _current',s)
-        self.assertIn('_phase == "OUT" && {_ahead}',s)
+        self.assertIn('_phase == "OUT" && {_ahead} && {_atReturnEntry}',s)
         self.assertIn('(_ownSpan select 0) > (_peerSpan select 1)+6',s)
         self.assertIn('(_ownSpan select 1) < (_peerSpan select 0)-3',s)
-        self.assertIn('modelToWorldWorld [_xx,_yy,_x]',s)
-        self.assertIn('[_low select 2,_high select 2]',s)
-        self.assertIn('[_low select 1,_high select 1]',s)
-        self.assertIn('[_low select 0,_high select 0]',s)
+        span=(ROOT/'addons/vehicles/functions/drivingHullInterval.sqf').read_text()
+        self.assertEqual(s.count('call CBE_fnc_DrivingHullInterval'),2)
+        self.assertEqual(span.count('modelToWorldWorld'),2)  # one corner + three loop edges
+        for endpoint in ('[_high select 0,_low select 1,_low select 2]',
+                         '[_low select 0,_high select 1,_low select 2]',
+                         '[_low select 0,_low select 1,_high select 2]'):
+            self.assertIn(endpoint,span)
+        self.assertIn('[_minimum-0.05,_maximum+0.05]',span)
         self.assertIn('RETURN_SCAN',s)
         self.assertIn('DROP_BACK',s)
+        # A forward path remains active while losing longitudinal ground to the peer.
+        # Abort speed reduction must not bypass fresh corridor traffic refusal.
+        drop=s.split('if (_phase == "DROP_BACK") exitWith {',1)[1].split('if (_phase == "RETURN_SCAN")',1)[0]
+        self.assertEqual(drop.count('call CBE_fnc_DrivingPassTraffic'),1)
+        self.assertIn('["guideASL",(_work get "activePath")',drop)
+        self.assertIn('getOrDefault ["blocked",true]',drop)
+        self.assertIn('exitWith {[true,0,"DROP_BACK_TRAFFIC_HELD"]}',drop)
+        self.assertLess(drop.index('DROP_BACK_TRAFFIC_HELD'),drop.index('velocityModelSpace _peer'))
+        self.assertNotIn('setDriveOnPath',drop)
+        self.assertIn('if (_trafficUnsafe) then {0}',s)
+
         self.assertNotIn('set ["deadline",',s)
         self.assertIn('call CBE_fnc_DrivingPassGeometry',s)
     def test_automatic_admission_is_bounded_opt_in_and_uses_real_consent(self):
@@ -364,3 +423,84 @@ class DrivingPassPlanTests(unittest.TestCase):
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text()
         self.assertIn('(_watch select 2) == (_brain getOrDefault ["ownerEpoch",-1])',finish)
         self.assertIn('(_watch select 3) == (_brain getOrDefault ["generation",-1])',finish)
+
+    def test_issue_rejoins_forward_path_before_any_native_write(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        issue=s.split('private _issue={',1)[1].split('if (!(_work get "issued")',1)[0]
+        for guard in ('_distance >= 6','_distance <= 35','_height <= 2','>= cos 20',
+                      'count _path <= 128','count _joined > 128','_travel > 350',
+                      '_path select [_join+1]','_path=_joined',
+                      '_pose isEqualTo [getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle]',
+                      'serverTime < (_work get "deadline")','_pairContext isEqualTo',
+                      '["outPath",_path apply {+_x}]'):
+            self.assertIn(guard,issue)
+        for check in ('call CBE_fnc_DrivingPassGeometry','call CBE_fnc_DrivingPassTraffic',
+                      'getOrDefault ["blocked",true]','call _current'):
+            self.assertLess(issue.index(check),issue.index('doStop _driver'))
+        self.assertNotIn('set ["deadline",',issue)
+
+    def test_join_sampling_respects_real_geometry_station_budget(self):
+        import math
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('ceil ((_originASL distance2D _joinASL)/5)',s)
+        self.assertIn('vectorMultiply (_i/_segments)',s)
+        # Independent envelope: 6..35m connector, <=5m segments, <=8 stations.
+        for tenths in range(60,351):
+            length=tenths/10
+            segments=math.ceil(length/5)
+            self.assertLessEqual(length/segments,5)
+            self.assertLessEqual(segments+1,8)
+            rays=3*(segments+1)+9*segments+9*(segments+1)
+            self.assertLessEqual(rays,159)
+        geometry=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text(encoding='utf-8')
+        self.assertIn('_length > 8.01',geometry)
+
+    def test_return_scan_never_issues_path_on_same_callback(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        scan=s.split('if (_phase == "RETURN_SCAN") exitWith {',1)[1].split('if (_phase == "RETURN_READY")',1)[0]
+        self.assertIn('_phase="RETURN_READY"',scan)
+        self.assertNotIn('call _issue',scan)
+        ready=s.split('if (_phase == "RETURN_READY") exitWith {',1)[1].split('if (_phase == "RETURN")',1)[0]
+        self.assertIn('RETURN_JOIN_EXPIRED',ready)
+        self.assertIn('RETURN_JOIN_REFUSED',ready)
+        self.assertIn('call _issue',ready)
+        initial=s.split('if !(_work get "issued") exitWith {',1)[1].split('if (_phase == "OUT"',1)[0]
+        self.assertIn('[true,_work get "cap","OUT"]',initial)
+        self.assertNotIn('call CBE_fnc_DrivingPassTraffic',initial)
+
+    def test_return_leg_observes_live_traffic_before_reporting_arrival(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        merge=s.split('if (_phase == "RETURN") exitWith {',1)[1].split('// OUT retains',1)[0]
+        self.assertEqual(merge.count('call CBE_fnc_DrivingPassTraffic'),1)
+        for check in ('RETURN_TRAFFIC_REFUSED','RETURN_COMBAT','RETURN_STALLED'):
+            self.assertLess(merge.index(check),merge.index('RETURN_COMPLETE'))
+            self.assertIn('["'+check+'",false] call _finish',merge)
+        self.assertIn('(_work get "activePath") apply {ATLToASL _x}',merge)
+        self.assertIn('["requiredTravel",_work get "legTravel"]',merge)
+        self.assertIn('serverTime-(_work get "lastAt") >= 15',merge)
+        self.assertIn('(_work get "lastDistance")-_distance >= 1',merge)
+        self.assertNotIn('set ["deadline",',merge)
+
+    def test_return_context_loss_cannot_continue_or_infer_abort_clearance(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        guard=s.split('if (_phase == "RETURN" &&',1)[1].split('private _issue=',1)[0]
+        for check in ('!_peerCurrent','!alive _peer','!_aligned'):
+            self.assertIn(check,guard)
+        self.assertIn('["RETURN_CONTEXT_CHANGED",false] call _finish',guard)
+        issue=s.split('private _issue=',1)[1].split('if (!(_work get "issued")',1)[0]
+        self.assertIn('["activePath",_path apply {+_x}]',issue)
+        self.assertIn('["legTravel",_travel]',issue)
+
+    def test_early_hull_clearance_keeps_out_leg_until_return_corridor_entry(self):
+        s=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text(encoding='utf-8')
+        transition=s.split('private _outTarget=',1)[1].split('if (_phase == "DROP_BACK")',1)[0]
+        for check in ('_vehicle distance2D _outTarget <= 8',
+                      '(_outTarget select 2)) <= 2',
+                      '_phase == "OUT" && {_ahead} && {_atReturnEntry}'):
+            self.assertIn(check,transition)
+        self.assertEqual(transition.count('set ["scanAt",serverTime]'),1)
+        self.assertNotIn('doStop',transition)
+        self.assertNotIn('set ["deadline",',transition)
+        begin=(ROOT/'addons/vehicles/functions/drivingPassBegin.sqf').read_text(encoding='utf-8')
+        self.assertIn('["outPath",_path select [0,_split]]',begin)
+        self.assertIn('["returnASL",_pathASL select [_split-1]]',begin)

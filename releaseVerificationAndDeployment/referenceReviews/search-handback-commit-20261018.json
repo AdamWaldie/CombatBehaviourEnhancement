@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-18",
+  "scope": "Search/contact/calm handback command boundary",
+  "implementation": [
+    "Atomic ownership check and doFollow",
+    "Current state/leader guard in tick",
+    "Current effective anchor in calm cleanup"
+  ],
+  "validation": {
+    "tests": 1234,
+    "exit": 0,
+    "log": ".qa/cbe-search-handback-commit-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Neutral hold provenance",
+    "Physical migration and overhead",
+    "Other movement writers"
+  ],
+  "acceptance": "partial"
+}

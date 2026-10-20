@@ -6,7 +6,7 @@ settings and runtime entry points. Missions do not copy its files or execute an 
 ## Startup and authority
 
 CBA pre-init loads guarded defaults and registers the shared tuning specification on every machine.
-CBA owns global setting persistence and synchronization. Post-init starts enabled systems after addon
+CBA owns global setting persistence and synchronization. Live feature gates require boolean values and an array for group exclusions; invalid values refuse admission instead of throwing inside an owner FSM. Missing values retain the documented fallback. Malformed declared ownership is treated as external control until corrected, and no helper repairs or overwrites the mission value. Post-init starts enabled systems after addon
 initialization. The server coordinates cross-group decisions; the current AI owner executes movement,
 fire and local handlers. Interface clients provide Zeus controls and interruption monitoring.
 
@@ -937,3 +937,225 @@ Pilot feature recovery uses one public schema2 receipt: `[2, actor, aircraft, or
 Original-issuer init/adoption leaves an unstarted record to actual cleanup, so observing a live attack cannot age its future restoration window. A different actual actor owner may start release after migration even if the previous issuer never ran cleanup. Each callback requires the exact current receipt and captured local epoch. Restoration still requires an absent flight lease, the original actor aboard/in the original group, and no protected task/player/remote/specialist ownership. The chain is independent of the tactics scheduler and ends at the shared deadline or60 attempts. Timeout retains the unresolved record and blocks baseline overwrite by a new attack.
 
 One native Local handler per CAManBase is installed through CBA init, including existing actors/JIP. Adoption waits at most five seconds for a late receipt only for aircraft occupants. No world polling, ground eligibility or attack replay is added. Physical migration/replication ordering, stale flight lease retirement, late receipt beyond five seconds, departed actors, external same-value feature ownership and handler cost remain unaccepted. Version1 experimental records are not silently upgraded into permission; reload a fresh candidate for testing.
+
+### Pilot restoration after aircraft ownership transfer
+
+The current local aircraft owner may retire a previous-owner AIR_ATTACK lease only when its controller, token and immutable issuer match the original pilot feature receipt. The actor must also be local, aboard the original aircraft and group, within the original release deadline, and free of protected task or external control. An active local attack brain blocks this retirement. Current-owner leases and other controllers remain untouched, including when generation tokens collide across machines. The check and lease retirement run together without suspension. Ordinary feature restoration still requires an absent lease and the existing task safeguards.
+
+This closes a source-level handover blocker; split actor/aircraft ownership, late receipt delivery and physical multiplayer restoration still require in-engine validation. Audits remain paused.
+
+The recorded pilot may also recover once fully on foot in the original group. This path restores only that actor's recorded features and does not clear the former aircraft lease; another aircraft occupant receives no inherited baseline. GET OUT, movement reservations, specialist or player control and other protected tasks still veto restoration. The final restoration rechecks actual locality, receipt identity, epoch, deadline, live lease and actor/task eligibility together without suspension. Changing groups or boarding a different vehicle remains unresolved rather than guessing restoration authority.
+
+### Ordinary driving recovery handback
+
+Recovery cleanup checks the current journal, vehicle mobility/simulation, original crew seats, native commands, route identity and task authority without suspension before issuing any stop or forward handback. The plain authored MOVE must pass its metadata checks before either crew member receives a stop command. Hidden, immobile or simulation-disabled vehicles retire matching bookkeeping without movement commands. This does not demonstrate successful native reverse or resolve the retained mixed-convoy stalls.
+
+Reverse cleanup may stop its exact owned reverse without resuming a route when the leader is on foot or the mounted follow target is incapacitated, immobile, hidden or simulation-disabled. It does not order the crew to follow an on-foot leader. `CBE_DrivingRecovery_Result` retains its first five fields and appends the handback outcome: `AUTHORED_ROUTE`, `MOUNTED_LEADER`, `STOP_ONLY` or `METADATA_ONLY`. A stop or metadata retirement is not successful route continuation. A later explicit order is required for a stopped crew; automatic recovery after this leadership change remains unaccepted.
+
+An exactly owned reverse now retains its command journal with `DEFERRED` when vehicle mobility, simulation or visibility prevents handback. The existing driving callback reconsiders it before fresh assistance, rereading route, seats, native commands and external authority; it never reissues the rear leg or renews recovery deadlines. Changed authority still retires bookkeeping without movement. This supersedes the earlier description of immediate metadata retirement for such an owned reverse. There is no independent observer: while driving is disabled, no automatic resumed handback is guaranteed. Physical reactivation and subsystem-off recovery remain unaccepted.
+
+### Natural indoor destination crowding
+
+Indoor investigation excludes native positions within1.5m horizontally and1m vertically of another living, simulated, visible squad member on foot. It samples at most16 current squad positions once per selection, alongside the existing destination reservations and temporary failed-node observations. Other groups and hidden enemy transforms are not scanned. Occupancy grants no room-clear credit and creates no inaccessible-node record; it is reconsidered on later selections. The existing512-node and three-roof-query limits remain. Physical pair flow, cross-group crowding and cost at battle scale remain unaccepted.
+
+The shared buddy register preserves intact eligible pairs before repairing or creating pairs. Unpaired actors choose the nearest remaining eligible teammate by3D distance; roster order breaks ties. This changes partner selection only, with no movement command, world scan or forced reassignment of an intact pair. Walls, stairs and native path reachability can make the geometrically nearest teammate slower to reach; this preference is not a route-connectivity guarantee.
+
+### Deferred post-clear hold release
+
+When an authored order changes, the existing group callback releases matching post-clear STOP holds only for simulated, visible, effective actors with MOVE/PATH enabled and current task authority. A living on-foot actor that still owns the same STOP retains the original hold record through temporary simulation, visibility, mobility-feature or incapacitation changes, as well as movement reservations. New individual commands, boarding, player/external control and stale generations do not gain a delayed recall. No new callback loop is installed. Physical reactivation, gated waypoint semantics and behaviour while the whole subsystem is disabled remain unaccepted.
+
+Post-clear handover after a new authored order now returns eligible held actors to native group behaviour with `doFollow`, including the leader. This supersedes the earlier leader-only positional MOVE shortcut: CBE no longer translates the new waypoint into a point or handles its condition, script, synchronization or attachment itself. The hold actor list, current STOP, generation/epoch, reservation and external-control checks still scope the release. Bohemia documents leader return after scripted doStop in the [doFollow reference](https://community.bistudio.com/wiki/doFollow). Native response to each waypoint type and player-issued commands still requires physical testing; no waypoint-completion credit is inferred.
+
+The same native return applies when a new authored order interrupts an active clearance, independently of whether the ordinary group brain is still running. It still requires the original issued MOVE destination or owned STOP, matching clearance generation/epoch and no newer actor/task owner. Opt-in continuation after successful clearance retains its separate unchanged plain-MOVE checks.
+
+Prepared normal-owner building cases cover active-clearance interruption and completed-clearance hold release followed by HOLD or condition-gated MOVE. They require actual clearance movement or independently observed interior coverage, both soldiers travelling, retained waypoint metadata/index through an eight-second observation, and old clearance retirement before cleanup. They are excluded from HC batches. These cases have not run; attached/moving-object and scripted-task handover remain additional physical cases.
+
+Parachute exit refuses on-foot, ground-vehicle and parachute-as-airframe calls. Both actor and aircraft must be simulated and visible. Actor locality, current aircraft occupancy, reservations and external control are rechecked without suspension before capturing damage permission or issuing exit mutations. Failed final admission queues no chute callback. Existing delayed damage restoration is unchanged: overlapping protection and mid-exit migration remain unresolved and physically unaccepted.
+
+### Parachute exit protection receipt
+
+Each accepted CBE exit publishes `[1,actor,issuer,token,originalDamagePermission,absoluteDeadline]` before disabling damage. Another CBE exit refuses while that receipt remains. `CBE_fnc_CortexParachuteProtectionRelease` restores only the exact live receipt on the actor owner at its original3.8-second deadline; remote calls refuse; release uses actual actor-local observation, with immutable issuer provenance. Unchanged protection retains its original baseline, while a newer visible damage-permission value is preserved. Native actor init/Local observation reuses the existing handler and queues release independently of tactics settings, without replaying exit or chute motion. Late callbacks cannot clear a replacement receipt.
+
+Bare remote allowDamage callbacks are removed. A delayed chute callback uses the last accepted exit token to reject replacement exits; protection expiry alone does not cancel chute deployment or renew invulnerability. This is release-only migration support: chute-phase continuation after locality transfer, late receipt publication beyond the native observation, and same-value external invulnerability writes remain unresolved. No general vehicle damage policy or full protection compatibility is claimed. Physical overlap, existing invulnerability, release timing, remote/JIP and performance remain unaccepted.
+
+### Parachute exit command outcomes
+
+A requested dismount must leave the actor local and on foot before exit position or velocity is applied. Failed dismount returns false and queues no chute, while the acquired protection still retires at its original deadline. Delayed chute creation and boarding recheck actor locality, simulation, visibility, combat readiness, reservations, player/remote control, external ownership and the accepted exit token in one unscheduled block. A takeover cancels boarding without cancelling damage cleanup. No extra scan or observer is added. This does not resume deployment after owner migration or prove physical dismount/boarding behaviour; those cases remain unaccepted while audits are paused.
+
+### Finite parachute deployment adoption
+
+After an observed dismount and exit motion, the soldier publishes an exact schema1 deployment receipt containing actor, accepted exit token, original group, validated chute class, inherited velocity, deployment time and the original protection deadline. Native actor init/Local observation adopts this phase on the actual owner; remote execution refuses. At the original0.8-second deployment time the actor owner consumes only the exact current receipt before creating one chute. Old callbacks cannot consume a replacement, repeat the dismount or replay exit position/velocity. Boarding requires the original group, an airborne on-foot actor and unchanged player/remote/external/reservation eligibility. Ground contact, expiry or takeover consumes the phase without deployment. Failed boarding deletes only the newly created local empty chute. Public result records BOARDED, BOARDING_FAILED, CANCELLED or EXPIRED; these are diagnostics, not physical acceptance.
+
+Deployment is now bounded by the original3.8-second protection deadline, so a scheduler-delayed callback cannot deploy a chute indefinitely after the exit. Damage cleanup remains separate and never renews its deadline. This uses one bounded callback per observed owner and the existing native handler, with no recurring scan. Receipt delivery after the new owner's init/Local observation can still be missed. Physical server/HC transfer before and during deployment, duplicate callbacks, failed boarding, player takeover and frame-time acceptance remain untested while audits are paused.
+
+### Airborne passenger attempt fairness
+
+DROP attempts rotate through the original passenger roster after every attempt, including a refused dismount. The cursor uses the original roster so removing a successfully exited passenger does not skip the next one. Only living passengers still in the original group and aboard the aircraft remain pending; current owner/readiness/reservation/external controls still gate each exit. If pending passengers are temporarily unavailable, DROP waits without issuing commands and keeps its original deadline. It enters LAND when no original-group passenger remains aboard or the aircraft is lost. Deadline expiry terminates the insertion without inventing a landing or ground attack. Actors moved into another group are never recalled.
+
+The job retains only its last attempt as `[actor,accepted,time]`. Accepted means exit movement was admitted, not that the chute boarded or the soldier landed. Only acceptance refreshes the aircraft drop hold. Attempts retain the existing jump interval, scans remain bounded to the original passenger roster, and no retry loop or deadline renewal is introduced. Physical refused-dismount fairness, reservation recovery, split locality, casualty flow and mixed-owner insertion remain unaccepted while audits are paused.
+
+### Finished native convoy endpoints
+
+A native follower can accept the next recorded endpoint after more than3m of advance when it is stopped within3m of its previous endpoint on the same floor and its movement operator is ready. The original driver/operator and both expected destinations must still match the captured receipt; only native MOVE/idle commands qualify. A fresh STOP, FOLLOW, changed destination or crew change does not gain this retry. Every write still passes the convoy takeover guard and refreshes its movement receipt. Moving legs retain the existing8m destination threshold, spacing/traffic/infantry caps remain independent, and no route refresh loop or observer is added.
+
+This addresses a completed short leg waiting for8m of predecessor advance; it does not prove that mixed tracked/wheeled stop/start has been resolved. Native readiness and endpoint completion, explicit interruption, slow step-off, bends, bridges and performance require physical acceptance when audits resume.
+
+### Prepared native endpoint acceptance observation
+
+With internal convoy diagnostic capture enabled, each registered native follower retains only its latest completed-endpoint advance event, including the pre-command pose, readiness, command, old/new endpoints and ownership receipt. Capture off removes the local event map. These observations never grant movement authority or count as physical travel.
+
+The normal tracked/mixed30m matrix cases now require a real3..8m finished-endpoint event and at least3m measured travel toward its successor with at least2m destination improvement under the same convoy revision/epoch. Missing event prerequisite fails separately from missing physical continuation. The test injects no follow, stop, path, position, velocity or controller-completion state. These cases are PREPARED_NOT_RUN while audits are paused; actual native completion metadata and behaviour remain unaccepted. Headless cases remain separate.
+
+### Deferred recovery cap retirement
+
+When an exact owned reverse cannot hand back because vehicle mobility or simulation is unavailable, ordinary-driving release now preserves its original speed-cap state and restoration baseline alongside the matching pending recovery journal. A deferred return is not treated as completed cleanup. Later existing driving callbacks can finish the same journal before new assistance; they do not recreate the rear leg or renew its deadlines. A retired, replaced or non-pending journal does not gain this protection, and the existing exact cap/newer-controller checks still govern final restoration.
+
+This adds no observer or timer. Recovery while the entire driving subsystem remains stopped still lacks a guaranteed observation path. Physical immobility/repair, simulation changes, repeated release, owner migration and newer external caps remain unaccepted while audits are paused.
+
+### Vehicle-owner shutdown cleanup
+
+Each machine now runs shutdown vehicle cleanup only for vehicles it actually owns, before interface clients take their tactical early exit. The server retains global support and artillery bookkeeping, but does not erase an HC or interface owner's vehicle restoration tokens. The vehicle owner handles its driving cap, unload policy, safe-stop baseline, onboard danger, delayed relocation token and aircraft presentation cleanup. Existing exact speed-cap and local-state checks remain; no remote cleanup endpoint or recurring observer is added.
+
+This repairs the shutdown dispatch boundary, not every cleanup policy. Native owner migration during shutdown, external-controller replacement, deferred reverse while simulation remains off and late CBA state delivery still require physical acceptance. The administrative vehicle pass scales with world vehicle count per participating machine; no runtime performance budget is claimed.
+
+### Crew handover journal isolation
+
+Ordinary-driving crew replacement now copies its entry journal before changing phases. Every publication compares the exact original live journal, current driving brain and owner epoch in an unscheduled block. Another group's journal is refused rather than cleared. Native Eject/MoveToDriver actions also recheck that snapshot and the original deadline, and publish their issued phase in the same unscheduled block. A stale cancellation or release cannot replace a successor journal.
+
+The existing route, vacancy, driver/candidate, assignment, native command, actor reservation, simulation and takeover checks remain. No new seating shortcut, worker or deadline renewal is introduced. Actual asynchronous seat completion, same-value external ACTION ambiguity, owner transfer and delayed publication ordering still require physical acceptance while audits are paused.
+
+### Prepared late crew-order acceptance
+
+The normal crew fixture adds LATE_STOP and LATE_GETOUT after an actual production VACATING journal, confirmed empty driver seat and physical corpse exit. Missing prerequisites fail. STOP must remain intact through the original journal deadline plus3s. GETOUT uses a native dismount order, followed only after real dismount by an explicit new movement order; it must produce25m travel and20m destination improvement. Both require the original journal to remain cancelled without renewed deadline or subsequent driver-seat acquisition.
+
+These are PREPARED_NOT_RUN. The fixture never assigns a production journal/phase, invokes the crew executor, forces replacement seating or relocates an actor after the casualty. Actual late-order timing, same-value command ambiguity and migration remain unaccepted; actual-provider HC cases stay separate.
+
+### Clearance coverage belongs to a building transform
+
+Durable clearance orders now append the admission transform at field13. Owner resume may reuse visited/unreachable room indices only when that transform exactly matches the current building pose. Missing or changed proof refuses resume and releases only the same observed order/generation. A fresh explicit order starts with empty coverage at the new pose; it receives no historical visit credit.
+
+Admission captures the transform before reading model positions, rechecks it before replacement handoff and public order publication, and gives the worker that original snapshot. Geometry planned before an intervening move cannot be silently relabelled with a later pose. Existing worker transform guards still cancel moved targets before movement. An interruption after task handoff can still leave the prior task released; no rollback or completion is fabricated. Physical editor/Zeus movement, rotation, owner transfer and fresh-order entry remain unaccepted while audits are paused.
+
+Clearance resume is adoption of an existing episode, never an implicit fresh task. Discovery supplies its observed durable order and generation; admission requires the same live snapshot and building, and rechecks the snapshot before task handoff and publication. Missing, cancelled, replaced or different-target requests refuse without releasing the successor. A missing or destroyed target retires only the still-matching resumed order. Explicit fresh orders retain ordinary validation/replacement semantics. These are source guarantees pending separate owner-migration and interruption observation; no new retry loop or lifetime is introduced.
+
+Building FSM startup retains the owner epoch from common-operation admission. Its short unscheduled commit validates the exact CLEAR operation generation/epoch/objective, clear generation/active flags, original deadlines, target transform, native order and current eligibility before cancelling an older worker or publishing a new brain. Repeating startup for the identical live job reuses that worker. A refused start returns false; only the still-matching local episode may be released, without formation recall. Lost-owner and successor records remain for their current owner. The moved-building fixture includes duplicate-worker and stale-worker attempts using real captured production jobs; those checks remain prepared, not run.
+
+After common-operation admission, clearance route preparation remains scheduled. Its later pair selection, status/visit/exit/search records, group attack policy and reserve marker writes use short unscheduled commits against the original operation generation, owner epoch, clear generation, target pose, native order, active gate, lifetime and external ownership. Egress adoption edits the current operation map rather than publishing a stale captured copy. Reserve markers also recheck the actor's current leg/arrival and availability at commit. The room-route loop is not moved into an unscheduled block. These checks constrain post-admission writes; the earlier task handoff/public-order admission remains a separate multi-stage review boundary, and runtime interruption/performance evidence is still required.
+
+Clearance handoff now compares the owner epoch, native order, common-operation identity, clear generation/target and garrison/defence assignments captured before geometry validation. After rechecking current actor/task eligibility and the requested minimum against the original roster, the outgoing-task release, own-cleanup native receipt and new clear/common-operation publication execute in one unscheduled handoff block. Geometry queries and the room-route loop remain outside it. A cancelled/completed/replaced entry task causes refusal rather than acquisition of a later task. Missing/expired/transformed resume retirement likewise checks its exact order/generation/epoch in one block. This does not roll back an already-authorised handoff if a later worker start fails, and its one-time cleanup cost and runtime ordering still require measurement.
+
+
+Roof observation for clearance discovery, clearance visits and natural indoor node/arrival checks uses BuildingRoofTop, a read-only eight-corner transformed model bound plus one metre. The previous ten-metre cutoff could reject tall interiors. Clearance callback bounds are lazy and callback-local; discovery/node selection computes the endpoint once per invocation. Ray counts and nearest-hit ownership checks remain unchanged for runtime observers; discovery retains its existing target-hit filter. This is observation range, not proof that configured interior points are accessible or safe. Open-roof, malformed geometry, actual traversal and model-size-dependent query cost remain unverified.
+
+
+Clearance no-progress retries allow a still-owned matching native PLANNING/BUSY path thirty seconds before reissue; ordinary moving requests retain twelve seconds and ended commands four. This preserves planning without renewing progress clocks, retry counts or the original episode deadline. The allowance retains a valid busy path without changing target selection. Thirty seconds is provisional until physical timing/flow and performance are measured; it is not proof that native planning will succeed.
+
+
+Combined-arms spatial candidate discovery explicitly includes live mounted crews within the existing spherical response envelope. The primary nearby-Man query omitted crew inside vehicles and could miss armour and aircraft groups. Group deduplication, communications, role reservations and actual-owner weapon/movement admission remain required. The crew-aware area query uses the addon's existing minimum engine version2.18. Discovery population and mounted-crew query cost still need runtime measurement; discovering a group does not establish a support effect.
+
+
+Ordinary area-report discovery includes live mounted receivers. Delivery beyond voice range requires currently communicating members at both sender and receiver; nearby voice reports remain possible when radio is unavailable. The receiving owner repeats the range/communication checks after queue delay, so a receiver becoming jammed before delivery rejects the radio report. Existing eight-receiver delivery batches and original report expiry remain unchanged. Reports retain approximate positions and do not reveal or track target objects. Physical radio/voice/crew and JIP/HC validation remains pending.
+
+
+Area-report storage and its thirty-second expiry use the original sighting timestamp rather than relay time. A later resend of an older or identical sighting cannot refresh it or replace a fresher stored observation. Server and receiver reject nonfinite/out-of-bounds coordinates, invalid confidence and invalid observation/send times; invalid report sets do not consume the sender's server cooldown. Transport still expires independently, and reports remain approximate areas rather than target tracking.
+
+
+When one contact-report batch contains old and newer sightings, the receiver first excludes observations no newer than its stored area timestamp, then preserves sender priority among the eligible rows. An old first row cannot suppress a later fresh row. The receiver still stores only one approximate area and never renews older evidence.
+
+
+Knowledge summary first ranks native candidates by group belief, then evaluates at most eight contacts across eight eligible members. Within that detail pass, the member with knownByUnit and the most recent native seen/threat timestamp supplies an updated getHideFrom belief; group-level knowsAbout does not identify a personal observer. Group belief remains the fallback, and the bounded result is re-sorted after refinement. No hostile live transform or reveal is used. The coarse candidate population is not newly bounded; observer refinement and its additional bounded native reads require physical/overhead validation.
+
+
+Native ignored targets are removed from the bounded danger-event contact cache and excluded from the detailed tactical knowledge summary using the engine's ignored-target flag. The addon does not clear or rewrite that flag. This summary filter does not yet establish cancellation for every already-running aircraft, support or indoor operation; those execution paths require separate acceptance.
+
+
+### Finite late parachute-receipt observation
+
+An accepted exit requests one server-published CBA JIP wake carrying its protection and optional deployment receipt. Connected and joining peers cache that proposal until the original protection deadline plus one second. Only the actual actor owner observes pending replication at 0.1-second intervals; unrelated actors are not polled. Native init/locality callbacks can resume the cached proposal. Exact local queue serials prevent an old callback from consuming a replacement observer after locality changes.
+
+The wake supplies no exit, damage or boarding authority. Existing readers still require the matching live replicated receipt, actor locality and their original mutation guards. Observing after the deployment deadline cannot create a chute; the extra second permits protection cleanup only. No deadline, dismount, position or actor exit velocity is replayed. Duplicate wakes do not extend the observation window. One expiry callback per connected peer removes the cached proposal.
+
+The server coalesces publication by the original exit token and removes its exact CBA JIP entry at the original deadline plus one second, independently of actor deletion or issuer disconnection. Duplicate requests cannot replace a proposal or renew its expiry. The JIP payload is an observation proposal, never a deployment command. This covers joining peers that receive the wake and live receipts within the finite window; later delivery remains unsupported. Same-value external damage ownership, physical migration/boarding/JIP and runtime overhead remain unverified. Audits remain paused.
+
+
+### Individual investigation engagement orders
+
+Natural contact-led and body-clue building investigation excludes individual BLUE/GREEN actors before ranking candidates. Both the indoor actor and own-group casualty-point executors require group and individual YELLOW/RED/WHITE modes at admission and on active steps. A later individual hold/disengage order ends CBE investigation through its existing cleanup. Exact owned-movement restoration remains available; cleanup never changes the soldier's engagement mode. No scan, movement worker, setting or perception is added. Physical interruption and formation handback remain unverified while audits are paused.
+
+
+### Combat replacement preserves the commander's seat intent
+
+A mounted commander can replace a lost primary gunner only while still assigned to the actual commander turret they occupy. Recovery reads that vehicle's commander seat and compares its assigned occupant and turret path with the candidate's native assignment. Explicit unassignment, a different vehicle, or a newer driver/cargo/other-turret assignment refuses before assignment or internal seat action. No fixed commander turret path is assumed. The existing incoming-gunner, native task, owner, reservation and once-per-generation guards remain. This adds one filtered crew-seat observation per attempted combat recovery, with no scan or worker. Physical seat transitions and performance remain unverified while audits are paused.
+
+
+### Driver replacement admission preserves seat intent
+
+Ordinary dead-driver replacement selects only occupied crew members still assigned to that vehicle and that actual seat. It reads the assigned-unit field from the existing crew snapshot. Explicit unassignment and another seat assignment cannot become a recovery baseline merely because the actor remains physically aboard. Hidden or suspended candidates also defer before selection, so they cannot consume an attempt before a usable alternative. Cargo, commander, other crew and primary-gunner priority applies after this eligibility filter. Existing command/assignment receipts still protect the admitted attempt and native seat-action boundaries. No additional crew query, scan, timer or forced seating is added. Actual seat switching, repeated recovery, HC transfer and performance remain unverified while audits are paused.
+
+
+### Individual indoor selection continues after roof misses
+
+An individual investigation can test up to twelve distinct native positions over the existing FSM callbacks, with at most three roof queries per callback. Previously, three nearby unroofed positions ended selection even when a valid fourth position existed. The operation retains only its tested ASL nodes, bound to the same actor, building transform and belief. Other current reservations and squad body positions are still checked on every selection.
+
+Pending selection retains the original deadline and adds no movement worker or timer. Exhausted, changed or empty candidates still finish without a visit or accessibility claim. A selected roofed node still requires native command admission and physical arrival. This increases the maximum selection work from three to twelve roof probes per operation; physical entry and frame-time effects remain unverified while audits are paused.
+
+
+### Magazine sharing separates rifle and underbarrel reserves
+
+Magazine sharing uses the recipient's primary weapon main muzzle rather than every muzzle. It chooses the configured `this` muzzle, or the first configured muzzle when the weapon uses named muzzles. Underbarrel grenades therefore neither hide a rifle-ammunition shortage nor qualify as the transferred rifle reserve. The existing low-reserve and donor-surplus thresholds, two-transfer maximum, twenty-second cadence, proximity/capacity checks and actual removed-round accounting remain. No ammunition is fabricated or weapon selection commanded. This adds one weapon-config muzzle lookup per receiver evaluation; physical inventory behaviour and performance remain unverified.
+
+
+### Tactical rifle capacity requires ammunition
+
+Tactical assessment and close-assault admission count a rifle operator only when the primary main muzzle has loaded ammunition or a compatible nonempty reserve. Underbarrel grenades cannot supply this capacity. A carried reserve qualifies without forcing a reload; firing readiness and permission remain separate native/executor checks. Physical squad strength stays separate, and AT/AA capability still uses its existing live launcher classifier. The low-firepower reposition policy is unchanged, but now receives ammunition-qualified rifle counts.
+
+The shared read-only check reads the weapon's configured main muzzle and its loaded count. Only an empty main muzzle requires compatible-reserve enumeration. It adds no controller, cache, scan or weapon-selection command. Ammo exhaustion during an already-running drill still uses existing native firing and recovery rules; this change governs assessment/admission. Physical small-element behaviour and frame-time cost remain unverified while audits are paused.
+
+
+### Flank and advance retain usable covering firepower
+
+Flank and advance admission now size the selected rifle manoeuvre element from operators with primary main-muzzle ammunition. At least two ammunition-qualified actors must remain for cover. A squad with four usable rifles and four dry weapons can therefore form two rifle movers with two rifle cover actors, while retaining the existing physical squad and cover rosters. Dry weapons do not inflate the selected element or its covering-fire capacity. Existing role preference, minimum physical group size, casualty-strength, native-task and route checks remain.
+
+Each start computes ammunition-qualified membership once through the shared read-only predicate. Native firing/reloading and active-drill casualty/ammunition reassessment remain separate; no inventory or weapon selection is commanded. Physical bounding, mixed ammunition loads and performance remain unverified while audits are paused.
+
+
+### Ordinary bounds recheck ammunition at commitment
+
+Before issuing a new ordinary tactical bound, the existing drill callback requires the surviving mover minimum to have main-muzzle ammunition and at least one eligible squad cover actor to retain it. It checks at the issue boundary rather than every movement sample. Losing that capacity ends the tactical override with `AMMO_CAPACITY_LOST` through existing exact cleanup and operation cancellation; no next bound, forced reload or synthetic completion is issued. Physical participants are retained through cleanup.
+
+The check does not cancel an in-flight movement leg. It also permits the road-exit and consolidation legs to finish, so ammunition loss does not stop a soldier halfway across a road or prevent regrouping. Coordinated roles retain their existing parent protocol and require a separate ammunition/readiness review. Ammunition sharing remains on its existing group cadence. Physical interruption, authored-order continuation, resupply and performance remain unverified while audits are paused.
+
+
+### Coordinated movers require owner-reported ammunition capacity
+
+While a helper owns a COVER role, its existing maintenance callback samples eligible local actors at most every two seconds, or on a role change. It reports native-task availability and main-muzzle ammunition capacity through the existing authenticated support acknowledgement. Reports bind the exact lease, COVER role, owner epoch and observation time, with at most six seconds of validity. The server stores them in its request job and rejects wrong owners, roles, epochs, stale observations, invalid counts and delayed rewinds. Rejection retires the token's capacity record. No new remote endpoint or polling worker is added.
+
+New MOVE admission requires a fresh report for that helper with at least three eligible ammunition-qualified actors. Initial dispatch therefore publishes COVER first; owners report before a later server pass may select movement. Role changes, owner changes and expiry invalidate old capacity. Existing in-flight bounds keep their original deadlines. Inventory is never queried on a nonlocal actor by the coordinator.
+
+This reports the prospective moving squad's capacity. It is not proof of settled cover positions, actual fire or the requester's base-of-fire capacity. Those external-cover checks remain unfinished. Native owner admission still validates team formation, actor orders and the operation. Physical bootstrap/role flow, delayed reports, HC migration and frame-time cost remain unverified while audits are paused.
+
+Coordinated child bounds also recheck the current moving and covering teams through the shared bound executor before issuing movement. Dispatch capacity can expire or change during execution; loss of required rifle ammunition ends the child through its existing failure/cleanup path, without declaring completion. Crossing exits and consolidation retain their movement exception. Hidden or simulation-disabled actors cannot enter a new coordinated child roster. No per-frame inventory polling or ammunition manipulation is added. Physical casualty, ammunition-loss and ownership-transfer behaviour remains unverified.
+
+Three-person coordinated responders retain their admitted two-plus-one partition: two move first, then the singleton follows while the arrived pair covers. Only that second turn with three live participants and the exact two-plus-one partition permits one mover. Larger teams and the first turn retain the two-mover minimum; ordinary two-survivor behaviour is unchanged. This avoids borrowing an arrived buddy merely to meet a contradictory follow-team minimum. Original movement, arrival, ammunition and deadline checks remain required. Physical repeatability remains unverified.
+
+Initial coordinated fire-team allocation distributes whole buddy pairs by primary-ammunition capacity before balancing headcount. Dry participants remain enrolled; no pair is split and no equipment is changed. At most 64 participants are sampled once, with three bounded passes over pair/singleton chunks. Reconstructed bounds retain their saved partition and completed-turn history. Allocation improves capacity distribution but cannot manufacture ammunition or guarantee a feasible partition when pair constraints prevent one; execution still validates actual movers and cover. Physical balance and performance remain unverified.
+
+After armed chunks are allocated, wholly dry pairs and singletons are balanced by headcount alone. Sending them repeatedly to the lower-ammunition element cannot repair its ammunition deficit and would produce oversized teams. Whole pairs and all roster members remain retained; this changes no movement authority or ammunition checks.
+
+At a physically verified casualty visit, an empty-primary actor may attempt one native compatible-magazine pickup when ammunition sharing is enabled. Only the observed casualty uniform, vest and backpack containers are inspected; candidate selection checks at most 128 cargo rows per container. The engine performs the transfer; CBE neither clones inventory nor picks up weapons/backpacks. A separate generation-bound recovery journal reports VERIFIED only when positive acquired rounds equal removed source rounds and the primary weapon is unchanged. Replication delay or missing deltas remain UNVERIFIED; the observation result is still VISITED. This adds no timer, action cancellation or deadline extension. Native corpse-container transfer, animation, multiplayer replication and performance require physical validation; audits remain paused.
+
+Live coordinated COVER helpers cap their existing group-brain callback delay at two seconds after tactical distance/reaction tuning. This services the six-second owner capacity report without another worker. The cap requires an active assault, exact role/lease token and unexpired lease; ordinary groups and other roles retain their chosen cadence. Scheduler overload can still delay actual execution, in which case stale capacity remains unusable. Runtime cost of servicing distant active helpers more often remains unmeasured.
+
+Each admitted casualty investigation initializes its own recovery record as NOT_ATTEMPTED, so earlier verified pickups cannot appear to belong to a later visit. Pickup also requires two-metre distance and line of sight to the current body immediately before the native action; the original observation position alone does not grant inventory access. The existing body-movement cancellation threshold and observation result are unchanged.
+
+Recovery accounting admits at most 128 magazine rows per source or receiver snapshot. Oversized source containers are skipped, an oversized receiver defers pickup, and oversized post-action evidence cannot verify a transfer. Totals are never truncated to manufacture conservation. Native snapshot creation still has engine-dependent cost; these limits bound CBE loops, not the native command implementation.
+
+Infantry fire-control admission excludes hidden, simulation-disabled and FIREWEAPON-disabled actors before close-target, distribution or suppression work. These live actor gates supplement group/individual fire orders and native task ownership; CBE does not enable firing or simulation to make an actor eligible. Runtime benefit and physical mission-state handover remain unverified.
+
+Infantry suppression now assesses obstruction separately from protected-actor safety. A one-metre vertical proxy above the unchanged ATL belief is checked against terrain, then one nearest FIRE/GEOM surface. A non-terrain surface within three metres of the objective can become the near-face suppression point; unrelated intervening cover rejects the lane. The protected-actor cone uses the actual issued point. At most three ammunition-qualified lanes are assessed per pass, with cursor rotation after blocked batches to avoid starvation. This issues no movement, does not disclose the enemy object and does not model penetration or prove suppressive effect. Added ray cost, windows, vertical geometry and physical firing remain unverified.
+
+Suppression requires both the belief proxy and the resolved cover face to remain at least 20 metres from the shooter, matching the existing close-threat priority boundary. The final-point check matters because cover clipping can shorten a previously suitable lane. This affects scripted suppression only; close direct targeting and native engagement retain their own authority. This uses the existing close-threat boundary rather than introducing a separate tuning setting. Physical boundary behaviour remains unverified.
+
+Tactical assessment uses the same visibility, simulation and FIREWEAPON availability gates as infantry fire control when counting usable rifle/launcher actors. Physical roster strength remains separate. If every actor is unavailable, the existing task handoff preserves current work instead of treating that as a low-firepower reposition request. No mission AI feature is changed. Suppression obstruction samples remain partial observations and do not independently authorize whole-group movement.
+
+Manoeuvre fire-capacity counts require individual YELLOW/RED permission and FIREWEAPON as well as primary ammunition. This applies to tactical assessment, close-assault admission, initial flank/advance armed selection, coordinated capacity reports/pair allocation and the shared new-bound boundary. Physical flank/advance/support rosters remain enrolled; no hold-fire order is overwritten and no actor is forced to reload or fire. Existing crossing-exit/consolidation exceptions preserve committed movement. Permission loss can refuse a new bound through existing failure cleanup. Ammunition availability remains a separate read-only inventory predicate. Physical mission-order transitions and performance remain unverified.

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "scope": "Convoy spacing metric transition diagnosis, not observed oscillation root cause",
+  "baselineSourceSha256": "fdd471c42776a9a1e8035b68ed08fb0f47101902a51b76933892340222c79171",
+  "findings": [
+    "Current controller already has tolerance band, bounded acceleration, mass-adjusted closing cap and lead catch-up pacing; changing gains without capture is not justified.",
+    "Aligned pairs use longitudinal gap only within1.8times target separation; otherwise radial gap. The boundary can be discontinuous for large off-axis displacement.",
+    "Existing capture lateral offset is policy-local and zero in radial mode, obscuring the transition."
+  ],
+  "analyticCounterexample": {
+    "desiredGap": 50,
+    "headingDifference": 0,
+    "lateralOffset": 89,
+    "radialSamples": [
+      89.99,
+      90.0,
+      90.01
+    ],
+    "correspondingControlGap": [
+      13.31165278994307,
+      13.379088160259652,
+      90.01
+    ],
+    "limit": "Geometry counterexample only; widely displaced recapture, not a demonstrated normal-road convoy state or final speed."
+  },
+  "implementation": "Opt-in follower control sample appends field10 [metric,headingDifference,signedLongitudinal,rawLateral]. Existing cap/pacing policy and fields0..9 unchanged; no new query or worker.",
+  "validation": {
+    "tests": 1377,
+    "log": ".qa/cbe-convoy-gap-mode-capture-build.log",
+    "fingerprint": "be629fed2fa5ed4861c18986105320a9afdfeb3dbb62a708a9ad7c75df8509b7",
+    "physical": false
+  },
+  "nextEvidence": [
+    "Capture raw mode/gaps, requested/applied cap, actual follower/predecessor speed and native destination for normal mixed convoy step-off and restart.",
+    "Separate mode transitions, mass/acceleration lag, retained-path caps and actual traffic/geometry holds.",
+    "Do not claim source counterexample fixes measured stop/start or removes safe traffic waiting."
+  ],
+  "audits": "paused pending direct user reply"
+}

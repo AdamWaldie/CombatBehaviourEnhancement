@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "scope": "CQB partner flow source comparison and exterior query ordering",
+  "source": {
+    "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf",
+    "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1"
+  },
+  "sourceIntent": "Each available actor approaches the shared building point list, then rejoins its leader when exhausted. Native movement and setDestination carry the path; random point offsets and probabilistic removal make the shared list different from physical visit evidence.",
+  "currentImplementation": "BuildingOperationStep already assigns separate same-floor native partner candidates at initial interior commitment, retains native planning acknowledgement, and provides finite independent partner recovery. Exterior reserves receive exit observation posts rather than inheriting formation intent. These paths require physical audits; static presence is not flow quality.",
+  "change": "BuildingExteriorCandidate normal calls reject non-exterior, exit-blocking or out-of-range candidates before visibility and nearby-body queries. Those same necessary conditions remain in final acceptance. Diagnostic calls deliberately retain all measurements. No new candidate, worker, ray, movement, timeout or completion credit. Reservation and nearby-body refusal also precede observation rays; diagnostic mode still collects the full measurements.",
+  "validation": {
+    "existingTests": 607,
+    "focusedLog": ".qa/cbe-exterior-query-order-final-focused.log",
+    "hemttLog": ".qa/cbe-exterior-query-order-hemtt.log",
+    "newTests": 0,
+    "physical": "Unverified; audits paused. No measured frame-time or physical flow claim.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-exterior-query-order-build.log",
+    "independentLog": ".qa/cbe-exterior-query-order-independent.log",
+    "packageFingerprint": "677ce2987780457256706aefc287867cbf230175854eabfafd15856bf7622485",
+    "packageSource": "8f47e131+dirty unsigned development"
+  },
+  "implementationEvidence": {
+    "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+    "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
+  },
+  "entryTrace": "Initial room claim sets approachingEntry=false before selecting distinct partner targets. The initial partner request is therefore not conditioned on a first cleared room. Existing owned native path acknowledgement, settings admission and occupancy must be observed live to diagnose residual waits; do not claim a static source trace fixes the reported flow."
+}

@@ -19,7 +19,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
     def test_one_allocation_still_services_existing_travel_and_pending_blocks_success(self):
         block = self.step.split('// End exterior planner;',1)[1].split('private _reserveReady=',1)[0]
         self.assertEqual(block.count('call _chooseExteriorExit'),1)
-        self.assertEqual(block.count('_pending deleteAt 0'),1)
+        self.assertEqual(block.count('_pending deleteAt _readyIndex'),1)
         self.assertIn('time < (_job get "egressDeadline")',block)
         self.assertIn('private _arrived=_pending isEqualTo [] &&',block)
         self.assertIn('if (_pending isNotEqualTo []) then {_job set ["egressFailed",true]}',block)
@@ -31,7 +31,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
 
     def test_pending_adoption_is_typed_unique_and_cannot_renew_or_issue_movement(self):
         replay=self.start.split('// Adopt a transform/episode-bound exit journal',1)[1].split('// Keep reserve search consumption',1)[0]
-        for marker in ('count _egressJournal in [10,13]', 'isEqualTo 2',
+        for marker in ('count _egressJournal in [10,13]', 'in [2,3]',
                        'count (_egressJournal select 11)+count (_egressJournal select 3) <= 8',
                        '(_x select 0) isEqualType objNull','count (_x select 1) in [0,3]',
                        '_assignments+_pending','_live vectorDistance _leg <= 0.25',
@@ -40,6 +40,25 @@ class ClearEgressBatchingTests(unittest.TestCase):
             self.assertIn(marker,replay)
         for forbidden in (' doMove ', 'doStop', 'doFollow','serverTime+45'):
             self.assertNotIn(forbidden,replay)
+
+    def test_allocation_retries_are_finite_due_and_replayed_without_budget_reset(self):
+        block=self.step.split('// End exterior planner;',1)[1].split('private _assignments=',1)[0]
+        self.assertIn('_pending findIf {serverTime >= (_x param [3,0,[0]])}',block)
+        retry=block.split('// A temporary occupied/blocked proposal',1)[1]
+        for guard in ('_target isEqualTo []','_planAttempts < 2',
+                      'serverTime+2 < (_job get "egressDeadlineServer")',
+                      'call _actorAvailable','call _exitMovementOwned','call _mayIssueMovement'):
+            self.assertIn(guard,retry)
+        self.assertIn('_pending pushBack [_unit,+_leg,_planAttempts+1,serverTime+2]',retry)
+        self.assertNotIn(' doMove ',retry)
+        self.assertNotIn('set ["egressDeadline',retry)
+        self.assertIn('false,[],2*_planAttempts] call _chooseExteriorExit',block)
+        replay=self.start.split('// Version 2 appends pending',1)[1].split('if (_assignments isEqualTo',1)[0]
+        for guard in ('private _pendingSize=[2,4]','(_x select 2) in [0,1,2]',
+                      'finite (_x select 3)','(_x select 3) <= (_egressJournal select 7)',
+                      '_pending pushBack [_actor,+_leg,_planAttempts,_nextPlanAt]'):
+            self.assertIn(guard,replay)
+        self.assertNotIn('serverTime+2',replay)
 
     def test_journal_and_observer_retain_incremental_assignments(self):
         journal=self.step.split('// Publish only material egress changes.',1)[1]

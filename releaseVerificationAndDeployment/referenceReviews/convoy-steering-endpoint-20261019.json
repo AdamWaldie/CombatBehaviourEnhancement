@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "scope": "Steering convoy endpoint flow and independent driver order preservation",
+  "findings": [
+    "Native followers already had exact stopped-endpoint continuation, but steering paths refreshed only after8m endpoint advance. A slow predecessor could leave a completed leg waiting for that threshold. This is a code-level gap, not a confirmed explanation of all observed stop/start behaviour.",
+    "The seven-field public steering lease bound operator destination but omitted the distinct driver destination. Release could stop an old path over an independently changed driver MOVE if the commander receipt remained unchanged."
+  ],
+  "implementation": [
+    "Steering continuation requires total-motion stopped predicate, positive current cap, endpoint proximity3m/height1.5m, new endpoint advance>3m, exact current group/revision/epoch/crew and both destination receipts. Fresh path still comes from ordered predecessor trail; moving paths retain8m refresh. Existing current-owner command gate precedes the sole steering path write.",
+    "Append driver destination at index7 in the public path lease; writer, endpoint continuation, release and HALT metadata retirement use eight fields. Release requires original driver and operator destination equality before native stop/route handback. Older incomplete schemas grant no native command; no compatibility adapter."
+  ],
+  "cost": "Constant receipt/pose checks on an existing bounded follower path refresh. No query, ray, new timer/worker, physics change or altered spacing/braking policy. Actual overhead unmeasured.",
+  "validation": {
+    "focusedExistingTests": 630,
+    "focusedLog": ".qa/cbe-steering-lease-focused.log",
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests and all sequential compiler/FSM/config/docs/parity/performance/package gates passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-steering-endpoint-final-build.log",
+    "independentLog": ".qa/cbe-steering-endpoint-final-independent.log",
+    "packageSource": "89d95ec2bd1ac884eb836245491001e6750b4597+dirty",
+    "packageFingerprint": "01578038e7f836dd26ed4934ff83ef63004aa3594defda338eb064d5e0d62788"
+  },
+  "limits": "A native command with identical observable receipts cannot be distinguished from the captured one. Engine steering completion and improved mixed-convoy physical flow remain acceptance items. Queue movement remains unfinished and disabled.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/convoyTick.sqf",
+      "sha256": "9801d922e95382178afca654e2baf3fa7768f30a7bbc42763c7409fab59b4461"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyReleaseLocal.sqf",
+      "sha256": "9d2b77f97da4c3dd0ec514eba089c4ce22e1622b411a7979d59e15ba9da85ad5"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
+      "sha256": "6c79870b48c56594ec1e7574e4f5584a038d04f69af561a769f5590f67c85979"
+    }
+  ]
+}

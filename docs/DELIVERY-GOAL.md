@@ -79,3 +79,36 @@ This order changes priority, not product scope. Existing Zeus, player, external-
 - **Promoted:** all required physical and performance gates for the package have passed.
 
 No work package may skip directly from **implemented** or **statically checked** to **promoted**.
+
+## Combining reference behaviours
+
+The reference collection exists to combine unique capabilities, effective decisions and working improvements into one coherent addon. Preserve useful intent while redesigning unsafe shortcuts and conflicting ownership. Each selected contribution needs evidence of implementation, interaction with existing layers, balance, bounded cost and actual physical effectiveness. Reviewed, selected, implemented, integrated and physically verified are separate milestones. A file association or narrow fixture cannot establish source parity, and parity alone is not proof of an improvement.
+
+Driving room-making must coexist with continuous following: stopped participants acknowledge applied holds, settle physically, make real rear-first room, pass only through usable hull clearance and hand back every original route. Queue agreement alone provides none of those outcomes. Keep this operation inside the existing owner-local driving lifecycle; a generic takeover that cancels its own parent is not an implementation.
+
+## Build upward from shared foundations
+
+Implementation order follows the user's explicit clarification: shared ownership/admission, interruption and exact restoration first; then scheduler/FSM lifecycle and bounded movement/sensing primitives. Build individual behaviours on those contracts, then buddy/pair flow, squad roles, multi-squad coordination and combined operations. Compatibility expansion stays last. Source functionality and intent should reinforce these layers rather than add competing controllers.
+
+The next foundation gap is consistent actor settings ownership: captured baseline, applied value, issuer generation/epoch, current-owner permission, refused-release retention and finite handback must have one shared contract. The current operation restoration primarily handles group attack policy; feature-specific speed/posture cleanup remains fragmented. The new clearance settings release is an interim repair, not completion of that shared foundation. Build-out estimates describe scope; they do not set the implementation order.
+
+## Behavioural foundation and source integration
+
+Implement the useful functionality and tactical intent of the reference danger system within CBE, then evolve it with suitable contributions from the other reference mods. Preserving the upstream code or architecture is not the objective. Trace decisions through their actual action writers and repair missing or regressed functionality before layering further behaviour.
+
+Integrate useful methods into shared owner-local primitives and one coherent decision/execution lifecycle. Resolve conflicting movement, sensing, settings and task ownership. Build upward through individual behaviour, buddies, squads and combined operations. Maintain useful source functionality and improve reliability, balance, mission control and physical behaviour while bounding scheduler, sensing and network cost. Extra controllers and feature counts are not improvements by themselves.
+
+The implementation register guides source examination and integration; it is not the product architecture. Maintain the better behaviour as code evolves. Audits remain paused while implementation proceeds.
+
+## Current delivery direction
+
+Deliver the full CBE scope described above through this order:
+
+1. Establish shared owner-local admission, ownership, interruption and exact restoration, including mission edits and required external-controller handovers.
+2. Complete danger and operation FSM execution, scheduler lifecycle and bounded movement/sensing primitives. Every decision needs a working action and a finite interruption/cleanup path.
+3. Build reliable individual combat, driving and building behaviours on those foundations, followed by buddy flow and squad roles.
+4. Compose coordination, convoys, aircraft, support and combined operations without introducing competing controllers. Retain the complete product scope; this order is not a scope reduction.
+5. Integrate reference functionality by useful outcome, balancing unique capabilities, reliability and execution cost. Prioritise the complete primary driving reference implementation and reference danger functionality. Specialist compatibility expansion remains last.
+6. When audits resume, physically validate the exact candidate, repeat use, Zeus authority, multiplayer/JIP/HC handovers and the 5% median/10% p95 frame-time overhead budget. Current audit pause remains in force.
+
+Report build-out and physical acceptance separately. Do not claim whole-mod superiority from source counts, package checks or an isolated successful scenario. Continue implementation while audits are paused; do not substitute acceptance paperwork for working improvements.

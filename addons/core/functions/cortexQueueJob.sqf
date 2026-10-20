@@ -23,7 +23,8 @@
  * [CBE_fnc_CortexRegroupStep, createHashMapFromArray [["group", _group]], 5] call CBE_fnc_CortexQueueJob;
  * Result: the regroup step runs on this machine about five seconds later.
  *
- * Current callers: CBE_fnc_CortexRegroupOnKill.
+ * Current callers: group/indoor/building/driving/convoy/air/support FSM queue adapters,
+ * discovery, finite tactical reactions, aircraft observers and skill-lighting initialization.
  */
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
@@ -52,19 +53,24 @@ private _dueAt = time + (_delay max 0);
 private _existingState = createHashMap;
 private _found = false;
 if (_jobKey != "") then {
+    // Search existing arrays in priority order without copying the complete queue for
+    // every keyed wake. Neither search mutates a queue; publication follows below.
     {
-        private _candidateState = _x param [2, createHashMap, [createHashMap]];
-        if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
-            && {!(_candidateState getOrDefault ["cancelled",false])}
-            && {!(_candidateState getOrDefault ["finished",false])}
-            && {!(_candidateState getOrDefault ["done",false])}
-            && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
-            && {(_candidateState getOrDefault ["group",grpNull]) == _group}
-            && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
-            _existingState = _candidateState;
-            _found = true;
-        };
-    } forEach ((missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []]));
+        {
+            private _candidateState = _x param [2, createHashMap, [createHashMap]];
+            if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
+                && {!(_candidateState getOrDefault ["cancelled",false])}
+                && {!(_candidateState getOrDefault ["finished",false])}
+                && {!(_candidateState getOrDefault ["done",false])}
+                && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
+                && {(_candidateState getOrDefault ["group",grpNull]) == _group}
+                && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
+                _existingState = _candidateState;
+                _found = true;
+            };
+        } forEach (missionNamespace getVariable [_x, []]);
+        if (_found) exitWith {};
+    } forEach ["CBE_AIPass_Jobs", "CBE_AIPass_PendingJobs"];
 };
 // Function-scope return: an exit inside the key-search block would still append a duplicate.
 if (_found) exitWith {

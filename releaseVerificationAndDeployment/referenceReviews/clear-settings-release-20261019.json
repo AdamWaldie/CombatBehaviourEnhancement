@@ -1,0 +1,39 @@
+{
+  "baseline": "f6d7185e36c614af25debb7e5cb49d77b4d8782e",
+  "scope": "Settings-only clearance release preserves native tasks and unresolved baselines",
+  "source_sha256": {
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "dd6702b73a2177bf560896dd5583ea4f94bbabc0e2149c60fcbad0d475f17a25",
+    "addons/infantry/functions/buildingOperationStep.sqf": "173bad8d8b2382a39493a44410d4646fdae6cf945497b4d07ab17f632bf9100c",
+    "addons/infantry/functions/cortexClearRelease.sqf": "f6e5efb48471a4803b529011f27e3bd983b9d130fc48e52efebd76f31083eb08",
+    "addons/infantry/functions/groupBrainStep.sqf": "b2848591cd02af3f641301f2c79e57f485875fddc91b417acb6c8a4e63f46548",
+    "addons/core/functions/cortexLocality.sqf": "f396cd79203656a5cf9125aaaf971e1630dfc7ae9be3c46b8334a317e41b9fda"
+  },
+  "defect": "Native task refusal could skip speed/posture restoration while terminal cleanup still deleted captured baselines.",
+  "implementation": [
+    "shared actual-owner/generation/epoch settings-only release",
+    "unchanged applied cap/upright stance only; changed settings preserved",
+    "no native movement/watch/target/formation command",
+    "blocked baselines retained",
+    "one original30second retry window through existing group brain",
+    "at most64members inspected and one pending actor processed per callback",
+    "owner adoption updates metadata generation/epoch without changing deadline",
+    "superseding clear generation retires old pending window"
+  ],
+  "validation": {
+    "tests": 1448,
+    "compiled_sqf": 335,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-settings-final-build.log",
+    "unsigned_fingerprint": "5422a898270baabb97c713ad605b47945d7f3fd50692da54d93518d06e2fe71c",
+    "independent_verify": true,
+    "dirty_manifest_baseline": "f6d7185e36c614af25debb7e5cb49d77b4d8782e",
+    "physical_acceptance": false
+  },
+  "remaining": [
+    "deferred restore after brain shutdown/window expiry",
+    "shared actor settings-lease primitive across all subsystems",
+    "physical native-task, repeat and provider-transfer checks",
+    "measured callback/network overhead"
+  ],
+  "priority": "User explicitly clarifies foundation-first building order; finish in-flight work then shared ownership/restoration/FSM primitives before further tactical breadth."
+}

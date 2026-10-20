@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "finding": "Temporary group routes guarded position/type/radius but could adopt or delete a waypoint whose native policy, script or attachment had been changed by mission code.",
+  "implementation": [
+    "Store name and non-geometric authored metadata at route commit",
+    "Require exact policy for route adoption and replacement",
+    "Cleanup preserves edited native route and relinquishes internal marker",
+    "Capture scheduled caller context before unscheduled mutation boundary; re-read policy there only for scheduled callers",
+    "Legacy intent without policy is conservatively relinquished"
+  ],
+  "cost": "One selected metadata row through existing read-only receipt helper, plus native route-handle enumeration. No new worker or world scan. Actual performance budget unverified.",
+  "validation": {
+    "tests": 1414,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-group-route-policy-final-build.log",
+    "unsigned_fingerprint": "b6873dd00ec0f482653dc05391b365368c93d13f7b6004e5fe69b1a3623f8486",
+    "physical": false
+  },
+  "remaining": [
+    "Engine-native route continuity after policy edits",
+    "MP/locality and scheduled direct caller variants",
+    "Performance profiling; audits remain paused"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "d77544fe",
+  "scope": "Traffic anticipation cadence and complete nearby source cadence/clock branches; not whole-HBQ parity",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "ranges": [
+      "1032-1177 traffic intake and local AlertUntil/TrafficNear assignments",
+      "2161-2171 separate retained obstacle/traffic clocks",
+      "2712-2746 stationary/reverse and moving due-time selection",
+      "2939-2955 moving end-of-pass cadence"
+    ]
+  },
+  "findings": [
+    "Source comments still mention0.15seconds and traffic within40m. Actual moving BaseI is0.25when AlertOn and AlertUntil, otherwise0.4, multiplied separately by PF/PFT. Stationary/reversing uses0.8*precision. Passing has0.25sleep. Do not cite comments as actual measured cadence.",
+    "TrafficNear is assigned by nearby crewed traffic, but the inspected actual BaseI does not read it directly. TrafficCap also sets AlertUntil for crewed peers within25m.",
+    "CBE previously requested1second only for actual limiting traffic/recovery/active passage, otherwise4seconds. A relevant approaching/crossing peer could remain unconstraining on that sample and leave the next observation at cruise cadence."
+  ],
+  "implementation": [
+    "DrivingFollowingCap appends a sixth observational bool to its unchanged five-field result prefix. Same-height forward lane hull inside max40m/nominal stopping room sets it only for closing speed>0.5m/s or non-following traffic; stable same-speed following does not. Overlapping relevant crossing windows also set it.",
+    "Reuses the existing64-candidate/eight-corner observation; no new query, handler or scheduler. Early refusal results retain conservative caps and appropriate hint defaults.",
+    "DrivingAssistStart captures the hint before gate/body/pedestrian rows can replace the cap. It publishes the hint as local state field11 only inside existing current-owner/native-cap transaction and requests1second. DrivingOperationStep also reads it under matching owned state and requests the same cadence; phase remains based on actual limiting work. Existing release removes the entire state.",
+    "Braking reaction remains4seconds. No hint increases speed, relaxes traffic clearance, grants priority or authorizes route recovery. Convoy cadence remains1second."
+  ],
+  "limits": [
+    "Scheduler budgets/load can delay callbacks;1second is a request, not guaranteed latency.",
+    "Relevant groups/vehicles may scan more frequently. Aggregate scan cost, convoy flow, braking, dense traffic, fast/modded hulls and5%median10%p95 need physical measurement.",
+    "Full native queue execution, verified native reverse, whole-HBQ branch parity and mixed-column outcomes remain incomplete."
+  ],
+  "validation": {
+    "tests": 1321,
+    "exitCode": 0,
+    "log": ".qa/cbe-driving-anticipation-cadence-verified-build.log",
+    "packageFingerprint": "3c1f43de999d0b9693bd384eb9f8a368f110ee8841def0ad6d302645860d8d06",
+    "source": "d77544fe plus intended three production functions, guide and source contracts; metadata appended afterward",
+    "initialFailure": "Two existing assertions named the old cadence expression. Updated them to retain every existing fast-work condition plus the new hint; no gate removed."
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All65familiespartial; no implementation or parity percentage."
+}

@@ -6,13 +6,14 @@
  *
  * Locality / Authority: Read-only; callable on any machine for a group or object.
  * Repeat/JIP: Safe to repeat. It reads the currently published marker each time and changes no state.
+ * Unknown/non-boolean declared ownership is conservatively treated as external control.
  *
  * Arguments:
  * 0: subject <GROUP or OBJECT>, default grpNull - group or actor/vehicle to inspect.
  *
  * Return Value:
- * Boolean - true only when the subject or, for an object, its current group explicitly declares
- * external control or an actor has a specialist runtime marker.
+ * Boolean - true when subject/group declares external control, its declaration is malformed,
+ * or an actor has a specialist runtime marker. Unknown state never grants CBE ownership.
  *
  * Current callers: CBE eligibility, vehicles, aircraft, skill layers, diagnostics and HC adoption.
  *
@@ -22,12 +23,16 @@
 params [["_subject", grpNull, [grpNull, objNull]]];
 
 if (_subject isEqualType grpNull) exitWith {
-    !isNull _subject && {_subject getVariable ["Waldo_AI_ExternalControl", false]}
+    if (isNull _subject) exitWith {false};
+    private _declared=_subject getVariable ["Waldo_AI_ExternalControl",false];
+    !(_declared isEqualType true) || {_declared}
 };
 if (isNull _subject) exitWith {false};
 
-(_subject getVariable ["Waldo_AI_ExternalControl", false])
-|| {(group _subject) getVariable ["Waldo_AI_ExternalControl", false]}
+private _declared=_subject getVariable ["Waldo_AI_ExternalControl",false];
+private _groupDeclared=(group _subject) getVariable ["Waldo_AI_ExternalControl",false];
+(!(_declared isEqualType true) || {_declared})
+|| {!(_groupDeclared isEqualType true) || {_groupDeclared}}
 // Runtime activation can occur while an engine danger response is waiting. These bounded
 // marker reads permit immediate yielding without the full config/faction classifier.
 || {["WBK_AI_ISZombie","Droid_Health","WBK_Droids_VoiceType","WBK_AI_ZombieMoveSet",

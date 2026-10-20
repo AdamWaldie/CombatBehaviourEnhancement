@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "scope": "Preserve exact recovery cleanup proof across split vehicle/group/crew locality",
+  "sources": {
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "e97f14fd22fd183c7c11788b88ca8d12c9979f5ae7e4bf2304d9ba51c3368935",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "fb6c3728b63b194678121397868b37e3634c4d417224e734afb1aacde6a42030",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "e89881eb4b774e4ee3088b876634a3d728db95b93ec3c77bfcca1c544740a7cc",
+    "addons/main/XEH_postInit.sqf": "1f6ffa65a6b1cec7effa21518a205120095c251b47b8ffe960ec19c0f1ba10a4",
+    "addons/core/functions/cortexStop.sqf": "6969920f471c44eedeccc87e46b0716d2a4412d79b5950d0831f644c8c6e991b"
+  },
+  "finding": "When the vehicle became local before its recorded group/crew, local command admission failed and release fell through to metadata retirement, erasing the only public reverse handback proof. Existing native init/Local hooks cover actor/airborne receipts, not same-owner ordinary vehicle readiness after subsystem shutdown.",
+  "change": "Before native handback admission, an unchanged issued REVERSE context can retain its journal/cap as releasePending with DEFERRED_LOCALITY while group/crew locality is split. Same seats, cap, route, native commands, membership and no declared external/player/remote/task/reservation ownership are required. This branch grants no commands. Full actual-owner/actor availability checks remain required when existing driving callbacks retry. No deadline, loop or handler added.",
+  "validation": {
+    "tests": 1177,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-recovery-locality-retention-build.log",
+    "exit_code": 0,
+    "fingerprint": "b234f6477d4b3e3844cd72cc989c974ce81610fca53abc1faef9d4daa637ea6a",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "This is not whole-subsystem deferred cleanup completion. Existing callbacks are absent while tactics is stopped; no same-owner simulation/readiness observer was added.",
+    "Nonlocal actor reservation expiry is not inferred from another machine clock; nonempty raw markers reject this retention.",
+    "No actual split-owner HC transition, late public receipt, command delivery, reanimation or runtime cost acceptance.",
+    "Same-value external commands/caps remain ambiguous without declared ownership.",
+    "All65 feature families remain partial; whole HBQ and native queue execution remain open."
+  ]
+}

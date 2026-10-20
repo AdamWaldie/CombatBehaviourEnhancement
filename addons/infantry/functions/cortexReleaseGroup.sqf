@@ -84,14 +84,15 @@ private _externalTakeover=_yieldToZeus || {_yieldToExternal} || {_reason in ["ZE
 // Full shutdown must release a native STOP acquired after a successful clear.
 // Ordinary contact-state cleanup does not undo the explicit post-clear hold.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (local _group && {count _clearHold == 4} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
+if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
     _group setVariable ["CBE_Cortex_ClearHold",nil,true];
     if (!_externalTakeover && {(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
         && {(_clearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
         private _anchor=leader _group;
+        private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
         {
-            if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
+            if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
                 && {isNull objectParent _x} && {isNull remoteControlled _x}
                 && {[_x] call CBE_fnc_CortexCombatEffective}
                 && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}

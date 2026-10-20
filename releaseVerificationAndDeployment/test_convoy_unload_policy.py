@@ -19,6 +19,14 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         self.assertIn('CBE_Convoy_UnloadPolicyBlocked",_group,true',mutation)
         self.assertNotIn('setUnloadInCombat',mutation)
         self.assertIn('if (_blocked == _group) exitWith {false}',s)
+        first=s.split('// First acquisition alone',1)[1].split('if (count _lease == 5) then',1)[0]
+        for guard in ('count _lease != 5 && {getUnloadInCombat _vehicle isNotEqualTo [false,false]}','fullCrew [_vehicle,"",true]','count _seats > 64',
+                      'assignedVehicle _incoming == _vehicle','objectParent _incoming != _vehicle',
+                      '!local _incoming','== "GET IN"','if (_incomingBoarding) exitWith {false}'):
+            self.assertIn(guard,first)
+        self.assertNotIn('setVariable',first)
+        self.assertNotIn('setUnloadInCombat',first)
+
         self.assertNotIn('_blocked == [_group,_revision]',s)
         adoption=s.split('if (count _lease == 5) then {',1)[1].split('} else {',1)[0]
         self.assertIn('_lease set [1,_revision]',adoption)
@@ -31,6 +39,8 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         self.assertIn('if (_ours) then {',release)
         self.assertIn('_restore && {getUnloadInCombat _vehicle isEqualTo _applied}',release)
         self.assertIn('_vehicle setUnloadInCombat _previous',release)
+        self.assertIn('_previous isNotEqualTo _applied',release)
+        self.assertIn('if (_previous isNotEqualTo _applied) then {_vehicle setUnloadInCombat _applied}',s)
         self.assertIn('if (_blocked == _group)',release)
     def test_admission_is_current_registered_and_bounded(self):
         s=src('convoyUnloadPolicy')
@@ -41,4 +51,27 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         executable=s.split('params [[',1)[1]
         for forbidden in ('spawn','while {','waitUntil','addEventHandler','moveIn','allVehicles'):
             self.assertNotIn(forbidden,executable)
+    def test_shared_passenger_motion_guard_preserves_task_and_seat_checks(self):
+        passenger=src('cortexPassengerReady')
+        for marker in ('vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle',
+                       '!finite _linearMotion','!finite _angularMotion','_linearMotion >= (1/3.6)',
+                       '_angularMotion >= 0.01','CBE_Cortex_ActorMove','currentCommand _unit',
+                       'assignedVehicle _unit != _vehicle','fullCrew'):
+            self.assertIn(marker,passenger)
+        self.assertNotIn('abs speed _vehicle',passenger)
+        for command in ('doGetOut','unassignVehicle','moveInCargo','setPos','setVelocity'):
+            self.assertNotIn(command,passenger)
+    def test_unload_commit_uses_live_snapshot_and_allows_authoritative_slices(self):
+        text=src('convoyCrewLocal')
+        helper=text.split('private _haltCurrent={',1)[1].split('};\n{',1)[0]
+        for marker in ('CBE_Convoy_LocalRegistry','_live select [0,4]','_configuration select [0,4]',
+                       '_live select [7]','_configuration select [7]','== "HALT"',
+                       '_transport in (_live select 4)','_live select 6','isEqualTo _passenger'):
+            self.assertIn(marker,helper)
+        commit=text.split('// Scheduled direct callers must not separate snapshot/task proof',1)[1].split('} forEach _cargo;',1)[0]
+        self.assertLess(commit.index('isNil {'),commit.index('call _haltCurrent'))
+        self.assertLess(commit.index('call _haltCurrent'),commit.index('CortexPassengerReady'))
+        for command in ('orderGetIn false','unassignVehicle _unit','doGetOut _unit'):
+            self.assertLess(commit.index('CortexPassengerReady'),commit.index(command))
+        self.assertNotIn('_live isEqualTo _configuration',helper)
 if __name__=='__main__':unittest.main()

@@ -5,11 +5,14 @@
  * Repeat/JIP: No state changes or renewal; reads the current task on every admission and fire boundary.
  * Arguments: 0 actor <OBJECT, objNull>.
  * Return: BOOL, true only for a local actor without a protected task or movement reservation.
- * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
+ * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles,
+ * CortexAssaultStart, CortexFlankStart, CortexAdvanceStart, CortexTacticalAssess and ConvoyCrewLocal.
  * Example: private _available=[gunner tank1] call CBE_fnc_CortexActorFireTaskAvailable;
  */
 params [["_actor",objNull,[objNull]]];
-if (isNull _actor || {!local _actor} || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {false};
+if (isNull _actor || {!local _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+    || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {false};
 !(toUpperANSI currentCommand _actor in [
     "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",

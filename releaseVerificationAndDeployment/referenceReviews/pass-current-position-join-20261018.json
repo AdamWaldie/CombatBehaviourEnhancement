@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-18",
+  "scope": "Current-position path join for experimental ordinary road passing",
+  "sources": {
+    "addons/vehicles/functions/drivingPassStep.sqf": "33555d4908d9e59c8a21217eb016ef777be7e679d6e9f7900253ec3b3ae68903",
+    "addons/vehicles/functions/drivingPassGeometry.sqf": "ebf750e6f7c5fa15965cce931bf1fcb5d1dc07b8c9750f830aa87391385ad2bc",
+    "addons/vehicles/functions/drivingPathGeometry.sqf": "548fafc5a2b618229bdb927f7072640560f89843e0bc7d7cc0f5a8749a2d5123",
+    "addons/vehicles/functions/drivingPassTraffic.sqf": "82a4d9752c7befbb31b0fca91880c4f987ff138c5ef7d0410ff296a457eb4232"
+  },
+  "finding": "Fixed paths were issued from preparation stations after vehicle movement during preparation/consent. No current-origin connector trimmed passed points. Return scan could also issue a path on the final geometry callback.",
+  "change": "Before OUT/RETURN issue, select a forward 6..35m point within20deg and2m height; sample current-origin connector at<=5m, freshly validate support/body and full joined traffic, retain original expiry and exact pose/context/order before native writes. Store joined OUT for monitoring. RETURN_READY separates final scan from join/issue. No stopped-peer passing enabled.",
+  "validation": {
+    "tests": 1180,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-pass-current-join-build.log",
+    "fingerprint": "17b6e652b5f9d44d1459101272b3e8fb7599a7b52cb01435881eda27a6ff0bd1",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "package_receipt": "Build used parent90035ce2 plus tracked source diff, dirty=true; not a signed release."
+  },
+  "bounds": {
+    "connector_stations": 8,
+    "connector_rays": 159,
+    "scan_rays_separate_callback": 243,
+    "traffic_queries_on_issue": 1,
+    "total_joined_stations": 128,
+    "travel_m": 350,
+    "original_deadline": "unchanged"
+  },
+  "source_comparison": {
+    "prior_review": "releaseVerificationAndDeployment/referenceReviews/hbq-jam-cascade-20261016.json",
+    "hbq_driveAssist_sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "disposition": "Protected source hash reconfirmed. This repairs CBE own native pass execution, not HBQ queue-cascade parity or an external adapter."
+  },
+  "limits": [
+    "Sampled geometry is not continuous swept clearance or steering feasibility.",
+    "No physical entry/return, interruption, current moving pose stability, HC migration or runtime performance acceptance.",
+    "Stopped queue drop-back still depends on peer movement; bilateral queue cascade remains unfinished.",
+    "Whole HBQ review remains incomplete; all65 feature families remain partial."
+  ]
+}

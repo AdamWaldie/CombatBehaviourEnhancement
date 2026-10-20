@@ -1,0 +1,40 @@
+{
+  "baseline": "c5664d33",
+  "scope": "rear recovery records observed damage minima without suppressing damage",
+  "source_sha256": {
+    "addons/vehicles/functions/drivingDamageReceipt.sqf": "b1128b222c04bfb4e08fbce20f53c22a67d9d9ce4cd5ae6b68705a201a95ebff",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "51018762e8353418dbf067bc4c199c48a1570198fb84b4615f466ab6742f6b5a"
+  },
+  "defect": "Repair followed by later damage could remain below the original damaged baseline and evade the old guard.",
+  "implementation": [
+    "immutable original global and hitpoint receipts",
+    "per-leg minimum observed global/component values, never increased",
+    "same original 0.01 increase tolerance",
+    "exact current brain/epoch/work/native-command/original-minima/deadline guard",
+    "publish only actual decreases",
+    "shared owner-local bounded snapshot reader, at most128 entries",
+    "no damage/repair/EH write"
+  ],
+  "queue_execution_remaining": [
+    "COMMIT and finite HOLD ownership",
+    "phase-specific native execution receipts distinct from proposal context",
+    "settled physical READY",
+    "leaf-to-root real native reverse",
+    "whole-hull room and exact handback"
+  ],
+  "validation": {
+    "tests": 1440,
+    "production_sqf": 333,
+    "pbos": 9,
+    "exit": 0,
+    "independent_verify": true,
+    "log": ".qa/cbe-rear-damage-minima-build.log",
+    "fingerprint": "1cd9019f3d8d7a249f0f726d7f6b7f7554dc1aa3ac679ccb4801ef302c53f6b8"
+  },
+  "limits": [
+    "repair and damage wholly between samples can be hidden",
+    "native response and migration UNRUN",
+    "allocation/table retrieval/network cost unmeasured",
+    "all feature families partial; no physical acceptance"
+  ]
+}

@@ -3,6 +3,8 @@
  * Acquires finite counter-battery fixes through registered radar coverage or fresh owner-local observers.
  * Locality/authority: server consumes the global firing event; guns execute on their owners.
  * Repeat/JIP: server event cooldown and per-side request cooldown prevent duplicate responses across HCs.
+ * Pending cooldowns and delayed fixes/wakes retain the original server counter-battery
+ * generation; disabling/re-enabling cannot revive old observations or renew their delay.
  * Arguments: 0: firing vehicle <OBJECT>, objNull; 1: gunner <OBJECT>, objNull.
  * Return Value: Boolean, detection processed.
  * Current callers: ArtilleryShellFired handler.
@@ -11,6 +13,7 @@
 params [["_vehicle", objNull, [objNull]], ["_gunner", objNull, [objNull]]];
 if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false])}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
+private _counterGeneration=missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0];
 private _position = getPosATL _vehicle;
 // Private raw event evidence is not actionable relocation knowledge; qualified side receipts below are.
 _vehicle setVariable ["CBE_AIPass_LastEmission", [time, +_position]];
@@ -35,12 +38,19 @@ private _sides = [];
         if (_radar) then {
             _vehicle setVariable ["CBE_AIPass_DetectedEmission_" + str _side,[serverTime,+_position,30,"RADAR"]];
         };
+    // Pending responses are bound to the original counter-battery session. A disabled
+    // generation cannot block a fresh emission after re-enable or revive its old callback.
+    private _pending=_vehicle getVariable [_pendingKey,[]];
+    private _pendingReady=_pending isEqualTo [] || {_pending isEqualType [] && {count _pending == 2}
+        && {(_pending select 0) isEqualType 0} && {finite (_pending select 0)}
+        && {(_pending select 1) isEqualType 0} && {finite (_pending select 1)}
+        && {(_pending select 0) != _counterGeneration || {time >= (_pending select 1)}}};
     // Observation remains available while a response is active; only admission is cooled down.
-    if (_eventDue && {_radar} && {time >= (_vehicle getVariable [_pendingKey, -1])}
+    if (_eventDue && {_radar} && {_pendingReady}
         && {time >= (_vehicle getVariable ["CBE_AIPass_CounterUntil_" + str _side, -1])}) then {
         private _normalDelay = (missionNamespace getVariable ["CBE_AIPass_CounterBattery_Delay", 60]) max 1;
         private _delay = if (_radar) then {((missionNamespace getVariable ["CBE_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
-        _vehicle setVariable [_pendingKey, time + _delay + 1];
+        _vehicle setVariable [_pendingKey,[_counterGeneration,time+_delay+1]];
         [{
             params ["_vehicle", "_side", "_position", "_generation"];
             if (_generation != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0])) exitWith {};
@@ -53,7 +63,7 @@ private _sides = [];
                         missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle] call CBE_fnc_CortexArtilleryFire
                 }) exitWith {};
             } forEach (missionNamespace getVariable ["CBE_AIPass_AllArtillery", []]);
-        }, [_vehicle, _side, +_position, missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]], _delay] call CBA_fnc_waitAndExecute;
+        }, [_vehicle, _side, +_position, _counterGeneration], _delay] call CBA_fnc_waitAndExecute;
     };
 } forEach _sides;
 // An uncovered emission wakes observers; it never grants them the hidden gun position.
@@ -67,7 +77,7 @@ if (_eventDue && {_sides isNotEqualTo []}) then {
             || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable",false])}
             || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
         [_vehicle] remoteExecCall ["CBE_fnc_CortexCounterObserve",0];
-    },[_vehicle,missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0]],
+    },[_vehicle,_counterGeneration],
         (missionNamespace getVariable ["CBE_AIPass_CounterBattery_Delay",60]) max 1] call CBA_fnc_waitAndExecute;
 };
 true

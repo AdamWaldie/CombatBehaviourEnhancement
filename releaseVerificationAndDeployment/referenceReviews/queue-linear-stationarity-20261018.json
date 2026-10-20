@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Queue proposal and deferred consent linear stationarity; native reverse capability research",
+  "finding": "abs speed <1 checks only model-forward velocity. Sideways sliding or falling can have forward speed0 and qualify as stationary during negotiation.",
+  "implementation": "Both proposal observed eligibility and ProposalCurrent use finite vectorMagnitude velocity below1/3.6m/s, retaining the original1km/h threshold. Each existing eligibility check samples one velocity vector; no world query/worker/cadence added.",
+  "official_sources": [
+    {
+      "url": "https://community.bistudio.com/wiki/speed",
+      "finding": "speed returns the relative Y-axis velocity in km/h; equivalent to3.6times velocityModelSpace Y."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "finding": "BACK is a driver command, but driver-as-effectiveCommander can refuse drive commands; separate actual effective commander is required according to the documented warning. LEFT/RIGHT commands require STOPTURNING cancellation."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/vehicleMoveInfo",
+      "finding": "Getter distinguishes BACK from other command modes; a command-state indication alone is not physical backward travel."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/setDriveOnPath",
+      "finding": "Requires compatible enabled AI steering component and proper native stopped/agent setup. It is not established as a generic reverse primitive."
+    }
+  ],
+  "validation": {
+    "tests": 1402,
+    "compiled_sqf": 328,
+    "pbos": 9,
+    "log": ".qa/cbe-queue-linear-stationarity-build.log",
+    "unsigned_fingerprint": "5d9ad7db47148e3e54b74e61cd9f642a82d985a2490259850abd58c910b55f43",
+    "physical": false,
+    "model": "Independent norm examples reject sideways/falling/diagonal translations missed by forward-only speed; integration asserts both protocol boundaries. Not native execution."
+  },
+  "limits": [
+    "Instantaneous velocity is not settled multi-sample READY or angular stability",
+    "No automatic setEffectiveCommander or new native reverse command introduced",
+    "Existing separate-commander native capability fixture is prepared, not run under audit pause",
+    "Queue HOLD/READY/dependency/native room/handback still incomplete",
+    "All65families partial; no physical/performance acceptance"
+  ]
+}

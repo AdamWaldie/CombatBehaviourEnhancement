@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Feature ownership retains the approach snapshot and original pilot; anchor PATH changes
+ * update only this revision, and pilot replacement ends the anchor before its next mutation.
  * Keeps a successfully landed local AI helicopter committed to the ground until its orders or
  * ownership genuinely change. The anchor survives vanilla completion of the final landing
  * waypoint, but releases for a moved, deleted or retyped landing waypoint, a valid onward
@@ -49,6 +51,14 @@ if (
     || {[_group] call CBE_fnc_CortexExternalTakeover}
 ) exitWith {false};
 
+private _featureSnapshot=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]];
+private _pilot=currentPilot _helicopter;
+private _entryPilot=_pilot;
+if (!(_featureSnapshot isEqualType []) || {count _featureSnapshot != 6} || {(_featureSnapshot select 0) != _controlRevision}
+    || {(_featureSnapshot select 2) isNotEqualTo _pilot} || {isNull _pilot} || {!local _pilot}) exitWith {
+    [_helicopter,false,"",false,_controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+    false
+};
 private _normalisedType = toUpperANSI _waypointType;
 private _normalisedScript = toLowerANSI _expectedScript;
 private _settleUntil = diag_tickTime + (([_helicopter, "TouchdownHoldSeconds", 8] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0 min 60);
@@ -58,18 +68,35 @@ private _nextValidation = 0;
 private _release = false;
 private _releaseReason = "UNKNOWN";
 
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", true, true];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", true, true];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
-_helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["ANCHORED", _targetPosition, diag_tickTime, 0, (getPosATL _helicopter) select 2], true];
-_helicopter disableAI "MOVE";
-_helicopter enableAI "PATH";
-_helicopter land "LAND";
-_helicopter flyInHeight 0;
-_helicopter setVelocity [0, 0, 0];
-private _pilot = currentPilot _helicopter;
-if (!isNull _pilot) then {_pilot disableAI "FSM";};
-if (_normalisedType == "GETOUT") then {_helicopter engineOn false;};
+private _anchorAdmitted=false;
+isNil {
+    if (local _helicopter && {alive _helicopter} && {local _entryPilot}
+        && {currentPilot _helicopter == _entryPilot}
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) == _controlRevision}
+        && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]]) isEqualTo _featureSnapshot}
+        && {[_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_Active", true, true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GroundAnchored", true, true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_GearLocal", false];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["ANCHORED", _targetPosition, diag_tickTime, 0, (getPosATL _helicopter) select 2], true];
+        _helicopter disableAI "MOVE";
+        _featureSnapshot=+_featureSnapshot;
+        _featureSnapshot set [5,true];
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",_featureSnapshot,true];
+        _helicopter enableAI "PATH";
+        _helicopter land "LAND";
+        _helicopter flyInHeight 0;
+        _helicopter setVelocity [0, 0, 0];
+        // FSM remains owned by the original pilot receipt; never acquire a replacement pilot here.
+        if (_normalisedType == "GETOUT") then {_helicopter engineOn false;};
+        _anchorAdmitted=true;
+    };
+};
+if (!_anchorAdmitted) exitWith {
+    [_helicopter,false,"",false,_controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+    false
+};
 
 while {!_release} do {
     if (!alive _helicopter || {!local _helicopter}) exitWith {
@@ -97,15 +124,28 @@ while {!_release} do {
         _release = true;
         _releaseReason = "EXTERNAL_REPOSITION";
     };
-    if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
-        _release = true;
-        _releaseReason = "EXTERNAL_TAKEOVER";
+    // Scheduled anchor mutation commit: reuse the existing takeover check inside the force boundary.
+    isNil {
+        if (!local _helicopter || {!alive _helicopter} || {!local _entryPilot}
+            || {currentPilot _helicopter != _entryPilot}
+            || {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active",false])}
+            || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _controlRevision}
+            || {!([_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid)}) then {
+            _release=true;
+            _releaseReason="PILOT_CHANGED";
+        } else {
+            if ([_group] call CBE_fnc_CortexExternalTakeover) then {
+                _release=true;
+                _releaseReason="EXTERNAL_TAKEOVER";
+            } else {
+                _anchorPosition=getPosASL _helicopter;
+                if (isTouchingGround _helicopter || {((getPosATL _helicopter) select 2) <= 1.5}) then {
+                    _helicopter addForce [(vectorUp _helicopter) vectorMultiply (-0.5 * _mass),getCenterOfMass _helicopter];
+                };
+            };
+        };
     };
-    _anchorPosition = getPosASL _helicopter;
-
-    if (isTouchingGround _helicopter || {((getPosATL _helicopter) select 2) <= 1.5}) then {
-        _helicopter addForce [(vectorUp _helicopter) vectorMultiply (-0.5 * _mass), getCenterOfMass _helicopter];
-    };
+    if (_release) exitWith {};
 
     if (diag_tickTime >= _nextValidation) then {
         _nextValidation = diag_tickTime + 0.25;
@@ -183,7 +223,7 @@ if (!isNull _helicopter && {local _helicopter}) then {
         _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     ) then {
-        [_helicopter, false, "", _releaseReason == "MULTI_HELICOPTER_GROUP"] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+        [_helicopter, false, "", _releaseReason == "MULTI_HELICOPTER_GROUP", _controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
     if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
         _helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["RELEASED", _targetPosition, diag_tickTime, _releaseReason, (getPosATL _helicopter) select 2], true];

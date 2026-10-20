@@ -4,6 +4,8 @@ Combat Behaviour Enhancement (CBE) is a standalone CBA mod for Arma 3. Its goal 
 sound AI with bounded, locality-aware work that remains subordinate to Zeus and authored mission
 orders.
 
+Skill profiling is opt-in. By default, mission-authored skills and difficulty remain in control while tactical behaviours stay independently enabled. See [skill ownership and tuning](docs/Waldos-AI-Tweak.md).
+
 ## Current foundation
 
 The repository now builds as a conventional `z\cbe\addons\main` addon:

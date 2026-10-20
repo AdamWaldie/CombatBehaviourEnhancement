@@ -10,7 +10,8 @@
  */
 
 params [["_actor",objNull,[objNull]],["_record",[],[[]]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor} || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count _record < 3}) exitWith {"RELEASE"};
 private _group=group _actor;
@@ -24,7 +25,8 @@ if (isNull _group || {!local _group}
 // ownership made the danger FSM observation-only for the exact actors already fighting. Zeus,
 // players and declared external owners have already yielded above; retain only commands which
 // represent a concrete boarding, action, treatment, supply or group-transfer task here.
-if (fleeing _actor || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"FORCED"};
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    || {fleeing _actor} || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"FORCED"};
 // Vehicle response is a domain handoff, not an infantry path request. Classify it before the
 // on-foot posture classification so an intentionally immobile static gunner, artillery crew or stopped vehicle
 // commander still publishes danger to the correct dedicated owner. No movement is issued here.

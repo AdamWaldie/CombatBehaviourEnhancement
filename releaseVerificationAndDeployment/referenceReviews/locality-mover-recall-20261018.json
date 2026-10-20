@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "scope": "CortexLocality checkpoint mover recall",
+  "finding": "Non-MOVE commands were treated as owned checkpoint movement and could receive doFollow. OperationRestore itself skips OWNERSHIP_LOST settings writes.",
+  "implementation": [
+    "Exact finite native MOVE destination proof",
+    "Active clearance exclusion",
+    "Actor reservation guard"
+  ],
+  "validation": {
+    "tests": 1229,
+    "log": ".qa/cbe-locality-mover-recall-build.log",
+    "exit": 0,
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Separate support/search hold cleanup paths",
+    "Network ordering and physical migration",
+    "Runtime performance budget"
+  ],
+  "acceptance": "partial"
+}

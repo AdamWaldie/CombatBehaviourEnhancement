@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-19",
+  "baselineCommit": "396563e8f44bbce0ca40052c14bd02b81e1ccef0",
+  "scope": "HBQ navigation-area Eden authoring through existing CBE corridor execution",
+  "reference": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_moduleNavArea.sqf",
+    "sha256": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e",
+    "rangesRead": [
+      "complete executable file"
+    ]
+  },
+  "supersedesGapIn": "hbq-navigation-module-20261018.json",
+  "implementation": [
+    "Pre-placed server-only persistent module uses its own world object, authored rectangle and labelled task speed.",
+    "Activation registers through existing serialized registry; deactivation removes the passive definition. Identical repeats retain revision.",
+    "Existing current-owner corridor controller consumes live transforms and elevation. No additional movement worker or geometry scan.",
+    "Explicit editable-area Zeus update/remove admits the mission module under existing curator authority checks."
+  ],
+  "remaining": [
+    "Eden control rendering, trigger activation/deactivation and physical crossing remain unverified.",
+    "Shallow-ford suitability/depth policy remains absent; unsupported or wet paths remain refused.",
+    "Whole HBQ controller and queue execution parity remains incomplete."
+  ],
+  "validation": {
+    "tests": 1476,
+    "sqfErrors": 0,
+    "configErrors": 0,
+    "buildLog": ".qa/cbe-eden-corridor-final-build.log",
+    "independentLog": ".qa/cbe-eden-corridor-independent.log",
+    "packageFingerprint": "5eaae0e08196f71695699ef196ca54b0a5ce5b4e5f207961f0957c171d0d1122",
+    "packageSource": "396563e8+dirty unsigned development"
+  },
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "audits": "paused"
+}

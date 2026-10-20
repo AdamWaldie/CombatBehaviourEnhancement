@@ -265,7 +265,7 @@ createHashMapFromArray [
     ["shared", [
         ["CBE_AIPass_AmmoCapabilityOverrides", createHashMap], // MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides.
         // MISSION MAKER: AI population, profile and filtering policy.
-        ["CBE_AIRebalance_Enable", true],          // BOOL: true applies CBE skill profiles to eligible AI.
+        ["CBE_AIRebalance_Enable", false],         // BOOL: opt in to CBE skill profiles; mission skills are preserved by default.
         ["CBE_AIRebalance_Profile", "LINE"],      // STRING: MILITIA, LINE, VETERAN or ELITE.
         ["CBE_AIRebalance_Mode", "AUTO"],          // STRING: AUTO ambient-darkness/NVG aware; DAY override; NIGHT legacy variant.
         ["CBE_AI_ApplyMode", "BOTH"],             // STRING: EXISTING, NEW or BOTH AI populations.
@@ -404,6 +404,7 @@ createHashMapFromArray [
         ["CBE_AIPass_Vehicles_Enable", true], // BOOL: dismount under fire; damaged vehicles smoke and withdraw.
         ["CBE_AIPass_DrivingAssist_Enable", true], // Sparse terrain-grade speed cap for ordinary AI ground vehicles; preserves native routes.
         ["CBE_AIPass_DrivingAssist_Passing_Enable", false], // Experimental finite automatic admission; physical/performance acceptance pending.
+        ["CBE_AIPass_DrivingAssist_Queue_Enable", false], // Opt-in cooperative head-on jam initiation; physical/performance acceptance pending.
         ["CBE_AIPass_DrivingAssist_MaxSpeed", 70], // General driving cap in km/h; terrain and lower authored caps still apply.
         ["CBE_AIPass_DrivingAssist_Recovery_Enable", true], // Allows new finite recovery attempts; does not cancel a native leg already issued.
         ["CBE_AIPass_NavalAssault_Enable", true], // BOOL: finite coastal approach and passenger landing; yields to player, Zeus and neutral external-control ownership.

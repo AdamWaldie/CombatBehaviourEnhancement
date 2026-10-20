@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-19",
+  "scope": "Routine standoff handoff from stationary combined ground fire",
+  "finding": "Combined ground roles blocked routine targeting, but GROUND_FIRE had no movement lease, so routine anti-tank standoff could move the support platform while its fire reservation remained active.",
+  "change": "After the existing standoff trigger and a viable escape proposal, a current stationary GROUND_FIRE role is submitted once per exact snapshot to the existing authenticated OTHER_INTENT_ACTIVE retirement/fallback. Record before RPC. Routine standoff lease/movement requires no captured live ground role; even a synchronous reply defers movement to a subsequent callback. GROUND_MANOEUVRE retains its own operation. Emergency danger/withdrawal paths are unchanged.",
+  "integration": "Server retires only the exact role then uses existing bounded fallback, preserving original contact/expiry. Requesting retirement issues no native command. Existing group state stores one last snapshot and clears it once no ground role is live; no timer/worker/deadline renewal. If request is not processed, routine standoff remains blocked until original role retirement/expiry; no repeated RPC storm.",
+  "validation": {
+    "existingFocusedTests": 607,
+    "focusedLog": ".qa/cbe-standoff-support-yield-final-focused.log",
+    "hemttLog": ".qa/cbe-standoff-support-yield-final-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed full local build gates.",
+    "physical": "Unverified; audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-standoff-support-yield-build.log",
+    "independentLog": ".qa/cbe-standoff-support-yield-independent.log",
+    "packageFingerprint": "342fb26d7ae75c16b21343595b073e1b341d5bb812a153b67a5d54e4cc633655",
+    "packageSource": "3bb5bfa8+dirty unsigned development, not later clean commit"
+  },
+  "limits": "This is routine standoff/support arbitration, not complete emergency-role handback, multi-asset composition or physical tactical acceptance.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/cortexVehicles.sqf",
+      "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedRejectServer.sqf",
+      "sha256": "250002c6817d0cc47cf990044c92a5ad0e8392554a9b82ef18b3ac0e511d16e1"
+    }
+  ],
+  "commandCommit": "Escape geometry remains outside the native command block. An unscheduled commit requires the current public role to equal the captured unassigned/expired snapshot before ownership lease acquisition and movement; a newly arrived role cannot be overridden by a stale no-role observation."
+}

@@ -23,6 +23,7 @@ class BuildingContactSelectTests(unittest.TestCase):
                        '_enemy isKindOf "CAManBase"','getFriend (side _enemy) < 0.6',
                        '_records resize 3','!(_x isEqualType [])'):
             self.assertIn(marker,self.s)
+        self.assertIn('private _records=(_enemies select [0,8]) select {',self.s)
         self.assertEqual(self.s.count('lineIntersectsSurfaces'),1)
         self.assertLess(self.s.index('_records resize 3'),self.s.index('lineIntersectsSurfaces'))
         for forbidden in ('getPosATL _enemy','getPosASL _enemy','getPosWorld _enemy',

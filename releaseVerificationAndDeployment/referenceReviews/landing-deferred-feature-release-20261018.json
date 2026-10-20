@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Finite release-only aircraft feature restoration after landing control retirement; not whole external-controller handover acceptance",
+  "finding": "The prior version preserved an aircraft feature snapshot when a foreign flight lease blocked cleanup, but had no general finite aircraft-feature cleanup service. Old landing control could remain active while no owner later retried the restoration.",
+  "implementation": [
+    "Exact landing control retires once, preserving another typed flight lease. A public two-field release [original six-field snapshot, original absolute deadline] is published with PENDING acknowledgement.",
+    "New owner-local feature release checks exact release/snapshot, original revision+1, inactive landing, owner tracker epoch and no competing flight/player/Zeus/external control before eligible MOVE/PATH restoration.",
+    "One coalesced chain per receipt/owner/tracker epoch has at most60 retries and the original60s window. Local EH and existing tracker may offer the same receipt without changing issuer, revision or deadline.",
+    "Expired deadline observation precedes worker-marker coalescing, so a lost delayed callback cannot keep a matching receipt visibly PENDING forever.",
+    "RELEASED or UNRESOLVED acknowledgements bind revision/issuer/deadline. Expiry logs once and preserves snapshot provenance and the work key; no timeout grants completion.",
+    "Original-pilot FSM release remains its separate actor-local bounded service. Immediate native flight handback also refuses protected pilot tasks. Deferred callbacks issue no old flight/task commands."
+  ],
+  "bounds": "No new world query or permanent worker. Reuses0.5s tracker/Local EH offers; coalesces one finite1s callback chain. Actual multi-aircraft/frame overhead remains unmeasured.",
+  "validation": {
+    "tests": 1411,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-landing-deferred-feature-release-final-build.log",
+    "unsigned_fingerprint": "38adb19df86e6419122bbde8bad22f9e23cd5f8e1d1e1f004d4dce10d2aba657",
+    "physical": false
+  },
+  "remaining": [
+    "Actual blocked-controller release, shutdown, late public replication and rapid locality return need engine evidence.",
+    "External integrations must sequence relinquishment/acknowledgement before claiming native features; complete required external controller adapters are not proven.",
+    "Deferred callbacks intentionally do not restore flight-layer parameters or issue land/height/velocity/waypoint commands. Successor controllers must establish their own flight policy.",
+    "Expired UNRESOLVED provenance is retained; no automatic new deadline or operator retry/reset workflow was added.",
+    "Same-value mission feature edits remain indistinguishable; false physical/performance acceptance is prohibited.",
+    "Queue HOLD/READY/native dependency movement and the full production goal remain incomplete. Audits paused; all65families partial."
+  ]
+}

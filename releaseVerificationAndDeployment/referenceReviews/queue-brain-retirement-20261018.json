@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Queue consent retirement when one owner-local driving brain ends; not physical queue movement",
+  "finding": "DrivingOperationFinish retired pass command observation and speed leases but not queue consent. Peers could remain reserved until original consent expiry after its driving brain ended.",
+  "implementation": "DrivingQueueAgreementRelease validates current vehicle locality, original owner, both eleven-field driver/operator receipts, exact group/epoch/generation and unchanged local consent. It clears only matching private consent and requests existing authenticated broker RELEASE. Finish invokes it before its current-brain native cleanup guard so a stale retiring brain may remove its own consent but cannot remove a successor generation.",
+  "authority": "No movement, speed restoration, peer writes, new timers or new world discovery. Original expiry timers remain phase/key bound. Locality-loss cleanup cannot act on a remote vehicle; original finite retirement remains the fallback.",
+  "validation": {
+    "tests": 1400,
+    "compiled_sqf": 328,
+    "pbos": 9,
+    "log": ".qa/cbe-queue-brain-retirement-build.log",
+    "unsigned_fingerprint": "7c0dc28fc8306aefbca377fdc7904bb0b70dc03961aa3e4929b7df3e6662b0d7",
+    "physical": false
+  },
+  "next_execution_requirements": [
+    "Keep negotiation snapshots distinct from an execution episode: ProposalCurrent requires original pose within1.5m and native destination equality, so it cannot validate intentional HOLD/MOVE unchanged after those actions.",
+    "Bind committed execution to token, exact crew, owner epoch, brain generation, authored route and separately retained owned native commands.",
+    "Confirm actual stationary READY from owners, then admit one dependency leaf through independent full-hull rear support/traffic checks.",
+    "Observe real room before parent admission; monitor heading/lateral/damage to reject U-turns; do not call rear doMove proven reverse.",
+    "Cancel on front progress, player/Zeus/new-order/controller/crew changes; hand back only exact owned commands without renewing original deadline."
+  ],
+  "limits": "No HOLD/READY/native dependency executor delivered here. No completed whole-HBQ/controller parity. All65partial; audits explicitly paused."
+}

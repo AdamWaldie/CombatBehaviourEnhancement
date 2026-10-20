@@ -111,3 +111,27 @@ alongside them.
 The disposable mission init now explicitly compiles the distributed owner sampler/workload definitions on every machine. Previously the file was staged but had no initialization caller. Sampling, workloads and handlers still start only on a server request, and the three owner entry points reject other remote senders. This repairs the executable audit path; it does not validate any previous or future frame-time result. Fresh matched measurements remain required.
 
 Standalone report inputs require explicit boolean native/CBE roles, a clean candidate with a full SHA-256 fingerprint and a SHA-256 mission inventory containing both the mission and standalone workload source. Counts must be integers and frame-time measurements finite positive numbers; JSON booleans are not measurements. Malformed provenance or result rows invalidate the comparison rather than earning budget credit. This validation is not runtime evidence or a substitute for repeated matched captures.
+
+
+## Callback execution context and missing samples
+
+Normal scheduler jobs are called directly from the CBA per-frame handler. The soft work budget
+is checked between callbacks and cannot interrupt one expensive callback. Trace direct callers
+and deferred messages separately before attributing a delay to scheduler suspension.
+
+The existing 256-row local callback ring appends the actual `canSuspend` boolean as field six.
+The distributed owner sampler accepts both five- and six-field records in its matching local
+clock window. Legacy records have unknown context. Its queue diagnostic preserves the first
+six fields and appends `[sawUnscheduled, sawScheduled, sawUnknownContext]`. These flags indicate
+presence in observed rolling snapshots, not unique callback counts or whole-run coverage.
+Callback-duration and completed-latency maxima remain `-1` if no valid in-window callback was
+observed; this must not be presented as zero cost. Ring overwrite can still hide work.
+
+No new runtime result is supplied by this schema change. Normal and actual-provider HC samples
+remain separate, and matched frame-time measurements are required for the 5% median / 10% p95 gate.
+
+
+Convoy opt-in control capture appends follower sample field10: [gap metric RADIAL/LONGITUDINAL, heading difference in degrees, signed raw longitudinal gap in metres, raw lateral offset in metres]. Existing fields0..9 retain their meaning. This exposes measurement-policy transitions; field4's legacy lateral value remains policy-local and can be0 in radial mode. The new measurements run only under CBE_Convoy_CaptureControl and add no world query, controller or network broadcast. No captured run or performance acceptance is implied.
+
+
+Report and reinforcement spatial discovery now deduplicate networked candidate groups with request-local keyed sets, matching combined-arms discovery. Discovery order is retained in the output array. Empty network IDs take an identity-based pushBackUnique fallback rather than collapsing distinct groups; fallback groups retain the previous linear lookup behaviour. Query radius, crew inclusion, response caps and dispatch batches are unchanged. This reduces repeated normal membership scans but does not bound query population or establish the median/p95 runtime budget.

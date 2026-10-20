@@ -27,7 +27,7 @@
 
 if !(isServer) exitWith {["ai", []] call CBE_fnc_AITweaksDiagnosticReport};
 private _groups = allGroups;
-private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", true];
+private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", false];
 private _hcOwners = (entities "HeadlessClient_F") apply {owner _x};
 private _hcGroups = _groups select {
     groupOwner _x in _hcOwners
@@ -500,6 +500,9 @@ _checks pushBack ["ai","aircraft-scheduler-health",_aircraftQueueState,format ["
 // Summarize the fixed owner-local ring on demand, never sort inside the frame callback.
 private _callbackSamples=+(missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]]);
 private _sampleCount=count _callbackSamples;
+private _scheduledSamples={count _x > 5 && {(_x select 5) isEqualTo true}} count _callbackSamples;
+private _unscheduledSamples={count _x > 5 && {(_x select 5) isEqualTo false}} count _callbackSamples;
+private _unknownContexts=_sampleCount-_scheduledSamples-_unscheduledSamples;
 private _sampleDurations=_callbackSamples apply {_x select 2};
 private _sampleLatencies=_callbackSamples apply {_x select 3};
 _sampleDurations sort true;_sampleLatencies sort true;
@@ -515,9 +518,9 @@ if (_sampleCount > 0) then {
     _ranked sort false;_slowestSamples=_ranked select [0,8];
 };
 _checks pushBack ["ai","cortex-callback-samples",["NOT_SAMPLED","MEASURED"] select (_sampleCount > 0),
-    format ["owner=%1 samples=%2 capacity=256 oldestAgeSeconds=%3 newestAgeSeconds=%4 callbackP50Ms=%5 callbackP95Ms=%6 queueLatencyP95Seconds=%7 slowest[ms,subsystem,key,latencySeconds,localTick]=%8. Executed callbacks only, including retired jobs; nearest-rank percentiles of a rolling mixed-workload sample. Server-local only; HC/client rings stay on their owner. This is not matched frame-time overhead or tactical acceptance.",
+    format ["owner=%1 samples=%2 capacity=256 oldestAgeSeconds=%3 newestAgeSeconds=%4 callbackP50Ms=%5 callbackP95Ms=%6 queueLatencyP95Seconds=%7 slowest[ms,subsystem,key,latencySeconds,localTick]=%8 context[scheduled,unscheduled,unknown]=[%9,%10,%11]. Executed callbacks only, including retired jobs; nearest-rank percentiles of a rolling mixed-workload sample. Server-local only; HC/client rings stay on their owner. This is not matched frame-time overhead or tactical acceptance.",
         clientOwner,_sampleCount,if (_sampleCount > 0) then {diag_tickTime-_sampleOldest} else {-1},
-        if (_sampleCount > 0) then {diag_tickTime-_sampleNewest} else {-1},_sampleP50,_sampleP95,_latencyP95,_slowestSamples]];
+        if (_sampleCount > 0) then {diag_tickTime-_sampleNewest} else {-1},_sampleP50,_sampleP95,_latencyP95,_slowestSamples,_scheduledSamples,_unscheduledSamples,_unknownContexts]];
 // Coordinated work is server-owned, so expose the lease/turn state which an HC-only
 // group snapshot cannot explain. This is calculated only for an on-demand report.
 private _supportRequests=missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];

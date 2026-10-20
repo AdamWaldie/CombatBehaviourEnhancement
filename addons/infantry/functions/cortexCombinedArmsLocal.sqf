@@ -12,13 +12,19 @@
  * ground. Engine pathfinding remains responsible for the actual route. Airborne aircraft receive the
  * same target and may start their existing finite attack-run job;
  * its controller, rather than a single instantaneous speed sample, proves progress or handles a stall.
+ * Scripted ground-fire safety geometry uses native believed position, not hidden transforms.
  * Locality/authority: current group owner only; server-issued public token must still match. Asset
  * aircraft discovery requires the pilot's group; ground discovery accepts the commander's or driver's group.
  * Repeat/JIP: exact opportunity/owner/epoch receipts suppress repeated application on one owner.
+ * New owner admission rechecks current radio or three-dimensional voice reach before knowledge or commands.
+ * Already-applied duplicate receipts retain autonomy after later communication loss.
  * Relevant native reloads defer admission through the existing group tick and original expiry.
+ * Immediate ground fire also waits for the actual selected loaded muzzle through this
+ * same finite retry path; muzzle-selection waiting never marks the role applied.
  * Pending reload receipts preserve the route/asset/gunner; report reveal occurs once per owner receipt.
  * A new owner epoch must admit again; original expiry/contact age never renew. Zeus takeover,
- * feature closure and replaced public opportunities reject stale calls.
+ * feature closure and replaced public opportunities reject stale calls. Support roles refuse native
+ * group-ignored contacts before knowledge application; active movement retires in its own step.
  * Contact positions require exactly three finite numeric ATL components, each within +/-1e6m.
  * Invalid payloads reject before local cooldown or server reservation; no live-target fallback is used.
  * Arguments: 0: asset group <GROUP>; 1: opportunity <ARRAY>
@@ -45,6 +51,18 @@ if ((_group getVariable ["CBE_Cortex_CombinedRole",[]]) isNotEqualTo _opportunit
 if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {[_group,true] call CBE_fnc_CortexLocality};
 if (!local _group || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isNotEqualTo _opportunity}) exitWith {false};
+// Native ignoreTarget belongs to this group; do not reveal or issue support against it.
+private _contactObserver=leader _group;
+if (!isNull _contactObserver && {local _contactObserver}
+    && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    if (_role == "AIR_ATTACK") then {
+        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"TARGET_IGNORED",serverTime,_target],true];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    } else {
+        [_group,_opportunity,"TARGET_IGNORED",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+    };
+    false
+};
 // The caller's public applied marker is diagnostic/replay state, not executor idempotence.
 // A duplicate delivery on this owner/epoch must not repeat fire, reveal or route acquisition.
 private _applicationIdentity=[+_opportunity,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]];
@@ -56,6 +74,35 @@ if (count _application == 2 && {(_application select 0) isEqualTo _applicationId
         _group setVariable ["CBE_Cortex_CombinedApplied",_applied,true];
     };
     true
+};
+// Selection and owner delivery may be separated by travel, radio loss or locality transfer.
+// A received task remains autonomous; this check belongs after exact duplicate acknowledgement.
+private _senderTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
+private _receiverTransmitter=[_group] call CBE_fnc_CortexGroupTransmitter;
+private _senderAnchor=if (isNull _senderTransmitter) then {leader _requester} else {_senderTransmitter};
+private _receiverAnchor=if (isNull _receiverTransmitter) then {leader _group} else {_receiverTransmitter};
+private _communicationAvailable=false;
+if (!isNull _senderAnchor && {alive _senderAnchor} && {!isNull _receiverAnchor} && {alive _receiverAnchor}) then {
+    private _senderASL=getPosASL _senderAnchor;
+    private _receiverASL=getPosASL _receiverAnchor;
+    private _communicationRange=if (_role == "AIR_ATTACK") then {
+        missionNamespace getVariable ["CBE_Cortex_CombinedArms_AirRange",4000]
+    } else {
+        missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]
+    };
+    private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
+    _communicationAvailable=_receiverASL distance2D _senderASL <= _communicationRange
+        && {(_receiverASL vectorDistance _senderASL <= _voiceRange)
+            || {!isNull _senderTransmitter && {!isNull _receiverTransmitter}}};
+};
+if (!_communicationAvailable) exitWith {
+    if (_role == "AIR_ATTACK") then {
+        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"NO_COMMUNICATION",serverTime,_target],true];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    } else {
+        [_group,_opportunity,"NO_COMMUNICATION",clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+    };
+    false
 };
 private _markApplied={
     if (((_group getVariable ["CBE_Cortex_CombinedReloadLocal",[]]) param [0,[]]) isEqualTo _applicationIdentity) then {
@@ -87,11 +134,14 @@ if (count _reloadReceipt == 4 && {(_reloadReceipt select 0) isEqualTo _applicati
     false
 };
 private _waitForReload={
-    params ["_gunner"];
+    params ["_gunner",["_reason","WAITING_FOR_RELOAD",[""]]];
+    if !(_reason in ["WAITING_FOR_RELOAD","MUZZLE_SELECTION_PENDING"]) exitWith {false};
     private _receipt=[_applicationIdentity,_asset,_gunner,[_group] call CBE_fnc_NativeOrderReceipt];
     if ((_group getVariable ["CBE_Cortex_CombinedReloadLocal",[]]) isNotEqualTo _receipt) then {
         _group setVariable ["CBE_Cortex_CombinedReloadLocal",_receipt];
-        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"WAITING_FOR_RELOAD",serverTime,_target],true];
+    };
+    if (((_group getVariable ["CBE_Cortex_CombinedResult",[]]) select [0,3]) isNotEqualTo [_token,_role,_reason]) then {
+        _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,_reason,serverTime,_target],true];
     };
     // Remain unapplied: CortexGroupTick rechecks this exact finite opportunity.
     false
@@ -156,6 +206,21 @@ if (_role == "GROUND_FIRE") exitWith {
         || {[_gunner] call CBE_fnc_CompatibilityExternalControl}
         || {!([_gunner] call CBE_fnc_CortexActorFireTaskAvailable)}
         || {[_group] call CBE_fnc_CortexExternalTakeover}) then {_fireRefusal="NO_FIRE_OPERATOR"};
+    // Shared confidence is not a live transform. Use the operator's native belief.
+    private _firePoint=[];
+    if (_fireRefusal == "") then {
+        private _believed=_gunner getHideFrom _target;
+        // An admitted report remains a fixed estimate, not a new sighting. Preserve
+        // radio support when this gunner has no personal native position estimate.
+        if (count _believed != 3 || {_believed isEqualTo [0,0,0]}
+            || {_believed findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) then {
+            _believed=+_position;
+        };
+        if (count _believed == 3 && {_believed isNotEqualTo [0,0,0]}
+            && {_believed findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+            _firePoint=(ATLToASL _believed) vectorAdd [0,0,1];
+        } else {_fireRefusal="NO_KNOWN_CONTACT"};
+    };
     private _ammoObservation=createHashMap;
     if (_fireRefusal == "") then {
         private _stationReady=[_asset,_gunner] call CBE_fnc_CortexGroundFireReady;
@@ -167,13 +232,20 @@ if (_role == "GROUND_FIRE") exitWith {
     };
     if (_fireRefusal in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
         && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {[_gunner] call _waitForReload};
-    if (_fireRefusal == "" && {!([_gunner,aimPos _target] call CBE_fnc_CortexLineOfFireClear)}) then {
+    if (_fireRefusal == "" && {!([_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };
     if (_fireRefusal != "") exitWith {
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,_fireRefusal,serverTime,_target],true];
         [_group,_opportunity,_fireRefusal,clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
         false
+    };
+    private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
+    if (_muzzle != "" && {currentMuzzle _gunner != _muzzle}) then {_gunner selectWeapon _muzzle};
+    // Native selection acknowledgement, not a successful inventory scan, grants fire.
+    // Existing group replay retains the original opportunity, route and report clocks.
+    if (_muzzle == "" || {currentMuzzle _gunner != _muzzle}) exitWith {
+        [_gunner,"MUZZLE_SELECTION_PENDING"] call _waitForReload
     };
     _gunner doTarget _target;
     _gunner doFire _target;
@@ -341,16 +413,16 @@ if (_role == "AIR_ATTACK") exitWith {
     if (_plan isEqualTo createHashMap) exitWith {
         call _markApplied;
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"NO_VIABLE_WEAPON",serverTime,_target],true];
-        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
         false
     };
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     // Acceptance must correspond to this target, not merely an aircraft's busy marker.
-    private _started=[createHashMapFromArray [["aircraft",_asset],["group",_group],["target",_target]],0.5] call CBE_fnc_AirAttackOperationStart;
+    private _started=[createHashMapFromArray [["aircraft",_asset],["group",_group],["target",_target],["combinedOpportunity",+_opportunity]],0.5] call CBE_fnc_AirAttackOperationStart;
     if (!_started) exitWith {
         call _markApplied;
         _group setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"AIR_BUSY_OR_REFUSED",serverTime,_target],true];
-        [_requester,_group,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+        [_requester,_group,_token,+_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
         false
     };
     call _markApplied;

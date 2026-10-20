@@ -1,26 +1,45 @@
 /*
  * Author: WaldoTheWarfighter
+ * Individual BLUE/GREEN orders defer new investigation and end active execution;
+ * exact owned movement cleanup remains available without changing combat mode.
+ * Physical progress and arrival use absolute ASL coordinates; native destinations remain ATL.
+ * Terrain differences between cells cannot fabricate motion or hide same-floor arrival.
+ * Native INIT/planning/replanning blocks new legs and defers stagnation classification within the original deadline.
+ * An issued native move has one original two-second acknowledgement window. Only the
+ * exact pre-issue destination/form leader and original command or MOVE may wait; new
+ * orders preempt immediately. Waiting issues nothing and grants no cleanup or visit proof.
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
+ * Existing discovery may REAP an ended current FSM through exact FINISH cleanup.
+ * REAP never restarts investigation, renews its deadline or classifies a node as unreachable.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
- * Native/Zeus/specialist tasks and overlapping operations preempt this controller. Proven disjoint
+ * Native/Zeus/specialist tasks, native ignored or surrendered/restrained contacts and overlapping operations preempt this controller. Proven disjoint
  * infantry rosters may coexist when they own no group waypoint. No firing is forced.
  * Repeat/JIP: One exact generation per actor; a public cancellation journal allows a new owner
  * to retire an unchanged native leg without replaying movement or renewing the original deadline.
  * Arguments: 0 mode <STRING>, START; 1 actor <OBJECT>, objNull; 2 context <HASHMAP>, empty.
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
+ * Optional deadline NUMBER only shortens the original maximum; position-only clues cannot renew it.
+ * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
+ * Optional observationClue ARRAY binds shared visit preference to the exact original body clue;
+ * only a physically reached OBSERVE result records a node, never admission/failure/clearance.
  * Idle/plain-route contexts may issue one leg. An unchanged same-contact native approach is
  * observed without a reset; after measured stagnation one alternate-node escalation is permitted.
+ * Observed native destinations are recorded at admission and kept distinct from another
+ * investigator's selected node; this grants no native-path ownership or cleanup authority.
  * Other modes carry the brain. Neither admission nor escalation renews the original deadline.
  * TRANSFER is locality cleanup only: an absent machine-local lease may use the public journal;
  * a different live actor reservation still forbids command cleanup.
- * Return: BOOL for START/QUEUE/FINISH/TRANSFER; NUMBER -1 for STEP (one shared-scheduler invocation).
- * Current callers: IndoorActorDispatch, indoorActor FSM, focused fixtures and locality/release cleanup.
+ * Return: BOOL for START/QUEUE/FINISH/TRANSFER/REAP; NUMBER -1 for STEP (one shared-scheduler invocation).
+ * Current callers: IndoorActorDispatch, indoorActor FSM, CortexDiscover ended-worker cleanup,
+ * focused fixtures and locality/release cleanup.
  * Example: ["START",soldier1,createHashMapFromArray [["building",house1],
  * ["belief",[[100,100,2],serverTime]]]] call CBE_fnc_IndoorActorOperation;
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]]];
 _mode=toUpperANSI _mode;
+private _observationOnly=_brain getOrDefault ["observationOnly",false];
+if !(_observationOnly isEqualType true) exitWith {false};
 private _migration=_mode == "TRANSFER";
 if (_migration) then {_mode="FINISH"};
 if (isNull _actor) exitWith {if (_mode == "STEP") then {-1} else {false}};
@@ -43,6 +62,8 @@ private _releaseAvailable={
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
+
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 private _available={
     local _actor && {local _group} && {!isNull _group} && {!isPlayer _actor}
@@ -51,7 +72,7 @@ private _available={
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {getSuppression _actor < 0.5} && {currentWeapon _actor != ""}
-        && {combatMode _group in ["YELLOW","RED","WHITE"]}
+        && {combatMode _group in ["YELLOW","RED","WHITE"]} && {unitCombatMode _actor in ["YELLOW","RED","WHITE"]}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
@@ -60,9 +81,12 @@ private _available={
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
         && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {!_observationOnly || {!(behaviour _actor in ["STEALTH","CARELESS"])
+            && {[_group,"CBE_AIPass_Investigate_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
         && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
         && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
         && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 if (_mode == "FINISH") exitWith {
     if (count _brain > 0) then {
@@ -134,6 +158,31 @@ if (_mode == "FINISH") exitWith {
             _actor setVariable ["CBE_IndoorActor_NodeFailures",_failed];
         };
     };
+    // Keep only historical physical visits from this original finite clue. This is a
+    // preference for later investigation, never a room-safe or hostile-occupancy claim.
+    private _clue=_brain getOrDefault ["observationClue",[]];
+    private _house=_brain getOrDefault ["building",objNull];
+    private _transform=_brain getOrDefault ["transform",[]];
+    if (!_migration && {_observationOnly} && {count _clue == 5}
+        && {(_brain getOrDefault ["reason",""]) == "VISITED"}
+        && {(_brain getOrDefault ["phase",""]) == "OBSERVE"}
+        && {_oldGroup == _group} && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_operation == (_group getVariable ["CBE_OperationGeneration",0])} && {call _releaseAvailable}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}
+        && {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isEqualTo _clue}
+        && {serverTime < (_clue select 2)} && {_target call _vectorValid}
+        && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
+        && {!isNull _house} && {alive _house}
+        && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
+        private _history=_group getVariable ["CBE_Danger_BuildingVisits",[]];
+        private _visits=if (_history isEqualType [] && {count _history == 2}
+            && {(_history select 0) isEqualTo _clue} && {(_history select 1) isEqualType []}) then {
+            (_history select 1) select [0,16]
+        } else {[]};
+        private _row=[_house,_transform call _copyArray,AGLToASL _target];
+        if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
+        _group setVariable ["CBE_Danger_BuildingVisits",[_clue call _copyArray,_visits]];
+    };
     _actor setVariable ["CBE_IndoorActor_Result",[_generation,
         _brain getOrDefault ["reason","RELEASED"],serverTime,+_target],true];
     _actor setVariable ["CBE_IndoorActor_Order",nil,true];
@@ -152,6 +201,15 @@ if (_mode == "START") exitWith {
     private _building=_brain getOrDefault ["building",objNull];
     private _belief=_brain getOrDefault ["belief",[]];
     private _contact=_brain getOrDefault ["contact",objNull];
+    private _clue=_brain getOrDefault ["observationClue",[]];
+    if (!(_clue isEqualType []) || {!((count _clue) in [0,5])}) exitWith {false};
+    if (_clue isNotEqualTo [] && {!_observationOnly
+        || {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isNotEqualTo _clue}
+        || {!((_clue select 0) call _vectorValid)}
+        || {[1,2] findIf {!((_clue select _x) isEqualType 0) || {!finite (_clue select _x)}} >= 0}
+        || {serverTime < (_clue select 1)} || {serverTime >= (_clue select 2)}
+        || {(_clue select 2) > (_clue select 1)+20}
+        || {(_clue select 4) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
     if (!(_contact isEqualType objNull) || {!(_building isEqualType objNull)} || {isNull _building}
         || {!alive _building} || {!(_belief isEqualType [])} || {count _belief != 2}
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
@@ -168,7 +226,7 @@ if (_mode == "START") exitWith {
         || {serverTime-(_belief select 1) > 5}) exitWith {false};
     private _admission=[_actor,_contact,_belief select 0,_building] call CBE_fnc_IndoorActorNativeContext;
     if (_admission isEqualTo [] || {serverTime < (_actor getVariable ["CBE_IndoorActor_Cooldown",-1])}
-        || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
+        || {[_actor] call CBE_fnc_CortexActorMoveReserved}
         || {(_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
         || {count (_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) > 0}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {false};
@@ -189,7 +247,21 @@ if (_mode == "START") exitWith {
     private _generation=(_actor getVariable ["CBE_IndoorActor_Generation",0])+1;
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _deadline=(serverTime+45) min ((_belief select 1)+30);
+    // Position-only observations may shorten the task to their original clue expiry.
+    // This parameter can never extend the ordinary indoor deadline.
+    private _requestedDeadline=_brain getOrDefault ["deadline",_deadline];
+    if (!(_requestedDeadline isEqualType 0) || {!finite _requestedDeadline}
+        || {_requestedDeadline <= serverTime}) exitWith {false};
+    _deadline=_deadline min _requestedDeadline;
+    if (_clue isNotEqualTo []) then {
+        if ((_group getVariable ["CBE_Danger_BuildingClue",[]]) isNotEqualTo _clue
+            || {(_clue select 4) isNotEqualTo _epoch} || {serverTime >= (_clue select 2)}) then {
+            _deadline=serverTime;
+        } else {_deadline=_deadline min (_clue select 2)};
+    };
+    if (_deadline <= serverTime) exitWith {false};
     private _lease=["INDOOR_INVESTIGATE",+(_belief select 0),time+(_deadline-serverTime)];
+    private _initialTarget=if ((_admission select 0) == "OBSERVE") then {+(_admission select 2)} else {[]};
     private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
     missionNamespace setVariable ["CBE_IndoorActor_Serial",_serial];
     _brain=createHashMapFromArray [["jobKey",format ["CBE_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
@@ -197,22 +269,45 @@ if (_mode == "START") exitWith {
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
-        ["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",[]],["issued",false],
+        ["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
-        ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosATL _actor]];
+        ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
+    // Release only this actor's owned danger posture before publishing the incoming task.
+    [_actor] call CBE_fnc_DangerEngineRelease;
+    if ((_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isNotEqualTo []) exitWith {false};
+    if !([_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep) exitWith {false};
     _actor setVariable ["CBE_IndoorActor_Generation",_generation];
     _actor setVariable ["CBE_IndoorActor_Brain",_brain];
     _group setVariable ["CBE_IndoorActor_Actors",_investigators+[_actor]];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copyArray];
     _actor setVariable ["CBE_IndoorActor_Order",[_generation,_epoch,_group,
-        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,[],_lease call _copyArray,false],true];
+        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,+_initialTarget,_lease call _copyArray,false],true];
     private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\indoorActor.fsm";
     _actor setVariable ["CBE_IndoorActor_FSM",_handle];
-    true
+    private _started=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
+        && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}
+        && {!(_brain getOrDefault ["finished",false])};
+    if (!_started && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
+        _brain set ["reason","FSM_START_FAILED"];
+        ["FINISH",_actor,_brain] call CBE_fnc_IndoorActorOperation;
+    };
+    _started
 };
 private _current=(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain
     && {count _brain > 0} && {(_brain getOrDefault ["group",grpNull]) == _group}
     && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])};
+if (_mode == "REAP") exitWith {
+    if (!_current || {!local _actor} || {!local _group}) exitWith {false};
+    private _handle=_actor getVariable ["CBE_IndoorActor_FSM",-1];
+    private _alive=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle};
+    if (_alive) exitWith {false};
+    // A dead executor is not evidence of entry or an inaccessible destination.
+    // FINISH alone decides whether the original unchanged native leg may be handed back.
+    if (!(_brain getOrDefault ["finished",false]) || {(_brain getOrDefault ["reason",""]) == ""}) then {
+        _brain set ["reason","EXECUTOR_ENDED"];
+    };
+    ["FINISH",_actor,_brain] call CBE_fnc_IndoorActorOperation
+};
 if (_mode == "QUEUE") exitWith {
     if (!_current || {_brain getOrDefault ["finished",false]}) exitWith {false};
     if (_brain getOrDefault ["pending",false]) exitWith {true};
@@ -270,8 +365,15 @@ if ((!isNull _engaging && {_engaging != _contact}) || {!isNull _assigned && {_as
     ["OTHER_CONTACT"] call _finish
 };
 if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
-    || {!isNull _contact && {!alive _contact || {(side _group) getFriend (side _contact) >= 0.6}}}) exitWith {
+    || {!isNull _contact && {!alive _contact || {captive _contact}
+        || {_contact getVariable ["ace_captives_isSurrendering",false]}
+        || {_contact getVariable ["ace_captives_isHandcuffed",false]}
+        || {(side _group) getFriend (side _contact) >= 0.6}}}) exitWith {
     ["CONTACT_GONE"] call _finish
+};
+// A later mission ignoreTarget instruction supersedes this contact-driven investigation.
+if (!isNull _contact && {(_actor targetKnowledge _contact) param [7,false,[true]]}) exitWith {
+    ["TARGET_IGNORED"] call _finish
 };
 private _phase=_brain get "phase";
 if (_phase == "SELECT") exitWith {
@@ -295,22 +397,36 @@ if (_phase == "SELECT") exitWith {
         -1
     };
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosATL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
-        _brain set ["progressPosition",getPosATL _actor]; _brain set ["progressAt",serverTime];
+    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+        _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
         _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
         -1
     };
     if (_escalate && {(_brain getOrDefault ["escalations",0]) >= 1
         || {serverTime-(_brain get "progressAt") < 12}
         || {(_admission select 0) != "OBSERVE"}
-        || {getUnitState _actor == "PLANNING"} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
+        || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
     private _reserved=[];
-    {private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
-        if (count _order == 9 && {_order select 8}) then {_reserved pushBack (_order select 6)};
+    // A peer following native AI still occupies its recorded destination. The issued flag
+    // grants cleanup rights only; using it here would invite a second actor to the same node.
+    {
+        if (_x != _actor) then {
+            private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
+            if (count _order == 9 && {(_order select 6) isNotEqualTo []}) then {
+                _reserved pushBack (_order select 6);
+            };
+        };
     } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
     if (_escalate) then {_reserved pushBack +(_brain get "target")};
-    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved] call CBE_fnc_IndoorActorNodeSelect;
-    if (_node isEqualTo []) exitWith {["NO_CANDIDATE"] call _finish};
+    private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
+    _brain set ["nodeSearch",_nodeSearch];
+    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
+        _brain getOrDefault ["observationClue",[]],_nodeSearch] call CBE_fnc_IndoorActorNodeSelect;
+    if (_node isEqualTo []) exitWith {
+        // A roof miss is not an inaccessible building. Continue the bounded search on
+        // the existing FSM callback, under the unchanged original operation deadline.
+        if (_nodeSearch getOrDefault ["pending",false]) then {-1} else {["NO_CANDIDATE"] call _finish}
+    };
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)
         || {([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission}
@@ -321,14 +437,16 @@ if (_phase == "SELECT") exitWith {
         || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};
     // A stall sample is not authority to reset a path that has since resumed.
-    if (_escalate && {(getPosATL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
-        _brain set ["progressPosition",getPosATL _actor]; _brain set ["progressAt",serverTime];
+    if (_escalate && {(getPosASL _actor) vectorDistance (_brain get "progressPosition") >= 1}) exitWith {
+        _brain set ["progressPosition",getPosASL _actor]; _brain set ["progressAt",serverTime];
         _brain set ["escalate",false]; _brain set ["phase","APPROACH"];
         -1
     };
+    _brain set ["requestBefore",[currentCommand _actor,(expectedDestination _actor) call _copyArray,formLeader _actor]];
+    _brain set ["requestIssuedAt",serverTime];
     _actor doMove _node;
     if (_escalate) then {_brain set ["escalations",1]};
-    _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosATL _actor];
+    _brain set ["escalate",false]; _brain set ["progressAt",serverTime]; _brain set ["progressPosition",getPosASL _actor];
     _brain set ["target",+_node]; _brain set ["issued",true]; _brain set ["phase","APPROACH"];
     private _journal=+(_actor getVariable ["CBE_IndoorActor_Order",[]]);
     _journal set [6,+_node]; _journal set [8,true];
@@ -338,21 +456,40 @@ if (_phase == "SELECT") exitWith {
 private _target=_brain get "target";
 private _destination=(expectedDestination _actor) param [0,[],[[]]];
 private _combatCommand=currentCommand _actor in ["ATTACK","FIRE"] && {!isNull _contact} && {_engaging == _contact};
-if (!(currentCommand _actor in ["","MOVE"] || {_combatCommand}) || {!(_destination call _vectorValid)}
-    || {_destination vectorDistance _target > 0.25}) exitWith {["NATIVE_TASK"] call _finish};
+private _destinationCurrent=_destination call _vectorValid && {_destination vectorDistance _target <= 0.25};
+private _awaitingMove=false;
+if (_phase == "APPROACH" && {_brain getOrDefault ["issued",false]} && {!_destinationCurrent}) then {
+    private _requestAt=_brain getOrDefault ["requestIssuedAt",-1];
+    private _before=_brain getOrDefault ["requestBefore",[]];
+    _awaitingMove=_requestAt isEqualType 0 && {finite _requestAt} && {_requestAt >= 0}
+        && {serverTime >= _requestAt} && {serverTime-_requestAt < 2}
+        && {_before isEqualType []} && {count _before == 3}
+        && {currentCommand _actor in [_before select 0,"MOVE"]}
+        && {(expectedDestination _actor) isEqualTo (_before select 1)}
+        && {formLeader _actor isEqualTo (_before select 2)};
+};
+// Original issue time is never refreshed here. Observation of somebody else's native
+// approach cannot borrow this grace, and pending acknowledgement grants no new command.
+if (_awaitingMove) exitWith {-1};
+if (!(currentCommand _actor in ["","MOVE"] || {_combatCommand}) || {!_destinationCurrent}) exitWith {["NATIVE_TASK"] call _finish};
 if (_phase == "APPROACH") exitWith {
     [_actor,_building,["INDOOR",_brain get "generation"]] call CBE_fnc_CortexBuildingDoor;
     private _position=getPosATL _actor;
-    private _near=_position vectorDistance _target <= 1.5;
+    private _positionASL=getPosASL _actor;
+    private _near=_positionASL vectorDistance (AGLToASL _target) <= 1.5;
     private _inside=false;
     if (_near) then {
         private _model=_building worldToModel _position;
         private _bounds=boundingBoxReal _building;
         private _low=_bounds select 0; private _high=_bounds select 1;
-        private _height=abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2));
+        private _height=abs ((_positionASL select 2)-((AGLToASL _target) select 2));
         private _segment=lineIntersectsSurfaces [eyePos _actor,(AGLToASL _target) vectorAdd [0,0,1],_actor,objNull,true,1,"GEOM","NONE"];
-        private _roof=lineIntersectsSurfaces [(getPosASL _actor) vectorAdd [0,0,0.4],
-            (getPosASL _actor) vectorAdd [0,0,10],_actor,objNull,true,1,"GEOM","NONE"];
+        private _actualASL=_positionASL;
+        private _roofTop=[_building,_bounds] call CBE_fnc_BuildingRoofTop;
+        private _roof=if (_roofTop > (_actualASL select 2)+0.4) then {
+            lineIntersectsSurfaces [_actualASL vectorAdd [0,0,0.4],
+                [_actualASL select 0,_actualASL select 1,_roofTop],_actor,objNull,true,1,"GEOM","NONE"]
+        } else {[]};
         _inside=(_model select 0) > (_low select 0) && {(_model select 0) < (_high select 0)}
             && {(_model select 1) > (_low select 1)} && {(_model select 1) < (_high select 1)}
             && {_height <= 1} && {_segment isEqualTo []} && {_roof isNotEqualTo []}
@@ -361,12 +498,15 @@ if (_phase == "APPROACH") exitWith {
     if (_inside) then {
         _brain set ["phase","OBSERVE"]; _brain set ["observeUntil",serverTime+2];
     } else {
-        if (_position vectorDistance (_brain get "progressPosition") >= 1) then {
-            _brain set ["progressPosition",_position]; _brain set ["progressAt",serverTime];
+        if (_positionASL vectorDistance (_brain get "progressPosition") >= 1) then {
+            _brain set ["progressPosition",_positionASL]; _brain set ["progressAt",serverTime];
         };
+        // Path recalculation is not evidence of an inaccessible node. Observe only;
+        // the original FSM deadline still bounds this wait and is never renewed.
+        if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1};
         if (serverTime-(_brain get "progressAt") >= 12) then {
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}
-                && {getUnitState _actor != "PLANNING"} && {currentCommand _actor != "FIRE"}) then {
+                && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])} && {currentCommand _actor != "FIRE"}) then {
                 private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
                 if (_admission isNotEqualTo [] && {(_admission select 0) == "OBSERVE"}
                     && {(_admission select 2) isEqualTo _target}) then {

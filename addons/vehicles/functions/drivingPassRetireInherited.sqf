@@ -78,6 +78,7 @@ private _mayRetire={
 private _handedBack=false;
 isNil {
     if (call _mayRetire) then {
+        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         // Resume only the unchanged authored waypoint, never the old OUT/RETURN guide.
         private _index=currentWaypoint _group;

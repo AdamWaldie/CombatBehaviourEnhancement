@@ -1,0 +1,25 @@
+{
+  "added": "2026-10-20",
+  "status": "REGISTERED_PENDING_SOURCE_EVALUATION",
+  "licence": "UNVERIFIED; inspect before incorporating code.",
+  "sourceProtection": "Installed originals and archives are read-only. Keep raw source outside product packages.",
+  "acceptance": "Not implemented or physically validated. Audits remain PAUSED.",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
+  "workshopId": "3822271074",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3822271074",
+  "name": null,
+  "priority": "Soft optional; scenario-sensitive",
+  "scope": "Evaluate selectively for stealth-mission improvements. Optional inclusion only if useful intent can be integrated safely; registration does not commit CBE to reproducing the entire mod.",
+  "identityEvidence": "User-supplied Workshop ID. Not installed at the standard local Workshop path; web page unavailable and ID search returned no results. Name, author and precise mechanisms remain unverified.",
+  "dependencies": "UNVERIFIED",
+  "userAssessment": "Potentially unstable or unsuitable for many scenarios, but potentially valuable for stealth missions. This is the user assessment, not a verified source finding.",
+  "evaluationTopics": [
+    "Identify the actual AI mechanisms before proposing integration; do not infer mechanics from the link.",
+    "Assess effects on stealth, detection and alert propagation against native knowledge and mission-authored behaviour.",
+    "Check scripted objectives, triggers, patrols, reinforcement logic, player groups and specialist ownership for disruption.",
+    "Explicit optional enablement through CBA settings, default OFF unless the user later chooses otherwise; retain normal behaviour when disabled.",
+    "Finite owner-local execution, cancellation, repeat/JIP/locality safety and clean restoration without overwriting newer mission orders.",
+    "Adopt useful parts only; redesign or reject intrusive global changes, omniscience, conflicting controllers or excessive cost."
+  ],
+  "decisionGate": "Require source review, scenario tradeoff assessment and later representative physical validation before enabling. Preserve caveats even if a subset is selected."
+}

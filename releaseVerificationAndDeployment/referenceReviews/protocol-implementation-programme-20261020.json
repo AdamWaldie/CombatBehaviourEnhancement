@@ -1,0 +1,93 @@
+{
+  "updated": "2026-10-20",
+  "userPriority": [
+    "Foundations and FSM lifecycle: LAMBS functional parity and improvement",
+    "Complete Protocol AI collection: implement, fix and improve"
+  ],
+  "localProtocolSources": [
+    {
+      "workshopId": "3799391254",
+      "name": "PROTOCOL AI CQB",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3799391254",
+      "metadataSHA256": "846f9babd613d165c243b429b32aee87ca9c52322234464edd39386853172f04",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3800081309",
+      "name": "PROTOCOL AI AIRBORNE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309",
+      "metadataSHA256": "3f482dc167f0ae6a940b124dcf018e7f98f591be6613de0c66f006b84a4aa25e",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3801354927",
+      "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927",
+      "metadataSHA256": "dbdb56d83277b38c0e3296ead7314260f1680bcb798fa03a3e2356178d2cccdc",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3802121807",
+      "name": "PROTOCOL AI PAIRS",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807",
+      "metadataSHA256": "75bb5e4bc28cce88c69c8cbaa2cc2e4775617c0b6b08d195367b60b9bc72428f",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3803702313",
+      "name": "PROTOCOL AI CITY TACTICS",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3803702313",
+      "metadataSHA256": "5c21e866c56a1069523b445f4548e33a8caa7fa882a8eccadb848b33b6e14470",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3809708209",
+      "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209",
+      "metadataSHA256": "6f8b7b24a8515ad74d09a6dd009efd92d210de542cb1f679decb74b51b952d0d",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3813369033",
+      "name": "PROTOCOL AI NAVY SEAL",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033",
+      "metadataSHA256": "669f58ea7edb6273dcd11a57f4f7f8baaff7cda3042b31693fc64a4265c3179e",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3819636004",
+      "name": "PROTOCOL AI RAPPELING",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004",
+      "metadataSHA256": "d23ec6ce05b28d2737e45e65bfec96144f47e69d1c7829b4912d879302ba8d64",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    },
+    {
+      "workshopId": "3822504009",
+      "name": "PROTOCOL AI ARMORED FORCE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
+      "metadataSHA256": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628",
+      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+    }
+  ],
+  "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
+  "auditState": "PAUSED",
+  "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product."
+}

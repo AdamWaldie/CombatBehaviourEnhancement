@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Active DrivingFollowingCap full-hull transform cost; not queue execution or whole-HBQ parity",
+  "finding": "Existing traffic observer transforms all eight corners for each of up to64candidate hulls; rear clearance already uses the equivalent four-point affine extrema identity.",
+  "implementation": "Traffic now transforms the lower corner and three axis endpoints, accumulating signed edge components into full minima/maxima. Each boundary receives the same outward0.05model-space pad as rear clearance. Includes tilt, scale and asymmetric bounds in the analytic model.",
+  "preserved": [
+    "64candidate fail-closed refusal",
+    "Area nearEntities includes wreck hulls",
+    "Height and lateral occupancy",
+    "Current and crossing occupancy constraints",
+    "Aligned convoy predecessor body protection",
+    "Read-only owner observation; no movement or new scheduler"
+  ],
+  "cost": "Per candidate8transform pairs become4(16native transform calls become8); at64 candidates maximum1024becomes512. Additional vector arithmetic is bounded. Actual callback duration/overhead unmeasured.",
+  "validation": {
+    "tests": 1399,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-traffic-hull-projection-build.log",
+    "unsigned_fingerprint": "81879425321d83d46df11e49081aa195a58002348f3fd0e18d9983a7ebad11eb",
+    "physical": false,
+    "oracle": "Existing independent eight-corner enumeration across302deterministic affine/asymmetric/translated cases; new traffic integration contracts bind the same algorithm/endpoints/padding and admission predicates."
+  },
+  "limits": [
+    "Analytic equivalence is not a universal Arma precision proof at extreme coordinates/scales",
+    "Outward pad may slightly lower boundary caps; traffic throughput untested",
+    "No5percent median/10percent p95 acceptance",
+    "Queue consent still lacks full HOLD/READY/native dependency room-making executor"
+  ],
+  "audit_authority": "Explicitly paused; all65families partial."
+}

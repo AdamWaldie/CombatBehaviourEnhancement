@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Coalesce observed danger into one finite group assessment FSM.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
  * Repeat/JIP: generation-checked, machine-local state; new owners rebuild from new observations.
@@ -12,7 +13,7 @@
 
 params [["_actor",objNull,[objNull]],["_cause","GUNFIRE",[""]],["_position",[],[[]]],["_source",objNull,[objNull]]];
 if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
-    || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0)} >= 0}) exitWith {false};
+    || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
 // Reject throttled duplicates before the more expensive group ownership scan. Rejected
 // eligibility does not consume cadence; only an accepted observation advances it below.
 private _cadence=_actor getVariable ["CBE_Danger_EventCadence",createHashMap];

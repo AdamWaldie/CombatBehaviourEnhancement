@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "scope": "Common operation cancellation/completion retirement",
+  "finding": "Cleanup separated initial identity checks from unconditional public-operation deletion/result publication.",
+  "implementation": [
+    "Atomic original operation/gen/entryepoch retirement",
+    "Immediate exact cancellation admission marker",
+    "Late completion takeover delegates matching cancellation"
+  ],
+  "validation": {
+    "tests": 1250,
+    "exit": 0,
+    "log": ".qa/cbe-operation-retirement-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Earlier cleanup native setting/posture effects",
+    "Caller phase publication",
+    "Physical lifecycle and overhead"
+  ],
+  "acceptance": "partial"
+}

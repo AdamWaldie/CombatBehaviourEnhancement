@@ -12,6 +12,7 @@
  * Locality and authority: call only where the group is local. It reads the current server-published
  * feature gates and the live authored order/contact context, then delegates to owner-local starts.
  * Repeat/JIP: start functions reject active leases, drills and cooldowns, so repeated calls are safe.
+ * Publishes one completed assessment per invocation; successful fallback records its actual intent.
  * Feature and order changes apply on the next group tick; no state is replayed to JIP clients.
  *
  * Arguments:
@@ -50,12 +51,10 @@ private _reason=_assessment getOrDefault ["reason","NO_VIABLE_CONTACT"];
 private _targetIndex=_assessment getOrDefault ["targetIndex",-1];
 private _candidates=_assessment getOrDefault ["candidates",[]];
 private _evidence=_assessment getOrDefault ["evidence",[]];
-_group setVariable ["CBE_Cortex_TacticalAssessment",[
-    _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]}
-],true];
 if (_targetIndex < 0 || {_candidates isEqualTo []}) exitWith {
     private _handoff=switch (_reason) do {
         case "VEHICLE_DOMAIN": {"VEHICLE_LAYER_HANDOFF"};
+        case "ACTOR_TASKS_BUSY": {"ACTOR_TASK_HANDOFF"};
         case "MORALE_NOT_STEADY": {"MORALE_HANDOFF"};
         case "NO_MANOEUVRE_TARGET": {"WEAPON_LAYER_HANDOFF"};
         case "NO_VIABLE_CONTACT": {"NATIVE_CONTACT_HANDOFF"};
@@ -82,7 +81,7 @@ private _started=false;
         case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAdvanceStart};
         case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call CBE_fnc_CortexTacticalReposition};
     };
-    if (_started) exitWith {};
+    if (_started) exitWith {_intent=_x};
 } forEach _candidates;
 // A viable manoeuvre can still be rejected by terrain, a live-fire lane or a temporary role loss.
 // Do not convert that refusal into an unexplained pause: make one short screened improvement and
@@ -94,13 +93,10 @@ if (!_started && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNot
         _reason="NO_SAFE_MANOEUVRE";
     };
 };
-if (_started) then {
-    _group setVariable ["CBE_Cortex_TacticalAssessment",[
-        _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"STARTED"
-    ],true];
-} else {
-    _group setVariable ["CBE_Cortex_TacticalAssessment",[
-        _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"NATIVE_REASSESS"
-    ],true];
-};
+// Publish only the completed decision, once. A rejected primary candidate must not
+// remain the reported intent after another candidate starts successfully.
+_group setVariable ["CBE_Cortex_TacticalAssessment",[
+    _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},
+    ["NATIVE_REASSESS","STARTED"] select _started
+],true];
 _started

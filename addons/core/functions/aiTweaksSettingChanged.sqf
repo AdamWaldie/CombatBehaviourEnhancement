@@ -4,6 +4,8 @@
  * Locality / Authority: Called on every machine by a global CBA setting callback. Each machine may
  * only start or stop work it owns; the server remains responsible for cross-group coordination.
  * Repeat/JIP: Idempotent. PreInit callbacks update values but defer runtime work until postInit.
+ * Counter-battery disable invalidates the server generation of delayed emission responses;
+ * re-enable cannot revive those callbacks. Already issued native fire is a separate lifecycle.
  * Arguments: 0 setting name <STRING>; 1 new value <ANY>.
  * Return Value: BOOL - true when the change was accepted.
  * Current callers: callbacks registered by CBE_fnc_AITweaksRegisterSettings.
@@ -17,6 +19,41 @@ if !(missionNamespace getVariable ["CBE_AITweaks_PostInitComplete", false]) exit
 
 if (_name == "CBE_AIPass_Enable") then {
     if (_value) then {[] call CBE_fnc_CortexInit} else {[] call CBE_fnc_CortexStop};
+};
+// A quick off/on must not revive delayed radar fixes or observer wakes from the old
+// counter-battery session. Only the server owns these callbacks and this generation.
+if (_name == "CBE_AIPass_CounterBattery_Enable" && {isServer} && {_value isEqualTo false}) then {
+    isNil {
+        missionNamespace setVariable ["CBE_AIPass_CounterGeneration",
+            (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])+1,true];
+    };
+};
+// Relocation has its own per-purpose lifetime: closing scoot must not cancel firing,
+// and closing counter-battery must not cancel unrelated support relocation.
+if (isServer && {_value isEqualTo false}) then {
+    private _fireGeneration=switch (_name) do {
+        case "CBE_AIPass_Artillery_Enable": {"CBE_Artillery_SupportFireGeneration"};
+        case "CBE_AIPass_Danger_Enable";
+        case "CBE_AIPass_Vehicles_Enable";
+        case "CBE_AIPass_VehicleGunnery_Enable": {"CBE_Artillery_DangerFireGeneration"};
+        case "CBE_AIPass_ArtillerySmoke_Enable": {"CBE_Artillery_SmokeFireGeneration"};
+        default {""};
+    };
+    if (_fireGeneration != "") then {
+        isNil {missionNamespace setVariable [_fireGeneration,
+            (missionNamespace getVariable [_fireGeneration,0])+1,true]};
+    };
+    private _scootGeneration=switch (_name) do {
+        case "CBE_AIPass_Artillery_Enable";
+        case "CBE_AIPass_Artillery_ShootAndScoot": {"CBE_ArtilleryScoot_SupportGeneration"};
+        case "CBE_AIPass_CounterBattery_Enable";
+        case "CBE_AIPass_CounterBattery_ShootAndScoot": {"CBE_ArtilleryScoot_CounterGeneration"};
+        default {""};
+    };
+    if (_scootGeneration != "") then {
+        isNil {missionNamespace setVariable [_scootGeneration,
+            (missionNamespace getVariable [_scootGeneration,0])+1,true]};
+    };
 };
 // These optional handlers must follow CBA changes immediately, including disable/re-enable.
 // Reuse the guarded owner-local installer; ordinary tuning values remain live reads.
@@ -32,7 +69,7 @@ if (_name == "CBE_AIPass_Danger_Enable" && {missionNamespace getVariable ["CBE_A
     {if (local _x) then {[_x] call CBE_fnc_DangerSetup}} forEach allGroups;
 };
 if (_name find "CBE_AIRebalance_" == 0 || {_name in ["CBE_AI_InfantryDispersion", "CBE_AI_VehicleCrewAimMultiplier", "CBE_AI_VehicleCrewDispersion", "CBE_AI_AirCrewDispersion"]}) then {
-    if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
+    if (missionNamespace getVariable ["CBE_AIRebalance_Enable", false]) then {
         [
             missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"],
             missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]

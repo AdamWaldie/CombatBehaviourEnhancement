@@ -98,5 +98,27 @@
     "performance": "Any added support observation must have an explicit per-callback query/hit budget and measured overhead. No new world queries were added in this review.",
     "implementationAccepted": false,
     "physicalAcceptance": false
+  },
+  "roadApproachBearingFollowUp20261020": {
+    "baseline": "432a5a10",
+    "sourceRange": "fn_driveAssist.sqf833-867 RoadAhead, preserved source hash above",
+    "sourceIntent": "RoadAhead retains the bearing from current vehicle pose to future road pieces, not only adjacent-piece heading differences.",
+    "finding": "CBE DrivingRoadCap only retained piece-to-piece turns. A sweep made of small pieces could remain below every bend threshold despite a substantial approach bearing.",
+    "change": "Retain maximum of existing local turn and vehicle-to-sampled-point approach turn in same eight-transition walk. Cache current heading/ASL pose once. No extra road/geometry discovery, controller, setting or speed writer. Existing caps and lower-cap precedence remain.",
+    "sources": {
+      "addons/vehicles/functions/drivingRoadCap.sqf": "7dc4e6b6fa415b84a21a0291059b34c0f0f1a7459ff914c279da5a5402e93521"
+    },
+    "validation": {
+      "numerical": "Existing policy case now compares a60m-radius sweep in seven10degree segments: local10degrees leaves70km/h ceiling,35degree approach bearing lowers it to35km/h. This is independent arithmetic, not physical acceptance.",
+      "build": ".qa/cbe-road-approach-build.log",
+      "tests": 1477,
+      "newCases": 0,
+      "independent": ".qa/cbe-road-approach-independent.log",
+      "candidate": ".qa/candidates/road-approach-432a5a10-63d844c1",
+      "fingerprint": "63d844c1266524dcfd59e33e4359b2ad66cbf6617cbb47bf4b4428fd7da7fe36",
+      "source": "432a5a10 plus intended dirty road-approach edits"
+    },
+    "physical": false,
+    "scoresChanged": false
   }
 }

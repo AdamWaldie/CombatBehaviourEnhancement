@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-19",
+  "scope": "Stable complementary queue crossing/yield selection",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": "1359-1384 and1605-1616",
+    "intent": "Persistent rank selects complementary yielding/passing roles instead of both vehicles independently choosing opposite priorities. Unranked source peer is preferred; this does not authorize CBE to control it."
+  },
+  "implementation": "Shared read-only DrivingQueueCrossingVehicle is consumed before proposal rear-chain discovery and in canonical-current checks used by broker BEGIN/ACK/COMMIT/READY and actual owner VERIFY/COMMIT/HOLD. A sole participant meeting native BACK crew/turn prerequisites must yield; if both qualify the lexically first distinct network identity crosses. Neither qualifies or identity unknown/ambiguous returnsobjNull. Full consent/controller/route/task gates remain; no peer action follows a role observation.",
+  "cost": "Two bounded crew/input/identity observations per selection, two-string sort only when both can reverse. No rank state, random reseeding, native movement, world query, handler or scheduler. Canonical-current reuses the selector but repeats these two input observations; no measured overhead claim.",
+  "validation": {
+    "focusedExistingTests": 54,
+    "focusedLog": ".qa/cbe-stable-queue-role-focused.log",
+    "hemttLog": ".qa/cbe-stable-queue-role-hemtt.log",
+    "coverageLog": ".qa/cbe-stable-queue-role-coverage.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-role-support-foundation-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-role-support-foundation-independent.log",
+    "package": {
+      "commit": "0276de45b2abf9f849da4d874b44da26294761c4",
+      "dirty": true,
+      "fingerprint": "e3068aa835744f86dbc485b481be7df194aee39e18bd862559d39109dab9fc99",
+      "signed": false
+    }
+  },
+  "limits": "Prerequisite-based role selection is not proof of native reverse capability or fair traffic scheduling. No admission against player/external-controller ownership is granted. Queue lateral guide, moving native phase, original-expiry binding, whole-hull crossing and handback remain incomplete; automatic initiation remains disabled. WholeHBQ parity remains unproven.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+      "sha256": "805ddf39f3751aecb0b4c9c47b188292a632a4cb2277b4b4166034d594e280f7"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "sha256": "0a1f65827ffde734d76d8072c4ffb1eb5f754610e30c7312778f607735128893"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "edcd8c309eaa142b1b09ab8b64f150df196c78512a95dab8ae50371c8c2ab995"
+    },
+    {
+      "path": "addons/main/CfgFunctions.hpp",
+      "sha256": "29d8035106d9335b118f9c19e7a8b44e1e53a9da8a9ec16a37816ed562a92525"
+    }
+  ]
+}

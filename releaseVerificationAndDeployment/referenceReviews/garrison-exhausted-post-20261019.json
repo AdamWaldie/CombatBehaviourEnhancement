@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-19",
+  "scope": "Garrison exhausted post reuse after casualties",
+  "finding": "Final route failures marked the actor failed but left the interior post in group candidates. The living failed assignment reserved it, but a later death removed that reservation, allowing a replacement to spend another approach budget on the same exhausted post.",
+  "implementation": "Final deadline/retry exhaustion collects exact position/bearing/building/transform candidate keys. Same-callback alternatives exclude those keys immediately. One owner/current-generation/nonempty-order/external-owner guarded metadata commit removes them from the existing <=512 candidate pool. Refill and later reassignments read that public pool; owner migration retains it. Fresh explicit order rebuilds its pool. No permanent model blacklist or new journal/worker/deadline/native command.",
+  "cost": "One temporary bounded hash set and at most one512-row metadata filter on callbacks with new final interior failures. No new geometry/world query or per-actor public pool rewriting.",
+  "validation": {
+    "existingFocusedTests": 607,
+    "focusedLog": ".qa/cbe-garrison-exhausted-post-final-focused.log",
+    "hemttLog": ".qa/cbe-garrison-exhausted-post-final-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed: 1476 existing tests and complete build gates; .qa/cbe-garrison-exhausted-post-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed: .qa/cbe-garrison-exhausted-post-independent.log",
+    "package": {
+      "sourceCommit": "bf1f0b7edc6af001f2c11c2765a57b5ffa41a5b8",
+      "dirty": true,
+      "signed": false,
+      "fingerprint": "959ef5343e8642eb132b94f67238fd48de741ee0839ece57a63f1359064db198"
+    }
+  },
+  "limits": "Route exhaustion is episode-local unavailable status, not proof a building position is universally inaccessible. Existing held posts and living/unconscious reservations are unchanged. This does not complete garrison relief/CQB flow.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
+      "sha256": "9e4be2be8650b6f7600e8c99382ec3868b4764fd2ac6bde2e7d7b42787a0647b"
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrisonRefill.sqf",
+      "sha256": "005087ff397352984fa710925d5ff37111be2646ae4a494409d4c576f265a401"
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrison.sqf",
+      "sha256": "1e5abdbb20e7826da0655965173d0139bfa1612d130f3b87956204ef0517e183"
+    }
+  ]
+}

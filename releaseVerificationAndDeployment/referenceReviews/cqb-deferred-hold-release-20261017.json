@@ -1,0 +1,37 @@
+{
+  "reviewed": "2026-10-17",
+  "baselineCommit": "5f32212c",
+  "scope": "Post-clear STOP handover after authored order changes; existing group callback only",
+  "source": {
+    "path": "addons/infantry/functions/groupBrainStep.sqf",
+    "sha256": "2335d784ad2ee98963a4b893704a35a210b85c90dfd48580d02a53048bebb2d9"
+  },
+  "finding": "Hold release had no simulation/visibility command gate and retained unavailable actors only for movement reservations, dropping proof for temporary incapacitation or MOVE/PATH loss.",
+  "change": [
+    "Require simulationEnabled and visible actor before post-clear native movement.",
+    "Retain original hold receipt for living on-foot actors still under unchanged STOP and temporary reservation, simulation/visibility, MOVE/PATH or effectiveness loss.",
+    "Exclude changed commands, boarding, player/remote/external control and stale owner/generation.",
+    "Use existing group callback; no new loop, world scan or AI-feature enabling."
+  ],
+  "validation": {
+    "log": ".qa/cbe-post-clear-deferred-hold-build.log",
+    "tests": 1122,
+    "compiledSQF": 313,
+    "PBOs": 9,
+    "exitCode": 0
+  },
+  "acceptanceRequired": [
+    "Complete clearance, disable one held actor simulation, issue new plain MOVE, then re-enable and require delayed route participation.",
+    "Repeat with temporary visibility, PATH/MOVE and incapacitation changes without changing actor command.",
+    "Replace native STOP with another task or player/external control while unavailable; no delayed recall.",
+    "Migrate group while a hold is deferred and compare owner epoch and current generation."
+  ],
+  "remaining": [
+    "Gated/scripted/attached waypoint handover still needs semantic review; current leader branch uses waypointType MOVE alone.",
+    "Whole-subsystem shutdown and recovery after group eligibility loss are not established.",
+    "Same-value external STOP ownership remains indistinguishable without cooperation.",
+    "Explicit egress crowding, exterior isolation, native entry flow and battle-scale performance remain unaccepted."
+  ],
+  "physicalAcceptance": false,
+  "auditsLaunched": false
+}

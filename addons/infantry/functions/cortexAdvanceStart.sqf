@@ -1,5 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
+ * Admission sizes the moving element from ammunition-qualified rifle capacity and retains
+ * at least two such cover actors. Physical squad/cover membership stays separate.
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a bounding advance: a squad under fire that still has somewhere to go pushes an element
  * forward in covered bounds instead of stalling.
  *
@@ -91,17 +96,21 @@ if (_leader distance2D _objective <= 80) exitWith {["OBJECTIVE_REACHED",[_leader
 private _onFoot = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
-private _riflemen = _onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
+private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
+    && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
+private _riflemen = _armedFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
 private _candidates = [];
 {_candidates pushBack [_x distance2D _objective, _forEachIndex]} forEach _riflemen;
 _candidates sort true;
-private _size = ((floor (count _onFoot / 2)) min 5) min count _candidates;
+private _size = ((floor (count _armedFoot / 2)) min 5) min count _candidates;
 if (_size < 2) exitWith {[_state, "advance", 30] call CBE_fnc_CortexCooldown; ["NO_MANOEUVRE_ELEMENT",[count _onFoot,count _riflemen]] call _refuse};
 private _element = (_candidates select [0, _size]) apply {_riflemen select (_x select 1)};
 private _coverElement = _onFoot - _element;
-if (count _coverElement < 2) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
+private _coverRifles=_armedFoot-_element;
+if (count _coverRifles < 2) exitWith {["NO_COVER_ELEMENT",[count _coverElement,count _coverRifles]] call _refuse};
 private _start = [0, 0, 0];
 {_start = _start vectorAdd getPosATL _x} forEach _element;
 _start = _start vectorMultiply (1 / count _element);
@@ -147,12 +156,13 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","ADVANCE_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AdvanceRefusal",nil,true];
 // Direct fire-team bounds are a group movement owner even though they do not
 // create a CBE waypoint. Other behaviours must wait until CortexFlankEnd releases it.
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {
     diag_log format ["[CBE] %1 ADVANCE element=%2 points=%3", _group, count _element, count _points];
 };

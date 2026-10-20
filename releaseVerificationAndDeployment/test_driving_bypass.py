@@ -17,8 +17,9 @@ class DrivingBypassTests(unittest.TestCase):
         plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
         self.assertEqual(plan.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
         step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
-        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),2)
-        self.assertLess(step.rindex('call CBE_fnc_DrivingBypassObstacleAvailable'),step.index('_vehicle setDriveOnPath'))
+        self.assertEqual(step.count('call CBE_fnc_DrivingBypassObstacleAvailable'),1)
+        self.assertEqual(step.count('call _obstacleAvailable'),3)
+        self.assertLess(step.rindex('call _obstacleAvailable'),step.index('_vehicle setDriveOnPath'))
         following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
         self.assertNotIn('DrivingBypassObstacleAvailable',following)
 
@@ -71,10 +72,21 @@ class DrivingBypassTests(unittest.TestCase):
     def test_proposal_binds_actual_source_and_vehicle_geometry(self):
         body=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text()
         for gate in ('time-_sampled > 1.5','_gap > 50','abs speed _vehicle > 8',
-                     '(_observed select 5) != "STATIC"','_observed select 8','boundingBoxReal _obstacle',
+                     '(_observed select 5) != "STATIC"','_observed select 8','boundingBoxReal _body',
                      'modelToWorldWorld','_radius > 12','count _guide+_segments > 24',
                      '"GEOMETRY_CHANGED"','call CBE_fnc_DrivingPathGeometry'):
             self.assertIn(gate,body)
+        for gate in ('"QUEUE_NOT_HELD"','(_queueVehicles select 0) != _vehicle',
+                     '"movingIndex",-1','"phaseSerial",-1','call CBE_fnc_DrivingQueueReverseCurrent',
+                     '"queuePhase",""','queueStopAcknowledged','_queueWork getOrDefault ["queueBinding",[]]',
+                     'abs getForcedSpeed _x > 0.001','_queueVehicles select [1]',
+                     'forEach _bodies','isNotEqualTo _queuePoses'):
+            self.assertIn(gate,body)
+        # The static policy remains mandatory for ordinary callers. Queue mode can
+        # substitute only its own verified held dependency, not an arbitrary vehicle.
+        self.assertIn('_obstacle != (_queueVehicles select 1)',body)
+        self.assertIn('else {!([_obstacle] call CBE_fnc_DrivingBypassObstacleAvailable)}',body)
+        self.assertIn('_proposal pushBack [_queueAgreement get "token"',body)
         self.assertEqual(body.count('call CBE_fnc_DrivingPathGeometry'),1)
         self.assertNotIn('lineIntersectsSurfaces',body.split('params [[',1)[1])
     def test_shared_validator_keeps_three_body_heights_and_bounded_support(self):
@@ -100,7 +112,75 @@ class DrivingBypassTests(unittest.TestCase):
     def test_executor_has_one_path_write_finite_budget_and_actual_completion(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
         self.assertEqual(s.count('setDriveOnPath'),1)
-        self.assertIn('["deadline",serverTime+90]',s)
+        self.assertIn('private _deadline=if (_queue) then {_queueAgreement get "expires"} else {serverTime+90}',s)
+        self.assertIn('_deadline=_deadline min (_parentBinding select 2)',s)
+        self.assertIn('_queue || {_convoy} || {(_approach getOrDefault ["status",""]) == "ROOM"}',s)
+
+        self.assertLess(s.index('call CBE_fnc_DrivingBypassApproach'),s.index('_spent set ["bypassSpent",true]'))
+        self.assertIn('[false,1e6,"BYPASS_APPROACH_REQUIRED",false,_approach]',s)
+        approach=(ROOT/'addons/vehicles/functions/drivingBypassApproach.sqf').read_text()
+        self.assertEqual(approach.count('call CBE_fnc_DrivingHullInterval'),2)
+        for guard in ('time-_sampled > 1.5','_gap > 50','_sourcePose isNotEqualTo',
+                      'call CBE_fnc_DrivingBypassObstacleAvailable','forEach [-1,1]',
+                      '_hasRoom=true','_backoff=false','"requiredBack" in _room',
+                      'call CBE_fnc_DrivingBypassRoom'):
+            self.assertIn(guard,approach)
+        for forbidden in ('setVariable','doMove','forceSpeed','setDriveOnPath',
+                          'lineIntersectsSurfaces','nearestObjects','spawn','waitUntil'):
+            self.assertNotIn(forbidden,approach.split('params [[',1)[1])
+        # Independent aligned-hull example outside the old fixed8m gate: turning room
+        # requires more than the default6m rear leg, still within the existing24m budget.
+        import math
+        radius=math.hypot(1,2)+1
+        required=radius+3+max(1.5*(2+radius+3)/math.tan(math.radians(35)),12)-(2+9)
+        self.assertGreater(required,6)
+        self.assertLessEqual(math.ceil(required+1),24)
+        self.assertIn('["deadline",_deadline]',s)
+        self.assertIn('_spent set ["bypassSpent",true]',s)
+        self.assertIn('_work set ["recoveryParent",_parentBinding]',s)
+        self.assertIn('RECOVERY_PARENT_CHANGED',s)
+        self.assertIn('call _nativeAdmissionReady} && {call _parentCurrent}',s)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('_sameEpisode && {"bypassSpent" in _old}',assist)
+        self.assertIn('(_obstacleObservation select 2) <= 8 || {_approachBackoff}',assist)
+        self.assertIn('_bypass param [4,createHashMap,[createHashMap]]',assist)
+        self.assertIn('_approachBackoff && {isNull (_withoutObstacle select 1)}',assist)
+        self.assertIn('(_pedestrianCap/3.6) >= _capMps-0.001',assist)
+        self.assertIn('(_obstacleLimited || {_approachUncontested})',assist)
+        # A low mission cap can mask braking while available original time still
+        # accommodates the missing turning room. Detection must not depend on cap reduction.
+        requested=1.2
+        braking=min(requested,math.sqrt(16**2+2*4*(12-6))-16)
+        missing=radius+3+max(1.5*(2+radius+3)/math.tan(math.radians(35)),12)-(2+12)
+        self.assertEqual(braking,requested)
+        self.assertGreater(missing,6)
+        self.assertLessEqual(math.ceil(missing+1),math.floor(12*requested))
+
+        self.assertIn('!((_old get "bypassSpent") isEqualTo false)',assist)
+        pause=assist.split('private _pausedParent=',1)[1].split('_recoveryResult=if (_bypassActive)',1)[0]
+        for guard in ('_recoveryOwned','["bypassSpent",false]) isEqualTo true',
+                      '["REFRESH","FINAL"]','releasePending','_routeIdentity',
+                      '_recoveryWork getOrDefault ["hardDeadline",-2]',
+                      '_recoveryWork getOrDefault ["progressAnchor",[]]',
+                      'call CBE_fnc_DrivingRecoveryCommandState',
+                      '["OWNED","PENDING","BYPASS"]','&& {!_keepBypassBudget}'):
+            self.assertIn(guard,pause)
+        self.assertNotIn('set ["hardDeadline"',pause)
+        self.assertNotIn('set ["bypassSpent"',pause)
+        classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
+        for guard in ('_childDeadline <= _hard','["ORDINARY",-1]','== "FOLLOW"',
+                      'recoveryParent','_driverNative isEqualTo (_child',
+                      '_operatorNative isEqualTo (_child','driverTask','operatorTask',
+                      'exitWith {"BYPASS"}'):
+            self.assertIn(guard,classify)
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        self.assertIn('(serverTime+2) min _hard',release)
+        self.assertIn('else {+(_returnBefore select 1)}',release)
+
+        self.assertIn('_returned set ["bypassReturn",_work get "context"]',release)
+        self.assertIn('_work getOrDefault ["recoveryParent",[]]',release)
+        self.assertNotIn('_returned set ["hardDeadline"',release)
+
         self.assertIn('serverTime >= (_work get "deadline")',s)
         self.assertIn('_work set ["side",-1]',s)
         self.assertIn('for "_i" from 1 to 4',s)
@@ -115,7 +195,8 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertNotIn('["authority",',s)
     def test_controller_preserves_other_constraints_and_excludes_other_paths(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
-        self.assertEqual(s.count('call CBE_fnc_DrivingBypassStep'),1)
+        self.assertEqual(s.count('call CBE_fnc_DrivingBypassStep'),2)
+        self.assertIn('if (_queueCrossing) then {',s)
         self.assertIn('!_hadBypass',s)
         self.assertIn('_traffic=+_withoutObstacle;',s)
         self.assertIn('_bypass select 3',s)
@@ -133,6 +214,69 @@ class DrivingBypassTests(unittest.TestCase):
             self.assertIn(marker,s)
         for forbidden in ('setPos','setVelocity','enableAI','addWaypoint','deleteWaypoint','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
+
+        step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        for proof in ('_liveQueue getOrDefault ["crossingGranted",false]',
+                      '"queueCrossingBinding"','_queueAgreement get "expires"',
+                      '"QUEUE_PROPOSAL_CHANGED"','"QUEUE_PATH_BLOCKED"',
+                      '[true,0,"QUEUE_CROSSED_HOLD",false]',
+                      '[_vehicle,_freshGuide,_radius,((_high select 2)-(_low select 2))] call CBE_fnc_DrivingPathGeometry'):
+            self.assertIn(proof,step)
+        for proof in ('_queueMayRetire','_queueMayResume','"QUEUE_COMPLETE"','queueClearanceAccepted',
+                      'call CBE_fnc_DrivingQueueAgreementRelease'):
+            self.assertIn(proof,release)
+        for proof in ('queueClearStillSince','_reports < 2','serverTime-_since >= 1',
+                      'queueClearReportedAt','["CROSS_CLEAR",',
+                      '(_assist param [0,-1]) == 0'):
+            self.assertIn(proof,step)
+        assist_release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
+        bypass_cleanup=assist_release.split('private _bypass=',1)[1].split('// Final cap restoration',1)[0]
+        self.assertIn('in ["ORDINARY","QUEUE"]',bypass_cleanup)
+        self.assertIn('"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease',bypass_cleanup)
+        self.assertLess(assist_release.index('call CBE_fnc_DrivingBypassRelease'),assist_release.index('_vehicle forceSpeed'))
+        handback=(ROOT/'addons/vehicles/functions/drivingAbortHandback.sqf').read_text()
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        self.assertIn('(_work get "deadline")+15',release)
+        self.assertIn('currentCommand _driver == "STOP"',release)
+        self.assertIn('currentCommand _operator == "STOP"',release)
+        for guard in ('REPLACED_OR_EXPIRED','SUCCESSOR','serverTime >= _deadline',
+                      'CortexExternalTakeover','CortexZeusHeld','CompatibilityExternalControl',
+                      'time-(_traffic select 3) > 1.5','_solid isNotEqualTo []',
+                      'call _mayResume','getForcedSpeed _vehicle','_linear >= 0.1',
+                      '(expectedDestination _driver)','(expectedDestination _operator)'):
+            self.assertIn(guard,handback)
+        self.assertLess(handback.index('["HANDOFF_ISSUED"] call _retire'),handback.index('_operator doMove'))
+        for forbidden in ('forceSpeed ','setDriveOnPath','nearEntities','lineIntersectsSurfaces','spawn','queueClearanceAccepted'):
+            self.assertNotIn(forbidden,handback)
+
+        self.assertIn('_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]',release)
+        self.assertIn('isEqualTo _queueBinding',release)
+        self.assertIn('_freshGuide set [0,getPosASL _vehicle]',step)
+        self.assertIn('_proposal set [5,[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle]]',step)
+        self.assertIn('crossingMotionGranted',step)
+        self.assertIn('["PATH_READY",_group,_vehicle,_brain]',step)
+        driving=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('_queueCrossAuthority,"QUEUE"] call CBE_fnc_DrivingBypassStep',driving)
+        self.assertIn('_queueCrossing && {!(call _queueCrossAuthority)}',driving)
+        following=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text()
+        for proof in ('crossingGranted','"FOLLOW"','"QUEUE",-1','_other in _pathHulls',
+                      'call CBE_fnc_DrivingQueueReverseCurrent','count _candidates > 64'):
+            self.assertIn(proof,following)
+        self.assertIn('&& {call _nativePathFree}',step)
+        self.assertIn('&& {_nativePathFree}',release)
+        for body in (step,release):
+            for proof in ('vehicleMoveInfo _vehicle','["BACK","DIRECTBYCOMANDER"]','["LEFT","RIGHT"]'):
+                self.assertIn(proof,body)
+        admission=step.split('private _nativeAdmissionReady=',1)[1].split('private _controllerCurrent=',1)[0]
+        self.assertIn('"SIMPLE","CONVOY"',admission)
+        self.assertIn('exitWith {false}',admission)
+        # Independent reverse/turn takes authority despite unchanged unit receipts;
+        # ordinary forward speed states do not falsely cancel a valid FOLLOW path.
+        for move,turn,free in [('BACK','NONE',False),('MOVE','LEFT',False),
+                               ('MOVE','RIGHT',False),('DirectByComander','NONE',False),
+                               ('FORWARD','NONE',True),('SLOW','NONE',True),('SIMPLE','NONE',True)]:
+            self.assertEqual(move.upper() not in ('BACK','DIRECTBYCOMANDER') and turn not in ('LEFT','RIGHT'),free)
 
     def test_executor_rechecks_plain_order_and_both_crew_tasks_before_writes(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
@@ -207,6 +351,40 @@ class DrivingBypassTests(unittest.TestCase):
                        'currentCommand _operator == "MOVE"','_was vectorDistance _now > 0.25',
                        '"NEW_NATIVE_ORDER"','(_commandYield param [0,-1]) == _revision'):
             self.assertIn(marker,tick)
+        # Own delayed acknowledgement consumes a fixed request, while unrelated moves,
+        # explicit stops and unacknowledged expiry still surrender the revision.
+        def admission(now, command, destination, old='A', goal='B', deadline=2, before='STOP', driver_same=True):
+            if not driver_same:return 'YIELD'
+            if command in ('','MOVE') and destination == goal:
+                return 'ACK'
+            if now <= deadline and destination == old and command in (before,'MOVE'):
+                return 'PENDING'
+            return 'YIELD'
+        for args, expected in [((1,'MOVE','B'),'ACK'),((1,'STOP','A'),'PENDING'),
+                               ((1,'MOVE','A'),'PENDING'),((1,'MOVE','C'),'YIELD'),
+                               ((3,'MOVE','A'),'YIELD'),((3,'','B'),'ACK'),
+                               ((1,'STOP','B'),'YIELD')]:
+            self.assertEqual(admission(*args),expected)
+        self.assertEqual(admission(1,'MOVE','B',driver_same=False),'YIELD')
+        self.assertLess(tick.index('private _driverProof='),tick.index('private _acknowledged='))
+        self.assertIn('DRIVER_NATIVE_ORDER_CHANGED',tick)
+        self.assertIn('driver _vehicle == _operator',tick)
+        self.assertIn('_receipt set [7,[currentCommand _operator,+_nativeNow]]',tick)
+
+        for proof in ('count _receipt == 8','serverTime <= (_request select 1)',
+                      '_nativeNow isEqualTo (_receipt select 4)',
+                      '_position vectorDistance (_request select 0) <= 0.25',
+                      '_receipt set [6,[]]','_ackProgress set [10',
+                      'NATIVE_ACK_TIMEOUT','!(_vehicle in _nativePendingVehicles)'):
+            self.assertIn(proof,tick)
+        self.assertEqual(tick.count('serverTime+2,_nativeTaskBefore'),2)
+        for goal in ('_destination','_recoveryTarget'):
+            writer=tick.index('_movementOperator doMove '+goal+';')
+            self.assertLess(tick.rfind('private _nativeBefore=',0,writer),writer)
+            self.assertIn('"NATIVE",[+'+goal+',serverTime+2,_nativeTaskBefore]',tick)
+        retire=(ROOT/'addons/vehicles/functions/convoyRetireMoveReceipt.sqf').read_text()
+        self.assertIn('count _receipt == 8',retire)
+        self.assertIn('_position vectorDistance (_request select 0) <= 0.25',retire)
         crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text()
         self.assertLess(crew.index('CBE_Convoy_CommandYield'),crew.index('CBE_Convoy_CrewDue'))
         release=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
@@ -232,6 +410,10 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('_supportObject isKindOf "AllVehicles"',support)
         self.assertIn('vectorMagnitude velocity _supportObject > 0.1',support)
         self.assertIn('_reason="UNSTABLE_SUPPORT"',support)
+        water=support.split('if (surfaceIsWater _sample',1)[1].split(';',1)[0]
+        self.assertIn('isNull _supportObject',water)
+        self.assertNotIn('isNull (_hit select 2)',water)
+        self.assertIn('select 2) <= 0.25',water)
         self.assertIn('if (_reason != "") exitWith',s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
 
@@ -314,3 +496,95 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertLess(clearance,completion)
         self.assertIn('modelToWorldWorld [_xCoord,_yCoord,_x]',source)
         self.assertIn('for "_i" from 1 to 4',source)
+
+    def test_bypass_uses_forward_ramps_instead_of_sideways_anchor_turns(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
+        room=(ROOT/'addons/vehicles/functions/drivingBypassRoom.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingBypassRoom',s)
+        for guard in ('1.5*abs _lateral/tan 35','_before < _rampTravel','INSUFFICIENT_TURN_ROOM'):
+            self.assertIn(guard,room)
+        for guard in ('_u*_u*(3-2*_u)','_length*sqrt (1+_maxSlope^2)','count _guide+_segments > 24'):
+            self.assertIn(guard,s)
+        self.assertNotIn('private _anchors=',s)
+        self.assertIn('_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}}',room)
+        self.assertIn('if (_straightQueue) then {[[0,_after,0,0]]}',s)
+        self.assertIn('!_straightQueue && {_before < _rampTravel}',room)
+        self.assertIn('(_radius+3+_rampTravel-_minY) max 0',room)
+        self.assertIn('!finite _radius',room)
+        for forbidden in ('setVariable','setDriveOnPath','lineIntersects','nearestObjects','modelToWorld','boundingBoxReal'):
+            self.assertNotIn(forbidden,room.split('params [[',1)[1])
+        # A body beyond either corridor edge can leave a straight passage; touching
+        # or straddling bodies cannot use that branch. All still require world checks.
+        for bounds,radius,clear in (((-12,-6),4,True),((6,12),4,True),((-12,-3),4,False),((-2,2),4,False)):
+            self.assertEqual(bounds[1] <= -(radius+1) or bounds[0] >= radius+1,clear)
+
+        self.assertEqual(s.count('call CBE_fnc_DrivingPathGeometry'),1)
+        for forbidden in ('setDriveOnPath','setVelocity','createVehicle','forceSpeed'):
+            self.assertNotIn(forbidden,s.split('params [[',1)[1])
+
+    def test_ramp_envelope_bounds_sample_heading_and_preserves_forward_progress(self):
+        import math
+        # Independent geometric check of the proposed ramp across vehicle/obstacle offsets.
+        # The SQF expression above is separately bound by the source contract.
+        for offset in (-15,-10,-5,5,10,15):
+            length=max(12,1.5*abs(offset)/math.tan(math.radians(35)))
+            slope=1.5*abs(offset)/length
+            count=math.ceil(length*math.hypot(1,slope)/5)
+            points=[]
+            for i in range(count+1):
+                u=i/count
+                points.append((offset*(3*u*u-2*u*u*u),length*u))
+            self.assertAlmostEqual(points[0][0],0)
+            self.assertAlmostEqual(points[-1][0],offset)
+            for a,b in zip(points,points[1:]):
+                dx,dy=b[0]-a[0],b[1]-a[1]
+                self.assertGreater(dy,0)
+                self.assertLessEqual(math.hypot(dx,dy),5+1e-9)
+                self.assertLessEqual(abs(math.degrees(math.atan2(dx,dy))),35+1e-9)
+
+    def test_bypass_issue_rechecks_geometry_and_intent_in_same_commit_as_publication(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
+        commit=s.split('private _issued=false;',1)[1].split('if (!_issued)',1)[0]
+        self.assertIn('isNil {',commit)
+        write=commit.index('_vehicle setDriveOnPath _points')
+        for check in ('call _mayWrite','call _nativeAdmissionReady',
+                      'getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work',
+                      '(_work get "phase") == "PLAN"','serverTime < (_work get "deadline")',
+                      'expectedDestination _operator','expectedDestination _driver',
+                      'call _obstacleAvailable',
+                      'isEqualTo (_proposal select 4)','isEqualTo (_proposal select 5)'):
+            self.assertLess(commit.index(check),commit.index('doStop _operator'))
+        self.assertLess(write,commit.index('_work set ["phase","FOLLOW"]'))
+        self.assertLess(commit.index('_work set ["phase","FOLLOW"]'),commit.index('setVariable ["CBE_DrivingBypass_Work",_work,true]'))
+        self.assertLess(s.index('call CBE_fnc_DrivingBypassPlan'),s.index('private _issued=false;'))
+        self.assertNotIn('call CBE_fnc_DrivingBypassPlan',commit)
+        self.assertNotIn('lineIntersects',commit)
+        self.assertNotIn('sleep',commit)
+
+    def test_release_computes_authority_and_retires_only_live_episode_atomically(self):
+        s=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text(encoding='utf-8')
+        commit=s.split('isNil {',1)[1]
+        for operation in ('private _current=','private _owned=','doStop _driver',
+                          '_operator doMove','CBE_DrivingBypass_Result','CBE_DrivingBypass_Work",nil,true'):
+            self.assertIn(operation,commit)
+        proof='getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work'
+        self.assertEqual(commit.count(proof),2)
+        self.assertLess(commit.index(proof),commit.index('private _owned='))
+        self.assertGreater(commit.rindex(proof),commit.index('_operator doMove'))
+        self.assertLess(commit.rindex(proof),commit.index('private _context='))
+        self.assertTrue(s.rstrip().endswith('_retired'))
+        self.assertNotIn('sleep',commit)
+        self.assertNotIn('lineIntersects',commit)
+
+    def test_replacement_fixture_requires_issued_physical_leg_and_real_new_order_travel(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runParkedBypass.sqf').read_text(encoding='utf-8')
+        for requirement in ('(_work getOrDefault ["phase",""]) == "FOLLOW"',
+                            'vectorDistance ((_work get "points") select 0) >= 8',
+                            '_group setCurrentWaypoint _newWaypoint',
+                            'waypointPosition _replacementWaypoint','time-_replaceAt >= 10','vectorDistance _replaceOrigin >= 100',
+                            '_vehicle distance2D _replacement < 15',
+                            'DRIVING-parked-replacement-physical-continuation'):
+            self.assertIn(requirement,s)
+        for forbidden in ('setDriveOnPath','call CBE_fnc_DrivingBypassStep','call CBE_fnc_DrivingBypassPlan',
+                          'setVariable ["CBE_DrivingBypass_Work"','forceSpeed','setPos'):
+            self.assertNotIn(forbidden,s)

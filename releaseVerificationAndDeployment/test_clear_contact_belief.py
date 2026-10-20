@@ -15,7 +15,7 @@ class ClearContactBeliefTests(unittest.TestCase):
                       'serverTime-(_contactBelief select 1) <= 5',
                       'worldToModelVisual (_contactBelief select 0)'):
             self.assertIn(check,start)
-        self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute], true]',start)
+        self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true]',start)
         self.assertIn('_job getOrDefault ["contactBelief",[]]',step)
         self.assertIn('["contactBelief",_contactBelief]',start)
     def test_hint_only_seeds_once_and_does_not_replace_physical_completion(self):

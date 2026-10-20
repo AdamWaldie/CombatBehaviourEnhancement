@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "fd82d6f8",
+  "scope": "Depleted close-assault admission through existing casualty-capable execution",
+  "reference": {
+    "workshopId": "1858075458",
+    "intent": "Reference individual close engagement remains available independently of full-squad manoeuvre; preserve useful close response without creating a second movement owner.",
+    "readOnlySource": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "runtimeDependency": false
+  },
+  "finding": "Assessment may select close assault for two or three armed infantry, and the shared drill executor already supports survivor pairs and three-person rebalance. AssaultStart still refused fewer than four actors and required two in each element. Fallback group reposition also lacked native PLANNING/protected-task deferral.",
+  "implementation": [
+    "Two available armed actors can start the existing drill with one mover/one cover; three with two movers/one cover. No singleton scripted assault is inferred.",
+    "Small elements use armed non-leaders rather than requiring squad-only weapon-role distribution; native planning and protected tasks defer admission.",
+    "Larger group element requirements remain unchanged. Existing contact freshness/range, morale, hold-order, avenue, operation epoch/generation/lifetime, casualty replacement and physical progress still apply.",
+    "Routine reposition uses the existing shared actor-task/reservation boundary and native planning check before avenue work. Immediate close-armour withdrawal retains earlier survival priority."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/cortexFireControl.sqf": "ee73b92938f2f41a9b0ab17202173130a5fd2f6a4beb1a4cb820d9e888ec0c5f",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "7b70887a640d79930dc35e04f2ecc71f90394f09a5b8ab3acab390d8ad579f70",
+    "addons/infantry/functions/cortexTacticalReposition.sqf": "73f101c903a4dd0b47f914ae8517f7a376299e4f1d3ae70fbeb06ec99188615b",
+    "docs/Smart-AI-Pass.md": "14529b0ff0988fb903b74b4100ca4dbc28709b6e8941e9dffee499c41984c082"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-depleted-assault-admission-hemtt.log",
+    "focused": ".qa/cbe-depleted-assault-admission-focused.log",
+    "existingTestsPassed": 607
+  },
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "geometryCost": "No new geometry primitive or controller. Newly admitted small elements now use the existing bounded avenue selector; incremental runtime cost needs measurement.",
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "remaining": [
+    "Physical alternating pair movement, three-person swaps, casualty/recovery, fire-lane safety and native handback need verification.",
+    "Singleton outdoor engagement remains native; this is not complete parity with reference individual assault routing.",
+    "Normal/HC migration and performance budget remain unverified."
+  ],
+  "audits": "PAUSED",
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-infantry-native-depleted-batch-final-build.log",
+    "independentVerify": ".qa/cbe-infantry-native-depleted-independent.log",
+    "manifestCommit": "fd82d6f87dda4c9d3ec45b4b35517b395c9c0cdb",
+    "manifestDirty": true,
+    "fingerprint": "df46b5f6699c2029b6481d43e535682dfdf608afa9e3a36cf2f0ab088f9dc416",
+    "tests": 1476,
+    "newTestCases": 0,
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "initialFinding": "Existing indoor ownership test expected a direct reservation call. It now traces the shared task predicate into that same reservation boundary, retaining ordering before geometry/ownership and protected task checks."
+  }
+}

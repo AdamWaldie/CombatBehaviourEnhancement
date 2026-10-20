@@ -5,6 +5,7 @@
  * explicit editable CBE corridor area; trusted local/server scripts may register another Logic.
  * Repeat/JIP: Identical definitions retain their revision. Changed definitions invalidate old
  * work. One public ordered snapshot replays passive definitions to JIP; no commands replay.
+ * The bounded registry mutation is unscheduled, preserving concurrent trusted local requests.
  * Arguments:
  * 0 area <OBJECT, objNull> - existing Logic defining centre, facing and elevation.
  * 1 dimensions <ARRAY, [25,5,15]> - half-length metres (5..45), half-width metres
@@ -14,13 +15,18 @@
  * Example: [corridorLogic,[25,5,15]] call CBE_fnc_DrivingCorridorRegister;
  */
 params [["_area",objNull,[objNull]],["_dimensions",[25,5,15],[[]]]];
+private _registration=[];
+// Serialize trusted scheduled calls as well as remoteExecCall delivery. Registry/sequence
+// read-modify-write and task creation/removal must not suspend across another request.
+isNil {
+    _registration=call {
 if (!isServer) exitWith {[false,"SERVER_ONLY",-1]};
 private _sender=remoteExecutedOwner;
 if (isRemoteExecuted && {_sender <= 0}) exitWith {[false,"INVALID_SENDER",-1]};
 if (_sender > 2) then {
     private _curatorPlayer=allPlayers findIf {owner _x == _sender && {!isNull getAssignedCuratorLogic _x}};
     private _curator=if (_curatorPlayer < 0) then {objNull} else {getAssignedCuratorLogic (allPlayers select _curatorPlayer)};
-    if (isNull _curator || {isNull _area} || {!(_area isKindOf "CBE_DrivingCorridorArea")}
+    if (isNull _curator || {isNull _area} || {!(_area isKindOf "CBE_DrivingCorridorArea" || {_area isKindOf "CBE_ModuleDrivingCorridorMission"})}
         || {owner _area != _sender && {!(_area in curatorEditableObjects _curator)}}) exitWith {
         _sender=-1;
     };
@@ -39,6 +45,10 @@ private _snapshot=missionNamespace getVariable ["CBE_DrivingCorridor_Snapshot",[
 private _records=(_snapshot select 1) select {!isNull (_x select 0)};
 private _index=_records findIf {(_x select 0) isEqualTo _area};
 private _old=if (_index >= 0) then {(_records select _index) select 1} else {[]};
+if (_dimensions isEqualTo [] && {_index < 0}
+    && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo []}) exitWith {
+    [true,"UNCHANGED",_snapshot select 0]
+};
 if (_dimensions isNotEqualTo [] && {_old isNotEqualTo []}
     && {(_old select [1,3]) isEqualTo _dimensions}
     && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _old}) exitWith {
@@ -57,3 +67,7 @@ if (_dimensions isEqualTo []) then {
 };
 missionNamespace setVariable ["CBE_DrivingCorridor_Snapshot",[_revision,_records],true];
 [true,["REGISTERED","REMOVED"] select (_dimensions isEqualTo []),_revision]
+    };
+    false
+};
+_registration

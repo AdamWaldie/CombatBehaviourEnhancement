@@ -1,0 +1,37 @@
+{
+  "finding": "Outer-band catch-up imposed max5 km/h only after crossing gapHigh. This creates a spacing-request jump for a slow/stopped predecessor, independent of nonlinear boost continuity.",
+  "implementation": "Remove only the outer-band minimum5 clamp. Retain existing proportional correction, nonlinear boost cap8, speed-increase slew and hard closing/reverse/traffic/infantry caps. No thresholds/settings/workers/tests added.",
+  "reference": "Local HBQ driveAssist traffic section distinguishes predecessor following caps from collision stops and scales braking by mass. Existing CBE safety constraints remain; no runtime dependency or raw source changes.",
+  "numeric_scope": "Spacing request before independent downstream clamps, desiredgap50m, tolerance10m, frontspeed0. This is algebraic evidence of the discontinuity, not an engine simulation or physical performance result.",
+  "samples": [
+    {
+      "gap_m": 59.999,
+      "old_spacing_request_kmh": 3.999600000000001,
+      "new_spacing_request_kmh": 3.999600000000001
+    },
+    {
+      "gap_m": 60,
+      "old_spacing_request_kmh": 4.0,
+      "new_spacing_request_kmh": 4.0
+    },
+    {
+      "gap_m": 60.001,
+      "old_spacing_request_kmh": 5,
+      "new_spacing_request_kmh": 4.000404743416489
+    },
+    {
+      "gap_m": 61,
+      "old_spacing_request_kmh": 5,
+      "new_spacing_request_kmh": 4.550000000000001
+    },
+    {
+      "gap_m": 70,
+      "old_spacing_request_kmh": 12.743416490252569,
+      "new_spacing_request_kmh": 12.743416490252569
+    }
+  ],
+  "source_sha256": "e2682059d8c3212d97b91b73e9e788e91ba6dfcc2f26fa8008781ab3953523c8",
+  "physical_acceptance": false,
+  "audits": "PAUSED",
+  "scores_changed": false
+}

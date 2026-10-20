@@ -3,9 +3,11 @@
  * Purpose: Dispatch one replacement from an opportunity's bounded ranked ground-asset pool.
  * Locality/authority: Server-only internal call after CortexCombinedRejectServer authenticates
  * and retires the exact refusal. Current requester, candidate and operating crew are revalidated.
+ * Voice eligibility uses3D ASL separation; dual-radio fallback retains its horizontal radius.
  * Original contact confidence/time pass unchanged to replacements; fallback never renews observation age.
  * Repeat/JIP: A token/role consumption receipt rejects duplicates. The shared cursor advances
  * through at most 32 retained candidates; original contact, expiry and independent leases survive.
+ * Delayed expiry matches the full original role, preserving same-token edited/replaced work.
  * No discovery scan, movement command, locality change or fabricated weapon acceptance is added.
  * Arguments: 0 rejected group <GROUP, grpNull>; 1 retired opportunity <ARRAY, []>, seven legacy or eight receipt-bearing fields.
  * Return Value: BOOL, one replacement was dispatched; not proof of acceptance or physical effect.
@@ -41,6 +43,7 @@ _rejected setVariable ["CBE_Cortex_CombinedGroundConsumed",[_token,_role]];
 private _sender=[_requester] call CBE_fnc_CortexGroupTransmitter;
 private _origin=if (isNull _sender) then {leader _requester} else {_sender};
 if (isNull _origin) exitWith {false};
+private _originASL=getPosASL _origin;
 private _range=missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500];
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _replacement=grpNull;
@@ -63,7 +66,9 @@ while {_cursor < count _candidates && {isNull _replacement}} do {
         private _receiver=[_candidate] call CBE_fnc_CortexGroupTransmitter;
         private _anchor=if (isNull _receiver) then {leader _candidate} else {_receiver};
         if (!isNull _anchor && {alive _anchor} && {_anchor distance2D _origin <= _range}
-            && {_anchor distance2D _origin <= _voiceRange || {!isNull _sender && {!isNull _receiver}}}) then {
+            && {(_anchor distance2D _origin <= _voiceRange
+                && {(getPosASL _anchor) vectorDistance _originASL <= _voiceRange})
+                || {!isNull _sender && {!isNull _receiver}}}) then {
             _replacement=_candidate;
         };
     };
@@ -76,14 +81,14 @@ _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"FALLBACK_DISPATCHED",serverTime,_target],true];
 [_replacement,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _replacement];
 [{
-    params ["_replacement","_token","_role","_target"];
-    if (!isNull _replacement && {((_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
+    params ["_replacement","_token","_role","_target","_originalRole"];
+    if (!isNull _replacement && {(_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
         private _result=_replacement getVariable ["CBE_Cortex_CombinedResult",[]];
-        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
+        if ((_result param [0,""]) == _token && {(_result param [2,""]) in ["DISPATCHED","FALLBACK_DISPATCHED","APPLIED","WAITING_FOR_RELOAD","MUZZLE_SELECTION_PENDING"]}) then {
             _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
         };
         _replacement setVariable ["CBE_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
     };
-},[_replacement,_token,_role,_target],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_replacement,_token,_role,_target,+_opportunity],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 true

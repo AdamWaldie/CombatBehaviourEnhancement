@@ -7,14 +7,27 @@
  * Spacing uses a size-aware target with a 20 percent tolerance band (at least 3 m).
  * Aligned vehicles use unit horizontal bearings for forward separation, so pitch cannot shrink
  * the measured gap and lateral spread cannot satisfy it or stabilize a wedge.
+ * Arrival requires the existing five-second window below1km/h total linear motion and
+ * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
+ * A stopped, exactly owned steering endpoint can continue onto fresh ordered trail after
+ * more than3m endpoint advance; moving legs retain the8m refresh threshold.
+ * Ongoing native/steering receipts bind both crew destinations. A distinct driver order
+ * yields the current revision before commander acknowledgement can adopt it as our own.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
- * Excess stretch beyond the upper band adds a nonlinear catch-up correction capped at 8 km/h.
+ * Excess stretch beyond the upper band adds a continuous nonlinear catch-up correction capped
+ * at 8 km/h; crossing the band never imposes a new minimum-speed step.
  * Native acceleration, shared cruise/terrain limits, immediate closing caps and reverse yields remain authoritative.
  * Follower curve/grade caps persist between path refreshes until fresh trail geometry replaces them;
  * disabling convoy driving assist clears that local cap without changing native route ownership.
+ * Native straight-leg refresh preserves an unchanged committed goal while its reaction/braking
+ * approach room remains. Peak observed leg speed prevents a shrinking envelope during endpoint braking.
+ * Native lead retry and finished-leg continuation require finite total linear and angular rest;
+ * sideways drift or active rotation is not a stopped endpoint. Capture retains both motion vectors.
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Lead catch-up pacing reuses the same aligned longitudinal gap as stretch assessment, so
  * lateral drift alone does not create a false rearward gap or feed acceleration lag forward.
+ * At twice the target gap, actual-speed pacing blends across the existing tolerance
+ * instead of abruptly switching from cruise reserve to a slow follower's speed.
  * The lead alone uses registered corridor approach/crossing through this same callback. Active
  * corridors suppress lead route recovery; followers keep measured predecessor trails and spacing.
  * Finite static-obstacle bypass shares this lead writer. Followers yield only the exact source
@@ -30,7 +43,12 @@
  * revision before crew/trail writes. A public revision receipt survives migration; a fresh server
  * task revision is required to re-admit. Cleanup restores exact caps but cannot recall movement.
  * Path refreshes do not repeatedly stop drivers, and tracked vehicles receive longer look-ahead targets.
+ * A finished native endpoint may accept the next observed point after three metres of advance,
+ * only at rest near its exact owned endpoint with unchanged seat/destination receipts. Moving
+ * legs retain the eight-metre retask threshold; explicit STOP and changed commands are not retried.
  * Curve caps are refreshed for two-point retained tails; grade includes the first segment.
+ * Diagnostic capture retains at most one pre-command finished-endpoint event per registered
+ * follower, locally for the current controller state; disabling capture removes those records.
  * These observations never relax the independent spacing, traffic or infantry braking caps.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
@@ -40,16 +58,38 @@
  * tick (64 candidates, eight corners each). Only its exact registered predecessor is excluded
  * from this observer because size-aware convoy spacing already owns that gap. Up to 20 vehicles
  * are admitted; dense observations stop rather than authorize a recovery through unseen traffic.
+ * Final-route retries commit only under the captured convoy brain, live registry and unchanged
+ * crew/native-command receipts; an interrupted callback cannot revive its old endpoint.
+ * A public revision/route-bound retry journal permits at most six endpoint recalls within
+ * the original 120 seconds, spaced at least fifteen seconds apart across owner migration.
+ * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
+ * Steering HALT resume requires exact seat/native-command/authored-waypoint receipts and
+ * the current brain/registry. Missing or changed evidence never authorizes a route recall.
+ * Startup and missing-trail holds check both actual seats atomically; refused holds never
+ * create path-owner or native-hold receipts. Crew service/reservations retain their commands.
+ * Final speed, follower MOVE and steering-path commits recheck two actual seats atomically;
+ * a service/reservation arriving during geometry cannot authorize those writes.
+ * Actual driver/commander service or reserved tasks suspend the whole local column before
+ * crew, formation, speed and follower-path writes; exact policy cleanup preserves native tasks.
+ * Endpoint and active-route recalls refuse service/STOP/combat/reserved actors and unrelated
+ * individual MOVE destinations on the actual movement operator.
  * Recovery refuses object/vehicle-attached and peer-synchronized waypoints; native execution
  * retains their target and rendezvous semantics. No activation code is evaluated.
  * The route watchdog remembers only the unchanged final MOVE waypoint. If the engine marks it complete
  * more than 75 m early, the same metadata-checked ungated waypoint is selected again; no waypoint is synthesized or rewritten.
  * Native recovery retains the recorded bend/trail endpoint separately from straight-leg look-ahead;
  * it never treats an extrapolated destination as evidence of an observed predecessor path.
+ * Movement receipts distinguish NATIVE from STEERING. New STOP after native MOVE yields the
+ * current revision; owned driving STOP boundaries first retire their exact old native receipt.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
+ * Native MOVE requests keep their original two-second acknowledgement receipt, public across
+ * locality changes. Only the requested goal consumes it. Unchanged pre-command state waits
+ * without route reissue; changed orders or expiry yield the revision without movement recall.
  * Diagnostic capture: owner-local CBE_Convoy_CaptureControl=true retains only the latest
  * follower samples in local-state controlSamples (at most nineteen); false removes them.
+ * Capture also retains32 actual native issue receipts per current vehicle, recorded only after
+ * admitted doMove. Diagnostic pose/age/cause is not proof of command acknowledgement or travel.
  * Samples expose each limiting stage and actual writes, including later trail-cap writes.
  * Follower fields9/10 retain bounded navigation-write receipts and pre-write native state;
  * they distinguish repeated path requests from spacing caps without recording full paths.
@@ -62,6 +102,15 @@ params ["_group", "_configuration"];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 if (isNull _group) exitWith {};
 _configuration params ["_revision", "_speed", "_separation", "_pushThrough", "_registered", "_phase", "_cargo", "_restore"];
+private _tickBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _tickToken=_tickBrain getOrDefault ["jobToken",""];
+private _tickRegistryRevision=_tickBrain getOrDefault ["registryRevision",-1];
+private _tickEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _tickRegistryIndex=(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+    _x isEqualTo [_group,_configuration]
+};
+if (_tickRegistryIndex < 0 || {_tickToken == ""} || {!local _group}) exitWith {};
+
 if (time < (_group getVariable ["CBE_Convoy_NextTick", -1])) exitWith {};
 _group setVariable ["CBE_Convoy_NextTick", time + 1];
 private _state = _group getVariable ["CBE_Convoy_LocalState", createHashMap];
@@ -92,12 +141,27 @@ private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call CBE_fnc_
 private _globalPaused = [] call CBE_fnc_CortexIsPaused;
 private _paused = _globalPaused || {[_group] call CBE_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["CBE_AIPass_DisabledFeatures",[]])};
 private _playerCrew = _registered findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0;
+// A driver/commander service task owns movement even when the group still has a convoy route.
+// Observe only actual seats in the registered column; no world scan or passenger task takeover.
+private _nativeCrewTask=_registered findIf {
+    private _driver=driver _x;private _operator=effectiveCommander _x;
+    if (isNull _operator) then {_operator=_driver};
+    [_driver,_operator] findIf {
+        !isNull _x && {local _x} && {
+            [_x] call CBE_fnc_CortexActorMoveReserved
+            || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        }
+    } >= 0
+} >= 0;
 private _zeus = [_group] call CBE_fnc_CortexZeusHeld;
-if (_paused || {_playerCrew} || {_zeus}) exitWith {
+if (_paused || {_playerCrew} || {_zeus} || {_nativeCrewTask}) exitWith {
     [_group,_configuration,true] call CBE_fnc_ConvoyDismountLocal;
     if (!(_group getVariable ["CBE_Convoy_Suspended", false])) then {
         private _reason = if (_zeus) then {"ZEUS"} else {if (_playerCrew) then {"PLAYER"} else {
-            if (_globalPaused && {!_externalCrew} && {!([_group] call CBE_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+            if (_nativeCrewTask && {!_paused}) then {"NATIVE_TASK"} else {
+                if (_globalPaused && {!_externalCrew} && {!([_group] call CBE_fnc_CompatibilityExternalControl)}) then {"PAUSED"} else {"EXTERNAL_OWNER"}
+            }
         }};
         [_group, false, _restore, [], _reason] call CBE_fnc_ConvoyReleaseLocal;
         _group setVariable ["CBE_Convoy_Suspended", true];
@@ -105,26 +169,86 @@ if (_paused || {_playerCrew} || {_zeus}) exitWith {
     };
 };
 _group setVariable ["CBE_Convoy_Suspended", false];
-// A new individual MOVE is a replacement order, not a stalled convoy leg. Keep this
+// Both crew destinations bind ongoing control. A distinct driver replacement wins even
+// when our commander goal acknowledges in the same tick; acknowledgement cannot mint that
+// driver order as our own. Same-actor acknowledgement updates its one destination receipt.
+// A changed individual MOVE or a STOP after an owned native MOVE is a replacement order. Keep this
 // revision yielded across later ticks and owner migration; only a new server revision may re-admit.
+private _nativePendingVehicles=[];
 private _commandYield=_group getVariable ["CBE_Convoy_CommandYield",[]];
 if ((_commandYield param [0,-1]) != _revision) then {
-    private _diverted=objNull;private _diversion=[];
+    private _diverted=objNull;private _diversion=[];private _yieldReason="NEW_NATIVE_ORDER";
     {
         private _vehicle=_x;private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
         private _operator=effectiveCommander _vehicle;
-        if (isNull _diverted && {local _vehicle} && {count _receipt == 5}
+        if (isNull _diverted && {local _vehicle} && {count _receipt == 8} && {(_receipt select 5) in ["NATIVE","STEERING"]}
             && {(_receipt select 0) == _group} && {(_receipt select 1) == _revision}
             && {(_receipt select 2) == driver _vehicle} && {(_receipt select 3) == _operator}
-            && {!isNull _operator} && {local _operator} && {currentCommand _operator == "MOVE"}) then {
-            private _was=(_receipt select 4) param [0,[]];private _now=(expectedDestination _operator) param [0,[]];
-            if (count _was == 3 && {count _now == 3} && {_was vectorDistance _now > 0.25}) then {
-                _diverted=_vehicle;_diversion=+_now;
+            && {!isNull _operator} && {local _operator}) then {
+            private _pendingNative=false;
+            private _driverProof=_receipt select 7;
+            private _driverUnchanged=_driverProof isEqualType [] && {count _driverProof == 2}
+                && {(_driverProof select 0) isEqualType ""} && {(_driverProof select 1) isEqualType []}
+                && {driver _vehicle == _operator || {
+                    (expectedDestination driver _vehicle) isEqualTo (_driverProof select 1)
+                        && {toUpperANSI currentCommand driver _vehicle != "STOP"
+                            || {toUpperANSI (_driverProof select 0) == "STOP"}}
+                }};
+            if (!_driverUnchanged) then {
+                _diverted=_vehicle;_diversion=getPosATL _vehicle;_yieldReason="DRIVER_NATIVE_ORDER_CHANGED";
+            };
+            if (isNull _diverted && {(_receipt select 5) == "NATIVE"} && {(_receipt select 6) isNotEqualTo []}) then {
+                private _request=_receipt select 6;
+                private _validRequest=_request isEqualType [] && {count _request == 3}
+                    && {(_request select 0) isEqualType []} && {count (_request select 0) == 3}
+                    && {(_request select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {(_request select 1) isEqualType 0} && {finite (_request select 1)}
+                    && {(_request select 2) isEqualType ""};
+                private _nativeNow=expectedDestination _operator;
+                private _position=_nativeNow param [0,[],[[]]];
+                private _acknowledged=_validRequest && {currentCommand _operator in ["","MOVE"]}
+                    && {count _position == 3} && {_position vectorDistance (_request select 0) <= 0.25};
+                if (_acknowledged) then {
+                    // Accept only our originally issued goal, not any changed destination.
+                    // This consumes the request; neither movement nor its clock is replayed.
+                    _receipt=+_receipt;_receipt set [6,[]];_receipt set [4,+_nativeNow];
+                    if (driver _vehicle == _operator) then {
+                        _receipt set [7,[currentCommand _operator,+_nativeNow]];
+                    };
+                    _vehicle setVariable ["CBE_Convoy_MovementReceipt",_receipt,true];
+                    private _ackFollowers=_state getOrDefault ["followers",createHashMap];
+                    private _ackProgress=_ackFollowers getOrDefault [netId _vehicle,[]];
+                    if ((_state getOrDefault ["revision",-1]) == _revision && {count _ackProgress > 10}) then {
+                        _ackProgress set [10,[driver _vehicle,_operator,
+                            +(expectedDestination driver _vehicle),+_nativeNow]];
+                    };
+                } else {
+                    _pendingNative=_validRequest && {serverTime <= (_request select 1)}
+                        && {_nativeNow isEqualTo (_receipt select 4)}
+                        && {currentCommand _operator in [_request select 2,"MOVE"]};
+                    if (_pendingNative) then {_nativePendingVehicles pushBack _vehicle} else {
+                        _diverted=_vehicle;_diversion=getPosATL _vehicle;
+                        _yieldReason=["NATIVE_ACK_CHANGED","NATIVE_ACK_TIMEOUT"] select
+                            (_validRequest && {serverTime > (_request select 1)} && {_nativeNow isEqualTo (_receipt select 4)});
+                    };
+                };
+            };
+            if (!_pendingNative && {isNull _diverted} && {currentCommand _operator == "MOVE"}) then {
+                private _was=(_receipt select 4) param [0,[]];private _now=(expectedDestination _operator) param [0,[]];
+                if (count _was == 3 && {count _now == 3} && {_was vectorDistance _now > 0.25}) then {
+                    _diverted=_vehicle;_diversion=+_now;
+                };
+            };
+            // Fixed steering deliberately owns native STOP. Native MOVE writers do not;
+            // every internal driving STOP retires its exact old native MOVE receipt first.
+            if (!_pendingNative && {isNull _diverted} && {_phase != "HALT"} && {(_receipt select 5) == "NATIVE"}
+                && {toUpperANSI currentCommand _operator == "STOP"}) then {
+                _diverted=_vehicle;_diversion=getPosATL _vehicle;
             };
         };
     } forEach _registered;
     if (!isNull _diverted) then {
-        _commandYield=[_revision,_diverted,_diversion,serverTime];
+        _commandYield=[_revision,_diverted,_diversion,serverTime,_yieldReason];
         _group setVariable ["CBE_Convoy_CommandYield",_commandYield,true];
         [_group,false,_restore,[],"NEW_NATIVE_ORDER"] call CBE_fnc_ConvoyReleaseLocal;
     };
@@ -152,7 +276,32 @@ if (!local _group) exitWith {};
 // Recheck ownership at each command boundary so a curator or specialist controller that arrives
 // during that work receives an immediate clean handover rather than a stale speed or route update.
 private _mayIssueDriving = {
-    !([_group] call CBE_fnc_CortexExternalTakeover)
+    params [["_taskVehicle",objNull,[objNull]],["_expectedOperator",objNull,[objNull]]];
+    if (!local _group || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _tickBrain}
+        || {_tickToken != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+        || {_tickRegistryRevision != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+        || {_tickEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_tickBrain getOrDefault ["cancelled",false]} || {_tickBrain getOrDefault ["finished",false]}
+        || {(_tickBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+        || {((missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) param [_tickRegistryIndex,[]]) isNotEqualTo [_group,_configuration]}) exitWith {false};
+    if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
+    if (isNull _taskVehicle) exitWith {true};
+    private _taskDriver=driver _taskVehicle;
+    private _taskOperator=effectiveCommander _taskVehicle;
+    if (isNull _taskOperator) then {_taskOperator=_taskDriver};
+    if (!local _taskVehicle || {!alive _taskVehicle} || {!simulationEnabled _taskVehicle}
+        || {isObjectHidden _taskVehicle} || {isNull _taskDriver} || {isNull _taskOperator}
+        || {!isNull _expectedOperator && {_taskOperator != _expectedOperator}}) exitWith {false};
+    [_taskDriver,_taskOperator] findIf {
+        !local _x || {group _x != _group} || {vehicle _x != _taskVehicle}
+        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+        || {!isNull remoteControlled _x}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+        || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+    } < 0
 };
 // Recovery must not replay authored scripts, conditions, timers or trigger waits.
 // These values are inspected, never compiled or executed by the convoy controller.
@@ -167,6 +316,34 @@ private _mayRecoverWaypoint={
         && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
         && {(synchronizedWaypoints _waypoint) isEqualTo []}
         && {(synchronizedTriggers _waypoint) findIf {!isNull _x && {!triggerActivated _x}} < 0}
+};
+// A matching group waypoint cannot authorize replacement of an individual native task.
+// Check both actual seats; only the movement operator's MOVE must name this route target.
+// The subordinate driver may have a native intermediate path destination.
+private _mayRecallLead={
+    params ["_vehicle","_operator","_target"];
+    private _driver=driver _vehicle;
+    private _liveOperator=effectiveCommander _vehicle;
+    if (isNull _liveOperator) then {_liveOperator=_driver};
+    if (isNull _driver || {isNull _operator} || {_liveOperator != _operator}
+        || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}) exitWith {false};
+    if ([_driver,_operator] findIf {
+        !local _x || {group _x != _group} || {vehicle _x != _vehicle}
+        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+        || {!isNull remoteControlled _x}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+        || {!simulationEnabled _x} || {isObjectHidden _x}
+        || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+        || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
+    } >= 0) exitWith {false};
+    if (toUpperANSI currentCommand _operator == "MOVE") exitWith {
+        private _destination=(expectedDestination _operator) param [0,[]];
+        count _destination == 3 && {_destination vectorDistance _target <= 0.25}
+    };
+    true
 };
 // A stalled engine route and a deliberate physical roadblock require different Zeus advice.
 // This bounded check runs only after the existing recovery attempts are exhausted; it never
@@ -255,23 +432,41 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     _group setFormation "COLUMN";
     // Vehicle movement remains a convoy task. Mounted gunners can fire without breaking formation.
     _group enableAttack false;
-    // Clear a previous HALT doStop on the lead driver without deleting or replacing route waypoints.
+    // Resume only the actual steering HALT we still own. Group/revision/machine
+    // alone cannot distinguish a newer individual command or changed authored route.
     if (_reacquire && {currentWaypoint _group > 0} && {currentWaypoint _group < count waypoints _group}) then {
-        // Do not make the lead's native movement operator follow itself or another seat.
-        // A same-vehicle subordinate may rejoin; route recovery belongs to the operator.
-        if (driver _lead != leader _group && {driver _lead != _leadOperator}
-            && {vehicle leader _group == _lead}) then {(driver _lead) doFollow leader _group};
-        // Tracked HALT explicitly replaced vehicle movement with a current-position move.
-        // Following the commander cannot supersede that vehicle-level destination reliably.
-        // Restart only our matching halt once, toward the unchanged ordinary route waypoint.
         private _haltOwner=_lead getVariable ["CBE_Convoy_HaltOwner",[]];
-        private _resumeWaypoint=[_group,currentWaypoint _group];
-        if (count _haltOwner == 3 && {(_haltOwner select 0) == _group}
-            && {(_haltOwner select 2) == clientOwner} && {waypointType _resumeWaypoint == "MOVE"}
-            && {[] call _mayIssueDriving}) then {
+        private _haltReceipt=_lead getVariable ["CBE_Convoy_HaltReceipt",[]];
+        private _resumeIndex=currentWaypoint _group;
+        private _resumeWaypoint=[_group,_resumeIndex];
+        private _resumeRoute=[_group,"",false,_resumeIndex] call CBE_fnc_AuthoredRouteReceipt;
+        private _resumeBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+        isNil {if (count _haltOwner == 3 && {count _haltReceipt == 6}
+            && {(_haltOwner select 0) == _group} && {(_haltOwner select 1) < _revision}
+            && {(_haltOwner select 2) == clientOwner} && {(_haltReceipt select 0) isEqualTo _haltOwner}
+            && {(_lead getVariable ["CBE_Convoy_HaltOwner",[]]) isEqualTo _haltOwner}
+            && {(_lead getVariable ["CBE_Convoy_HaltReceipt",[]]) isEqualTo _haltReceipt}
+            && {(_haltReceipt select 1) == driver _lead} && {(_haltReceipt select 2) == _leadOperator}
+            && {(_haltReceipt select 3) isEqualTo [currentCommand driver _lead,+(expectedDestination driver _lead),
+                currentCommand _leadOperator,+(expectedDestination _leadOperator)]}
+            && {(_haltReceipt select 4) == _resumeIndex} && {currentWaypoint _group == _resumeIndex}
+            && {_resumeRoute isNotEqualTo []} && {(_haltReceipt select 5) isEqualTo _resumeRoute}
+            && {([_group,"",false,_resumeIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _resumeRoute}
+            && {waypointType _resumeWaypoint == "MOVE"} && {[_resumeWaypoint] call _mayRecoverWaypoint}
+            && {[_lead,_leadOperator] call _mayIssueDriving}
+            && {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _resumeBrain}
+            && {!(_resumeBrain getOrDefault ["cancelled",false])} && {!(_resumeBrain getOrDefault ["finished",false])}
+            && {(_resumeBrain getOrDefault ["configuration",[]]) isEqualTo _configuration}
+            && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+            } >= 0}) then {
+            // Only an unchanged subordinate seat rejoins; the operator receives the route.
+            if (driver _lead != leader _group && {driver _lead != _leadOperator}
+                && {vehicle leader _group == _lead}) then {(driver _lead) doFollow leader _group};
             _lead move waypointPosition _resumeWaypoint;
             _lead setVariable ["CBE_Convoy_HaltOwner",nil];
-        };
+            _lead setVariable ["CBE_Convoy_HaltReceipt",nil];
+        }};
     };
     {[_x,_group,"ACQUIRE",_revision] call CBE_fnc_ConvoyUnloadPolicy} forEach _vehicles;
     private _initialPathOwners=_resumePathOwners;
@@ -281,19 +476,27 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
             if (isAISteeringComponentEnabled _x && {effectiveCommander _x == driver _x}) then {
                 // Relinquish formation before the predecessor has recorded its first trail segment.
                 // Waiting for a large gap lets native formation compress/overtake during startup.
-                doStop driver _x;
-                _initialPathOwners set [netId _x,true];
+                private _initialVehicle=_x;
+                isNil {if ([_initialVehicle] call _mayIssueDriving) then {
+                    [_group,_initialVehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+                    doStop driver _initialVehicle;
+                    _initialPathOwners set [netId _initialVehicle,true];
+                }};
             } else {
                 // Native followers also acquire column control before a forward trail
                 // exists. Formation following here can overtake the predecessor.
                 private _initialOperator=effectiveCommander _x;
                 if (isNull _initialOperator) then {_initialOperator=driver _x};
-                doStop _initialOperator;
-                private _initialKey=netId _x;
-                private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
-                    [getPosATL _x,time,-1,0,0,[],[]]];
-                _initialProgress set [7,true];
-                _resumeFollowers set [_initialKey,_initialProgress];
+                private _initialVehicle=_x;
+                isNil {if ([_initialVehicle,_initialOperator] call _mayIssueDriving) then {
+                    [_group,_initialVehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+                    doStop _initialOperator;
+                    private _initialKey=netId _initialVehicle;
+                    private _initialProgress=_resumeFollowers getOrDefault [_initialKey,
+                        [getPosATL _initialVehicle,time,-1,0,0,[],[]]];
+                    _initialProgress set [7,true];
+                    _resumeFollowers set [_initialKey,_initialProgress];
+                }};
             };
             };
             _x setConvoySeparation _separation;
@@ -382,6 +585,7 @@ private _hadBypass=!isNil {_lead getVariable "CBE_DrivingBypass_Work"};
 private _bypass=[false,1e6,"",false];
 private _hadBypassPassage=!isNil {_group getVariable "CBE_Convoy_BypassPassage"};
 private _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
+if ((_bypassPassage param [4,""]) == "DEFERRED") exitWith {};
 private _bypassPassageActive=_bypassPassage select 0;
 private _bypassCaps=_bypassPassage select 1;
 if (_hadBypassPassage && {!_bypassPassageActive}) then {
@@ -389,7 +593,7 @@ if (_hadBypassPassage && {!_bypassPassageActive}) then {
 };
 private _corridor=[false,1e6,""];
 private _hadCorridor=!isNil {_lead getVariable "CBE_DrivingCorridor_Work"};
-if ([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled
+if ([_group,"CBE_Convoy_DrivingAssist_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled
     && {!_hadBypass} && {!_bypassPassageActive} && {[] call _mayIssueDriving}) then {
     _corridor=[_group,_lead,_group getVariable ["CBE_Convoy_Brain",createHashMap],"CONVOY"] call CBE_fnc_DrivingCorridorStep;
 } else {
@@ -398,6 +602,7 @@ if ([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEn
 private _corridorActive=_corridor select 0;
 _state set ["corridorPhase",_corridor select 2];
 private _passage=[_group,_configuration] call CBE_fnc_ConvoyCorridorStep;
+if ((_passage param [4,""]) == "DEFERRED") exitWith {};
 private _passageActive=_passage select 0;
 private _passageCaps=_passage select 1;
 if (!_corridorActive && {_passageActive}) then {_state set ["corridorPhase","CORRIDOR_TAIL"]};
@@ -408,10 +613,14 @@ if (count waypoints _group > 1 && {currentWaypoint _group < count waypoints _gro
         [_group,"",false,_lastWaypoint select 1] call CBE_fnc_AuthoredRouteReceipt]];
 };
 private _routeWatch=_state getOrDefault ["routeWatch",[]];
-if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"CBE_Convoy_RouteRecovery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActive} && {[_group,"CBE_Convoy_RouteRecovery_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled}
     && {_routeWatch isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}
     && {time >= (_state getOrDefault ["routeRecoveryAt",-1])}) then {
     _routeWatch params ["_watchedIndex","_watchedPosition","_watchedRadius",["_watchedReceipt",[]]];
+    private _recoveryBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    private _recoveryDriver=driver _lead;
+    private _recoveryCommands=[currentCommand _recoveryDriver,expectedDestination _recoveryDriver,
+        currentCommand _leadOperator,expectedDestination _leadOperator];
     // A Zeus edit changes or deletes the stored waypoint and therefore fails this identity check.
     // The Zeus suspension path above also clears local state before CBE may resume.
     if (_watchedIndex < count waypoints _group) then {
@@ -422,9 +631,49 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
             && {waypointType _watchedWaypoint == "MOVE"}
             && {waypointPosition _watchedWaypoint distance2D _watchedPosition < 2}
             && {_lead distance2D _watchedPosition > (_watchedRadius max 20)+75}) then {
-            if ([] call _mayIssueDriving) then {
+            isNil {
+                if (!local _group || {!local _lead} || {!local _recoveryDriver} || {!local _leadOperator}
+                    || {isNull _recoveryDriver} || {isNull _leadOperator} || {!alive _lead} || {!canMove _lead}
+                    || {driver _lead != _recoveryDriver} || {group _recoveryDriver != _group}
+                    || {!([_lead,_leadOperator,_watchedPosition] call _mayRecallLead)}
+                    || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _recoveryBrain}
+                    || {_recoveryBrain getOrDefault ["cancelled",false]}
+                    || {(_recoveryBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+                    || {(_recoveryBrain getOrDefault ["jobToken",""]) != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+                    || {(_recoveryBrain getOrDefault ["registryRevision",-1]) != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+                    || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                        (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+                    } < 0}
+                    || {_phase != "TRAVEL"} || {!([] call _mayIssueDriving)}
+                    || {!([_group,"CBE_Convoy_RouteRecovery_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled)}
+                    || {currentWaypoint _group < count waypoints _group}
+                    || {_watchedIndex >= count waypoints _group}
+                    || {([_group,"",false,_watchedIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _watchedReceipt}
+                    || {!([_watchedWaypoint] call _mayRecoverWaypoint)}
+                    || {[currentCommand _recoveryDriver,expectedDestination _recoveryDriver,
+                        currentCommand _leadOperator,expectedDestination _leadOperator] isNotEqualTo _recoveryCommands}
+                    || {!isNil {_lead getVariable "CBE_DrivingCorridor_Work"}}
+                    || {!isNil {_lead getVariable "CBE_DrivingBypass_Work"}}
+                    || {!isNil {_group getVariable "CBE_Convoy_BypassPassage"}}
+                    || {_lead distance2D _watchedPosition <= (_watchedRadius max 20)+75}) exitWith {};
+                // This public receipt outlives local state/brain replacement. Adoption cannot
+                // renew the original clock, replay a spent allowance or bypass the cooldown.
+                private _endpointEpisode=+(_group getVariable ["CBE_Convoy_EndpointRecovery",[]]);
+                if (count _endpointEpisode != 7 || {(_endpointEpisode select 0) != _revision}
+                    || {(_endpointEpisode select 1) isNotEqualTo _watchedReceipt}) then {
+                    _endpointEpisode=[_revision,+_watchedReceipt,serverTime,serverTime+120,0,serverTime,"ACTIVE"];
+                };
+                if ((_endpointEpisode select 6) == "EXHAUSTED") exitWith {};
+                if (serverTime >= (_endpointEpisode select 3) || {(_endpointEpisode select 4) >= 6}) exitWith {
+                    _endpointEpisode set [6,"EXHAUSTED"];
+                    _group setVariable ["CBE_Convoy_EndpointRecovery",_endpointEpisode,true];
+                };
+                if (serverTime < (_endpointEpisode select 5)) exitWith {};
                 _group setCurrentWaypoint _watchedWaypoint;
                 _leadOperator doMove _watchedPosition;
+                _endpointEpisode set [4,(_endpointEpisode select 4)+1];
+                _endpointEpisode set [5,serverTime+15];
+                _group setVariable ["CBE_Convoy_EndpointRecovery",_endpointEpisode,true];
                 _state set ["routeRecoveryAt",time+15];
                 private _recoveries=(_group getVariable ["CBE_Convoy_RouteRecoveries",0])+1;
                 _group setVariable ["CBE_Convoy_RouteRecoveries",_recoveries,true];
@@ -434,7 +683,14 @@ if (!_corridorActive && {!_hadCorridor} && {!_hadBypass} && {!_bypassPassageActi
 };
 private _routeDone = !_corridorActive && {!_hadBypass} && {count waypoints _group > 1} && {currentWaypoint _group >= count waypoints _group}
     && {_lead distance2D waypointPosition _lastWaypoint <= (waypointCompletionRadius _lastWaypoint max 20)};
-private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone} && {_vehicles findIf {abs speed _x >= 1} < 0};
+// Forward speed alone cannot establish arrival: sliding and turning vehicles still move.
+// The existing five-second window must observe the entire column below both motion limits.
+private _settled = !_passageActive && {!_bypassPassageActive} && {_routeDone} && {_vehicles findIf {
+    private _linearMotion=vectorMagnitude velocity _x;
+    private _angularMotion=vectorMagnitude angularVelocity _x;
+    !finite _linearMotion || {!finite _angularMotion}
+        || {_linearMotion >= (1/3.6)} || {_angularMotion >= 0.01}
+} < 0};
 for "_i" from 1 to (count _vehicles - 1) do {
     if ((_vehicles select _i) distance2D (_vehicles select (_i - 1)) > (_gaps select _i) * 1.5) then {_settled = false};
 };
@@ -488,7 +744,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
 // multiplying raycasts or schedulers per vehicle. It influences speed only: Arma retains route
 // choice, collision handling and the ability to remain stopped behind a deliberate roadblock.
 private _roadCap = _maximum;
-private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled;
 if (_trafficAssistEnabled) then {
     if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
         private _roadObservation=[_lead,_maximum] call CBE_fnc_DrivingRoadCap;
@@ -533,7 +789,12 @@ if (!_contact) then {
             if (_gap > _target*2) then {
                 // Reversing during recovery is not forward convoy progress.
                 private _followerForwardKmh=((velocityModelSpace _follower select 1) max 0)*3.6;
-                _catchup=_catchup min ((_followerForwardKmh - (((_gap-_target*1.2)*0.15) min 8)) max 5);
+                private _paced=_catchup min ((_followerForwardKmh - (((_gap-_target*1.2)*0.15) min 8)) max 5);
+                // A centimetre across twice the target gap must not turn a cruise
+                // reserve into a walking-speed command. Reuse the normal tolerance
+                // as the blend width; severe stretch retains full actual-speed pacing.
+                private _pacingBlend=((_gap-_target*2)/((_target*0.2) max 3)) min 1;
+                _catchup=_catchup+(_paced-_catchup)*_pacingBlend;
             };
             _leadLimit=_leadLimit min _catchup;
         };
@@ -583,6 +844,7 @@ private _bypassActive=_bypass select 0;
 if (!_bypassPassageActive && {!_hadBypassPassage}) then {
     _bypassPassage=[_group,_configuration] call CBE_fnc_ConvoyBypassStep;
 };
+if ((_bypassPassage param [4,""]) == "DEFERRED") exitWith {};
 _bypassPassageActive=_bypassPassage select 0;_bypassCaps=_bypassPassage select 1;
 _state set ["bypassPhase",if (_bypassActive) then {_bypass select 2} else {if (_bypassPassageActive) then {"BYPASS_TAIL"} else {""}}];
 if (_bypassActive && {_bypass select 3} && {count _leadObstacle == 9}) then {
@@ -601,17 +863,26 @@ _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_leadLimit]};
 _leadLimit = [_lead,_leadLimit,_group] call CBE_fnc_CortexInfantrySpeed;
 if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
-_state set ["leadSpeedLimit",[_leadLimit,time]];
-if ([] call _mayIssueDriving) then {
+isNil {if ([_lead] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
+    _state set ["leadSpeedLimit",[_leadLimit,time]];
     if (_captureControl) then {_leadControl set [5,true]};
     if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call CBE_fnc_DrivingGateRequest};
     _lead setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-};
+}};;
 if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
+// Forward-axis speed alone labels a turning/sliding vehicle as stopped. Native retry and
+// endpoint completion require finite total linear and angular rest; no velocity is changed.
+private _convoyStopped={
+    params ["_candidate"];
+    private _linear=vectorMagnitude velocity _candidate;
+    if !(finite _linear && {_linear*3.6 < 1}) exitWith {false};
+    private _angular=vectorMagnitude angularVelocity _candidate;
+    finite _angular && {_angular < 0.01}
+};
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
 private _waypointIndex = currentWaypoint _group;
 private _leadRouteReceipt=[_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt;
@@ -621,15 +892,29 @@ if (_leadRouteReceipt isNotEqualTo (_state getOrDefault ["leadRouteReceipt",[]])
 };
 if (_lead distance2D (_leadProgress select 0) > 3 || {_leadLimit <= 0} || {_leadTrafficBlocked} || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass}) then {_leadProgress = [getPosATL _lead, time, 0]};
 if (!_routeDone && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_leadTrafficBlocked} && {_leadLimit > 0} && {_waypointIndex > 0} && {_waypointIndex < count waypoints _group}
-    && {time - (_leadProgress select 1) >= 10} && {abs speed _lead < 1}) then {
+    && {time - (_leadProgress select 1) >= 10} && {[_lead] call _convoyStopped}) then {
     private _waypoint = [_group, _waypointIndex];
     private _destination = waypointPosition _waypoint;
-    if ([_waypoint] call _mayRecoverWaypoint && {_lead distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
+    private _leadRetryBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    isNil {
+        if (!local _group || {!([] call _mayIssueDriving)}
+            || {!([_lead,_leadOperator,_destination] call _mayRecallLead)}
+            || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _leadRetryBrain}
+            || {_leadRetryBrain getOrDefault ["cancelled",false]}
+            || {(_leadRetryBrain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+            || {(_leadRetryBrain getOrDefault ["jobToken",""]) != (_group getVariable ["CBE_Convoy_LocalJobToken",""])}
+            || {(_leadRetryBrain getOrDefault ["registryRevision",-1]) != (missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-2])}
+            || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+            } < 0}
+            || {currentWaypoint _group != _waypointIndex}
+            || {([_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _leadRouteReceipt}
+            || {!([_waypoint] call _mayRecoverWaypoint)}
+            || {_lead distance2D _destination <= (waypointCompletionRadius _waypoint max 20)}) exitWith {};
         private _attempts=(_leadProgress param [2,0])+1;
         if (_attempts > 3) then {
             [_group,_revision,([_lead] call _classifyStall),[],_lead] remoteExecCall ["CBE_fnc_ConvoyHaltServer",2];
-        } else {if ([] call _mayIssueDriving && {currentWaypoint _group == _waypointIndex}
-            && {([_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _leadRouteReceipt}) then {_leadOperator doMove _destination}};
+        } else {_leadOperator doMove _destination};
         _leadProgress set [2,_attempts];
     };
     _leadProgress set [0,getPosATL _lead]; _leadProgress set [1,time];
@@ -638,15 +923,27 @@ _state set ["leadProgress", _leadProgress];
 private _followers = _state get "followers";
 private _speedLimits = _state get "speedLimits";
 private _pathOwners = _state getOrDefault ["pathOwners",createHashMap];
-private _pathAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+
 _state set ["pathOwners",_pathOwners];
 // Internal audit capture is local to this owner and resets each travelling callback.
 // It cannot grant authority, change any cap, or retain an unbounded time series.
 
+private _endpointAdvances=_state getOrDefault ["nativeEndpointAdvances",createHashMap];
+if (_captureControl) then {_state set ["nativeEndpointAdvances",_endpointAdvances]} else {_state deleteAt "nativeEndpointAdvances"};
+// Audit-only rolling command receipts survive the ordinary per-tick sample replacement.
+// Retain only currently registered identities, with32 events per follower and no broadcasts.
+private _nativeIssueHistory=createHashMap;
+if (_captureControl) then {
+    _nativeIssueHistory=_state getOrDefault ["nativeIssueHistory",createHashMap];
+    private _registeredKeys=_vehicles apply {netId _x};
+    {if !(_x in _registeredKeys) then {_nativeIssueHistory deleteAt _x}} forEach keys _nativeIssueHistory;
+    _state set ["nativeIssueHistory",_nativeIssueHistory];
+} else {_state deleteAt "nativeIssueHistory";_state deleteAt "nativeIssueSerial"};
 private _controlSamples=createHashMap;
 if (_captureControl) then {_state set ["controlSamples",_controlSamples]} else {_state deleteAt "controlSamples"};
 for "_i" from 1 to (count _vehicles - 1) do {
     private _vehicle = _vehicles select _i;
+    private _pathAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled;
     private _front = _vehicles select (_i - 1);
     private _record = _frontTrails get (netId _front);
     private _trail = _record select 0;
@@ -696,7 +993,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
         // the normal band or adding another stop/start threshold.
         private _excess=_controlGap-_gapHigh;
         private _catchupBoost=((_excess*sqrt _excess)*0.15) min 8;
-        _limit=(_limit+_catchupBoost) max 5;
+        _limit=_limit+_catchupBoost;
     };
     if (_controlGap < _gapLow) then {_limit = _limit min ((_frontSpeed-(_gapLow-_controlGap)*1.2) max 0)};
     private _controlSample=[];
@@ -708,6 +1005,17 @@ for "_i" from 1 to (count _vehicles - 1) do {
             [currentCommand _movementOperator,unitReady _vehicle,
                 +(expectedDestination _movementOperator),+(_progress param [5,[]]),
                 +(_progress param [6,[]]),_progress param [3,0]]];
+        // Audit-only measurement: radial policy previously reported lateral offset0,
+        // concealing the mode transition during a widely displaced recapture.
+        private _measurementBearing=getDir _front;
+        private _measurementAxis=[sin _measurementBearing,cos _measurementBearing,0];
+        private _measurementDelta=(getPosATL _front) vectorDiff (getPosATL _vehicle);
+        _measurementDelta set [2,0];
+        private _longitudinal=_measurementDelta vectorDotProduct _measurementAxis;
+        private _rawLateral=sqrt ((_gap*_gap-_longitudinal*_longitudinal) max 0);
+        _controlSample pushBack [["RADIAL","LONGITUDINAL"] select
+            (_headingDifference <= 25 && {_gap <= _desiredGap*1.8}),
+            _headingDifference,_longitudinal,_rawLateral];
     };
     // A stationary/braking predecessor must still constrain us inside the tolerance band.
     // Match the ordinary driving model in SI units, then convert its closing allowance
@@ -740,16 +1048,16 @@ for "_i" from 1 to (count _vehicles - 1) do {
     if (_captureControl) then {(_controlSample select 6) pushBack ["retainedPath",_retainedPathCap]};
     // Preserve normal aligned predecessor spacing. Its turning/reversing hull and
     // contact-range occupancy still constrain us, as do all other occupied vehicles.
-    private _traffic=if (_trafficAssistEnabled) then {
+    private _traffic=if (_pathAssistEnabled) then {
         [_vehicle,_limit/3.6,_front] call CBE_fnc_DrivingFollowingCap
     } else {[_limit/3.6,objNull,-1,time,0]};
     private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],_geometryContext] call CBE_fnc_DrivingTurnTrack;
     _geometryTracks set [netId _vehicle,_turn select 1];
-    private _nativeHint=if (_trafficAssistEnabled) then {
+    private _nativeHint=if (_pathAssistEnabled) then {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
     } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
     private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
-    private _vehicleGeometry=if (_trafficAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
+    private _vehicleGeometry=if (_pathAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};
     // Source-constraint yielding requires this follower's unchanged committed trail, actual
@@ -808,14 +1116,14 @@ for "_i" from 1 to (count _vehicles - 1) do {
             ["beforeInfantry",_preInfantryLimit],["afterInfantry",_limit]];
         _controlSamples set [_key,_controlSample];
     };
-    if ([] call _mayIssueDriving) then {
+    isNil {if ([_vehicle] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
+        _speedLimits set [_key,[_limit,time]];
         if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
         if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call CBE_fnc_DrivingGateRequest};
         _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-    };
-    _speedLimits set [_key,[_limit,time]];
+    }};;
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
     // next one-second trail sample looked like a new order and restarted engine planning.
@@ -852,13 +1160,19 @@ for "_i" from 1 to (count _vehicles - 1) do {
                         // speed controller remains responsible for the physical gap.
                         // Keep one movement controller during bounded recovery.
                         if (_native) then {
-                            _movementOperator doMove _recoveryTarget;
+                            private _nativeBefore=+(expectedDestination _movementOperator);
+                        private _nativeTaskBefore=currentCommand _movementOperator;
+                        _movementOperator doMove _recoveryTarget;
+                            _progress set [5,+_recoveryTarget];
+                            _progress set [13,[_group] call CBE_fnc_NativeOrderReceipt];
+                            _progress set [14,vectorMagnitude velocity _vehicle];
                             // This is our own successor MOVE, not an external diversion.
                             // Refresh the same seat/destination receipt used by normal commits.
                             _progress set [10,[driver _vehicle,_movementOperator,
                                 +(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
                             _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,
-                                driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                                driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_recoveryTarget,serverTime+2,_nativeTaskBefore],
+                                [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
                         } else {
                             // A native doMove competes with the retained steering path.
                             // Invalidate only its commitment so path refresh below
@@ -970,13 +1284,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (_captureControl) then {(_controlSample select 6) pushBack ["freshPath",_pathCap]};
                 _progress set [8,_pathCap];
                 _limit=_limit min _pathCap;
-                if ([] call _mayIssueDriving) then {
+                isNil {if ([_vehicle] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
+                    _speedLimits set [_key,[_limit,time]];
                     if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
                     _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
-                };
-                _speedLimits set [_key,[_limit,time]];
+                }};;
             };
             if (_native && {_path isNotEqualTo []}) then {
                 // Vehicles without steering support retain native pathfinding.
@@ -1016,18 +1330,101 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // cycle. Retask only when the committed point advances materially or the driver
                 // has actually stopped.
                 private _committedDestination=_progress param [5,[]];
-                if (count _committedDestination < 2
-                    || {_committedDestination distance2D _destination > 8}) then {
-                    if ([] call _mayIssueDriving) then {
+                private _nativeReceipt=_progress param [10,[],[[]]];
+                private _finishedLeg=count _committedDestination == 3 && {count _nativeReceipt == 4}
+                    && {local _vehicle} && {local _movementOperator}
+                    && {[_vehicle] call _convoyStopped} && {unitReady _movementOperator}
+                    && {currentCommand _movementOperator in ["","MOVE"]}
+                    && {_vehicle distance2D _committedDestination <= 3}
+                    && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedDestination) select 2)) <= 1.5}
+                    && {_committedDestination distance2D _destination > 3}
+                    && {(_nativeReceipt select 0) == driver _vehicle}
+                    && {(_nativeReceipt select 1) == _movementOperator}
+                    && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
+                    && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)};
+                // Audit-only last event per registered follower. Capture pre-command state;
+                // neither event presence nor command admission establishes physical travel.
+                private _endpointEvent=[];
+                if (_captureControl && {_finishedLeg}
+                    && {_committedDestination distance2D _destination <= 8}) then {
+                    _endpointEvent=[serverTime,_revision,_group getVariable ["CBE_AIPass_Epoch",0],
+                        driver _vehicle,_movementOperator,+_committedDestination,+_destination,
+                        getPosASL _vehicle,speed _vehicle,unitReady _movementOperator,
+                        currentCommand _movementOperator,+_nativeReceipt,+(velocity _vehicle),+(angularVelocity _vehicle)];
+                };
+                // An advancing point on the same straight leg is not itself a reason to
+                // cancel a native planner that still has approach room. Reuse the existing
+                // four-second reaction/deceleration model; preserve peak leg speed so native
+                // endpoint braking cannot shrink the refresh envelope away from the vehicle.
+                private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                private _goalAdvance=if (count _committedDestination == 3) then {_committedDestination distance2D _destination} else {0};
+                private _refreshNative=_goalAdvance > 8;
+                if (_refreshNative && {_straightPath} && {!_bypassPassageActive} && {_frontSpeed > 2}
+                    && {count _committedDestination == 3} && {count _nativeReceipt == 4}
+                    && {(_progress param [13,[],[[]]]) isEqualTo _nativeRoute}
+                    && {(_nativeReceipt select 0) == driver _vehicle}
+                    && {(_nativeReceipt select 1) == _movementOperator}
+                    && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
+                    && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)}
+                    && {currentCommand _movementOperator in ["","MOVE"]}
+                    && {abs ((_committedDestination select 2)-(_destination select 2)) <= 1.5}) then {
+                    private _towardOld=_vehicle getDir _committedDestination;
+                    private _towardNew=_committedDestination getDir _destination;
+                    private _advanceAngle=abs (((_towardNew-_towardOld+540) mod 360)-180);
+                    private _motion=vectorMagnitude velocity _vehicle;
+                    private _issuedMotion=_progress param [14,-1,[0]];
+                    if (_advanceAngle <= 5 && {finite _motion} && {finite _issuedMotion} && {_issuedMotion >= 0}) then {
+                        private _approachSpeed=_motion max _issuedMotion;
+                        _progress set [14,_approachSpeed];
+                        private _refreshRoom=_bodyGap+4*_approachSpeed+(_approachSpeed*_approachSpeed)/(2*_deceleration);
+                        private _remainingNative=_vehicle distance2D _committedDestination;
+                        if (_remainingNative > _refreshRoom) then {
+                            _refreshNative=false;
+                            if (_captureControl) then {(_controlSample select 9) pushBack ["CONTINUE",
+                                +_committedDestination,+_destination,_remainingNative,_refreshRoom]};
+                        };
+                    };
+                };
+                if (!(_vehicle in _nativePendingVehicles) && {count _committedDestination < 2 || {_refreshNative} || {_finishedLeg}}) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        private _issueEvent=[];
+                        private _issueHistory=[];
+                        if (_captureControl) then {
+                            _issueHistory=+(_nativeIssueHistory getOrDefault [_key,[]]);
+                            private _last=_issueHistory param [(count _issueHistory)-1,[]];
+                            private _serial=(_state getOrDefault ["nativeIssueSerial",0])+1;
+                            private _age=if (_last isEqualTo []) then {-1} else {diag_tickTime-(_last select 1)};
+                            private _cause=if (count _committedDestination < 2) then {"FIRST"} else {
+                                ["ADVANCED","FINISHED"] select _finishedLeg
+                            };
+                            _issueEvent=[_serial,diag_tickTime,serverTime,_revision,
+                                _group getVariable ["CBE_AIPass_Epoch",0],netId driver _vehicle,netId _movementOperator,
+                                +(velocityModelSpace _vehicle),getPosASL _vehicle,currentCommand _movementOperator,
+                                +_committedDestination,+_destination,
+                                if (count _committedDestination == 3) then {_vehicle distance2D _committedDestination} else {-1},
+                                _age,_cause];
+                        };
+                        private _nativeBefore=+(expectedDestination _movementOperator);
+                        private _nativeTaskBefore=currentCommand _movementOperator;
                         _movementOperator doMove _destination;
+                        if (_captureControl) then {
+                            _state set ["nativeIssueSerial",_issueEvent select 0];
+                            _issueHistory pushBack _issueEvent;
+                            if (count _issueHistory > 32) then {_issueHistory deleteRange [0,count _issueHistory-32]};
+                            _nativeIssueHistory set [_key,_issueHistory];
+                        };
+                        if (_endpointEvent isNotEqualTo []) then {_endpointAdvances set [_key,_endpointEvent]};
                         if (_captureControl) then {(_controlSample select 9) pushBack ["NATIVE",+_destination,_frontSpeed,_joining,_straightPath]};
                         _progress set [5,+_destination];
                         _progress set [12,+_recordedDestination];
+                        _progress set [13,+_nativeRoute];
+                        _progress set [14,vectorMagnitude velocity _vehicle];
                         _progress set [9,+_path];
                         _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,_nativeBefore,"NATIVE",[+_destination,serverTime+2,_nativeTaskBefore],
+                            [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
                         _progress set [7,false];
-                    };
+                    }};;
                 };
                 _progress set [2, time + 1];
             } else {
@@ -1035,19 +1432,40 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     // Normal AI must relinquish its formation movement before path driving.
                     // Stop once per acquisition, not on every refreshed path (which would cancel it).
                     if (!(_pathOwners getOrDefault [_key,false])) then {
-                        if ([] call _mayIssueDriving) then {
+                        isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
                             doStop driver _vehicle;
                             _pathOwners set [_key,true];
-                        };
+                        }};;
                     };
                     // Commit a useful predecessor segment and refresh only when its endpoint advances.
                     // forceSpeed above owns continuous spacing/braking; embedding a new speed in a
                     // replacement path every second restarted steering and produced stop/start waves.
                     private _pathDestination=_path select ((count _path)-1);
                     private _committedPathDestination=_progress param [6,[]];
+                    // A slow predecessor may advance less than8m after this leg ends.
+                    // Continue only our exact stopped steering lease on fresh ordered trail;
+                    // do not repeatedly refresh a still-moving native steering decision.
+                    private _steeringLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
+                    private _steeringReceipt=_progress param [10,[],[[]]];
+                    private _finishedSteering=count _committedPathDestination == 3
+                        && {count _steeringLease == 8} && {count _steeringReceipt == 4}
+                        && {_limit > 0} && {[_vehicle] call _convoyStopped}
+                        && {_vehicle distance2D _committedPathDestination <= 3}
+                        && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedPathDestination) select 2)) <= 1.5}
+                        && {_committedPathDestination distance2D _pathDestination > 3}
+                        && {(_steeringLease select [0,3]) isEqualTo [_group,_revision,_group getVariable ["CBE_AIPass_Epoch",0]]}
+                        && {(_steeringLease select 3) == driver _vehicle}
+                        && {(_steeringLease select 4) == _movementOperator}
+                        && {(_steeringLease select 6) isEqualTo _committedPathDestination}
+                        && {(expectedDestination _movementOperator) isEqualTo (_steeringLease select 5)}
+                        && {(expectedDestination driver _vehicle) isEqualTo (_steeringLease select 7)}
+                        && {(_steeringReceipt select [0,2]) isEqualTo [driver _vehicle,_movementOperator]}
+                        && {(expectedDestination driver _vehicle) isEqualTo (_steeringReceipt select 2)}
+                        && {(expectedDestination _movementOperator) isEqualTo (_steeringReceipt select 3)};
                     if (count _committedPathDestination < 2
-                        || {_committedPathDestination distance2D _pathDestination > 8}) then {
-                        if ([] call _mayIssueDriving) then {
+                        || {_committedPathDestination distance2D _pathDestination > 8} || {_finishedSteering}) then {
+                        isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
                             _vehicle setDriveOnPath _path;
                             if (_captureControl) then {(_controlSample select 9) pushBack ["STEERING",+_pathDestination,count _path]};
                             // This is movement ownership evidence, never proof the path executed.
@@ -1055,12 +1473,13 @@ for "_i" from 1 to (count _vehicles - 1) do {
                             // cannot cancel a later native destination or a changed driver/operator.
                             _vehicle setVariable ["CBE_Convoy_PathLease",[_group,_revision,
                                 _group getVariable ["CBE_AIPass_Epoch",0],driver _vehicle,_movementOperator,
-                                +(expectedDestination _movementOperator),+_pathDestination],true];
+                                +(expectedDestination _movementOperator),+_pathDestination,+(expectedDestination driver _vehicle)],true];
                             _progress set [6,+_pathDestination];
                             _progress set [9,+_path];
                             _progress set [10,[driver _vehicle,_movementOperator,+(expectedDestination driver _vehicle),+(expectedDestination _movementOperator)]];
-                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator)],true];
-                        };
+                        _vehicle setVariable ["CBE_Convoy_MovementReceipt",[_group,_revision,driver _vehicle,_movementOperator,+(expectedDestination _movementOperator),"STEERING",[],
+                            [currentCommand driver _vehicle,+(expectedDestination driver _vehicle)]],true];
+                        }};;
                     };
                     _progress set [2, time + 1];
                 };
@@ -1075,14 +1494,22 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // Retain an existing native destination. Before the first commitment,
                 // hold once so the leader's formation cannot pull us alongside it.
                 if (count (_progress param [5,[]]) < 2
-                    && {!(_progress param [7,false])} && {[] call _mayIssueDriving}) then {
-                    doStop _movementOperator;
-                    _vehicle setConvoySeparation _desiredGap;
-                    _progress set [7,true];
+                    && {!(_progress param [7,false])}) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+                        doStop _movementOperator;
+                        _vehicle setConvoySeparation _desiredGap;
+                        _progress set [7,true];
+                    }};
                 };
             } else {
-                if (!(_pathOwners getOrDefault [_key,false]) && {[] call _mayIssueDriving}) then {doStop driver _vehicle};
-                _pathOwners set [_key,true];
+                if (!(_pathOwners getOrDefault [_key,false])) then {
+                    isNil {if ([_vehicle,_movementOperator] call _mayIssueDriving) then {
+                        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+                        doStop driver _vehicle;
+                        _pathOwners set [_key,true];
+                    }};
+                };
             };
             _progress set [2, time + 1];
         };

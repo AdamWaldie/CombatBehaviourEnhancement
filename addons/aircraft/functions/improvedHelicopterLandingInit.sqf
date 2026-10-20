@@ -69,6 +69,10 @@ private _install = {
                 if (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]) then {
                     [_helicopter, false, "", true] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
                 };
+                private _featureRelease=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease",[]];
+                if (_featureRelease isEqualType [] && {count _featureRelease == 2}) then {
+                    [_helicopter,_featureRelease] call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal;
+                };
                 _helicopter setVariable ["CBE_ImprovedHelicopterLanding_TrackedLocal", true];
                 missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", true];
                 [] call CBE_fnc_SchedulerReconcile;

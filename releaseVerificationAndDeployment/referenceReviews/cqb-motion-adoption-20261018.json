@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "scope": "CQB native-motion receipt adoption",
+  "source_intent": "Preserve useful native paths and ownership through true CLEAR resume; no movement replay or refreshed retry lifetime. LAMBS assault intent remains method reference, no new upstream code copied.",
+  "implementation": [
+    "Episode nonce and actual native command proof",
+    "Metadata-only owner adoption",
+    "Coalesced room callback publication",
+    "Exact-context terminal retirement"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-motion-adoption-build.log",
+    "exit": 0,
+    "tests": 1225,
+    "production_sqf": 324,
+    "pbos": 9,
+    "physical": "unrun; audits paused"
+  },
+  "open": [
+    "Native acknowledgement and replication timing",
+    "Promoted reserve transfer before receipt publication",
+    "Resume roster ordering",
+    "Physical flow and performance budget"
+  ],
+  "acceptance": "partial"
+}

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Ordinary-driving native driver replacement, not convoy passenger unloading",
+  "findings": [
+    "Seat actions admitted forward-axis stationary observations despite lateral/rotating motion",
+    "An issued native seat switch physically completed before the next sample could be cancelled because its new driver had already started moving"
+  ],
+  "implementation": [
+    "Fresh finite total linear <1km/h/angular <0.01rad/s motion at both atomic action boundaries",
+    "Read-only completion for SWITCHING candidate physically in driver seat, retaining remaining _available guards",
+    "No read-only completion branch for unissued READY; no new seat/movement command from confirmation",
+    "Original action deadline and command/assignment/reservation guards retained"
+  ],
+  "validation": {
+    "tests": 1423,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-driver-switch-motion-final-build.log",
+    "unsigned_fingerprint": "18db038885bfb128a21d49ae185aee5a8ab5d9076a1e535cb6d60ab49dc4936e",
+    "physical": false
+  },
+  "remaining": [
+    "Native seat completion and threshold behaviour require engine evidence",
+    "Other _available conditions can still reject completion; this is not restored-mobility acceptance",
+    "Convoy passenger unload motion check remains separate and forward-speed-only",
+    "Performance unmeasured; audits paused"
+  ]
+}

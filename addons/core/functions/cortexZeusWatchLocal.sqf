@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Repeat/JIP: Versioned local handler installation removes obsolete handlers before replacement. Each joining interface installs its own watcher.
+ * Repeat/JIP: Each joining interface installs its own watcher; each curator receives handlers once.
  * Installs, on each player's machine, the curator event handlers that give Zeus priority over the
  * Smart AI Pass.
  *
@@ -11,14 +11,14 @@
  * - object edited (moved or rotated);
  * - waypoint placed, edited and deleted.
  * Each calls CBE_fnc_CortexZeusMark for the affected group, so the pass releases it and leaves it
- * alone while Zeus commands it. Placed events supply group plus waypoint ID; edited, deleted and
+ * alone while Zeus commands it. Placed and edited events supply group plus waypoint ID; deleted and
  * double-clicked events supply the waypoint array. The exact index is forwarded so cleanup never has
  * to rediscover a mutable currentWaypoint. Curator event handlers fire only on the curator's machine, which is why
  * this runs on clients even though the pass itself never does. The handlers cost nothing until Zeus
  * acts, and send nothing while the pass is disabled.
  * Locality and authority: interface clients only; repeat-safe, JIP-safe.
  *
- * Review contract: Placed events carry a group and waypoint ID; edited, deleted and double-clicked
+ * Review contract: Placed/edited events carry a group and waypoint ID; deleted and double-clicked
  * events carry a waypoint array. Installation is repeat-safe per curator and local to each joining interface client.
  *
  * Arguments: None.
@@ -53,10 +53,12 @@ private _install = {
             [[_entity] call (missionNamespace getVariable ["CBE_AIPass_ZeusObjectGroup", {grpNull}])] call CBE_fnc_CortexZeusMark;
         }];
     } forEach ["CuratorObjectDoubleClicked", "CuratorObjectEdited"];
-    _curator addEventHandler ["CuratorWaypointPlaced", {
-        params ["", "_group", "_waypointID"];
-        [_group,true,_waypointID] call CBE_fnc_CortexZeusMark;
-    }];
+    {
+        _curator addEventHandler [_x, {
+            params ["", "_group", "_waypointID"];
+            [_group,true,_waypointID] call CBE_fnc_CortexZeusMark;
+        }];
+    } forEach ["CuratorWaypointPlaced", "CuratorWaypointEdited"];
     {
         _curator addEventHandler [_x, {
             params ["", "_waypoint"];
@@ -64,7 +66,7 @@ private _install = {
                 [_waypoint select 0,true,_waypoint select 1] call CBE_fnc_CortexZeusMark
             };
         }];
-    } forEach ["CuratorWaypointEdited", "CuratorWaypointDeleted", "CuratorWaypointDoubleClicked"];
+    } forEach ["CuratorWaypointDeleted", "CuratorWaypointDoubleClicked"];
 };
 missionNamespace setVariable ["CBE_AIPass_ZeusInstallLocal", _install];
 ["zen_curatorDisplayLoaded", _install] call CBA_fnc_addEventHandler;

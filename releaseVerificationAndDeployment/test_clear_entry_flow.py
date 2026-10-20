@@ -3,6 +3,42 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class ClearEntryFlowTests(unittest.TestCase):
+    def test_yielded_room_recovery_does_not_reset_its_progress_clock(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        branch=s.split('if (_recovery in ["RECOVERING","YIELDED"]) then {',1)[1].split('private _failedCheckpoint=',1)[0]
+        issued=branch.split('if (_recovery == "RECOVERING") then {',1)[1].split('};',1)[0]
+        self.assertIn('_lastProgress=_now',issued)
+        self.assertIn('_lastPositions=_pair apply',issued)
+        after=branch.split('};',1)[1]
+        self.assertNotIn('_lastProgress=',after)
+        self.assertNotIn('_lastPositions=',after)
+        self.assertIn('_retries=[0,3] select (_recovery == "YIELDED")',after)
+
+    def test_partner_recovery_preserves_exact_native_planning_without_new_receipt(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]
+        for guard in ('movementRequestTimes','(_planningRequest select 0) isNotEqualTo _target','_requestAge < 30',
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]','_requestAge < 2'):
+            self.assertIn(guard,observation)
+        self.assertNotIn(' set [',observation)
+        self.assertNotIn('doMove',observation)
+        # Planner transitions do not restart the original issue age or grant ownership.
+        def awaited(age,owned,state):
+            return age>=0 and (age<2 or (age<30 and owned and state in ('INIT','PLANNING','REPLAN','BUSY')))
+        for state in ('INIT','PLANNING','REPLAN','BUSY'):
+            self.assertTrue(awaited(29,True,state))
+            self.assertFalse(awaited(30,True,state))
+            self.assertFalse(awaited(10,False,state))
+        for state in ('INITFAILED','DELAY','STOPPED','OK'):
+            self.assertFalse(awaited(10,True,state))
+        self.assertFalse(awaited(-1,True,'REPLAN'))
+
+        recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
+        self.assertLess(recovery.index('call _nativeMoveAwaited'),recovery.index('call CBE_fnc_RecoveryStep'))
+        self.assertIn('private _result="YIELDED"',recovery)
+        alternate=s.split('if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}',1)[1].split('private _pose=',1)[0]
+        self.assertIn('!([_partner,_entryTarget] call _nativeMoveAwaited)',alternate)
+
     def test_provisional_recovery_target_does_not_preempt_distinct_support_selection(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         recovery=s.split('// Partner entry recovery is independent',1)[1].split('private _entryRecovery=',1)[0]
@@ -10,20 +46,30 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertIn('_job set ["pairEntryTargets",_entryTargets]',recovery)
         self.assertNotIn('_entryTargets set [_entryKey',recovery)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces'):
+        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces','_entryProbes >= 4','_roomGeometryBudget <= 8','_roomGeometryBudget=_roomGeometryBudget-1'):
             self.assertIn(gate,support)
         self.assertIn('_entryTargets set [_entryKey,+_supportTarget]',support)
+        # Proposal ranking cannot spend the final eight physical-observation probes.
+        for initial in range(17):
+            budget=initial
+            for _pair in range(4):
+                for _probe in range(4):
+                    if budget <= 8:
+                        break
+                    budget-=1
+            self.assertEqual(budget,min(initial,8))
+
     def test_new_destinations_prefer_live_unoccupied_nodes_without_reserving_queue(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         helper=s.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]
-        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','getPosASL _actor','simulationEnabled','isObjectHidden'):
+        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','_occupied pushBack (getPosATL _actor)','simulationEnabled','isObjectHidden'):
             self.assertIn(gate,helper)
         self.assertNotIn('doMove',helper)
         claim=s.split('// Prefer free room destinations',1)[1].split('private _point=',1)[0]
         self.assertIn('if (_freeCandidates isNotEqualTo [])',claim)
         self.assertNotIn('deleteAt',claim)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        self.assertIn('private _ranked=_freeRanks+_busyRanks',support)
+        self.assertIn('private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks}',support)
         self.assertIn('if (_supportTarget isEqualTo [])',support)
         # Distinct lead claims alone cannot prevent two buddies choosing the midpoint.
         points=[(0,0),(6,0),(3,0),(3,4)]

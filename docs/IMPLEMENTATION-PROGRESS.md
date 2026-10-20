@@ -1,3 +1,7 @@
+## Build-out and acceptance are separate
+
+See [Build-out progress](BUILDOUT-PROGRESS.md) for capability-scored implementation estimates and explicit remaining build gaps. Its ledger retains all65 feature families; unassessed scope is unknown, not zero. The acceptance register and historical evidence below remain separate. Physical failures guide further implementation but missing acceptance alone earns no build-out penalty.
+
 ## Corrected module scope
 
 The ordinary-driving enable/release/inspect native and ZEN modules, their settings transport and

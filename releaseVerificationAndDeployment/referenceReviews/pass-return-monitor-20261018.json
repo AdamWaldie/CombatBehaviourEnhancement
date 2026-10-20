@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Live traffic and progress during experimental passing RETURN",
+  "sources": {
+    "addons/vehicles/functions/drivingPassStep.sqf": "c9db4376a9928c7469ed8df570745c739f1885767766d4966df93313fb011ca5"
+  },
+  "finding": "RETURN checked only target proximity and global consent expiry; it bypassed OUT traffic/progress/combat observation and peer-context invalidation.",
+  "change": "Record active joined path/travel at issue. Each RETURN callback observes current corridor traffic before arrival, keeps original expiry, stops owned path on changed peer context/alignment, refused traffic, combat/stealth or15s without1m target progress. No inferred clear merge or automatic redirection on failure.",
+  "validation": {
+    "tests": 1182,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-pass-return-monitor-build.log",
+    "fingerprint": "9f2dbb0c515732fbc8e60ea76a3af6fbb1eabf566f1a4f108602ae3a53e17119",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "f4b10373 parent plus tracked source diff, dirty build; not signed release"
+  },
+  "limits": [
+    "One additional existing RETURN-callback traffic query; bound1250m/64candidates/127segments, actual cost not measured.",
+    "Full issued corridor remains conservative, including passed stations; no continuous swept-volume or turning prediction.",
+    "STOP on blocked merge is failure containment, not complete queue recovery or proof of a safe stopping position.",
+    "Current epoch/route/crew/order ownership must allow cleanup; newer commands/controllers remain protected.",
+    "Road-pass fixture remains prepared/unrun; no new physical or performance acceptance.",
+    "Whole HBQ/native bilateral queue execution remains incomplete. All65 feature families partial."
+  ]
+}

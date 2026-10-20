@@ -1,5 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
+ * Admission snapshots both native crew commands before geometry, then atomically rechecks
+ * the actual controller, seats, authored route and area transform before issue/publication.
+ * APPROACH-to-CROSS rechecks current work, entry pose, area, task and deadline atomically
+ * with both native stops, fixed-path issue and CROSS command receipts.
  * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
@@ -9,6 +13,10 @@
  * ATTACK and unowned CBE remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
  * Individual actor reservations on either seat veto acquisition and every later command.
+ * Native BACK/direct-commander/turn input vetoes steering; incompatible CROSS crew tasks
+ * retire metadata without recalling the actors. Identical repeated STOP remains indistinguishable.
+ * CROSS compares actual height with the interpolated approved ASL support profile through
+ * the area, rejecting a different floor before entry/completion credit; no fresh rays are added.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -16,7 +24,7 @@
  * 3 controller <STRING, ORDINARY> - ORDINARY or CONVOY; never admits convoy followers.
  * Return Value: ARRAY [active BOOL, taskCapMps NUMBER, phase STRING]. False grants no movement.
  * Cost: At most 32 passive area rows per admission; one geometry proposal per eligible area after
- * metadata selection, bounded to 231 rays. Failed proposals and terminal episodes cool down for
+ * metadata selection by total approach/crossing/onward distance, bounded to 231 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
  * Current callers: DrivingAssistStart and ConvoyTick; registered areas come from server task dispatch.
  * Example: private _corridor=[_group,_vehicle,_brain] call CBE_fnc_DrivingCorridorStep;
@@ -81,16 +89,21 @@ private _controllerCurrent={
             && {_mobile findIf {!local _x || {!local driver _x}} < 0}
             && {_vehicle getVariable ["CBE_Convoy_Active",false]}
             && {(_vehicle getVariable ["CBE_Convoy_Group",grpNull]) == _group}
-            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+            && {[_group,"CBE_Convoy_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
             && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     };
     (_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
         && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_brain getOrDefault ["route",[]]) isEqualTo _route}
-        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}
+};
+private _nativeSteeringFree={
+    private _input=vehicleMoveInfo _vehicle;
+    !(toUpperANSI (_input param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+        && {!(toUpperANSI (_input param [1,""]) in ["LEFT","RIGHT"])}
 };
 private _mayWrite={
     !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
@@ -104,7 +117,7 @@ private _mayWrite={
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {call _crewReady}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
-        && {isAISteeringComponentEnabled _vehicle}
+        && {isAISteeringComponentEnabled _vehicle} && {call _nativeSteeringFree}
 };
 if (!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}) exitWith {_inactive};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
@@ -137,6 +150,10 @@ if (count _work > 0) exitWith {
         || {(_work getOrDefault ["phase",""]) == "CROSS" && {
             (expectedDestination _driver) isNotEqualTo (_work getOrDefault ["driverCommand",[]])
         }}) then {_reason="COMMAND_CHANGED"};
+    if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "CROSS"}
+        && {[_driver,_operator] findIf {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT","STOP"])} >= 0}) then {
+        _reason="COMMAND_CHANGED";
+    };
     if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "APPROACH"}
         && {!(call _approachTasksReady)}) then {_reason="COMMAND_CHANGED"};
     if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {
@@ -164,8 +181,24 @@ if (count _work > 0) exitWith {
             && {(vectorNormalized _forward) vectorDotProduct (_work get "travel") >= 0.85}
             && {call _mayWrite} && {call _approachTasksReady}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}) then {
+            // Admission and the exact command/receipt transition share one unscheduled
+            // boundary. Scheduled approach observations cannot override a newer area/order.
+            isNil {
+                private _now=getPosASL _vehicle;
+                private _direction=vectorDir _vehicle;_direction set [2,0];
+                if (!(call _mayWrite) || {!(call _approachTasksReady)}
+                    || {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isNotEqualTo _work}
+                    || {(_work getOrDefault ["phase",""]) != "APPROACH"}
+                    || {serverTime >= (_work get "deadline")}
+                    || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
+                    || {isNull _area}
+                    || {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isNotEqualTo _definition}
+                    || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo (_work get "transform")}
+                    || {_now distance2D _entry > 8} || {abs ((_now select 2)-(_entry select 2)) > 2}
+                    || {(vectorNormalized _direction) vectorDotProduct (_work get "travel") < 0.85}) exitWith {};
             // Detach only these two owned native movement actors. Do not disable any AI
             // feature, change leader/seats or replay a group-wide stop over other vehicles.
+            [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
             if (_operator != _driver) then {doStop _operator};
             doStop _driver;
             _vehicle setDriveOnPath _points;
@@ -174,6 +207,7 @@ if (count _work > 0) exitWith {
             _work set ["driverCommand",+(expectedDestination _driver)];
             _work set ["deadline",(_work get "hardDeadline") min (serverTime+(_definition select 1)+45)];
             _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];_phase="CROSS";
+            };
         };
     };
     if (_phase == "CROSS") then {
@@ -197,6 +231,28 @@ if (count _work > 0) exitWith {
                 };
             } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];
         } forEach [_low select 0,_high select 0];
+        // Compare actual origin height with the approved support profile while inside the
+        // corridor. Horizontal entry/exit alone cannot distinguish a bridge deck from its underpass.
+        // The proposal is straight and ordered along travel; at most twenty stored ASL nodes.
+        if (abs _projection <= _halfLength+5) then {
+            private _expectedFloor=[];
+            if (count _asl >= 2 && {count _asl <= 20}) then {
+                for "_i" from 1 to (count _asl-1) do {
+                    private _a=_asl select (_i-1);private _b=_asl select _i;
+                    private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
+                    private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
+                    if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
+                        private _fraction=(_projection-_pa)/(_pb-_pa);
+                        _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
+                    };
+                };
+            };
+            if (_expectedFloor isEqualTo [] || {abs ((_origin select 2)-(_expectedFloor select 0)) > 2}) then {
+                _crossed=false;
+                [_vehicle,_group,"CORRIDOR_FLOOR_DEPARTED"] call CBE_fnc_DrivingCorridorRelease;
+            };
+        };
+        if (isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}) exitWith {};
         // An exit pose alone cannot prove corridor passage after a detour around the area.
         // Observe the near plane in order, preserve it across migration, and reject lateral departure.
         if (!_withinWidth && {abs _projection <= _halfLength}) exitWith {
@@ -223,6 +279,18 @@ if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configura
 private _destination=waypointPosition _waypoint;
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
 if !(call _nativeAdmissionReady) exitWith {_inactive};
+// Geometry may yield in scheduled execution. Keep both original native seat receipts.
+private _admissionNative=[_driver,_operator] apply {
+    [_x,toUpperANSI currentCommand _x,
+        (expectedDestination _x) apply {if (_x isEqualType []) then {+_x} else {_x}}]
+};
+private _admissionCurrent={
+    _admissionNative findIf {
+        _x params ["_actor","_command","_destination"];
+        toUpperANSI currentCommand _actor != _command
+            || {(expectedDestination _actor) isNotEqualTo _destination}
+    } < 0
+};
 private _snapshot=missionNamespace getVariable ["CBE_DrivingCorridor_Snapshot",[0,[]]];
 private _records=_snapshot param [1,[]];
 if (count _records > 32) exitWith {_inactive};
@@ -246,10 +314,10 @@ private _selected=[];private _best=1e9;
                 private _entry=_centre vectorAdd (_axis vectorMultiply ((_halfLength+10)*_side));
                 private _exit=_centre vectorDiff (_axis vectorMultiply ((_halfLength+10)*_side));
                 private _distance=_origin distance2D _entry;
-                if (_distance < 400 && {_distance < _best}
-                    && {_distance+(_entry distance2D _exit)+(_exit distance2D _destination)
-                        < 1.5*(_origin distance2D _destination)+100}) then {
-                    _best=_distance;_selected=[_area,_definition,_transform,_context,_side,_axis];
+                private _via=_distance+(_entry distance2D _exit)+(_exit distance2D _destination);
+                if (_distance < 400 && {_via < _best}
+                    && {_via < 1.5*(_origin distance2D _destination)+100}) then {
+                    _best=_via;_selected=[_area,_definition,_transform,_context,_side,_axis];
                 };
             };
         };
@@ -278,7 +346,7 @@ if (!(_proposal select 0)) exitWith {
     _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
     _vehicle setVariable ["CBE_DrivingCorridor_Result",[_proposal select 1,serverTime,_area,"ADMISSION"],true];_inactive
 };
-if (!(call _mayWrite) || {(expectedDestination _operator) isNotEqualTo _native}
+if (!(call _mayWrite) || {!(call _admissionCurrent)}
     || {_vehicle distance2D ((_proposal select 2) select 0) > 400}
     || {(_proposal select 4) isNotEqualTo _transform}) exitWith {_inactive};
 private _points=_proposal select 2;private _asl=_proposal select 3;
@@ -304,14 +372,24 @@ if (_exitRoom < _requiredRoom) exitWith {
 };
 private _tailSpeed=((_definition select 3) min (_configuration param [1,_definition select 3]))/3.6;
 private _tailDeadline=serverTime+((120+(_definition select 1)+45+60+_tailLength/(_tailSpeed max 1.39)) min 1800);
-if (!(call _mayWrite) || {!(call _nativeAdmissionReady)}) exitWith {_inactive};
-_operator doMove (_points select 0);
-_work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
-    ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
-    ["context",_context],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
-    ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
-    ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
-    ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
-    ["command",+(expectedDestination _operator)]];
-_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
+private _admitted=false;
+isNil {
+    if (call _mayWrite && {call _nativeAdmissionReady} && {call _admissionCurrent}
+        && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
+        && {!isNull _area}
+        && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition}
+        && {[getPosWorld _area,vectorDir _area,vectorUp _area] isEqualTo _transform}) then {
+        _operator doMove (_points select 0);
+        _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
+            ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
+            ["context",_context],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+            ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
+            ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
+            ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
+            ["command",+(expectedDestination _operator)]];
+        _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
+        _admitted=true;
+    };
+};
+if (!_admitted) exitWith {_inactive};
 [true,(_definition select 3)/3.6,"CORRIDOR_APPROACH"]

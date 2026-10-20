@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm authored foot travel can request near unlocked doors through its existing tick,
+ * independently of autonomous Contact decisions and without acquiring movement.
+ * Natural contact escalation defers mission STEALTH while passive reports and native self-defence remain available.
  * Contact-loss cleanup waits for a matching owner/generation CLEAR FSM to finish or cancel;
  * its independent finite deadlines and newer mission/Zeus orders retain authority.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
@@ -11,13 +14,16 @@
  * manoeuvre authority. Casualty succession selects a living,
  * conscious local successor by rank before leader-dependent tactics; combat-effective leaders are preserved.
  *
+ * REGROUP journals each actual native destination and authored route; retries yield to replacement
+ * commands or service tasks. A committed move retires only that actor's completed-hold receipt.
+ *
  * State ladder with post-contact search and hysteresis:
  * CALM -> CONTACT when an enemy was seen in the last 10 s.
  * CALM -> INVESTIGATE when the squad knows about an enemy within
  *   CBE_AIPass_Investigate_Range that it has not seen, for example one revealed by a contact report
  *   or heard firing, and the behaviour profile permits investigation. This is a deterministic tactical
  *   eligibility decision rather than a random permission to act. Within 150 m, two riflemen check
- *   the believed position while the rest watch it; a small
+ *   the believed position while available support actors briefly glance toward it; a small
  *   squad, or any farther contact, has the whole squad move up together. It ends after
  *   CBE_AIPass_Investigate_Seconds or on arrival, back in CALM.
  * CONTACT -> SECURITY after CBE_AIPass_PostContact_LostSeconds without a sighting and after any
@@ -35,6 +41,9 @@
  * preserve a live actor-level grenade-evasion or anti-armour move instead of issuing formation
  * commands over it. REGROUP only recalls separated members, never clears their combat targets,
  * and waits for a short owned actor move before declaring the squad cohesive.
+ * CALM investigation publishes phase, cooldown and participants only after an actual actor
+ * MOVE or accepted group waypoint. Busy individual-search actors defer without a squad-route
+ * fallback; native STOP/FOLLOW/planning are not ordinary idle admission.
  * Disabling investigation or post-contact while its phase is active immediately uses the normal
  * CALM restoration path; a runtime switch cannot leave old search movement alive until timeout.
  * A reinforcement responder whose requester returns to CALM rejects its server reservation and
@@ -80,6 +89,8 @@
  *
  * Review contract: Waypoint completion compares tagged indices with currentWaypoint; completed waypoints may remain in the engine list. This allows optional rally arrival and retreat completion to be detected.
  *
+ * Holder recall retires metadata only for actually issued native follow commands; refused actors
+ * remain pending. Current state/epoch/generation and actor task gates bind the command transaction.
  * Repeat/JIP: current feature gates and eligibility are rechecked, including active phase gates;
  * owner jobs are retired on migration.
  * Arguments:
@@ -356,14 +367,17 @@ if (count _activeDrill > 0) then {
 private _reverseRecord=_group getVariable ["CBE_VehicleReverse",[]];
 if (count _reverseRecord == 9) then {
     private _reverseResult=[_group,_state,_reverseRecord select 0,_reverseRecord select 4,"STEP",_reverseRecord select 1] call CBE_fnc_CortexVehicleReverseStep;
+    isNil {
     if (_reverseResult in ["COMPLETE","FALLBACK"] && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {(_group getVariable ["CBE_VehicleReverse",[]]) isEqualTo []}
+        && {(_reverseRecord select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_state getOrDefault ["phase",""]) == "RETREAT"}
         && {private _current=_group getVariable ["CBE_Operation",createHashMap];
             (_current getOrDefault ["generation",-1]) == (_reverseRecord select 1)
                 && {(_current getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}}) then {
         private _escape=_state getOrDefault ["retreatTarget",[]];
         if (count _escape >= 2) then {
-            private _fallback=[_group,_escape,40] call CBE_fnc_CortexGroupMove;
+            private _fallback=[_group,_escape,40,"MOVE",_reverseRecord select 1] call CBE_fnc_CortexGroupMove;
             _group setVariable ["CBE_VehicleReverseFallback",[serverTime,_reverseResult,
                 _reverseRecord select 1,_state getOrDefault ["phase",""],+_escape,_fallback,
                 (units _group) apply {[netId _x,currentCommand _x]}],true];
@@ -375,6 +389,55 @@ if (count _reverseRecord == 9) then {
                 _reverseRecord select 1,_state getOrDefault ["phase",""],
                 _current getOrDefault ["intent",""],_current getOrDefault ["generation",-1],
                 [_group] call CBE_fnc_CortexExternalTakeover],true];
+        };
+    };
+    };
+};
+// Pending tokens retire once relocation starts. Its current operation still retains
+// the original purpose/session so off/on cannot revive an already moving old episode.
+private _scootLease=_state getOrDefault ["movementLease",[]];
+if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
+    private _scootOperation=_group getVariable ["CBE_Operation",createHashMap];
+    private _scootAuthority=+(_group getVariable ["CBE_Cortex_MovementLease",[]]);
+    private _scootGeneration=_state getOrDefault ["artilleryScootOperationGeneration",-1];
+    if ((_scootOperation getOrDefault ["intent",""]) == "ARTILLERY_SCOOT"
+        && {(_scootOperation getOrDefault ["generation",-2]) == _scootGeneration}
+        && {(_scootOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+        private _record=_scootOperation getOrDefault ["artilleryScootSession",[]];
+        private _valid=_record isEqualType [] && {count _record == 2};
+        if (_valid) then {
+            private _battery=_record select 0;private _session=_record select 1;
+            _valid=_battery isEqualType objNull && {!isNull _battery} && {alive _battery}
+                && {local _battery} && {group driver _battery == _group}
+                && {_session isEqualType []} && {count _session == 5};
+            if (_valid) then {
+                private _purpose=_session select 4;private _counter=_purpose == "COUNTER";
+                private _epochName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter;
+                private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
+                private _setting=["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter;
+                _valid=_purpose in ["SUPPORT","COUNTER"]
+                    && {(_session select 1) == (missionNamespace getVariable [_epochName,0])}
+                    && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
+                    && {missionNamespace getVariable [_setting,true]}
+                    && {[_group,_feature,false] call CBE_fnc_CortexFeatureEnabled};
+            };
+        };
+        if (!_valid) then {
+            if ([_group,_scootGeneration,"SCOOT_SESSION_ENDED"] call CBE_fnc_OperationCancel) then {
+                // Cleanup can call other lifecycle helpers. A successor generation/lease
+                // must survive; clear bookkeeping only while the cancelled identity remains.
+                isNil {
+                    if (local _group && {(_group getVariable ["CBE_OperationGeneration",-2]) == _scootGeneration}
+                        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+                        && {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isEqualTo _scootAuthority}
+                        && {(_state getOrDefault ["movementLease",[]]) isEqualTo _scootLease}
+                        && {(_state getOrDefault ["artilleryScootOperationGeneration",-1]) == _scootGeneration}) then {
+                        [_group,"ARTILLERY_SCOOT",false] call CBE_fnc_CortexOwnershipLease;
+                        _state deleteAt "movementLease";
+                        _state deleteAt "artilleryScootOperationGeneration";
+                    };
+                };
+            };
         };
     };
 };
@@ -594,6 +657,13 @@ private _delay = switch (true) do {
     case (_nearTier): {["CBE_AIPass_TickMid", 8] call _get};
     default {["CBE_AIPass_TickFar", 20] call _get};
 };
+// Native authored travel keeps its own planner. Door assistance only operates the
+// near unlocked leaf on that actual approach, without an indoor movement operation.
+// It is independent of autonomous contact decisions; actor target/task gates still win.
+if ((_state get "phase") == "CALM" && {!_dangerActive} && {!_groupMovementOwned}
+    && {!(_state getOrDefault ["responding",false])}) then {
+    [_group,_state] call CBE_fnc_CortexRouteDoors;
+};
 if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
     // Explicit building orders have their own feature gate and generation-owned FSM.
     // Disabling autonomous contact decisions must not cancel that separate movement owner.
@@ -664,6 +734,10 @@ private _dangerVehicleContact=_dangerVehicleSafety && {_dangerConfirmed}
     && {(_dangerResponse param [0,"",[""]]) in ["HIT","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]};
 _tacticalTier=_tacticalTier || {_dangerVehicleContact};
 private _holdFire=combatMode _group in ["BLUE","GREEN"];
+private _nativeHoldFire=_holdFire;
+// This gate controls CBE's natural engagement, never the native weapon policy.
+// Concealed groups keep sensing/reporting but do not acquire scripted attack roles.
+_holdFire=_holdFire || {behaviour _leader == "STEALTH"};
 // Run only the bounded vehicle/passenger safety slice for a targetless mounted danger event. With an
 // empty enemy list CortexVehicles exits immediately after its safe-stop/dismount handshake, so this
 // cannot select a target, withdrawal, standoff or infantry phase.
@@ -814,7 +888,14 @@ if (_phaseGateClosed) then {
 // Soldiers holding ground from a finished drill rejoin once the leader has caught up with them.
 // A previous completed bound must not issue doFollow over a replacement drill.
 // Transfer these actors out of old holding ownership before considering reunion.
-private _ownedMovers = +(_activeDrill getOrDefault ["units",[]]);
+private _holderGeneration=_group getVariable ["CBE_OperationGeneration",0];
+private _holderEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _ownedMovers = [];
+private _holderDrill=_state getOrDefault ["drill",createHashMap];
+if ((_holderDrill getOrDefault ["operationGeneration",-1]) == _holderGeneration
+    && {(_holderDrill getOrDefault ["ownerEpoch",-1]) == _holderEpoch}) then {
+    _ownedMovers append (_holderDrill getOrDefault ["units",[]]);
+};
 // CLEAR/garrison/defence and an authored stationary order supersede the old drill's
 // reunion ownership even when they use no active drill record. Transfer metadata only.
 if (_ordered) then {_ownedMovers append (_state getOrDefault ["holders",[]])};
@@ -827,21 +908,75 @@ if (count _holderOperation > 0
 };
 // Terminal clearance deliberately holds actual posts until a new authored order.
 // An old completed bound must not recall these actors around the indoor leader.
+// A replacement operation also defers this old hold handback; exclude those actors
+// from unrelated drill reunion until GroupBrainStep can release them deliberately.
 private _holderClearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (count _holderClearHold == 4
+if (count _holderClearHold == 5
     && {(_holderClearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
     && {(_holderClearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-    && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_holderClearHold select 2)}) then {
+    && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_holderClearHold select 2)
+        || {count _holderOperation > 0}}) then {
     _ownedMovers append (_holderClearHold select 3);
 };
-private _holders = (_state getOrDefault ["holders", []]) select {alive _x && {local _x} && {group _x == _group} && {!(_x in _ownedMovers)}};
-_state set ["holders",_holders];
-// A completed coordinated bound still belongs to the squad-level MOVE/COVER cycle.
-// Keep its hold record for release, but do not regroup between successive bounds.
-if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])}) then {
-    private _rejoin = _holders select {_x distance2D _leader < 30};
-    if ([] call _mayIssueMovement) then {{_x doFollow _leader} forEach _rejoin};
-    _state set ["holders", _holders - _rejoin];
+private _holderRows=+(_state getOrDefault ["holders",[]]);
+// Split group/unit locality is temporary; retain living same-group actors until their owner
+// can recall them. A replacement movement operation receives only metadata ownership here.
+private _holders = _holderRows select {alive _x && {group _x == _group} && {!(_x in _ownedMovers)}};
+// Admission refusal must not erase an unissued recall. Scheduled direct callers also
+// keep current-state/generation proof, native writes and metadata transfer together.
+isNil {
+    if (local _group && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+        && {(_group getVariable ["CBE_OperationGeneration",0]) == _holderGeneration}
+        && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _holderEpoch}
+        && {(_state getOrDefault ["holders",[]]) isEqualTo _holderRows}) then {
+        // Incoming tasks take the old holder's metadata as well as its membership. Retire
+        // only the exact old actor token on its actual owner; never clear a successor token.
+        private _transferred=_holderRows select {_x in _ownedMovers};
+        if (_transferred isNotEqualTo []) then {
+            private _oldReceipts=_state getOrDefault ["holderRecallReceipts",[]];
+            private _retiredReceipts=_oldReceipts select {
+                _x isEqualType [] && {count _x == 8} && {(_x select 0) in _transferred}
+            };
+            {
+                private _actor=_x select 0;
+                if (local _actor && {group _actor == _group} && {(_x select 1) isEqualTo _group}
+                    && {(_actor getVariable ["CBE_Cortex_HolderToken",[]]) isEqualTo (_x select [1,5])}) then {
+                    _actor setVariable ["CBE_Cortex_HolderToken",nil,true];
+                };
+            } forEach _retiredReceipts;
+            _state set ["holderRecallReceipts",_oldReceipts select {
+                _x isEqualType [] && {count _x == 8} && {!((_x select 0) in _transferred)}
+            }];
+        };
+        _state set ["holders",_holders];
+        // A completed coordinated bound belongs to the squad MOVE/COVER cycle until release.
+        if (_holders isNotEqualTo [] && {!(_state getOrDefault ["assaulting",false])}) then {
+            private _rejoin = _holders select {_x distance2D _leader < 30};
+            if (leader _group == _leader && {[_leader] call CBE_fnc_CortexCombatEffective}
+                && {[] call _mayIssueMovement}) then {
+                private _recallIssued=[];
+                {
+                    if (alive _x && {local _x} && {group _x == _group} && {isNull objectParent _x}
+                        && {!isPlayer _x} && {isNull remoteControlled _x}
+                        && {[_x] call CBE_fnc_CortexCombatEffective}
+                        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+                        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                        && {!(_x in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]]))}
+                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+                        && {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}) then {
+                        _x doFollow _leader;
+                        _x setVariable ["CBE_Cortex_HolderToken",nil,true];
+                        _recallIssued pushBack _x;
+                    };
+                } forEach _rejoin;
+                // Issued native follow transfers our old hold; it is not physical rejoin success.
+                _state set ["holders", _holders - _recallIssued];
+                _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
+                    _x isEqualType [] && {count _x == 8} && {!((_x select 0) in _recallIssued)}
+                }];
+            };
+        };
+    };
 };
 
 // A reported coordinated objective permits safe covering fire before personal contact.
@@ -889,14 +1024,21 @@ private _beginContact = {
     };
     if ([] call _mayIssueMovement) then {
         {
+            isNil {
             if (alive _x && {local _x}
+                && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                && {_leader == leader _group} && {[_leader] call CBE_fnc_CortexCombatEffective}
                 && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
-                && {!(_x call _hasLiveActorMove)}) then {
+                && {!(_x call _hasLiveActorMove)}
+                && {[_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned}) then {
                 _x doFollow _leader
+            };
             };
         } forEach (_state getOrDefault ["searchTeam", []]);
     };
+    [_group,_state] call CBE_fnc_CortexSearchHoldRelease;
     _state set ["searchTeam", []];
+    _state deleteAt "searchMoveReceipts";
     if (!_groupMovementOwned && {!(_state getOrDefault ["responding", false])} && {!(_state getOrDefault ["assaulting", false])}) then {[_group] call CBE_fnc_CortexGroupMoveClear};
     call _enterContact;
     // A coordinated responder already has a finite assault movement order. Do not
@@ -985,13 +1127,15 @@ switch (_state get "phase") do {
             && {_investigationPreference > 0}
             && {leader _group distance2D (_area select 0) <= _investigationRange}
             && {[_group, ["CBE_AIPass_ContactReports_Enable","CBE_AIPass_Hearing_Enable"] select ((_area select 3) == "SOUND"),true] call CBE_fnc_CortexFeatureEnabled}) then {
-            [_state,"investigate",120] call CBE_fnc_CortexCooldown;
             private _target = _area select 0;
-            [_group,_target getPos [30,_target getDir leader _group],25] call CBE_fnc_CortexGroupMove;
-            [_group,_state,"INVESTIGATE","AREA_REPORT",_now] call CBE_fnc_CortexSetPhase;
-            _state set ["enemyPos",_target];
-            _state set ["areaInvestigation",_area select 3];
-            _group setVariable ["CBE_AIPass_AreaReport",nil,true];
+            private _areaWaypoint=[_group,_target getPos [30,_target getDir leader _group],25] call CBE_fnc_CortexGroupMove;
+            if ((_areaWaypoint select 0) == _group && {(_areaWaypoint select 1) >= 0}) then {
+                [_state,"investigate",120] call CBE_fnc_CortexCooldown;
+                [_group,_state,"INVESTIGATE","AREA_REPORT",_now] call CBE_fnc_CortexSetPhase;
+                _state set ["enemyPos",_target];
+                _state set ["areaInvestigation",_area select 3];
+                _group setVariable ["CBE_AIPass_AreaReport",nil,true];
+            };
         };
 
         if (!_ordered && {!_groupMovementOwned} && {!(_state getOrDefault ["responding", false])} && {_enemies isNotEqualTo []}
@@ -1000,41 +1144,88 @@ switch (_state get "phase") do {
             && {((_enemies select 0) select 3) <= _investigationRange}
             && {!([_state, "investigate"] call CBE_fnc_CortexCooldown)}) then {
             if (_investigationPreference > 0) then {
-                [_state, "investigate", 120] call CBE_fnc_CortexCooldown;
                 private _target = (_enemies select 0) select 1;
-                _state set ["baseBehaviour", behaviour _leader];
-                _state set ["baseSpeed", speedMode _group];
-                _state set ["behaviourChanged", false];
-                _state set ["speedChanged", false];
-                if (behaviour _leader == "SAFE") then {
-                    _group setBehaviour "AWARE";
-                    _state set ["behaviourChanged", true];
-                };
                 private _onFoot = _alive select {local _x && {isNull objectParent _x}};
                 private _team = [];
-                // A two-man team only checks out nearby contacts; a farther one takes the whole squad.
-                if (count _onFoot >= 4 && {(_leader distance2D _target) <= 150}) then {
-                    _team = (_onFoot select {_x != _leader && {([_x] call CBE_fnc_CortexUnitRole) == "RIFLE"}}) select [0, 2];
+                private _searchAccepted=false;
+                // A selected individual-search policy does not turn into a group route when
+                // its actors are busy. Preserve their native tasks and retry normal admission.
+                private _teamSearch=count _onFoot >= 4 && {(_leader distance2D _target) <= 150};
+                if (_teamSearch) then {
+                    _team = (_onFoot select {_x != _leader && {([_x] call CBE_fnc_CortexUnitRole) == "RIFLE"}
+                        && {currentCommand _x == ""} && {!(getUnitState _x in ["PLANNING","REPLAN"])}
+                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}}) select [0, 2];
                 };
-                if (_team isEqualTo []) then {
-                    [_group, _target getPos [30, _target getDir _leader], 25] call CBE_fnc_CortexGroupMove;
+                if (!_teamSearch) then {
+                    private _searchWaypoint=[_group, _target getPos [30, _target getDir _leader], 25] call CBE_fnc_CortexGroupMove;
+                    _searchAccepted=(_searchWaypoint select 0) == _group && {(_searchWaypoint select 1) >= 0};
                 } else {
+                    private _issuedSearch=[];
                     if ([] call _mayIssueMovement) then {
-                        {_x doMove (_target getPos [4 + _forEachIndex * 4, random 360])} forEach _team;
+                        private _searchEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+                        private _searchRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                        {
+                            private _searchActor=_x;
+                            private _searchDestination=_target getPos [4 + _forEachIndex * 4, random 360];
+                            isNil {
+                                if (local _group && {local _searchActor} && {group _searchActor == _group}
+                                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                                    && {_searchEpoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                                    && {_searchRoute isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+                                    && {[] call _mayIssueMovement} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                                    && {!isPlayer _searchActor} && {isNull remoteControlled _searchActor}
+                                    && {isNull objectParent _searchActor} && {[_searchActor] call CBE_fnc_CortexCombatEffective}
+                                    && {!([_searchActor] call CBE_fnc_CortexActorMoveReserved)}
+                                    && {([_searchActor] call CBE_fnc_CortexExternalOwner) == ""}
+                                    && {!([_searchActor] call CBE_fnc_CompatibilityExternalControl)}
+                                    && {simulationEnabled _searchActor} && {!isObjectHidden _searchActor}
+                                    && {_searchActor checkAIFeature "MOVE"} && {_searchActor checkAIFeature "PATH"}
+                                    && {currentCommand _searchActor == ""}
+                                    && {!(getUnitState _searchActor in ["PLANNING","REPLAN"])}) then {
+                                    _searchActor doMove _searchDestination;
+                                    _issuedSearch pushBack [_searchActor,+_searchDestination,+_searchRoute];
+                                    _state set ["searchMoveReceipts",+_issuedSearch];
+                                };
+                            };
+                        } forEach (_team select [0,16]);
                     };
-                    {if (!(_x in _team) && {local _x}) then {_x doWatch _target}} forEach _alive;
+                    _team=_issuedSearch apply {_x select 0};
+                    _searchAccepted=_team isNotEqualTo [];
+                    if (_searchAccepted) then {
+                        // Finite attention needs no persistent watch lease or blanket reset.
+                        // A later mission watch order must survive investigation teardown.
+                        {if (!(_x in _team) && {local _x} && {currentCommand _x == ""}
+                            && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}) then {_x glanceAt _target}} forEach _alive;
+                    };
                 };
-                _state set ["searchTeam", _team];
-                _state set ["enemyPos", _target];
-                [_group,_state,"INVESTIGATE","KNOWN_CONTACT",_now] call CBE_fnc_CortexSetPhase;
-                missionNamespace setVariable ["CBE_AIPass_Investigations", (missionNamespace getVariable ["CBE_AIPass_Investigations", 0]) + 1];
-                _delay = 3;
+                if (_searchAccepted) then {
+                    [_state, "investigate", 120] call CBE_fnc_CortexCooldown;
+                    _state set ["baseBehaviour", behaviour _leader];
+                    _state set ["baseSpeed", speedMode _group];
+                    _state set ["behaviourChanged", false];
+                    _state set ["speedChanged", false];
+                    if (behaviour _leader == "SAFE") then {
+                        _group setBehaviour "AWARE";
+                        _state set ["behaviourChanged", true];
+                    };
+                    _state set ["searchTeam", _team];
+                    _state set ["enemyPos", _target];
+                    [_group,_state,"INVESTIGATE","KNOWN_CONTACT",_now] call CBE_fnc_CortexSetPhase;
+                    missionNamespace setVariable ["CBE_AIPass_Investigations", (missionNamespace getVariable ["CBE_AIPass_Investigations", 0]) + 1];
+                    _delay = 3;
+                };
             };
+        };
+        // Body clues are lower priority than confirmed contact and fresh area reports.
+        // Do not admit investigators just before this same tick creates a group route.
+        if ((_state get "phase") == "CALM" && {!_ordered} && {!_groupMovementOwned}
+            && {_enemies isEqualTo []} && {!(_state getOrDefault ["responding",false])}) then {
+            [_group,_state] call CBE_fnc_IndoorObservationDispatch;
         };
     };
     case "INVESTIGATE": {
         if (_visible isNotEqualTo []) exitWith {
-            {if (local _x) then {_x doWatch objNull}} forEach _alive;
             call _beginContact;
         };
         private _team = (_state getOrDefault ["searchTeam", []]) select {alive _x && {local _x}};
@@ -1047,7 +1238,6 @@ switch (_state get "phase") do {
             if (_alive findIf {_x call _hasLiveActorMove} >= 0) then {
                 _delay = 2;
             } else {
-                {if (local _x) then {_x doWatch objNull}} forEach _alive;
                 [_group, _state, true, false, ["INVESTIGATION_COMPLETE","INVESTIGATION_TIMEOUT"] select (_now - (_state get "phaseStart") > (["CBE_AIPass_Investigate_Seconds", 60] call _get))] call CBE_fnc_CortexRestoreCalm;
             };
         } else {
@@ -1140,7 +1330,7 @@ switch (_state get "phase") do {
             // A fresh observed contact is also a short-lived combined-arms opportunity. This
             // only shares the target with a bounded number of independently capable assets;
             // it creates no rally, readiness barrier or replacement infantry movement order.
-            if (!_holdFire && {["CBE_AIPass_ContactReports_Enable",true] call _get}) then {
+            if (!_nativeHoldFire && {["CBE_AIPass_ContactReports_Enable",true] call _get}) then {
                 [_group,_state,_visible] call CBE_fnc_CortexCombinedArmsRequest;
             };
             if (!_holdFire && {_hasTargetKnowledge} && {["CBE_AIPass_Artillery_Enable", false] call _get}) then {[_group, _state, _enemies] call CBE_fnc_CortexArtilleryRequest};
@@ -1240,7 +1430,12 @@ switch (_state get "phase") do {
         private _searchPos = _state getOrDefault ["enemyPos", []];
         private _team = [];
         if (!_ordered && {count _searchPos >= 2}) then {
-            private _riflemen = _alive select {local _x && {_x != _leader} && {isNull objectParent _x} && {!(_x call _hasLiveActorMove)} && {([_x] call CBE_fnc_CortexUnitRole) == "RIFLE"}};
+            private _riflemen = _alive select {local _x && {_x != _leader} && {isNull objectParent _x}
+                && {!(_x call _hasLiveActorMove)} && {([_x] call CBE_fnc_CortexUnitRole) == "RIFLE"}
+                && {!(getUnitState _x in ["PLANNING","REPLAN"])}
+                && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+                && {currentCommand _x == "" || {currentCommand _x == "FOLLOW" && {formLeader _x == _leader}}
+                    || {currentCommand _x == "STOP" && {(_x getVariable ["CBE_Cortex_HolderToken",[]]) isNotEqualTo []}}}};
             private _ranked = [];
             {_ranked pushBack [_x distance2D _searchPos, _forEachIndex]} forEach _riflemen;
             _ranked sort true;
@@ -1250,8 +1445,59 @@ switch (_state get "phase") do {
             [_group,_state,"REGROUP","NO_SEARCH_TEAM",_now] call CBE_fnc_CortexSetPhase;
             _delay = 3;
         };
+        private _issuedSearch=[];
         if ([] call _mayIssueMovement) then {
-            {_x doMove (_searchPos getPos [4 + _forEachIndex * 4, random 360])} forEach _team;
+                        private _searchEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+                        private _searchRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                        {
+                            private _searchActor=_x;
+                            private _searchDestination=_searchPos getPos [4 + _forEachIndex * 4, random 360];
+                            isNil {
+                                private _searchCommand=currentCommand _searchActor;
+                                private _searchHold=_searchCommand == "STOP" && {[_group,_state,_searchActor] call CBE_fnc_CortexHolderRecallOwned};
+                                if (local _group && {local _searchActor} && {group _searchActor == _group}
+                                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                                    && {_searchEpoch == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                                    && {_searchRoute isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+                                    && {[] call _mayIssueMovement} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                                    && {!isPlayer _searchActor} && {isNull remoteControlled _searchActor}
+                                    && {isNull objectParent _searchActor} && {[_searchActor] call CBE_fnc_CortexCombatEffective}
+                                    && {!([_searchActor] call CBE_fnc_CortexActorMoveReserved)}
+                                    && {([_searchActor] call CBE_fnc_CortexExternalOwner) == ""}
+                                    && {!([_searchActor] call CBE_fnc_CompatibilityExternalControl)}
+                                    && {simulationEnabled _searchActor} && {!isObjectHidden _searchActor}
+                                    && {_searchActor checkAIFeature "MOVE"} && {_searchActor checkAIFeature "PATH"}
+                                    && {!(getUnitState _searchActor in ["PLANNING","REPLAN"])}
+                                    && {_searchCommand == "" || {_searchHold}
+                                        || {_searchCommand == "FOLLOW" && {formLeader _searchActor == _leader}}}) then {
+                                    private _searchReceipt=[_searchActor,+_searchDestination,+_searchRoute];
+                                    if (_searchHold) then {
+                                        private _holdRows=+(_state get "holderRecallReceipts");
+                                        private _holdIndex=_holdRows findIf {_x isEqualType [] && {count _x == 8} && {(_x select 0) == _searchActor}};
+                                        private _hold=+(_holdRows select _holdIndex);
+                                        private _serial=1+(missionNamespace getVariable ["CBE_Cortex_SearchHoldSerial",0]);
+                                        missionNamespace setVariable ["CBE_Cortex_SearchHoldSerial",_serial];
+                                        _hold set [2,format ["SEARCH:%1:%2:%3",clientOwner,_searchEpoch,_serial]];
+                                        _hold set [3,clientOwner];_hold set [4,_searchEpoch];
+                                        _hold set [5,_group getVariable ["CBE_OperationGeneration",0]];
+                                        _holdRows set [_holdIndex,_hold];
+                                        _state set ["holderRecallReceipts",_holdRows];
+                                        _state set ["holders",(_state getOrDefault ["holders",[]])-[_searchActor]];
+                                        _searchActor setVariable ["CBE_Cortex_HolderToken",_hold select [1,5],true];
+                                        _searchReceipt pushBack (_hold select [1,5]);
+                                    };
+                                    _searchActor doMove _searchDestination;
+                                    _issuedSearch pushBack _searchReceipt;
+                                    _state set ["searchMoveReceipts",+_issuedSearch];
+                                };
+                            };
+                        } forEach (_team select [0,16]);
+        };
+        _team=_issuedSearch apply {_x select 0};
+        if (_team isEqualTo []) exitWith {
+            [_group,_state,"REGROUP","NO_SEARCH_ISSUED",_now] call CBE_fnc_CortexSetPhase;
+            _delay=3;
         };
         _state set ["searchTeam", _team];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
@@ -1259,17 +1505,40 @@ switch (_state get "phase") do {
     };
     case "SEARCH": {
         private _team = (_state getOrDefault ["searchTeam", []]) select {alive _x && {local _x}};
-        private _searchPos = _state getOrDefault ["enemyPos", []];
+        // Being near the last contact is not proof of visiting either issued search point.
+        // Require the exact still-owned destination and same-floor physical arrival; keep the
+        // original episode deadline when navigation cannot reach it. This is not room clearance.
+        private _searchReceipts=_state getOrDefault ["searchMoveReceipts",[]];
+        private _allSearchArrived=_team isNotEqualTo [] && {_team findIf {
+            private _searchActor=_x;
+            private _receiptIndex=(_searchReceipts select [0,16]) findIf {
+                _x isEqualType [] && {count _x in [3,4]} && {(_x select 0) == _searchActor}
+            };
+            if (_receiptIndex < 0) exitWith {true};
+            private _goal=(_searchReceipts select _receiptIndex) select 1;
+            !(_goal isEqualType []) || {count _goal != 3}
+                || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                || {!([_group,_state,_searchActor] call CBE_fnc_CortexSearchMoveOwned)}
+                || {_searchActor distance2D _goal > 2}
+                || {abs (((getPosATL _searchActor) select 2)-(_goal select 2)) > 1.5}
+        } < 0};
+        private _searchTimedOut=_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get);
         private _done = _visible isNotEqualTo [] || {_team isEqualTo []}
-            || {_team findIf {_x distance2D _searchPos > 15} < 0}
-            || {_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get)};
+            || {_allSearchArrived} || {_searchTimedOut};
         if (_done) then {
             if ([] call _mayIssueMovement) then {
-                {_x doFollow _leader} forEach (_team select {!(_x call _hasLiveActorMove)});
+                {isNil {if ((_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state
+                    && {_leader == leader _group} && {[_leader] call CBE_fnc_CortexCombatEffective}
+                    && {[_group,_state,_x] call CBE_fnc_CortexSearchMoveOwned}) then {_x doFollow _leader}}} forEach (_team select {!(_x call _hasLiveActorMove)});
             };
-            _state set ["searchTeam", []];
+            [_group,_state] call CBE_fnc_CortexSearchHoldRelease;
+    _state set ["searchTeam", []];
+    _state deleteAt "searchMoveReceipts";
             if (_visible isNotEqualTo []) then {call _beginContact} else {
-                [_group,_state,"REGROUP","SEARCH_COMPLETE",_now] call CBE_fnc_CortexSetPhase;
+                private _searchEndReason=if (_allSearchArrived) then {"SEARCH_COMPLETE"} else {
+                    ["NO_SEARCH_ACTORS","SEARCH_TIMEOUT"] select _searchTimedOut
+                };
+                [_group,_state,"REGROUP",_searchEndReason,_now] call CBE_fnc_CortexSetPhase;
                 _delay = 3;
             };
         } else {
@@ -1291,7 +1560,48 @@ switch (_state get "phase") do {
             local _x && {isNull objectParent _x} && {lifeState _x != "INCAPACITATED"}
                 && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         };
-        private _reserved = _members select {_x call _hasLiveActorMove};
+        private _reserved = _members select {
+            (_x call _hasLiveActorMove) || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+                || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
+                || {[_x] call CBE_fnc_CompatibilityExternalControl}
+        };
+        private _regroupGeneration=_group getVariable ["CBE_OperationGeneration",0];
+        private _regroupEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+        // Native retries belong to the exact route/destination we actually issued. In particular,
+        // a later STOP, service task or MOVE is not permission to restart consolidation.
+        private _regroupCanMove={
+            params ["_actor","_proof"];
+            if (!local _group || {(_group getVariable ["CBE_AIPass_State",createHashMap]) isNotEqualTo _state}
+                || {(_group getVariable ["CBE_OperationGeneration",0]) != _regroupGeneration}
+                || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _regroupEpoch}
+                || {(_state getOrDefault ["phase",""]) != "REGROUP"}
+                || {leader _group != _leader} || {!local _leader}
+                || {!([_leader] call CBE_fnc_CortexCombatEffective)} || {!isNull objectParent _leader}
+                || {!local _actor} || {group _actor != _group} || {isPlayer _actor}
+                || {!isNull objectParent _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+                || {!simulationEnabled _actor} || {isObjectHidden _actor}
+                || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
+                || {!isNull remoteControlled _actor}
+                || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                || {!([_actor] call CBE_fnc_CortexActorFireTaskAvailable)}
+                || {[_group,false,_actor] call CBE_fnc_CortexExternalTakeover}
+                || {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isNotEqualTo []}
+                || {!(_proof isEqualType [])}) exitWith {false};
+            if (_proof isEqualTo []) exitWith {
+                private _command=toUpperANSI currentCommand _actor;
+                if (_command == "STOP" || {(_actor getVariable ["CBE_Cortex_HolderToken",[]]) isNotEqualTo []}) then {
+                    [_group,_state,_actor] call CBE_fnc_CortexHolderRecallOwned
+                } else {_command == ""}
+            };
+            if (count _proof != 6 || {!(toUpperANSI currentCommand _actor in ["MOVE",""])}) exitWith {false};
+            private _destination=(expectedDestination _actor) param [0,[],[[]]];
+            private _issued=_proof select 5;
+            _issued isEqualType [] && {count _issued == 3} && {count _destination == 3}
+                && {_issued findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_destination vectorDistance _issued <= 0.25}
+                && {(_proof select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+        };
         // Preserve authored waypoints and combat targets. Each separated member receives one committed
         // local destination. Progress updates the record without issuing another command; the same
         // destination is retried once only after measured no-progress. Reaching that destination while
@@ -1318,10 +1628,18 @@ switch (_state get "phase") do {
                 if (_record isEqualTo []) then {
                     private _slot = 4 + ((_forEachIndex mod 3) * 2);
                     private _target = (getPosATL _leader) getPos [_slot, (_forEachIndex * 137) mod 360];
-                    if ([] call _mayIssueMovement) then {
-                        _unit doMove _target;
-                        _routes set [_key, [_target, getPosATL _unit, _now, 0]];
-                        _state set ["holders", []];
+                    isNil {
+                        if ([_unit,[]] call _regroupCanMove) then {
+                            _unit doMove _target;
+                            _routes set [_key, [_target, getPosATL _unit, _now, 0,
+                                [_group] call CBE_fnc_NativeOrderReceipt,+((expectedDestination _unit) param [0,[]])]];
+                            // One accepted actor movement transfers only that actor's old hold.
+                            _state set ["holders",(_state getOrDefault ["holders",[]])-[_unit]];
+                            _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
+                                _x isEqualType [] && {count _x == 8} && {(_x select 0) isNotEqualTo _unit}
+                            }];
+                            _unit setVariable ["CBE_Cortex_HolderToken",nil,true];
+                        };
                     };
                 } else {
                     _record params ["_target", "_lastPos", "_lastProgressAt", "_retries"];
@@ -1333,11 +1651,16 @@ switch (_state get "phase") do {
                         if (_unit distance2D _target <= 4) then {
                             _routes deleteAt _key;
                         } else {
-                            if (_now - _lastProgressAt >= 10 && {_retries < 1} && {[] call _mayIssueMovement}) then {
-                                _unit doMove _target;
-                                _record set [2, _now];
-                                _record set [3, _retries + 1];
-                                _routes set [_key, _record];
+                            if (_now - _lastProgressAt >= 10 && {_retries < 1}) then {
+                                isNil {
+                                    if ([_unit,_record] call _regroupCanMove) then {
+                                        _unit doMove _target;
+                                        _record set [2, _now];
+                                        _record set [3, _retries + 1];
+                                        _record set [5,+((expectedDestination _unit) param [0,[]])];
+                                        _routes set [_key, _record];
+                                    };
+                                };
                             };
                         };
                     };

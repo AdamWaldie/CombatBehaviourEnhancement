@@ -1,6 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground fire selects only a freshly qualified loaded station muzzle. A pending native
+ * switch reuses this finite callback/role expiry; it grants no shot or completed fire effect.
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
+ * Arrival uses ASL three-dimensional distance within the existing seventy-metre firing area;
+ * horizontal overlap above/below the area does not establish arrival.
+ * Native group-ignored contacts cancel owned movement and retire the exact support reservation.
  * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * A native magazine reload defers missing-ammo failure without renewing the original expiry.
  * Reload observation is not permission to fire or claim an effect.
@@ -12,6 +17,8 @@
  * Locality/authority: runs only where the vehicle group is local after a server-authenticated role.
  * Repeat/JIP: the complete admitted opportunity rejects stale jobs, including same-token edits.
  * Locality replay queues one replacement job; legacy jobs without a snapshot retire safely.
+ * Arrival fire-lane geometry uses the local gunner native believed point, not a
+ * hidden target transform or a renewed report.
  * Arrival fire requests require a combat-effective local gunner; arrival alone never proves fire effect.
  * Cleanup requires the matching operation generation, so a late role cannot delete a newer route.
  * Failed arrival fire, asset loss, immobility and exhausted movement retire the exact admitted
@@ -76,7 +83,7 @@ private _finish={
             if (_operationMatches && {(count _snapshot) in [7,8]}
                 && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _snapshot}
                 && {serverTime < (_snapshot select 5)}
-                && {_reason in ["NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
+                && {_reason in ["TARGET_IGNORED","NO_KNOWN_CONTACT","NO_FIRE_OPERATOR","NO_FIRE_PLATFORM","NO_STATION_AMMO","NO_TARGET_AMMO","BLOCKED_FIRE_LANE","ASSET_LOST","ASSET_IMMOBILE","BLOCKED","MOVEMENT_REJECTED","OWNER_LOST"]}) then {
                 [_group,_snapshot,_reason,clientOwner] remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
             };
         };
@@ -100,6 +107,7 @@ if (isNull _driver || {isNull _operator}
     || {_driver isNotEqualTo (_job getOrDefault ["driver",objNull])}
     || {_operator isNotEqualTo (_job getOrDefault ["operator",objNull])}
     || {group _driver != _group && {group _operator != _group}}) exitWith {["OWNER_LOST"] call _finish};
+private _arrivalDistance=(getPosASL _asset) vectorDistance (AGLToASL _destination);
 // A waypoint description alone cannot preserve authority over edited native orders.
 private _routeCurrent={
     private _waypoint=_job getOrDefault ["moveWaypoint",[]];
@@ -117,7 +125,7 @@ private _routeCurrent={
     private _live=[_group] call CBE_fnc_NativeOrderReceipt;
     // Engine completion may advance to the original next node before this callback.
     // The owned waypoint must still exist unchanged; deletion cannot masquerade as arrival.
-    if (_asset distance2D _destination > 70 || {(_live select 0) != (_receipt select 0)}
+    if (_arrivalDistance > 70 || {(_live select 0) != (_receipt select 0)}
         || {currentWaypoint _group != (_waypoint select 1)+1}) exitWith {false};
     private _native=_job getOrDefault ["nativeOrder",[]];
     if (count _native == 2 && {(_native select 1) == -1}) exitWith {
@@ -133,6 +141,11 @@ if (isNull _target || {!alive _target}) exitWith {["TARGET_LOST"] call _finish};
 if (captive _target || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _target) >= 0.6}) exitWith {["TARGET_NO_LONGER_HOSTILE"] call _finish};
+private _contactObserver=leader _group;
+if (!isNull _contactObserver && {local _contactObserver}
+    && {(_contactObserver targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    ["TARGET_IGNORED"] call _finish
+};
 if (serverTime >= (_job getOrDefault ["expiry",serverTime])) exitWith {["EXPIRED"] call _finish};
 // Dormancy/locality convergence cannot manufacture capability loss or renew this expiry.
 if (!simulationEnabled _asset || {isObjectHidden _asset}) exitWith {1};
@@ -168,9 +181,9 @@ if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {
 if (_capabilityFailure in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
     && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
 if (_capabilityFailure != "") exitWith {[_capabilityFailure] call _finish};
-if (_asset distance2D _destination > 70
+if (_arrivalDistance > 70
     && {simulationEnabled _asset && {!isObjectHidden _asset} && {!canMove _asset}}) exitWith {["ASSET_IMMOBILE"] call _finish};
-if (_asset distance2D _destination <= 70) exitWith {
+if (_arrivalDistance <= 70) exitWith {
     // Arrival grants no new observation. Preserve native/shared knowledge; do not refresh
     // an unseen moving target merely because the vehicle reached its firing position.
     private _gunner=gunner _asset;
@@ -186,6 +199,20 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {[_gunner] call CBE_fnc_CortexActorFireTaskAvailable}
         && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)};
+    private _firePoint=[];
+    if (_fireAllowed) then {
+        private _believed=_gunner getHideFrom _target;
+        // An admitted report remains a fixed estimate, not a new sighting. Preserve
+        // radio support when this gunner has no personal native position estimate.
+        if (count _believed != 3 || {_believed isEqualTo [0,0,0]}
+            || {_believed findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) then {
+            _believed=+(_snapshot param [3,[],[[]]]);
+        };
+        if (count _believed == 3 && {_believed isNotEqualTo [0,0,0]}
+            && {_believed findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+            _firePoint=(ATLToASL _believed) vectorAdd [0,0,1];
+        } else {_fireAllowed=false;_fireDecision="NO_KNOWN_CONTACT"};
+    };
     if (_fireAllowed) then {
         private _stationReady=[_asset,_gunner] call CBE_fnc_CortexGroundFireReady;
         private _targetReady=[_asset,_gunner,_target,_ammoObservation] call CBE_fnc_CortexGroundFireReady;
@@ -198,18 +225,23 @@ if (_asset distance2D _destination <= 70) exitWith {
         && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
-        private _laneClear=[_gunner,aimPos _target] call CBE_fnc_CortexLineOfFireClear;
+        private _laneClear=[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear;
         if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
             if (_laneClear && {call _roleCurrent}) then {
-                _gunner doTarget _target;
-                _gunner doFire _target;
-                _fireDecision="ORDER_ISSUED";
+                private _muzzle=_ammoObservation getOrDefault ["loadedMuzzle",""];
+                if (_muzzle != "" && {currentMuzzle _gunner != _muzzle}) then {_gunner selectWeapon _muzzle};
+                if (_muzzle != "" && {currentMuzzle _gunner == _muzzle}) then {
+                    _gunner doTarget _target;
+                    _gunner doFire _target;
+                    _fireDecision="ORDER_ISSUED";
+                } else {_fireDecision="MUZZLE_SELECTION_PENDING"};
             };
         };
     };
     // Physical arrival completes the move, not the requested fire effect. Fired-event and
     // target-damage evidence are still required by combat acceptance.
     _group setVariable ["CBE_Cortex_CombinedFireDecision",[_token,_fireDecision,serverTime,_gunner,_target],true];
+    if (_fireDecision == "MUZZLE_SELECTION_PENDING") exitWith {1};
     [[_fireDecision,"POSITION_REACHED"] select (_fireDecision == "ORDER_ISSUED")] call _finish
 };
 if (time >= (_job getOrDefault ["progressAt",time])+10) then {

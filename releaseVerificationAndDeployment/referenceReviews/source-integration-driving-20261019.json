@@ -1,0 +1,1006 @@
+{
+  "date": "2026-10-19",
+  "baseline": "07b16737",
+  "purpose": "Merge complementary source intentions into CBE execution; not source-count parity or completion credit",
+  "source_witnesses": [
+    {
+      "workshop_id": "3812620045",
+      "file": "hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examined_lines": [
+        1433,
+        1482
+      ],
+      "intent": "Rear-first requests create room before the blocked predecessor moves; prefer longer smooth legs and stop backing when front traffic departs.",
+      "retain": [
+        "dependency order",
+        "fresh rear clearance",
+        "spacing as physical room",
+        "avoid repeated short bursts"
+      ],
+      "redesign": [
+        "forced pushes become native finite movement",
+        "renewable yield clocks become original finite episode deadline",
+        "owner-local consent and exact command ownership replace shared request flags"
+      ]
+    },
+    {
+      "workshop_id": "1858075458",
+      "file": "lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "examined_lines": [
+        31,
+        65
+      ],
+      "intent": "Keep a busy actor pursuing the same nearby hide destination instead of constantly reissuing movement.",
+      "retain": [
+        "native movement continuity under unchanged intent"
+      ],
+      "limits": "This is a continuity principle, not a source implementation of vehicle queues or complete squad CQB."
+    }
+  ],
+  "integration": {
+    "ordinary_following": {
+      "files": [
+        "addons/vehicles/functions/convoyTick.sqf"
+      ],
+      "implemented": "Follower spacing/catch-up, bounded acceleration and retention of an unchanged native goal on aligned straight legs.",
+      "open": "Mixed tracked/wheeled physical smoothness and gap convergence remain unverified."
+    },
+    "room_making": {
+      "files": [
+        "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingRearClear.sqf",
+        "addons/vehicles/functions/drivingQueueHold.sqf",
+        "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+        "addons/vehicles/functions/drivingRearPlan.sqf"
+      ],
+      "implemented": "Bounded whole-hull dependency discovery (at most4 vehicles), stable capability-aware crossing/yield roles, owner/epoch/generation/native input context, authenticated consent and explicit COMMIT; existing sole cap writer applies zero hold and owner reports exact-cap finite linear/angular stillness after1s, at most2 reports separated by2s; server authenticates participant owner and checks current simultaneous stillness. Actual leaf owner freshly preflights rear space at VERIFY and COMMIT. Original expiry is retained. All-owner PREPARED/ARMED barriers now precede leaf-only EXECUTE. The existing ordinary callback consumes the grant through its sole cap writer and existing rear/damage monitor, fresh rear-validated native BACK, bounded acknowledgement, zero-cap native STOP and measured leaf hold under original expiry. Measured leaf HELD reports trigger at most two parent-owner full-hull and supported rear-room observations, with independent current server hull-gap/rest recheck and monotonic reply serials. No parent movement is granted.",
+      "missing": "Authenticated original-expiry parent phase transition and remaining dependency cascade, lateral crossing and complete all-participant handback. Automatic initiation remains off. Native/replication/HC behavior and overhead remain unverified."
+    },
+    "ownership_conflict": {
+      "files": [
+        "addons/vehicles/functions/drivingMovementAvailable.sqf",
+        "addons/vehicles/functions/drivingOperationStep.sqf",
+        "addons/vehicles/functions/drivingOperationFinish.sqf"
+      ],
+      "finding": "A generic Cortex movement lease makes DrivingOperationStep cancel the parent driving brain; parent finish then releases its queue consent.",
+      "required": "A queue phase belongs to each existing parent driving brain. All other vehicle/group writers yield to its exact episode; no generic takeover of that same parent."
+    }
+  },
+  "execution_contract": [
+    {
+      "phase": "COMMIT",
+      "requirement": "All actual owners validate the same agreed token, original context and expiry before accepting a queue child. No participant is commanded merely because the initiator received AGREED.",
+      "currentStatus": "Implemented authenticated consent-to-hold admission; no movement grant."
+    },
+    {
+      "phase": "HOLD",
+      "requirement": "Each owner captures its own applied speed/native command receipts, prevents ordinary traffic/recovery/passing writes for the same participant, and acknowledges only applied controls. Unrelated vehicles in a shared group must not be silently commandeered.",
+      "currentStatus": "Implemented via existing sole cap writer; not proof of stopped motion."
+    },
+    {
+      "phase": "READY",
+      "requirement": "Receipt-bound finite linear and angular rest plus a dwell observation; consent and requested zero speed are not evidence of stopped motion. Pose and held commands must remain current.",
+      "currentStatus": "Implemented owner dwell/report and server simultaneous-stillness observation; not a native reverse grant."
+    },
+    {
+      "phase": "REAR_ROOM",
+      "requirement": "Only the current leaf may issue native reverse after fresh whole-body rear clearance; monitor native command, original damage minima, current hull/heading and deadline. No forced velocity, teleport, collision suppression or arbitrary point completion.",
+      "currentStatus": "Finite selected dependency leaf native reverse/monitor/STOP/held subset wired through existing callback; no parent advance or physical proof."
+    },
+    {
+      "phase": "DEPENDENCY_ADVANCE",
+      "requirement": "A predecessor moves only after measured hull clearance exists. A promise, elapsed timer or prior arrival flag cannot substitute for current space. Re-check vehicles returning into cleared space.",
+      "currentStatus": "Not implemented."
+    },
+    {
+      "phase": "CROSS",
+      "requirement": "Select and validate an actually usable passing corridor; rear room alone does not prove two opposing hulls can pass. Keep yielding participants held until measured whole-hull crossing clears them.",
+      "currentStatus": "Not implemented for queue execution."
+    },
+    {
+      "phase": "HANDBACK",
+      "requirement": "Return each original route/cap only while exact owned commands and current parent/crew/epoch still match. New Zeus/native/service/external orders win immediately. Every expiry/cancellation path releases only this episode.",
+      "currentStatus": "Leaf cancellation/expiry uses existing exact native/cap cleanup; complete queue crossing and all-participant handback not implemented."
+    }
+  ],
+  "balance_and_cost": [
+    "No omniscient hostile knowledge or unilateral orders to unrelated owners.",
+    "Existing original consent expiry remains binding; do not silently extend30seconds into the96second ordinary recovery journal. A larger execution budget would require an explicitly agreed new protocol.",
+    "At most4 participants; bounded geometry, finite retries and parent scheduler callbacks rather than a permanent queue controller.",
+    "Root success is insufficient: every participant must hand back and physically resume.",
+    "No parity or performance-budget acceptance until actual normal and separate HC cases pass."
+  ],
+  "acceptance_cases": [
+    "two opposing vehicles with open rear room",
+    "three/four participant rear-first chain",
+    "occupied/blocked last rear corridor",
+    "moving traffic entering rear/crossing space",
+    "duplicate and reordered protocol delivery",
+    "new individual/native/Zeus order in every movement phase",
+    "driver/effective commander replacement",
+    "owner migration and disconnect in separate HC batch",
+    "original expiry during reverse/crossing",
+    "all participants physical forward resumption",
+    "mixed wheeled/tracked stop-start and measured cost"
+  ],
+  "audits": "paused",
+  "physical_acceptance": false,
+  "whole_mod_parity": false,
+  "currentReconciliation": {
+    "commit": "8ed75beb plus parent-room observation working changes",
+    "note": "Current scoped code reconciliation; physical queue resolution and automatic initiation remain incomplete."
+  },
+  "nextImplementationBoundary": [
+    "Require fresh measured whole-hull parent room after actual leaf hold; HELD alone is not room or queue success.",
+    "Retain original queue expiry and stable selected roles while advancing the remaining dependency chain.",
+    "Implement lateral crossing and all-participant exact handback before automatic initiation. No new parallel movement worker.",
+    "Later validate normal and separate actual-HC batches, native acknowledgement/replication ordering, interruptions, expiry, and runtime cost; audits currently paused."
+  ],
+  "currentProductionEvidence": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+      "sha256": "766bb6230bb1004bd82ab4f8264d9ce47e3c0019363541beb9280e4409db3788"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+      "sha256": "a2e457f0bfc3f29d9eea4e7c783480ee5268f9263f3f7067474e38fffa046d2e"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "sha256": "c6cbb86a72d545b2ef9ffd49202cc426c2c1332edd96637597a29e9aefc3ad8d"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "46929207b2d54c518097d32d03554df5f2b86f9b966a8ad7d9460c80897f497d"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "67663f4bfec9596f23fdae584fdaf0a8189c331ef0bd3c2e940368022c3c3264"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+      "sha256": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+      "sha256": "900b26a3a6940d4c7e2f270a54714fdcb2723e3b126eda92fc930e5556f08293"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+      "sha256": "16fb0a93a75fa444c7eb66086cf94079c137f63063415edc4ed51a8ea6826474"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+      "sha256": "49ce67a847991c7324638eb33570390b1aba1a55ddcaf4039a279bc2d1cb3884"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "f755e2e0c3303760ae45e869fe373e4762310591b8c28fbb21d4eb58a119d228"
+    }
+  ],
+  "held_queue_crossing_followup": {
+    "checkpoint": "13d35bbd plus held queue planner working changes",
+    "source_intent": "HBQ fn_driveAssist documents jam yield/pass pairs and oncoming waiting/backing; occupied held vehicles need a distinct contract from ordinary static obstacle bypass. No source scripts executed or modified.",
+    "implementation": "Existing DrivingBypassPlan accepts an optional current private root queue agreement only after all dependencies have measured HELD/STOP/zero cap. Projects all yielding hulls, unchanged span/station/ray limits, post-geometry pose and context revalidation. Proposal only, no native command or new controller.",
+    "remaining": "Crossing owner grant, finite actual execution with held participants preserved, measured tail clearance, complete handback and physical/performance verification. Close approach may refuse under the existing smooth ramp constraint; do not bypass that constraint.",
+    "credit": "No additional build score or source parity claim."
+  },
+  "queue_runtime_followup_20261020": {
+    "checkpoint": "b9709116 plus explicit queue runtime integration",
+    "implementation": "Existing ordinary callback now dispatches granted QUEUE path and cleans ended exact journals. Path issues at zero cap, all owners acknowledge actual FOLLOW publication before root motion; held hulls delegate only to active verified path geometry. Completion preserves server-accepted tail/rest receipt for unchanged authored-route cleanup. Original maximum90s budget, fixed32 live/64 admission-token bounds, no phase renewal or new worker.",
+    "limits": "Automatic admission off. A two-second zero-motion issue transition only tolerates remote observation of own STOP; local root still needs actual journal. Frozen stationary start permits0.25m/one-degree support recheck before exact native commit; remaining anchors stay fixed.",
+    "remaining": "Physical normal/HC cascade, crossing, route continuation, cancellation, repeated jams, delayed replication and performance budget; complete source integration is not claimed.",
+    "credit": "Queue criterion remains partial; no physical acceptance or whole-source parity increase.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+        "sha256": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingFollowingCap.sqf",
+        "sha256": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "5a49518b1c0ade572cb2880bc6ccd4021ff85b7ebcd01c0a4f774144cc8cbd19"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+        "sha256": "1ac79206dc37a31f062d26aabb844b9d42872bf11ac260159b4e1774e0cd8063"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+        "sha256": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "sha256": "d167b9d1287e7d9bdcc3758896b01c5bdcc37e3681599d43eb3fa3bd93331f7d"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "sha256": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueTokenClosed.sqf",
+        "sha256": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281"
+      }
+    ]
+  },
+  "historicReviewIndexHealth20261020": {
+    "checkedIndex": ".qa\\workshop-comparison-20261014\\HBQ-SEMANTIC-REVIEWS.json",
+    "scope": "Checked each recorded review path relative to the CBE checkout and the index folder. No machine-wide or archive-loss conclusion.",
+    "unresolvedTextReferences": 31,
+    "privateDetails": ".qa/hbq-historic-review-link-check-20261020.json",
+    "sourceControllerVerified": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "impact": "Do not infer current semantic review coverage or implementation parity from unresolved old references. Preserved controller text remains available for a fresh comparison.",
+    "next": "Reconcile old review names with readable tracked follow-ups or re-read the preserved source; retain historical hashes instead of replacing evidence silently."
+  },
+  "movingPassAndCurveReconciliation20261020": {
+    "baseline": "f8fddfb2",
+    "source": "hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sourceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "sourceRanges": [
+      "1973-2101 overtaking cleanup/admission/speed difference/finite road and traffic checks",
+      "2472-2505 OUT/BACK/end handling and route refresh",
+      "384-454 curved ray helpers; existing current curved-observation review retains full disposition"
+    ],
+    "finding": "Historic private semantic summary still says moving-vehicle overtaking is incomplete without distinguishing built execution from physical proof. Current PassAdmission explicitly requires moving slower peer; Plan/Step/Traffic already provide finite passing execution. Do not misclassify it as absent or duplicate it. Whole parity is still unproven.",
+    "intentDisposition": {
+      "sourceRetained": [
+        "Sustained following qualification and useful speed differential",
+        "Finite predicted passing duration/travel; road/junction/bridge and opposing traffic restrictions",
+        "Hull clearance before return, abort/drop-back and route handback",
+        "Short bent obstacle observation followed by tangent; native path hints remain advisory"
+      ],
+      "cbeEvolution": [
+        "Separate current-owner consent and exact route/crew/native-command contexts",
+        "Fresh connector and traffic checks before fixed path writes",
+        "Independent whole-hull clearance and original finite lifetime; no fallback renewal of BACK deadline",
+        "No physics push or teleport supplied as recovery proof"
+      ],
+      "currentLimits": [
+        "Physical moving overtake/drop-back/return/handback and performance unverified",
+        "Native path hint retains first64nodes and5s freshness; no evidence justifies extending its lifetime blindly",
+        "Angled-junction room-making remains a distinct gap; head-on queue completion is not proof of that capability",
+        "Historical unresolved review paths remain unresolved; no whole-HBQ completion claim"
+      ]
+    },
+    "sources": {
+      "addons/vehicles/functions/drivingNativePathWatch.sqf": "c8803fb34381aaa064f81b43970b0bfb5bf224dd8cdecdbe92fa97b63f5c3ceb",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingPassAdmission.sqf": "f125f167080e6b8fccdd6e42a1ee1c04b8db0f2db16f15371100944b27c1691d",
+      "addons/vehicles/functions/drivingPassPlan.sqf": "1232e9457f452af780ec5ae7e1aa2c17fd8190fad49e47e6cda8f34b332edfb0",
+      "addons/vehicles/functions/drivingPassStep.sqf": "50337aa60b3484df8462eb0036a639430c3bddaa712b5bb01cc66125114b957e",
+      "addons/vehicles/functions/drivingPassTraffic.sqf": "82a4d9752c7befbb31b0fca91880c4f987ff138c5ef7d0410ff296a457eb4232",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
+    },
+    "runtimeChanged": false,
+    "testsRepeated": false,
+    "scoresChanged": false
+  },
+  "stationaryCrossingQueueFollowUp20261020": {
+    "baseline": "f8fddfb2",
+    "sourceRange": "fn_driveAssist.sqf1586-1615 shared yielding decision for standing crossing/T-junction deadlock; original preserved source hash above",
+    "sourceIntent": "Distinguish crossing deadlock from same-direction queues, choose one yielding participant, create rear room before the other proceeds.",
+    "retained": "Finite one-sided room-making intent, excluding same-direction queues. Existing CBE owner consent/whole-hull/native reverse and crossing protocol reused. No source physics pushes, traffic-ignore permission or renewable yield clocks imported.",
+    "change": "Shared read-only PairGeometry retains existing head-on rules and admits45..135degree forward-course intersections only with present crossing-corridor obstruction. Both proposal and authenticated current-state validation use it. Capability-aware role selection prefers an actually obstructed crossing direction before stableID tie-break. Existing rear chain, body separation, held states, fresh crossing geometry, tail clearance and handback remain mandatory. Automatic admission stays off by default; CBA label/help updated to traffic jams. A held queue with its complete hull union outside the full circumscribed forward corridor may propose a straight crossing, avoiding an unnecessary lateral ramp; same one PathGeometry call, later traffic/owner grants/tail clearance remain. Ordinary static bypass still requires its ramps.",
+    "sources": {
+      "addons/vehicles/functions/drivingQueuePairGeometry.sqf": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210",
+      "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "4d785006088ffd2884fac85d5c3c259c1c081935a93a9af2e987383ad8425996",
+      "addons/core/functions/cortexTuningSpec.sqf": "6016fbea9395c4086da9d00f53ad3d8771d1f1f09b76c94b084b752987a86bea"
+    },
+    "cost": "No new world discovery, rays, scheduler or speed writer. Crossing geometry uses four eight-corner hull projections; two-direction role selection can call it twice plus admission recheck. Fixed CPU/metadata work, overhead unmeasured.",
+    "validation": {
+      "focused": "251 existing driving cases pass, including extended independent crossing-line witnesses; HEMTT check passed before final selector/doc edits",
+      "newCases": 0,
+      "build": ".qa/cbe-crossing-queue-final-build.log",
+      "superseded": ".qa/cbe-crossing-queue-build.log passed before final clear-lane straight-path correction; superseded package not claimed current",
+      "tests": 1477,
+      "independent": ".qa/cbe-crossing-queue-independent.log",
+      "candidate": ".qa/candidates/crossing-queue-f8fddfb2-1a2deeda",
+      "fingerprint": "1a2deeda29b5bc4a0f2cddb4b663b56ea3967517ec06bf2873d3e37eb10c3565",
+      "source": "f8fddfb2 plus intended dirty crossing-queue edits"
+    },
+    "remaining": [
+      "Physical crossing recovery and native steering unverified; no general junction resolution claim.",
+      "General stopped merges, other angles and native reverse capability limits remain.",
+      "Frame budget, normal/providerHC ordering and actual traffic priority quality unverified."
+    ],
+    "scoresChanged": false,
+    "physical": false
+  },
+  "crossingCancellationHandbackReview20261020": {
+    "baseline": "bb2c0df7",
+    "verifiedGuards": [
+      "Active crossing validates current native/crew/route identity and fixed held-participant poses; peer movement or replacement intent invalidates it.",
+      "BypassRelease only stops exact-owned current native work and protects successor queue/convoy/external orders.",
+      "Queue route resume requires matching accepted clearance and permitted completion reason. Cancellation cannot grant crossing success."
+    ],
+    "finding": "On an owned aborted crossing, release issues doStop, cannot resume without accepted crossing clearance, then deletes Bypass_Work and retires consent. Result/cooldown retains no actor/native STOP provenance for later safe abort handback. Ordinary nativeRouteIntent explicitly refuses STOP. If the resulting STOP persists, unchanged authored travel cannot recover automatically after the obstruction clears. Static source establishes this path, not its frequency or engine-visible persistence.",
+    "sourceIntent": "HBQ overtaking end/abort restores route through bounded refresh. Retain useful continuation intent, but require actual safe lane and exact owned STOP; never copy unconditional route refresh or invent crossing completion.",
+    "nextImplementation": [
+      "Retain exact original queue binding, route, crew, owner generation/epoch, STOP destinations/tasks and original bounded cleanup deadline after an owned abort.",
+      "Within existing driving/release maintenance, restore authored travel only after fresh traffic/path safety, unchanged applied native STOP, no successor/reservation/external controller, and exact current authority.",
+      "Keep cancelled/failed result distinct from completed crossing. Do not replenish queue/recovery budgets or introduce another persistent movement controller.",
+      "Cover repeated interruption, changed native STOP and owner migration; missing proof must not grant recall."
+    ],
+    "sources": {
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "6d966f70ed7a080e235f384576e4fdd30b47c8eedcab0e877bf66d1ad838f990",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2",
+      "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0",
+      "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+    },
+    "runtimeChanged": false,
+    "testsRepeated": false,
+    "physical": false,
+    "scoresChanged": false
+  },
+  "queueAbortHandbackImplementation20261020": {
+    "baseline": "bb2c0df7",
+    "change": "BypassRelease captures only actually observed exact owned STOP after an aborted queue crossing. Retains original binding, crew, owner receipt, route, native destinations/formation leaders and original queue deadline+15s. Existing DrivingAssist callback validates metadata before successor processing and consumes handback once after current clear traffic/geometry, stationary vehicle and owned cap checks; caller current plain MOVE/authority predicate remains mandatory. New native/route/seat/owner/successor changes retire receipt. Failed crossing result unchanged; no queue completion or attempt reset. Observed player/remote/specialist/reservation/Zeus/convoy takeover irrevocably retires the receipt before safety waiting.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "3685765313eff6cd455296303742cc720231937448bf3f29e0b22fe08db5558d",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "99a86bf84ed9a7e9ea510f2cb27489d608604f316b17bc048fa79bb4339e2e73",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374"
+    },
+    "cost": "Two bounded receipt checks through existing callback, two-seat comparisons; no new timer/controller, geometry/traffic search or speed writer.",
+    "validation": {
+      "focused": "251 existing driving cases pass before final typed-boundary/docs edits",
+      "newCases": 0,
+      "build": ".qa/cbe-queue-abort-handback-final-build.log",
+      "superseded": ".qa/cbe-queue-abort-handback-build.log passed before explicit irreversible takeover retirement",
+      "tests": 1477,
+      "independent": ".qa/cbe-queue-abort-handback-independent.log",
+      "candidate": ".qa/candidates/queue-abort-bb2c0df7-f0b85f0c",
+      "fingerprint": "f0b85f0c29778e3a82749a750043caa7637fb20884407bd10f341935ba5f8602",
+      "source": "bb2c0df7 plus intended dirty abort-handback edits",
+      "postBuild": "Same assertions moved from ramp case to existing release-authority case;251 focused driving checks pass. No production edits."
+    },
+    "remaining": [
+      "No auto-adoption after owner migration; feature-disabled cleanup remains incomplete.",
+      "Missing immediate native STOP acknowledgement grants no receipt. Identical repeated native orders remain indistinguishable.",
+      "Physical route handback, command acknowledgement, flow and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "queueShutdownPathReleaseFollowUp20261020": {
+    "baseline": "e6ed34bb",
+    "finding": "DrivingOperationFinish retires queue consent then calls DrivingAssistRelease. That helper restricted bypass cleanup to ORDINARY, excluding its QUEUE crossing. It could restore/remove the cap while the old fixed path remained journaled without a running driving FSM.",
+    "change": "Include QUEUE alongside ORDINARY in existing bypass release filter before final cap restoration. Existing BypassRelease exact native/route/crew/controller checks stop only owned failed crossing or restore route only after accepted completion. Successor queue bindings still revoke native cleanup; CONVOY excluded. No new callback, scan or authority shortcut.",
+    "sources": {
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "7d4ede9a7aad0303be8b3608d42b1370d9358ab0b3b2bb8ce9a7e82cbc908ccd"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-released-abort-handback-final-build.log",
+      "independent": ".qa/cbe-released-abort-handback-independent.log",
+      "candidate": ".qa/candidates/released-abort-e6ed34bb-ec26540c",
+      "fingerprint": "ec26540c9eae3152d984f5e9cb198347e8ffedf7b6f86ebe6454e5d84e661af2",
+      "source": "e6ed34bb plus intended dirty shutdown/released cleanup edits",
+      "superseded": ".qa/cbe-released-abort-handback-build.log passed before final abort-ticket expiry/local-group guard"
+    },
+    "remaining": [
+      "Feature-disabled safe abort handback still needs bounded cleanup integration, with separate exact released-cap proof; original-owner active callback alone is insufficient.",
+      "Ownership migration of abort STOP and actual shutdown/path-stop ordering unverified.",
+      "Physical continuation and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false,
+    "nextImplementation": [
+      "Extend existing DrivingRecoveryCleanup FIFO ticket service with an exact abort-hold ticket, keeping its at-most-four-ticket service bound and original deadline.",
+      "Only record a released-cap baseline after actual exact-owned cap restoration; cleanup must validate that unchanged baseline, not pretend the removed driving cap is still owned.",
+      "Throttle new safety observations per abort ticket; use existing geometry/traffic primitives and no additional permanent timer.",
+      "Distinguish original-owner released cleanup from ownership migration; no public receipt alone may authorize a new owner."
+    ]
+  },
+  "releasedAbortCleanupFollowUp20261020": {
+    "baseline": "e6ed34bb",
+    "change": "DrivingAssistRelease handles QUEUE paths before cap restoration and records releasedCap only after actual exact-owned baseline restoration. Existing DrivingRecoveryCleanup FIFO admits separate ABORT tickets with original immutable receipt signature, sharing four-ticket service and single existing timer. DrivingAbortHandback validates original owner/route/STOP and exact released baseline without claiming a live speed lease; fresh existing traffic/geometry sensors throttled once/sec per receipt. Same original deadline, no speed write or renewed recovery/queue budget. Same executor may remain for another vehicle; different generation/epoch revokes. Abort ticket registration and service independently require unexpired typed deadline, local live group and exact original owner receipt; orphan/expired/migrated tickets cannot requeue indefinitely.",
+    "sources": {
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "aaaa0c6c816e53fb6856d9dcce3422dfcc297e9d7c7f6a2fb646e2e464046e71",
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "8cd9578c495fcaae4eabd39c2fa1a92dd1410f99eb33ff4827067d4edc09ac02",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "c95409330507d99f5371762a038a192add7b2a93e0762bbd5bb13515725f8907"
+    },
+    "cost": "Existing timer only; four tickets/callback. Abort sensor calls at mostonce/sec per ticket; fixed existing sensor budgets but aggregate/frame overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-released-abort-handback-final-build.log",
+      "independent": ".qa/cbe-released-abort-handback-independent.log",
+      "candidate": ".qa/candidates/released-abort-e6ed34bb-ec26540c",
+      "fingerprint": "ec26540c9eae3152d984f5e9cb198347e8ffedf7b6f86ebe6454e5d84e661af2",
+      "source": "e6ed34bb plus intended dirty shutdown/released cleanup edits",
+      "superseded": ".qa/cbe-released-abort-handback-build.log passed before final abort-ticket expiry/local-group guard"
+    },
+    "remaining": [
+      "Actual migration and master-stop epoch changes still revoke receipt; explicit validated transfer remains needed.",
+      "Immediate STOP acknowledgement absent gives no authority; physical route command acknowledgement/continuation unverified.",
+      "Runtime performance and normal/providerHC shutdown ordering unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "abortMasterStopAdoptionFollowUp20261020": {
+    "baseline": "77df5936",
+    "finding": "CortexStop increments owner epoch after release, invalidating an otherwise exact original-owner released STOP cleanup receipt.",
+    "change": "CortexStop captures current driving owner before its epoch increment and offers each occupied ground vehicle for controlled same-owner adoption afterward. DrivingAbortHandback validates exact source owner, current client, next epoch only, unchanged driving generation, released baseline and all existing actual STOP/native/route/crew/leader/external/successor guards. Adoption changes owner receipt and registers existing cleanup, with no native command, new timer, deadline or observation reset.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "370cb2a39fa7ab2eebf51b1d0768d0ef00fab745b43e9e485d772518c43d8fe2",
+      "addons/core/functions/cortexStop.sqf": "6e0133ef5a1f1106ecdb830eed43c07aedf1eb4f2c5dee86e9ebe335e05b5fbf"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-master-stop-build.log",
+      "independent": ".qa/cbe-abort-master-stop-independent.log",
+      "candidate": ".qa/candidates/abort-master-77df5936-cd3cde8d",
+      "fingerprint": "cd3cde8d29ca98e95efed8ca8ffd5497602f12acfc5566e2fdf51fde07947257",
+      "source": "77df5936 plus intended dirty master-stop adoption edits"
+    },
+    "remaining": [
+      "Actual owner transfer needs original-source status captured at locality edge and admission sequencing; public old receipt alone insufficient.",
+      "Master-stop physical ordering, command acknowledgement and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "abortLocalityAdoptionFollowUp20261020": {
+    "baseline": "a4a50256",
+    "finding": "Fresh owner generation and cap admission could retire an exact old-owner abort STOP before bounded cleanup observed safe route handback.",
+    "change": "Capture prior published identity at actual group locality edge before old work retirement. Local five-second proposal binds source identity to receiving epoch. Existing vehicle/crew bounded adoption callbacks validate released baseline, local STOP/native/crew/route and successor guards. Fresh driving admission waits for live exact cleanup before creating another generation. Original hold deadline unchanged; no new timer, speed writer or native replay at adoption.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2",
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "37436c6f17e1950d618ae61a66f6e26230c9e9a0c1ded7890f4830fb027e97d2",
+      "addons/vehicles/functions/drivingOperationStart.sqf": "281a2482ea013f82f3b7f49a2c473f6029511577db1c70f5edff9a5b084ae9ca",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "afb5640a167f1943663d326b99b66bec6229085f118cc4d91c37b967d884d257"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-transfer-build.log",
+      "independent": ".qa/cbe-abort-transfer-independent.log",
+      "candidate": ".qa/candidates/abort-transfer-a4a50256-1cbad7ca",
+      "fingerprint": "1cbad7ca64f81da1a8d051d2c3807bb111621b2ea85c63bc141021d2b76615df",
+      "source": "a4a50256 plus intended dirty abort-locality edits"
+    },
+    "remaining": [
+      "Delivery outside existing lookup window unsupported. Feature-disabled migration after group handler removal remains uncovered.",
+      "Actual normal/provider-HC split arrival, repeat transfer, native command acknowledgement and physical route continuation unverified.",
+      "Performance budget unmeasured."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "abortRepeatTransferStatusFollowUp20261020": {
+    "baseline": "0ebd544e",
+    "finding": "Adoption updated abort owner but left group Driving_State stamped by previous owner. A subsequent group locality edge could capture the obsolete identity and refuse the otherwise matching receipt.",
+    "change": "After exact adoption publishes its owner, republish HANDBACK/ABORT_ADOPTED with current owner/epoch/generation only when no driving brain exists. No movement, worker, timer or deadline change. Subsequent edge still requires source identity/native/baseline validation; replication ordering remains physical item.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "0b0d8832683629e7ab6a0920b839735c6ecb8b8f62ad4bb2001ede7b1cda8ecc"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-repeat-transfer-build.log",
+      "independent": ".qa/cbe-abort-repeat-transfer-independent.log",
+      "candidate": ".qa/candidates/abort-repeat-0ebd544e-d7915e9f",
+      "fingerprint": "d7915e9ffc049e76a21e58d8bb70595b3fa357d1fbd8ffdc72264790c9c3fc6e",
+      "source": "0ebd544e plus intended dirty adopted-status edits"
+    },
+    "physical": false,
+    "scoresChanged": false
+  },
+  "abortDisabledVehicleEdgeFollowUp20261020": {
+    "baseline": "ca1ba54e",
+    "finding": "Master stop removes group Local handler; later disabled-mode vehicle migration could not capture source identity for released abort cleanup.",
+    "change": "Existing native vehicle Local callback explicitly marks actual edge. Only while tactics disabled it captures prior published driving identity and group in local vehicle proposal, five-second original window. Existing bounded lookup may bind proposal to current local group epoch only when exact released owner matches and tactical group handler absent. Init/crew retries cannot create or renew edge; existing exact handback helper validates native/route/crew/baseline/successor. No new handler/timer, tactical activation or movement at adoption.",
+    "sources": {
+      "addons/main/XEH_postInit.sqf": "bbdeda2519c79f65bd83fc44a7f795636f726454a7acf39eeae1be35c3918c0b",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "245668b996ea468d457c32a8ce48e58e329acb4bfddb24acc7d74a1e0be48f68"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-disabled-build.log",
+      "independent": ".qa/cbe-abort-disabled-independent.log",
+      "candidate": ".qa/candidates/abort-disabled-ca1ba54e-9f1fd2ba",
+      "fingerprint": "9f1fd2ba56d27021a845ab9130158df529bc3daf49869582cb17ee99c93030eb",
+      "source": "ca1ba54e plus intended dirty disabled-mode edge edits"
+    },
+    "remaining": [
+      "No observed vehicle edge, absent source status or delivery beyond finite window cannot adopt.",
+      "Actual disabled-mode split arrival, normal/providerHC repeated transfer, physical continuation and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "routeWaitRefreshReconciliation20261020": {
+    "baseline": "9a90461a",
+    "sources": {
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+    },
+    "sourceIntent": [
+      "routeWaiting protects near-waypoint HOLD, inactive synchronized triggers, timeout and nontrue condition from watchdog/unstuck. It does not execute arbitrary condition code.",
+      "refreshRoute replaces current waypoint metadata to wake native planning, has distinct effective-commander path, optionally ends fixed path, enables crew movement/planning and uses three-second source throttle."
+    ],
+    "currentDisposition": [
+      "DrivingAssistStart nativeWaiting covers same near-waypoint intent with whitespace-normalized condition; additionally requires physical rest and unitReady. RecoveryOrderFree independently refuses scripted/timed/synchronized/attached or nonplain MOVE even far away, so differing wait labels do not authorize bypass.",
+      "DrivingRouteReceipt delegates complete current authored identity to AuthoredRouteReceipt. Ordinary recovery retains native effective-commander issue and exact driver/operator observations within existing finite retry budget.",
+      "Do not duplicate refresh controller or copy waypoint delete/re-add, blanket enableAI/engine/crew recall. Preserve condition, synchronization, actor intent and mission feature choices. This is intentional redesign; physical route-wakeup equivalence is not established."
+    ],
+    "remaining": [
+      "Native planning wake-up after fixed-path cancellation, stationary intentional waits, commanded vehicle continuation, repeated recovery and provider-HC transfer require later physical comparison.",
+      "Whole HBQ parity/performance remains unproven. No new runtime capability or build-out increase claimed."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
+  },
+  "navigationAreaRouteChoiceFollowUp20261020": {
+    "baseline": "332cbea8",
+    "sourceIntent": "HBQ driveAssist lines2380-2467 filters other-side areas and selects minimum full via distance under shortcut threshold. moduleNavArea registers rectangular axis/extent; native route handback follows finite approach/cross.",
+    "finding": "CBE filtered full shortcut distance but ranked only distance to entrance, choosing a longer complete route when entrances differ.",
+    "change": "Rank eligible area metadata by full approach+crossing+onward distance. Preserve400m approach,1.5x direct+100 threshold,32area limit,one selected geometry proposal and all existing authority/support/hull/convoy-tail/revision/cooldown/handback checks. Cache already computed scalar via distance; no added spatial query, controller or timer.",
+    "sources": {
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "daa03298650f455dd967ca36f4112601ccd2c544356280c72af021dc4a5b28cf",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_moduleNavArea.sqf": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-corridor-route-choice-build.log",
+      "independent": ".qa/cbe-corridor-route-choice-independent.log",
+      "candidate": ".qa/candidates/corridor-choice-332cbea8-df7048dc",
+      "fingerprint": "df7048dc6280143d66ef8d5cbd9d355489377e234b660fa4a6662b3788861e2f",
+      "source": "332cbea8 plus intended dirty corridor-route-choice edits"
+    },
+    "remaining": [
+      "Physical native corridor selection, bridge/ford support, route continuation, normal/providerHC convoy traversal and performance unverified.",
+      "Selection uses centreline proposal distance, not road-network or combat-risk optimality; failed selected geometry retains existing cooldown/next-admission policy."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "corridorNativeInputFollowUp20261020": {
+    "baseline": "9111201c",
+    "finding": "Corridor CROSS checked destinations but admitted incompatible crew command types. Unlike bypass release, corridor execution and cleanup lacked native BACK/direct-commander/turn input veto.",
+    "change": "Use existing native vehicleMoveInfo semantics at corridor mayWrite and cleanup ownership guard. Incompatible CROSS crew tasks retire metadata with COMMAND_CHANGED and no route recall. Preserve native MOVE/WAIT/STOP/idle transitions; no new command journal, timer, controller or spatial query.",
+    "sources": {
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "55edf8c4b7555bfb301a5eafde651d0d62b7086b9c1c51a8685c1cc216c95a28",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "add3e916eb6e910868666b16aa415af7f9e3600d156f083121ae054761c8afa6"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-corridor-native-input-build.log",
+      "independent": ".qa/cbe-corridor-native-input-independent.log",
+      "candidate": ".qa/candidates/corridor-input-9111201c-0f1f5fec",
+      "fingerprint": "0f1f5fec69a532b4e8443187c0e9520ca73414940b62b88db45f932d3be35225",
+      "source": "9111201c plus intended dirty corridor-native-input edits"
+    },
+    "remaining": [
+      "Identical repeated native STOP remains indistinguishable. Native transition/interrupt ordering and actual normal/providerHC passage/handback/performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "roadNativePredictionReconciliation20261020": {
+    "baseline": "ce0e2217",
+    "sources": {
+      "addons/vehicles/functions/drivingRoadCap.sqf": "7dc4e6b6fa415b84a21a0291059b34c0f0f1a7459ff914c279da5a5402e93521",
+      "addons/vehicles/functions/drivingNativePathWatch.sqf": "c8803fb34381aaa064f81b43970b0bfb5bf224dd8cdecdbe92fa97b63f5c3ceb",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    },
+    "sourceIntent": "HBQ RoadAhead836-867 walks heading-compatible connected roads and measures approach bearing; curved ray helpers and pass/planning consumers are separate observations. This is a road graph heuristic, not proof of native route.",
+    "currentDisposition": [
+      "DrivingRoadCap already preserves per-piece and vehicle-to-future approach turns, grade, junction and missing bridge geometry limits. Eight transitions/nine road metadata reads and16connections/node remain bounded. Branch selection is heading heuristic; do not call it native route choice.",
+      "DrivingNativePathWatch already keeps at most64 PathCalculated nodes bound to actual seats, authored route/controller/epoch and both native destinations,5s age. Rejects ambiguous near runs/wrong floor and walks3-6m near-path distance to derive curvature; not full-path passability.",
+      "DrivingAssistStart prefers valid native hint for existing bounded geometry sensor, otherwise measured turn track; geometry bends a short arc then continues a tangent with existing ray budgets. Do not add another planner/controller or lengthen hint lifetime without evidence."
+    ],
+    "remaining": [
+      "Future junction-branch braking and offroad obstacle anticipation beyond local native hint are not established as native-route optimality.",
+      "Physical route prediction, braking, obstacle interaction, retained useful native planning and normal/providerHC frame cost remain unverified."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
+  },
+  "passingAbortTraffic20261020": {
+    "sourceParent": "ff734714",
+    "source": {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examinedLines": [
+        [
+          1996,
+          2157
+        ],
+        [
+          2461,
+          2508
+        ]
+      ]
+    },
+    "intent": "Abort an unsafe/slow passing attempt by falling behind the moving predecessor, retaining forward path until separated. Source BACK lowers cap relative to peer, floors it at5kmh and starts another10s abort window.",
+    "finding": "CBE OUT detected corridor conflict but DROP_BACK returned positive peer-relative cap and did not recheck traffic. Slower motion still advances along the passing path; it does not prove clearance.",
+    "implementation": "OUT blocked/refused observation returns zero immediately. DROP_BACK freshly observes its activePath through DrivingPassTraffic; blocked/refused observation returns zero with DROP_BACK_TRAFFIC_HELD, clear observation permits existing peer-relative cap. Existing whole-hull clearance, exact cleanup/route identity and original consent deadline remain.",
+    "departures": [
+      "No source minimum5kmh floor or renewed abort deadline.",
+      "No blanket route reset, push/physics, forced merge or extra speed writer."
+    ],
+    "cost": "Adds one bounded existing native traffic-area query per active DROP_BACK callback, <=64candidates/127segments; dense results refuse. No new worker or recurring timer.",
+    "limits": [
+      "Native stopping distance and physical collision avoidance remain unverified.",
+      "Constant-course forecast cannot anticipate turns/acceleration; faster traffic beyond discovery remains unsupported.",
+      "Whole-path monitoring can conservatively refuse conflicts behind the current vehicle.",
+      "Existing drop-back still depends on moving peer and cannot resolve stopped queues.",
+      "Whole HBQ parity and performance budget are not established."
+    ],
+    "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-abort-traffic-build.log; candidate .qa/candidates/pass-abort-ff734714-bdcf097b fingerprint bdcf097bfee9237bf70c5b5e00090b619ca3e6fa6cb5ed821a098793ac1a4e36 actualff734714+intendeddirtyedits. No test-count/score increase.",
+    "audits": "PAUSED"
+  },
+  "passingRemainingCorridor20261020": {
+    "sourceParent": "abe6144b",
+    "finding": "Traffic monitoring reserves the whole issued corridor, including distant passed stations. After adding live DROP_BACK checks, a stationary actor on a completed portion could hold the passer despite being behind its entire hull.",
+    "implementation": "Optional monitorRemaining BOOLdefaultfalse in DrivingPassTraffic, used only by ongoing OUT/RETURN/DROP_BACK. One contiguous near segment <=3m horizontal/2m vertical, headingdot>=cos35, must permit a suffix beginning behind sqrt(halfLength^2+width^2)+2m along the path. Retain whole start station. Ambiguous/off-path/wrongfloor/misaligned keeps full corridor. Exact pose rechecked before returning monitor evidence.",
+    "authority": "Only observation guide is shortened. Native path, issue/admission geometry, discovery envelope, consent expiry and progress/completion remain unchanged.",
+    "cost": "At most127 segment projections and127 backward steps once before existing <=64candidate*127segment traffic loop. No extra spatial query, ray, handler or timer.",
+    "limits": [
+      "Contiguous stretches at complex geometry can still conservatively retain too much path.",
+      "Rear traffic forecast remains finite constant-course; native steering/braking and performance unverified.",
+      "No new HBQ parity or physical acceptance claim."
+    ],
+    "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-remaining-corridor-build.log; candidate .qa/candidates/pass-remaining-abe6144b-79a15cb0 fingerprint 79a15cb0117bdc4a49aa64243d465bf98b69e33d1de069e6212868d5019d6bef actualabe6144b+intendeddirtysource. No test-count/score increase.",
+    "audits": "PAUSED"
+  },
+  "convoyLeadPacingContinuity20261020": {
+    "sourceParent": "e6475f72",
+    "intent": "Keep mixed columns flowing without feeding every tracked acceleration dip into the lead, while allowing substantially stretched followers to regain spacing.",
+    "finding": "Actual-speed lead pacing switched fully at gap>2*target. With cruise reserve42kmh and slow follower pacing5kmh, a tiny boundary crossing could change the requested cap by37kmh before independent constraints.",
+    "implementation": "Blend cruise reserve toward the existing actual-forward-speed pacing over max(20percent target,3m) beyond twice target. Original threshold value retained at blend0; full former pacing at blend1. Actual speed still excludes reverse.",
+    "preserved": [
+      "Same bounded aligned gap sample and no ordinary-band actual-speed feedback",
+      "Same five-kmh pacing floor subject to stronger independent safety caps",
+      "Contact bypass, arrival, road/traffic/geometry/infantry braking and acceleration limit"
+    ],
+    "cost": "Only bounded scalar arithmetic for substantially stretched pairs; no new query, metadata state, timer, setting or controller.",
+    "limits": [
+      "Blend applies less slowdown within its transition band than the former abrupt switch.",
+      "Physical gap convergence, native track acceleration/braking and speed-wave improvement unverified.",
+      "No source parity or performance acceptance inferred."
+    ],
+    "validation": "251 existing driving and32 indoor lifecycle focused cases plus full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-convoy-pacing-blend-build.log; candidate .qa/candidates/convoy-pacing-e6475f72-f515c748 fingerprint f515c7488e40851b0f5f20603770611707b11dcd7b13266e6d781c8cbea5b429 actuale6475f72+intendeddirtysource. No test-count/score increase.",
+    "audits": "PAUSED"
+  },
+  "cornerGrindingReconciliation20261020": {
+    "sourceParent": "a495a102",
+    "reference": {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "examinedLines": [
+        1781,
+        1900
+      ]
+    },
+    "currentHashes": {
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b",
+      "addons/vehicles/functions/drivingRearClear.sqf": "b0ff813f93dd5474af9b647e0eb48e5ab715ef538fda7f576dc67df439443e21",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e"
+    },
+    "sourceIntent": [
+      "Diagnose low front/diagonal/side contact rather than infer grinding from slow speed alone.",
+      "Exclude passable gates, traffic holds and near-goal arrival before escalation.",
+      "Back away first; only recent failed back-off plus one-sided contact and actual lateral room permits source side push."
+    ],
+    "currentImplementation": [
+      "DrivingGeometryCap samples three front offsets at low/mid/high body rows, with a short curve/tangent envelope. Its lowest row is model bounding minimum plus0.45m. It does not directly probe the front-quarter/mid-side contact occupied by the current hull.",
+      "Ordinary recovery requires current authored route/crew/owner and measured linear/angular rest; route refresh, fresh bounded rear plan, native reverse, damage monitoring and final route retry share finite journals.",
+      "Existing bypass validates an explicit fresh static obstacle and up to two native paths under its own original90s episode. It is not automatically the corner-recovery continuation."
+    ],
+    "gap": "One-sided low corner/side contact diagnosis and a native lateral corner-release composition remain missing. Existing finite reverse and forward curvature sensing do not establish this source functionality. Native AI can still recover some such cases; no physical failure reproduced in this paused-audit review.",
+    "reject": [
+      "No lateral velocity/force push, teleport, collision disable, crew recall or automatic source-style physics method.",
+      "Do not lower all sensing rows or add side probes on every ordinary callback without a qualified contact/dwell context.",
+      "Do not start a fresh bypass lifetime/attempt budget after each failed reverse."
+    ],
+    "nextImplementationBoundary": "Use the existing ordinary recovery episode as parent: preserve hardDeadline/attempts/authored route and exact native receipts; diagnose current one-sided static contact only after qualified stationary dwell/back-off; any native lateral proposal must share that original budget and use fresh full-body support/actor/solid geometry before issue. Reuse existing path execution where possible without a second movement controller.",
+    "validation": "Read-only source/caller comparison; no production change or redundant build. Latest full1477 result remains .qa/cbe-convoy-pacing-blend-build.log and preserved candidate convoy-pacing-e6475f72-f515c748. Physical/performance acceptance incomplete.",
+    "audits": "PAUSED"
+  },
+  "bypassRecoveryParentBudget20261020": {
+    "sourceParent": "99bb344c",
+    "finding": "Ordinary bypass admission could start its own90s episode despite a current finite ordinary-recovery journal. This is not a safe parent boundary for future corner-release composition.",
+    "implementation": "An existing ordinary parent must match group/route/driver/operator, finite unexpired hardDeadline and finite progressAnchor; stages REFRESH/FINAL only, not pending release, exact false bypassSpent. Admission revalidates current authority/native orders/old work and parent in one unscheduled metadata transaction, sets spent true, binds [group,route,hardDeadline,anchor], and caps child deadline by parent. One child retains its existing two-side attempt budget. Parent checked during observation and native issue; changed parent ends without successor recall. Same-episode recovery rewrites preserve spent, malformed values fail spent.",
+    "preserved": [
+      "Standalone no-parent ordinary bypass, convoy and queue episode policies",
+      "Original route/crew/native task/external/geometry authority and one fixed-path writer",
+      "Existing genuine forward progress/new-route reset; no new retry timer or attempt renewal"
+    ],
+    "cost": "Bounded metadata validation/map copy and existing publication only; no new spatial query, worker or timer.",
+    "remaining": [
+      "One-sided low contact diagnosis and native corner-release path remain unimplemented.",
+      "This is parent-budget integration, not complete HBQ grinding parity.",
+      "Physical native passage/abort/transfer and performance unverified while audits paused."
+    ],
+    "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-parent-build.log; candidate .qa/candidates/bypass-parent-99bb344c-fab7bbd4 fingerprint fab7bbd487385da650d8725049ef90fb0f99bb637e67195cc76d41985ec9443d actual99bb344c+intendeddirtysource. No test-count/score increase."
+  },
+  "bypassParentNativeContinuation20261020": {
+    "sourceParent": "45324a97",
+    "finding": "Ordinary recovery ownership compares its previous destination/cap before invoking the bypass child. The child fixed-path command would invalidate that parent on the next callback despite being its admitted work.",
+    "implementation": [
+      "DrivingRecoveryCommandState classifies exact live ordinary FOLLOW child as BYPASS using matching parent binding, original finite deadline, route/seats and both child native task/destination receipts.",
+      "DrivingAssistStart retains parent only with exact current private applied speed lease. BYPASS is explicitly excluded from ordinary parent movement admission. Zero owned cap may retain this exact child without fabricated obstacle evidence.",
+      "Owned native child cleanup records the route request in the parent under min(now+2s,originalhard), retains spent/stage/baseline, and preserves a distinct driver pre-commander-write destination. Ordinary acknowledgement clears the return marker. Exact pending owned STOP may wait only inside that request proof."
+    ],
+    "cost": "Bounded metadata/native receipt reads and existing publications; no new geometry query, timer, worker or speed writer.",
+    "limits": [
+      "Unknown or changed private cap/route/seats/native task still yields.",
+      "Distinct driver asynchronous destination changes remain conservative refusal, not inferred acknowledgement.",
+      "Split-locality parent/child adoption and actual native handback not physically validated.",
+      "One-sided corner diagnosis and lateral native release still incomplete."
+    ],
+    "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-child-build.log; candidate .qa/candidates/bypass-child-45324a97-0b1a9814 fingerprint 0b1a98140e8ac3b8b8662c58c5e745982a1b10b0ffed792a251e5f681fdeb5a6 actual45324a97+intendeddirtysource. Initial4 source-contract mismatches retained .qa/cbe-bypass-child-focused-initial.log; original route veto prefix preserved and cap classification case extended for exact child. No new tests/scores.",
+    "audits": "PAUSED"
+  },
+  "cornerApproachRoomConstraint20261020": {
+    "sourceParent": "b86d832a",
+    "hashes": {
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "4d785006088ffd2884fac85d5c3c259c1c081935a93a9af2e987383ad8425996",
+      "addons/vehicles/functions/drivingPathGeometry.sqf": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b"
+    },
+    "finding": "Ordinary static bypass requires minY>radius+6 and before=minY-radius-3 >= rampTravel=max(1.5*abs(lateral)/tan35,12). Therefore it needs at least radius+15m approach, and often more. Current ordinary rear plan prefers6m travel, falls back2m. Side sensing alone cannot make this planner execute a corner release from a close-contact start.",
+    "examples": [
+      {
+        "halfWidth": 1,
+        "halfLength": 2,
+        "radius": 3.23606797749979,
+        "optimisticMinimumApproach": 18.23606797749979,
+        "contactThenSixMetreBackoffApproximateApproach": 8,
+        "note": "Lower bound only: required ramp can exceed12m with actual obstacle lateral span. Contact pose and obstacle geometry are illustrative, not in-engine measurements."
+      },
+      {
+        "halfWidth": 2,
+        "halfLength": 4,
+        "radius": 5.47213595499958,
+        "optimisticMinimumApproach": 20.47213595499958,
+        "contactThenSixMetreBackoffApproximateApproach": 10,
+        "note": "Lower bound only: required ramp can exceed12m with actual obstacle lateral span. Contact pose and obstacle geometry are illustrative, not in-engine measurements."
+      }
+    ],
+    "geometryBoundary": "DrivingPathGeometry does not ignore the source obstacle and uses a circumscribed body envelope. Removing the approach gate or ignoring the contacted obstacle would discard required swept clearance. No such relaxation made.",
+    "sourceDisposition": "HBQ side push was examined as explicit velocity-model-space/yaw forcing in a finite EachFrame list. It does not provide a native steering trajectory. Current CBE native-recovery design rejects copying that physical-control method; this is an engineering disposition, not a claim that the user categorically forbids all source shortcuts.",
+    "nextAction": "Design one shared read-only approach-room calculation for actual obstacle/hull metadata. Determine whether a longer freshly supported native back-off can create a feasible gradual bypass within the existing parent hard deadline; if not, retain failure. Do not implement side detection as claimed corner recovery until a consuming native manoeuvre can use it. Any reverse duration reallocation must preserve total parent deadline and final native handback.",
+    "validation": "Analytic source constraint only; no production change, no physical result and no redundant build. Existing latest full1477 candidate bypass-child-45324a97-0b1a9814 remains preserved.",
+    "audits": "PAUSED"
+  },
+  "sharedBypassRoom20261020": {
+    "sourceParent": "390d01f5",
+    "implementation": "Extract existing projected obstacle/radius/side arithmetic into registered DrivingBypassRoom, consumed by DrivingBypassPlan. Preserves30m span/12m radius/35degree smoothstep/12m minimum ramp/straight held-queue distinction. Typed finite inputs and results; reports requiredBack under unchanged pose geometry even when approach/turn room refuses.",
+    "authority": "Pure arithmetic, no native/world reads, scans, commands, state or timer. Missing approach is not rear clearance or permission to reverse. Full planner retains actual pose/obstacle/queue/actor/support/body authority.",
+    "integrationState": "Production planner consumes shared calculation. Ordinary recovery does not yet request longer reverse travel or alter sub-phase time allocation. Native corner release remains incomplete.",
+    "cost": "Constant bounded scalar work replacing existing inline calculation; existing world queries/ray limits unchanged. Additional result HashMap allocation is unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-room-build.log; candidate .qa/candidates/bypass-room-390d01f5-103bdf74 fingerprint 103bdf749371eade67bf7a269730875b8e6f28d38fd57aa5e20b770a6d914dd3 actual390d01f5+dirtysource. Existing cases extended, no test-count/score increase.363 production functions is inventory only.",
+    "audits": "PAUSED"
+  },
+  "qualifiedApproachBackoff20261020": {
+    "sourceParent": "a33cc34a",
+    "implementation": [
+      "Ordinary close-static bypass defers before creating work/cooldown at forward observation gap<=8m. Existing three-second close-static dwell can therefore reach finite native back-off first.",
+      "DrivingRearPlan optional fresh STATIC observation and maxTravel6..24 uses actual oriented hull intervals/shared approach arithmetic, one-metre margin and integer stop travel, with two-metre observed rear buffer. Source/vehicle transforms recheck. Extended spatial refusal permits one ordinary8/6 fallback; default remains8/6 then3.5/2, never a third observation.",
+      "Only an unspent current recovery parent with continuous close-static evidence requests extension. Existing stricter positive speed cap reduces feasible travel using12seconds of capped-rate travel. Extended reverse allocates <=16s estimated travel+4 inside original hard deadline, reserves>=40s final handback. Defaults and queue phase windows unchanged.",
+      "Active reverse accepts bounded integral7..24m envelope with exact+2buffer only outside queue binding. Existing native acknowledgement, heading/lateral/component-damage checks, fresh rear sampling and STOP handback remain. Admission rechecks source transform and vehicle position/direction/up.",
+      "Long rear support stations are <=4m apart: default<=8m remains<=70rays, ordinary26m maximum<=85, general60m helpermaximum<=109. Original two native area discoveries per observation and64actor density limit unchanged. Cleanup ticket signature includes rearEnvelope."
+    ],
+    "limits": [
+      "This consumes forward STATIC observations; low side-only contact detection remains missing.",
+      "Arithmetic and estimated time do not prove acceleration, arrival, steering or continuous collision/support clearance.",
+      "Insufficient room, budget, density or rear support retains refusal; no physics push or episode renewal.",
+      "Normal/providerHC adoption, repeated physical back-off/bypass/handback and performance not accepted."
+    ],
+    "validation": "251 existing focused driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-corner-backoff-build.log; candidate .qa/candidates/corner-backoff-a33cc34a-2d6f69e3 fingerprint 2d6f69e3238b562097f76bc1a3b05a2021d9923f5982fee9af0d6195640155e7 actuala33cc34a+dirtysource. Initial source-contract mismatches retained .qa/cbe-corner-backoff-focused-initial.log; existing cases extended, no tests/scores added.",
+    "audits": "PAUSED"
+  },
+  "qualifiedSideContact20261020": {
+    "sourceParent": "ca7accd2",
+    "sourceIntent": "HBQ grinding branch uses low diagonal/side contact after stalled route recovery and excludes gates, traffic and arrival; current implementation uses its diagnosis intent with existing native recovery rather than physics displacement.",
+    "implementation": "DrivingGeometryCap optional fifth flag adds twelve low current-hull diagonal/quarter/mid-side probes at box-minZ+0.3/0.6. Shared gate/static classification, <=16 cached obstacle-availability checks, exactly one qualifying contact side and current finite full rest. Side gates do not issue forward gate caps. Original return shape and forward callers remain.",
+    "admission": "DrivingAssistStart only under owned REFRESH stage1, original started+3, stationary SAFE/AWARE unsuppressed driver, unspent bypass parent, no boarding/queue/crossing/pass/corridor/bypass and existing ordinary native-route permission. Existing close-static three-second dwell and fresh rear/native admission remain required.",
+    "cost": "Forward sample rows now allocated before one shared query loop. Default9/27 rays unchanged; qualified path adds12 rays, max39/four hits each, no new discovery, timer, worker or movement writer. Availability cache max16 objects with existing bounded crew classification. Allocation and runtime overhead unmeasured.",
+    "limits": "No lateral clearance or movement inferred. Two qualifying sides and exhausted classification budget discard side diagnosis. Rays can miss unsupported geometry. Complete native corner release, repeated physical progress, provider HC and performance remain unverified. Historical missing-side findings above describe their earlier checkpoint.",
+    "validation": "251 existing focused driving cases and full1477/config/FSM/HEMTT/docs/package gates passed .qa/cbe-corner-contact-build.log. Preserved candidate .qa/candidates/corner-contact-ca7accd2-2747a5c2 fingerprint 2747a5c286f9ac4b019ab900d047abe781212a04e1898fa4b8d77f4b1a643a72 actualca7accd2+dirtysource. Independent copied-package verification .qa/cbe-corner-contact-independent.log. No new cases or score increase.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
+    }
+  },
+  "bypassPauseRetention20261020": {
+    "sourceParent": "da5cc8ac",
+    "finding": "Later generic traffic/controller pause branch retired REFRESH/FINAL parent whenever bypass was active or had just returned. Earlier child native-command retention alone did not survive this branch; next callback would lose its parent binding. Failed-child obstacle waits could also replenish the spent episode.",
+    "implementation": "Inside existing pause branch, preserve only current owned spent REFRESH/FINAL parent with unchanged group/route/original hard deadline/progress anchor, no release pending, and fresh native classifier OWNED/PENDING/BYPASS. No new movement permission, attempt, deadline, query or timer. Unrelated/unowned contexts still retire; existing reverse/exhausted retention and route-progress replenishment remain.",
+    "cost": "One bounded current native/child receipt classification only for an owned spent parent in an existing pause; no discovery or geometry. Performance unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-bypass-pause-final-build.log. Candidate .qa/candidates/bypass-pause-da5cc8ac-9abdb2e3 fingerprint 9abdb2e37b07d8af9edd147020f702bec84b34c48d6fb3e456c420080ec155fd actualda5cc8ac+dirtysource. Independent copied-package verification .qa/cbe-bypass-pause-independent.log. Initial old-literal assertion failures retained in focused/build logs; original reverse/exhausted and pedestrian suppression guards remain. No new cases or score change.",
+    "limits": "Source flow fault, not physically reproduced while audits paused. Complete repeated native bypass and handback, split/provider HC and performance unverified.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
+    }
+  },
+  "approachDeferralBlindSpot20261020": {
+    "sourceParent": "96af25bd",
+    "finding": "Fixed forward-gap<=8 deferral/dwell is narrower than actual circumscribed-hull/ramp approach refusal. At gap9..16 an ordinary child can be admitted and spend its recovery parent before both sides reject insufficient turn room. If observed gap remains>8, extended backoff dwell cannot qualify and default6m may still be insufficient. Before a recovery parent exists, a standalone failed proposal also spends its cooldown; that is not evidence of physical recovery.",
+    "callOrder": [
+      "Geometry observer",
+      "DrivingBypassStep admission writes parent bypassSpent=true before PLAN",
+      "DrivingBypassPlan uses real projected bounds and shared room predicate; two side attempts can both refuse before any movement",
+      "DrivingAssistStart solid dwell accepts only gap<=8; extended rear plan also requires unspent parent",
+      "Generic traffic wait cannot replenish spent parent after96af25bd, correctly preserving finite budget but not supplying missing room"
+    ],
+    "analyticExamples": [
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 8,
+        "projectedMinY": 10,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 3.76393202250021,
+        "room": false,
+        "requiredBack": 13.879554075688116,
+        "fixed8mDefers": true,
+        "extendedBackoffDwellEligible": true
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 9,
+        "projectedMinY": 11,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 4.76393202250021,
+        "room": false,
+        "requiredBack": 12.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 12,
+        "projectedMinY": 14,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 7.76393202250021,
+        "room": false,
+        "requiredBack": 9.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 16,
+        "projectedMinY": 18,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 11.76393202250021,
+        "room": false,
+        "requiredBack": 5.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      }
+    ],
+    "exampleLimits": "Illustrative level aligned rectangular hull and obstacle, not engine measurements, ray-hit certification or physical failures. Values use unchanged production radius and smoothstep arithmetic. Projection/ray gap can differ on rotated/irregular geometry.",
+    "nextImplementation": "Use actual shared approach-room status before spending ordinary bypass episode, and carry a qualified fresh insufficient-room observation into existing finite native backoff under original parent lifetime. Do not merely widen8m to another arbitrary constant, weaken full-hull geometry, reset spent attempts, renew hard deadline, or copy physics displacement. Keep queue/convoy admission distinct. Trace no-parent admission and PLAN failures as well as active child/return.",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "06391c47995543d1b9e3b7d603424bd7ef553c4966e1c8c9f0f69da891251e02",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "8df680b72c4ca7114bae918957d6d401d94d9f90224bb874cf1db891d856c4f1",
+      "addons/vehicles/functions/drivingBypassRoom.sqf": "63f04f2c5770b8ca701c035becb121492795d8f5e508484bc99c4fb4eb625e34",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "a3aa38e97150ef79492d39954920c5402808160cdefa8c0f979f72d80500209e"
+    },
+    "validation": "Read current complete relevant admission/PLAN/dwell/rear branches and independently calculate illustrative feasibility. No product changes or new tests; latest full1477 candidate bypass-pause-da5cc8ac-9abdb2e3 unchanged.",
+    "audits": "PAUSED",
+    "wholeParity": false
+  },
+  "actualApproachAdmission20261020": {
+    "sourceParent": "3aa95899",
+    "implementation": "Registered DrivingBypassApproach reads fresh available STATIC source and current owned hull, two affine projections and both scalar side room results. ROOM if either side fits; BACKOFF only if both sides report finite positive missing approach, otherwise unsupported. No discovery/rays/state/authority. OrdinaryBypassStep diagnoses before work/parent-spend/cooldown, retains queue/convoy branches, returns inactive optional fifth BACKOFF map. DrivingAssistStart feeds qualified shortage into existing stationary3s dwell beyond8m; DrivingRearPlan repeats same current diagnosis at admission, retains maximum24m stop/two-observation fallback/pose/owner/deadline guards.",
+    "limits": "Independent engine steering, support/body clearance and native acknowledgement remain mandatory. No sideways physics, ignored source, widened fixed threshold, new budget or renewed attempts. Unsupported metadata cannot grant room. A geometrically possible side may still fail subsequent full physical path checks; that existing two-side episode remains spent.",
+    "cost": "One ordinary preadmission object availability check, two affine hull intervals/eight native transforms, two constant room calculations; rear admission repeats diagnosis instead of its previous duplicated calculation. Existing full plan remains independent. No new query type/timer/controller; overhead unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-approach-admission-build.log. Candidate .qa/candidates/approach-admission-3aa95899-065ac17d fingerprint 065ac17dc8ca5244ad50939560d18bd76c8c53693d0a764a24ad8d4f7b3548a6 actual3aa95899+dirtysource. Independent copied-package verification .qa/cbe-approach-admission-independent.log. Initial2literal contract failures retained .qa/cbe-approach-admission-focused-initial.log; existing cases extended, no added cases or score increase.364 functions is inventory only.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "6bc5331f1e463f45c2c9f2304d7190bf9ddecdb7c3d970289094c7488f6017cc",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "f9a715e066a025d74a7276d99e21b6296e497bdefb8c52ea4619db97a5d8f5ec",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8",
+      "addons/vehicles/functions/drivingBypassRoom.sqf": "643a988aec673101135ab0adb684f908ba749ad069d827d367bdea9e2e06fc4f",
+      "addons/vehicles/functions/drivingBypassApproach.sqf": "1ce99c9cfb1a516968d40253dbcae1b7795e80d68b2f0d7db5f3f90f0337964b"
+    }
+  },
+  "approachCapDominance20261020": {
+    "sourceParent": "4b3d6aab",
+    "finding": "Solid dwell still required obstacleLimited, so fresh actual-room BACKOFF was ignored when a stricter requested speed already equalled the solid cap. Example halfhull1/2 obstacleX[-2,2], gap12 and missioncap1.2m/s: braking remains1.2, missing approach9.88m exceeds default6 but ceil(missing+1)=11 fits floor(12*1.2)=14 original extension bound.",
+    "implementation": "Allow existing solid dwell on obstacleLimited OR fresh approachUncontested. The latter requires no independent traffic object and pedestrian speed cap >= current cap with0.001 tolerance. All existing STATIC observation, stationarity, independent positive caps, same source/route/epoch continuity, no competing controllers and native rear/parent budget checks remain. No cap increase, query, timer, work record or movement writer.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-approach-cap-build.log. Copied candidate .qa/candidates/approach-cap-4b3d6aab-6dea9119 fingerprint 6dea9119f574527bc2ee6deb459b77c9631a06890eb86e20d86f52834616d228 actual4b3d6aab+dirtysource. Independent verification .qa/cbe-approach-cap-independent.log. Existing case extended; no new cases or score change.",
+    "audits": "PAUSED",
+    "limits": "Analytic source path, not reproduced in engine. Low caps can still make extended travel infeasible; no extra lifetime granted.",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+    }
+  },
+  "mixedConvoyExecutionReview20261020": {
+    "reviewedSource": "56ed7b63",
+    "upstreamSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "sources": {
+      "addons/vehicles/functions/convoyTick.sqf": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e",
+      "addons/vehicles/functions/convoyOperationStep.sqf": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+    },
+    "upstreamIntent": [
+      "HBQ _fnc_Release refuses general speed release while _TrafHold is active; traffic release owns its own reset. Busy state is finite.",
+      "Retain safety holds across recovery release instead of forceSpeed-1 momentarily reopening collision motion."
+    ],
+    "currentExecution": [
+      "ConvoyTick ordinary revision/speed/halt edits preserve predecessor trail/cursor unless vehicle line or explicit reacquire changes; actual reacquisition invalidates movement commitments.",
+      "Lead severe-gap measured-speed pacing blends across tolerance, rather than a discrete cap jump at twice target gap.",
+      "Follower forward speed distinguishes reverse predecessor motion; proportional spacing and bounded outer-gap boost feed a mass-adjusted raw closing cap.",
+      "Existing acceleration/deceleration smoothing is subordinate to raw compression closing cap and immediate reverse yield.",
+      "Lead final writer applies bypass, traffic/geometry and infantry minima before forceSpeed; follower writer applies traffic/passage/bypass/infantry minima after spacing smoothing. Guarded owner writes retain exact owned speed receipts."
+    ],
+    "disposition": "Do not tune gains or weaken closing limits from source review alone. HBQ general-vs-traffic hold invariant has corresponding min-composition in the inspected CBE writers; this is structural correspondence, not whole-controller parity or physical proof.",
+    "retainedGaps": [
+      "Mixed tracked/wheeled physical step-off/braking and sustained gap convergence remain unverified.",
+      "Current docs/code cannot establish whether old observed stop-start came from spacing, native path acquisition, obstacle cap, infantry cap or actual track response.",
+      "When audits are authorized, use existing captureControl cap provenance/native endpoint journals for repeated mixed convoy stop/resume; measure actual position/speed and retained zero-cap source rather than tune by visual impression alone."
+    ],
+    "productChanged": false,
+    "audits": "PAUSED",
+    "performanceMeasured": false,
+    "scoresChanged": false
+  }
+}

@@ -4,6 +4,8 @@
  * Locality/authority: read-only anywhere; consuming movement owner compares before commands.
  * Repeat/JIP: no state, handlers or code execution. Current waypoint progression is excluded;
  * moving attached targets retain their object identities instead of transient world positions.
+ * Forced-behaviour changes participate in identity even when the behaviour string is unchanged.
+ * The force flag is appended; existing metadata field positions retain their meaning.
  * Arguments: 0 group <GROUP>, grpNull; 1 owned waypoint name <STRING>, empty (exclude none).
  * 2 owned-only <BOOL>, false: read only the named operation waypoint instead of excluding it.
  * 3 waypoint engine index <NUMBER>, -1: negative reads all; otherwise read only that handle.
@@ -29,5 +31,6 @@ _authored apply {
         waypointBehaviour _waypoint,waypointCombatMode _waypoint,waypointFormation _waypoint,
         waypointScript _waypoint,_vehicle,_object,synchronizedTriggers _waypoint,
         synchronizedWaypoints _waypoint,waypointHousePosition _waypoint,
-        waypointLoiterRadius _waypoint,waypointLoiterType _waypoint,waypointLoiterAltitude _waypoint]
+        waypointLoiterRadius _waypoint,waypointLoiterType _waypoint,waypointLoiterAltitude _waypoint,
+        waypointForceBehaviour _waypoint]
 }

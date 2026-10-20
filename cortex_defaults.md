@@ -17,7 +17,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | Setting key | Default | Purpose / units |
 |---|---|---|
 | `CBE_AIPass_AmmoCapabilityOverrides` | `createHashMap` | MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides. |
-| `CBE_AIRebalance_Enable` | `true` | BOOL: true applies CBE skill profiles to eligible AI. |
+| `CBE_AIRebalance_Enable` | `false` | BOOL: opt in to CBE skill profiles; mission skills are preserved by default. |
 | `CBE_AIRebalance_Profile` | `"LINE"` | STRING: MILITIA, LINE, VETERAN or ELITE. |
 | `CBE_AIRebalance_Mode` | `"AUTO"` | Ambient-darkness and NVG-aware; DAY disables the extra penalty; NIGHT retains legacy night tiers. |
 | `CBE_AI_ApplyMode` | `"BOTH"` | STRING: EXISTING, NEW or BOTH AI populations. |
@@ -134,6 +134,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_VehicleJink_Enable` | `true` | Allows one short terrain-checked escape by an eligible intact fighting vehicle under close or severe danger. |
 | `CBE_AIPass_DrivingAssist_Enable` | `true` | Applies a sparse terrain-grade speed cap to ordinary AI ground vehicles while preserving their native waypoint and route. Convoys use separate driving controls. |
 | `CBE_AIPass_DrivingAssist_Passing_Enable` | `false` | Experimental automatic road-pass admission; original finite deadlines and real owner consent. Physical/performance acceptance pending. |
+| `CBE_AIPass_DrivingAssist_Queue_Enable` | `false` | Experimental automatic head-on jam initiation; one attempt per original traffic-retry episode, actual-owner consent and finite commit retry. Physical/performance acceptance pending. |
 | `CBE_AIPass_DrivingAssist_MaxSpeed` | `70` | General driving safety cap in km/h; terrain and lower authored caps still apply. |
 | `CBE_AIPass_DrivingAssist_Recovery_Enable` | `true` | Permit new finite ordinary-driving recovery attempts. |
 | `CBE_AIPass_CoverValidation_Enable` | `true` | Adds bounded slope and body clearance checks to shared cover selection. |

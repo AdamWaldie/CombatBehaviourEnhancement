@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "scope": "Ordinary rear recovery motion and queue prerequisites",
+  "finding": "Native doMove behind a hull is not guaranteed to reverse; existing recovery lacked heading/corridor rejection.",
+  "implementation": [
+    "Original ASL origin/direction receipt",
+    "Sampled heading/forward/lateral/rear divergence rejection",
+    "Existing exact route handback and original deadlines"
+  ],
+  "validation": {
+    "tests": 1239,
+    "exit": 0,
+    "log": ".qa/cbe-rear-motion-corridor-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Native reverse capability",
+    "Wheels/tracks/slopes and sampling gaps",
+    "Queue execution and overhead"
+  ],
+  "acceptance": "partial; no physical reverse success"
+}

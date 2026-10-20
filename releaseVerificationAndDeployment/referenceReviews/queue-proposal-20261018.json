@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-18",
+  "scope": "Canonical bounded queue-chain proposal, wired into existing jam observation",
+  "status": "PROPOSAL_ONLY_NO_CONSENT_OR_EXECUTION",
+  "sources": {
+    "addons/vehicles/functions/drivingQueueContext.sqf": "fb6ab2528a62f3dc5b4ef16888902126d5531785e9d3d82e744e6669b64568d3",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "2fa35e855dd994f6f2c3a14ac691a18754a3897d5c036a5aa4693e79fcdc4ae9",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "5c23226e2ef21d74db7f45219e081e4e5968125917681c043e691fba93f829dc"
+  },
+  "change": "Separate canonical2..4participant crew/order/pose rows omit observing-client identity. Fresh stationary opposing roots propose HOLD_CROSSING/YIELD_ROOT and up to two aligned rear participants, with explicit rear-first dependencies. Third follower, dense64+ result, cycles or unavailable nearest blocker refuse. One120m dead-inclusive vehicle query; at most three64candidate searches. Natural hook after5s anchored dwell, fresh<=1.5s receipt, at most once/30s, outside atomic retry section. Private proposal expires<=2s/original jam deadline.",
+  "not_implemented": [
+    "Distinct authenticated owner-role consent broker",
+    "Native hold/readiness and actual reverse executor",
+    "Measured physical-room dependency advancement",
+    "Queue-specific interruption/cleanup/migration receipts",
+    "Matched physical/performance acceptance"
+  ],
+  "authority": "No movement/cap/physics/remote/actor reservation or priority acquired by context/proposal. Actual owner eligibility and current native commands must be independently rechecked by future broker/executor. Remote eligibility remains observational.",
+  "validation": {
+    "tests": 1193,
+    "sqf": 317,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-queue-proposal-verified-build.log",
+    "fingerprint": "6a5e8e5abdb9d6983e5c8ea1b244536f528e91890d9312c6fdb6ebfee5f4e296",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parentc3c2e9e4 plus tracked source/config/docs and new files, dirty Build; not signed Release.",
+    "initial": "Coverage report CLI required explicit output path; corrected. Initial complete source build passed, final build adds receipt freshness. Logs retained."
+  },
+  "limits": [
+    "No queue-resolution/whole-HBQ parity credit. Proposed roles do not prove geometric clearance or consent.",
+    "120m discovery/64candidate/4participant bounds deliberately refuse overflow; helpers do not bypass larger obstacles or moving traffic.",
+    "Public generation/native-state observations can lag; only actual owner ACK may establish local applicability.",
+    "Extra bounded query cost unmeasured;5%median/10%p95 remains unaccepted.",
+    "All65 families remain partial. Registry source additions are inventory only."
+  ]
+}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Same-owner released queue-abort STOP cleanup may adopt this controlled epoch edge after exact baseline/native validation; no movement is issued here.
  * Finite individual indoor tasks retire their exact-owned native legs before other group cleanup.
  * Stops Cortex on this machine and hands every affected group back to its own orders.
  *
@@ -25,6 +26,8 @@
  * lease remains current; a newer vehicle controller's cap is preserved when tokens are cleared.
  * Ordinary driving FSM identities and terminal retry receipts are synchronously retired.
  * Ordinary unload-in-combat leases likewise restore only their exact unchanged applied value.
+ * Vehicle cleanup runs on each actual owner, including interface owners before their early exit;
+ * the server never clears a remote owner's restoration tokens in its vehicle pass.
  * Targetless onboard danger reports are also retracted before the scheduler is discarded.
  * Owner-local missile-warning generations are advanced before handlers are removed; an
  * old CBA callback cannot become valid again after a quick restart.
@@ -65,7 +68,10 @@ if (isServer) then {
         {(_x select 0) setVariable ["CBE_AIPass_SupportLease",nil,true]} forEach (_job get "leases");
     } forEach (missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap]);
     missionNamespace setVariable ["CBE_AIPass_SupportRequests",createHashMap];
-    missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1];
+    missionNamespace setVariable ["CBE_AIPass_CounterGeneration", (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0]) + 1,true];
+    {missionNamespace setVariable [_x,(missionNamespace getVariable [_x,0])+1,true]}
+        forEach ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration",
+            "CBE_Artillery_SupportFireGeneration","CBE_Artillery_DangerFireGeneration","CBE_Artillery_SmokeFireGeneration"];
     {
         private _battery = _y get "battery";
         private _brain=_battery getVariable ["CBE_Artillery_Brain",createHashMap];
@@ -80,42 +86,48 @@ if (isServer) then {
     private _artilleryDeletedEH=missionNamespace getVariable ["CBE_Artillery_DeletedEH",-1];
     if (_artilleryDeletedEH >= 0) then {removeMissionEventHandler ["EntityDeleted",_artilleryDeletedEH]};
     missionNamespace setVariable ["CBE_Artillery_DeletedEH",nil];
-    // Stop is a rare administrative action, so one bounded-by-world vehicle pass is preferable to
-    // maintaining another runtime registry. Clearing the public token makes every already queued
-    // shoot-and-scoot callback fail its first identity check, including after Cortex restarts.
-    {
-        [_x] call CBE_fnc_DrivingAssistRelease;
-        private _unloadLease=_x getVariable ["CBE_Cortex_UnloadPolicyLease",[]];
-        if (count _unloadLease == 5 && {local _x}) then {
-            [_x,_unloadLease select 0,"RELEASE",true] call CBE_fnc_CortexVehicleUnloadPolicy;
-        };
-        private _savedStopSpeed=_x getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
-        private _ownedStop=_savedStopSpeed param [1,-2];
-        if (_savedStopSpeed isNotEqualTo [] && {local _x} && {_ownedStop >= 0}
-            && {abs ((getForcedSpeed _x)-_ownedStop) <= 0.1}) then {
-            _x forceSpeed (_savedStopSpeed param [0,-1]);
-        };
-        _x setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
-        _x setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
-        _x setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
-        _x setVariable ["CBE_Cortex_OnboardDanger",nil,true];
-        _x setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
-        _x setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];
-        _x setVariable ["CBE_Cortex_ArtilleryScootPurpose",nil,true];
-        if (_x isKindOf "Air") then {
-            private _guidanceTarget=_x getVariable ["CBE_Cortex_AirAttackGuidanceTarget",objNull];
-            if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
-            _x setVariable ["CBE_Cortex_AttackFlarePhase",nil,true];
-            _x setVariable ["CBE_Cortex_AttackFlareCooldown",nil,true];
-            _x setVariable ["CBE_Cortex_AirAttackPlan",nil,true];
-            _x setVariable ["CBE_Cortex_AirFireSolution",nil,true];
-            _x setVariable ["CBE_Cortex_AirAttackTarget",nil];
-            _x setVariable ["CBE_Cortex_AirAttackGuidedWeapon",nil];
-            _x setVariable ["CBE_Cortex_AirAttackGuidanceTarget",nil];
-            _x setVariable ["CBE_Cortex_AirAttackBlockedUntil",nil];
-        };
-    } forEach vehicles;
 };
+// Each actual vehicle owner retires its own receipts before this machine discards tactics.
+// Server-only token clearing could erase an HC owner's baseline before restoration. Interface
+// owners participate before their early exit. This rare administrative pass adds no observer.
+// Clearing an owned public token rejects its queued callbacks after Cortex restarts.
+{
+    private _vehicle=_x;
+    isNil {
+        if (!local _vehicle) exitWith {};
+        [_vehicle] call CBE_fnc_DrivingAssistRelease;
+        private _unloadLease=_vehicle getVariable ["CBE_Cortex_UnloadPolicyLease",[]];
+        if (count _unloadLease == 5 && {local _vehicle}) then {
+            [_vehicle,_unloadLease select 0,"RELEASE",true] call CBE_fnc_CortexVehicleUnloadPolicy;
+        };
+        private _savedStopSpeed=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
+        private _ownedStop=_savedStopSpeed param [1,-2];
+        if (_savedStopSpeed isNotEqualTo [] && {local _vehicle} && {_ownedStop >= 0}
+            && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
+            _vehicle forceSpeed (_savedStopSpeed param [0,-1]);
+        };
+        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
+        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
+        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
+        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
+        _vehicle setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
+        _vehicle setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];
+        _vehicle setVariable ["CBE_Cortex_ArtilleryScootPurpose",nil,true];
+        _vehicle setVariable ["CBE_Cortex_ArtilleryScootSession",nil,true];
+        if (_vehicle isKindOf "Air") then {
+            private _guidanceTarget=_vehicle getVariable ["CBE_Cortex_AirAttackGuidanceTarget",objNull];
+            if (!isNull _guidanceTarget) then {deleteVehicle _guidanceTarget};
+            _vehicle setVariable ["CBE_Cortex_AttackFlarePhase",nil,true];
+            _vehicle setVariable ["CBE_Cortex_AttackFlareCooldown",nil,true];
+            _vehicle setVariable ["CBE_Cortex_AirAttackPlan",nil,true];
+            _vehicle setVariable ["CBE_Cortex_AirFireSolution",nil,true];
+            _vehicle setVariable ["CBE_Cortex_AirAttackTarget",nil];
+            _vehicle setVariable ["CBE_Cortex_AirAttackGuidedWeapon",nil];
+            _vehicle setVariable ["CBE_Cortex_AirAttackGuidanceTarget",nil];
+            _vehicle setVariable ["CBE_Cortex_AirAttackBlockedUntil",nil];
+        };
+    };
+} forEach (vehicles select {local _x});
 if (hasInterface && {!isServer}) exitWith {};
 missionNamespace setVariable ["CBE_AIPass_Active", false];
 missionNamespace setVariable ["CBE_AIPass_InitPending", false];
@@ -174,6 +186,10 @@ if (!isNil "_civilianCreated") then {
 } forEach (allUnits select {side group _x == civilian});
 {
     {
+        private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+        if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+            ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+        };
         private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
         if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
             ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
@@ -214,6 +230,10 @@ if (!isNil "_civilianCreated") then {
         [_x] call CBE_fnc_CortexDefendRelease;
         [_x] call CBE_fnc_CortexGarrisonRelease;
         [_x] call CBE_fnc_CortexClearRelease;
+        _x setVariable ["CBE_Danger_BuildingClue",nil,true];
+        _x setVariable ["CBE_Danger_BuildingClueSeen",nil,true];
+        _x setVariable ["CBE_Danger_BuildingVisits",nil];
+        _x setVariable ["CBE_Danger_Casualties",nil,true];
     };
     {
         private _unit = _x;
@@ -226,7 +246,20 @@ if (!isNil "_civilianCreated") then {
     if (_localHandler >= 0) then {_x removeEventHandler ["Local", _localHandler]};
     _x setVariable ["CBE_AIPass_LocalHandler", nil];
     _x setVariable ["CBE_AIPass_Adopted", nil];
+    private _stoppingGroup=_x;
+    private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // Master stop owns this exact epoch edge. Retain only validated released STOP
+    // cleanup on the same machine; no timer, command or deadline is restarted here.
+    private _abortVehicles=[];
+    {
+        private _abortVehicle=vehicle _x;
+        if (_abortVehicle != _x && {_abortVehicle isKindOf "LandVehicle"} && {!(_abortVehicle in _abortVehicles)}) then {
+            _abortVehicles pushBack _abortVehicle;
+            [_abortVehicle,_stoppingGroup,createHashMap,[],{false},_abortSourceOwner] call CBE_fnc_DrivingAbortHandback;
+        };
+    } forEach units _stoppingGroup;
+
 } forEach allGroups;
 
 private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []]);

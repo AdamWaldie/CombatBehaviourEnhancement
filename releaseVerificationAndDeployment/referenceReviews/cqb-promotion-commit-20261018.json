@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-18",
+  "scope": "Casualty promotion cover proof and roster transaction",
+  "findings": [
+    "Substitute cover was tested during scheduled candidate ranking but not retained/rechecked when role mutation occurred",
+    "Lane and common participant/pair updates could be separated by scheduled execution",
+    "Promoted exterior-stage metadata could remain in the already-published migration journal",
+    "New strict room ownership needs durable interior move/hold restoration across owners; current private inherited hold is not sufficient"
+  ],
+  "implementation": [
+    "Callback-local candidate proof binds native task/formLeader, staging receipt, pose, watch leases and exact stage",
+    "ARRIVED candidate requires same substitute source record, actual watch/native task, post/floor/heading and <=0.25m eye drift at final promotion; proof expires after1s",
+    "No second visibility ray; existing1ray callback budget and16candidate pool retained",
+    "Atomic current building/candidate/cover/casualty-slot/common-operation generation/intent/epoch checks precede removal and watch/lane changes",
+    "Preserve useful native travel until entry command replaces it; inherit already owned STOP locally without issuing a separate stop",
+    "Retire matching exterior watch/stage metadata; retain spent recovery budgets; align assigned index with actual team index",
+    "Common operation publishes participants and pairs together; final buddy publication rechecks current job",
+    "Migration-stage snapshot publication follows promotion and includes retired posts"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-promotion-commit-build.log",
+    "tests": 1221,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "6a3d709fbc2891f60c8d5b9e6428ad6d6b68c7e4dc927c2f960de09dcf625a42",
+    "initial_contract_log": ".qa/cbe-cqb-promotion-contracts.log",
+    "contract_changes": "Update direct destructive-selection and old source-slice assertions to guarded non-destructive selection/new journal ordering; retain existing casualty, approach reset, no-budget-renewal and visibility budgets."
+  },
+  "remaining": [
+    "No physical proof of casualty refill or sustained isolation",
+    "Private inherited STOP and active interior native MOVE may lose owned-motion proof on resume; needs durable actor receipt/adoption",
+    "Intermachine delivery ordering, repeat/HC/JIP and runtime overhead unrun",
+    "Other egress/native writes and entire broader goal remain unfinished"
+  ],
+  "audits": "PAUSED; all65 families partial"
+}

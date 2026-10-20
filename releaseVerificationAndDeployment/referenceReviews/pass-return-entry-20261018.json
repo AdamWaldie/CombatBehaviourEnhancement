@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "scope": "Keep OUT moving until the planned return entry",
+  "sources": {
+    "addons/vehicles/functions/drivingPassStep.sqf": "5f66b678682127df141b8178fe4d51b4c26135a37e93d74ee51a0799dd6205b0",
+    "addons/vehicles/functions/drivingPassBegin.sqf": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a"
+  },
+  "finding": "Measured hull clearance triggered RETURN_SCAN even while the fixed return corridor was far ahead. The scan stopped OUT travel and the subsequent join could refuse or shortcut the remaining passing lane.",
+  "change": "Require measured full-hull clearance AND proximity<=8m horizontal/2m vertical to issued OUT endpoint before starting the return scan. OUT endpoint overlaps original return corridor first station. Early clearance retains issued OUT with normal traffic/progress caps; no new path/scan/expiry/priority.",
+  "validation": {
+    "tests": 1183,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-pass-return-entry-build.log",
+    "fingerprint": "88165827f70f7efa4aec8e70f5d73af9e11af6049415a154ee0d581b90fbc0e8",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parent51b37af5 plus tracked diff, dirty Build, not signed Release."
+  },
+  "limits": [
+    "Native approach/stop/return timing remains unrun; this is source control-flow evidence only.",
+    "Return scanning still returns zero cap and may lose peer clearance while braking; no fluid-flow acceptance claimed.",
+    "Stopped-peer queue resolution and safe post-abort continuation remain incomplete.",
+    "No measured runtime performance acceptance; all65 families partial."
+  ]
+}

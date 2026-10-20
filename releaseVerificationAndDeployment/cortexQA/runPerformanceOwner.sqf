@@ -49,8 +49,9 @@ CBE_CortexQA_PerformanceSampleOwner = {
         params ["_sampleId","_duration","_generation","_sampleOwner","_heartbeatKey"];
         private _maxOverdue=0;
         private _sampleStartedTick=diag_tickTime;
-        private _maxCallbackMs=0;
-        private _maxCompletedLatency=0;
+        private _maxCallbackMs=-1;
+        private _maxCompletedLatency=-1;
+        private _sawUnscheduled=false;private _sawScheduled=false;private _sawUnknownContext=false;
         private _peakQueued=0;
         private _until=diag_tickTime+_duration;
         while {diag_tickTime < _until && {(missionNamespace getVariable ["CBE_CortexQA_PerformanceGeneration",-1]) == _generation}} do {
@@ -66,10 +67,15 @@ CBE_CortexQA_PerformanceSampleOwner = {
             private _observedAt=diag_tickTime;
             private _completed=+(missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]]);
             {
-                if (count _x == 5 && {(_x select 4) >= _sampleStartedTick}
+                if (count _x in [5,6] && {[_x select 2,_x select 3,_x select 4] findIf {
+                    !(_x isEqualType 0) || {!finite _x} || {_x < 0}
+                } < 0} && {(_x select 4) >= _sampleStartedTick}
                     && {(_x select 4) <= _observedAt}) then {
                     _maxCallbackMs=_maxCallbackMs max (_x select 2);
                     _maxCompletedLatency=_maxCompletedLatency max (_x select 3);
+                    if (count _x == 6 && {(_x select 5) isEqualType true}) then {
+                        if (_x select 5) then {_sawScheduled=true} else {_sawUnscheduled=true};
+                    } else {_sawUnknownContext=true};
                 };
             } forEach (_completed select [0,256]);
             sleep 1;
@@ -98,7 +104,10 @@ CBE_CortexQA_PerformanceSampleOwner = {
         missionNamespace setVariable [_heartbeatKey,serverTime,true];
         // Diagnostic snapshots can miss ring entries overwritten between samples. These values
         // include observed retired callbacks, but cannot prove a whole-run maximum or budget.
-        private _queueDiagnostic=[_sampleId,_sampleOwner,_maxOverdue,_maxCallbackMs,_maxCompletedLatency,_peakQueued];
+        // Context flags describe presence in observed rolling snapshots, not unique counts.
+        // All false with -1 maxima means no valid in-window callback was observed.
+        private _queueDiagnostic=[_sampleId,_sampleOwner,_maxOverdue,_maxCallbackMs,_maxCompletedLatency,_peakQueued,
+            [_sawUnscheduled,_sawScheduled,_sawUnknownContext]];
         missionNamespace setVariable [format ["CBE_CortexQA_PerformanceQueue_%1_%2",_sampleId,_sampleOwner],_queueDiagnostic,true];
         diag_log format ["CBE PERFORMANCE QUEUE DIAGNOSTIC: %1",_queueDiagnostic];
         missionNamespace setVariable [format ["CBE_CortexQA_PerformanceResult_%1_%2",_sampleId,_sampleOwner],_result,true];

@@ -47,7 +47,7 @@ if (_release) exitWith {
 private _mode=_context param [0,""];
 if (!(_mode in ["ORDINARY","CONVOY"])) exitWith {[]};
 private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
-if (!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)) exitWith {
+if (!([_group,_feature,true,_vehicle] call CBE_fnc_CortexFeatureEnabled)) exitWith {
     if (count _record == 4 && {(_record select 0) == _group}
         && {(((_record select 1) select 0) param [0,""]) == _mode}) then {call _remove};[]
 };
@@ -87,7 +87,7 @@ if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) 
         private _mode=(_identity select 0) param [0,""];
         private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
         if (time > (_vehicle getVariable ["CBE_DrivingNativePath_ValidUntil",-1])
-            || {!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)}
+            || {!([_group,_feature,true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
             || {[_unit,effectiveCommander _vehicle] findIf {
                 isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
                     || {isPlayer _x} || {!isNull remoteControlled _x}

@@ -4,35 +4,45 @@
  * same-contact native approach that must be observed without replaying movement.
  * Locality/authority: Read-only on actor/group owner. Actual engagement identity comes from
  * getAttackTarget; assignedTarget is only a conflicting mission-target veto. No hidden pose reads.
+ * Native INIT, PLANNING and REPLAN never grant permission to replace a route.
  * Repeat/JIP: Stateless; current waypoint metadata and native command are read each call,
- * with at most one believed-position FIRE visibility query. No exact hostile transform is read.
- * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull.
+ * Native group-ignored contacts refuse admission; at most one believed-position FIRE visibility query. No exact hostile transform is read.
+ * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull;
+ * optional preflight BOOL false checks native task compatibility before building discovery, with no
+ * visibility or building geometry query. It requires a contact and returns only [PREFLIGHT],
+ * never a movement/observation receipt; full classification is still required by the executor.
  * Return: ARRAY [ISSUE or OBSERVE STRING, native intent STRING, native destination ARRAY,
  * bound native-known contact OBJECT], or [] for protected/unknown context. Metadata is not access proof.
- * Current caller: CBE_fnc_IndoorActorOperation admission and pre-command validation.
+ * Current callers: IndoorActorOperation admission/pre-command validation; IndoorActorDispatch preflight.
  * Example: private _context=[soldier1,enemy1,[100,100,2],house1] call CBE_fnc_IndoorActorNativeContext;
  */
 params [["_actor",objNull,[objNull]],["_contact",objNull,[objNull]],
-    ["_belief",[],[[]]],["_building",objNull,[objNull]]];
+    ["_belief",[],[[]]],["_building",objNull,[objNull]],["_preflight",false,[true]]];
 if (isNull _actor || {!local _actor} || {!local group _actor}) exitWith {[]};
+// Queued treatment precedes native HEAL; it forbids investigation admission and new legs.
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {[]};
+if (_preflight && {isNull _contact}) exitWith {[]};
 private _vectorValid={_this isEqualType [] && {count _this == 3}
     && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
 private _command=currentCommand _actor;
 if !(_command in ["","MOVE","ATTACK","FIRE"]) exitWith {[]};
 private _unitState=getUnitState _actor;
-if (_unitState == "PLANNING") exitWith {[]};
+if (_unitState in ["INIT","PLANNING","REPLAN"]) exitWith {[]};
 private _engaging=getAttackTarget _actor;
 private _assigned=assignedTarget _actor;
 if (isNull _contact && {!isNull _engaging || {!isNull _assigned}}) exitWith {[]};
 if (!isNull _contact && {(!isNull _engaging && {_engaging != _contact})
     || {!isNull _assigned && {_assigned != _contact}}}) exitWith {[]};
 private _contactValid=!isNull _contact && {alive _contact} && {_contact isKindOf "CAManBase"}
+    && {!captive _contact} && {!(_contact getVariable ["ace_captives_isSurrendering",false])}
+    && {!(_contact getVariable ["ace_captives_isHandcuffed",false])}
     && {isNull objectParent _contact} && {(side group _actor) getFriend (side _contact) < 0.6}
-    && {_actor knowsAbout _contact >= 1} && {_belief call _vectorValid} && {!isNull _building};
+    && {!((_actor targetKnowledge _contact) param [7,false,[true]])}
+    && {_actor knowsAbout _contact >= 1} && {_belief call _vectorValid} && {_preflight || {!isNull _building}};
 if (!isNull _contact && {!_contactValid}) exitWith {[]};
 // A clear believed firing line is a veto on relocation, not proof of a hit or exact enemy pose.
 private _nativeFiringClear=false;
-if (_contactValid && {_engaging == _contact} && {_actor distance2D _belief <= 20}) then {
+if (!_preflight && {_contactValid} && {_engaging == _contact} && {_actor distance2D _belief <= 20}) then {
     _nativeFiringClear=([_actor,"FIRE",_contact] checkVisibility
         [eyePos _actor,(AGLToASL _belief) vectorAdd [0,0,1]]) >= 0.9;
 };
@@ -55,6 +65,8 @@ if (!(_destination call _vectorValid)) then {_destination=[]};
 // progress and use scoped door interaction; this receipt grants no existing-leg cleanup rights.
 private _observe=_contactValid && {_engaging == _contact} && {_command in ["MOVE","ATTACK"]}
     && {_destination isNotEqualTo []} && {_destination vectorDistance _belief <= 2.5};
+// A matching approach is only a possible observation until actual roof/containment checks.
+if (_observe && {_preflight}) exitWith {["PREFLIGHT"]};
 if (_observe) then {
     private _bounds=boundingBoxReal _building;
     private _model=_building worldToModel _destination;
@@ -69,5 +81,6 @@ private _mayIssue=_command == "" || {_command in ["ATTACK","FIRE"] && {_contactV
     || {_command == "MOVE" && {_authored} && {_destination isNotEqualTo []}
         && {_destination vectorDistance waypointPosition _waypoint <= 3}};
 if (!_mayIssue) exitWith {[]};
+if (_preflight) exitWith {["PREFLIGHT"]};
 private _intent=if (_contactValid && {_command in ["","ATTACK","FIRE"]}) then {"CONTACT"} else {_command};
 ["ISSUE",_intent,+_destination,[_engaging,_contact] select _contactValid]

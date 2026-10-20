@@ -119,7 +119,7 @@ if (_sent > 0) then {
             private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
             if (count _lease == 6 && {(_lease select 0) == _token}) then {
                 _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
-                _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
+                _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
             _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];
             };
         };
@@ -139,7 +139,7 @@ if (_sent > 0) then {
         private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
         if (count _lease == 6 && {(_lease select 0) == _token}) then {
             _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
-            _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
+            _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
             _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];
         };
     } forEach (_job get "leases");

@@ -5,9 +5,12 @@
  * Repeat/JIP: Uses one machine-local, expiring weak-stance lease. A repeated danger response retains
  * the original authored stance and refreshes only CBE's applied value. Native or external stance
  * changes invalidate the lease and are not overwritten. A committed mover is never forced prone.
+ * Native MOVE and PLANNING/REPLAN tasks retain mobile posture as scripted movers do.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
- * It never creates a movement, target or firing lease.
+ * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
+ * The separate finite point executor may admit an identified own-group casualty investigation.
+ * Posture itself creates no movement, target or firing lease.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: mode <STRING>, ASSESS; 2: selected record <ARRAY>, [].
  * Return Value: Number - short observation deadline in seconds.
  * Current callers: Engine-loaded infantry danger FSM action states.
@@ -15,7 +18,8 @@
  */
 
 params [["_actor",objNull,[objNull]],["_mode","ASSESS",[""]],["_record",[],[[]]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor}) exitWith {0};
 private _group=group _actor;
 if (isNull _group || {!local _group}
@@ -25,7 +29,9 @@ if (isNull _group || {!local _group}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {0};
 // Recheck actor-level authority at the command boundary; group eligibility alone does not
 // cover a specialist actor sharing an otherwise ordinary group.
-if ([_actor] call CBE_fnc_CompatibilityExternalControl
+// ACE queues treatment before the native command becomes HEAL; pending care owns this actor.
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {_mode != "FORCED" && {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}) exitWith {0};
 // Eligibility already checked player, curator and external ownership in this unscheduled call.
 // Use fixed branch values instead of allocating a lookup map for every actor reaction.
@@ -69,14 +75,14 @@ if (count _operation > 0 && {count _drill > 0}
     _committedMover=_actor in _moving
         || {(_drill getOrDefault ["recovery",[]]) findIf {(_x select 0) == _actor} >= 0};
 };
-// Some finite actor-level opportunities compose beside the group operation. Static deployment,
-// packing, cover, grenade evasion and launcher relocation already own an exact destination and deadline; an immediate
-// danger response must not force these movers prone merely because they are not group participants.
-private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-if (count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
-    && {(_actorMove param [0,"",[""]]) in ["STATIC_DEPLOY","STATIC_PACK","DANGER_COVER","GRENADE_EVASION","ANTI_ARMOUR","STATIC_SUPPORT"]}) then {
-    _committedMover=true;
-};
+// Any live actor movement reservation must retain mobility, including individual indoor
+// investigation. Reuse the shared typed/expiry gate rather than maintaining a partial intent list.
+// Unknown reservation state also cannot grant permission to pin its actor prone.
+if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;};
+// Ordinary native routes deserve the same mobility as scripted manoeuvres. A stationary
+// path-planning actor is not idle permission to roll or pin prone before its move begins.
+private _nativeRouteTask=currentCommand _actor == "MOVE" || {getUnitState _actor in ["PLANNING","REPLAN"]};
+if (_nativeRouteTask) then {_committedMover=true};
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
 // override another native action, or replay this response on every danger recycle.
@@ -108,6 +114,13 @@ if (_mode == "HIDE" && {_cause in [5,6,7]} && {!_committedMover}
     if (count _position == 3 && {_position findIf {!(_x isEqualType 0)} < 0}) then {
         _actor glanceAt _position;
     };
+};
+// A native own-group casualty source or bounded actual-death receipt can identify a body.
+// Missing/ambiguous corroboration retains the glance; the point owner revalidates admission.
+if (_mode == "HIDE" && {_cause == 5} && {!_committedMover}) then {
+    private _body=_record param [3,objNull,[objNull]];
+    if (["START",_actor,createHashMapFromArray [["body",_body],
+        ["observed",_record param [1,[],[[]]]]]] call CBE_fnc_PointActorOperation) then {_committedMover=true};
 };
 // Forced orders and vehicle crews already have an engine movement owner. Recording the response is
 // useful, but changing their posture would compete with that owner. Foot soldiers receive only a

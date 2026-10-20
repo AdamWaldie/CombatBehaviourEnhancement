@@ -1,0 +1,23 @@
+{
+  "baseline": "576afb57",
+  "scope": "CANFIRE suppression retains the event contact",
+  "defect": "A CANFIRE opportunity for one enemy could select the first qualifying unrelated enemy from sorted native knowledge.",
+  "change": "Require matching cause/position/observation time between active response and surviving event; use that live hostile identity to select only its current native believed position. Existing ordinary hidden/drill/reported suppression remains unchanged.",
+  "cost": "Bounded existing known-contact search; no world query, new worker, target reveal, live hostile position read or new controller.",
+  "source_sha256": {
+    "addons/core/functions/cortexFireControl.sqf": "640a507e0a7eee99577b2fed0f69b8e31c25af86d9079727eb57863876ba251d"
+  },
+  "source_intent": "Reference brainEngage passes its actual target into doSuppress/getHideFrom. CBE keeps a group rotation but retains that contact identity; no source-parity claim.",
+  "validation": {
+    "existing_regression_extended": true,
+    "new_test_count": 0,
+    "offline_build": "passed",
+    "independent_verify": true,
+    "log": ".qa/cbe-canfire-contact-build.log",
+    "fingerprint": "ab43c79b0551cc6280c452d13941377dd15171a7a74ecd660008031045d75fed",
+    "manifest_commit": "576afb572a95551255991ed607d02d0471079ce6",
+    "manifest_dirty": true,
+    "physical_acceptance": false
+  },
+  "audit_policy": "PAUSED"
+}

@@ -18,6 +18,7 @@
  * When every candidate is exhausted without an accepted lease, publishes NO_RESPONDER once so the
  * requester owner can make its single bounded retry instead of remaining inert for the engagement.
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
+ * An exact executor failure invalidates the request and releases its existing leases; it cannot discover replacements.
  * Arguments: 0: request job <HASHMAP>.
  * Return Value: Next delay in seconds, or -1 on cleanup.
  * Current caller: CBE_fnc_SupportRequestStep as one bounded action under the support request FSM.
@@ -34,7 +35,7 @@ private _requesterReinforce = !isNull _requester && {[_requester,"CBE_AIPass_Rei
 private _requesterCoordinated = !isNull _requester && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _requesterSupport = _requesterReinforce || {_requesterCoordinated};
 private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
-private _valid = !isNull _requester && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
+private _valid = (_job getOrDefault ["executorFailure",""]) == "" && {!isNull _requester} && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
     && {missionNamespace getVariable ["CBE_AIPass_Enable",false]}
     && {[_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_requesterSupport}
@@ -59,16 +60,17 @@ private _kept = [];
         && {_lease isNotEqualTo [] && {(_lease select 0) == _token}};
     if (_keep && {groupOwner _helper != _owner}) then {
         _owner = groupOwner _helper; _ackBy = serverTime+15; _status = "PENDING";
-        [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
+        [_helper,_lease,true] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
-        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
+        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
     };
 } forEach _leases;
 _job set ["leases",_kept];
 if (!_valid) exitWith {
     private _reason=call {
+        if ((_job getOrDefault ["executorFailure",""]) != "") exitWith {_job get "executorFailure"};
         if (isNull _requester) exitWith {"REQUESTER_DELETED"};
         if (serverTime >= (_job get "expiry")) exitWith {"EXPIRED"};
         if (!(missionNamespace getVariable ["CBE_AIPass_Enable",false]) || {!_requesterSupport}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-18",
+  "scope": "Tracked native reverse release and progress publication",
+  "findings": [
+    "Captured receipts could stop controls without matching current published episode",
+    "Mutable progress array aliased public record"
+  ],
+  "implementation": [
+    "Atomic original snapshot release",
+    "Copied local progress/command arrays",
+    "Original-record retirement and guarded progress publication"
+  ],
+  "validation": {
+    "tests": 1243,
+    "exit": 0,
+    "log": ".qa/cbe-tracked-reverse-release-final-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "START/steering postgeometry command boundary",
+    "Queue-specific native executor",
+    "Physical reverse and overhead"
+  ],
+  "acceptance": "partial"
+}

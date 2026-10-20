@@ -6,12 +6,13 @@
  * Arguments: 0 group <GROUP>, default grpNull.
  * Return: ARRAY - empty for null; [waypoint count,-1] for implicit/no authored order;
  * otherwise [waypoint count, current index, opaque full authored metadata rows].
- * Script, attachment, house/loiter and synchronization edits are included. Moving an attached
+ * Script, attachment, house/loiter, forced-behaviour and synchronization edits are included. Moving an attached
  * target retains identity; its transient position is not an authored order replacement.
  * This reads authored values only; it never evaluates conditions or executes statements.
  * Only current-node metadata is read; native handle enumeration scales with route length.
  * Current callers: CortexGarrison, CortexClearBuilding, BuildingOperationStep, GroupBrainStep,
- * CortexOrderDispatch, CortexOrderLocal and CortexGrenadeCheck.
+ * CortexOrderDispatch, CortexOrderLocal, CortexGrenadeCheck, CortexDrillStart,
+ * CortexDrillResume, CortexFlankStep, CortexSupportApply and CortexSupportMaintain.
  * Example: private _receipt = [group soldier1] call CBE_fnc_NativeOrderReceipt;
  */
 params [["_group",grpNull,[grpNull]]];

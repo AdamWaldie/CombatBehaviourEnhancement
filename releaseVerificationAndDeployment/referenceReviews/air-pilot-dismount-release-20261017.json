@@ -1,0 +1,45 @@
+{
+  "reviewed": "2026-10-17",
+  "scope": "Current pilot feature restoration after dismount and delayed callbacks; source-level follow-up, not Workshop parity or physical acceptance",
+  "baselineCommit": "105b5b58",
+  "supersedesFindings": [
+    "CURRENT_FAIL_CLOSED_LIMIT only for fully dismounted original actors in original group"
+  ],
+  "currentSources": [
+    {
+      "path": "addons/aircraft/functions/cortexAirPilotFeatureRelease.sqf",
+      "sha256": "1c217e312ba32552da137aff4b4dbdd7095685c666934088163aa800f3479c6c"
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirPilotFeatureAdopt.sqf",
+      "sha256": "8aac346191d18001dd38ad8c59baa31a398b044a27bf80721ee0421e0587c834"
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+      "sha256": "232113663219c8d6da8fe636ffd76219db3718d3a16eeaea017549fb02444386"
+    },
+    {
+      "path": "addons/infantry/functions/cortexActorFireTaskAvailable.sqf",
+      "sha256": "0e27732ad463d30266c2305ac331c2fe423317d6e4a9c70b75bfc7d4e2946fbc"
+    }
+  ],
+  "findings": [
+    {
+      "id": "DISMOUNTED_ORIGINAL_ACTOR",
+      "before": "Release required the original actor aboard the original aircraft; fully dismounted actors retained disabled features until timeout.",
+      "change": "Allow the exact recorded actor on foot in the original group, preserving native task, player, specialist, reservation and external-control vetoes. This path never retires the former aircraft flight lease."
+    },
+    {
+      "id": "SCHEDULED_CHECK_WRITE_GAP",
+      "before": "Restoration read eligibility and lease before the final feature mutation, without an unscheduled recheck.",
+      "change": "Final receipt, actor epoch, locality, absolute deadline, live lease and actor/task safety are checked in the same unscheduled block as restoration and receipt clearing."
+    }
+  ],
+  "remaining": [
+    "Original actor moved to another group or another vehicle remains unresolved.",
+    "Split actor/airframe ownership and receipt delivery beyond the finite lookup window remain unaccepted.",
+    "External same-value feature disables require a cooperating ownership contract.",
+    "Physical normal/server/HC handover and 5% median/10% p95 performance evidence remain absent; audits paused."
+  ],
+  "sourceProtection": "Historical review and upstream sources unchanged; this report describes CBE source only."
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Clearance retired-worker hold service; not whole CQB or source parity",
+  "finding": "Fixed first16 rotatedOut service permanently excludes later retired actors after enough casualty/replacement events. Ineligible early rows retain their places and cannot free the prefix.",
+  "implementation": "Rotate a callback-local roster copy in windows of16 with a job-local cursor. Existing availability/task/operation gates, one-time hold tracking and stranded-worker failure remain unchanged. Later reactivation receives repeated service without erasing ownership.",
+  "bounds": "At most16 retired-worker examinations per callback; one roster copy and bounded cursor update. No world scan/new worker. Whole-roster array copy cost scales with existing episode roster and has not been measured.",
+  "validation": {
+    "tests": 1398,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-retired-service-build.log",
+    "unsigned_fingerprint": "1391f0f13ef97499df8f49ce4ae4c80616d25ba95737b558855a82c51b22aa3d",
+    "physical": false,
+    "model": "Service sequence visits every member of static rosters0/1/16/17/24/33/64 within ceil(N/16) callbacks; not a native movement simulation."
+  },
+  "remaining": [
+    "Physical repeated casualties and safe retired holds",
+    "Dormancy/reactivation and replacement native orders",
+    "Large roster churn, owner migration and overhead",
+    "CQB flow/isolation and retained historical failures"
+  ],
+  "audit_authority": "Audits explicitly paused. All65 families partial; no completed physical acceptance."
+}

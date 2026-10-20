@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Weapon candidates require local same-group operators with live task/ownership permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
+ * Native group-ignored contacts are refused before weapon and terrain discovery.
  * Builds one finite, threat-aware Cortex attack plan for an AI aircraft and its assigned target.
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
  * offset/hook run, guided standoff, bomb run or helicopter lateral gun pass from aircraft type, live
@@ -43,7 +44,8 @@
 params [["_aircraft",objNull,[objNull]],["_target",objNull,[objNull]]];
 if (isNull _aircraft || {isNull _target} || {!alive _aircraft} || {!alive _target}) exitWith {createHashMap};
 private _pilot=driver _aircraft;
-if (isNull _pilot || {!([_pilot] call CBE_fnc_CortexCombatEffective)} || {!local _aircraft}) exitWith {createHashMap};
+if (isNull _pilot || {!local _pilot} || {!([_pilot] call CBE_fnc_CortexCombatEffective)} || {!local _aircraft}
+    || {(_pilot targetKnowledge _target) param [7,false,[true]]}) exitWith {createHashMap};
 private _side=side group _pilot;
 // Logic objects can have a hostile side without being a physical combat target.
 // In particular, curator modules must never become weapon-delivery objectives.

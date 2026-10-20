@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "05400012",
+  "scope": "Complete HBQ enabled/feature helpers and CBE live configuration side-effect comparison",
+  "sources": [
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_enabled.sqf",
+      "sha256": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+      "review": "complete file"
+    },
+    {
+      "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_feature.sqf",
+      "sha256": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+      "review": "complete file"
+    }
+  ],
+  "findings": [
+    "HBQ enabled resolves vehicle Disable then vehicle Enable with global default, so a vehicle can run while the global default is off. Feature resolution layers vehicle variables over CBA defaults.",
+    "CBE CortexFeatureEnabled retains global disable authority and group disabled-feature filters. Do not add vehicle force-enable around stopped scheduling or competing controller ownership merely to copy precedence.",
+    "CBE does not currently provide equivalent per-vehicle per-driving-feature overrides. Existing external ownership markers are handover contracts, not substitutes for operator settings. This source intent remains incomplete.",
+    "Live configuration review found delayed counter-battery callbacks bound only to the master-stop generation. Off/on of the counter-battery feature could restore validity of a previously delayed emission response."
+  ],
+  "implementation": [
+    "CBA counter-battery disable advances only the server delayed-response generation. Existing radar response and observer wake callbacks keep their original generation.",
+    "Pending per-side cooldown receipts now include generation/deadline, allowing fresh emissions after re-enable without inheriting a cancelled pending slot. Completed-fire and emission-rate cooldowns remain.",
+    "Updated CortexInit documentation: the artillery firing-evidence handler is shared and installed while tactics runs; counter-battery admission independently reads the live switch. No runtime handler was added or removed.",
+    "Accepted artillery missions capture counterGeneration and reject old COUNTER generations through the existing blocked/uncertain lifecycle.",
+    "Owner shot payload carries original generation; final native fire admission atomically rechecks observed generation, live feature/ROE, current operator/token and smoke settings after safety work.",
+    "Server publishes counter generation on feature disable and master stop for current/JIP owners. Publication is not proof of network cancellation ordering.",
+    "Every artillery shot now has a monotonic per-mission request serial and public last-issued battery receipt. Atomic duplicate/stale suppression does not send rejection for an already pending native shot; same-serial payload conflicts do not issue commands.",
+    "Pending shoot-and-scoot now retains exact token/session, per-purpose cancellation generation and original deadline through retries/adoption; post-planning lease/operation/move admission is atomic, and old cleanup preserves successor sessions.",
+    "An admitted ARTILLERY_SCOOT operation retains its session after pending-token cleanup. The existing group callback cancels only its matching generation on purpose/session invalidation; retirement rechecks common operation generation, exact public authority lease and local bookkeeping before clearing.",
+    "Support and danger fire missions retain independent original cancellation generations through planning, mission stepping and owner dispatch. Smoke adds a mode-specific generation without cancelling HE. Final atomic native issue and duplicate signatures include the original epochs. Master stop invalidates all fire purposes; pending native uncertainty remains quarantined."
+  ],
+  "remaining": [
+    "Issued shots retain quarantine. Generation/receipt delivery, repeated RPCs, owner migration, active relocation stopping and newer authored/native order handback still need physical tests. Per-purpose off/on cancellation now has source-contract coverage, not physical acceptance.",
+    "Per-vehicle feature filtering, full-HBQ controller parity and physical live toggles remain incomplete."
+  ],
+  "validation": {
+    "tests": 1306,
+    "exitCode": 0,
+    "log": ".qa/cbe-artillery-purpose-sessions-build.log",
+    "packageFingerprint": "848103419512d21e6f359cdd624dbf5f688e2652623daa2e422941ffb9b313a5",
+    "source": "ed2984cd plus intended purpose-session source, documentation and tests; review/handover metadata appended after build"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused"
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-18",
+  "scope": "Vehicle withdrawal admission and phase publication",
+  "finding": "RETREAT/MOVING and withdrawn state were published even after reverse RELEASED or refused fallback.",
+  "implementation": [
+    "Current state/op/epoch gated movement acceptance",
+    "Matching reverse or committed original-generation waypoint required",
+    "Original-start lease/intent timing",
+    "Matching incomplete refusal cleanup",
+    "Cancelled-phase movement refusal"
+  ],
+  "validation": {
+    "tests": 1254,
+    "exit": 0,
+    "log": ".qa/cbe-withdrawal-admission-final-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Long-contact retry policy",
+    "Completion during cancellation semantics",
+    "Physical withdrawal/terrain and overhead",
+    "Queue execution"
+  ],
+  "acceptance": "partial"
+}

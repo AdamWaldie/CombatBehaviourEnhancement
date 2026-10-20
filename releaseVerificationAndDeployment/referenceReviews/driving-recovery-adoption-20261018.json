@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "scope": "Bounded pending driving-release adoption at native locality edges",
+  "source_intent": "Reuse the existing CBE aircraft init/Local epoch pattern for release-only adoption; not an HBQ controller adapter or full HBQ parity claim.",
+  "implementation": [
+    "Native LandVehicle init/Local hook independent of tactical enablement",
+    "Exact pending REVERSE receipts register cleanup only; adoption never commands movement",
+    "Five one-second retries only for an occupied vehicle with absent receipt",
+    "Each locality edge increments the private epoch so older lookup callbacks refuse",
+    "Nonpending work never becomes release authority; static weapons excluded"
+  ],
+  "remaining": [
+    "Receipt delivery beyond five seconds",
+    "Late pending-state update over an already present nonpending receipt",
+    "Empty-vehicle transitions",
+    "Actual normal/provider HC/JIP delivery and authored-route handback",
+    "Runtime performance and full goal acceptance"
+  ],
+  "validation": {
+    "log": ".qa/cbe-recovery-adoption-verified-build.log",
+    "tests": 1200,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "54ce33d4fef9745542bd41776ebc700a7ba07a5ddf9938bdf9deac8f2a868e62",
+    "initial_failures": "Two parachute contracts counted Local handlers across all classes; now still require exactly one actor handler within CAManBase registration. Original failure log retained."
+  },
+  "physical": "NOT_RUN; audits remain paused"
+}

@@ -52,10 +52,20 @@ private _requesterPosition=getPosATL _requesterTransmitter;
 // A reinforcement candidate must have a transmitter inside the configured response radius.
 // Build a unique group set from that local envelope instead of walking every mission group.
 private _candidateGroups=[];
+private _candidateSeen=createHashMap;
 {
     private _candidateGroup=group _x;
-    if (!isNull _candidateGroup && {!(_candidateGroup in _candidateGroups)}) then {
-        _candidateGroups pushBack _candidateGroup;
+    if (!isNull _candidateGroup) then {
+        private _groupKey=netId _candidateGroup;
+        if (_groupKey == "") then {
+            // Preserve identity/order if a transient local group has no network key.
+            _candidateGroups pushBackUnique _candidateGroup;
+        } else {
+            if !(_groupKey in _candidateSeen) then {
+                _candidateSeen set [_groupKey,true];
+                _candidateGroups pushBack _candidateGroup;
+            };
+        };
     };
 } forEach (_requesterPosition nearEntities ["Man",_radius]);
 private _candidates = [];

@@ -7,8 +7,10 @@
  * it does not change that route. Starting a new group posture requires a stationary actor; native combat remains available.
  * Repeat/JIP: One generation-owned group lease records each actor's prior and applied weak stance, operation generation and owner epoch. Repeated calls retain that lease; release restores only an unchanged CBE-applied stance. Zeus, player, specialist, locality and newer-generation handover discard the lease without writing over the new owner.
  * Arguments: 0: group <GROUP>, grpNull; 1: danger generation <NUMBER>, -1; 2: active <BOOL>, false; 3: cause <STRING>, ""; 4: immediate observer <OBJECT>, objNull, excluded from new support posture leases.
- * Return Value: Boolean - true while one or more exact-owned squad stance leases remain active.
- * Current callers: CBE_fnc_CortexGroupTick, CBE_fnc_CortexReleaseGroup and CBE_fnc_DangerSetup.
+ * Arguments: 5 optional release actor OBJECT objNull; with active=false, relinquish only that actor.
+ * Return Value: BOOL - normal mode: leases remain active; release-actor mode: that actor retired/absent.
+ * A blocked or unconfirmed actor release retains its row and refuses the incoming task.
+ * Current callers: CBE_fnc_CortexGroupTick, CBE_fnc_CortexReleaseGroup and CBE_fnc_DangerSetup and IndoorActorOperation START.
  * Example: [group player,group player getVariable ["CBE_Danger_Generation",0],true,"HIT"] call CBE_fnc_DangerGroupHideStep;
  */
 
@@ -17,7 +19,8 @@ params [
     ["_generation",-1,[0]],
     ["_active",false,[true]],
     ["_cause","",[""]],
-    ["_observer",objNull,[objNull]]
+    ["_observer",objNull,[objNull]],
+    ["_releaseActor",objNull,[objNull]]
 ];
 if (isNull _group) exitWith {false};
 
@@ -42,9 +45,62 @@ private _mayRestore={
         && {isNull remoteControlled _unit}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {[_unit] call CBE_fnc_CortexCombatEffective}
+        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
         && {_postureFree}
         && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
+};
+// Group posture can end while treatment/rearm/reservation blocks restoration. Transfer
+// only unchanged same-owner proof to the existing actor cleanup; never replace its lease.
+// The first transfer starts one finite restoration window, not another danger action.
+private _deferRestore={
+    params ["_proof"];
+    private _unit=_proof param [0,objNull,[objNull]];
+    private _prior=_proof param [1,"",[""]];private _applied=_proof param [2,"",[""]];
+    if ([_proof] call _sameOwner && {!isNull _unit} && {local _unit} && {alive _unit}
+        && {!isPlayer _unit} && {group _unit == _group} && {isNull objectParent _unit}
+        && {isNull remoteControlled _unit} && {[_unit] call CBE_fnc_CortexExternalOwner == ""}
+        && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
+        && {_prior in ["AUTO","UP","MIDDLE","DOWN"]} && {_applied in ["AUTO","UP","MIDDLE","DOWN"]}
+        && {_prior != _applied} && {toUpperANSI unitPos _unit == _applied}
+        && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}) then {
+        _unit setVariable ["CBE_Danger_EngineStanceLease",[_prior,_applied,time,
+            _proof select 4,_proof select 5,_group]];
+        [_unit] call CBE_fnc_DangerEngineRelease;
+    };
+};
+// Individual handover leaves other soldiers' posture untouched. It uses the same
+// exact owner/native-value rules as group cleanup, before the new task reserves movement.
+if (!isNull _releaseActor) exitWith {
+    private _released=false;
+    isNil {
+        _released=call {
+            if (_active || {!local _group} || {!local _releaseActor} || {group _releaseActor != _group}
+                || {[_group] call CBE_fnc_CortexExternalTakeover} || {[_group] call CBE_fnc_CortexZeusHeld}
+                || {(_group getVariable ["CBE_Danger_GroupHideLeases",[]]) isNotEqualTo _leases}) exitWith {false};
+            private _index=_leases findIf {(_x param [0,objNull,[objNull]]) isEqualTo _releaseActor};
+            if (_index < 0) exitWith {true};
+            private _proof=_leases select _index;
+            if (count _proof != 6 || {isPlayer _releaseActor} || {!isNull objectParent _releaseActor}
+                || {!([_releaseActor] call CBE_fnc_CortexCombatEffective)}
+                || {[_releaseActor] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
+            private _prior=_proof param [1,"",[""]];
+            private _applied=_proof param [2,"",[""]];
+            if (!(_prior in ["AUTO","UP","MIDDLE","DOWN"])
+                || {!(_applied in ["AUTO","UP","MIDDLE","DOWN"])}) exitWith {false};
+            if (toUpperANSI unitPos _releaseActor == _applied) then {
+                if ([_proof] call _mayRestore) then {_releaseActor setUnitPosWeak _prior};
+            };
+            // Changed native stance is preserved. An unchanged un-restored value is pending.
+            if (_prior != _applied && {toUpperANSI unitPos _releaseActor == _applied}) exitWith {false};
+            private _remaining=+_leases;
+            _remaining deleteAt _index;
+            _group setVariable ["CBE_Danger_GroupHideLeases",_remaining];
+            true
+        };
+    };
+    _released
 };
 private _release={
     if (!_external) then {
@@ -56,6 +112,7 @@ private _release={
                 && {toUpperANSI (unitPos _unit) == _applied}) then {
                 _unit setUnitPosWeak _prior;
             };
+            [_x] call _deferRestore;
         } forEach _leases;
     };
     _group setVariable ["CBE_Danger_GroupHideLeases",nil];
@@ -78,6 +135,7 @@ if (_leases isNotEqualTo []) exitWith {
             && {toUpperANSI (unitPos _unit) == _applied}) then {
             _unit setUnitPosWeak _prior;
         };
+        if (_leaseGeneration != _generation) then {[_x] call _deferRestore};
     } forEach _leases;
     private _valid=_leases select {
         _x params ["_unit","_prior","_applied","_leaseGeneration"];
@@ -106,6 +164,8 @@ private _candidates=_members select {
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!(_x in _reserved)}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _x in ["","ATTACK","FIRE","SUPPRESS"]}
         && {abs (speed _x) <= 0.5}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}

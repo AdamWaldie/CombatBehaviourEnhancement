@@ -1,0 +1,121 @@
+/*
+ * Author: WaldoTheWarfighter
+ * Reverse-role proposals require distinct native driver/operator and NONE turn input.
+ * Unsupported crew arrangements refuse; discovery never reassigns crew or clears a turn.
+ * Purpose: Proposes a bounded head-on/crossing queue roster and rear-to-front room-making dependencies.
+ * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
+ * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
+ * reverse/dependency/crossing execution is separately granted through existing driving callbacks.
+ * This proposal writes no movement/reservations/speed.
+ * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
+ * Stationary admission requires finite total linear velocity below1km/h and angular
+ * velocity below0.01rad/s, not only forward-axis speed. Pivoting is not stationary.
+ * This instantaneous observation is not a physically settled HOLD/READY receipt.
+ * At most one120m dead-inclusive vehicle query/64 candidates; overflow/fifth chain member refuses.
+ * Rear adjacency uses padded whole-hull gaps, not centre distance. Candidate projections
+ * are cached once per bounded discovery; interpenetrating chain bodies refuse admission.
+ * Arguments:0 initiator <OBJECT>,objNull;1 opposing limiting peer <OBJECT>,objNull;
+ * 2 original episode deadline <NUMBER>,-1,serverTime. Caller supplies continuous jam dwell.
+ * Return: HASHMAP status REFUSED/PROPOSAL,reason; proposal adds vehicles,roles,dependencies,
+ * canonical context,observedAt,deadline. Geometry/reverse/consent/success are never inferred.
+ * Current callers: DrivingQueueAutoStep (default-off initiation) and explicit local protocol callers.
+ * Physical reliability and repeated-jam policy validation remain pending.
+ * Example: private _p=[_own,_peer,_retryDeadline] call CBE_fnc_DrivingQueueProposal;
+ */
+params [["_vehicle",objNull,[objNull]],["_peer",objNull,[objNull]],["_until",-1,[0]]];
+private _fail={params ["_reason"];createHashMapFromArray [["status","REFUSED"],["reason",_reason]]};
+if (isRemoteExecuted || {isNull _vehicle} || {!local _vehicle} || {isNull _peer}
+    || {_vehicle == _peer} || {!finite _until} || {_until <= serverTime}) exitWith {["INVALID_REQUEST"] call _fail};
+private _at=serverTime;
+private _observedEligible={
+    params ["_object"];
+    if (isNull _object || {!alive _object} || {!canMove _object} || {!simulationEnabled _object}
+        || {isObjectHidden _object} || {!(_object isKindOf "LandVehicle")}
+        || {private _queueLinearSpeed=vectorMagnitude velocity _object;
+            private _queueAngularSpeed=vectorMagnitude angularVelocity _object;
+            !finite _queueLinearSpeed || {!finite _queueAngularSpeed}
+                || {_queueLinearSpeed >= (1/3.6)} || {_queueAngularSpeed >= 0.01}}
+        || {_object getVariable ["CBE_Convoy_Active",false]}
+        || {!isNil {_object getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
+    private _driver=driver _object;private _operator=effectiveCommander _object;
+    if (isNull _operator) then {_operator=_driver};
+    if (isNull _driver || {isNull _operator} || {group _driver != group _operator}
+        || {vehicle leader group _driver != _object}
+        || {behaviour leader group _driver in ["COMBAT","STEALTH"]}) exitWith {false};
+    if ([_driver,_operator] findIf {isPlayer _x || {!alive _x} || {!isNull remoteControlled _x}
+        || {!(currentCommand _x in ["","MOVE","WAIT"])}} >= 0) exitWith {false};
+    private _group=group _driver;private _index=currentWaypoint _group;
+    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
+    private _wp=[_group,_index];private _statements=waypointStatements _wp;
+    private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
+    waypointType _wp == "MOVE" && {_condition == "true"}
+        && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
+        && {waypointScript _wp == ""} && {(waypointTimeout _wp param [2,0]) <= 0}
+        && {isNull waypointAttachedVehicle _wp} && {isNull waypointAttachedObject _wp}
+        && {synchronizedWaypoints _wp isEqualTo []} && {synchronizedTriggers _wp isEqualTo []}
+};
+if (!([_vehicle] call _observedEligible) || {!([_peer] call _observedEligible)}
+    || {group driver _vehicle == group driver _peer}
+    || {abs (((getPosASL _vehicle) select 2)-((getPosASL _peer) select 2)) > 2}
+    || {_vehicle distance2D _peer > 30}
+    || {([_vehicle,_peer] call CBE_fnc_DrivingQueuePairGeometry) isEqualTo []}) exitWith {["NOT_STATIONARY_CONFLICT_PAIR"] call _fail};
+// Both owners must nominate the same crossing/yield roles. Refuse the
+// mirrored initiator before the rear-chain query, never command the peer.
+private _crossing=[[_vehicle,_peer]] call CBE_fnc_DrivingQueueCrossingVehicle;
+if (isNull _crossing) exitWith {["NO_SUPPORTED_CROSSING_PAIR"] call _fail};
+if (_crossing != _vehicle) exitWith {["PEER_HAS_CROSSING_ROLE"] call _fail};
+private _axis=vectorDir _peer;_axis set [2,0];_axis=vectorNormalized _axis;
+private _right=[_axis select 1,-(_axis select 0),0];
+// Pair geometry already qualifies either the head-on corridor or crossing obstruction.
+private _area=[getPosATL _peer,120,120,0,false,120];
+private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
+if (count _candidates > 64) exitWith {["CHAIN_DISCOVERY_BUDGET"] call _fail};
+private _origin=getPosWorld _peer;
+private _candidateSpans=_candidates apply {[_x,[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval]};
+private _vehicles=[_vehicle,_peer];private _roles=["HOLD_CROSSING","YIELD_ROOT"];
+private _dependencies=[-1,-1];private _previous=_peer;private _reason="";
+// Three bounded searches: up to two followers plus a mandatory over-budget tail check.
+for "_step" from 1 to 3 do {
+    private _nearest=objNull;private _best=1e9;
+    private _previousSpan=[_previous,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+    if (_previousSpan isEqualTo []) exitWith {_reason="REAR_HULL_UNAVAILABLE"};
+    {
+        private _other=_x select 0;private _otherSpan=_x select 1;
+        if (_other != _previous && {_other != _vehicle}) then {
+            private _delta=(getPosASL _other) vectorDiff (getPosASL _previous);
+            private _behind=-(_delta vectorDotProduct _axis);
+            private _gap=if (_otherSpan isEqualTo []) then {-1e9} else {
+                (_previousSpan select 0)-(_otherSpan select 1)
+            };
+            if (_behind > 0 && {_gap <= 25} && {_gap < _best}
+                && {abs (_delta vectorDotProduct _right) <= 6}
+                && {abs (_delta select 2) <= 2}) then {_nearest=_other;_best=_gap};
+        };
+    } forEach _candidateSpans;
+    if (isNull _nearest) exitWith {};
+    if (_best < 0) exitWith {_reason="OVERLAPPING_OR_UNKNOWN_REAR_HULL"};
+    if (_nearest in _vehicles) exitWith {_reason="DEPENDENCY_CYCLE"};
+    if (count _vehicles >= 4) exitWith {_reason="CHAIN_PARTICIPANT_BUDGET"};
+    if (!([_nearest] call _observedEligible)
+        || {(vectorDir _nearest) vectorDotProduct _axis < cos 25}
+        || {_vehicles findIf {group driver _x == group driver _nearest} >= 0}) exitWith {_reason="REAR_PARTICIPANT_UNAVAILABLE"};
+    _dependencies set [count _vehicles-1,count _vehicles];
+    _vehicles pushBack _nearest;_roles pushBack "REAR_ROOM";_dependencies pushBack -1;
+    _previous=_nearest;
+};
+if (_reason != "") exitWith {[_reason] call _fail};
+private _context=[_vehicles] call CBE_fnc_DrivingQueueContext;
+if (_context isEqualTo [] || {serverTime-_at > 2} || {serverTime >= _until}
+    || {!local _vehicle} || {_vehicles findIf {!([_x] call _observedEligible)} >= 0}) exitWith {["STALE_CHAIN"] call _fail};
+// Native capability belongs to the role, not a vehicle class guess. The first
+// participant only holds; yielding/rear roles need the existing BACK crew/input prerequisites.
+private _reverseCapable=true;
+for "_i" from 1 to ((count _context)-1) do {
+    private _row=_context select _i;
+    if (((_row select 2) select 0) == ((_row select 3) select 0)
+        || {toUpperANSI ((_row select 5) param [1,""]) != "NONE"}) exitWith {_reverseCapable=false};
+};
+if (!_reverseCapable) exitWith {["NATIVE_REVERSE_UNAVAILABLE"] call _fail};
+createHashMapFromArray [["status","PROPOSAL"],["reason","OWNER_CONSENT_AND_NATIVE_EXECUTION_REQUIRED"],
+    ["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],["context",_context],
+    ["observedAt",_at],["deadline",(_at+2) min _until],["retryDeadline",_until]]

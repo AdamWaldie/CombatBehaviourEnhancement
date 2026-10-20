@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-18",
+  "scope": "Observed-task clearance handoff and current actor admission",
+  "sources": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "c1f12e5b1d6ffa1895e9e174f8a22e52ab502b18cb554ba5b98fa4f4527310c9",
+    "releaseVerificationAndDeployment/test_clear_handoff_commit.py": "2198e53804c17ca2f353ec5025304823b8619e5e4ded6994560c177179eef345"
+  },
+  "finding": "Fresh clear replacement could release whichever clear existed after yielded validation. Generic cleanup, native-receipt recapture and public/common-operation publication were separate stages, permitting adoption of an intervening task. Actor admission was not repeated at the mutation boundary.",
+  "change": "Capture owner/native/common-operation identity, clear generation and garrison/defence assignment before geometry. One unscheduled handoff validates those identities plus target pose, active gate, deadlines, current eligibility, original-roster minimum and all selected actors before release/cleanup/new-publication. Actor predicate is shared and now rechecks group membership. Own cleanup alone supplies the resulting native receipt. Resume missing/destroyed/expired/transform retirement checks its order/generation/epoch in an unscheduled block. Geometry and room-route planning remain outside handoff.",
+  "validation": {
+    "tests": 1164,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-clear-handoff-commit-final-build.log",
+    "fingerprint": "21f8ef0770c53c7032e69abb5d5632fe33a75b1c9f7a05e8368a0f2b16a6cba4",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "retained_failures": [
+      "Focused: old cleanup-comment location and direct resume-retirement proof assertions; now check actual release boundary and scoped retirement helper.",
+      "Initial full: old direct operation-refusal shape and removed status explanation. Assertions retain emitted reason and common refusal; status explanation restored.",
+      "Intermediate full passed; final full rerun after using explicit type-safe boolean identity."
+    ]
+  },
+  "limits": [
+    "No rollback of a valid committed handoff if a later worker fails.",
+    "One-time unscheduled cleanup/operation admission cost is unmeasured, including large group/task cleanup. This is not performance acceptance.",
+    "No physical during-validation supersession, garrison handoff, actual-provider HC migration or repeatability evidence.",
+    "Same-value external actor/command edits are not universally attributable.",
+    "Whole HBQ review and all65 feature-family acceptance remain incomplete."
+  ]
+}

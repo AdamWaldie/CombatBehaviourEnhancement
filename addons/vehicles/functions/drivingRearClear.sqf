@@ -4,7 +4,11 @@
  * Locality / Authority: Read-only on the current vehicle owner. It issues no movement, speed,
  * collision, physics or crew command. The consuming finite operation retains movement authority.
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
- * observations cannot be replayed after a vehicle moves or changes owner.
+ * observations cannot be replayed after a vehicle moves or changes owner. Normal unscheduled
+ * callbacks share one lazy crew snapshot; scheduled direct calls retain per-actor crew reads.
+ * Default rear travel uses nine support samples; longer corridors sample every <=4m
+ * (at most48 support samples plus one target ray). Bridge geometry
+ * remains eligible independently of terrain water. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
  * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
  * These only veto additional hazards; changing steering/acceleration remains unknown.
@@ -12,15 +16,18 @@
  * 0 vehicle <OBJECT, objNull> - local ground vehicle.
  * 1 distance <NUMBER, 8> - metres behind the rear body edge, clamped to 1..60.
  * Non-finite distances refuse clearance before any world query or geometry calculation.
- * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER].
- * Dense candidate sets fail closed; at most 64 actors (eight hull corners each) and at most sixty
- * geometry rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
+ * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER,
+ * optional supported AGL destination ARRAY]. Destination exists only on the completed observation.
+ * It is distance metres behind the vehicle origin, inside the observed rear-body envelope.
+ * Dense candidate sets fail closed; at most64 actors use four transform pairs to represent each
+ * full eight-corner hull with a0.05m outward model-space rounding pad. At most sixty
+ * geometry rays plus up to49 support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
  * overlap policy; the solid-geometry rays remain independent and can still find obstructions.
  * Discovery uses one live-infantry and one dead-inclusive vehicle query; native query cost
  * remains engine-dependent even though subsequent hull evaluation is capped.
- * Current callers: DrivingAssistStart and CortexVehicleReverseStep.
+ * Current callers: DrivingRearPlan, active DrivingAssistStart monitoring and CortexVehicleReverseStep.
  * Example: private _clearance = [truck1,8] call CBE_fnc_DrivingRearClear;
  */
 params [["_vehicle",objNull,[objNull]],["_distance",8,[0]]];
@@ -74,29 +81,41 @@ private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _actors=(_vehicle nearEntities ["CAManBase",_radius])
     +(_area nearEntities [["LandVehicle"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
+private _scheduledObservation=canSuspend;
+private _crewObserved=false;private _ownCrew=[];
 private _predicted=false;
 private _occupied=_actors findIf {
     private _thisActor=_x;
-    _thisActor != _vehicle && {!(_thisActor in crew _vehicle)}
+    _thisActor != _vehicle && {
+        // Normal PFH observations cannot suspend: one lazy crew snapshot is sufficient.
+        // Preserve the direct scheduled-call contract, where the engine may advance between actors.
+        if (!_crewObserved || {_scheduledObservation}) then {
+            _ownCrew=crew _vehicle;_crewObserved=true;
+        };
+        !(_thisActor in _ownCrew)
+    }
         && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
     && {private _otherBox=boundingBoxReal _thisActor;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        // Full projected hulls preserve overlap on slopes and separate stacked roads.
-        // Centre height and four z=0 footprint corners cannot represent a tall/tilted hull.
-        private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
-        private _minZ=1e9;private _maxZ=-1e9;
+        // Project the full box with one corner and three edges. Model transforms are affine:
+        // each axis extremum is origin plus the negative/positive components of those edges.
+        // This represents all eight corners with four transform pairs, including tilt/scale.
+        private _origin=_vehicle worldToModel (_thisActor modelToWorld _otherLow);
+        private _projectedLow=+_origin;private _projectedHigh=+_origin;
         {
-            private _height=_x;
-            {
-                private _width=_x;
-                {
-                    private _point=_vehicle worldToModel (_thisActor modelToWorld [_width,_x,_height]);
-                    _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
-                    _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
-                    _minZ=_minZ min (_point select 2);_maxZ=_maxZ max (_point select 2);
-                } forEach [_otherLow select 1,_otherHigh select 1];
-            } forEach [_otherLow select 0,_otherHigh select 0];
-        } forEach [_otherLow select 2,_otherHigh select 2];
+            private _edge=(_vehicle worldToModel (_thisActor modelToWorld _x)) vectorDiff _origin;
+            for "_axis" from 0 to 2 do {
+                private _component=_edge select _axis;
+                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
+                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
+            };
+        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
+            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
+            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
+        // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
+        private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
+        private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;
+        private _minZ=(_projectedLow select 2)-0.05;private _maxZ=(_projectedHigh select 2)+0.05;
         private _current=_maxX >= _actorLeft && {_minX <= _actorRight} && {_maxY >= _actorRear}
             && {_minY <= _actorFront} && {_maxZ >= (_low select 2)-0.3}
             && {_minZ <= (_high select 2)+0.3};
@@ -134,6 +153,43 @@ private _bodyHeight=((_high select 2)-(_low select 2)) max 0.9;
 private _heights=[0.45,0.9,(_bodyHeight+0.45)*0.5,_bodyHeight];
 _heights=_heights arrayIntersect _heights;
 private _clear=true;private _rays=0;
+// Empty space behind a hull is not drivable ground. Probe the actual support surface in
+// the current vehicle frame, including raised road/bridge geometry above water or terrain.
+// Fixed samples bound cost; later callbacks must observe again as the native leg progresses.
+private _supported=true;
+private _supportDistances=[1 min _distance,_distance*0.5,_distance];
+if (_distance > 8) then {
+    _supportDistances=[1];
+    for "_station" from 1 to (ceil (_distance/4)) do {_supportDistances pushBack ((_station*4) min _distance)};
+};
+{
+    private _depth=_rear-_x;
+    {
+        private _from=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)+1.2];
+        private _to=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)-2];
+        _rays=_rays+1;
+        private _hits=lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"];
+        if (_hits isEqualTo [] || {((_hits select 0 select 1) select 2) < 0.7}) exitWith {_supported=false};
+    } forEach [_low select 0,((_low select 0)+(_high select 0))*0.5,_high select 0];
+    if (!_supported) exitWith {};
+} forEach (_supportDistances arrayIntersect _supportDistances);
+if (!_supported) exitWith {[false,"REAR_SUPPORT",time,_rays]};
+// Native movement needs the actual supported surface height, not a terrain-level destination.
+// One extra centre-target ray stays inside the already observed rear-body envelope. Open water
+// with only submerged terrain is not a deck; require a real hit object above water in that case.
+private _targetFrom=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)+1.2];
+private _targetTo=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)-2];
+_rays=_rays+1;
+private _targetHits=lineIntersectsSurfaces [_targetFrom,_targetTo,_vehicle,objNull,true,1,"GEOM","NONE"];
+if (_targetHits isEqualTo []) exitWith {[false,"REAR_TARGET_SUPPORT",time,_rays]};
+private _targetHit=_targetHits select 0;
+private _destination=ASLToAGL (_targetHit select 0);
+if (((_targetHit select 1) select 2) < 0.7
+    || {surfaceIsWater _destination && {(_destination select 2) < 0
+        || {isNull (_targetHit select 2) && {isNull (_targetHit select 3)}}}}) exitWith {
+    [false,"REAR_TARGET_SUPPORT",time,_rays]
+};
+
 {
     private _height=(_low select 2)+_x;
     {
@@ -174,4 +230,4 @@ if (_clear && {_turning}) then {
         if (!_clear) exitWith {};
     } forEach _heights;
 };
-[_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays]
+[_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays,_destination]

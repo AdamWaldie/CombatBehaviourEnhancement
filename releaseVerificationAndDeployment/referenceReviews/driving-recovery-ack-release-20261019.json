@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "f85c3daf",
+  "scope": "Destination recovery acknowledgement/release design trace; implementation pending",
+  "finding": "REFRESH, FINAL and destination REVERSE use immediate post-command destination samples in _recordRecovery. _recoveryOwned can lose exact proof on later own acknowledgement. SIMPLE_BACK has distinct pre-input/turn acknowledgement and must remain separate.",
+  "releaseHazard": [
+    "RecoveryRelease metadata-only retirement is appropriate for proven changed commands; it is not proof that an issued but unacknowledged rear command was rejected.",
+    "A finite wait timeout with unchanged pre-command state cannot authorize dropping reverse stop/cap provenance or replaying a rear command. Late acknowledgement remains possible.",
+    "Direct release/exclusion can run independently before next DrivingAssistStart observation; fixing only the normal tick leaves a separate cleanup gap.",
+    "Public releasePending/locality retention and releaseUnresolved hard-deadline handling already exist; use original lifetime, no replacement retry timer or new permanent controller."
+  ],
+  "requiredDesign": [
+    "Record exact requested destination and pre-command seats/tasks/destinations with original acknowledgement deadline at the actual write boundary.",
+    "A single mode-aware read-only classification should distinguish own acknowledged target, original pending state, unchanged but unacknowledged expiry, and proven changed command.",
+    "Both normal step and independent cleanup must consume the same classification. Own acknowledgement may refresh proof but never replay movement, renew deadline or infer physical travel.",
+    "Unchanged expired reverse request must retain safety provenance as uncertainty; it cannot become movement success, fresh recovery or permission to redirect unknown native authority.",
+    "Changed route/seats/commands/external controller must continue to prevent stop/recall. Preserve SIMPLE_BACK receipt semantics and current physical rear geometry/damage/total-motion guards."
+  ],
+  "implementation": [
+    "Shared read-only DrivingRecoveryCommandState classifies exact/issued OWNED, original PENDING, unchanged EXPIRED or LOST state without commands or renewed clocks.",
+    "REFRESH/FINAL and actual destination rear writers record original target/expiry/pre-command seats/tasks/destinations. Native SIMPLE_BACK does not use destination request.",
+    "Normal owner atomically consumes acknowledged request into actual receipts only under same current journal/route/cap. Pending blocks ordinary recovery writes and rear endpoint mutation.",
+    "Expired unchanged reverse uses existing bounded releasePending/cleanup path rather than fresh movement. Independent release classifies/consumes acknowledgement too; pending/expired unchanged reverse grants retention only, OWNED is required for stop/handback.",
+    "Existing cleanup ticket signature includes original request, preventing a successor request from borrowing old ticket authority. Original hard deadline and unresolved terminal policy retained."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "5aa5459573085850a600859b78732e1db201ba9daf4ead08373eae0074bad152",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "fd95cf1500b69eba6f4f955b8aad93a4bcbf900b5ba55ebd686aaef492084c02",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "a0ecd6fa6460012160c78f2611634eccb46bce8a6e4087d58b582e0b7d0f148e",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "1b9991e2ff5cec70f789f32942d58446d2ca0081b263afd7ca248ddce6499feb",
+    "addons/main/CfgFunctions.hpp": "b019c8e65d6704ab0311068c9ccadca567f99e466e7155b4d793042103a61c93",
+    "docs/Smart-AI-Pass.md": "ed0e1c185c19e477ba71db57d14fef303244aeaa03b54f57e6d48fdd0348e968"
+  },
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "baselineSourceHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "daba0edf5598a465f543611ee6076b86ad48c550c79f43272e35891dc5e6bf30",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "e449808a8edb4335f5c290bf1d242b3338bc294e5ac2437268d35f04fa37b06e",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "ba6ed9ca2ade445d501bbc009e8694a372e57a373635a9a4091c5f8706944a75"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-recovery-native-request-hemtt.log",
+    "focused": ".qa/cbe-recovery-native-request-focused-pass.log",
+    "existingDrivingCases": 251,
+    "initialFindings": "Existing source-expression contracts updated to trace explicit request payload, stronger owned gate and third expiry boundary; no cases added/removed.",
+    "fullPipeline": ".qa/cbe-recovery-native-request-final-build.log",
+    "independent": ".qa/cbe-recovery-native-request-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "6586a1b7c9c7a50fe301c16d89a36a0a24fe30118bfe3bf2af1eb6960a4201ff",
+    "manifestSource": "f85c3daf+dirty unsigned development",
+    "initialFullFinding": "New shared helper required assignment to existing driving family source registry; acceptance/status/scores unchanged."
+  },
+  "remaining": [
+    "Native expectedDestination timing and actual reverse travel/stop/handback require physical evidence.",
+    "Distinct subordinate driver destination changes remain conservative ownership loss; no inferred intermediate-command origin.",
+    "Late same-value commands cannot reveal origin. Hard-deadline unresolved receipts retain provenance, not successful handback.",
+    "Normal/HC migration, delayed request replication, shutdown/exclusion and runtime overhead unverified.",
+    "Existing release observer may service additional pending-request tickets; bounded four-ticket service is retained, but incremental cost has not been measured."
+  ],
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0
+}

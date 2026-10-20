@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground gunnery selects the freshly qualified loaded station muzzle before requesting fire.
+ * Native selection must be observed; no magazine loading, ammunition creation or forced shot.
  * Ground contact ranking may reuse a completed failed station scan within the same frame;
  * the selected target receives a fresh default ammunition check before target/fire commands.
  * Vehicle drills for a squad in contact: dismount infantry under fire, and pull a
@@ -29,6 +31,13 @@
  * Gunnery (CBE_AIPass_VehicleGunnery_Enable): a fresh mounted danger event may orient the exact
  * affected armed platform and request one safe suppression response against an already known hostile.
  * Captive, surrendering and handcuffed sources cannot authorize targeted danger responses.
+ * Routine standoff first retires an exact stationary ground-fire role through server
+ * fallback, once per role, and waits for its removal; it never moves under that assignment.
+ * Routine reports older than3s use native believed-position suppression, not hidden aimPos.
+ * Both ground danger and routine point suppression require nonexplosive station bullets/20 loaded rounds, >=50m separation, <30km/h,
+ * no unrelated engagement and the existing eight-second fire hold; no new controller.
+ * Mounted danger watch converts its ASL firing point back to AGL; suppressive fire
+ * retains ASL, so elevation does not offset the watch point a second time.
  * Danger suppression uses the effective commander's native believed contact position, never
  * the hidden enemy's exact aim position. An unavailable estimate cannot authorize suppression.
  * A stopped or slow armed vehicle whose primary gunner has been lost may ask an existing dedicated
@@ -229,6 +238,7 @@ private _combinedGroundFireOwned=_combinedGroundRole isEqualType []
     && {(_combinedGroundRole select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"]}
     && {(_combinedGroundRole select 5) isEqualType 0} && {finite (_combinedGroundRole select 5)}
     && {serverTime < (_combinedGroundRole select 5)};
+if (!_combinedGroundFireOwned) then {_state deleteAt "vehicleStandoffYield"};
 private _gunnerAvailable={
     params ["_vehicle","_gunner"];
     !isNull _gunner && {local _gunner} && {group _gunner == _group}
@@ -529,7 +539,6 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
                     && {[_vehicle,_gunner] call _gunnerAvailable}
                     && {canFire _vehicle}
-                    && {!(_vehicle isKindOf "LandVehicle") || {[_vehicle,_gunner,_dangerSource] call CBE_fnc_CortexGroundFireReady}}
                     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                     && {combatMode _group in ["YELLOW","RED"]}
                     && {unitCombatMode _gunner in ["YELLOW","RED"]}
@@ -539,12 +548,38 @@ if (_dangerDismount isNotEqualTo []) then {
                     // Use the same native believed ATL contract as CortexKnowledge.
                     private _believed=(effectiveCommander _vehicle) getHideFrom _dangerSource;
                     private _aimPosition=(ATLToASL _believed) vectorAdd [0,0,1];
-                    if (_believed isNotEqualTo [0,0,0]
-                        && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}) then {
-                        _gunner doWatch _aimPosition;
-                        _gunner doSuppressiveFire _aimPosition;
-                        _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
-                        _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
+                    private _dangerFireObservation=createHashMap;
+                    private _dangerGround=_vehicle isKindOf "LandVehicle";
+                    private _engaging=getAttackTarget _gunner;
+                    private _assigned=assignedTarget _gunner;
+                    // A point estimate is suppression, not authority to spend an arbitrary
+                    // explosive round. Preserve native engagements and the existing burst hold.
+                    private _dangerSuppressionReady=_believed isNotEqualTo [0,0,0] && {
+                        !_dangerGround || {
+                            abs speed _vehicle < 30 && {_vehicle distance2D _believed >= 50}
+                                && {toUpperANSI currentCommand _gunner != "SUPPRESS"}
+                                && {time >= (_gunner getVariable ["CBE_AIPass_TargetHold",0])}
+                                && {isNull _engaging || {_engaging == _dangerSource}}
+                                && {isNull _assigned || {_assigned == _dangerSource}}
+                                && {!terrainIntersectASL [eyePos _gunner,_aimPosition]}
+                                && {[_vehicle,_gunner,_dangerSource,_dangerFireObservation,false,true] call CBE_fnc_CortexGroundFireReady}
+                        }
+                    };
+                    if (_dangerSuppressionReady
+                        && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}
+                        && {[] call _mayIssueVehicle}) then {
+                        private _muzzle=_dangerFireObservation getOrDefault ["loadedMuzzle",""];
+                        if (_dangerGround && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
+                            _gunner selectWeapon _muzzle;
+                        };
+                        if (!_dangerGround || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                            // Watching consumes ground-relative position; suppression consumes ASL.
+                            _gunner doWatch (ASLToAGL _aimPosition);
+                            _gunner doSuppressiveFire _aimPosition;
+                            if (_dangerGround) then {_gunner setVariable ["CBE_AIPass_TargetHold",time + 8]};
+                            _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
+                            _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
+                        };
                     };
                 };
             } forEach _affectedVehicles;
@@ -569,7 +604,7 @@ private _selectVehicleEscape = {
         call CBE_fnc_CortexSelectAvenue;
     if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
 };
-private _withdrawn = _state getOrDefault ["withdrawn", []];
+private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
 {
     private _vehicle = _x;
     private _distance = _vehicle distance2D _enemyPos;
@@ -613,27 +648,78 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
                 } else {
-                    _withdrawn pushBackUnique _vehicle;
-                    _state set ["withdrawn",_withdrawn];
                     [_vehicle] call CBE_fnc_CortexFireCountermeasure;
                     private _reverse=[_group,_state,_vehicle,_enemyPos,"START",_operation get "generation"] call CBE_fnc_CortexVehicleReverseStep;
-                    if (_reverse == "FALLBACK") then {[_group, _away, 40] call CBE_fnc_CortexGroupMove};
-                    _state set ["movementLease",["VEHICLE_WITHDRAW",time+120]];
-                    _state set ["vehicleOperationGeneration",_operation get "generation"];
-                    private _origin = getPosATL _vehicle;
-                    _state set ["retreatStart",_origin];
-                    _state set ["retreatTarget",_away];
-                    _state set ["retreatProgress",[time,0,0]];
-                    _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",0,0],true];
-                    _group setVariable ["CBE_Cortex_WithdrawalIntent",["VEHICLE",_origin,_away,_enemyPos,serverTime,0,0],true];
-                    _movementOwned = true;
-                    [_group,_state,"RETREAT","VEHICLE_DISABLED",time] call CBE_fnc_CortexSetPhase;
+                    private _withdrawStarted=false;
+                    isNil {
+                        private _current=_group getVariable ["CBE_Operation",createHashMap];
+                        private _sameOwner=local _group && {local _vehicle}
+                            && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                            && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                            && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                            && {(_current getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"}
+                            && {(_current getOrDefault ["phase",""]) != "CANCELLED"}
+                            && {[] call _mayIssueVehicle};
+                        if (_sameOwner) then {
+                            private _reverseNow=_group getVariable ["CBE_VehicleReverse",[]];
+                            private _moveAccepted=_reverse == "REVERSE" && {count _reverseNow == 9}
+                                && {(_reverseNow select 0) == _vehicle}
+                                && {(_reverseNow select 1) == (_operation get "generation")}
+                                && {(_reverseNow select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                                && {(_vehicle getVariable ["CBE_VehicleReverseOwner",[]]) isEqualTo [_group,_operation get "generation"]};
+                            if (_reverse == "FALLBACK") then {
+                                if (_reverseNow isEqualTo []) then {
+                                    private _fallback=[_group, _away, 40,"MOVE",_operation get "generation"] call CBE_fnc_CortexGroupMove;
+                                    private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+                                    _moveAccepted=count _fallback == 2 && {(_fallback select 0) == _group}
+                                        && {(_fallback select 1) >= 0}
+                                        && {(_intent getOrDefault ["waypoint",[]]) isEqualTo _fallback}
+                                        && {(_intent getOrDefault ["operationGeneration",-1]) == (_operation get "generation")};
+                                };
+                            };
+                            _current=_group getVariable ["CBE_Operation",createHashMap];
+                            if (_moveAccepted && {(_current getOrDefault ["phase",""]) != "CANCELLED"}
+                                && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                                && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                                _withdrawn pushBackUnique _vehicle;
+                                _state set ["withdrawn",_withdrawn];
+                                _state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]];
+                                _state set ["vehicleOperationGeneration",_operation get "generation"];
+                                private _origin = getPosATL _vehicle;
+                                _state set ["retreatStart",_origin];
+                                _state set ["retreatTarget",_away];
+                                _state set ["retreatProgress",[time,0,0]];
+                                _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",0,0],true];
+                                _group setVariable ["CBE_Cortex_WithdrawalIntent",["VEHICLE",_origin,_away,_enemyPos,
+                                    serverTime-((time-(_operation get "startedAt")) max 0),0,0],true];
+                                _movementOwned = true;
+                                [_group,_state,"RETREAT","VEHICLE_DISABLED",time] call CBE_fnc_CortexSetPhase;
+                                _withdrawStarted=true;
+                            };
+                        };
+                    };
+                    if (!_withdrawStarted) then {
+                        isNil {
+                            private _current=_group getVariable ["CBE_Operation",createHashMap];
+                            if (local _group && {(_current getOrDefault ["generation",-1]) == (_operation get "generation")}
+                                && {(_current getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+                                private _retired=[_group,_operation get "generation","INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+                                private _ended=_group getVariable ["CBE_OperationResult",[]];
+                                private _cancelled=count _ended == 5 && {(_ended select 2) == (_operation get "generation")}
+                                    && {(_ended select 1) in ["CANCELLED","INCOMPLETE"]};
+                                if ((_retired || {_cancelled}) && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+                                    [_group,"VEHICLE_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+                                };
+                            };
+                        };
+                    };
                 };
             };
         };
     };
     // Gunner priorities and standoff (CBE_AIPass_VehicleGunnery_Enable): anti-tank infantry
     // first, then armour, then everything else; armour keeps its distance from known AT teams.
+    // Reports older than3s use fixed-position bullet suppression within the existing15s window.
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
         private _gunner = gunner _vehicle;
         private _ranked = [];
@@ -662,28 +748,60 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             // an unusable first contact must not starve the next safe, compatible target.
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
+            private _suppressionPoint=[];
             private _stationSelection=createHashMap;
             {
-                private _candidate=(_enemies select (_x select 2)) select 0;
-                private _stationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_candidate,_stationSelection,true] call CBE_fnc_CortexGroundFireReady};
-                if (_stationReady && {[_gunner,aimPos _candidate] call CBE_fnc_CortexLineOfFireClear}) exitWith {
+                private _contactRow=_enemies select (_x select 2);
+                private _candidate=_contactRow select 0;
+                private _reported=+(_contactRow select 1);
+                private _suppressOnly=(_contactRow select 2) > 3;
+                private _reportedASL=(ATLToASL _reported) vectorAdd [0,0,1];
+                // Older native reports authorize a fixed estimate, never a hidden live aimPos.
+                // Preserve an existing burst and unrelated native engagement. No explosive
+                // station ammunition is selected for this routine suppression fallback.
+                private _engaging=getAttackTarget _gunner;
+                private _assigned=assignedTarget _gunner;
+                private _suppressionAllowed=!_suppressOnly || {
+                    _vehicle isKindOf "LandVehicle" && {abs speed _vehicle < 30}
+                        && {_vehicle distance2D _reported >= 50}
+                        && {toUpperANSI currentCommand _gunner != "SUPPRESS"}
+                        && {isNull _engaging || {_engaging == _candidate}}
+                        && {isNull _assigned || {_assigned == _candidate}}
+                        && {!terrainIntersectASL [eyePos _gunner,_reportedASL]}
+                };
+                private _stationReady=_suppressionAllowed && {
+                    !(_vehicle isKindOf "LandVehicle")
+                        || {[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady}
+                };
+                if (_stationReady && {[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear}) exitWith {
                     _target=_candidate;
+                    if (_suppressOnly) then {_suppressionPoint=+_reportedASL};
                 };
             } forEach (_ranked select [0,8]);
             if (!isNull _target) then {
                 // Selection may reuse one complete same-frame observation. It is not
                 // fire authority: fresh native rounds must still qualify this target.
+                private _fireObservation=createHashMap;
                 private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
-                    || {[_vehicle,_gunner,_target] call CBE_fnc_CortexGroundFireReady};
-                if (_freshStationReady && {[] call _mayIssueVehicle} && {assignedTarget _gunner != _target}) then {
-                    _gunner doTarget _target;
-                };
-                // A shared target still needs its own bounded native fire request.
+                    || {[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady};
                 if (_freshStationReady && {[] call _mayIssueVehicle}) then {
-                    _gunner doFire _target;
-                    _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
-                    _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
+                    private _muzzle=_fireObservation getOrDefault ["loadedMuzzle",""];
+                    if (_vehicle isKindOf "LandVehicle" && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
+                        _gunner selectWeapon _muzzle;
+                    };
+                    // Selection acceptance is not firing. Wait for the native selected muzzle;
+                    // ordinary engine targeting remains available if the switch is unsupported.
+                    if (!(_vehicle isKindOf "LandVehicle") || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                        if (_suppressionPoint isEqualTo []) then {
+                            if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
+                            _gunner doFire _target;
+                        } else {
+                            _gunner doWatch (ASLToAGL _suppressionPoint);
+                            _gunner doSuppressiveFire _suppressionPoint;
+                        };
+                        _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
+                        _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
+                    };
                 };
             };
         };
@@ -699,7 +817,24 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
             private _atThreat=(_enemies select _atIndex) select 0;
             private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
                 call _selectVehicleEscape;
-            if (_away isNotEqualTo [] && {[] call _mayIssueVehicle} && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
+            // A stationary support gun may need distance from an AT threat, but its
+            // original fire assignment must be retired before routine hull movement.
+            // Let the authenticated server replace that slot without refreshing its report.
+            if (_away isNotEqualTo [] && {_combinedGroundFireOwned}
+                && {(_combinedGroundRole select 4) == "GROUND_FIRE"}
+                && {(_state getOrDefault ["vehicleStandoffYield",[]]) isNotEqualTo _combinedGroundRole}
+                && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}) then {
+                _state set ["vehicleStandoffYield",+_combinedGroundRole];
+                [_group,+_combinedGroundRole,"OTHER_INTENT_ACTIVE",clientOwner]
+                    remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+            };
+            // A local synchronous reply also waits for the next callback. The captured
+            // role cannot be borrowed as permission to move after requesting its release.
+            isNil {
+            if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}
+                && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
                 private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart;
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
@@ -710,6 +845,7 @@ private _withdrawn = _state getOrDefault ["withdrawn", []];
                     _movementOwned = true;
                     [_state, "standoff", 60] call CBE_fnc_CortexCooldown;
                 };
+            };
             };
         };
     };

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary current-owner support teardown uses release-only native hold handback before
+ * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
  * Returns a group to CALM and releases the engagement controls it still owns.
  * Live independent actor-movement reservations survive generic cleanup; only their
@@ -49,6 +51,8 @@
  * [_group, _state] call CBE_fnc_CortexRestoreCalm;
  * Result: the group carries on with its mission as it was before contact.
  *
+ * PATH restoration requires the actual legacy support marker; ordinary drill holders never
+ * enable PATH. Return-to-formation excludes active clearance, Zeus, services and actor reservations.
  * Current callers: CortexGroupTick, CortexReleaseGroup, CortexLocality and CortexOnboardContact.
  */
 
@@ -67,6 +71,12 @@ if (isNull _leader) then {_leader=leader _group};
 if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
     [_group,_state,"CALM"] call CBE_fnc_CortexFlankEnd;
 };
+// Finish exact coordinated native holds before generic teardown erases their support token.
+// Checkpoint-only restoration and external yields must not turn into a fresh release executor.
+if (!_yieldToExternal && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+    && {(_state getOrDefault ["supportToken",""]) != ""}) then {
+    [_group,_state,"RELEASE"] call CBE_fnc_CortexSupportMaintain;
+};
 // Generic engagement cleanup is not the owner of every finite actor task. An
 // unknown reservation is also not permission to issue a return-to-formation order.
 private _actorMoveFree={
@@ -81,13 +91,15 @@ private _actorMoveFree={
 };
 private _releaseOwnedHold={
     params ["_unit",["_restorePath",true],["_returnSearchTeam",false]];
-    if (_restorePath && {local _unit} && {group _unit == _group}) then {
-        _unit setVariable ["CBE_Cortex_SupportPathHold",nil,true];
-    };
+    // Only the actual legacy PATH marker proves that this cleanup disabled PATH.
+    // A historical list entry or an ordinary doStop holder is not such a lease.
+    isNil {
+    private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
+    private _pathOwned=_restorePath && {_unit getVariable ["CBE_Cortex_SupportPathHold",false]};
     if (local _unit && {group _unit == _group} && {!isPlayer _unit}
         && {isNull (remoteControlled _unit)} && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}) then {
-        if (_restorePath) then {
+        if (_pathOwned) then {
             _unit enableAI "PATH";
             _unit setVariable ["CBE_Cortex_SupportPathHold",nil,true];
         };
@@ -96,10 +108,22 @@ private _releaseOwnedHold={
         // A replacement controller may intentionally leave a unit stationary, firing or holding
         // position. Remove only CBE's PATH lease during that handover; do not turn a neutral
         // engine command into a new follow order.
-        if (((!_yieldToExternal && {_ownedHold}) || {_returnSearchTeam && {!_yieldToExternal}})
+        private _recallOwned=if (_returnSearchTeam) then {
+            [_group,_state,_unit] call CBE_fnc_CortexSearchMoveOwned
+        } else {
+            if (_restorePath) then {_ownedHold} else {[_group,_state,_unit] call CBE_fnc_CortexHolderRecallOwned}
+        };
+        if (!_yieldToExternal && {_recallOwned}
+            && {!isNull _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
+            && {isNull objectParent _unit} && {[_unit] call CBE_fnc_CortexCombatEffective}
+            && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+            && {!([_group] call CBE_fnc_CortexZeusHeld)}
+            && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}
             && {[_unit] call _actorMoveFree}) then {
             _unit doFollow _leader;
+            if (!_restorePath && {!_returnSearchTeam}) then {_unit setVariable ["CBE_Cortex_HolderToken",nil,true]};
         };
+    };
     };
 };
 private _supportHeld=_state getOrDefault ["supportHeld",[]];
@@ -125,14 +149,26 @@ private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
 if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group == (_retreatModeLease select 1)}) then {
     _group setCombatMode (_retreatModeLease select 0);
 };
-[_group] call CBE_fnc_CortexGroupMoveClear;
 // Search movement never disables PATH. Do not enable a mission-disabled feature while
 // returning a search team. During an ordinary handback its Cortex MOVE is explicitly
 // retired; during a Zeus takeover a MOVE may already be the curator's replacement order.
 {if (alive _x) then {[_x,false,true] call _releaseOwnedHold}} forEach (_state getOrDefault ["searchTeam", []]);
-// Drill holders are explicit Cortex PATH holds. Retire that ownership on every release,
-// including Zeus takeover, while preserving a newer individual command.
-{if (alive _x) then {[_x,true,false] call _releaseOwnedHold}} forEach (_state getOrDefault ["holders", []]);
+// Current drill holders use ordinary doStop and never disable PATH. Their return must
+// preserve a mission-disabled PATH feature; legacy support PATH leases were handled above.
+{if (alive _x) then {[_x,false,false] call _releaseOwnedHold}} forEach (_state getOrDefault ["holders", []]);
+// Consume original hold/search route receipts before our own temporary route is removed.
+// Preserve only split-locality ordinary holds. Current actor tokens exclude already recalled rows.
+private _pendingHolds=if (_yieldToExternal) then {[]} else {
+    ((_state getOrDefault ["holderRecallReceipts",[]]) select [0,64]) select {
+        _x isEqualType [] && {count _x == 8} && {(_x select 0) isEqualType objNull}
+        && {!isNull (_x select 0)} && {!local (_x select 0)}
+        && {group (_x select 0) == _group}
+        && {((_x select 0) getVariable ["CBE_Cortex_HolderToken",[]]) isEqualTo (_x select [1,5])}
+    }
+};
+[_group] call CBE_fnc_CortexGroupMoveClear;
+// Changed routes are not adopted as new proof by this bounded handback.
+if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_CortexHolderRecallPending};
 {
     if (local _x && {_x getVariable ["CBE_AIPass_StanceSet", false]}) then {
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
@@ -247,9 +283,10 @@ if (!_allowRemount) then {
     {private _unit=_x select 0; if (local _unit && {vehicle _unit == _unit} && {assignedVehicle _unit == (_x select 1)}) then {[_unit] orderGetIn false; unassignVehicle _unit}} forEach ((_group getVariable ["CBE_Cortex_Remount",[0,[]]]) select 1);
     _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
+[_group,_state] call CBE_fnc_CortexSearchHoldRelease;
 {_state deleteAt _x} forEach [
-    "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
-    "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "baseBehaviour", "baseSpeed", "armourSeen",
+    "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "searchMoveReceipts", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
+    "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "holderRecallReceipts", "baseBehaviour", "baseSpeed", "armourSeen",
     "armourRequested", "antiArmourRelocation", "coordinated", "coordinatedPendingUntil", "retreatCombatMode", "retreatSpeedMode", "retreatRetryAt", "movementLease", "retreatStart", "retreatTarget", "retreatProgress", "withdrawOperationGeneration", "vehicleDangerJink", "vehicleDangerOrient", "reserveCommitted", "arrivedAt", "assaulting", "hadContact"
 ];
 _group setVariable ["CBE_Cortex_Withdrawal",nil,true];

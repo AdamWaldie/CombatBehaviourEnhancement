@@ -8,11 +8,14 @@
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
  * Repeat/JIP: No world state, commands or handlers; rereads native station state at each boundary.
- * Optional caller-local observation is reset per call; reload evidence grants no firing permission.
+ * Optional observation also returns loadedWeapon/loadedMuzzle/loadedMagazine for the qualifying
+ * actual station state. Outputs reset every call; reload or selection evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
  * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
+ * 5 bullet suppression <BOOL, false>, requires nonexplosive shotBullet and >=20 loaded rounds.
+ * Raw selection snapshots are reevaluated against this policy; they never cache permission.
  * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
  * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
@@ -20,8 +23,9 @@
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
  * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]]];
 _observation set ["reloadInProgress",false];
+{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -64,15 +68,27 @@ private _evaluateState={
     private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
     private _suitable=_magazine != ""
         && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
-        && {[_ammo] call _targetSuitable};
+        && {[_ammo] call _targetSuitable}
+        && {!_bulletSuppression || {
+            toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
+                && {getNumber (_ammo >> "indirectHit") <= 0}
+                && {getNumber (_ammo >> "explosive") <= 0}
+                && {finite _rounds} && {_rounds >= 20}
+        }};
     private _reload=_state param [6,0,[0]];
     if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
         && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
         _observation set ["reloadInProgress",true];
     };
-    count _state >= 5 && {(_state select 0) == _weapon}
+    private _usable=count _state >= 5 && {(_state select 0) == _weapon}
         && {(_state select 1) == _muzzle}
-        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
+        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable};
+    if (_usable) then {
+        _observation set ["loadedWeapon",_weapon];
+        _observation set ["loadedMuzzle",_muzzle];
+        _observation set ["loadedMagazine",_magazine];
+    };
+    _usable
 };
 private _cached=_observation getOrDefault ["stationSnapshot",[]];
 private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6}

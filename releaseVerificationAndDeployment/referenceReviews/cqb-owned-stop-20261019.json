@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-19",
+  "scope": "Active clearance STOP ownership, not completed-clearance public handback",
+  "finding": "Egress and explicit release accepted arbitrary STOP commands; settings ownership did not establish native hold position.",
+  "implementation": "Record actual CBE stop positions, retire them on owned MOVE, and share bounded same-floor STOP observation across room work, egress and release. Preserve portable exact-context HOLD receipts until release observation is complete.",
+  "cost": "Up to four stored positions, one actor pose, no geometry query or worker.",
+  "validation": {
+    "focusedExistingTests": 679,
+    "compiler": "HEMTT check passed",
+    "physical": "Unverified; audits paused.",
+    "fullPipeline": "1477 tests and sequential build gates passed",
+    "fullLog": ".qa/cbe-hold-final-build.log",
+    "independentLog": ".qa/cbe-hold-final-independent.log",
+    "packageSource": "677b374f+dirty",
+    "packageFingerprint": "b18b0eeb82361cd9c8150a2ce9c822ad56277a04221ecd480286b1c9b052ad8e"
+  },
+  "remaining": [
+    "Completed-clearance public hold receipt lacks per-actor position proof.",
+    "Identical replacement STOP at the same position is not observable.",
+    "No historical screenshot root cause or coherent physical entry/egress claim."
+  ]
+}

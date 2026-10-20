@@ -67,11 +67,42 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('/ 256',text)
         self.assertIn('/ 512',text)
         self.assertNotIn('leader group',text)
+        primary=src('cortexPrimaryAmmoAvailable')
+        self.assertIn('!local _unit',primary)
+        self.assertIn('"this" in _muzzles',primary)
+        self.assertIn('_unit ammo _loadedMuzzle > 0',primary)
+        self.assertIn('compatibleMagazines [_weapon,_mainMuzzle]',primary)
+        self.assertIn('(_x select 1) > 0',primary)
+        self.assertLess(primary.index('_unit ammo _loadedMuzzle > 0'),primary.index('magazinesAmmo _unit'))
+        for name in ('cortexTacticalAssess','cortexAssaultStart','cortexFlankStart','cortexAdvanceStart'):
+            self.assertIn('CBE_fnc_CortexPrimaryAmmoAvailable',src(name))
+        def primary_available(loaded,reserves,compatible):
+            return loaded>0 or any(rounds>0 and name in compatible for name,rounds in reserves)
+        self.assertTrue(primary_available(4,[],{'rifle'}))
+        self.assertTrue(primary_available(0,[('rifle',7)],{'rifle'}))
+        self.assertFalse(primary_available(0,[('grenade',1)]*4,{'rifle'}))
+        self.assertFalse(primary_available(0,[('rifle',0)],{'rifle'}))
+        for name in ('cortexFlankStart','cortexAdvanceStart'):
+            drill=src(name)
+            self.assertIn('private _armedFoot=_onFoot select',drill)
+            self.assertIn('private _riflemen = _armedFoot select',drill)
+            self.assertIn('floor (count _armedFoot / 2)',drill)
+            self.assertIn('private _coverRifles=_armedFoot-_element',drill)
+            self.assertIn('if (count _coverRifles < 2)',drill)
+        def split(total,armed,eligible):
+            movers=min(armed//2,5,eligible)
+            return movers,armed-movers,total-movers
+        self.assertEqual(split(8,4,4),(2,2,6))
+        self.assertEqual(split(8,3,3),(1,2,7))
+        self.assertEqual(split(8,0,0),(0,0,8))
+        self.assertEqual(split(8,8,6),(4,4,4))
+
+
         for name in ['cortexAntiArmour','cortexMorale','cortexSupportApply']:
             self.assertIn('CBE_fnc_CortexCapabilities',src(name))
     def test_passengers_share_safety_checks_and_cleanup_does_not_board(self):
         text = src('cortexPassengerReady')
-        for check in ['local _unit','isPlayer','CBE_fnc_CortexCombatEffective','abs speed _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
+        for check in ['simulationEnabled _vehicle','isObjectHidden _unit','_boarding && {_command == "STOP"','checkAIFeature "MOVE"','checkAIFeature "PATH"','local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
             self.assertIn(check,text)
         dismount = src('convoyDismountLocal')
         self.assertIn('CBE_fnc_CortexExternalTakeover',dismount)
@@ -84,7 +115,7 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('private _restoreEligible=[_group,false,false,true] call CBE_fnc_CortexIsEligible',locality)
         self.assertIn('false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED"',locality)
         restore = src('cortexRestoreCalm')
-        self.assertIn('!_yieldToExternal && {_ownedHold}',restore)
+        self.assertIn('!_yieldToExternal && {_recallOwned}',restore)
         release=src('cortexReleaseGroup')
         self.assertIn('[_group, _state, false, _externalTakeover, _reason] call CBE_fnc_CortexRestoreCalm',release)
         self.assertIn('_externalTakeover=_yieldToZeus || {_yieldToExternal}',release)

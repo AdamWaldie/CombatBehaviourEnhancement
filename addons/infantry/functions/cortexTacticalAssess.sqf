@@ -1,7 +1,18 @@
 /*
  * Author: WaldoTheWarfighter
+ * Hidden, simulation-disabled and FIREWEAPON-disabled actors do not supply tactical fire capacity.
+ * Physical _foot strength stays separate; an unavailable roster yields existing task handoff.
+ * Current rifle capacity also requires loaded or spare main-muzzle ammunition;
+ * an underbarrel reserve cannot substitute for an empty primary rifle.
+ * Current rifle/AT/AA capacity uses the shared protected-task/reservation predicate;
+ * no available actor leaves existing work in control, without a group fallback request.
  * Purpose: Select one bounded group-level combat intent from existing native knowledge, force capability, terrain and mission orders.
  * Locality / Authority: Read-only on the current group owner. It never reveals targets, issues commands or acquires movement ownership.
+ * Close infantry assessment includes the executor's two/three-person element support;
+ * actual actor/role/native-task admission remains with CortexAssaultStart.
+ * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
+ * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
+ * Elevation uses the supplied native believed position; no live hostile height is queried.
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
@@ -61,8 +72,37 @@ private _forwardOrder=_waypointIndex < count waypoints _group
 private _foot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
 };
-private _armedFoot=_foot select {primaryWeapon _x != ""};
+// Current tactical capacity excludes protected tasks and independently leased actors.
+// Physical squad strength remains separate in _foot for diagnostics and other layers.
+private _availableFoot=_foot select {
+    simulationEnabled _x && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
+        && {unitCombatMode _x in ["YELLOW","RED"]}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+};
+if (_availableFoot isEqualTo []) exitWith {
+    _result set ["reason","ACTOR_TASKS_BUSY"];
+    _result set ["evidence",[count _foot,0]];
+    _result
+};
+private _armedFoot=_availableFoot select {primaryWeapon _x != "" && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 if (count _armedFoot < 2) exitWith {
+    // A single fresh infantry opponent at immediate firing range is not, by itself,
+    // a reason to turn a surviving rifleman away. Keep native engagement/mission movement;
+    // this grants no assault route and does not bypass earlier morale or vehicle decisions.
+    private _contact=_enemies param [0,[],[[]]];
+    private _target=_contact param [0,objNull,[objNull]];
+    if (count _armedFoot == 1 && {count _enemies == 1}
+        && {!isNull _target} && {alive _target} && {!captive _target}
+        && {_target isKindOf "CAManBase"} && {isNull objectParent _target}
+        && {(side _group) getFriend (side _target) < 0.6}
+        && {!(_target getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_target getVariable ["ace_captives_isHandcuffed",false])}
+        && {(_contact param [2,1e9,[0]]) <= 5}
+        && {(_contact param [3,1e9,[0]]) <= 20}) exitWith {
+        _result set ["reason","NATIVE_CLOSE_CONTACT"];
+        _result set ["evidence",[count _foot,count _armedFoot]];
+        _result
+    };
     _result set ["intent","REPOSITION"];
     _result set ["reason","INSUFFICIENT_FIREPOWER"];
     _result set ["targetIndex",0];
@@ -70,8 +110,8 @@ if (count _armedFoot < 2) exitWith {
     _result set ["evidence",[count _foot,count _armedFoot]];
     _result
 };
-private _capableAT=_foot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
-private _capableAA=_foot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAT=_availableFoot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAA=_availableFoot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 private _houses=(getPosATL _leader) getEnvSoundController "houses";
 private _trees=(getPosATL _leader) getEnvSoundController "trees";
 private _forest=(getPosATL _leader) getEnvSoundController "forest";
@@ -96,9 +136,12 @@ private _fortifiedIndex=-1;
         if (_target isKindOf "CAManBase" && {isNull objectParent _target}
             || {_platform isKindOf "StaticWeapon"}) then {
             _manoeuvre pushBack _forEachIndex;
-            if (_elevatedIndex < 0 && {_distance > 300}
-                && {((getPosASL _target) select 2) > (((eyePos _leader) select 2)+15)}
-                && {_age <= 30}) then {_elevatedIndex=_forEachIndex};
+            // Elevation is part of the observed belief, not permission to read an unseen
+            // enemy's current floor. Invalid/missing height cannot establish an elevated threat.
+            if (_elevatedIndex < 0 && {_distance > 300} && {_age <= 30}
+                && {count _position == 3}
+                && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {((AGLToASL _position) select 2) > (((eyePos _leader) select 2)+15)}) then {_elevatedIndex=_forEachIndex};
             if (_fortifiedIndex < 0 && {_distance > 220 || {_platform isKindOf "StaticWeapon"}
                 || {_houses > 0.35}}) then {_fortifiedIndex=_forEachIndex};
         };
@@ -121,7 +164,9 @@ private _freshPosition=_manoeuvre findIf {
     private _record=_enemies select _x;
     (_record param [3,0,[0]]) >= 60 && {(_record param [2,1e9,[0]]) <= 10}
 };
-if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 4}) then {
+// Match the finite assault executor: two/three available actors are supported elements.
+// Assessment proposes only; the executor still validates actual roles, native tasks and avenue.
+if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
     _selected=_manoeuvre select _closePosition;
     _intent="ASSAULT";
     _reason="FRESH_CLOSE_INFANTRY";

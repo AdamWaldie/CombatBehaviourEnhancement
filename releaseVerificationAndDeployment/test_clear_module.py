@@ -15,7 +15,7 @@ class ClearModuleTests(unittest.TestCase):
         self.assertLess(s.index('_buildings isEqualTo []'),s.index('call zen_dialog_fnc_create'))
     def test_invalid_geometry_refuses_before_old_task_cleanup_and_reports_fresh_reason(self):
         s=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
-        cleanup=s.index('// Replacing a clear must retire')
+        cleanup=s.index('if (!_resume && {_previous isNotEqualTo []})')
         for gate in ('INVALID_TARGET_POSITION','TARGET_DESTROYED','count _allPositions > 512','!finite _x','CBE_fnc_PositionBucketAdmit','NO_VALID_ROOFED_POSITIONS'):
             self.assertLess(s.index(gate),cleanup)
         owner=(ROOT/'addons/infantry/functions/cortexOrderLocal.sqf').read_text(encoding='utf-8')
@@ -24,7 +24,7 @@ class ClearModuleTests(unittest.TestCase):
     def test_garrison_handoff_admits_only_owned_physical_posts_without_join_recall(self):
         s=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
         post=s.split('private _ownedPost=',1)[1].split('private _reservation=',1)[0]
-        for gate in ('CBE_AIPass_GarrisonApplied','CBE_AIPass_GarrisonDisabledPath','!(_x checkAIFeature "PATH")','CortexGarrisonArrived','currentCommand _x'):
+        for gate in ('CBE_AIPass_GarrisonApplied','CBE_AIPass_GarrisonDisabledPath','!(_actor checkAIFeature "PATH")','CortexGarrisonArrived','currentCommand _actor'):
             self.assertIn(gate,post)
         self.assertIn('[_group,true,[],false] call CBE_fnc_CortexGarrisonRelease',s)
         release=(ROOT/'addons/infantry/functions/cortexGarrisonRelease.sqf').read_text(encoding='utf-8')

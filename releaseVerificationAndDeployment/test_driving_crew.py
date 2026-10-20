@@ -5,16 +5,53 @@ ROOT=Path(__file__).resolve().parents[1]
 class DrivingCrewTests(unittest.TestCase):
     def source(self):
         return (ROOT/'addons/vehicles/functions/drivingCrewStep.sqf').read_text(encoding='utf-8')
+    def test_new_driver_candidate_preserves_primary_gunner_when_alternatives_exist(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCrewStep.sqf').read_text()
+        selection=s.split('private _cargo=',1)[1].split('if (_choices isNotEqualTo []) then',1)[0]
+        self.assertLess(selection.index('_choices=_cargo'),selection.index('commander _vehicle'))
+        self.assertLess(selection.index('_choices=_commandCrew'),selection.index('gunner _vehicle'))
+        self.assertIn('_choices select {(_x select 0) != _primaryGunner}',selection)
+        self.assertIn('if (_otherCrew isNotEqualTo []) then {_choices=_otherCrew}',selection)
+        self.assertNotIn('action [',selection)
+        self.assertNotIn('moveIn',selection)
+        admission=s.split('if (count _work == 0) then {',1)[1]
+        self.assertLess(admission.index('private _cargo='),admission.index('_work=createHashMapFromArray'))
+        choices=admission.split('private _choices=',1)[1].split('private _cargo=',1)[0]
+        self.assertIn('assignedVehicle _actor == _vehicle',choices)
+        self.assertIn('(_x param [5,objNull]) == _actor',choices)
+        self.assertIn('simulationEnabled _actor',choices)
+        self.assertIn('!isObjectHidden _actor',choices)
+        self.assertNotIn('assignedVehicle _actor in [objNull,_vehicle]',choices)
+        self.assertNotIn('fullCrew',choices)
+        # Role priority applies only after actual-seat assignment eligibility.
+        def choose(rows):
+            eligible=[row for row in rows if row[2] and row[3] and (len(row)<5 or row[4])]
+            return next((row[0] for role in ('cargo','commander','turret','gunner')
+                         for row in eligible if row[1]==role),None)
+        self.assertEqual(choose([('reassigned','cargo',True,False),('ready','commander',True,True)]),'ready')
+        self.assertEqual(choose([('unassigned','cargo',False,False),('gunner','gunner',True,True)]),'gunner')
+        self.assertEqual(choose([('cargo','cargo',True,True),('commander','commander',True,True)]),'cargo')
+        self.assertIsNone(choose([('unassigned','cargo',False,False)]))
+        self.assertEqual(choose([('hidden','cargo',True,True,False),('ready','commander',True,True,True)]),'ready')
+
+
     def test_actions_are_once_per_phase_and_vacancy_is_observed(self):
         s=self.source().split('params [[',1)[1]
         self.assertEqual(s.count(' action ['),2)
         self.assertIn('_phase == "READY" && {!isNull _driver}',s)
         self.assertIn('driver _vehicle == _driver} && {!alive _driver}',s)
-        self.assertEqual(s.count('\n    isNil {'),2)
+        self.assertEqual(s.split('// Seat vacancy and native order proof',1)[1].count('\n    isNil {'),2)
         self.assertEqual(s.count('call _commandsOwned'),2)
         self.assertIn('_phase="VACATING_ISSUED"',s)
         self.assertIn('if (_phase in ["READY","VACATING"]) then {',s)
-        self.assertIn('call _commandsOwned} && {isNull driver _vehicle}',s)
+        self.assertIn('call _commandsOwned} && {call _vacatedOrDead}',s)
+        seat=s.split('private _vacatedOrDead={',1)[1].split('if (_phase in',1)[0]
+        for proof in ('if (isNull _occupant) exitWith {true}','_phase == "VACATING"',
+                      '_occupant isEqualTo (_work get "driver")','!alive _occupant',
+                      'local _occupant','!isPlayer _occupant','finite _issued','serverTime >= _issued+2'):
+            self.assertIn(proof,seat)
+        self.assertLess(s.index('_driver action ["Eject"'),s.index('_work set ["vacateIssuedAt",serverTime]'))
+        self.assertEqual(s.count('_work set ["vacateIssuedAt",serverTime]'),1)
         self.assertIn('_work set ["phase","SWITCHING"]',s)
         for command in ('moveInDriver','moveOut','setPos','setVelocity','setHitPointDamage','allowDamage','enableAI','doMove','setDriveOnPath','spawn','sleep'):
             self.assertNotIn(command,s)
@@ -22,7 +59,7 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         for guard in ('remoteExecutedOwner > 0','CBE_Driving_Brain','CBE_AIPass_Epoch','CortexZeusHeld',
                       'CortexExternalTakeover','CBE_Convoy_Active','CBE_ExternalDrivingOwner','DrivingMovementAvailable',
-                      'count _crew <= 20','abs speed _vehicle < 1','!lockedDriver _vehicle',
+                      'count _crew <= 20','_linearMotion < (1/3.6)','_angularMotion < 0.01','!lockedDriver _vehicle',
                       'isPlayer _actor','group _actor != _group','currentCommand _actor in _tasks',
                       'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
                       'expectedDestination _candidate','expectedDestination leader _group','assignedVehicleRole _candidate',
@@ -30,9 +67,10 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertIn('alive _driver}) exitWith {}',s)
         self.assertIn('private _available={\n    _crew=fullCrew',s)
+        self.assertEqual(s.count('fullCrew [_vehicle,"",false]'),1)
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
-        self.assertEqual(s.count('call _available'),3)
+        self.assertEqual(s.count('call _available'),4)
     def test_native_command_changes_guard_admission_and_both_actions(self):
         s=self.source()
         self.assertIn('currentCommand leader _group != "STOP"',s)
@@ -63,9 +101,12 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         self.assertEqual(s.count('serverTime+25'),1)
         self.assertIn('serverTime >= (_work get "deadline")',s)
-        self.assertIn('driver _vehicle == _candidate && {[_candidate] call CBE_fnc_CortexCombatEffective}',s)
+        confirmation=s.split('// Confirmation is observation',1)[1].split('if !([true] call _available)',1)[0]
+        self.assertIn('driver _vehicle == _candidate',confirmation)
+        self.assertIn('[_candidate] call CBE_fnc_CortexCombatEffective',confirmation)
+        self.assertIn('_phase == "SWITCHING"',confirmation)
         self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',s)
-        release=s.split('if (_release) exitWith {',1)[1].split('private _changed=',1)[0]
+        release=s.split('if (_release) exitWith {',1)[1].split('if (count _work > 0 && {(_work get "group") != _group})',1)[0]
         self.assertNotIn(' action [',release)
         self.assertIn('(_brain getOrDefault ["route",[]])',release)
         finish=(ROOT/'addons/vehicles/functions/drivingOperationFinish.sqf').read_text(encoding='utf-8')
@@ -79,10 +120,48 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_crewPending || {_traffic}',step)
         self.assertIn('isNull driver _vehicle || {!alive driver _vehicle}',start)
         self.assertIn('class CrewHandover',fsm)
+        self.assertIn('["TRAFFIC_FOLLOW","CREW_BOARDING","QUEUE_HOLD","QUEUE_CROSSED_HOLD"]',step)
         self.assertNotIn('execFSM',self.source())
-        source=self.source()
-        self.assertLess(source.index('Normal healthy drivers'),source.index('call CBE_fnc_DrivingRouteReceipt'))
-        self.assertLess(source.index('Normal healthy drivers'),source.index('fullCrew'))
+        boarding=(ROOT/'addons/vehicles/functions/drivingCrewBoarding.sqf').read_text(encoding='utf-8')
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        body=boarding.split('params [[',1)[1]
+        body='\n'.join(line.split('//',1)[0] for line in body.splitlines())
+        for proof in ('currentCommand _actor == "GET IN"','assignedVehicle _actor != _vehicle',
+                      '_role == "cargo"','_seat select 4','_seat select 5','count _seats > 20',
+                      'serverTime+60','serverTime < (_row select 3)','_row set [4,true]',
+                      'CBE_AIPass_VehicleRemount_Enable','CBE_DrivingRecovery_Work',
+                      'CBE_DrivingPass_Work','CBE_DrivingBypass_Work','CBE_DrivingCorridor_Work'):
+            self.assertIn(proof,body)
+        self.assertEqual(body.count('serverTime+60'),1)
+        self.assertNotIn('_row set [3,',body)
+        self.assertIn('_position vectorDistance (_row select 5) >= 2',body)
+        self.assertIn('serverTime-(_row select 6) >= 12',body)
+        self.assertIn('toUpperANSI getUnitState _actor in ["INIT","PLANNING","REPLAN"]',body)
+        self.assertIn('_stalled && {!_planning}',body)
+        # Only an actual native planning state can defer a no-motion exhaustion,
+        # and no planning state can outlive the original seat deadline.
+        def wait_for_boarding(now,deadline,last_motion,state):
+            return now < deadline and (now-last_motion < 12 or state in ('INIT','PLANNING','REPLAN'))
+        for state in ('INIT','PLANNING','REPLAN'):
+            self.assertTrue(wait_for_boarding(20,60,0,state))
+            self.assertFalse(wait_for_boarding(60,60,0,state))
+        for state in ('BUSY','WAIT','INITFAILED','DELAY','STOPPED',''):
+            self.assertFalse(wait_for_boarding(20,60,0,state))
+        self.assertTrue(wait_for_boarding(8,60,0,'BUSY'))
+
+        self.assertIn('_row set [5,_position];_row set [6,serverTime]',body)
+        self.assertIn('count _x != 7',body)
+        self.assertNotIn('time+60',body.replace('serverTime+60',''))
+        for command in ('orderGetIn','assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
+            self.assertNotIn(command,body)
+        self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)
+        self.assertIn('if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
+        self.assertIn('&& {!_crewBoardingHold}',assist)
+        self.assertIn('"CREW_BOARDING"',step)
+
+        source=self.source().split('params [[',1)[1]
+        self.assertLess(source.index('count _liveWork == 0'),source.index('call CBE_fnc_DrivingRouteReceipt'))
+        self.assertLess(source.index('count _liveWork == 0'),source.index('fullCrew'))
 
     def test_physical_fixture_uses_discovery_and_measured_results(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text(encoding='utf-8')
@@ -123,3 +202,67 @@ class DrivingCrewTests(unittest.TestCase):
         commands=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
         self.assertIn('!([_candidate] call CBE_fnc_CortexActorMoveReserved)',commands)
         self.assertEqual(s.count('call _commandsOwned'),2)
+
+    def test_journal_is_copied_and_published_only_against_exact_snapshot(self):
+        s=self.source()
+        self.assertIn('private _entryWork=+_liveWork;',s)
+        self.assertLess(s.index('count _liveWork == 0'),s.index('private _entryWork=+_liveWork;'))
+        self.assertIn('private _work=+_entryWork;',s)
+        publish=s.split('private _publish={',1)[1].split('private _route=',1)[0]
+        for guard in ('isNil {','local _group','isEqualTo _brain','ownerEpoch','isEqualTo _entryWork'):
+            self.assertLess(publish.index(guard),publish.index('setVariable ["CBE_DrivingCrew_Work"'))
+        self.assertIn('setVariable ["CBE_DrivingCrew_Work",+_work,true]',publish)
+        self.assertEqual(s.count('setVariable ["CBE_DrivingCrew_Work"'),1)
+        self.assertIn('if (count _work > 0 && {(_work get "group") != _group}) exitWith {false}',s)
+
+    def test_native_seat_actions_recheck_live_journal_deadline_and_publish_atomically(self):
+        s=self.source()
+        gate=s.split('private _commandsOwned={',1)[1].split('if (_phase == "READY"',1)[0]
+        self.assertIn('isEqualTo _entryWork',gate)
+        self.assertIn('serverTime < (_work get "deadline")',gate)
+        for action,phase in (('Eject','VACATING'),('MoveToDriver','SWITCHING')):
+            boundary=s.split(f'action ["{action}",_vehicle];',1)[1].split('    };',1)[0]
+            self.assertLess(boundary.index(f'_work set ["phase","{phase}"]'),boundary.index('call _publish'))
+
+    def test_replaced_journal_does_not_receive_old_cancellation(self):
+        # Dict copies model isolation only, never native seat-action execution.
+        original={'phase':'READY','episode':1}
+        entry=dict(original)
+        work=dict(entry)
+        work['phase']='CANCELLED'
+        self.assertEqual(original['phase'],'READY')
+        successor={'phase':'SWITCHING','episode':2}
+        live=successor
+        if live==entry:live=dict(work)
+        self.assertEqual(live,successor)
+
+    def test_late_order_fixture_observes_real_vacancy_and_original_deadline(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingCrew.sqf').read_text()
+        block=qa.split('private _entry=createHashMap;',1)[1].split('private _cleanup=',1)[0]
+        for proof in ('== "VACATING"','isNull driver _vehicle','vehicle _driver != _vehicle',
+                      '_entry=+_live','doStop _replacement','doGetOut _replacement',
+                      '_replacement doMove _newDestination','(_entry get "deadline")+3',
+                      'serverTime >= _observeUntil','== "CANCELLED"','alive _vehicle','alive _replacement','damage _vehicle <= _damaged+0.01','isEqualTo _entry','_issued=true','call _sampleIntent',
+                      '_replacement distance2D _replacementOrigin >= 25',
+                      'distance2D _newDestination <= (_replacementOrigin distance2D _newDestination)-20'):
+            self.assertIn(proof,block)
+        for forbidden in ('setVariable ["CBE_DrivingCrew_Work"','call CBE_fnc_DrivingCrewStep',
+                          'moveInDriver','moveOut','setPos','setVelocity',' action ['):
+            self.assertNotIn(forbidden,block)
+        self.assertIn('"LATE_STOP","LATE_GETOUT"',qa)
+
+    def test_moving_completion_cannot_authorize_a_new_seat_action(self):
+        s=self.source()
+        observation=s.split('// Confirmation is observation',1)[1].split('if !([true] call _available)',1)[0]
+        self.assertIn('_phase == "SWITCHING"',observation)
+        self.assertIn('driver _vehicle == _candidate',observation)
+        self.assertIn('[false] call _available',observation)
+        self.assertNotIn(' action [',observation)
+        commits=s.split('// Seat vacancy and native order proof',1)[1]
+        self.assertEqual(commits.count('[true] call _available'),2)
+        self.assertEqual(commits.count('call _commandsOwned'),2)
+        admission=s.split('private _available={',1)[1].split('private _finish=',1)[0]
+        for guard in ('vectorMagnitude velocity','vectorMagnitude angularVelocity',
+                      'finite _linearMotion','finite _angularMotion','CortexExternalTakeover',
+                      'currentCommand _actor in _tasks','DrivingRouteReceipt'):
+            self.assertIn(guard,admission)

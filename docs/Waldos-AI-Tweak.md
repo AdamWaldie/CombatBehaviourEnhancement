@@ -28,7 +28,7 @@ headless clients.
 
 ## Skill profiles
 
-Enable **Apply CBE skill profiles** under **Skills** and choose a profile:
+Skill profiling is **off by default**. Existing saved CBA server/mission choices are retained, so turn it off explicitly if a saved configuration enabled it. Tactical behaviours remain independently enabled. Leave it off when the mission or another addon controls difficulty. To give CBE that role explicitly, enable **Apply CBE skill profiles** under **Skills** and choose a profile:
 
 | Profile | Intended behaviour |
 | --- | --- |
@@ -119,4 +119,38 @@ external owner and the operation diagnostics before changing its skill values.
 
 <!-- CBE-WIKI-NAV -->
 ---
-[Wiki home](https://github.com/AdamWaldie/WaldosAITweaks/wiki/Home) · [Installation and setup](../README.md) · [Capability registry](CAPABILITY-REGISTRY.md)
+[Wiki home](https://github.com/AdamWaldie/CombatBehaviourEnhancement/wiki/Home) · [Installation and setup](../README.md) · [Capability registry](CAPABILITY-REGISTRY.md)
+
+## Mission-authored skills and handover
+
+CBE does not require its skill profiles for tactical movement, CQB or coordination. With skill profiling disabled, CBE applies no profile, lighting skill penalty, variance or crew/infantry aim coefficient. Arma difficulty and mission scripts retain those values.
+
+When profiling is explicitly enabled, CBE records original and applied subskills and aim coefficient. Every later application checks those receipts before writing. If a mission or another addon changes a value, CBE preserves the edit, restores only its other still-unchanged effects and yields the entire optional profile for that unit. It records `CBE_AI_SkillOwner = "OBSERVED_EXTERNAL_CHANGE"`; this means a value changed, not that CBE identified the writer. This ownership marker follows the unit across locality and survives global profile changes or stop/restart. Identical-value writes cannot be identified.
+
+A mission can reserve skill control in advance, without excluding tactical behaviour:
+
+```sqf
+// Run where the unit is local before configuring its custom skills.
+_unit setVariable ["CBE_AI_SkillOwner","MISSION",true];
+[_unit] call CBE_fnc_AIProfileYield;
+_unit setSkill ["aimingAccuracy",0.22];
+```
+
+To deliberately return this unit to the enabled CBE profile, clear its owner label on its current owner, then apply once. This is an explicit ownership change, not an automatic timeout:
+
+```sqf
+_unit setVariable ["CBE_AI_SkillOwner",nil,true];
+[_unit] call CBE_fnc_AIApplyProfile;
+```
+
+Custom partial profiles are calculated from the original snapshot on every refresh. Lighting, variance and crew multipliers therefore do not repeatedly multiply the previous CBE result. There is one final native settings commit, with current locality, profile generation and mission ownership checked again. The ownership check reads at most nine skill entries; no new watcher or world scan is installed. The existing lighting/seat job remains bounded to ten registered units per callback.
+
+The separately maintained mission framework also writes absolute values at startup and owner adoption, and its stop path restores captured values unconditionally. Run one skill authority. CBE's default and yield rule prevent CBE from reclaiming later mission edits, but cannot stop another script from overwriting values itself. Its source was examined read-only. Helicopter landing/deceleration and taxi tasks are separate movement-authority review items; a skill label does not grant or release those tasks. Physical custom-script, JIP, owner-transfer and performance checks remain pending while audits are paused.
+
+### Incomplete settings receipts
+
+The profile application, mission-yield and direct restoration paths share `AIProfileReceipt`. The reader accepts only the nine supported skill keys with finite values in 0..1, and finite aim values with -1 as the sole absent sentinel. It returns detached maps and separate ready/pending flags for skills and aim; it issues no commands.
+
+Restoration compares each complete original/applied pair with the native value under one current-owner boundary. Changed values survive. A complete skill pair may finish while an incomplete aim pair remains, or conversely. A missing applied value grants no restoration authority and does not justify deleting the original baseline. Variance data is retained while either pair is pending. Fresh precision-excluded units acquire no aim baseline; an existing owned coefficient pair retires only after its original native coefficient is observed.
+
+These checks cover direct stop, player/specialist exclusion and mission-yield cleanup. They do not establish ordered network receipt delivery or distinguish a never-profiled unit from missing initial replication. Pending data has no new worker or timeout; owner admission/readiness and eventual cleanup still require further implementation and physical validation.

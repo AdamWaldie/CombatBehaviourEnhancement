@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-19",
+  "scope": "Completed-clearance native hold handback",
+  "finding": "The terminal actor list had no per-actor position proof, so a later STOP elsewhere could qualify for formation recall.",
+  "implementation": "Five-field public receipt appends bounded netId/ATL position rows recorded only at actual terminal doStop. New-order handback and shutdown require shared same-floor hold observation; deferred actors retain their original positions. Locality adoption validates and filters rows without movement replay. All current receipt writers/readers use the new shape.",
+  "validation": {
+    "focusedExistingTests": 650,
+    "physical": "Unverified; audits paused.",
+    "fullPipeline": "1477 tests and sequential compiler/FSM/config/docs/parity/performance/package gates passed",
+    "fullLog": ".qa/cbe-terminal-hold-final-build.log",
+    "independentLog": ".qa/cbe-terminal-hold-final-independent.log",
+    "packageSource": "87f7f77b+dirty",
+    "packageFingerprint": "9bc929b9f0c7b1c9bc36b5195a5843119cc0365ce43a1c8f277e2560a512e3a0"
+  },
+  "limits": [
+    "Same-position replacement STOP remains unobservable.",
+    "No improvement to physical entry coherence or security-post selection is claimed.",
+    "Existing 16-actor migration cap retained."
+  ]
+}

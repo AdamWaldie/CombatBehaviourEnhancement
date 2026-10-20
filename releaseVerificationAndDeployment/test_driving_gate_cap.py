@@ -3,6 +3,49 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingGateCapTests(unittest.TestCase):
+    def test_locked_gate_can_retry_once_only_after_owner_and_server_observe_unlock(self):
+        owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        self.assertIn('["unlockReceipt",_unlockReceipt]',owner)
+        self.assertIn('getOrDefault ["unlockReceipt",-1]',server)
+        self.assertIn('_context pushBack ["UNLOCK_RETRY",_unlockReceipt]',owner)
+        self.assertIn('(_previous select 2) == "LOCKED"',server)
+        self.assertIn('(_previous select 3) == _unlockReceipt',server)
+        self.assertIn('(_previous param [4,0]) == 0',server)
+        self.assertIn('"VALIDATING",serverTime+5,1]',server)
+        self.assertLess(server.index('private _retryUnlock=false'),server.index('call CBE_fnc_DrivingGateCap'))
+        for code in (owner,server):
+            self.assertIn('bis_disabled_Door_%1',code)
+            self.assertIn('for "_index" from 1 to 8',code)
+        self.assertIn('_attempts >= 2',owner)
+
+    def test_gate_detection_and_opening_share_aliases_without_reading_discarded_phases(self):
+        geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        barrier=geometry.split('private _sourceConfig=configOf _object >> "AnimationSources";',1)[1].split('_gateClasses set',1)[0]
+        for alias in ('Door_%1_sound_source','Gate_%1_sound_source','Door_%1_source','Gate_%1_source'):
+            self.assertIn(alias,barrier)
+        self.assertIn('exitWith {_isGate=true}',barrier)
+        self.assertIn('private _classKey=typeOf _object',geometry)
+        ranking=server.split('private _preferredSources=createHashMap;',1)[1].split('for "_index" from 1 to 8 do',1)[0]
+        self.assertNotIn('animationSourcePhase',ranking)
+        selected=server.split('for "_index" from 1 to 8 do',1)[1].split('private _locked={',1)[0]
+        self.assertEqual(selected.count('animationSourcePhase'),1)
+
+    def test_indexed_gate_aliases_choose_one_sound_preferred_source_per_leaf(self):
+        server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        metadata=server.split('private _sources=[];',1)[1].split('private _locked={',1)[0]
+        for alias in ('door_%1_sound_source','gate_%1_sound_source','door_%1_source','gate_%1_source'):
+            self.assertIn(alias,metadata)
+        self.assertIn('_aliases find _lowerName',metadata)
+        self.assertIn('_priority < (_previous select 0)',metadata)
+        self.assertIn('_preferredSources set [_key,',metadata)
+        self.assertIn('for "_index" from 1 to 8',metadata)
+        self.assertIn('count _definitions <= 64',metadata)
+        self.assertEqual(metadata.count('_sources pushBack'),1)
+        self.assertNotIn('compile',metadata)
+        self.assertNotIn('getText',metadata)
+
     def test_observation_is_bounded_live_and_has_no_world_mutation(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         for gate in ['modelToWorldWorld', 'true,4,"GEOM","NONE"',
@@ -65,7 +108,7 @@ class DrivingGateCapTests(unittest.TestCase):
                       'OPEN_WINDOW_EXPIRED', 'REQUEST_TIMEOUT',
                       'CBE_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
             self.assertIn(guard,owner)
-        self.assertLess(server.index('if (_attemptIndex >= 0) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
+        self.assertLess(server.index('if (_attemptIndex >= 0 && {!_retryUnlock}) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
         self.assertIn('_driver != _requestedDriver',server)
         self.assertIn('_commander != _requestedCommander',server)
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
@@ -102,4 +145,19 @@ class DrivingGateIntentTests(unittest.TestCase):
         for forbidden in ('setVariable','animateSource','doMove','doStop','forceSpeed','spawn','nearEntities'):
             self.assertNotIn(forbidden,body)
 
+class DrivingGateMutationTests(unittest.TestCase):
+    def test_final_opening_commits_live_authority_and_phase_together(self):
+        text=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text(encoding='utf-8')
+        body=text.split('// Final mutation boundary:',1)[1]
+        self.assertLess(body.index('isNil {'),body.index('animateSource'))
+        for guard in ('serverTime >= _expires','_convoyCurrent','_liveConfig select 0',
+                      '_liveConfig select 5','_liveCommander != _requestedCommander',
+                      'owner _driver','owner _liveCommander','call _locked',
+                      'CBE_ExternalDrivingOwner','CortexIsPaused','DrivingRouteReceipt',
+                      'animationSourcePhase','isObjectHidden _vehicle'):
+            self.assertLess(body.index(guard),body.index('animateSource'))
+        self.assertIn('private _currentOpening=',body)
+        self.assertIn('"SHARED_OPENING",_currentOpening select 2',body)
+        self.assertNotIn('lineIntersects',body)
+        self.assertNotIn('nearestObjects',body)
 if __name__=='__main__': unittest.main()

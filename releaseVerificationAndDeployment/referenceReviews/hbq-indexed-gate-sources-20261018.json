@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "source_intent": "HBQ fn_driveAssist GateInfo lines216-280 recognises semantic door/gate animation sources, prefers sound sources and falls back to extracting animation names from action statements.",
+  "protected_source_sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+  "implementation": "CBE gate server now accepts exact indexed Door/Gate_N_sound_source and Door/Gate_N_source for1..8; priority selects one source per leaf. Existing canonical Door sound sources keep precedence. No action script evaluation or arbitrary statement parsing.",
+  "bounds": "At most64 source definitions,8 selected leaves. Interim preferred aliases may each read native phase; aggregate cost remains unmeasured. No new scan, timer or movement writer.",
+  "preserved": "BIS global/per-door locks, exact owner/crew/route/convoy receipt,12m forward geometry,16-gate route attempt cap,12s opening window, physical cap until geometry clears.",
+  "gaps": [
+    "Ambiguous barrier classification still only recognises canonical Door_N_sound_source.",
+    "Unknown/non-indexed sources and arbitrary user-action animation unsupported.",
+    "No automatic closure behind passing traffic.",
+    "Native animation semantics/custom lock schemas and physical/JIP/HC behaviour unverified."
+  ],
+  "evidence": {
+    "tests": 1388,
+    "compiled_sqf": 327,
+    "pbos": 9,
+    "log": ".qa/cbe-indexed-gate-sources-verified-build.log",
+    "unsigned_fingerprint": "5bd17d8c1034c7ce5b8658e9cf99371bf7ccaa4ee6a0482bde75f4c73c5fb0b6"
+  },
+  "audit_authority": "Explicitly PAUSED; continue implementation. All65 families remain partial."
+}

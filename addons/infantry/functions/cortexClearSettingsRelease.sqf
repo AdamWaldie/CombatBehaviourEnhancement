@@ -1,0 +1,55 @@
+/*
+ * Author: WaldoTheWarfighter
+ * Purpose: Releases exact-issued clearance setting leases independently of native movement tasks.
+ * Locality/authority: Current group and actor owner; exact supplied clear generation/epoch.
+ * Player, remote, mounted, reserved and specialist actors retain their settings/baselines.
+ * Repeat/JIP: Captured metadata is consumed only after a safe restore or observed setting change.
+ * Refused work may request one original30second group retry window on the existing group brain.
+ * No new scheduler job, event handler, native movement, target or formation command is added.
+ * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 clear generation NUMBER -1;
+ * 3 owner epoch NUMBER -1;4 allow finite deferral BOOL true.
+ * Return: BOOL settings retired or absent; false retains baseline without changing controls.
+ * Current callers: BuildingOperationStep, CortexClearRelease and GroupBrainStep.
+ * Example: [_unit,_group,_generation,_epoch] call CBE_fnc_CortexClearSettingsRelease;
+ */
+params [["_actor",objNull,[objNull]],["_group",grpNull,[grpNull]],
+    ["_generation",-1,[0]],["_epoch",-1,[0]],["_defer",true,[true]]];
+private _retired=false;
+isNil {
+    if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
+    if (isNull _group || {!local _group} || {isNull _actor} || {group _actor != _group}
+        || {!finite _generation} || {_generation < 0} || {!finite _epoch} || {_epoch < 0}
+        || {_generation != (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+        || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",-1])}) exitWith {};
+    private _hasSpeed=!isNil {_actor getVariable "CBE_Cortex_ClearForcedSpeed"};
+    private _hasStance=!isNil {_actor getVariable "CBE_Cortex_ClearStance"};
+    private _lease=_actor getVariable ["CBE_ActorSettings",[]];
+    private _issuer=_actor getVariable ["CBE_Cortex_ClearSettingToken",""];
+    if (!_hasSpeed && {!_hasStance} && {_lease isEqualTo []} && {_issuer isEqualTo ""}) exitWith {_retired=true};
+    if (_lease isEqualType [] && {count _lease == 3}
+        && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 5}
+        && {_issuer isEqualType ""} && {_issuer != ""}
+        && {((_lease select 0) select 0) isEqualTo _group}
+        && {((_lease select 0) select 1) isEqualTo _issuer}) then {
+        private _releaseContext=+(_lease select 0);
+        // Only the actual new owner may release a portable old setting; this grants no replay.
+        _releaseContext set [3,_epoch];
+        private _status=["RELEASE",_actor,_releaseContext] call CBE_fnc_ActorSettings;
+        if (_status == "RELEASED") then {
+            {_actor setVariable [_x,nil,true]} forEach ["CBE_Cortex_ClearForcedSpeed",
+                "CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearStance","CBE_Cortex_ClearSettingToken"];
+            _retired=true;
+        };
+    };
+    // Unknown/missing canonical state cannot turn surviving mirrors into a new baseline.
+    if (!_retired && {_defer}) then {
+        private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+        private _retiredEpisode=_pending isEqualType [] && {count _pending == 4}
+            && {(_pending select 0) isEqualType 0} && {(_pending select 1) isEqualType 0}
+            && {(_pending select 0) != _generation || {(_pending select 1) != _epoch}};
+        if (_pending isEqualTo [] || {_retiredEpisode}) then {
+            _group setVariable ["CBE_Cortex_ClearSettingsPending",[_generation,_epoch,serverTime+30,0],true];
+        };
+    };
+};
+_retired

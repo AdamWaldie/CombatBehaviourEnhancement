@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-18",
+  "status": "VERIFIED_LIFECYCLE_CONTRACT_NOT_IMPLEMENTED",
+  "baseline_commit": "e4e8a85e",
+  "physical": false,
+  "scope": "Ordinary drill standing holds through recall, retreat, calm, checkpoint and locality; not whole infantry acceptance",
+  "source_sha256": {
+    "addons/infantry/functions/cortexFlankStep.sqf": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "586151d10c249eff620167e3b839a193a0f3d6965dbe157d0ef1753e12d2e0f6",
+    "addons/infantry/functions/cortexGroupTick.sqf": "66c9bbe5b330ad1a4a0befc077bb25037e87e9c36960068334afcf88cafaf5c3",
+    "addons/infantry/functions/cortexRetreat.sqf": "aeca195442031e45fb2d9d01a8a3908f82fe39cd6d5ed563c424ee04e031000b",
+    "addons/infantry/functions/cortexRestoreCalm.sqf": "dd5653b4fdc3213e9f33cb36a5a28e72df95745a7d52055fb50f7128b23a7a05",
+    "addons/infantry/functions/cortexCheckpoint.sqf": "aec89412089819a0c9ad82cbf334117784fd3f48f228ccb056488c7939d8e920",
+    "addons/core/functions/cortexLocality.sqf": "11cab626ff01d922b077db3aad59ece5542985d121ade79adb9b7b3f2b167dce",
+    "addons/vehicles/functions/cortexPassengerReady.sqf": "9f4f6e2cf36ce31ad43dec285220c449bf16b2147f081032daf996b4f6e96360"
+  },
+  "verified_edges": [
+    {
+      "source": "cortexFlankStep",
+      "edge": "standing cover stop",
+      "evidence": "Cover branch calls doStop then doWatch for fit non-moving team members after its native-command/epoch/generation transaction guards."
+    },
+    {
+      "source": "cortexFlankStep",
+      "edge": "transient retry stop",
+      "evidence": "Retry branch calls doStop before its committed doMove. It is not standing-hold ownership and must not leave a persistent hold receipt."
+    },
+    {
+      "source": "cortexFlankEnd",
+      "edge": "completed drill hold",
+      "evidence": "Completed/CLOSE branch stops non-stragglers and adds actor membership to state holders; no exact per-actor STOP receipt."
+    },
+    {
+      "source": "cortexFlankEnd",
+      "edge": "failed support-bound hold",
+      "evidence": "STALLED/TIME_LIMIT/RECOVERY_FAILED under matching support lease stops members without adding ordinary holders; parent assignment owns the next bound. Failure result must remain a failure."
+    },
+    {
+      "source": "cortexGroupTick",
+      "edge": "near-leader recall",
+      "evidence": "Local e4e8a85e retains refused/nonlocal same-group holders and removes only actors issued follow. It still starts from historical membership, not exact native STOP ownership."
+    },
+    {
+      "source": "cortexRetreat",
+      "edge": "withdrawal handover ordering",
+      "evidence": "Admits WITHDRAW operation and commits CortexGroupMove before later doFollow/clear of holders. A strict original native-route receipt consumed only at the later recall would reject this self-authored route change."
+    },
+    {
+      "source": "cortexRestoreCalm",
+      "edge": "calm handover ordering",
+      "evidence": "Clears CBE temporary group route before recalling support/search/ordinary holders. Search recall has its own native MOVE receipt; ordinary holders use neutral-command membership."
+    },
+    {
+      "source": "cortexCheckpoint",
+      "edge": "checkpoint serialization",
+      "evidence": "Serializes holders membership and searchMoveReceipts; no ordinary per-actor hold command receipt."
+    },
+    {
+      "source": "cortexLocality/cortexRestoreCalm",
+      "edge": "partial locality restoration",
+      "evidence": "Locality passes checkpoint map to calm restoration. Unit-local guards can skip an unavailable actor, while calm terminal cleanup deletes holders/checkpoint. GroupTick retention alone does not repair this boundary."
+    },
+    {
+      "source": "cortexPassengerReady",
+      "edge": "routine remount/unload",
+      "evidence": "Shared task guard has no explicit STOP distinction. Calm and bounded remount continuation call it. Unknown STOP and owned hold release cannot safely be conflated."
+    }
+  ],
+  "implementation_contract": [
+    "Capture immutable per-actor provenance at the actual standing-stop command boundary: original actor/group, issuer token/owner epoch/generation, native command/destination identity, authored order identity and original lifetime/phase. Historical membership cannot manufacture a receipt later.",
+    "Separate standing cover, completed hold and failed support-bound role. Keep parent support sequence/lease authority; transient retry stops belong only to their successor MOVE transaction.",
+    "Consume/release an exact old hold before changing its native route, or perform an explicit authenticated same-operation route handover. A generic accept-new-route or allow-STOP boolean is not sufficient.",
+    "Preserve pending per-actor receipts across checkpoint and actual group/unit ownership gaps. Original clock anchors survive; no local FSM handle replay or JIP deadline renewal.",
+    "Check current actual actor/group authority and competing reservations/native tasks at every command boundary. Public metadata is provenance, not remote command authority.",
+    "Separate command issued, physical rejoin observed, yielded and unresolved outcomes. Issued follow must not become a physical completion counter.",
+    "A finite active hold must explicitly transfer or release at its original lifetime; failed/late cleanup retains unresolved provenance instead of granting a new old command. Passive receipt retention must not install an infinite worker.",
+    "Preserve unknown or newer mission STOP. Same-value rewrites cannot be distinguished without controller cooperation and must remain an explicit limitation."
+  ],
+  "required_engine_cases": [
+    "Standing cover to next bound",
+    "Completed hold to near-leader recall",
+    "Failed support bound to new parent sequence without fabricated success",
+    "Retreat route handover",
+    "Calm temporary-route cleanup then remount",
+    "Unknown STOP and new scripted/equipment/fire task",
+    "Group locality before actor locality and reverse order",
+    "Actor casualty and replacement leader",
+    "Original lifetime expiry and unresolved handback",
+    "Repeated hold/recall/remount",
+    "Normal ownership and separate actual-provider HC batch"
+  ],
+  "validation": "Source edges and hashes verified only. Existing local offline checkpoint remains1,426 tests/329 compiled SQF/nine PBOs. No new behaviour implementation or physical/performance credit.",
+  "audits": "PAUSED"
+}

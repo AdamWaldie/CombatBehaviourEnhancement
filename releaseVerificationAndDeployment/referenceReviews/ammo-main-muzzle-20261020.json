@@ -1,0 +1,234 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "433404ea",
+  "scope": "Main-muzzle ammunition support, not whole reference equipment-recovery parity",
+  "finding": "compatibleMagazines weapon merges all muzzles. Underbarrel grenades could satisfy receiver spare count or donor surplus and be transferred instead of primary rifle ammunition.",
+  "implementation": [
+    "Prefer configured this muzzle, otherwise first named configured muzzle; use compatibleMagazines [weapon,muzzle].",
+    "Empty compatible set skips donor enumeration.",
+    "Keep twenty-second cadence, two-transfer maximum, receiver capacity/proximity and measured removed-round accounting. No reload or weapon-selection command."
+  ],
+  "nativeReference": "https://community.bistudio.com/wiki/compatibleMagazines",
+  "sourceSHA256": "b11311b1d9a1121f031f7428f31319fb8321ca19d58e9cb7e36715671d9c2aeb",
+  "cost": "One config muzzle-array lookup per receiver evaluation at existing cadence; no world query, cache, timer or worker. Runtime overhead unmeasured.",
+  "validation": {
+    "tests": 1477,
+    "newCases": 0,
+    "focused": ".qa/cbe-ammo-main-muzzle-focused.log",
+    "full": ".qa/cbe-ammo-main-muzzle-build.log",
+    "independent": ".qa/cbe-ammo-main-muzzle-independent.log",
+    "candidate": ".qa/candidates/ammo-main-muzzle-433404ea-12aec8ba",
+    "fingerprint": "12aec8bada0743d333c6c03ab783a9e421626dbdc0ab3adf8b3298aea7096ee1"
+  },
+  "remaining": [
+    "Physical multi-muzzle/modded weapon inventory exchange and runtime acceptance absent.",
+    "Custom named-muzzle ordering follows first configured muzzle; no universal weapon-semantic classifier claimed.",
+    "LAMBS casualty equipment recovery remains a distinct incomplete source contribution."
+  ],
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "tacticalRifleCapacity20261020": {
+    "baseline": "65bbfa3b",
+    "finding": "Assessment and direct close-assault admission counted possession of a primary weapon without any primary-ammunition availability.",
+    "implementation": [
+      "Shared actor-owner read-only main-muzzle ammunition predicate; loaded rounds fast exit before compatible-reserve enumeration.",
+      "Assessment armed rifle count and close-assault roster require loaded main rounds or a compatible positive reserve.",
+      "Keep native reloading/firing, separate immediate readiness/ROE, physical squad counts and existing launcher classifier. No inventory or native command writes."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf": "73a26a0c8230f3be0f067dc8e40839f158429db342e65bc603c51476c72cb79f",
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "1642aed9c0ae5c9cfcadacff5beb37b0c399b6a818cc96ed607f73177c5ffd16",
+      "addons/infantry/functions/cortexAssaultStart.sqf": "641108f666c1e85c5c272a128b126dbb4e2183f7449ab6afc365fcfb9ab0754c"
+    },
+    "cost": "One main-muzzle config lookup/loaded count per considered actor; empty main muzzle reads compatible reserves. No cache/controller/world scan. Runtime cost unmeasured.",
+    "validation": {
+      "focusedTests": 656,
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-rifle-ammo-capacity-focused-final.log",
+      "full": ".qa/cbe-rifle-ammo-capacity-build.log",
+      "independent": ".qa/cbe-rifle-ammo-capacity-independent.log",
+      "candidate": ".qa/candidates/rifle-ammo-capacity-65bbfa3b-41e80b6e",
+      "fingerprint": "41e80b6e840acc4eaab7a852654902714ef78b3b9be0df53ff39d1957bfdfcd5",
+      "retainedInitialFailure": ".qa/cbe-rifle-ammo-capacity-focused.log: generated source-coverage report stale after helper registration; regenerated before rerun."
+    },
+    "remaining": [
+      "Physical mixed ammunition/reload and small-element outcomes unverified.",
+      "Existing flank/advance direct admission and active-drill exhaustion/role reassessment are separate scopes.",
+      "Custom named-muzzle ordering and frame-time acceptance remain unverified."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "boundingAdmissionCapacity20261020": {
+    "baseline": "974f7a03",
+    "finding": "Flank/advance selected rifle roles and element sizes from physical headcount; dry primary weapons could fill manoeuvre and cover capacity.",
+    "implementation": [
+      "Compute ammunition-qualified armedFoot once through shared primary predicate. Choose rifle candidates and element size from that subset.",
+      "Require at least two ammunition-qualified actors outside the selected moving element.",
+      "Retain existing physical squad/base/cover rosters, role priorities, minimum group size, casualty-strength and route/native ownership checks.",
+      "No inventory, reload, weapon-selection or new controller commands."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexFlankStart.sqf": "8b289cd0b7bd2c95acd1b3a92c919fda7da048f16ba1a5626a54f91be77b8a4a",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "7d0d585827f148c2f2674fa0a76fc594d01bbd4c51b77025e287ef4caeca911a"
+    },
+    "validation": {
+      "focusedTests": 656,
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-bound-ammo-capacity-focused.log",
+      "full": ".qa/cbe-bound-ammo-capacity-build.log",
+      "independent": ".qa/cbe-bound-ammo-capacity-independent.log",
+      "candidate": ".qa/candidates/bound-ammo-capacity-974f7a03-f42163f9",
+      "fingerprint": "f42163f9f3f1e8a0fcdd93bd969135074e6988a1da42bb8486695ab7391fa2d2"
+    },
+    "remaining": "Admission only. Active-drill ammunition exhaustion/role transitions, physical mixed-load bounding and performance remain unverified.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "ordinaryBoundTransition20261020": {
+    "baseline": "7a2004ae",
+    "implementation": [
+      "Existing _issue boundary checks surviving mover minimum and at least one ammunition-qualified cover actor before planning/issuing another ordinary bound.",
+      "Paired drills use actual other-team fit roster; independent flank uses eligible squad base outside movers.",
+      "AMMO_CAPACITY_LOST ends exact existing drill through normal cleanup/cancellation; no synthetic success, reload, inventory or next-bound command.",
+      "No checks on in-flight movement samples. CROSS_FAR and CONSOLIDATE may complete; coordinated roles retain separate parent readiness/cover protocol."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "59b5db3979f98050857ff3c96bdc6e5c95fad2e91dda91bd9c060cfb46c445f5",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "520aaefb65c5f58dc0872263d9b9f53d537f3733b499de150444ea9206a1189b"
+    },
+    "cost": "Main-muzzle checks only on new ordinary-bound commitment, not every scheduler movement sample; no worker/timer/cache/world scan. Runtime cost unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "focusedTests": 656,
+      "newCases": 0,
+      "focused": ".qa/cbe-bound-ammo-transition-focused-final.log",
+      "full": ".qa/cbe-bound-ammo-transition-build.log",
+      "independent": ".qa/cbe-bound-ammo-transition-independent.log",
+      "candidate": ".qa/candidates/bound-ammo-transition-7a2004ae-6ac69e6c",
+      "fingerprint": "6ac69e6cf3c0b629ed86c2b65aca98a170fa961f5b29e2cd0afb1648eea61533"
+    },
+    "remaining": [
+      "No automatic resupply/re-role algorithm added; existing group sharing cadence remains.",
+      "Coordinated parent ammunition readiness remains separate.",
+      "Physical interruption, authored-route continuation, road completion, HC and frame-time acceptance absent."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "transitionAndCoordinationReview20261020": {
+    "reviewedSource": "1b0bdab1",
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "59b5db3979f98050857ff3c96bdc6e5c95fad2e91dda91bd9c060cfb46c445f5",
+      "addons/support/functions/cortexSupportMaintain.sqf": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f"
+    },
+    "findings": [
+      "Flank consolidation constructs explicit teams from the original movers and consolidation actors; no evidence supports another whole-squad ammo exception.",
+      "COVER maintenance establishes exact native holds, while server coordinate dispatch consumes accepted leases and tokened outcomes. These inspected paths contain no owner-local ammunition-capacity report for external cover.",
+      "SupportBoundStart admits native-fit teams without the newly added primary-ammunition predicate. Applying ordinary bound termination alone would not establish coordinated cover readiness."
+    ],
+    "nextImplementation": "Use the existing current-owner maintenance/ack path for finite token/sequence/epoch-bound readiness. Keep inventory observation on actual actor owner, preserve original lease deadlines and distinguish capacity/position/actual fire. Do not query nonlocal inventory or add permanent polling. Trace server use, revocation and adoption before changing dispatch.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "coordinatedCapacityAndTeams20261020": {
+    "reviewedSource": "99e2fb38",
+    "supersedes": "Earlier nextImplementation and coordinated-role exclusions in this file describe historical checkpoints; the owner report and local child checks are now implemented.",
+    "sources": {
+      "addons/support/functions/cortexSupportAck.sqf": "ce07598d0fb9fe0c9ea6f3f97698498dd9d985dbdd57ab45a1d8af3456332474",
+      "addons/support/functions/cortexSupportMaintain.sqf": "9dedb84ac945ca8417307ba5982e5c36d6a55a9140649153101573e7c16ad28b",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "4c4d1c3aa3e670aa89002dbd904f9828f610f37a68bdeb1882b99db104e80978",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "5f83e2d3c26cbc5bd709018b70d2a0b67a4c99ea64c6a26a2dc18561b9d6e139",
+      "addons/infantry/functions/cortexFlankStep.sqf": "d6b3a351864baa37636c12706242241e9dfd93b292d63adc1ca1cd14535d5ac3",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "520aaefb65c5f58dc0872263d9b9f53d537f3733b499de150444ea9206a1189b"
+    },
+    "executionTrace": [
+      "Current owner COVER maintenance reports bounded main-ammunition capacity through existing authenticated SupportAck, sampled every two seconds or role change, valid at most six original seconds.",
+      "Server accepts only exact accepted lease/current role/epoch/current sender; counts are bounded and reports cannot renew role or lease. New MOVE requires a fresh report; bootstrap publishes COVER first.",
+      "Local shared issue boundary checks actual moving and cover ammunition before new movement. In-flight samples do not enumerate inventory. Crossing exit and consolidation exceptions remain.",
+      "AMMO_CAPACITY_LOST publishes exact token/sequence child result through FlankEnd. CoordinateStep treats outcomes other than COMPLETE/PARTIAL as failures, yields the turn, applies eight-second retry, retires after two failures. Only COMPLETE on a final bound marks objective completion.",
+      "Three-person exact 2+1 responders retain arrived pair during singleton second turn. Minimum recalculates after same-callback PAUSE switch before team rebalance; larger/first turns still require two movers.",
+      "SupportMaintain consumes a refused child sequence as NOT_READY, while locality receipt/member settling retains original five-second allowance and parent deadline."
+    ],
+    "cost": "Owner report bounds roster at64, existing maintenance cadence, no new worker. Rifle checks run only at bound commitment. Runtime overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-singleton-follow-final-build.log",
+      "independent": ".qa/cbe-singleton-follow-independent.log",
+      "candidate": ".qa/candidates/singleton-follow-44fb22e4",
+      "fingerprint": "ee6e106b027930e2b19bcbe6d0bd7a7a0968bc9b7ef61e91e872809a8851e576",
+      "provenance": "44fb22e4 plus intended singleton follow source changes; unsigned development package; unrelated dirt preserved."
+    },
+    "remaining": [
+      "Mover ammunition capacity does not establish that another squad or requester has settled in cover, can see the relevant threat area, or is providing effective fire.",
+      "Initial pair partition preserves buddies but does not optimize dry/armed distribution between teams; local issue can refuse a poor partition. A future allocation change must preserve pair intent and avoid endless rejection.",
+      "No automatic resupply, corpse equipment recovery or successful suppression inference implemented here.",
+      "Physical normal/HC bootstrap, depletion, casualty, role handover, repeated small-team movement and performance remain unverified."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "initialPairCapacity20261020": {
+    "baseline": "b0a3c566",
+    "implementation": "Initial partitions build intact pair/singleton chunks, sample eligible primary ammo once, distribute chunks in capacity order2/1/0 to less-armed team with headcount tie-break. All fit actors retained. Reconstructed partitions bypass ranking and retain saved progress.",
+    "sourceSHA256": "6b490c59661d64d0a4854c2ffe805ea89aa202a3bf86058e7312959f62dc20cd",
+    "limits": "At most64 actors,16 historical pairs,three chunk passes. No inventory writes/controller. Not an optimal solver; pair constraints can still prevent feasible movement. Cost/physical behaviour unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-pair-capacity-build.log",
+      "independent": ".qa/cbe-pair-capacity-independent.log",
+      "candidate": ".qa/candidates/pair-capacity-b0a3c566",
+      "fingerprint": "e6a44c80510e9fed5accec00accd1c51de623a116640f3e0fa7f5c7a321acdbd"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false,
+    "retainedCorrection": "Existing may_bound test model still had historical support exemption; corrected to agree with shared issue source, retaining positive and negative support cases."
+  },
+  "dryChunkBalance20261020": {
+    "baseline": "b059293f",
+    "finding": "With unequal armed counts, all dry chunks went to the lower-capacity team; adding dry actors never changed that deficit and could create large team imbalance.",
+    "implementation": "Capacity-zero chunks use headcount only; armed chunks retain capacity/headcount priority, whole pairs and reconstruction preserved.",
+    "sourceSHA256": "a060dfc85ddacfb29e6c3b7f487599ac7882a5996bef38dbb0e4201615660434",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-dry-chunks-focused.log",
+      "full": ".qa/cbe-dry-chunks-build.log",
+      "independent": ".qa/cbe-dry-chunks-independent.log",
+      "candidate": ".qa/candidates/dry-chunks-b059293f",
+      "fingerprint": "ac19f5f118720cbf3947b545a7b755d051990336ae36f43ddd687305d9f730b3"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "coverProtocolCadence20261020": {
+    "baseline": "56ed7b63",
+    "finding": "GroupTick distance tier can return20s and reaction tuning can extend this to80s, exceeding six-second capacity freshness.",
+    "implementation": "GroupBrainStep caps existing callback delay at2s only for active assault plus exact current COVER role/lease token and unexpired lease, after tactical reaction/distance delay. No worker/TTL renewal; stale observations still fail closed under overload.",
+    "sourceSHA256": "975fd6c6cf35947d2f82b316e2cb45c9b43a3e1e177fccee8dd48c51b79a165f",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-cover-cadence-build.log",
+      "independent": ".qa/cbe-cover-cadence-independent.log",
+      "candidate": ".qa/candidates/cover-cadence-56ed7b63",
+      "fingerprint": "c52752ee96ff8bfd4dc65a54410c10b5e3983080a2237a746ab5191828d0afd4"
+    },
+    "limits": "Distant active helpers now receive more callbacks; runtime overhead and actual scheduler latency unmeasured. Physical normal/HC bootstrap remains unverified.",
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
+}

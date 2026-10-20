@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Native driving stationary admission prerequisite; not queue execution",
+  "source": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": "1433-1460",
+    "intent": "Back-off requires stable jam context and rear checks; moving front traffic cancels backing. HBQ forced-velocity implementation is not copied."
+  },
+  "finding": "Native forward-axis speed checks could classify sideways sliding or falling as stationary, accumulating dwell and admitting recovery.",
+  "implementation": "Fresh finite total linear magnitude below1km/h for own/peer jam dwell, solid obstruction dwell, native wait/obstacle state and ordinary recovery admission. Existing caps, original deadlines and attempts remain.",
+  "validation": {
+    "tests": 1417,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-driving-total-motion-build.log",
+    "unsigned_fingerprint": "f925cbd53eac835e006b0ceb4abfd0206e0a585698fd0932c0484b26d75351ba",
+    "physical": false
+  },
+  "remaining": [
+    "No angular/dwell-settled READY receipt",
+    "Queue COMMIT/HOLD/dependency/native movement executor missing",
+    "Native reverse capability and performance require engine evidence",
+    "Audits paused"
+  ]
+}

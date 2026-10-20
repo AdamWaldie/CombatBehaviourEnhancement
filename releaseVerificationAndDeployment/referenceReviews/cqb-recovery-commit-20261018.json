@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-18",
+  "scope": "Atomic building-specific admission around all common CQB recovery calls",
+  "finding": "The common retry function already atomically validates operation generation/owner/budget, but scheduled building-specific checks could be separated from its call and movement receipt publication.",
+  "implementation": [
+    "One _recoverClearActor wrapper covers all4 building common-recovery calls",
+    "Current building brain/epoch/generation/native route/transform, actual actor and owned native task, Zeus and original soft/hard deadlines checked in same unscheduled scope as common retry",
+    "Movement receipt publication happens in the wrapper only after RECOVERING and still-current building admission",
+    "Callers retain original finite motion/retry evidence; refusal returns YIELDED without asking common helper to spend retry",
+    "Shared RecoveryStep checks Zeus-held groups at preflight and immediately before its live budget mutation/native move for all operation callers"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-recovery-commit-build.log",
+    "tests": 1210,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "d38294c2b9c136730a6504ad35261444cc70341f64ce333e738cdfe8f14f25fe",
+    "contracts": "Scoped caller assertions follow wrapper, with new tests proving sole common call, all4 routes, atomic admission and no deadline renewal. Existing motion, consumption, release and visit checks retained."
+  },
+  "remaining": [
+    "Other direct CQB entry/reserve/egress writes and shared recovery callers need review",
+    "No proof of actual native recovery or improved tactical flow",
+    "Normal/HC/JIP/order replacement, accessibility, casualty replacement, isolation and performance unrun",
+    "Driving late receipt notification, native queue execution and entire HBQ/full goal remain open"
+  ],
+  "audits": "PAUSED"
+}

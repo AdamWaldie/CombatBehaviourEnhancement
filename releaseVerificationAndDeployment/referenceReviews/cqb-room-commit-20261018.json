@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-18",
+  "scope": "Main CQB room/support mutation and timed retry boundaries",
+  "finding": "Scheduled room/support planning could be separated from native stop/settings/move/hold writes; request/retry bookkeeping did not require actual mover admission.",
+  "implementation": [
+    "Read-only ownership helper accepts current CBE leg, physically occupied CBE arrival/fallback hold, idle actor, or exact original unstarted admission task; FOLLOW retains original formation leader/planning semantics",
+    "Snapshot up to two actors native command/full destination/formLeader/stance/speed/pose before support planning",
+    "Keep scheduled candidate ranking and arrival segment geometry outside atomic native-write boundary",
+    "Atomically recheck current operation/actor/task/Zeus/original deadlines/native snapshot and bounded pose drift before initial stop/settings/native issue/holds/assignment",
+    "Room request progress requires accepted mover commit; timed retry count/progress requires actual mover doMove issue",
+    "Native retry uses fresh command/destination/formLeader snapshot and the same live authority checks"
+  ],
+  "cost": "No new world scan or scheduler. At most two context snapshots per existing pair; arrival segment checks reuse existing16-query callback cache/budget. Runtime overhead unmeasured.",
+  "validation": {
+    "log": ".qa/cbe-cqb-room-commit-verified-build.log",
+    "tests": 1208,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "420ae41fabdf747204c26f488365a758cd0b74643809bc23e41b1936db19eecb",
+    "retained_initial_failure": "Existing buddy-progress contract required old unconditional mover request expression; updated to additionally require actual mover commit, preserving all separation/no-progress assertions."
+  },
+  "remaining": [
+    "Other entry, recovery, reserve and egress command boundaries still require review",
+    "Paired entry coherence and accessibility are not proved",
+    "Exterior isolation, casualty replacement and repeat/HC/JIP require physical evidence",
+    "Late driving receipt delivery and native queue execution remain unfinished",
+    "All65 feature families partial; full performance targets unmeasured"
+  ],
+  "audits": "PAUSED; no Arma launched"
+}

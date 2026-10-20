@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-18",
+  "status": "PREPARED_NOT_RUN",
+  "scope": "Normal server-owned landing successor lease diagnostic; synthetic CBE protocol, not Workshop provider integration",
+  "checks": [
+    "Real landing admission before successor acquisition",
+    "Unowned release no-op and stale revision rejection",
+    "Duplicate release retains original deadline and successor lease",
+    "Exact feature release acknowledgement",
+    "Fresh native MOVE receipt retained with physical airborne redirection"
+  ],
+  "validation": {
+    "tests": 1412,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-landing-handover-fixture-build.log",
+    "unsigned_fingerprint": "8cbb6e9c0ab0e6a9ff7f08ae45c510ad80759e3cb18faa4411929b6989068bec",
+    "physical": false
+  },
+  "limits": [
+    "Audits paused by user",
+    "No actual Workshop controller or HC handover exercised",
+    "No production behaviour completion credit"
+  ]
+}

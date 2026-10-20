@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "e91f73c3",
+  "scope": "Distinct queue-role consent retirement and duplicate-verification monotonicity; no native room-making execution",
+  "findings": [
+    "Server registry previously pruned on authenticated BEGIN/ACK/RELEASE only. A disconnected owner and no further requests could leave expired records until another admission sweep.",
+    "Accepted owners retained private PENDING/AGREED metadata without independent timeout.",
+    "An identical VERIFY arriving after AGREED could rewrite the receipt to PENDING; future queue phases must not inherit that downgrade.",
+    "Adding one-shot expiry creates timer churn unless server admission also limits fresh serial/immediate release cycles. Caller-side request deduplication alone is insufficient server authority."
+  ],
+  "implementation": [
+    "Server schedules one bounded original-phase/deadline retirement callback for PENDING and one on first AGREED transition. Exact token/current phase/deadline checks and atomic registry retirement preserve successor state; RELEASED is delivered to original owners without world queries.",
+    "Owners schedule matching canonical token/serial/roster/roles/dependencies/context/deadline/expiry/phase retirement. Matching old-machine private metadata may be removed after locality changes; this publishes no movement state. Pending timeout cannot clear AGREED, and old token cannot clear a successor.",
+    "Duplicate accepted PENDING verification adds no timer. Duplicate VERIFY of an exact live AGREED receipt only repeats ACK; it never downgrades phase. Duplicate AGREED results return before scheduling.",
+    "Private server64-entry initiating-vehicle admission journal permits one accepted BEGIN per30seconds, independent of serial/owner changes. Expired admission entries are pruned during authenticated admission; overflow refuses. Existing32live-episode bound remains."
+  ],
+  "limits": [
+    "CBA scheduling latency, clock changes, network delivery, ownership changes and actual disconnect cleanup remain unrun. Timer delay is not a physical deadline guarantee; cancellation can conservatively revoke an unchanged receipt early after clock changes.",
+    "Admission bounds new timers; queued callbacks under scheduler starvation and aggregate frame-time cost require measurement. No recurring query or new permanent controller is introduced.",
+    "These functions issue no hold, movement, reverse, path or speed commands. Consent is not HOLD/READY or queue success; native executor/dependency/handback and verified reverse remain incomplete."
+  ],
+  "validation": {
+    "tests": 1324,
+    "exitCode": 0,
+    "log": ".qa/cbe-queue-consent-expiry-build.log",
+    "packageFingerprint": "4e977a962cde5d75d3f75f93d4b6233ff88bd4926c433a1213a73286e0564443",
+    "source": "e91f73c3 plus intended server/owner functions, guide and source contracts; metadata follows build"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All65familiespartial; no queue behaviour or source-parity completion credit."
+}

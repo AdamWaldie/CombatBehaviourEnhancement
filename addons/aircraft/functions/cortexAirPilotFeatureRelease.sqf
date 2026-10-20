@@ -1,14 +1,17 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Make one finite release attempt for an unresolved lateral pilot feature snapshot.
+ * Purpose: Make one finite release attempt for an unresolved attack/landing pilot feature snapshot.
  * Locality/authority: Original actor owner or explicit actor-local adoption; no live flight/task override.
  * Repeat/JIP: Schema2 stores its absolute release deadline in the same public receipt. The first
  * authorised release starts it once; owner adoption preserves it. No world scan or movement replay.
  * Unresolved records remain public; adoption never changes immutable issuer provenance.
+ * Fully dismounted original actors may restore without mutating their former aircraft lease.
+ * Receipt, locality, native tasks and live lease are rechecked atomically before restoration.
  * Arguments: 0 actor <OBJECT, objNull>; 1 exact receipt <ARRAY, []>; 2 attempt <NUMBER, 0>;
  * 3 internal actor-local epoch <NUMBER, -1 captures current epoch>.
  * Return: BOOL, true only when restored now; refused or delayed attempts return false.
- * Current callers: CortexAirAttack cleanup, aircraft FSM Finished, and bounded CBA delayed callback.
+ * Current callers: CortexAirAttack/landing cleanup, aircraft FSM Finished, and bounded CBA delayed callback.
+ * Landing captures FSM only when originally enabled; restoration targets the original actor.
  * Example: [pilot1,pilot1 getVariable ["CBE_AirPilotFeatureReceipt",[]]] call CBE_fnc_CortexAirPilotFeatureRelease;
  */
 params [["_actor",objNull,[objNull]],["_receipt",[],[[]]],["_attempt",0,[0]],["_epoch",-1,[0]]];
@@ -26,7 +29,7 @@ if (_schema isNotEqualTo 2 || {_originalActor isNotEqualTo _actor}
     || {!(_releaseUntil isEqualType 0)} || {!finite _releaseUntil}
     || {_releaseUntil != -1 && {_releaseUntil < 0}}
     || {!(_features isEqualType [])} || {count _features == 0} || {count _features > 3}
-    || {_features findIf {!(_x in ["AUTOCOMBAT","TARGET","AUTOTARGET"])} >= 0}) exitWith {false};
+    || {_features findIf {!(_x in ["AUTOCOMBAT","TARGET","AUTOTARGET","FSM"])} >= 0}) exitWith {false};
 // Release authority was established above from actual actor locality and exact issuer/adoption.
 // Publish the clock with the snapshot itself; a successor cannot receive one without the other.
 if (_releaseUntil == -1) then {
@@ -46,21 +49,61 @@ if (serverTime >= _releaseUntil) exitWith {
     false
 };
 private _lease=if (isNull _aircraft) then {createHashMap} else {_aircraft getVariable ["CBE_FlightLease",createHashMap]};
-private _safe=alive _actor && {!isPlayer _actor} && {isNull remoteControlled _actor}
+private _actorSafe={alive _actor && {!isPlayer _actor} && {isNull remoteControlled _actor}
     && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-    && {!isNull _aircraft} && {!isNull _group} && {group _actor == _group} && {vehicle _actor == _aircraft}
+    && {!isNull _group} && {group _actor == _group}
+    && {vehicle _actor == _actor || {!isNull _aircraft && {vehicle _actor == _aircraft}}}
     && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
     && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
     && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
-    && {[_actor] call CBE_fnc_CortexActorFireTaskAvailable};
-if (count _lease == 0 && {_safe}) exitWith {
-    {if !(_actor checkAIFeature _x) then {_actor enableAI _x}} forEach _features;
-    _actor setVariable ["CBE_AirPilotFeatureReceipt",nil,true];
-    _actor setVariable ["CBE_AirPilotFeatureReleaseResult",["RESTORED",_token,serverTime],true];
-    _actor setVariable ["CBE_AirPilotFeatureReleaseStarted",nil];
-    _actor setVariable ["CBE_AirPilotFeatureAdoption",nil];
-    true
+    && {[_actor] call CBE_fnc_CortexActorFireTaskAvailable}};
+private _safe=call _actorSafe;
+// An owner transfer invalidates the old lease, but ordinary release deliberately
+// refuses another issuer. Retire only this receipt's previous-owner attack record.
+// Tokens alone are insufficient: machine-local generation counters can collide.
+if (_safe && {vehicle _actor == _aircraft} && {local _aircraft} && {_issuer != clientOwner}) then {
+    isNil {
+        private _current=_aircraft getVariable ["CBE_FlightLease",createHashMap];
+        private _brain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
+        private _activeBrain=count _brain > 0
+            && {!(_brain getOrDefault ["finished",false])}
+            && {!(_brain getOrDefault ["cancelled",false])};
+        if (local _actor && {local _aircraft} && {!_activeBrain} && {call _actorSafe}
+            && {serverTime < _releaseUntil}
+            && {(_actor getVariable ["CBE_AirPilotFeatureLocalEpoch",0]) == _epoch}
+            && {(_actor getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo _receipt}
+            && {(_current getOrDefault ["controller",""]) == "AIR_ATTACK"}
+            && {(_current getOrDefault ["token",""]) == _token}
+            && {(_current getOrDefault ["owner",-1]) == _issuer}) then {
+            _aircraft setVariable ["CBE_FlightLeaseLast",[
+                "AIR_ATTACK",_token,_current getOrDefault ["revision",-1],
+                "PILOT_FEATURE_PREVIOUS_OWNER_RELEASE",serverTime
+            ],true];
+            _aircraft setVariable ["CBE_FlightLease",nil,true];
+        };
+        _lease=_aircraft getVariable ["CBE_FlightLease",createHashMap];
+    };
 };
+// On foot, the original actor no longer participates in the aircraft controller.
+// GET OUT and other native tasks still veto restoration until their task ends.
+// Re-read the live receipt/lease and actor guards in the same unscheduled mutation.
+private _restored=false;
+isNil {
+    _lease=if (isNull _aircraft) then {createHashMap} else {_aircraft getVariable ["CBE_FlightLease",createHashMap]};
+    if (local _actor && {serverTime < _releaseUntil}
+        && {(_actor getVariable ["CBE_AirPilotFeatureLocalEpoch",0]) == _epoch}
+        && {(_actor getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo _receipt}
+        && {call _actorSafe}
+        && {vehicle _actor == _actor || {count _lease == 0}}) then {
+        {if !(_actor checkAIFeature _x) then {_actor enableAI _x}} forEach _features;
+        _actor setVariable ["CBE_AirPilotFeatureReceipt",nil,true];
+        _actor setVariable ["CBE_AirPilotFeatureReleaseResult",["RESTORED",_token,serverTime],true];
+        _actor setVariable ["CBE_AirPilotFeatureReleaseStarted",nil];
+        _actor setVariable ["CBE_AirPilotFeatureAdoption",nil];
+        _restored=true;
+    };
+};
+if (_restored) exitWith {true};
 if (_attempt >= 60 || {!alive _actor}) exitWith {
     _actor setVariable ["CBE_AirPilotFeatureReleaseResult",["UNRESOLVED",_token,serverTime],true];
     false

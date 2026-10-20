@@ -1,5 +1,6 @@
 """Road observation boundaries and speed policy; no native steering acceptance."""
 from pathlib import Path
+import math
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class DrivingRoadCapTests(unittest.TestCase):
@@ -55,4 +56,32 @@ class DrivingRoadCapTests(unittest.TestCase):
         self.assertEqual(cap(70,0,0.21,False),18)
         self.assertEqual(cap(5,71,0.21,True),5)
         self.assertEqual(cap(70,0,0,False,True),15)
+        # Seven ten-degree pieces form a seventy-degree sweep inside the existing
+        # look-ahead. Local turns alone stay below the policy threshold; the actual
+        # approach bearing identifies the bend without adding a road query.
+        points=[(60*(1-math.cos(math.radians(a))),60*math.sin(math.radians(a))) for a in range(10,71,10)]
+        headings=[math.degrees(math.atan2(x,y)) for x,y in points]
+        local_turn=10
+        approach_turn=max(headings)
+        self.assertLess(local_turn,25)
+        self.assertAlmostEqual(approach_turn,35)
+        self.assertEqual(cap(70,local_turn,0,False),70)
+        self.assertEqual(cap(70,approach_turn,0,False),35)
+        source=(ROOT/'addons/vehicles/functions/drivingRoadCap.sqf').read_text()
+        self.assertIn('_vehiclePosition getDir _nextPosition',source)
+        self.assertIn('(_maximumTurn max _bestTurn) max _approachTurn',source)
+
 if __name__=='__main__':unittest.main()
+
+
+class BridgeGradePolicyTests(unittest.TestCase):
+    def test_actual_bridge_uses_deck_grade_after_shared_road_safety_cap(self):
+        text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        policy=text.split('private _surfaceRoad=roadAt _vehicle;',1)[1].split('// The short rear leg',1)[0]
+        self.assertIn('isOnRoad _vehicle',policy)
+        self.assertIn('!isNull _surfaceRoad',policy)
+        self.assertIn('getRoadInfo _surfaceRoad',policy)
+        self.assertIn('param [8,false,[true]]',policy)
+        self.assertLess(policy.index('if (_onBridge)'),policy.index('if (_maximumGrade > 0.2)'))
+        self.assertIn('_maximumGrade=_roadObservation select 2',policy)
+        self.assertLess(text.index('_cap=_cap min (_roadObservation select 0)'),text.index('private _surfaceRoad='))

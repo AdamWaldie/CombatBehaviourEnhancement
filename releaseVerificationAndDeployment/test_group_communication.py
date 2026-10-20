@@ -13,6 +13,47 @@ def source(name: str) -> str:
 
 
 class GroupCommunicationTests(unittest.TestCase):
+    def test_voice_requires_vertical_reach_while_radio_remains_independent(self):
+        import math
+        owner=source('cortexReportLocal')
+        server=source('cortexReportServer')
+        combined=source('cortexCombinedArmsServer')
+        fallback=source('cortexCombinedGroundFallbackServer')
+        self.assertIn('_receiverPosition vectorDistance _senderPosition > _voiceRange',owner)
+        self.assertIn('getPosASL ([_transmitter, leader _sender]',owner)
+        self.assertIn('(getPosASL _receiverAnchor) vectorDistance _senderASL <= _voiceRange',server)
+        self.assertIn('(getPosASL _candidateAnchor) vectorDistance _requesterASL <= _voiceRange',combined)
+        self.assertIn('(getPosASL _anchor) vectorDistance _originASL <= _voiceRange',fallback)
+        # Horizontal overlap alone cannot carry voice between stacked floors or an aircraft.
+        self.assertGreater(math.dist((0,0,0),(0,0,100)),35)
+        self.assertLess(math.dist((0,0,0),(20,0,28)),35)
+        self.assertGreater(math.dist((0,0,0),(20,0,30)),35)
+        for text in (server,combined,fallback):
+            self.assertIn('|| {',text)
+        self.assertIn('_senderRadio && {_candidateRadio}',combined)
+
+    def test_combined_owner_checks_delivery_before_effects_but_after_received_task_replay(self):
+        owner=source('cortexCombinedArmsLocal')
+        start=owner.index('// Selection and owner delivery')
+        end=owner.index('private _markApplied=',start)
+        delivery=owner[start:end]
+        self.assertLess(owner.index('private _applied=[_token,clientOwner,_application select 1]'),start)
+        self.assertLess(end,owner.index('_group reveal'))
+        self.assertIn('[_requester] call CBE_fnc_CortexGroupTransmitter',delivery)
+        self.assertIn('[_group] call CBE_fnc_CortexGroupTransmitter',delivery)
+        for check in ('alive _senderAnchor','alive _receiverAnchor',
+                      '_receiverASL distance2D _senderASL <= _communicationRange',
+                      '_receiverASL vectorDistance _senderASL <= _voiceRange',
+                      '!isNull _senderTransmitter && {!isNull _receiverTransmitter}',
+                      'CBE_Cortex_CombinedArms_AirRange",4000',
+                      'CBE_AIPass_ContactReports_Radius",500',
+                      '[_requester,_group,_token,+_opportunity] remoteExecCall',
+                      '[_group,_opportunity,"NO_COMMUNICATION",clientOwner] remoteExecCall'):
+            self.assertIn(check,delivery)
+        self.assertIn('"NO_COMMUNICATION"',source('cortexCombinedRejectServer'))
+        self.assertNotIn('call _markApplied',delivery)
+        self.assertNotIn(' reveal ',delivery)
+
     def test_group_transmitter_prefers_leader_but_falls_back_to_a_living_wingman(self):
         transmitter = source("cortexGroupTransmitter")
         self.assertIn('private _leader = leader _group;', transmitter)
@@ -36,7 +77,7 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertIn('private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);', report)
         self.assertIn('_receiverAnchor distance2D _senderPosition <= _range', report)
         self.assertIn('private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;', report_local)
-        self.assertIn('private _receiverPosition = getPosATL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);', report_local)
+        self.assertIn('private _receiverPosition = getPosASL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);', report_local)
         self.assertIn('_receiverPosition distance2D _senderPosition > _range', report_local)
         self.assertNotIn(' reveal ', report)
         self.assertNotIn('doTarget', report)

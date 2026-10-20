@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-18",
+  "status": "SOURCE_REVIEW_NOT_BEHAVIOUR_ACCEPTANCE",
+  "scope": "HBQ head-on/crossing jam yield, rear request cascade and physical back-off; current CBE execution boundary",
+  "protected_source_sha256": {
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_push.sqf": "b3a7710202b7d049b5ffd78d3acd45cd1366f3dccda347f138475bea1cf0f871"
+  },
+  "production_sha256": {
+    "addons/vehicles/functions/drivingOperationStep.sqf": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "e61dd4cfcf580a1d9166fa597354d3d91ff38353bd09da353cb045ba9816251c",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "8ce95123173598feb2c1755665f51350f223bd49e628f94ada0e07526e2e3010",
+    "addons/vehicles/functions/drivingQueueContext.sqf": "6f20f135b2b4f76b9b945cfc81a15374a7eb044068a710c814f87f5073cc4c6b",
+    "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "e3118ab46f2bd67e8eb113eceae09f5fc7505cd9a2224227e2af68338ffc1313",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "e82fe5a09fbd42156b675722657c2e000a288529942793c990d3d98bcefd3b89",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "4311645f47ba593feb77c4564fde57b8b7e40754c17d1e7cbe8c8dbaf0c4f5de",
+    "addons/vehicles/functions/drivingRearClear.sqf": "fa14f0ea245b08cd031eb79fb2207734d3ab9def5838516696cec6041cb07c71",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "0df8abdaa9b15a762ca9d294d969af19c286cd781ff9fa65d214352fa9b87b06",
+    "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab"
+  },
+  "source_intent": [
+    {
+      "location": "fn_driveAssist.sqf:1433-1487",
+      "intent": "Maintain room while yielding; cancel backing when front traffic moves away; request nearest rear participant first when rear space is unavailable; last participant makes room before upstream vehicles."
+    },
+    {
+      "location": "fn_driveAssist.sqf:1585-1659",
+      "intent": "Distinguish head-on/crossing conflicts from same-direction queues; choose one yielding participant; avoid symmetric reverse/forward oscillation; retain hard collision stops."
+    },
+    {
+      "location": "fn_push.sqf:60-90",
+      "method": "One EachFrame handler writes setVelocityModelSpace during bounded pushes and removes reverse velocity on stop. This is forced physics, not native AI reverse."
+    }
+  ],
+  "disposition": {
+    "retain_intent": [
+      "rear-to-front dependency",
+      "front movement cancels backing",
+      "moving rear traffic veto",
+      "one yielding root",
+      "finite make-room hold",
+      "hard obstacle protection"
+    ],
+    "reject_method": [
+      "copying setVelocityModelSpace pushes",
+      "traffic-ignore release as permission to drive through hulls",
+      "public rear-request timestamp as actual-owner movement consent"
+    ],
+    "implemented_partial": [
+      "bounded proposal and dependency roster",
+      "distinct actual-owner queue consent protocol",
+      "original deadlines and expiry cleanup",
+      "read-only swept rear/body/traffic support checks",
+      "finite ordinary rear-destination attempt with heading/lateral/damage rejection"
+    ],
+    "missing_execution": [
+      "queue consent COMMIT to owned execution episode",
+      "sole-writer hold admission and physically stationary READY",
+      "one dependency leaf native reverse leg",
+      "independently observed full-hull room before parent leg",
+      "phase-bound cancellation and exact hold/native-command handback"
+    ],
+    "native_capability_limit": "Current rear doMove can produce a U-turn and is monitored/refused; it is not demonstrated reverse. sendSimpleCommand BACK applicability still needs crew-configuration evidence. No negative forceSpeed or physics workaround is acceptable."
+  },
+  "corrections": [
+    "The earlier queue execution contract references a passing-only protocol as its current-state finding. CBE now has distinct queue proposal/context/request/server/owner consent functions; that finding is superseded. Consent is still not execution.",
+    "No production movement gains, command mode or timeout is changed by this review. Do not equate the physics-backed HBQ source with demonstrated native CBE parity."
+  ],
+  "next_work": [
+    "Implement queue execution only with an explicit native command/cleanup ownership contract; preserve finite refusal when native reverse is unsupported.",
+    "While audits remain paused, continue other HBQ controller branches that can be implemented without assuming physical reverse capability.",
+    "Prepare later separate normal/actual-provider HC capability and queue cases; do not launch without user resumption."
+  ],
+  "acceptance": "All65 families partial. Audits explicitly paused; no physical/performance acceptance."
+}

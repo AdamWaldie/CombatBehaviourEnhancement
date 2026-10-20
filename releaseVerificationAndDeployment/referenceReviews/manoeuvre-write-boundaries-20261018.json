@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-18",
+  "scope": "Current manoeuvre write-boundary review; source contracts are not physical acceptance",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/cortexFlankStep.sqf",
+      "sha256": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62"
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "sha256": "586151d10c249eff620167e3b839a193a0f3d6965dbe157d0ef1753e12d2e0f6"
+    },
+    {
+      "path": "addons/infantry/functions/cortexDrillSetStage.sqf",
+      "sha256": "74a6f57a608c053c0d833848559e396d24f9e54304d703cd26709f0f2fd1150c"
+    },
+    {
+      "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+      "sha256": "e2d98a7426009377394fe93657db3ae56319f479f34ae9861505805bf0f4e17c"
+    }
+  ],
+  "boundaries": [
+    {
+      "area": "main bound issue",
+      "status": "current-context transaction",
+      "notes": "Geometry scheduled; actor commands and bound journals commit under exact point/phase/roster/task snapshots. Native acknowledgement and cost unverified."
+    },
+    {
+      "area": "casualty roster publication",
+      "status": "current-context transaction",
+      "notes": "Private proposals then generation/epoch/token/actor observation commit. Common-role filter and legacy owned PATH domains remain distinct."
+    },
+    {
+      "area": "drill stage and terminal cleanup",
+      "status": "current-child transaction",
+      "notes": "Exact child token matters even when parent generation remains. Operation release is separate; final deletion rechecks token."
+    },
+    {
+      "area": "cleanup restoration",
+      "status": "current-context transaction",
+      "notes": "Owned mode/feature/handler/hold/formation writes checked with current state/token/epoch/generation; same-value ownership and native reentrancy unproven."
+    },
+    {
+      "area": "recovery movement",
+      "status": "partial",
+      "notes": "Current common RecoveryStep has its own command boundary; legacy negative-generation direct doMove remains task-gated only. No whole-callback atomicity."
+    },
+    {
+      "area": "feature restoration before new bound",
+      "status": "current-context helper transaction",
+      "notes": "Shared helper checks live state/token/epoch/operation, feature/pause/contact/support role and external ownership before restoration and journal edits. Both callers defer on refusal; actual native acknowledgement/same-value ownership/cost unverified."
+    },
+    {
+      "area": "team recovery reassignment",
+      "status": "current-context helper transaction",
+      "notes": "Current turn/team arrays and available actor tasks checked in the same transaction as transfers, stage/spot edits and bounded history. A refusal marks deferral before recovery-loss decisions or issue. Physical cohesion and repeated transitions unverified."
+    },
+    {
+      "area": "MOVE arrival and retry",
+      "status": "current-observation transaction",
+      "notes": "Cloned progress/retries and original stage/index/turn, spots/movers, native actor context, support role, generation/epoch and current waypoint metadata guard one native action/journal commit. Every arrival is freshly floor-checked; retries refuse if the actor arrived or moved0.5m after observation. Later MOVE quorum/failure bookkeeping remains open; engine acknowledgement and runtime cost unverified."
+    },
+    {
+      "area": "MOVE quorum and failure bookkeeping",
+      "status": "current-observation transactions",
+      "notes": "Quorum/viable-majority recovery, replacement preparation and failure feedback recheck committed progress/retries/arrivals/recovery, current MOVE identity, original deadline/waypoint metadata, actor native tasks and fresh arrival/blocked motion. Refusal defers; admitted failure alone invokes token-bound cleanup. Later arrived-phase side effects remain separate."
+    },
+    {
+      "area": "Arrived phase side effects",
+      "status": "partial: original drill bound into asynchronous throws",
+      "notes": "Smoke/frag requests carry original group/token/generation/epoch through queue, delayed aiming and final listener/weapon-release transactions. Parent type feature/master/pause/cancellation is rechecked. Pause, consolidation and later phase journals remain open; ordinary context-free and DANGER policy remain separate."
+    },
+    {
+      "area": "elapsed PAUSE next-bound admission",
+      "status": "current-context transaction",
+      "notes": "Exact stage/index/turn/pause deadline and helper authority checked in isNil; next index/turn and START publish once before scheduled _issue. Refused issue retains START for the same bound. HOLD/consolidation and physical timing remain open."
+    },
+    {
+      "area": "HOLD consolidation enrollment",
+      "status": "current-context transaction",
+      "notes": "Current stage/turn/index/pause, roster, route, feature/owner/parent authority and candidate readiness/native commands checked before teams/units/route and pending START publish together. Scheduled issue may refuse without false completion. Other HOLD assault publication and physical layout remain open."
+    },
+    {
+      "area": "HOLD assault route and finish-flank publication",
+      "status": "current-context transaction",
+      "notes": "Scheduled avenue selection precedes atomic phase/index/turn/pause/route/roster/team/feature/objective/native actor checks. Only admitted proposal publishes assault route/counter/START or finish-flank intent. Movement and terminal cleanup stay outside; same-step issue retained. Deferred0.25 cadence is not overwritten by zero-duration HOLD scheduling. Freshness of route geometry and physical outcomes unverified."
+    },
+    {
+      "area": "assault arrival clear-through publication",
+      "status": "current-context transaction",
+      "notes": "After scheduled grenade preparation, original MOVE index/turn, helper authority, roster/teams/route/objective and assault gate must match before grenade journals/index/START publish. Movement remains scheduled with separate native actor admission. Physical arrival freshness and other arrived phases remain unverified."
+    },
+    {
+      "area": "ordinary MOVE arrival stage/deadline publication",
+      "status": "current-context transaction",
+      "notes": "After restoration, original MOVE index/turn, helper authority, roster/team/spot and route kind must match before stage and pauseUntil publish in one isNil. Smoke and assault preparation remain scheduled after admission; clear-through has its own post-preparation check. Physical arrival freshness and performance unverified."
+    },
+    {
+      "area": "fresh physical arrival witnesses at phase commit",
+      "status": "bounded current-position recheck",
+      "notes": "Original arrived actors retain copied ASL assigned spots and existing required quorum. Both ordinary stage and post-grenade clear-through commit require current local/effective/untransported/task-free group actors within3m and1.5m vertical. Recovery stragglers are not falsely counted; no teleport, scan or expanded arrival tolerance. Runtime and measured cost unverified."
+    },
+    {
+      "area": "separated actor recovery commands and journals",
+      "status": "current-child command/attempt transaction and guarded roster publication",
+      "notes": "Copy recovery rows; exact entry records and stage/index/turn plus helper authority/native actor snapshot admit existing RecoveryStep or legacy native move inside isNil. Persist each admitted retry row immediately with its command; advance expected entry only by own writes. Later deferral cannot refund a spent legacy attempt. Final recovery list/public snapshot guarded. Physical peer/rejoin freshness, interleavings and measured cost unverified."
+    },
+    {
+      "area": "recovery rejoin proof",
+      "status": "live peer recheck in roster transaction",
+      "notes": "Retain selected buddy/anchor object with each proposed rejoin; final publication checks both local effective same-group untransported task-free actors, peer in current main element and fresh12m/1.5m vertical separation. Existing MOVE-stage veto and actor PATH/MOVE retained. Stale rally coordinates do not retire recovery. No retry replenishment; routing, physical flow and cost unverified."
+    }
+  ],
+  "implementationChange": {
+    "progress": "ASL3D pose and approach range; floor-aware arrival and recovery rejoin. Legacy coordinate conversion retains recorded clocks/retry budgets.",
+    "recoveryTarget": "Actual eligible team buddy or nearest team peer in3D, never average between floors. Existing finite attempts retained."
+  },
+  "validation": {
+    "tests": 1352,
+    "log": ".qa/cbe-rejoin-live-peer-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "931864fdb2864ad912eec815814856f613d67bd23e6e6437fae35a85b5079143"
+  },
+  "physicalAcceptance": false,
+  "performanceAccepted": false,
+  "retryTiming": {
+    "scope": "Stall watchdog observation after the sole admitted native refresh; no whole-HBQ parity",
+    "implementation": "Pending valid retry suppresses pre-retry stall classification. An admitted retry retains its actual issue time and receives the existing8-second stall observation interval. No physical-progress timestamp or fixed deadline is renewed. Planning and command admission both refuse after the original bound deadline; hard expiry takes TIME_LIMIT precedence.",
+    "limits": "Quorum/majority handoff, ownership changes and hard expiry remain independent endings. No guarantee of8seconds uninterrupted actor movement or actual native acknowledgement.",
+    "referenceIntent": "Previously reviewed HBQ driveAssist2555-2580 preserves planning time after replanning. CBE uses its own existing interval/one-attempt bound rather than importing upstream20/15/30-second waits.",
+    "referenceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  },
+  "throwContext": {
+    "payload": [
+      "DRILL",
+      "group",
+      "original child token",
+      "operation generation",
+      "owner epoch"
+    ],
+    "validation": "Typed finite nonnegative context; same original group, current child, operation/epoch and parent feature. Queue marker generation cannot adopt a replacement drill. Callback helper is passed explicitly with local CBA arguments.",
+    "deadline": "Original1.5-second aiming deadline is checked at callback entry, aiming and final native release; aligned delayed callbacks also expire. No retry/deadline renewal.",
+    "limits": "Existing magazine selection, config blast safety, alignment and projectile listeners retained. Physical trajectory/effect, late native release, helper query-to-geometry freshness and owner migration remain unverified. This is not whole-grenade safety or whole-FSM acceptance."
+  },
+  "consolidationScope": {
+    "finding": "The HOLD actor list named _support shadowed the outer support-mode boolean through SQF dynamic call scope, including _issue and _helperCurrent.",
+    "implementation": "Distinct _consolidationActors and _supportRoles names preserve actor enrollment and helper boolean context. Regression contract rejects a second private _support declaration; repository conventions explain dynamic scope and explicit queued payloads.",
+    "limits": "No change to tactical layout, timing or transitions. HOLD/PAUSE publication and actual consolidation remain unverified."
+  },
+  "executionContextCorrection": "See execution-context-20261018.json. Normal shared-scheduler jobs run unscheduled; older scheduled-geometry/intra-call scheduler-yield wording is not a proven interleaving. Guards are source contracts, not runtime race or cost evidence; distinguish actual deferred callbacks/direct scheduled calls/re-entry."
+}

@@ -5,29 +5,60 @@
  * Locality / Authority: Current convoy group owner/current registry brain only. Cleanup is scoped
  * to the original configuration revision; stale cleanup cannot erase successor passage work.
  * Repeat/JIP: Public bounded episode/entered/crossed receipts survive owner adoption without
- * movement replay or deadline renewal. At most 20 snapshotted vehicles and eight corners each.
+ * movement replay or deadline renewal. At most 20 snapshotted vehicles; eight corners per check, at most16 for a revoked pass.
  * The deadline is frozen by lead admission, including original column length allowance (max 1800 s).
  * Arguments: 0 group <GROUP, grpNull>; 1 configuration <ARRAY, []>; 2 cancel reason <STRING, empty>.
+ * Optional argument 3: expected cancellation receipt <ARRAY, []> [revision,identity,started,deadline].
+ * Optional argument 4: expected owner context <ARRAY, []> [brain,jobToken,epoch,registryRevision].
+ * Empty retains administrative revision-scoped calls; supplied receipts cannot select a successor.
+ * Deferred observation returns fifth field "DEFERRED"; callers must retain applied controls
+ * and retry through the existing job rather than treat refusal as passage absence.
  * Return Value: ARRAY [active BOOL, capsMps HASHMAP keyed netId, crossed NUMBER, required NUMBER].
- * Geometry: actual hull projection, lateral containment and nearest sampled support elevation;
+ * Geometry: actual hull projection, lateral containment and interpolated approved support elevation;
+ * each unpassed vehicle reads at most20stored ASL nodes, with no nearest-station height jumps.
  * no new rays or world scans. Original waypoint metadata/count and Zeus receipt protect handover,
  * while normal forward waypoint-index progression does not pretend the tail has crossed.
  * Current callers: ConvoyTick, ConvoyCrewLocal and ConvoyReleaseLocal.
  * Example: private _passage=[_group,_configuration] call CBE_fnc_ConvoyCorridorStep;
  */
-params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_cancel","",[""]]];
+params [["_group",grpNull,[grpNull]],["_configuration",[],[[]]],["_cancel","",[""]],["_expectedEpisode",[],[[]]],["_expectedContext",[],[[]]]];
 private _inactive=[false,createHashMap,0,0];
+private _deferred=[false,createHashMap,0,0,"DEFERRED"];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _group} || {!local _group}) exitWith {_inactive};
 private _revision=_configuration param [0,-1];
 private _episode=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
+private _episodeKey={
+    params ["_record"];
+    ["revision","identity","started","deadline"] apply {_record getOrDefault [_x,[]]}
+};
+private _entryEpisodeKey=[_episode] call _episodeKey;
+private _retireBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+private _ownerContext={
+    [_group getVariable ["CBE_Convoy_Brain",createHashMap],_group getVariable ["CBE_Convoy_LocalJobToken",""],
+        _group getVariable ["CBE_AIPass_Epoch",0],missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1]]
+};
+private _entryOwnerContext=call _ownerContext;
+
 private _retire={
     params ["_reason",["_status","INCOMPLETE"]];
-    _group setVariable ["CBE_Convoy_CorridorResult",[_status,_reason,serverTime,
-        _episode get "rows",_episode get "area",_episode get "revision",_episode get "identity"],true];
-    _group setVariable ["CBE_Convoy_CorridorPassage",nil,true];
+    private _retired=false;
+    isNil {
+        private _liveEpisode=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
+        if (!local _group || {(_group getVariable ["CBE_Convoy_Brain",createHashMap]) isNotEqualTo _retireBrain}
+            || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+            || {_liveEpisode isNotEqualTo _episode}
+            || {([_liveEpisode] call _episodeKey) isNotEqualTo _entryEpisodeKey}) exitWith {};
+        _group setVariable ["CBE_Convoy_CorridorResult",[_status,_reason,serverTime,
+            _episode get "rows",_episode get "area",_episode get "revision",_episode get "identity"],true];
+        _group setVariable ["CBE_Convoy_CorridorPassage",nil,true];
+        _retired=true;
+    };
+    if (!_retired) exitWith {_deferred};
     _inactive
 };
 if (_cancel != "") exitWith {
+    if (_expectedContext isNotEqualTo [] && {_entryOwnerContext isNotEqualTo _expectedContext}) exitWith {_inactive};
+    if (_expectedEpisode isNotEqualTo [] && {_entryEpisodeKey isNotEqualTo _expectedEpisode}) exitWith {_inactive};
     if (count _episode > 0 && {(_episode get "revision") == _revision}) then {[_cancel,"CANCELLED"] call _retire} else {_inactive}
 };
 private _brain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
@@ -38,6 +69,7 @@ if (count _brain == 0 || {_brain getOrDefault ["cancelled",false]}
     || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
         (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
     } < 0}) exitWith {_inactive};
+private _creationDeferred=false;
 if (count _episode == 0) then {
     private _lead=(_group getVariable ["CBE_Convoy_LocalState",createHashMap]) getOrDefault ["lead",objNull];
     private _work=_lead getVariable ["CBE_DrivingCorridor_Work",createHashMap];
@@ -48,15 +80,44 @@ if (count _episode == 0) then {
         && {(_work getOrDefault ["controller",[]]) isEqualTo ["CONVOY",_revision]}) then {
         private _rows=_vehicles apply {[_x,driver _x,effectiveCommander _x,false,false]};
         private _route=_work get "route";
-        _episode=createHashMapFromArray [["identity",_identity],["lead",_lead],["started",serverTime],["revision",_revision],["area",_work get "area"],
+        private _workKey={
+            params ["_record"];
+            ["context","hardDeadline","controller","route","tailDeadline","area","definition","transform","travel","asl","far"] apply {
+                private _value=_record getOrDefault [_x,[]];
+                if (_value isEqualType []) then {+_value} else {_value}
+            }
+        };
+        private _creationWorkKey=[_work] call _workKey;
+        private _proposedEpisode=createHashMapFromArray [["identity",_identity],["lead",_lead],["started",serverTime],["revision",_revision],["area",_work get "area"],
             ["definition",_work get "definition"],["transform",_work get "transform"],
             ["travel",_work get "travel"],["asl",_work get "asl"],["far",_work get "far"],
             ["route",_route],["routeIndex",(_route select 0) select 0],["routeCount",count waypoints _group],
             ["zeus",+(_group getVariable ["CBE_AIPass_ZeusHold",[]])],
             ["deadline",_work get "tailDeadline"],["rows",_rows]];
-        _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
+        _creationDeferred=true;
+        isNil {
+            private _liveWork=_lead getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+            if (!local _group || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+                || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+                || {(_brain getOrDefault ["configuration",[]]) isNotEqualTo _configuration}
+                || {count (_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap]) != 0}
+                || {(_group getVariable ["CBE_Convoy_CorridorResult",[]]) isNotEqualTo _terminal}
+                || {((_group getVariable ["CBE_Convoy_LocalState",createHashMap]) getOrDefault ["lead",objNull]) != _lead}
+                || {count _liveWork == 0} || {([_liveWork] call _workKey) isNotEqualTo _creationWorkKey}
+                || {serverTime >= (_proposedEpisode get "deadline")}
+                || {count waypoints _group != (_proposedEpisode get "routeCount")}
+                || {currentWaypoint _group < (_proposedEpisode get "routeIndex")}
+                || {([_group,"",false,_proposedEpisode get "routeIndex"] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo (_proposedEpisode get "route")}
+                || {!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                || {[_group] call CBE_fnc_CortexZeusHeld} || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+            _episode=_proposedEpisode;
+            _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
+            _entryEpisodeKey=[_episode] call _episodeKey;
+            _creationDeferred=false;
+        };
     };
 };
+if (_creationDeferred) exitWith {_deferred};
 if (count _episode == 0) exitWith {_inactive};
 if ((_episode get "revision") != _revision || {(_configuration param [5,""]) != "TRAVEL"}) exitWith {["CONFIGURATION_CHANGED","CANCELLED"] call _retire};
 if (!([_group,"CBE_Convoy_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)
@@ -69,7 +130,8 @@ private _index=_episode get "routeIndex";
 if (count waypoints _group != (_episode get "routeCount") || {currentWaypoint _group < _index}
     || {([_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo (_episode get "route")}) exitWith {["ORDER_CHANGED","CANCELLED"] call _retire};
 if (serverTime >= (_episode get "deadline")) exitWith {["TAIL_TIMEOUT"] call _retire};
-private _rows=_episode get "rows";
+private _entryRows=(_episode get "rows") apply {+_x};
+private _rows=_entryRows apply {+_x};
 if (count _rows == 0 || {count _rows > 20}) exitWith {["INVALID_ROSTER"] call _retire};
 private _lead=_episode get "lead";
 private _leadWork=_lead getVariable ["CBE_DrivingCorridor_Work",createHashMap];
@@ -89,6 +151,25 @@ private _targetSpeed=(_definition select 3)/3.6;
 {
     private _row=_x;
     _row params ["_vehicle","_driver","_operator","_entered","_passed"];
+    // Historical passage is not current exit clearance after a reversal or transfer.
+    if (_passed) then {
+        private _stillBeyond=!isNull _vehicle && {alive _vehicle} && {canMove _vehicle} && {local _vehicle}
+            && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+            && {[_driver,_operator] findIf {
+                isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+                    || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+                    || {!isNull remoteControlled _x} || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            } < 0};
+        if (_stillBeyond) then {
+            private _passedBounds=boundingBoxReal _vehicle;
+            private _passedLow=_passedBounds select 0;private _passedHigh=_passedBounds select 1;
+            {private _px=_x;{private _py=_x;{
+                private _corner=_vehicle modelToWorldWorld [_px,_py,_x];
+                if ((_corner vectorDiff _far) vectorDotProduct _travel < 5) then {_stillBeyond=false};
+            } forEach [_passedLow select 2,_passedHigh select 2];} forEach [_passedLow select 1,_passedHigh select 1];} forEach [_passedLow select 0,_passedHigh select 0];
+        };
+        if (!_stillBeyond) then {_row set [4,false];_passed=false;_changed=true};
+    };
     if (_passed) then {_crossed=_crossed+1} else {
         if (isNull _vehicle || {!alive _vehicle} || {!canMove _vehicle}
             || {!local _vehicle} || {driver _vehicle != _driver} || {effectiveCommander _vehicle != _operator}
@@ -105,9 +186,22 @@ private _targetSpeed=(_definition select 3)/3.6;
                     if (abs ((_corner vectorDiff _centre) vectorDotProduct _right) > (_definition select 2)+0.5) then {_insideWidth=false};
                 } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];
             } forEach [_low select 0,_high select 0];
-            private _nearest=_asl select 0;private _distance=1e9;
-            {private _d=_origin distance2D _x;if (_d < _distance) then {_distance=_d;_nearest=_x}} forEach _asl;
-            private _level=abs ((_origin select 2)-(_nearest select 2)) <= 2;
+            // The closest station's height is not the support height between stations on
+            // a ramp. Match the lead's longitudinal ASL interpolation, bounded to20nodes.
+            private _expectedFloor=[];
+            if (count _asl >= 2 && {count _asl <= 20}) then {
+                for "_i" from 1 to (count _asl-1) do {
+                    private _a=_asl select (_i-1);private _b=_asl select _i;
+                    private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
+                    private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
+                    if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
+                        private _fraction=(_projection-_pa)/(_pb-_pa);
+                        _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
+                    };
+                };
+            };
+            private _level=_expectedFloor isNotEqualTo []
+                && {abs ((_origin select 2)-(_expectedFloor select 0)) <= 2};
             if (abs _projection <= _halfLength && {!_insideWidth || {!_level}}) then {_failure="TAIL_DEPARTED_CORRIDOR"};
             if (!_entered && {_projection >= -_halfLength} && {_projection <= -_halfLength+15}
                 && {_insideWidth} && {_level}) then {_row set [3,true];_entered=true;_changed=true};
@@ -127,7 +221,20 @@ private _targetSpeed=(_definition select 3)/3.6;
         };
     };
 } forEach _rows;
+private _rowsPublished=false;
+isNil {
+    private _liveEpisode=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
+    if (!local _group || {(call _ownerContext) isNotEqualTo _entryOwnerContext}
+        || {_liveEpisode isNotEqualTo _episode}
+        || {([_liveEpisode] call _episodeKey) isNotEqualTo _entryEpisodeKey}
+        || {(_liveEpisode getOrDefault ["rows",[]]) isNotEqualTo _entryRows} ) exitWith {};
+    if (_changed) then {
+        _episode set ["rows",_rows];
+        _group setVariable ["CBE_Convoy_CorridorPassage",_episode,true];
+    };
+    _rowsPublished=true;
+};
+if (!_rowsPublished) exitWith {_deferred};
 if (_failure != "") exitWith {[_failure] call _retire};
 if (_crossed == count _rows && {count _rows > 0}) exitWith {["ALL_VEHICLES_PHYSICALLY_CROSSED","COMPLETE"] call _retire};
-if (_changed) then {_episode set ["rows",_rows];_group setVariable ["CBE_Convoy_CorridorPassage",_episode,true]};
 [true,_caps,_crossed,count _rows]

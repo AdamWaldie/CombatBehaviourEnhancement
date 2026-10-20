@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-19",
+  "scope": "Ongoing convoy admission and native acknowledgement preserve distinct driver orders",
+  "finding": "The shared movement receipt retained operator destination and pending goal but not the distinct driver destination. The top-level order observer could accept a commander goal and refresh follower native evidence after a simultaneous new driver MOVE, effectively adopting that driver order. Path-only release protection did not cover this ongoing admission path.",
+  "implementation": "Use one eight-field movement schema for native pending/acknowledged and steering records. Field6 retains the request or[], field7 captures driver command/destination. Check distinct driver proof before commander acknowledgement; yield original convoy revision on changed destination or newly observable STOP. Same driver/operator can acknowledge only the original goal and update that one actor proof. Internal native STOP retirement checks distinct driver proof before metadata removal. Update release metadata shape and paused audit readers, retaining physical travel prerequisites.",
+  "cost": "Constant metadata checks over the existing registered convoy roster. No query, ray, worker, timer, deadline renewal, new movement writer or physics command.",
+  "validation": {
+    "focusedExistingTests": 661,
+    "focusedLog": ".qa/cbe-convoy-driver-order-fixed-focused.log",
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests and full sequential compiler/FSM/config/docs/parity/performance/package gates passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-convoy-driver-order-final-build.log",
+    "independentLog": ".qa/cbe-convoy-driver-order-final-independent.log",
+    "packageSource": "c693914ff80c4ff68d5fab8a5bf3c5692e349d6c+dirty",
+    "packageFingerprint": "92a44b85d7294a16889d4f956e7a2411e40af18acb1e4da329389ee1da83a36a"
+  },
+  "limits": "An externally repeated native order with identical observable receipts cannot be distinguished. Current same-actor native acknowledgement policy remains. This does not complete native queue manoeuvring or demonstrate physical handover.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/convoyTick.sqf",
+      "sha256": "05181a3fd90e4ae14c5bc1858ba68efd34c7cd673d4e616899c4290059d06e78"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyReleaseLocal.sqf",
+      "sha256": "60578c194b38e72d32ee0b5da13fb767e82da2f8503603be4bcee5039a847857"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyRetireMoveReceipt.sqf",
+      "sha256": "f972c194154f701bec9ca0051209a3e759cbde20329d7614ee0bca0bb786a052"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/cortexQA/runConvoyNativeStop.sqf",
+      "sha256": "f7400ce523c151a889d4546573dc9fbbbf40b4cf914af644357b75c19ad42ed4"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf",
+      "sha256": "94dc91a39d8bade7b52050242ed06daac545328de3e6afe32a1a8ac2f22f42f7"
+    }
+  ]
+}

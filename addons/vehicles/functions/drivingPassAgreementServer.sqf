@@ -34,8 +34,9 @@ private _topologyCurrent={
         {
             private _ar=_a select _x;private _er=_e select _x;
             if (!(_er isEqualType []) || {count _ar != count _er}) exitWith {_valid=false};
-            if (_ar isNotEqualTo [] && {count _ar != 10 || {(_ar select [0,7]) isNotEqualTo (_er select [0,7])}
-                || {(_ar select 9) isNotEqualTo (_er select 9)}}) exitWith {_valid=false};
+            if (_ar isNotEqualTo [] && {count _ar != 11 || {(_ar select [0,7]) isNotEqualTo (_er select [0,7])}
+                || {(_ar select 9) isNotEqualTo (_er select 9)}
+                || {(_ar select 10) isNotEqualTo (_er select 10)}}) exitWith {_valid=false};
         } forEach [2,3];
     };
     _valid

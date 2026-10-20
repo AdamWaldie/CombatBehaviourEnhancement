@@ -10,6 +10,7 @@
  * 128 reserved posts and 64 lanes. Every coordinate must be a finite numeric triple;
  * malformed/over-budget input refuses before any world/geometry query.
  * Diagnostic mode returns the same acceptance result with read-only check measurements.
+ * Normal calls reject impossible exterior/exit bounds before visibility and occupancy queries.
  * Return Value: BOOL by default; diagnostic mode returns [BOOL, named check pairs ARRAY].
  * Supported observation geometry never establishes path arrival or room safety.
  * Current callers: CBE_fnc_BuildingOperationStep and CBE_fnc_CortexGarrisonApplyLocal.
@@ -49,10 +50,11 @@ private _exterior=(_model select 0) < (_minimum select 0)-0.5
 private _blocksExit=_entries findIf {
     _target distance2D _x < 3 && {abs (((AGLToASL _target) select 2)-((AGLToASL _x) select 2)) <= 1}
 } >= 0;
-private _observationClear=!terrainIntersectASL [
-    (AGLToASL _target) vectorAdd [0,0,1.6],AGLToASL _watch]
-    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,1.6],
-        AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
+// These necessary bounds already belong to the final acceptance predicate.
+// Normal planning rejects them before visibility rays and the nearby-body query;
+// diagnostic mode retains all original measurements for explaining a refusal.
+private _exitDistance=_target distance2D _entry;
+if (!_diagnostics && {!_exterior || {_blocksExit} || {_exitDistance < 3} || {_exitDistance > 18}}) exitWith {false};
 // Prospective posts must not occlude another committed observer or have their own view
 // blocked by that future actor. Actual terrain/object visibility is still checked above.
 private _blocksSegment = {
@@ -73,12 +75,19 @@ private _laneBlocked=_observerLanes findIf {
 } >= 0;
 private _separated=_taken findIf {_target distance2D _x < 3} < 0
     && {(_target nearEntities ["CAManBase",1.2]) select {_x != _actor} isEqualTo []};
+// Reservation/occupancy refusal also needs no visibility ray. Diagnostic calls
+// continue through the same detailed measurements, including the observation ray.
+if (!_diagnostics && {_laneBlocked || {!_separated}}) exitWith {false};
+private _observationClear=!terrainIntersectASL [
+    (AGLToASL _target) vectorAdd [0,0,1.6],AGLToASL _watch]
+    && {(lineIntersectsSurfaces [(AGLToASL _target) vectorAdd [0,0,1.6],
+        AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []};
 private _dry="NOT_CHECKED";
 private _slopeZ="NOT_CHECKED";
 private _standingChecked=false;
 private _standingClear=false;
-private _valid=_observationClear && {!_laneBlocked} && {_separated} && {_exterior} && {!_blocksExit} && {_target distance2D _entry >= 3}
-&& {_target distance2D _entry <= 18} && {_dry=!surfaceIsWater _target; _dry}
+private _valid=_observationClear && {!_laneBlocked} && {_separated} && {_exterior} && {!_blocksExit} && {_exitDistance >= 3}
+&& {_exitDistance <= 18} && {_dry=!surfaceIsWater _target; _dry}
 && {_slopeZ=(surfaceNormal _target) select 2; _slopeZ >= 0.65}
 && {
     _standingChecked=true;

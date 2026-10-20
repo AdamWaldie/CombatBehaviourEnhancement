@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queued callback authority for ordinary driving, convoy and building FSMs",
+  "finding": "QueueJob retains callbacks for a later scheduler tick independently of FSM lifetime. Step adapters checked owner/brain/epoch but could execute an already queued command path after the same FSM had ended unexpectedly. Existing start checks alone do not bind later execution.",
+  "executionContext": "CortexQueueJob only appends/coalesces pending jobs; SchedulerTick executes later from CBA normally unscheduled. Therefore the handle is published before the callback check. No claim of intra-callback scheduler preemption or changed budget.",
+  "implementation": [
+    "Each Step now requires a typed finite nonnegative current FSM handle and not completedFSM before its execution path. Handle0 remains valid.",
+    "Ended/invalid executor clears pending and marks the callback completed, returning-1 without command, cleanup, restart, deadline renewal or task cancellation.",
+    "Existing one-restart paths retain original driving/room/convoy journals. Convoy can retain the same brain; driving/building restart replaces the old brain, which still rejects stale callbacks.",
+    "Existing scheduler runtime/subsystem gates already reject disabled jobs; no duplicate global runtime guard was added."
+  ],
+  "evidence": [
+    {
+      "path": "addons/core/functions/cortexQueueJob.sqf",
+      "sha256": "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11"
+    },
+    {
+      "path": "addons/core/functions/cortexSchedulerTick.sqf",
+      "sha256": "e45cd0675bb7a67865cf043a7d24121f6070b6e05b29348682eb6069427b5ecf"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStep.sqf",
+      "sha256": "c83bfa040490aceca88eec1123dd98f05ff339122a86db9a185afe46e0dac5f0"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+      "sha256": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "fb424efbe6437b4e5253464190430ff1e1c2dd8c6fe70b1e085db725041bd691"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+      "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
+    },
+    {
+      "path": "addons/vehicles/functions/convoyOperationStart.sqf",
+      "sha256": "f7dddbdfe733d5f4f6700fd25c23dcd74a4abc3631f074a19a1936a3856a6a09"
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStart.sqf",
+      "sha256": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec"
+    }
+  ],
+  "validation": {
+    "focusedTests": 615,
+    "focusedLog": ".qa/cbe-operation-callback-liveness-focused.log",
+    "hemttLog": ".qa/cbe-operation-callback-liveness-hemtt.log",
+    "tests": 1476,
+    "buildLog": ".qa/cbe-operation-callback-liveness-build.log",
+    "independentLog": ".qa/cbe-operation-callback-liveness-independent.log",
+    "fingerprint": "724a9f6c1d1cfbfd97ceb7c8955d1a3a40c9bb7cae771f0f9cc81231f8361556",
+    "packageSource": "5a17b7322f034dc72f46c5bf7db9b56fa169a63e+dirty unsigned development"
+  },
+  "remaining": [
+    "Forced termination, late callback retirement, original-budget restart and eventual native control restoration require actual normal/HC game validation.",
+    "No change proves current CQB/mixed-convoy physical quality or measured performance.",
+    "Queue dependency reverse/full-hull parent clearance remains incomplete; automatic queue activation remains off."
+  ],
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "paused",
+  "airSupportFollowup": {
+    "scope": "Aircraft attack, server support-request and server artillery callbacks",
+    "implementation": "Require live current typed FSM handle after job/brain authority checks and before native/domain execution. Ended callbacks clear pending/completed only, leaving original job and deadlines for one bounded restart.",
+    "domainReview": [
+      "Aircraft original lease/context retirement corrected before applying Step gate.",
+      "Server discovery offers the exact registered support job; Start validates request serial/registry.",
+      "Server discovery offers the original artillery mission; Start explicitly admits its original RELOCATING observer after fire-registry removal, without renewed scoot deadlines."
+    ],
+    "evidence": [
+      {
+        "path": "addons/aircraft/functions/airAttackOperationStep.sqf",
+        "sha256": "cd1b4281207b5b96449cb7c515139397a1477976de37ecd8b76f592aead0f8e2"
+      },
+      {
+        "path": "addons/aircraft/functions/airAttackOperationStart.sqf",
+        "sha256": "ee8083e51327f5218fd4b1163940204c42be040f3292c6d185091e2435fc9c93"
+      },
+      {
+        "path": "addons/support/functions/supportRequestStep.sqf",
+        "sha256": "476f29af53acfca1b40bfd1201c898930207b0af18b3789b0105b73ba1765b2a"
+      },
+      {
+        "path": "addons/support/functions/supportRequestStart.sqf",
+        "sha256": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a"
+      },
+      {
+        "path": "addons/support/functions/artilleryMissionStep.sqf",
+        "sha256": "8c9d39d5bb6f6414c8ddb32b265040cfedb5e0ccd321758eca09b113c96ad238"
+      },
+      {
+        "path": "addons/support/functions/artilleryMissionStart.sqf",
+        "sha256": "7ec54ec133631852547fbd7ff1e4e074b516ebf0d755c956772472c79fb3803b"
+      }
+    ],
+    "validation": {
+      "tests": 1476,
+      "focusedTests": 607,
+      "focusedLog": ".qa/cbe-air-support-lifecycle-focused.log",
+      "hemttLog": ".qa/cbe-air-support-lifecycle-hemtt.log",
+      "buildLog": ".qa/cbe-air-support-lifecycle-build.log",
+      "independentLog": ".qa/cbe-air-support-lifecycle-independent.log",
+      "fingerprint": "7b3d11727718b3867a09fd8e09d4741c1c09a66ec78fb4694589b1d22f151ab6",
+      "packageSource": "46dd5b445a64e38767c8f38c697d2df72a4a76e6+dirty unsigned development"
+    },
+    "physicalAcceptance": false
+  }
+}

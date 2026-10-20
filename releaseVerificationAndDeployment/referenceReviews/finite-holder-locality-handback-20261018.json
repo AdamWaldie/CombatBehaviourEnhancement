@@ -1,0 +1,45 @@
+{
+  "baseline": "f97ed4cb",
+  "scope": "finite split-locality ordinary hold recall",
+  "source_sha256": {
+    "addons/infantry/functions/cortexHolderRecallPending.sqf": "4f10661cce4af481271c1e5596cc2effa0b60b719d03a4fb1be5810fb0a5d20e",
+    "addons/infantry/functions/cortexRestoreCalm.sqf": "fee0d064844dba9c45c29d253d9f1ef5ac2356309053fcd7a98ebefc3c9d8d0e",
+    "addons/core/functions/cortexLocality.sqf": "15cbcba066701ca8ad7c48a5579697c007fc9668d278cebbfc91ce5e23eebe25"
+  },
+  "journal": [
+    "identity",
+    "original deadline",
+    "original operation generation",
+    "pending original hold rows",
+    "status"
+  ],
+  "bounds": {
+    "actors": 64,
+    "seconds": 30,
+    "callback_seconds": 1,
+    "retries": 30
+  },
+  "checks": [
+    "original actor issuer token",
+    "unchanged original native destination and authored route",
+    "actual group and actor locality",
+    "no actor reservation, external or clearance takeover",
+    "callback owner epoch",
+    "original deadline preserved through adoption"
+  ],
+  "limitations": [
+    "changed-route rows are refused, not rebased",
+    "standing and failed-support hold paths not integrated",
+    "no physical reunion or separate HC evidence",
+    "unsigned dirty-source offline package only"
+  ],
+  "validation": {
+    "tests": 1430,
+    "compiled_sqf": 331,
+    "pbos": 9,
+    "build_exit": 0,
+    "independent_package_verify": true,
+    "fingerprint": "bd8c2d0ae271e07bb46dd3a91c63436e4d7378d11deff317fda1c0d0801f110a",
+    "log": ".qa/cbe-holder-pending-build.log"
+  }
+}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
@@ -41,7 +42,7 @@ private _reflexOnly=0;
         private _cause=_x param [0,-1,[0]];
         private _position=_x param [1,[],[[]]];
         private _expires=_x param [2,time,[0]];
-        if (_cause >= 0 && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0)} < 0} && {_expires >= time - 0.25}) then {
+        if (finite _cause && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expires} && {_expires >= time - 0.25}) then {
             _processed=true;
             if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
             private _source=_x param [3,objNull,[objNull]];

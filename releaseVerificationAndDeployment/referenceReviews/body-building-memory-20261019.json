@@ -1,0 +1,224 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "cee4c53d",
+  "scope": "Unknown-body nearby-building suspicion and finite individual investigation",
+  "referenceHashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+  },
+  "originalsModified": false,
+  "runtimeDependency": false,
+  "sourceIntent": "Unknown body creates nearby-building memory; later unsuppressed/free actors inspect remembered positions. Screams alone provide finite attention. Native positions are not proof of enemy occupancy or room safety.",
+  "implementation": [
+    "DangerStep HIDE/BODY_FOUND retains one observer/epoch-bound clue for original20s; same-location observations within3m are suppressed for60s rather than refreshing expiry. No hostile contact is invented.",
+    "CALM evaluates body suspicion after known contact and fresh area report opportunities; no authored/group/support movement is displaced.",
+    "Dispatcher checks sixteen group actors, processes at most four houses within15m and at most512 positions each, and admits at most two investigators through existing IndoorActorOperation. It excludes live actor journals, reservations and cooldowns.",
+    "Low-floor native candidates are ranked by absolute ASL, avoiding event altitude assumptions. Existing roof/body/node checks, door interaction, native acknowledgement and physical visit stay authoritative.",
+    "Optional indoor deadline is finite and may only shorten existing lifetime; clue expiry caps position-only work. observationOnly tasks recheck Investigate enable and stealth/careless interruption.",
+    "Only accepted admission consumes matching clue. Refusal preserves original expiry. New-owner/expired/unavailable-witness clues are discarded, not replayed. Stop clears clue/seen metadata."
+  ],
+  "departures": [
+    "Source sympathetic inspection is implemented as finite individual investigation, not suppression or whole-squad reset.",
+    "No nearby-building occupancy claim, hidden enemy transform, global corpse scan, teleport or room-clear declaration.",
+    "A single suspicion clue replaces unbounded building memory; no new persistent controller."
+  ],
+  "validation": {
+    "fullBuild": ".qa/cbe-body-building-memory-final-build.log",
+    "tests": 1476,
+    "independentVerify": ".qa/cbe-body-building-memory-independent.log",
+    "fingerprint": "fc4f195c79b6b320c430829f913c4360d42c93d2e03d24cc0b30160213c4c417",
+    "source": "cee4c53d+dirty unsigned development; not later clean commit package",
+    "focused": ".qa/cbe-body-building-memory-focused.log",
+    "retainedFailedBuild": ".qa/cbe-body-building-memory-build.log",
+    "fixedFailure": "SQF validator caught _forEachIndex inside apply; actor ranking now uses indexed forEach.",
+    "testMaintenance": "Existing deadline cardinality test now isolates initialization and forbids renewal. Stop cleanup remains in existing teardown block."
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/indoorObservationDispatch.sqf": "3141c5ba20094a750810afd425c76bad0049d24eb42f579e30465c33bfe2d11e",
+    "addons/infantry/functions/indoorActorOperation.sqf": "7194f719a5996f53d6caee7cf1f72e9f5525f1dcabaea1674f9a5f1ede552d36",
+    "addons/infantry/functions/dangerStep.sqf": "c1232fa4bd9b980be360ee0db1f533100e18a522f8de120c71e81e62f163b50c",
+    "addons/infantry/functions/cortexGroupTick.sqf": "d712eccddb56e8897fdb5a9c7a36dedbd88b936e2cd47a4a1865cedd0672a410",
+    "addons/core/functions/cortexStop.sqf": "127448b4183f103e5613465b048dad707a809d85439a24fa843159daf1b4b73f"
+  },
+  "newWorkers": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "No runtime proof of entry, normal/HC/JIP/stop/stealth interruption or repeated clue flow.",
+    "Nearby-house native query cost depends on local object density; no measured performance-budget result.",
+    "Existing indoor inaccessible-node/failure reporting remains authoritative; admission is not physical traversal.",
+    "Whole LAMBS parity and balance remain incomplete."
+  ],
+  "sameCluePhysicalVisits20261020": {
+    "baseline": "e783c2b6",
+    "sourceIntent": "doAssaultMemory sequences remembered positions, retains useful busy movement and removes observed nearby points. Preserve sequencing without group-wide recall, unsafe random displacement or room-clear claims.",
+    "change": "Retain one original20s clue after admission. Existing8s dispatcher and two concurrent actor limit may serve later eligible waves. Exact VISITED/OBSERVE physical-near node with current clue, owner, operation, native order and transform records max16 local historical nodes. Original clue expiry only; no visit on failure/assignment/timeout/migration. Dispatcher prefers unvisited native candidates/next house; NodeSelect excludes same-clue same-transform visit nodes after live reservations within existing16 exclusion budget. Known-contact work defaultclue[] unchanged; same3roof rays. Stop/invalidclue clears local history.",
+    "sources": {
+      "addons/core/functions/cortexStop.sqf": "ac7e92710cf6119dd4421b38c0ba323c32a600433545371c76d72d5e348f076d",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "bbe93e579960746dbc7b1eb5b39f10af0788cc2a590c27bb326d740100822a06",
+      "addons/infantry/functions/indoorActorOperation.sqf": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710",
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "85c33a24032f6219bce8938bfc0b3fadb491d8a4a981bc0a222996a32e3a703e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-clue-visit-memory-build.log",
+      "independent": ".qa/cbe-clue-visit-memory-independent.log",
+      "candidate": ".qa/candidates/clue-visits-e783c2b6-46e47fed",
+      "fingerprint": "46e47fed668ca0b98cfd38990445ee100e3fc16fe184c3488a7350654788a474",
+      "source": "e783c2b6 plus intended dirty same-clue physical-visit-memory edits",
+      "focused": "32 indoor lifecycle cases and HEMTT check passed; earlier overly broad admission assertion corrected to distinguish existing house-loop early exit from removed clue consumption"
+    },
+    "remaining": [
+      "Not whole sympathetic-memory parity or room safety proof. Original20s lifetime and actor cooldown may permit only limited waves.",
+      "Per-house native positions remain bounded512,4houses; extra history distance checks are bounded metadata work, native nearby-query density and overall overhead unmeasured.",
+      "Physical sequence/repeat encounters/modded accessibility/normal-providerHC interruption and balance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "availableContactAdmission20261020": {
+    "sourceParent": "c3ec171e",
+    "finding": "IndoorActorDispatch selected a building before evaluating actor availability and range. The first valid roof could leave no eligible actor while another known belief was actionable.",
+    "implementation": "Filter up to eight native knowledge records against the existing sixteen available actors before the shared three-roof selector. Preserve nearest-record order, whole-group selector semantics, eight-second cadence, forty-metre actor bound and executor authority.",
+    "cost": "At most 128 short-circuit native knowledge/distance comparisons; no new spatial query, worker or timer.",
+    "sourceIntent": "Finite available individual investigation composes with existing native knowledge; this does not establish whole LAMBS memory parity.",
+    "limits": [
+      "Selection still has the existing three eligible roof-query bound.",
+      "Native path accessibility is not proved by range or containment.",
+      "Physical flow and performance remain unverified; audits paused."
+    ],
+    "validation": "Existing 32-case indoor suite and full 1477-test compilation/config/FSM/documentation/package pipeline passed (.qa/cbe-available-contact-build.log); preserved unsigned candidate .qa/candidates/available-contact-c3ec171e-de3a03f5 from c3ec171e plus intended dirty edits. No new cases or scores."
+  },
+  "capacityCleanupReview20261020": {
+    "sourceParent": "050d482e",
+    "hashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "c673b2d790a6a7f8c254bbc175af3bca5fe5dca8bfb56ce26592d9b324ee6785",
+      "addons/infantry/functions/indoorActorNativeContext.sqf": "9b88ceef5f96b5bd0a907c7d1ede981a14d78985eec2e06ffb7f08bf92e089ef",
+      "addons/core/functions/cortexDiscover.sqf": "0e17f230172264a14e2fc3a7ae82acac43cfa95a675640de95e2a398571b0377",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+    },
+    "findings": [
+      "START filters its maximum-two investigator registry to current group actors with nonempty unfinished brains before checking capacity. Finished rows do not occupy a new admission slot.",
+      "CortexDiscover checks at most two registered indoor actors and invokes REAP. A live FSM refuses reaping; an ended exact current actor/epoch uses FINISH without replay or deadline renewal.",
+      "FINISH restores movement only with current native route, operation, reservation, destination and actor authority. Missing or malformed journal proof must not be treated as permission to reset movement.",
+      "LAMBS doAssaultMemory filters positions by distance, preserves a BUSY approach, consumes near/viewed positions and ultimately recalls the group when memory empties. CBE uses finite individual tasks and exact individual handback rather than copying a whole-group recall."
+    ],
+    "remainingGap": "The dispatcher coarse available roster does not include every executor/native-context veto. A near contact supported only by an actor with protected native work may still win building selection and then fail START, while another known contact could be actionable. Previous available-contact change resolves distance/roster starvation only, not all executor refusals.",
+    "nextAction": "Evaluate a shared cheap actor/native preflight before roof selection without multiplying visibility/roof queries or replacing protected tasks. Keep contact-specific building geometry and executor revalidation authoritative.",
+    "productionChanged": false,
+    "validation": "Read-only call-path/source comparison. Existing latest full build remains .qa/cbe-available-contact-build.log for source preceding 050d482e; no redundant build performed. Physical cleanup, repeat admission, balance and performance remain unverified.",
+    "audits": "PAUSED"
+  },
+  "nativeTaskPreflight20261020": {
+    "sourceParent": "f8f68201",
+    "implementation": "Shared IndoorActorNativeContext optional preflight bool checks native command/state/contact identity/ignore and authored waypoint protection before building discovery. Distinct PREFLIGHT marker cannot supply executor admission receipt. Matching native approach is provisional until full building containment. Dispatcher uses it within existing 8-belief/16-actor short-circuit bound.",
+    "cost": "Maximum128 metadata-only preflights per8s; no extra visibility/roof/containment query. Full executor retains its existing firing check.",
+    "preserved": [
+      "STOP/FOLLOW/protected tasks and authored waypoint metadata",
+      "Native planning and compatible BUSY approach policy",
+      "Original deadlines, max2actors, three roof queries, native belief and current owner authority"
+    ],
+    "remaining": [
+      "Firing visibility, building containment and generic executor eligibility can still refuse after selection.",
+      "No full LAMBS/HBQ source parity established.",
+      "Physical behaviour and overhead remain unverified; audits paused."
+    ],
+    "validation": "Existing32indoor cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-indoor-native-preflight-build.log; candidate .qa/candidates/native-preflight-f8f68201-e4357df0 fingerprint e4357df098ff82790155cd78d54767793bfae9eae7f1dcf741b180b05d404dc8 actualf8f68201+intendeddirtyedits. No new tests or score increases."
+  },
+  "sharedSelectorInputBudget20261020": {
+    "sourceParent": "e12f5922",
+    "finding": "Shared selector limited ray work to three eligible records but filtered the entire input first. Native CortexKnowledge provides at most8 detailed records and indoor dispatch already limits input to8, while oversized direct calls had no metadata inspection bound.",
+    "implementation": "Select first8 supplied records before native-belief eligibility filtering; preserve first3 eligible order and existing3roof/fourhits query budget. Update both current callers in header. No movement, live hostile pose, new cache/timer/worker or query.",
+    "limits": "Oversized direct calls ignore records after first8; normal detailed native input semantics unchanged. Runtime cost and physical selection/entry unverified. This is a work-bound correction, not improved clearance acceptance or source parity.",
+    "sourceContract": "CortexKnowledge limits detailed candidate records to8; IndoorActorDispatch independently uses first8.",
+    "implementationHash": "a9e06efb6637cd2ade0aedc5bc531e0177a6a33283154aaedba301b8b35038ef",
+    "validation": "Existing3 focused selector cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-building-select-bound-build.log. Candidate .qa/candidates/building-select-bound-e12f5922-61678423 fingerprint 61678423025b4ddbd29744c46e970828325660a21ebbd72690dd0d826f14204d actuale12f5922+dirtysource. Independent copied-package verification .qa/cbe-building-select-bound-independent.log. No new cases or scores.",
+    "audits": "PAUSED"
+  },
+  "historicalWitness20261020": {
+    "sourceParent": "00caf795",
+    "sourceIntent": "LAMBS doAssaultMemory operates on remembered group positions rather than requiring the original witness to remain an available soldier. CBE position-only body-clue memory is already shared at creation and should not vanish when its historical observer becomes unavailable.",
+    "finding": "IndoorObservationDispatch validity required live combat-effective local same-group witness, deleting clue and visited-node history after witness incapacitation, deletion or separate actor locality. IndoorActorOperation already binds clue/epoch/expiry without that witness-availability dependency.",
+    "implementation": "Retain typed witness as historical provenance only. Existing fresh finite observation, original<=20s expiry, exact group-held clue and epoch remain; actual selected investigators still require current local health/native-task/actor reservation/operation eligibility. No clue renewal, hostile identity, new actor job, query, state format or worker. DangerStep still validates actual observer before publishing the original group record.",
+    "cost": "Removes witness current-availability queries; no added recurring work. Engine cost unmeasured.",
+    "validation": "639 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-clue-witness-build.log. Candidate .qa/candidates/clue-witness-00caf795-82ad8f38 fingerprint 82ad8f38d246dcf880539b850662a16155e37a362a5648d6ca845079b64246a7 actual00caf795+dirtysource. Independent copied-package verification .qa/cbe-clue-witness-independent.log. No new cases or scores.",
+    "limits": "This repairs one finite shared memory path, not full LAMBS group memory parity. Witness casualties/deletion/locality, later actor participation and physical investigation remain unverified. Owner epoch changes still invalidate the clue; no migration replay.",
+    "implementationHash": "50bcdc540ce1b436d0420f79f7fa6cd878f5df0316c85f75665f2222240471bf",
+    "audits": "PAUSED"
+  },
+  "executorCandidateSlots20261020": {
+    "sourceParent": "a08c4f7d",
+    "finding": "Position-only dispatch attempts nearest2 coarse candidates per building. Its roster could admit actors with disabled MOVE/PATH, hidden/suspended simulation, suppression or no current weapon; full executor rejected them, while a later viable actor never reached those bounded slots. Contact dispatch also carried those generic refusals into native preflight/START work.",
+    "implementation": "Before ranking/geometry in both dispatchers, filter simulation/visibility, MOVE/PATH, suppression<0.5, current weapon and actor external owner, matching existing executor prerequisites. Observation-only roster additionally preserves individual STEALTH/CARELESS policy. Full START still validates all authority/native/building context. Original16actor/8belief/max2admitted/2bodyattempt/fourbuilding/3roof budgets and clocks unchanged.",
+    "cost": "Adds bounded current actor metadata/feature reads to <=16 coarse candidates; avoids impossible START/native preflights. No new geometry/world queries, timer, worker or larger attempt budget. Performance unmeasured.",
+    "limits": "Other actor-specific generic or geometry refusals can still occur; no claim all starvation or physical access is solved. Native route handling, same-clue repeat, casualties and performance unverified.",
+    "validation": "32 focused existing indoor cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-indoor-candidate-build.log. Initial focused run retained .qa/cbe-indoor-candidate-focused.log: newly added assertion used an undefined source reader; corrected to existing Path reader, final focused .qa/cbe-indoor-candidate-focused-final.log. Candidate .qa/candidates/indoor-candidate-a08c4f7d-aab5f3c2 fingerprint aab5f3c2122000bda41dedbcb42f6a436985e02ecd4baf7ca92840174f34f5b5 actuala08c4f7d+dirtysource. Independent copied-package verification .qa/cbe-indoor-candidate-independent.log. No added cases or scores.",
+    "implementationHashes": {
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "914d15b07ad96d0415a0d9afcbf3de759db08cb069c9e5daf554e23e57db4a86",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "279ed7ba8e386ab98060614419d9ccb57f7853e0d99169ebeb6adc66a2ef90aa"
+    },
+    "audits": "PAUSED"
+  },
+  "individualEngagementMode20261020": {
+    "baseline": "f7650910",
+    "finding": "Natural individual investigation checked group YELLOW/RED/WHITE but did not check the individual unit mode; shared eligibility/native context did not supply that missing gate.",
+    "implementation": [
+      "Both executor available predicates require individual YELLOW/RED/WHITE at admission and active steps.",
+      "Contact/body building candidate rosters exclude individually restricted actors before bounded ranking.",
+      "Release eligibility deliberately retains no new individual ROE gate: exact owned cleanup remains possible and does not write combat mode."
+    ],
+    "sourceIntent": "LAMBS doCheckBody and doAssaultMemory provide individual investigation/memory examples. This change preserves CBE mission-order intent; it does not implement LAMBS equipment recovery or establish whole-source parity.",
+    "sources": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "9fb73a428a1b6d30509ad1370d131531967a141e833418d438580950bbc1a5dc",
+      "addons/infantry/functions/pointActorOperation.sqf": "f4fd23c6c1cb3cf58001f80a598ea2a61685fcae6dca888d168950256832991c",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "c421407f15de0b8b8106bbd267a964eb6c269410aaae06c97b6699e4a6133fb5",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "c778345f6af8d682b9b94d1e21e71c3a1adc1511040ba9948eb5cb9b09d4cba9"
+    },
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "focused": ".qa/cbe-investigation-roe-focused.log",
+      "full": ".qa/cbe-investigation-roe-build.log",
+      "independent": ".qa/cbe-investigation-roe-independent.log",
+      "candidate": ".qa/candidates/investigation-roe-f7650910-ce333496",
+      "fingerprint": "ce33349685da9cc1a4d6be3a73e14cf84629c213af18cabd5cd111246d465f0a"
+    },
+    "remaining": "Physical mixed-mode candidate selection, mid-leg hold, exact native cleanup, HC and performance remain unverified; audits paused.",
+    "scoresChanged": false
+  },
+  "roofSearchContinuation20261020": {
+    "baseline": "63f491d5",
+    "finding": "Selector only tested first three ranked roofs. Missing own-building roof at those nodes ended the task even when the fourth node was valid. Repeated selection could revisit the same misses.",
+    "implementation": [
+      "Optional caller-owned operation-local search context binds actor, building transform and native belief; up to twelve tested ASL nodes excluded from later ranking.",
+      "Existing FSM SELECT continues pending search across existing half-second callbacks, at most three roof probes per call and twelve per operation.",
+      "Current reservations, squad bodies, native task and original operation deadline remain authoritative; no actor/group cache or new worker/timer.",
+      "No roof miss marks inaccessible, visited, safe or cleared. Exhausted search still returns NO_CANDIDATE."
+    ],
+    "sourceIntent": "LAMBS sympathetic memory checks multiple building positions; CBE retains bounded native-position selection without broad group reset or unseen occupancy knowledge. This is individual investigation selection, not full room-clearance parity.",
+    "sources": {
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "e6ed8ae6d4c286284d4120057ae2c3815e94a0db1052fee723889af467762662",
+      "addons/infantry/functions/indoorActorOperation.sqf": "99a924ee3e6fc7c36bf18836e25408a159aacedb97ce43a64ee82bc3a1bbeb65"
+    },
+    "cost": "Maximum roof probes per operation rises from3 to12; per-call3 and native512-position ranking remain. Added bounded tested-node comparisons. Runtime overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-indoor-roof-search-focused.log",
+      "operations": ".qa/cbe-indoor-roof-search-operations.log",
+      "full": ".qa/cbe-indoor-roof-search-build.log",
+      "independent": ".qa/cbe-indoor-roof-search-independent.log",
+      "candidate": ".qa/candidates/indoor-roof-search-63f491d5-1a2caec0",
+      "fingerprint": "1a2caec0b3ce9276b069b37a0d10bb137d566f8dee9b952e6d13e9f4bd5f2ac8"
+    },
+    "remaining": "Valid positions beyond12, physical inaccessible-node response, actual entry, interruption/locality and performance remain incomplete or unverified.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
+}

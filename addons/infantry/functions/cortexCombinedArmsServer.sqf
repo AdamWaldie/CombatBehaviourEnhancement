@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Converts a verified fresh contact into finite, independent combined-arms roles.
  * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
+ * Delayed role expiry matches the complete dispatched snapshot before clearing reservation state.
  * The server ranks nearby capable ground-vehicle groups and airborne assets by live loaded ordnance and proximity, then selects at most two ground groups and one airborne group. The first
  * capable ground asset supplies direct fire; a second receives a distinct, finite manoeuvre role
  * whose route is kept on one side of the support-to-target fire lane. Aircraft are
@@ -10,6 +11,7 @@
  * role is dispatched immediately; infantry never waits for acceptance and no shared assembly state exists.
  * Aircraft discovery requires the pilot's group, matching the flight controller's authority.
  * Ground assets accept the effective commander's or driver's group; passenger-only groups remain ineligible.
+ * Voice fallback uses3D ASL separation, preventing altitude from bypassing dual-radio eligibility.
  * Locality/authority: server validates the sender, target, hostility, range, communications and role
  * feature gates; the current asset owner applies targeting through CBE_fnc_CortexCombinedArmsLocal.
  * Vehicle and aircraft cooperation depends on contact communication and each asset's own feature
@@ -19,6 +21,8 @@
  * still be able to transmit, so jamming continues to prevent long-range composition.
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
  * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
+ * Spatial discovery explicitly includes mounted crews; primary Man nearEntities omits them.
+ * The spherical area uses the existing response radius and the required2.18 crew-aware syntax.
  * Candidate membership uses a request-local keyed set, preserving discovery order without
  * repeated linear array membership searches. Ranking retains the discovered asset; dispatch
  * rechecks its live commander/driver ownership without another full unit scan. A unique rank
@@ -64,22 +68,29 @@ private _airRange=missionNamespace getVariable ["CBE_Cortex_CombinedArms_AirRang
 private _requesterTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
 private _requesterAnchor=if (isNull _requesterTransmitter) then {leader _requester} else {_requesterTransmitter};
 private _senderRadio=!isNull _requesterTransmitter;
+private _requesterASL=getPosASL _requesterAnchor;
 // Every selected asset must be inside either the air or ground response envelope. Build a
 // distinct candidate set from the larger envelope; this avoids a global group walk whenever a
 // contact opens a combined-arms opportunity. The owner still performs the authoritative
 // weapon/turret preflight before it starts a run.
+private _searchRadius=_airRange max _groundRange;
+private _searchArea=[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius];
 private _candidateGroups=[];
 private _candidateSeen=createHashMap;
 {
     private _candidateGroup=group _x;
     if (!isNull _candidateGroup) then {
         private _candidateKey=netId _candidateGroup;
-        if !(_candidateKey in _candidateSeen) then {
-            _candidateSeen set [_candidateKey,true];
-            _candidateGroups pushBack _candidateGroup;
+        if (_candidateKey == "") then {
+            _candidateGroups pushBackUnique _candidateGroup;
+        } else {
+            if !(_candidateKey in _candidateSeen) then {
+                _candidateSeen set [_candidateKey,true];
+                _candidateGroups pushBack _candidateGroup;
+            };
         };
     };
-} forEach (_requesterAnchor nearEntities ["Man",_airRange max _groundRange]);
+} forEach (_searchArea nearEntities [["Man"],false,true,true]);
 private _orderedGroups=[];
 {
     if (!isNull _x) then {
@@ -139,7 +150,8 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
         // already reserved by another opportunity, matching the air fallback contract.
         && {private _existingRole=_candidate getVariable ["CBE_Cortex_CombinedRole",[]];
             !((count _existingRole) in [7,8]) || {serverTime >= (_existingRole select 5)} || {(_existingRole select 0) == _token}}
-        && {_distance <= _voiceRange || {_senderRadio && {_candidateRadio}}}) then {
+        && {(_distance <= _voiceRange && {(getPosASL _candidateAnchor) vectorDistance _requesterASL <= _voiceRange})
+            || {_senderRadio && {_candidateRadio}}}) then {
         // Reuse this request's discovery, then validate live operating ownership.
         // A stale asset is refused rather than rescanning or dispatching to passengers.
         private _asset=_x select 2;
@@ -183,37 +195,51 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
             _candidate setVariable ["CBE_Cortex_CombinedApplied",nil,true];
             _candidate setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"DISPATCHED",serverTime,_target],true];
             [_candidate,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _candidate];
-            _roleGroups pushBack _candidate;
+            _roleGroups pushBack [_candidate,+_opportunity];
             _dispatched=_dispatched+1;
         };
     };
     if (_ground >= 2 && {_air >= 1}) exitWith {};
 } forEach _orderedGroups;
-_requester setVariable ["CBE_Cortex_CombinedOpportunity",[_token,_target,+_position,_expiry,_dispatched],true];
+private _requesterSnapshot=[_token,_target,+_position,_expiry,_dispatched];
+_requester setVariable ["CBE_Cortex_CombinedOpportunity",_requesterSnapshot,true];
 // Index 1 is the second ranked air candidate: the first, if any, was dispatched above. A rejected
 // local preflight advances this finite list once rather than creating another planner or delaying
 // the infantry contact. The server never infers a remote airframe's live weapon compatibility.
 _requester setVariable ["CBE_Cortex_CombinedAirFallback",[_token,_target,+_position,_expiry,+_airCandidates,1,+_contactReceipt],true];
 [{
-    params ["_requester","_token","_roleGroups"];
-    if (!isNull _requester && {((_requester getVariable ["CBE_Cortex_CombinedOpportunity",[]]) param [0,""]) == _token}) then {
-        _requester setVariable ["CBE_Cortex_CombinedOpportunity",nil,true];
-        _requester setVariable ["CBE_Cortex_CombinedAirFallback",nil,true];
-        _requester setVariable ["CBE_Cortex_CombinedGroundFallback",nil,true];
+    params ["_requester","_token","_roleGroups","_requesterSnapshot","_originalAir","_originalGround"];
+    if (!isNull _requester) then {
+        if ((_requester getVariable ["CBE_Cortex_CombinedOpportunity",[]]) isEqualTo _requesterSnapshot) then {
+            _requester setVariable ["CBE_Cortex_CombinedOpportunity",nil,true];
+        };
+        // Cursor advancement belongs to the same finite pool; changed contact/pool/expiry does not.
+        {
+            _x params ["_variable","_originalFallback"];
+            private _liveFallback=_requester getVariable [_variable,[]];
+            if (count _originalFallback == 7 && {count _liveFallback == 7}
+                && {(_liveFallback select [0,5]) isEqualTo (_originalFallback select [0,5])}
+                && {(_liveFallback select 6) isEqualTo (_originalFallback select 6)}) then {
+                _requester setVariable [_variable,nil,true];
+            };
+        } forEach [["CBE_Cortex_CombinedAirFallback",_originalAir],["CBE_Cortex_CombinedGroundFallback",_originalGround]];
     };
     {
-        if (!isNull _x && {((_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
-            private _role=(_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [4,""];
-            private _target=(_x getVariable ["CBE_Cortex_CombinedRole",[]]) param [2,objNull];
+        _x params ["_roleGroup","_originalRole"];
+        if (!isNull _roleGroup && {(_roleGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
+            private _role=_originalRole select 4;
+            private _target=_originalRole select 2;
             // Expiry retires the reservation, not a completed/refused physical outcome.
-            private _result=_x getVariable ["CBE_Cortex_CombinedResult",[]];
+            private _result=_roleGroup getVariable ["CBE_Cortex_CombinedResult",[]];
             if ((_result param [0,""]) == _token
-                && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD"]}) then {
-                _x setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
+                && {(_result param [2,""]) in ["DISPATCHED","APPLIED","WAITING_FOR_RELOAD","MUZZLE_SELECTION_PENDING"]}) then {
+                _roleGroup setVariable ["CBE_Cortex_CombinedResult",[_token,_role,"EXPIRED",serverTime,_target],true];
             };
-            _x setVariable ["CBE_Cortex_CombinedRole",nil,true];
-            _x setVariable ["CBE_Cortex_CombinedApplied",nil,true];
+            _roleGroup setVariable ["CBE_Cortex_CombinedRole",nil,true];
+            _roleGroup setVariable ["CBE_Cortex_CombinedApplied",nil,true];
         };
     } forEach _roleGroups;
-},[_requester,_token,_roleGroups],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_requester,_token,_roleGroups,+_requesterSnapshot,
+    +(_requester getVariable ["CBE_Cortex_CombinedAirFallback",[]]),
+    +(_requester getVariable ["CBE_Cortex_CombinedGroundFallback",[]])],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 _dispatched

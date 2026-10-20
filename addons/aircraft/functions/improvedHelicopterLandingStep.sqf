@@ -8,7 +8,8 @@
  *
  * Locality/authority: Owner-local observation only. It never commands a remote helicopter. The
  * finite landing controller is spawned only after the current owner and order pass every guard.
- * Repeat/JIP: The owner generation retires stale jobs after migration. State retains only the last
+ * Repeat/JIP: The owner generation retires stale jobs after migration. Matching old-owner feature
+ * snapshots arriving after Local EH receive release-only rechecks before new admission. State retains only the last
  * waypoint signature so unchanged orders do not rebroadcast diagnostics.
  *
  * Arguments: 0: state <HASHMAP> containing helicopter, generation, lastSignature and subsystem.
@@ -36,6 +37,18 @@ if (
     -1
 };
 
+// Public state may arrive after the native Local event. Revisit only a matching previous-owner
+// snapshot; this retires old control rather than adopting its flight commands or a new pilot.
+private _oldFeatureSnapshot=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]];
+if (_oldFeatureSnapshot isEqualType [] && {count _oldFeatureSnapshot == 6}
+    && {(_oldFeatureSnapshot select 1) isEqualType 0} && {(_oldFeatureSnapshot select 1) != clientOwner}
+    && {(_oldFeatureSnapshot select 0) isEqualTo (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1])}) then {
+    [_helicopter,false,"",false,_oldFeatureSnapshot select 0] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+};
+private _featureRelease=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease",[]];
+if (_featureRelease isEqualType [] && {count _featureRelease == 2}) then {
+    [_helicopter,_featureRelease] call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal;
+};
 private _lastSignature = _state getOrDefault ["lastSignature", []];
 private _pilot = currentPilot _helicopter;
 private _pilotAwake = if (isNull _pilot) then {false} else {

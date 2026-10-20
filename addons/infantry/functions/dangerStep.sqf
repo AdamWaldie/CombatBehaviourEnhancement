@@ -1,7 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
+ * Response-deadline extension is independent of the group wake throttle. A stronger event
+ * inside that throttle retains the complete surviving response window without extra wakes.
  * Purpose: Assess current danger, publish one finite response context and wake the existing group tactics FSM without creating a second tactical owner.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
+ * Unknown-body clues retain original server expiry for position-only indoor investigation.
  * Repeat/JIP: generation-checked response context is public for diagnostics; a new owner rebuilds it from fresh observations.
  * One strongest event is consumed per step. Other still-live causes remain queued, so an immediate
  * hit cannot erase a simultaneous confirmed contact. Lower-priority observations cannot shorten
@@ -199,6 +202,21 @@ if (_action == "FORCED") exitWith {
     if (count _forcedBrain > 0) then {_forcedBrain deleteAt "responsiveUntil"};
     if (_remaining isNotEqualTo []) then {0.25} else {-1}
 };
+// Unknown-body observations can retain a short-lived suspicion about nearby buildings.
+// No hostile identity, building occupancy or incoming-fire geometry is inferred.
+if (_cause == "BODY_FOUND" && {_action == "HIDE"} && {_observedAt <= time}) then {
+    private _observedServer=serverTime-(time-_observedAt);
+    private _seen=_group getVariable ["CBE_Danger_BuildingClueSeen",[]];
+    private _repeat=_seen isEqualType [] && {count _seen == 2}
+        && {(_seen select 0) isEqualType []} && {count (_seen select 0) == 3}
+        && {(_seen select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_seen select 1) isEqualType 0} && {finite (_seen select 1)}
+        && {serverTime < (_seen select 1)} && {_position distance2D (_seen select 0) <= 3};
+    if (!_repeat && {_observedServer+20 > serverTime}) then {
+        _group setVariable ["CBE_Danger_BuildingClue",[+_position,_observedServer,_observedServer+20,_observer,_epoch],true];
+        _group setVariable ["CBE_Danger_BuildingClueSeen",[+_position,_observedServer+60],true];
+    };
+};
 // This is a finite handoff, not a target assignment or movement order. The group tactics FSM can
 // respond on its already-owned scheduler cycle while retaining route, operation and external ownership.
 private _responseDurations=createHashMapFromArray [["HIT",3],["EXPLOSION",2.5],["SUPPRESSED",2],["CASUALTY",2],["BODY_FOUND",1.5],["SCREAM",1.5],["PROXIMITY",1.5],["CANFIRE",1.5],["DETECTED",1.5],["GUNFIRE",1]];
@@ -246,17 +264,19 @@ private _responsiveUntil=if (count _effectiveResponse == 5
     time+_responseLifetime
 };
 // A group retains one movement/decision owner. Events only shorten its existing deadline.
+// Startup reuses a live current generation or replaces stale/cancelled/ended work. This
+// readmission does not bypass the wake throttle; a newly created brain is already due now.
+[_group,false] call CBE_fnc_GroupBrainStart;
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-if (count _brain == 0) then {
-    [_group,true] call CBE_fnc_GroupBrainStart;
-    _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-};
-if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}
-    && {time >= (_group getVariable ["CBE_Danger_WakeAfter",0])}) then {
-    _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}) then {
+    // A throttled wake is not a shortened response. A newly accepted stronger event may
+    // outlive the previous window even though no second immediate wake is necessary.
     _brain set ["responsiveUntil",_responsiveUntil max (_brain getOrDefault ["responsiveUntil",0])];
-    _brain set ["wakeAt",time];
-    _brain set ["nextAt",time];
-    missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    if (time >= (_group getVariable ["CBE_Danger_WakeAfter",0])) then {
+        _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+        _brain set ["wakeAt",time];
+        _brain set ["nextAt",time];
+        missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    };
 };
 0.25

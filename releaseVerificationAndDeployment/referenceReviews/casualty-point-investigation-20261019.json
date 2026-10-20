@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "c68a8eb7",
+  "scope": "Finite identified own-group casualty-location investigation",
+  "reference": {
+    "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCheckBody.sqf",
+    "sha256": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c",
+    "modified": false,
+    "runtimeDependency": false
+  },
+  "sourceIntent": "One actor physically approaches an observed own-group body, then returns to formation; finite work rather than a squad route or posture-only flag.",
+  "implementation": [
+    "Engine HIDE cause5 can admit native source corpse belonging to current group; corpse position corroborates observation horizontally. Null/unknown/unattached sources keep finite observation, with no world corpse scan.",
+    "Separate owner-local point FSM uses existing keyed shared scheduler; one active actor per group, 30s group admission cooldown, original12s deadline and one issued move.",
+    "Original2s acknowledgement window observes unchanged command/destination/formLeader; actual acknowledged target, ASL arrival within2m and unobstructed body line are needed for VISITED. Six-second measured no-progress limit does not call native planning/replanning an inaccessible body.",
+    "Native engagement, movement orders, specialist/Zeus ownership, feature disable, body relocation and group operations cancel. Typed public journal ties cleanup to exact reservation, goal, route and generations. Pending cancellation retains receipt for existing discovery/locality reconciliation; no replay or new worker.",
+    "Existing discovery reaps ended FSMs and releases dead/regrouped group slots. Locality cancels without restart; ordinary stop uses same cleanup."
+  ],
+  "departures": [
+    "No global allDeadMen search, teleport, forced pose, body inventory/rearm/backpack/launcher transfer, or inferred hostile/building memory.",
+    "Only identified own-group sources are implemented; unknown-body/scream follow-on and broader dynamic building memory remain incomplete.",
+    "Authored routes and active engagement refuse this low-priority casualty investigation."
+  ],
+  "validation": {
+    "fullBuild": ".qa/cbe-casualty-point-batch-build.log",
+    "tests": 1476,
+    "compiledSQF": 343,
+    "independentVerify": ".qa/cbe-casualty-point-batch-independent.log",
+    "fingerprint": "46d34b3776b5cdfdce9d560d9f854fea6f38506bfe88bd90935751bfa2905614",
+    "source": "c68a8eb7+dirty unsigned development; not a later clean commit package",
+    "focused": ".qa/cbe-point-investigation-focused.log",
+    "earlierRegisterFinding": "FSM was initially listed in SQF production coverage; removed incorrect entry, executor registered and separate FSM compiler retained.",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/pointActorOperation.sqf": "ac4378df982869042168e742de1654fbba8524d7b5908e5b79b2a241503e3331",
+    "addons/main/fsm/pointActor.fsm": "9663f6ca5c3b88645b4f48666b4ce8460b20d1ac3c0536f4cf4b0fdf71e7ddfe",
+    "addons/infantry/functions/dangerEngineAct.sqf": "12c7c3bbd28b72a7b035bbee8a9ec7af8e4ea12f5388b8c9bcd9a2589ff7f654",
+    "addons/core/functions/cortexDiscover.sqf": "0e17f230172264a14e2fc3a7ae82acac43cfa95a675640de95e2a398571b0377",
+    "addons/core/functions/cortexLocality.sqf": "eeb4a3db150487665d70b5b7e695f57d4316009a35a8bf9e1cdd63ff6b182c9b",
+    "addons/core/functions/cortexStop.sqf": "b8f013f989bff194e1396076319851120aa7cdf72fdc0b48339b52a0e15ae006"
+  },
+  "newPermanentWorkers": 0,
+  "newFiniteFSMs": 1,
+  "maxConcurrentPointActorsPerGroup": 1,
+  "cadenceSeconds": 0.5,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Native corpse source/group retention frequency and actual approach/visit quality unverified.",
+    "Normal/HC locality, JIP/stop/interruption and repeated encounters unverified.",
+    "Same-value native replacement origin remains indistinguishable; never-acknowledged cancellation can retain metadata until observed replacement/reconciliation.",
+    "Pending metadata inspection uses existing discovery; no measured runtime cost or performance-budget proof.",
+    "Inventory recovery, unknown-body/scream movement and building memory are not implemented."
+  ]
+}

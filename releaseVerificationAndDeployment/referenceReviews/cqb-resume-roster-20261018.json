@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-18",
+  "scope": "CQB casualty replacement and resume admission",
+  "source_intent": "Keep actual replacement actors in a resumed clearing element; retain useful native work without replay. No new upstream source copied.",
+  "changes": [
+    "Matching common CLEAR roster priority",
+    "Atomic admission snapshot comparison",
+    "Immediate promoted MOVE/HOLD receipt"
+  ],
+  "validation": {
+    "tests": 1227,
+    "log": ".qa/cbe-cqb-resume-roster-build.log",
+    "exit": 0,
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Cross-variable delivery ordering",
+    "Late snapshot retry/adoption",
+    "Physical pair flow and performance"
+  ],
+  "acceptance": "partial"
+}

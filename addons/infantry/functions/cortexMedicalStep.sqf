@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
+ * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Purpose: Runs one bounded, owner-local vanilla medical assistance operation for a calm friendly squad.
  * Locality / Authority: Runs only on the group owner and commands only local on-foot AI. It yields to Zeus,
  * player control, active combat movement and any detected specialist medical owner.
@@ -95,9 +97,7 @@ if (_aid isNotEqualTo []) exitWith {
     // The medic's own HealSoldier action may report ACTION/HEAL, so those commands are
     // not treated as unrelated work here. Explicit other services and reservations yield.
     private _newActorTask=[_medic,_casualty] findIf {
-        private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-        private _reserved=_reservation isNotEqualTo [] && {!(_reservation isEqualType [])
-            || {count _reservation != 3} || {(_reservation param [2,1e12,[0]]) > time}};
+        private _reserved=[_x] call CBE_fnc_CortexActorMoveReserved;
         _reserved || {currentCommand _x in ["GET IN","GET OUT","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
     } >= 0;
     if (_newActorTask) exitWith {["CANCELLED","ACTOR_TASK_CHANGED"] call _finish};
@@ -161,9 +161,7 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}) exitWith {false};
 
 private _members=(units _group) select {
-    private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-    private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-        && {(_reservation param [2,1e12,[0]]) <= time}};
+    private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
     alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}

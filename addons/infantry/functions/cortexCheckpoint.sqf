@@ -1,10 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
+ * Coordinated checkpoints retain exact acknowledged MOVE observations and original progress clocks, without replay authority.
  * Publishes restoration data and bounded post-contact movement intent after an unscheduled AI job.
  * A missing or stale public phase is repaired through CortexSetPhase with an explicit continuity
  * record; the checkpoint never changes observable phase state outside the common transition path.
  * Locality/authority: current group owner unless stated otherwise below.
  * Repeat/JIP: durable restoration data is public; local jobs are never replayed verbatim.
+ * Active native HOLD proof is bounded to64 matching stopped actors; MOVE/acknowledgement state is not replayed.
  * Arguments: 0: group <GROUP>, default grpNull.
  * Return Value: Nothing unless a value is explicitly returned below.
  * Current callers: scheduler and locality restoration.
@@ -20,7 +22,7 @@ private _saved = [];
         if (_value isEqualType []) then {_value = _value apply {if (_x isEqualType []) then {+_x} else {_x}}};
         _saved pushBack [_x, _value];
     };
-} forEach ["supportHeld", "baseAttack", "attackChanged", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "holders", "dismounted"];
+} forEach ["supportHeld", "supportAuthoredOrder", "supportAuthoredRevoked", "supportAuthoredRevokedToken", "baseAttack", "attackChanged", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "searchMoveReceipts", "holders", "holderRecallReceipts", "dismounted"];
 private _retreatSpeedLease=_state getOrDefault ["retreatSpeedMode",[]];
 if (count _retreatSpeedLease == 2) then {_saved pushBack ["restoreGroupSpeedMode",+_retreatSpeedLease]};
 private _drill = _state getOrDefault ["drill", createHashMap];
@@ -63,7 +65,29 @@ if (count _drill > 0) then {
                 _payload pushBack [_x,_value];
             };
         } forEach ["type","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
-            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint"];
+            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint","authoredOrder"];
+        // Carry passive HOLD provenance only. No MOVE replay, acknowledgement grace,
+        // local callback or FSM handle becomes portable command authority.
+        private _holdProof=[];
+        private _nativeCommands=_drill getOrDefault ["nativeCommands",createHashMap];
+        if (_nativeCommands isEqualType createHashMap && {count _nativeCommands <= 64}) then {
+            {
+                private _row=_nativeCommands get _x;
+                if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "HOLD"}) then {
+                    private _actor=_row select 0;
+                    if (_actor isEqualType objNull && {!isNull _actor} && {local _actor}
+                        && {group _actor == _group} && {_actor in (_drill get "units")}
+                        && {currentCommand _actor == "STOP"}
+                        && {(expectedDestination _actor) isEqualTo (_row select 2)}
+                        && {formLeader _actor == (_row select 3)}) then {
+                        _holdProof pushBack [_actor,+(_row select 2),_row select 3];
+                    };
+                };
+            } forEach (keys _nativeCommands);
+        };
+        _payload pushBack ["resumeNativeHolds",_holdProof];
+        _payload pushBack ["resumeHoldIssuer",[_drill getOrDefault ["token",""],clientOwner,
+            _drill getOrDefault ["ownerEpoch",-1],_generation]];
         _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
         private _movers=_drill getOrDefault ["movers",[]];
         private _resumeRetries=+(_drill getOrDefault ["resumeRetries",[]]);
@@ -80,6 +104,103 @@ if (count _drill > 0) then {
         _saved pushBack ["drillIntent",[_generation,_drill getOrDefault ["token",""],_payload,_anchors select 1,_anchors select 2]];
     };
 
+};
+// Coordinated native observations use the authenticated parent lease, not standalone drill replay.
+private _supportToken=_state getOrDefault ["supportToken",""];
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+private _supportGeneration=_state getOrDefault ["supportOperationGeneration",-1];
+private _supportEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _supportOrder=_state getOrDefault ["supportAuthoredOrder",[]];
+if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 0) == _supportToken}
+    && {serverTime < (_supportLease select 2)} && {_supportGeneration == (_group getVariable ["CBE_OperationGeneration",-2])}
+    && {!(_state getOrDefault ["supportAuthoredRevoked",false])}
+    && {_supportOrder isNotEqualTo []} && {_supportOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) then {
+    private _proofRows=createHashMap;private _proofOverflow=false;
+    private _captureHold={
+        params ["_actor","_native","_formationLeader"];
+        if (!isNull _actor && {local _actor} && {group _actor == _group} && {currentCommand _actor == "STOP"}
+            && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
+            if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) exitWith {_proofOverflow=true};
+            _proofRows set [netId _actor,[_actor,+_native,_formationLeader]];
+        };
+    };
+    private _parentHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+    if (_parentHolds isEqualType createHashMap && {count _parentHolds <= 64}) then {
+        {private _row=_parentHolds get _x;
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
+                && {(_row select 1) == _supportToken} && {(_row select 2) == _supportGeneration}
+                && {(_row select 3) == _supportEpoch} && {(_row select 6) == (_supportLease select 2)}) then {
+                [_row select 0,_row select 4,_row select 5] call _captureHold;
+            };
+        } forEach (keys _parentHolds);
+    };
+    // A second transfer before child reconstruction forwards the original observations,
+    // not a new observation window. Local changed commands are discarded; nonlocal rows
+    // remain proposals that the receiving owner must validate before using them.
+    private _supportParent=_group getVariable ["CBE_Operation",createHashMap];
+    private _adoptionUntil=_supportParent getOrDefault ["supportAdoptionUntil",-1];
+    private _carryNative={
+        params ["_row"];
+        if (!(_row isEqualType []) || {!(count _row in [3,10])} || {!((_row select 0) isEqualType objNull)}) exitWith {};
+        private _actor=_row select 0;
+        if (isNull _actor || {group _actor != _group} || {!alive _actor}) exitWith {};
+        if (local _actor && {currentCommand _actor != (["STOP","MOVE"] select (count _row == 10))
+            || {(expectedDestination _actor) isNotEqualTo (_row select 1)} || {formLeader _actor != (_row select 2)}}) exitWith {};
+        if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) exitWith {_proofOverflow=true};
+        _proofRows set [netId _actor,_row apply {if (_x isEqualType []) then {+_x} else {_x}}];
+    };
+    if (_adoptionUntil isEqualType 0 && {finite _adoptionUntil} && {serverTime < _adoptionUntil}
+        && {(_supportParent getOrDefault ["generation",-1]) == _supportGeneration}
+        && {(_supportParent getOrDefault ["ownerEpoch",-1]) == _supportEpoch}
+        && {(_supportParent getOrDefault ["supportToken",""]) == _supportToken}
+        && {(_supportParent getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}) then {
+        private _pending=_state getOrDefault ["supportHoldAdoption",[]];
+        if (_pending isEqualType [] && {count _pending == 5}
+            && {(_pending select [0,4]) isEqualTo [_supportGeneration,_supportEpoch,_adoptionUntil,_supportLease select 2]}
+            && {(_pending select 4) isEqualType []} && {count (_pending select 4) <= 64}) then {
+            {[_x] call _carryNative} forEach (_pending select 4);
+        };
+        private _importedMoves=_state getOrDefault ["supportNativeMoves",createHashMap];
+        if (_importedMoves isEqualType createHashMap && {count _importedMoves <= 64}) then {
+            {[_importedMoves get _x] call _carryNative} forEach (keys _importedMoves);
+        };
+    };
+    private _childHolds=_drill getOrDefault ["nativeCommands",createHashMap];
+    if ((_drill getOrDefault ["supportToken",""]) == _supportToken
+        && {(_drill getOrDefault ["operationGeneration",-1]) == _supportGeneration}
+        && {(_drill getOrDefault ["ownerEpoch",-1]) == _supportEpoch}
+        && {_childHolds isEqualType createHashMap} && {count _childHolds <= 64}) then {
+        {private _row=_childHolds get _x;
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
+                && {(_row select 1) == "HOLD"} && {(_row select 0) in (_drill getOrDefault ["units",[]])}) then {
+                [_row select 0,_row select 2,_row select 3] call _captureHold;
+            };
+            // An acknowledged, unchanged MOVE can be observed on the new owner without replaying it.
+            // Carry original progress clocks; the native acknowledgement grace never migrates.
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "MOVE"}
+                && {(_drill getOrDefault ["stage",""]) == "MOVE"}) then {
+                private _actor=_row select 0;
+                private _slot=(_drill getOrDefault ["movers",[]]) find _actor;
+                private _samples=_drill getOrDefault ["progress",[]];
+                if (_slot >= 0 && {_slot < count _samples} && {!isNull _actor} && {local _actor}
+                    && {group _actor == _group} && {currentCommand _actor == "MOVE"}
+                    && {formLeader _actor == (_row select 3)} && {count (_row select 6) == 3}
+                    && {((expectedDestination _actor) param [0,[],[[]]]) isEqualTo (_row select 6)}) then {
+                    if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) then {_proofOverflow=true} else {
+                        private _sample=_samples select _slot;
+                        _proofRows set [netId _actor,[_actor,+(expectedDestination _actor),_row select 3,+(_row select 6),
+                            _drill get "supportSequence",_drill get "teamTurn",
+                            serverTime+(_sample select 1)-time,serverTime+(_sample select 3)-time,
+                            _sample select 0,+(_sample select 2)]];
+                    };
+                };
+            };
+        } forEach (keys _childHolds);
+    };
+    if (!_proofOverflow) then {
+        _saved pushBack ["supportHoldProof",[_supportToken,_supportGeneration,_supportEpoch,
+            _supportLease select 2,+_supportOrder,(keys _proofRows) apply {_proofRows get _x}]];
+    };
 };
 if (_saved isNotEqualTo (_group getVariable ["CBE_AIPass_Checkpoint", []])) then {
     _group setVariable ["CBE_AIPass_Checkpoint", _saved, true];

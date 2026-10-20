@@ -13,14 +13,14 @@ Feature cases: **65**. Required variant categories: **14**.
 | COMPAT - Specialist ownership and alternative-controller handover | 0 | 0 | 8 | `runCompatibility.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | SCHED - Scheduler and distance tiers | 11 | 0 | 6 | `runScheduler.sqf`, `runPerformance.sqf`, `runPerformanceContact.sqf` | 3 | implemented_partial |
 | PROFILE - Behaviour profiles and aggression | 4 | 1 | 1 | `runProfiles.sqf` | 1 | implemented_partial |
-| SKILL - AI skill rebalance | 14 | 0 | 5 | `runMechanics.sqf` | 0 | implemented_partial |
-| LAND - Helicopter landing | 21 | 0 | 7 | `runLanding.sqf` | 1 | implemented_partial |
+| SKILL - AI skill rebalance | 14 | 0 | 7 | `runMechanics.sqf` | 0 | implemented_partial |
+| LAND - Helicopter landing | 21 | 0 | 8 | `runLanding.sqf` | 1 | implemented_partial |
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
 | MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
-| CONTACT - Contact detection | 9 | 0 | 21 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
-| POST - Post-contact search | 5 | 0 | 0 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
-| FLANK - Flanking bounds | 8 | 0 | 4 | `runCombat.sqf` | 3 | implemented_partial |
+| CONTACT - Contact detection | 9 | 0 | 23 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
+| POST - Post-contact search | 5 | 0 | 2 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
+| FLANK - Flanking bounds | 8 | 0 | 6 | `runCombat.sqf` | 3 | implemented_partial |
 | CROSS - Road crossing | 1 | 0 | 1 | `runCrossing.sqf` | 0 | implemented_partial |
 | FIRE - Fire distribution and suppression | 3 | 0 | 2 | `runFireControl.sqf` | 0 | implemented_partial |
 | MORALE - Morale and withdrawal | 3 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
@@ -33,8 +33,8 @@ Feature cases: **65**. Required variant categories: **14**.
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | WITHDRAW - Damaged vehicle withdrawal | 5 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 1 | `runCover.sqf` | 1 | implemented_partial |
-| VEH-DRIVING - Ordinary vehicle route safety | 4 | 0 | 48 | `runVehicleDrills.sqf`, `runDrivingTraffic.sqf`, `runParkedBypass.sqf`, `runRoadPassing.sqf`, `runDrivingCrew.sqf` | 0 | implemented_partial |
-| CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 10 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
+| VEH-DRIVING - Ordinary vehicle route safety | 5 | 0 | 76 | `runVehicleDrills.sqf`, `runDrivingTraffic.sqf`, `runParkedBypass.sqf`, `runRoadPassing.sqf`, `runDrivingCrew.sqf` | 0 | implemented_partial |
+| CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 11 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
 | CNV-FIRE - Convoy weapon crew | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-COVER - Convoy dismount positions | 1 | 0 | 0 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-AVOID - Convoy infantry avoidance | 1 | 0 | 0 | `runConvoyAvoidance.sqf` | 1 | implemented_partial |
@@ -45,22 +45,22 @@ Feature cases: **65**. Required variant categories: **14**.
 | REINFORCE - Reinforcement | 3 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
 | ART - Spotted artillery bursts | 13 | 0 | 18 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
-| AIRBORNE - Parachute passengers | 6 | 0 | 4 | `runAirborne.sqf` | 0 | implemented_partial |
+| AIRBORNE - Parachute passengers | 6 | 0 | 8 | `runAirborne.sqf` | 0 | implemented_partial |
 | GARRISON - Garrison and dynamic AO | 1 | 0 | 5 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |
-| ADVANCE - Bounding advance | 3 | 0 | 4 | `runCombat.sqf` | 2 | implemented_partial |
-| COORD - Coordinated assault | 2 | 0 | 13 | `runCoordinated.sqf` | 10 | implemented_partial |
+| ADVANCE - Bounding advance | 3 | 0 | 5 | `runCombat.sqf` | 2 | implemented_partial |
+| COORD - Coordinated assault | 2 | 0 | 14 | `runCoordinated.sqf` | 10 | implemented_partial |
 | STANCE - Cover stance | 1 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | AMMO - Magazine sharing | 2 | 0 | 3 | `runMechanics.sqf` | 0 | implemented_partial |
 | GUNNERY - Vehicle threat priority | 1 | 0 | 0 | `runGunnery.sqf` | 1 | implemented_partial |
 | ART-SMOKE - Artillery smoke | 1 | 0 | 0 | `runArtillerySmoke.sqf` | 1 | implemented_partial |
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
-| CLEAR - Building clearance | 2 | 0 | 19 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
+| CLEAR - Building clearance | 2 | 0 | 27 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
 | UI - CBA configuration and diagnostics | 0 | 0 | 3 | `runClient.sqf` | 0 | implemented_partial |
-| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 16 | `runLifecycle.sqf` | 6 | implemented_partial |
+| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 18 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-WITHDRAW - Multi-squad screened withdrawal | 0 | 0 | 0 | `runReactions.sqf` | 0 | implemented_partial |
@@ -130,7 +130,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 ### SKILL - AI skill rebalance
 
-**Expected:** Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.
+**Expected:** Skill profiles are opt-in; default startup preserves mission skills. Explicit profiles use original baselines without multiplier accumulation. Later native skill/aim edits or declared skill ownership yield the optional profile while preserving changed values, including through transfer/restart. Excluded/player units retain values and stop restores only unchanged owned settings.
 
 **Automation and open work:** runMechanics.sqf compares dismounted infantry, cargo, ground-vehicle crew, aircraft crew and a named Dynamic AA crew. It measures the distinct configured aim coefficients, reduced operator skill and retained Dynamic AA profile/aim coefficient. The expanded fixture awaits a rebuilt live run.
 
@@ -138,7 +138,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Aircraft physically approaches, touches down and holds; terrain clearance, bounded go-around and cleanup survive transfer/deletion.
 
-**Automation and open work:** runLanding.sqf: malformed payload rejection without mutation, physical touchdown and hold, landing cancellation and real redirected flight. Passed server cases in runtime-20260927-041916. Terrain, boundary, JIP and ownership variants remain unverified.
+**Automation and open work:** runLanding.sqf: malformed payload rejection, physical touchdown/hold and cancelled-order redirection. Historical server checks passed in runtime-20260927-041916 on older source. New normal/server-owned successor-lease feature handover case is PREPARED_NOT_RUN: real controller admission, deferred cleanup, immutable deadline, exact acknowledgement and physical fresh-MOVE return. It does not establish Workshop-controller parity. Terrain, boundary, JIP and ownership variants remain unverified.
 
 ### DECEL - Helicopter braking
 
@@ -252,13 +252,13 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Preserve authored waypoint metadata and newer native/Zeus/external authority. Apply current braking, hull, pedestrian, geometry and terrain constraints through one owner-local driving FSM. Alternate paths and recovery require finite owned work and actual progress; timestamps, accepted commands, caps and roles cannot pass physical execution. Driver handover requires actual vacant-seat replacement and resumed route movement. Restore only owned state and retain failures.
 
-**Automation and open work:** Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success.
+**Automation and open work:** Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Native hold/reverse/dependency/handback remains unimplemented. Distinct finite queue-role server broker/actual-owner acknowledgements are wired; consent never grants movement. Native hold/reverse/dependency/cleanup executor and physical protocol acceptance remain missing.
 
 ### CNV-MOVE - Mixed convoy path and spacing
 
 **Expected:** Each traces its predecessor, maintains spacing and makes progress without wedge formation; recovery is bounded.
 
-**Automation and open work:** runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified.
+**Automation and open work:** runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified. Prepared normal-only runConvoyNativeStop.sqf (focus convoynativestop) requires real native movement, operator STOP yield, total-motion rest, sampled unchanged intent and fresh native physical travel; isolated fixtures and no test-side cleanup/reset before outcomes. UNRUN; no new acceptance.
 
 ### CNV-FIRE - Convoy weapon crew
 

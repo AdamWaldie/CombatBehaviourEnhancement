@@ -1,0 +1,47 @@
+{
+  "reviewed": "2026-10-17",
+  "baselineCommit": "70dd1582",
+  "scope": "Natural indoor node crowding and shared buddy selection; not whole CQB/LAMBS parity",
+  "priorSourceReview": "releaseVerificationAndDeployment/referenceReviews/lambs-cqb-entry-flow-20261016.json",
+  "comparisonLimit": "Existing review distinguishes active assault from legacy random-progress helpers; no new compiled LAMBS callgraph or physical comparison established here.",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
+      "sha256": "7093d9a92c4729725cc3478df3e1e93138bf8177c7e25854f27f60482910e400"
+    },
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "sha256": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f"
+    }
+  ],
+  "findings": [
+    {
+      "area": "native destination occupancy",
+      "before": "IndoorActorNodeSelect filtered requested reservations and temporary node failures, but not another current squad body at the selected point.",
+      "change": "Snapshot at most16 living/simulated/visible/on-foot same-group actors and exclude node proximity within1.5m horizontal/1m vertical before ranking. No other-group/enemy/world scan, persistent occupancy record or failed-node credit."
+    },
+    {
+      "area": "new buddy proximity",
+      "before": "CombatPairs preserved intact pairs but assigned orphan/new partners from the front of the remaining roster.",
+      "change": "Preserve intact pairs first, then select nearest eligible remaining partner by3D distance, stable roster ties. Metadata only; no new movement or actor ownership."
+    }
+  ],
+  "limits": [
+    "Geometric proximity does not prove connectivity around walls or stairs.",
+    "Node crowding margin is conservative, not an exact collision or room partition model.",
+    "Candidate occupancy can change after planning; native collision and command-boundary authority remain required.",
+    "Cross-group crowding and unseen enemies are deliberately not sampled.",
+    "Explicit building-clearance lanes, exterior isolation, post-clear settlement and stragglers remain separate acceptance requirements.",
+    "No physical or 5% median/10% p95 performance acceptance."
+  ],
+  "validation": {
+    "log": ".qa/cbe-indoor-buddy-flow-build.log",
+    "tests": 1121,
+    "compiledSQF": 313,
+    "PBOs": 9,
+    "exitCode": 0
+  },
+  "physicalAcceptance": false,
+  "auditsLaunched": false,
+  "upstreamSourcesModified": false
+}

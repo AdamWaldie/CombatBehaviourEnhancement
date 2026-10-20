@@ -20,8 +20,8 @@ class ClearEarlyExitTests(unittest.TestCase):
         planner = s.split('private _chooseExteriorExit={',1)[1].split('// End exterior planner;',1)[0]
         self.assertIn('private _proposalCount=3 max count _ranked;',planner)
         self.assertIn('from 0 to (_proposalCount-1)',planner)
-        self.assertIn('_entries select [0,4]',planner)
-        self.assertIn('_entries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
         self.assertIn('call CBE_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('doMove',planner)
 
@@ -46,7 +46,7 @@ class ClearEarlyExitTests(unittest.TestCase):
                      'serverTime-(_motion select 1) >= 8',
                      '!(_record param [4,false,[true]])',
                      '[_actor] call _exitMovementOwned',
-                     'call CBE_fnc_RecoveryStep', '_record set [4,true]']:
+                     'call _recoverClearActor', '_record set [4,true]']:
             self.assertIn(gate,service)
         self.assertNotIn('_record set [2,',service)
         self.assertNotIn('doMove',service)

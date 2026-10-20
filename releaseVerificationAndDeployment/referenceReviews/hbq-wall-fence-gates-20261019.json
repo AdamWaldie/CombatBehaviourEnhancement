@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-19",
+  "scope": "HBQ gate candidate classification and CBE live geometry/opening chain",
+  "reference": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesRead": [
+      "220-330"
+    ]
+  },
+  "finding": "Source GateInfo admits native Wall/Fence candidates with semantic opening sources. CBE only checked supported indexed sources for ambiguous barrier names, leaving named-neutral animated native wall/fence gates as generic solid obstacles.",
+  "implementation": [
+    "Extend the existing per-call cached candidate predicate with native Wall and Fence inheritance.",
+    "Still require one of the four indexed Door/Gate sound/plain source conventions for these ambiguous candidates.",
+    "No arbitrary user-action parsing, generic house-door fallback, damage-based clearance, animation-based clearance or lock bypass.",
+    "Same geometry observations feed ordinary and convoy speed writers. No additional ray, timer or movement owner."
+  ],
+  "cost": "At most two additional inheritance checks per uncached ambiguous hit class. Existing at-most32 source existence checks and27ray/108hit bounds remain. Native execution cost not measured.",
+  "validation": {
+    "tests": 1476,
+    "buildLog": ".qa/cbe-driving-gates-boarding-build.log",
+    "independentLog": ".qa/cbe-driving-gates-boarding-independent.log",
+    "fingerprint": "f76ff4f1564fbca8c2ae8361a1c5cead9eb5d2e02001ad108110f3c62ff54853",
+    "packageSource": "cfd3d02f2fd3aed6d411efe615c610afcbc7c100+dirty unsigned development",
+    "physicalAcceptance": false
+  },
+  "remaining": [
+    "Unknown/non-indexed animation conventions and action-statement-only gates remain unsupported.",
+    "Automatic closure/passage arbitration not implemented.",
+    "Actual map/mod wall/fence gate traversal, locking, native animation, normal/HC/JIP and overhead unverified."
+  ],
+  "physicalAcceptance": false,
+  "audits": "paused"
+}

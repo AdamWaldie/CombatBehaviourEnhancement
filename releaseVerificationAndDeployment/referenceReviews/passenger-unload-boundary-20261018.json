@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "findings": [
+    "Shared passenger motion gate used only model-forward speed",
+    "Final convoy HALT unloading did not bind the command boundary to the current local authoritative snapshot",
+    "ConvoySync sends filtered vehicle/cargo slices to actual passenger owners; whole-packet equality would reject valid split-owner work"
+  ],
+  "implementation": [
+    "Shared routine boarding/unloading requires finite total linear <1km/h/angular <0.01rad/s observations",
+    "Final HALT unloaded-marker/dismount transaction checks current registry policy and exact full-roster passenger/vehicle membership atomically",
+    "Compare unchanged policy slices [0,4] and [7], allowing filtered vehicle/cargo slices",
+    "Preserve local passenger authority, reservations, native task/seat exclusions and wet/deck guards"
+  ],
+  "validation": {
+    "tests": 1425,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-passenger-unload-boundary-build.log",
+    "unsigned_fingerprint": "ec0a308ba8555aeeb337d887199471f680571f3e46a5a47f78c55660716f01d6",
+    "physical": false
+  },
+  "cost": "Registry/payload lookups at existing crew cadence; no new worker/world discovery. Actual large-convoy overhead unknown.",
+  "remaining": [
+    "Actual vehicle-owner physics freshness across split passenger ownership not proven",
+    "Stale HALT rejection, native boarding/unloading and thresholds require engine evidence",
+    "Explicit STOP versus CBE-owned passenger stops needs lifecycle/provenance review",
+    "Performance unmeasured; audits paused"
+  ]
+}

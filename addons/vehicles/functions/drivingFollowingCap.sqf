@@ -12,17 +12,25 @@
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
- * neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
+ * Oncoming/reversing lane hulls retain their measured approach speed through reaction and
+ * own braking time; treating that component as stationary would overstate available room.
+ * This only lowers the existing cap and cannot make an uncooperative peer stop or yield.
+ * Neither nominal deceleration nor scheduler response is physically guaranteed by this policy.
  * Locality/authority: read-only on the current vehicle owner. The driving operation owns all
  * speed commands and rechecks its driver, route and movement lease before applying this result.
  * Repeat/JIP: no handlers or cached clearance. Each sample uses actual velocity and current hull
- * corners; results must not be replayed after movement, route replacement or locality change.
+ * full-hull bounds; results must not be replayed after movement, route replacement or locality change.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap m/s <NUMBER>, 20 (0..35);
  * 2 registered predecessor <OBJECT>, objNull. Only its alive, aligned, non-reversing
  * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
+ * 3 optional queue proof HASHMAP empty: only a current granted QUEUE FOLLOW delegates
+ * its frozen held hulls to the existing path geometry; all other vehicles remain observed.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
- * sampledAt NUMBER, candidate count NUMBER]. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
- * a congestion sentinel; at most 64 candidate hulls are evaluated, eight corners each.
+ * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
+ * earlier observation only for closing/crossing conflicts; stable same-speed following
+ * does not request faster sampling. It grants no speed, clearance or right of way. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
+ * a congestion sentinel; at most 64 candidate hulls are evaluated. Four affine transform pairs
+ * represent all eight corners with a0.05m outward model-space rounding pad per boundary.
  * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
  * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
  * querying. Faster approaching traffic and unusually large modded hulls remain limitations.
@@ -30,14 +38,14 @@
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call CBE_fnc_DrivingFollowingCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]],["_queueProof",createHashMap,[createHashMap]]];
 _requested=(_requested max 0) min 35;
-if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0]};
+if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0,false]};
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
 private _front=_high select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
-if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0]};
+if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0,false]};
 _forward=vectorNormalized _forward;
 private _right=[_forward select 1,-(_forward select 0),0];
 private _halfWidth=((_high select 0)-(_low select 0))*0.5;
@@ -58,16 +66,30 @@ _plannedSpeed=(_ownForward max _requested) max 0.5;
 private _horizon=6;
 private _approachAllowance=35*_horizon;
 private _radius=(_ownForward max _requested)*_horizon+_approachAllowance+20+(abs _front);
-if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0]};
+if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0,true]};
 // Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
-if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates]};
-private _cap=_requested;private _limiting=objNull;private _gap=-1;
+if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
+// Only a current granted QUEUE FOLLOW path can delegate its frozen held hulls
+// to the shared path geometry. Other traffic and the dense-candidate budget remain.
+private _pathHulls=[];
+if (count _queueProof > 0) then {
+    private _queueVehicles=_queueProof getOrDefault ["vehicles",[]];
+    private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+    if ((_queueVehicles param [0,objNull]) == _vehicle
+        && {_queueProof getOrDefault ["crossingGranted",false]}
+        && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _queueProof}
+        && {(_work getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
+        && {(_work getOrDefault ["phase",""]) == "FOLLOW"}
+        && {(_work getOrDefault ["queueCrossingBinding",[]]) isEqualTo (_queueProof getOrDefault ["crossingBinding",[]])}
+        && {[_queueProof,true] call CBE_fnc_DrivingQueueReverseCurrent}) then {_pathHulls=_queueVehicles select [1]};
+};
+private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearConflict=false;
 {
     private _other=_x;
-    if (_other != _vehicle && {!isNull _other}) then {
+    if (_other != _vehicle && {!isNull _other} && {!(_other in _pathHulls)}) then {
         // Heading selects only the following-speed allowance, never obstacle admission.
         // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
         private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7
@@ -82,20 +104,25 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         } else {0};
         private _otherBox=boundingBoxReal _other;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
-        private _minZ=1e9;private _maxZ=-1e9;
+        // Project the full box with one corner and three edges. Model transforms are affine:
+        // each axis extremum is origin plus the negative/positive components of those edges.
+        // This represents all eight corners with four transform pairs, including tilt/scale.
+        private _origin=_vehicle worldToModel (_other modelToWorld _otherLow);
+        private _projectedLow=+_origin;private _projectedHigh=+_origin;
         {
-            private _height=_x;
-            {
-                private _width=_x;
-                {
-                    private _point=_vehicle worldToModel (_other modelToWorld [_width,_x,_height]);
-                    _minX=_minX min (_point select 0);_maxX=_maxX max (_point select 0);
-                    _minY=_minY min (_point select 1);_maxY=_maxY max (_point select 1);
-                    _minZ=_minZ min (_point select 2);_maxZ=_maxZ max (_point select 2);
-                } forEach [_otherLow select 1,_otherHigh select 1];
-            } forEach [_otherLow select 0,_otherHigh select 0];
-        } forEach [_otherLow select 2,_otherHigh select 2];
+            private _edge=(_vehicle worldToModel (_other modelToWorld _x)) vectorDiff _origin;
+            for "_axis" from 0 to 2 do {
+                private _component=_edge select _axis;
+                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
+                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
+            };
+        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
+            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
+            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
+        // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
+        private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
+        private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;
+        private _minZ=(_projectedLow select 2)-0.05;private _maxZ=(_projectedHigh select 2)+0.05;
         // A long sideways hull can intrude past our front even when its centre is behind it.
         private _ahead=_maxY > _front-0.25;
         private _sameLane=_maxX >= (_low select 0)-0.25 && {_minX <= (_high select 0)+0.25};
@@ -129,6 +156,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
                     private _brakingCap=(sqrt ((_reactionSpeed^2)+2*_deceleration*_room)-_reactionSpeed) max 0;
                     private _allowed=_arrivalCap min _brakingCap;
                     private _stoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration);
+                    if (_fromRight || {_room <= _stoppingRoom}) then {_nearConflict=true};
                     if (_room <= _stoppingRoom) then {_allowed=0};
                     if ((_fromRight || {_room <= _stoppingRoom}) && {_allowed < _cap}) then {
                         _cap=_allowed;_limiting=_other;_gap=_room
@@ -138,6 +166,10 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         };
         if (_ahead && {_sameLane} && {_sameHeight}) then {
             private _hullGap=(_minY-_front) max 0;
+            // Anticipation changes cadence only, including a peer not yet lowering our cap.
+            // Same-lane and same-height hull tests above keep adjacent/stacked traffic out.
+            private _watchRoom=40 max (_ownForward*_reaction+(_ownForward^2)/(2*_deceleration));
+            if (_hullGap <= _watchRoom && {!_following || {_ownForward-_otherForward > 0.5}}) then {_nearConflict=true};
             if (_spacingOwned) then {
                 // Normal convoy gaps keep their own pacing model. Even an aligned
                 // predecessor cannot exempt contact-range body overlap from braking.
@@ -153,6 +185,19 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
             private _reactionSpeed=_deceleration*_reaction;
             private _closingAllowance=(sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_room)-_reactionSpeed) max 0;
             _allowed=_allowed min (_otherForward+_closingAllowance);
+            // A hull approaching along our lane keeps closing while we react AND brake.
+            // v*T + v^2/(2*a) + u*(T+v/a) <= room, where u is its current approach.
+            // This is a provisional own-speed bound, not consent or a collision guarantee.
+            private _approachSpeed=(-((velocity _other) vectorDotProduct _forward)) max 0;
+            if (_approachSpeed > 0.5) then {
+                private _remainingRoom=(_room-_approachSpeed*_reaction) max 0;
+                private _approachCoefficient=_approachSpeed+_reactionSpeed;
+                private _approachAllowance=(sqrt ((_approachCoefficient^2)+2*_deceleration*_remainingRoom)-_approachCoefficient) max 0;
+                private _actualStoppingRoom=_ownForward*_reaction+(_ownForward^2)/(2*_deceleration)
+                    +_approachSpeed*(_reaction+_ownForward/_deceleration);
+                if (_room <= _actualStoppingRoom) then {_approachAllowance=0};
+                _allowed=_allowed min _approachAllowance;
+            };
             private _closing=(_ownForward-_otherForward) max 0;
             if (_closing > 0.5 && {_hullGap < 2+(_closing*0.5)}) then {_allowed=0};
             if (_allowed < _cap) then {_cap=_allowed;_limiting=_other;_gap=_hullGap};
@@ -160,4 +205,4 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;
         };
     };
 } forEach _candidates;
-[_cap,_limiting,_gap,time,count _candidates]
+[_cap,_limiting,_gap,time,count _candidates,_nearConflict]

@@ -1,0 +1,18 @@
+{
+  "baseline": "1fbb771c",
+  "scope": "Danger-cover admission uses the existing finite actor reservation gate",
+  "defect": "A raw nonempty movement marker blocked danger cover even after a valid reservation expired.",
+  "change": "Use CortexActorMoveReserved before geometry and before the native move. Valid expired markers are free; live and malformed markers remain reserved. Native task, common operation and mission-route guards remain in place.",
+  "cost": "Reuses a bounded actor-local read-only helper; no new worker, timer, world scan or marker renewal.",
+  "validation": {
+    "tests": 1474,
+    "compiled_sqf": 340,
+    "pbos": 9,
+    "log": ".qa/cbe-danger-cover-reservation-build.log",
+    "independent_verify": true,
+    "fingerprint": "8cf0b4bd72d09d7113b7278d26becf12aa46a8cc9a5f251866ab931208ea6121",
+    "manifest": "1fbb771c plus dirty implementation; unsigned development build",
+    "physical_acceptance": false
+  },
+  "limits": "This fixes admission only, not pathfinding or cover effectiveness. Audits remain paused; no source-parity or measured performance claim. Product guide trailing whitespace was tidied after the packaged build."
+}

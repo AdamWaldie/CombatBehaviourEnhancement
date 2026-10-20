@@ -18,6 +18,10 @@
  * Exact insertion episodes and owner epochs guard execution and cleanup; legacy jobs retire silently.
  * Every DROP step rechecks live pilot/commander takeover before another passenger exits.
  * Repeat/JIP: current-owner eligibility and automatic feature gates are rechecked before each jump.
+ * Attempts rotate through the original roster, including after refusal. Temporarily unavailable
+ * passengers still aboard remain pending until the existing deadline; actors leaving the original
+ * group are not recalled. Only an accepted exit refreshes the aircraft drop hold.
+ * Job-local lastExit records [actor,accepted,local time], not landing/deployment success.
  * Arguments:
  * 0: job state <HASHMAP> - group, aircraft, jumpers, index, phase, target, deadline
  *
@@ -62,8 +66,15 @@ if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["CBE_AI
 
 if (_episode isNotEqualTo (_aircraft getVariable ["CBE_AIPass_DropEpisode",[]])) exitWith {call _finish};
 if ((_job get "phase") == "DROP") exitWith {
-    private _jumpers = (_job get "jumpers") select {
-        local _x && {vehicle _x == _aircraft} && {!isPlayer _x}
+    if (time > (_job get "deadline")) exitWith {call _finish};
+    private _roster=_job get "jumpers";
+    private _cursor=_job getOrDefault ["index",0];
+    if (!(_cursor isEqualType 0) || {!finite _cursor} || {_cursor < 0}
+        || {_cursor != floor _cursor} || {_cursor >= count _roster}) then {_cursor=0};
+    private _ordered=(_roster select [_cursor])+(_roster select [0,_cursor]);
+    private _aboard=_roster select {alive _x && {group _x == _group} && {vehicle _x == _aircraft}};
+    private _jumpers = _ordered select {
+        group _x == _group && {local _x} && {vehicle _x == _aircraft} && {!isPlayer _x}
             && {[_x] call CBE_fnc_CortexCombatEffective}
             && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
             && {isNull remoteControlled _x}
@@ -71,7 +82,7 @@ if ((_job get "phase") == "DROP") exitWith {
             && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
-    if (_jumpers isEqualTo [] || {!alive _aircraft}) exitWith {
+    if (_aboard isEqualTo [] || {!alive _aircraft}) exitWith {
         _job set ["phase", "LAND"];
         3
     };
@@ -89,10 +100,17 @@ if ((_job get "phase") == "DROP") exitWith {
     // player or a specialist controller takes the group; anyone still aboard remains where that
     // new controller expects rather than completing CBE's earlier drop plan.
     if (time > (_job get "deadline") || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {call _finish};
+    // A reservation, brief readiness loss or split locality does not mean everyone landed.
+    // Keep the original finite deadline; no command is issued to unavailable passengers.
+    if (_jumpers isEqualTo []) exitWith {1};
     if (((getPos _aircraft) select 2) < (missionNamespace getVariable ["CBE_AIPass_Airborne_MinAltitude", 120])
         || {surfaceIsWater getPos _aircraft}) exitWith {1};
-    [_jumpers select 0, _aircraft] call CBE_fnc_CortexParachuteJump;
-    _aircraft setVariable ["CBE_AIPass_DropUntil", time + 30];
+    private _jumper=_jumpers select 0;
+    // Advance after every attempt, so one failed dismount cannot monopolise the batch.
+    _job set ["index",((_roster find _jumper)+1) mod count _roster];
+    private _accepted=[_jumper, _aircraft] call CBE_fnc_CortexParachuteJump;
+    _job set ["lastExit",[_jumper,_accepted,time]];
+    if (_accepted) then {_aircraft setVariable ["CBE_AIPass_DropUntil", time + 30]};
     (missionNamespace getVariable ["CBE_AIPass_Airborne_JumpInterval", 1]) max 0.5
 };
 

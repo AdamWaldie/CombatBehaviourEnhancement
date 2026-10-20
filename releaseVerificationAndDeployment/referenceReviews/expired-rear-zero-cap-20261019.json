@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-19",
+  "scope": "Expired unacknowledged reverse safety cap",
+  "finding": "DrivingAssistStart yields to release cleanup after EXPIRED reverse acknowledgement. Pending/expired release retained the positive journal cap and issued destination until acknowledgement or hard deadline. The engine may already be executing that unacknowledged request, so indefinite positive cap retention is not safe waiting.",
+  "implementation": "Only an exactly retained reverse request with EXPIRED acknowledgement may lower a positive owned cap to0. Requires all current vehicle/group/crew owners, combat-effective MOVE/PATH crew, no newer Zeus/external/reserved/native task, matching route/native destinations, matching actual cap and applied state, original restoration baseline and exact current journal. State/traffic/journal cap publish atomically in existing unscheduled cleanup. Original request, baseline and deadlines remain; no stop/move/replay. Split-owner branch retains strict metadata-only behavior. Existing receipt cleanup and ordinary callback continue unchanged.",
+  "integration": "DrivingAssistRelease captured-state guard prevents restoration over the updated zero-cap receipt. Existing pending journal registration rekeys cleanup proof to the new cap. Late acknowledgement can permit existing exact handback only within original cleanup lifetime; hard expiry remains unresolved. Zero cap does not prove physical braking, particularly on slopes.",
+  "cost": "Bounded metadata and existing owner/crew predicates only on expired owned reverse release; one zero-cap native write when original positive lease is lowered. No new timer, scheduler, world query or worker.",
+  "validation": {
+    "focusedExistingTests": 689,
+    "focusedLog": ".qa/cbe-queue-expired-rear-final-focused.log",
+    "hemttLog": ".qa/cbe-queue-expired-rear-hemtt.log",
+    "newCases": 0,
+    "retainedInitialFailures": "Old source assertions banned every speed write; revised existing cases permit only guarded forceSpeed0 and separately assert no commands in exact split-locality branch. Initial logs retained.",
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-queue-expired-rear-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-queue-expired-rear-independent.log",
+    "package": {
+      "commit": "5468c87ceef99efdea0e6e5a2b6bfe8b2f8e42b5",
+      "dirty": true,
+      "fingerprint": "6a1845fe48f4a19004dab99f5103c420e409b5240e85911056864c894a2b81fd",
+      "signed": false
+    }
+  },
+  "limits": "Does not resolve an unknown native command or prove motion stopped. Missing/changed receipts cannot grant cap authority. Queue native execution and post-reverse reservation remain incomplete.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "dab60cd4a201a25bb04d6318ca4621549ebf40e03fd4e5d853d9e770fadbd284"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "96cc823861d9d62177afc0954d23ea7ebd4d7a0049aeb0000a4e320116ace169"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+      "sha256": "282fc0661677e90a27babfcf5211376b2661aac0332fde0471a92b81f9f5ad93"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_recovery_cleanup.py",
+      "sha256": "e6cc32c0114b83638142eb29baa6e5bdb39983b4b190bb333b04751adf15a872"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_recovery_cap_authority.py",
+      "sha256": "1b1dc02d453fd7a893f1d4d2cbd36b31b6dba43277c508c570f84f47b2aa3d66"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_recovery_locality_retention.py",
+      "sha256": "0a0edbd4d3a76c03e7787aa905e1e98506461e5c6ad58082a05138f3b5584720"
+    }
+  ]
+}

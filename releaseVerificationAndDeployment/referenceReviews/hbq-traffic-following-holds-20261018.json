@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "9fc38cd95dd77515eb67c092d0b949f8e69aa1f2",
+  "scope": "Complete traffic-cap, traffic-ray and TrafficStep branch comparison; selected main-loop consumers. Not whole-HBQ parity.",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "ranges": [
+      "1032-1177 TrafficCap complete",
+      "1189-1342 FromLeft/TrafficRays complete",
+      "1535-1662 TrafficStep complete",
+      "2161-2216 cadence and follower exclusion",
+      "2898-2940 traffic/overtaking consumer"
+    ]
+  },
+  "findings": [
+    {
+      "intent": "Continuous following rather than binary stops",
+      "source": "TrafficCap follows the nearest limiting same-direction crewed vehicle above 3 km/h, using speed and mass/time gap; TrafficRays does not stop for a faster same-direction moving peer except hard occupancy.",
+      "cbe": "DrivingFollowingCap uses actual forward velocity, oriented hull occupancy, continuous gap correction and mass/reaction closing caps. ConvoyTick owns registered predecessor spacing and preserves independent traffic caps.",
+      "remaining": "Step-off, braking, mixed tracks/wheels and actual traffic throughput are unaccepted. A source formula cannot prove reduced stop/start."
+    },
+    {
+      "intent": "Avoid false crossing and adjacent-lane holds",
+      "source": "Oncoming priority requires lane overlap; crossing response uses overlapping occupancy windows and yields to the right. Forward traffic rays are one centre ray; rear rays fan three.",
+      "cbe": "DrivingFollowingCap uses eight-corner hull bounds and measured crossing courses with occupancy windows; left-side emergency approach still brakes. DrivingGeometryCap handles curved body/support sampling separately.",
+      "remaining": "Conservative projected extents, curved crossings, sloped/stacked routes and large modded hulls require physical comparison. Do not copy source centre-only sensing as a safety guarantee."
+    },
+    {
+      "intent": "Finite room-making when queues cannot progress",
+      "source": "TrafficStep maintains yield/pass pairs and backing requests; standing crossing-angle jams can also enter pair handling. It invokes physics push and timed traffic-ignore windows.",
+      "cbe": "Distinct authenticated queue roster/roles/expiry consent exists; no HOLD/READY/reverse/dependency executor. Existing pass consent and ordinary route retries do not implement queue recovery.",
+      "remaining": "Native room-making, stationary crossing-angle topology and dependency progress remain missing. Reverse capability must be demonstrated; physics pushes and unconditional ignore windows are rejected."
+    },
+    {
+      "intent": "Separate observation cadence from cap retention",
+      "source": "Main loop keeps prior obstacle/traffic caps between independent due times; nearby crewed traffic changes alert/cadence.",
+      "cbe": "Existing shared owner callback samples traffic at one second while constrained and four seconds otherwise; four-second nominal reaction is retained in the closing envelope. Convoys tick once per second.",
+      "remaining": "No live latency or performance result; proximity-driven faster sampling needs a bounded cost comparison, not blanket cadence acceleration."
+    },
+    {
+      "intent": "Followers must not repair the leader route",
+      "source": "Leader-vehicle followers are excluded from shared-waypoint restore/replan; otherwise trailing vehicles restore already-completed leader waypoints repeatedly.",
+      "cbe": "DrivingAssistStart already gates route recovery to the current leader vehicle; convoy followers use predecessor trails.",
+      "remaining": "Leader changes, individual orders and physical formation/path handback require live acceptance."
+    },
+    {
+      "intent": "Current crew task authority at startup and missing-trail holds",
+      "source": "The source loop checks current driver activity but is not a substitute for CBE two-seat/reservation ownership.",
+      "cbe": "Found four convoy stop sites using an earlier group-only or unguarded check. Startup steering/native holds and missing-trail steering/native holds now check actual seats inside the stop/receipt transaction. Refusal creates no hold/path-owner receipt.",
+      "remaining": "No guarantee of physical stopping or complete convoy authority: lead resume, group formation and other setup writers remain separate review items."
+    }
+  ],
+  "validation": {
+    "tests": 1308,
+    "exitCode": 0,
+    "log": ".qa/cbe-convoy-hold-authority-build.log",
+    "packageFingerprint": "e2d959d76c1b9638f9e9bdd862d07ecc3db670d04e8650b89270164f1e6bdbc9",
+    "source": "9fc38cd9 plus intended convoy hold source, guide and two regression contracts; review/handover metadata follows build"
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All 65 families remain partial; no whole-HBQ parity credit."
+}

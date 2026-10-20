@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-19",
+  "scope": "Driving and building FSM liveness and bounded executor recovery",
+  "findings": [
+    "Driving duplicate admission reported an active brain without checking its FSM handle.",
+    "Building duplicate admission likewise accepted an ended executor; the discovery applied flag prevented recovery."
+  ],
+  "implementation": [
+    "Reuse requires a finite nonnegative live FSM handle.",
+    "One ended nonterminal driving worker may be replaced for the same owner/route without native cleanup or erasing public recovery/crew/cap budgets. Brain pointer replacement rejects old callbacks.",
+    "Driving failed startup or second executor loss uses existing exact cleanup and retains a terminal route receipt.",
+    "Building startup may replace one ended executor on the identical admitted job; existing discovery supplies that job rather than constructing a new clearance. Original job deadlines, requests and room evidence persist.",
+    "Failed building restart retires only unchanged order/generation/epoch/job through existing cleanup; no synthetic clearance result."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingOperationStart.sqf": "dcc0efda3221f6d1792486803fed14d9ec649798f12f70bf0da98e7af16f104d",
+    "addons/vehicles/functions/drivingOperationFinish.sqf": "4c218ead6b04a57d1a1b816b82bf9196854c9eb11294a69911d33293eead1368",
+    "addons/infantry/functions/buildingOperationStart.sqf": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec",
+    "addons/core/functions/cortexDiscover.sqf": "2841ab74a51e5025fb09db3c5f2363de4022638c963b285e7f7981344cf461af"
+  },
+  "focused": [
+    ".qa/cbe-driving-fsm-liveness-focused.log",
+    ".qa/cbe-building-fsm-liveness-focused.log"
+  ],
+  "compiler": [
+    ".qa/cbe-driving-fsm-liveness-hemtt.log",
+    ".qa/cbe-building-fsm-liveness-hemtt.log"
+  ],
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Actual ended-FSM injection, preservation of native legs and normal/HC ownership recovery need physical evidence.",
+    "Missing or partial building job journals are not reconstructed by this exact-job restart path.",
+    "Missing or malformed individual indoor registry/journal records are not reconstructed; other specialist FSM lifecycles remain separate work.",
+    "Measured performance budget remains unproved."
+  ],
+  "initialValidationFinding": "Full suite caught an obsolete exact-source assertion that only EXHAUSTED could retain a terminal driving receipt. Updated it for explicit FSM startup/restart failure terminals; no test removed.",
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-owner-fsm-liveness-final-build.log",
+    "independentFingerprint": "f653df0891d6de0e60a83a5be9c563fce92875ceeeef712b7c59fa5492bd4420",
+    "manifestCommit": "b14316aa99159f5d5a28d361fc5570fcf1f90387",
+    "manifestDirty": true,
+    "physicalAcceptance": false
+  },
+  "individual_indoor_retirement_20261019": {
+    "finding": "An ended individual indoor FSM could leave its brain/journal/reservation occupying a finite investigation slot; no existing discovery service retired that record. START also reported success without checking the returned FSM.",
+    "implementation": "Existing group discovery examines only the at-most-two registered actor records. Internal REAP requires the current brain/group/owner epoch and an ended/missing handle, then invokes exact FINISH cleanup without restart, new deadline or failed-node inference. Existing terminal reasons persist. START requires a live current executor and invokes exact cleanup on startup failure.",
+    "sourceHashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "7ead5720b58251e5f3c84d48a01889c9956c99ae3cb2b251df04fb41d616c83d",
+      "addons/core/functions/cortexDiscover.sqf": "81f0e017a91f79127bfa296a1375b01620b5c15fdb23fb1454d6a7f91b04dd78"
+    },
+    "newTestCases": 0,
+    "newWorkers": 0,
+    "newGeometryQueries": 0,
+    "physicalAcceptance": false,
+    "remaining": "Partial/malformed journals and missing registry records are not reconstructed; live fault injection, native handback, normal/HC and overhead remain unverified.",
+    "checkpoint": {
+      "focused": ".qa/cbe-indoor-fsm-retirement-focused.log",
+      "compiler": ".qa/cbe-indoor-fsm-retirement-hemtt.log",
+      "fullBuild": ".qa/cbe-indoor-fsm-retirement-build.log",
+      "independentVerify": ".qa/cbe-indoor-fsm-retirement-independent.log",
+      "independentFingerprint": "d16520892eee81eb42b74d6ecb1bbd52419f53fc828891f932ff5e2acb4b9b66",
+      "manifestCommit": "cf5f9d576588b3df549106d8802a2986abe7d5f8",
+      "manifestDirty": true,
+      "tests": 1476,
+      "physicalAcceptance": false
+    }
+  }
+}

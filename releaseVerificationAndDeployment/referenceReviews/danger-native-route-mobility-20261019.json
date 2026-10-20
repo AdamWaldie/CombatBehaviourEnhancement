@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "2ed432a4",
+  "scope": "Individual native-route mobility during danger reactions",
+  "reference": {
+    "workshopId": "1858075458",
+    "files": {
+      ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
+    },
+    "intent": "Immediate reaction combines lower silhouette, local cover and direction/context-dependent evasive actions. Cover lowers standing actors to crouch; movement versus still/near context affects dodge.",
+    "originalsModified": false,
+    "runtimeDependency": false
+  },
+  "finding": "CBE immediate hard-cover branch protected CBE operations/reservations but ordinary native MOVE/path planning could still be forced prone or treated as an idle lateral-evasion candidate.",
+  "implementation": "Extend existing committed-mobility decision after child-drill classification with native MOVE or PLANNING/REPLAN. Existing stance selector gives mobile crouch; idle cover/evasion and all native weapon/path/target controls retained. No source animation/route controller copied.",
+  "departure": "Native authored movement receives stronger mobility preservation than the reference far-threat moving dodge branch. This is deliberate route-intent integration, not claimed whole-source parity or proven tactical superiority.",
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d",
+    "docs/Smart-AI-Pass.md": "648ac2e8b7e4608056f793c6d975fbfe93e0c7a212496a201dc7302b5b24a6e4"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-danger-native-route-hemtt.log",
+    "focused": ".qa/cbe-danger-native-route-focused.log",
+    "existingCases": 607,
+    "fullPipeline": ".qa/cbe-danger-native-route-build.log",
+    "independent": ".qa/cbe-danger-native-route-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "f785121de266ffb635f14f45023d831f7af7bb1d2cff01d5910022fb91f2f98a",
+    "manifestSource": "2ed432a4+dirty unsigned development"
+  },
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "fullBuild": "Passed checkpoint; physical acceptance remains absent",
+  "audits": "PAUSED",
+  "remaining": [
+    "Native reaction/travel under repeated fire, delay and casualty outcome unverified.",
+    "Implicit native formation/follow motion without MOVE or path-planning state is not newly classified.",
+    "Other complete reference FSM/cover/dodge behaviour and performance remain incomplete."
+  ],
+  "smallElementNaturalSelection20261020": {
+    "baseline": "794c2d59",
+    "sourceIntent": "LAMBS brainEngage selects close known dismounted infantry assault without a four-person squad threshold, while native planning, suppression/hold-fire and stealth constrain choices.",
+    "finding": "CortexAssaultStart supports two/three available armed actors, but CortexTacticalAssess required four armed foot soldiers before selecting fresh close infantry ASSAULT. Below60m, normal fresh manoeuvre fallback cannot select it. Executor support was therefore not connected to this normal assessment path.",
+    "change": "Selector proposes ASSAULT at two armed actors. Existing low-firepower single-survivor branch and all feature/contact age/distance/type gates remain. Executor still checks actual eligible roles/native tasks/orders/morale/avenue. No extra scheduler, movement writer or perception. AssaultStart now counts only primary-weapon-armed capable foot actors; unarmed members cannot inflate element size or fill attack/cover roles.",
+    "sources": {
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "fa43bd3349b2f14fee61f7667a0dff94dfed788c7b8f6c47b93b8a8ac4dfbe2d",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      "addons/infantry/functions/cortexAssaultStart.sqf": "059c44f339c1a4b5a5d9b9b094e8fde63f403b7b70c5b5e105f08df68a3026f1"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-small-element-selector-final-build.log",
+      "independent": ".qa/cbe-small-element-selector-independent.log",
+      "candidate": ".qa/candidates/small-element-794c2d59-db311ab9",
+      "fingerprint": "db311ab95b634d83c8f7cd1fc5e24a7ea857287e4f9f2a0fdd28ad0345137f0b",
+      "source": "794c2d59 plus intended dirty small-element assessment/executor edits",
+      "superseded": ".qa/cbe-small-element-selector-build.log passed before armed executor-roster correction"
+    },
+    "remaining": [
+      "Physical small-element cover/move timing, safe route, casualty continuation, source-relative balance and performance unverified.",
+      "Mixed operating crew/foot group manoeuvre remains a separate vehicle-domain composition limitation; no implicit subgroup split added."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "naturalDrillCapacityFollowUp20261020": {
+    "baseline": "5103ce52",
+    "finding": "Natural assault/flank/advance constructors excluded reservations but could count protected native task actors. Executor then removed them from roles. Flank additionally counted alive incapacitated actors. Apparent admission capacity could exceed usable mover/cover capacity.",
+    "change": "Reuse existing CortexActorFireTaskAvailable in initial onFoot selection for all three natural constructors. Replace flank alive-only fitness with shared combat-effective predicate. Same helper already checks typed reservation expiry and protected tasks. Preserve STOP provenance, roles, morale/orders/contacts/avenues and later native/executor guards. No new scheduler, command owner or query.",
+    "sources": {
+      "addons/infantry/functions/cortexAssaultStart.sqf": "c1ba09e05c5d2ec60297e8fa35cfb03744b6b19278a7f0e43d51143438b64ca7",
+      "addons/infantry/functions/cortexFlankStart.sqf": "9f954bee17c5e4eeb70b04677bbadcb44b9d33a626b5189454a7b522b259bb5a",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "c425b03e8c267a9976d777bf17007ee454b2174511c844773208bf5a96c53a1b",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "9c9a4a53e77e0eaf8f0e0ff79187503c356da6c0b0dde7be842afd469621d413"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-natural-role-capacity-final-build.log",
+      "independent": ".qa/cbe-natural-role-capacity-independent.log",
+      "candidate": ".qa/candidates/natural-role-capacity-5103ce52-64d992eb",
+      "fingerprint": "64d992eba36d892ea4a66aa2c3fdcb7962517ba60d2d69191fdeacbb9432f5be",
+      "source": "5103ce52 plus intended dirty natural-role-capacity edits",
+      "superseded": ".qa/cbe-natural-role-capacity-build.log failed direct reservation-call source assertion; existing test now traces shared task helper and unchanged typed expiry predicate"
+    },
+    "continuationTrace": "Existing FlankStep ensureMovingTeam already handles two survivors with one mover/one cover and donor transfer for three. No duplicate casualty-rebalance patch added.",
+    "remaining": [
+      "Physical small-element/larger squad task interruption, casualty continuation, source-relative balance and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "assessmentEngagementReconciliation20261020": {
+    "baseline": "ab134a9b",
+    "sources": {
+      ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doReposition.sqf": "d9ce73cd75a48f58d853ff67b7fa1e11a9bf4663722e397fea40ca8cfc821bac",
+      "addons/infantry/functions/indoorActorOperation.sqf": "e936e49c7aff5e6ccd89827e5f214684a5956814ec7a7e0406606c96a45008b3",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "dfcda13b921204a912f437e507a6ef1472a12a448413481a5c34c0bd272fc51b",
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "fa43bd3349b2f14fee61f7667a0dff94dfed788c7b8f6c47b93b8a8ac4dfbe2d",
+      "addons/infantry/functions/cortexFlankStep.sqf": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+    },
+    "sourceIntent": [
+      "brainAssess defers suppressed/PATH-disabled/stealth/STOP/hold-fire actors; group memory can invoke sympathetic inspection, indoor actor may reposition.",
+      "brainEngage retains useful native PLANNING, close dismounted CQB and distant native CANFIRE suppression. doAssaultMemory preserves BUSY nearby destinations, orders low-floor memory, consumes near/viewed positions and avoids unchanged doMove.",
+      "doReposition selects a nearby building position closer to threat and changes posture; these individual helpers are not whole-building safety/clearance proofs."
+    ],
+    "currentDisposition": [
+      "CBE uses finite individual indoor/point FSMs, one epoch-bound unknown-body clue and group operations. Native belief, occupancy, native-order ownership, current actor reservations and fixed deadlines remain authoritative; no unbounded group-memory sweep or whole-squad doFollow reset copied.",
+      "Shared manoeuvre admission/execution now connects supported small elements and excludes protected-task capacity. Existing ensureMovingTeam already handles survivor/donor changes; no duplicate role executor added.",
+      "Existing indoor observation is a finite inspection subset, not whole LAMBS sympathetic memory parity. Native-path preservation and low-floor routing are source intent already traced; physical flow remains unproven."
+    ],
+    "remaining": [
+      "Broader shared remembered-building sequencing, target-directed indoor reposition/balance and group/individual coordination need further implementation review and later physical comparison.",
+      "Mixed operating-crew/foot group manoeuvre remains vehicle-domain-gated; do not remove this without separating group-waypoint and vehicle command ownership."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
+  },
+  "availableTacticalCapacity20261020": {
+    "sourceParent": "53072894",
+    "sourceIntent": "LAMBS brainAssess/brainEngage preserve protected native work and let individual memory/CQB actions coexist with group decision-making. CBE actual tactical assessment must agree with executor task/reservation availability; healthy armed headcount alone is not present manoeuvre capacity.",
+    "finding": "Tactical assessment counted protected/reserved riflemen and AT/AA operators as currently available even though manoeuvre rosters refused those actors. It could propose unavailable roles and fall through repeated refusal to a whole-group reposition request, which separately deferred.",
+    "implementation": "Shared fire-task/reservation predicate selects availableFoot from existing healthy local dismounted roster. Rifle threshold and AT/AA capability use available roster; no available actor returns HOLD/default empty candidates with ACTOR_TASKS_BUSY before low-firepower fallback. Dispatcher reports ACTOR_TASK_HANDOFF. Physical foot strength remains diagnostic, morale/vehicle priority and executor guards remain.",
+    "cost": "One bounded existing read-only predicate per local foot actor, replacing later futile role attempts when all are protected. No world query/timer/controller or new movement. Runtime effect unmeasured.",
+    "validation": "688 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-tactical-available-build.log. Candidate .qa/candidates/tactical-available-53072894-60b612b7 fingerprint 60b612b7079e6c627ac98c0aad5f85c4ea3157fcc5e2b666cace545a160b0257 actual53072894+dirtysource. Independent copied-package verification .qa/cbe-tactical-available-independent.log. No new cases or scores.",
+    "limits": "This aligns decision/execution capacity, not whole LAMBS parity. Actual concurrent indoor/group roles, native planning, casualties, owner changes and performance remain unverified.",
+    "implementationHashes": {
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "3214f2c04dd08e1a7f0b4bc4c23b5f7e3a5b588fe184a8b05c5c30db74de6a01",
+      "addons/infantry/functions/cortexTacticalStart.sqf": "a423714738740f320fa85c5954df42708460663dccd33789c9098366cfcb5a2d",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "b006dfb066a4a5c3f3c261757828f7b2fb5e00a083cd85dc8afef1a26f1fd365"
+    },
+    "audits": "PAUSED"
+  }
+}

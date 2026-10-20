@@ -13,16 +13,37 @@
  * CLEAR destination failures retire the recovery observation without quarantining a capable actor;
  * its building worker retains per-room failure evidence and the generation retry budget stays spent.
  * Locality/authority: Current group owner only; it never creates a replacement route or issues a movement order.
- * Repeat/JIP: Updates the current generation only. Changed progress, roster and recovery state are public; unchanged no-progress observations are not rebroadcast. Cadence is local and rebuilt after migration.
+ * Repeat/JIP: Observations use isolated records and commit only against unchanged current input. Cancelled operations cannot be republished. Updates the current generation only. Changed progress, roster and recovery state are public; unchanged no-progress observations are not rebroadcast. Cadence is local and rebuilt after migration.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 minimum progress <NUMBER, 3>; 3 stale seconds <NUMBER, 12>; 4 allow own CBE feature <BOOL, false>.
- * Return Value: STRING - ACTIVE, STALLED, LOST_OWNER, ZEUS, EXTERNAL or COMPLETE.
+ * Return Value: STRING - ACTIVE, STALLED, LOST_OWNER, ZEUS, EXTERNAL or REPLACED.
  * Current callers: shared group operation jobs.
  * Example: [group player,4] call CBE_fnc_OperationStep;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_minimum",3,[0]],["_staleSeconds",12,[0]],["_allowFeatureOwner",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"LOST_OWNER"};
-private _operation=_group getVariable ["CBE_Operation",createHashMap];
+// Snapshot bookkeeping before scheduled observations. Arrays and the mutable child maps must
+// not alias public state: a stale observation may be discarded without changing its successor.
+private _entryEpoch=-1;
+private _entryOperation=createHashMap;
+isNil {
+    _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+    private _live=_group getVariable ["CBE_Operation",createHashMap];
+    {
+        private _value=_live get _x;
+        if (_value isEqualType []) then {_value=+_value};
+        if (_value isEqualType createHashMap) then {
+            private _child=_value;
+            _value=createHashMapFromArray (keys _child apply {
+                private _item=_child get _x;
+                [_x,if (_item isEqualType []) then {+_item} else {_item}]
+            });
+        };
+        _entryOperation set [_x,_value];
+    } forEach keys _live;
+};
+private _operation=createHashMapFromArray (keys _entryOperation apply {[_x,_entryOperation get _x]});
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {"REPLACED"};
+if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {"REPLACED"};
 // The route and callback belong to the owner epoch that created them.  Locality handlers normally
 // retire that generation before discovery rebuilds semantic intent, but this guard also covers an
 // out-of-order Local event or an HC handoff that races a queued callback.
@@ -47,8 +68,9 @@ private _originalParticipants=_declaredParticipants select {
 // A recovery order has one bounded observation window. If its actor remains stationary after that
 // window, record the actor as unavailable and let the remaining element continue. Do not turn one
 // failed path into a group-wide retry loop or fabricate the actor's progress.
-private _recovery=_operation getOrDefault ["recovery",createHashMap];
-private _unavailable=_operation getOrDefault ["unavailable",[]];
+private _recoverySource=_operation getOrDefault ["recovery",createHashMap];
+private _recovery=createHashMapFromArray (keys _recoverySource apply {[_x,_recoverySource get _x]});
+private _unavailable=+(_operation getOrDefault ["unavailable",[]]);
 private _temporarilyOwned=[];
 private _recoveryChanged=false;
 private _unavailableCount=count _unavailable;
@@ -171,7 +193,8 @@ if (_participants isEqualTo [] && {!_participantsRequired}) then {
         _operation set ["lastProgressPosition",_position];
     };
 };
-if (_progressed) then {
+private _changed=false;
+private _status=if (_progressed) then {
     _operation set ["participantProgress",_updated];
     _operation set ["recovery",_recovery];
     _operation set ["unavailable",_unavailable];
@@ -179,15 +202,15 @@ if (_progressed) then {
     if (!isNull _progressActor) then {_operation set ["lastProgressPosition",getPosATL _progressActor]};
     _operation set ["lastProgressAt",time];
     _operation set ["replans",0];
-    _group setVariable ["CBE_Operation",_operation,true];
+    _changed=true;
     "ACTIVE"
 } else {
-    private _changed=_recoveryChanged || {count _unavailable != _unavailableCount}
+    _changed=_recoveryChanged || {count _unavailable != _unavailableCount}
         || {_updated isNotEqualTo _records};
     _operation set ["participantProgress",_updated];
     _operation set ["recovery",_recovery];
     _operation set ["unavailable",_unavailable];
-    if (_changed) then {_group setVariable ["CBE_Operation",_operation,true]};
+
     if (_participantsRequired && {_participants isEqualTo []}) then {
         // An isolated retry owns one bounded observation window. An empty aggregate
         // roster must not cancel that fresh attempt before it can physically execute.
@@ -200,4 +223,24 @@ if (_progressed) then {
     } else {
         if (time-(_operation getOrDefault ["lastProgressAt",time]) >= _staleSeconds) then {"STALLED"} else {"ACTIVE"}
     }
-}
+};
+// Only publication is unscheduled. Reject a changed roster/retry journal rather than overwriting
+// another worker, and never revive a removed or cancelled generation after cleanup.
+private _committedStatus="REPLACED";
+isNil {
+    _committedStatus=call {
+        if (isNull _group || {!local _group}
+            || {_entryEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {"LOST_OWNER"};
+        private _current=_group getVariable ["CBE_Operation",createHashMap];
+        if ((_current getOrDefault ["generation",-2]) != _generation
+            || {(_current getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {"REPLACED"};
+        if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {"ZEUS"};
+        if !([_group,false,false,_allowFeatureOwner] call CBE_fnc_CortexIsEligible) exitWith {"EXTERNAL"};
+        // Same-generation bookkeeping advanced elsewhere. Defer this observation without
+        // renewing any clock or ending the live feature; the next cadence reads fresh inputs.
+        if (_current isNotEqualTo _entryOperation) exitWith {"ACTIVE"};
+        if (_changed) then {_group setVariable ["CBE_Operation",_operation,true]};
+        _status
+    };
+};
+_committedStatus

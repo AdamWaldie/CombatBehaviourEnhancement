@@ -10,6 +10,18 @@ class DrivingGeometryTests(unittest.TestCase):
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
                          '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
             self.assertIn(required,s)
+        # Optional contact sampling is bounded and read-only; ordinary callers retain defaults.
+        for required in ('["_nearContact",false,[true]]','if (_nearContact) then',
+                         '_linear < (1/3.6)','_angular < 0.01','forEach [-1,1]',
+                         'forEach [0.3,0.6]',
+                         '[[_frontY-0.1,_frontY+0.55,0.7],[_quarter,_quarter,0.6],[0,0,0.6]]',
+                         'count _probeObjects >= 16','call CBE_fnc_DrivingBypassObstacleAvailable',
+                         '(_leftContact isEqualTo []) != (_rightContact isEqualTo [])',
+                         '_probeSide == 0 && {_isGate}',
+                         '!isNull _object && {_kind == "STATIC"}'):
+            self.assertIn(required,s)
+        self.assertEqual(2*2*3,12)
+        self.assertEqual(3*3*3+12,39)
         for forbidden in ('createVehicle','allMissionObjects','allDead','spawn','waitUntil','setVariable',
                           'setVelocity','doMove','forceSpeed','animateSource','animationSourcePhase'):
             self.assertNotIn(forbidden,s)
@@ -34,11 +46,28 @@ class DrivingGeometryTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('_gateClasses getOrDefault',s)
         self.assertIn('for "_index" from 1 to 8',s)
-        self.assertIn('isClass (configOf _object >> "AnimationSources"',s)
+        self.assertIn('private _sourceConfig=configOf _object >> "AnimationSources"',s)
+        self.assertIn('isClass (_sourceConfig >> _x)',s)
+        candidates=s.split('if (!_isGate && {',1)[1].split('_gateClasses set',1)[0]
+        for native_class in ('Wall','Fence'):
+            self.assertIn('_object isKindOf "'+native_class+'"',candidates)
+        self.assertNotIn('isKindOf "House"',candidates)
+        self.assertLess(candidates.index('isClass (_sourceConfig >> _x)'),candidates.index('exitWith {_isGate=true}'))
         self.assertIn('[_gateObservation,_solidObservation]',s)
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        qualification=ordinary.split('private _cornerProbe=',1)[1].split('private _geometry=',1)[0]
+        for required in ('!_reverseLeg','!_crewBoardingHold','!_queueHold','!_queueNativeActive',
+                         '!_queueCrossing','_recoveryOwned','(_state param [6,0]) == 1',
+                         '["kind",""]) == "REFRESH"','["bypassSpent",false]) isEqualTo false',
+                         'serverTime >= _cornerStarted+3','call _stationary',
+                         '["SAFE","AWARE"]','getSuppression _driver <= 0.1',
+                         'CBE_DrivingPass_Work','CBE_DrivingCorridor_Work',
+                         'CBE_DrivingBypass_Work','call _mayRecoverOrdinaryRoute'):
+            self.assertIn(required,qualification)
+        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe]',ordinary)
+        self.assertNotIn('_cornerProbe',convoy)
         self.assertEqual(ordinary.count('call CBE_fnc_DrivingGeometryCap'),1)
         self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
         self.assertIn('_traffic=_obstacleObservation select [0,5]',ordinary)

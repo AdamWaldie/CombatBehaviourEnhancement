@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "06271670",
+  "scope": "Ordinary traffic replan native acknowledgement",
+  "finding": "Traffic retry captured destination immediately after its own doMove; subsequent publication of that requested waypoint could mark the episode yielded as a changed command.",
+  "implementation": [
+    "Original requested goal, expiry and pre-command tasks retained in public request. Exact target observation consumes it and refreshes native proof without command replay or attempt/deadline reset.",
+    "Only original unchanged native state/tasks may remain pending through original two seconds. Changed/unacknowledged expiry yields episode; pending cannot spend another attempt.",
+    "Existing current-brain/epoch, fresh observation and isolated journal publication boundary retained. Original three-attempt/80-second episode policy unchanged."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "daba0edf5598a465f543611ee6076b86ad48c550c79f43272e35891dc5e6bf30",
+    "docs/Smart-AI-Pass.md": "7cb217c15817c74c8cbd302998fed674c20d53f6ca44bc47f9043d0e266705ec"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-driving-traffic-ack-hemtt.log",
+    "focused": ".qa/cbe-driving-traffic-ack-final-focused.log",
+    "existingFocusedCases": 652,
+    "initialFinding": "One old direct waypoint expression assertion updated to trace explicit requested goal; no case added/removed.",
+    "fullPipeline": ".qa/cbe-driving-traffic-ack-final-build.log",
+    "independent": ".qa/cbe-driving-traffic-ack-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "bd978bfe5cb2f964f2287e82c6c3e40f7b67cb96b2d69d21e3e6ddfe48e4a1c0",
+    "manifestSource": "06271670+dirty unsigned development",
+    "initialFullFinding": "Repeat/JIP header text moved beyond existing bounded documentation scan; added concise early statement, no gate weakened."
+  },
+  "fullBuild": "Passed for checkpoint source; physical acceptance remains absent",
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Destination-based recovery REFRESH/FINAL/REVERSE journals still sample post-command destinations and require mode-specific release/handback review before correction.",
+    "Native SIMPLE_BACK has separate turn/input acknowledgement; do not replace it with destination policy.",
+    "Driver/commander intermediate destination publication and same-value external orders remain engine-observability limits.",
+    "Live traffic/native acknowledgement, normal/HC migration and performance unverified."
+  ]
+}
