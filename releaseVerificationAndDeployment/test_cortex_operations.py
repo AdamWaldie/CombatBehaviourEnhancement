@@ -5529,6 +5529,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[CBE_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors]],6] call CBE_fnc_CortexQueueJob',text)
         self.assertIn('"CBE_AIPass_GrenadeEvasion_Enable",true] call CBE_fnc_CortexFeatureEnabled',text)
         self.assertNotIn('CBA_fnc_waitAndExecute',text)
+        for region in (callback,text.split('private _grenade =',1)[1]):
+            for proof in ('simulationEnabled _unit','!isObjectHidden _unit','ace_medical_ai_healQueue'):
+                self.assertIn(proof,region)
+        for proof in ('CBE_AIPass_ClearBuilding','CBE_AIPass_Garrison','CBE_AIPass_Defend',
+                      '"responding",false','"assaulting",false','"participants",[]','!_taskOwned'):
+            self.assertLess(callback.index(proof),callback.index('doFollow'))
+        self.assertLess(callback.index('doFollow'),callback.index('setVariable ["CBE_Cortex_ActorMove",nil]'))
 
     def test_grenade_evasion_temporarily_outranks_support_cover_hold(self):
         grenade=source('cortexGrenadeCheck')

@@ -15,7 +15,10 @@
  * owned PATH hold, evades, then becomes eligible for the covering role again. Flank element members
  * and actors with another live reservation are left to their current task. Delayed regroup requires
  * the same group, authored waypoint receipt, Zeus token, actor lease and evasion
- * destination, an on-foot combat-effective soldier and no newer drill; soldiers held in place by a
+ * destination, an available on-foot soldier and no current clearance, defence, garrison,
+ * support or actor-participating operation. Exact marker cleanup remains independent.
+ * Admission and delayed recall yield to dormant/hidden actors and queued ACE care.
+ * Soldiers held in place by a
  * garrison order (PATH disabled) cannot move and are skipped.
  * Locality and authority: scheduler job on the machine that received the event; orders go only to
  * local units.
@@ -58,6 +61,8 @@ if (_regroup isNotEqualTo []) exitWith {
                 && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
                 && {currentCommand _unit in ["","MOVE"]}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}
+                && {simulationEnabled _unit} && {!isObjectHidden _unit}
+                && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
                 && {[_group] call CBE_fnc_CortexIsEligible}
                 && {(_group getVariable ["CBE_AIPass_ZeusHold",[]]) isEqualTo _hold}
@@ -65,8 +70,17 @@ if (_regroup isNotEqualTo []) exitWith {
                 && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeRoute}
                 && {count _destination == 3} && {_destination vectorDistance _spot <= 0.25};
             if (_stillOurs) then {
-                private _drill = (_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
-                if (!(_unit in (_drill getOrDefault ["units",[]])) && {alive leader _group}) then {
+                private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
+                private _drill = _state getOrDefault ["drill",createHashMap];
+                private _operation=_group getVariable ["CBE_Operation",createHashMap];
+                // Retiring our interruption is not permission to recall an actor out
+                // of a still-current clear, defence, garrison or support executor.
+                private _taskOwned=(_group getVariable ["CBE_AIPass_ClearBuilding",false])
+                    || {(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
+                    || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
+                    || {_state getOrDefault ["responding",false]} || {_state getOrDefault ["assaulting",false]}
+                    || {_unit in (_operation getOrDefault ["participants",[]])};
+                if (!_taskOwned && {!(_unit in (_drill getOrDefault ["units",[]]))} && {alive leader _group}) then {
                     _unit doFollow (leader _group);
                 };
             };
@@ -100,6 +114,8 @@ private _regroupActors = [];
     private _supportHeld = _state getOrDefault ["supportHeld",[]];
     if (local _unit && {!isPlayer _unit} && {isNull remoteControlled _unit}
         && {[_unit] call CBE_fnc_CortexCombatEffective} && {vehicle _unit == _unit}
+        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
