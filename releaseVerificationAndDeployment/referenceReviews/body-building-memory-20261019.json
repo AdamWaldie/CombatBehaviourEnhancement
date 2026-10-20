@@ -150,5 +150,18 @@
     "limits": "This repairs one finite shared memory path, not full LAMBS group memory parity. Witness casualties/deletion/locality, later actor participation and physical investigation remain unverified. Owner epoch changes still invalidate the clue; no migration replay.",
     "implementationHash": "50bcdc540ce1b436d0420f79f7fa6cd878f5df0316c85f75665f2222240471bf",
     "audits": "PAUSED"
+  },
+  "executorCandidateSlots20261020": {
+    "sourceParent": "a08c4f7d",
+    "finding": "Position-only dispatch attempts nearest2 coarse candidates per building. Its roster could admit actors with disabled MOVE/PATH, hidden/suspended simulation, suppression or no current weapon; full executor rejected them, while a later viable actor never reached those bounded slots. Contact dispatch also carried those generic refusals into native preflight/START work.",
+    "implementation": "Before ranking/geometry in both dispatchers, filter simulation/visibility, MOVE/PATH, suppression<0.5, current weapon and actor external owner, matching existing executor prerequisites. Observation-only roster additionally preserves individual STEALTH/CARELESS policy. Full START still validates all authority/native/building context. Original16actor/8belief/max2admitted/2bodyattempt/fourbuilding/3roof budgets and clocks unchanged.",
+    "cost": "Adds bounded current actor metadata/feature reads to <=16 coarse candidates; avoids impossible START/native preflights. No new geometry/world queries, timer, worker or larger attempt budget. Performance unmeasured.",
+    "limits": "Other actor-specific generic or geometry refusals can still occur; no claim all starvation or physical access is solved. Native route handling, same-clue repeat, casualties and performance unverified.",
+    "validation": "32 focused existing indoor cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-indoor-candidate-build.log. Initial focused run retained .qa/cbe-indoor-candidate-focused.log: newly added assertion used an undefined source reader; corrected to existing Path reader, final focused .qa/cbe-indoor-candidate-focused-final.log. Candidate .qa/candidates/indoor-candidate-a08c4f7d-aab5f3c2 fingerprint aab5f3c2122000bda41dedbcb42f6a436985e02ecd4baf7ca92840174f34f5b5 actuala08c4f7d+dirtysource. Independent copied-package verification .qa/cbe-indoor-candidate-independent.log. No added cases or scores.",
+    "implementationHashes": {
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "914d15b07ad96d0415a0d9afcbf3de759db08cb069c9e5daf554e23e57db4a86",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "279ed7ba8e386ab98060614419d9ccb57f7853e0d99169ebeb6adc66a2ef90aa"
+    },
+    "audits": "PAUSED"
   }
 }

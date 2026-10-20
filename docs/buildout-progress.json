@@ -3225,7 +3225,7 @@
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
-              "sha256": "dca427f8e2edd67c57f97a6d8f7f91f456c422eabc8c7b2bb75509d6bca57846"
+              "sha256": "279ed7ba8e386ab98060614419d9ccb57f7853e0d99169ebeb6adc66a2ef90aa"
             }
           ]
         },

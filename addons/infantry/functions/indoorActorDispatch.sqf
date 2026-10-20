@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Candidate ranking excludes common executor refusals before consuming bounded slots;
+ * full START authority, native context and building checks remain mandatory.
  * Purpose: Admit up to two nearby individual indoor investigations from fresh native group knowledge
  * when the contact decision has not committed a whole-group clearance or coordinated task.
  * Locality/authority: Current group owner only. The actor executor revalidates all ownership,
@@ -28,6 +30,12 @@ if (!(_range isEqualType 0) || {!finite _range} || {_range <= 0}) exitWith {0};
 private _actors=((units _group) select [0,16]) select {
     local _x && {!isPlayer _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {isNull objectParent _x} && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
+        // Cheap executor prerequisites keep ineligible nearby actors from consuming
+        // the bounded candidate slots; START still repeats full authority admission.
+        && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {getSuppression _x < 0.5} && {currentWeapon _x != ""}
+        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}
 };

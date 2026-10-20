@@ -282,6 +282,17 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('local _x',roster)
         self.assertIn('CortexCombatEffective',roster)
         self.assertIn('CortexActorMoveReserved',roster)
+        for candidate_source in (dispatch,(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()):
+            candidates=candidate_source.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
+            for gate in ('simulationEnabled _x','!isObjectHidden _x',
+                         'checkAIFeature "MOVE"','checkAIFeature "PATH"',
+                         'getSuppression _x < 0.5','currentWeapon _x != ""','CortexExternalOwner'):
+                self.assertIn(gate,candidates)
+            for query in ('lineIntersectsSurfaces','nearestObjects','checkVisibility'):
+                self.assertNotIn(query,candidates)
+        self.assertIn('!(behaviour _x in ["STEALTH","CARELESS"])',roster)
+        self.assertIn('(_rankedActors select [0,2])',dispatch)
+
 
         actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         visits=actor.split('// Keep only historical physical visits',1)[1].split('CBE_IndoorActor_Result',1)[0]
