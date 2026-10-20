@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-20",
+  "baseline": "b7497d4b",
+  "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesReviewed": [
+      "1913-2156 helpers/admission/path issue",
+      "2471-2518 active OUT/BACK/END lifecycle",
+      "2898-2940 follow-candidate admission/cap composition"
+    ],
+    "historicReview": "HBQ-OVERTAKING-REVIEW-20261015.json remains unresolved; this fresh review does not recover its text."
+  },
+  "intent": [
+    "Only pass a persistently followed slower independent vehicle when calm, not player-led/follower/convoy and no competing navigation/traffic hold.",
+    "Use observed/configured attainable speed and authored cap; require useful relative speed and finite projected pass duration/distance.",
+    "Follow actual road geometry; reject intersections, bridges, pedestrians, additional road traffic and oncoming traffic before lateral path issue.",
+    "Reserve one passing vehicle per slower peer; keep collision avoidance active.",
+    "Finish only after hull-length separation; abort early behind peer or reduce speed to fall behind when alongside before native-route return."
+  ],
+  "sourceBounds": {
+    "followSeconds": 3,
+    "admissionCadenceSeconds": 2,
+    "roadRetrySeconds": 4,
+    "passMaxSeconds": 24,
+    "passMaxMetres": 350,
+    "roadSegments": 90,
+    "oncomingMaxMetres": 900,
+    "activeBudget": "estimated pass time * 1.8 + 5; abort BACK grants a separate 10 seconds; END retries route refresh up to4 seconds"
+  },
+  "departuresRequired": [
+    "Public OvtBy object alone is not exclusive owner/epoch/episode consent and expiry.",
+    "Source fixed-path points force terrain-relative zero height; CBE requires actual supported surfaces/hull clearance.",
+    "Source forward/outer rays do not establish swept whole-body/terrain support safety or future lane availability.",
+    "Source path end and refreshRoute can rewrite native intent; use exact owned fixed-path retirement and unchanged authored route receipts.",
+    "Keep one original finite operation deadline across OUT/BACK/END, including owner migration; do not renew stage budgets by reconstruction.",
+    "World query results and road-segment evaluation require explicit density/work limits and measured overhead.",
+    "Do not globally ignore the overtaken peer in collision protection; lateral separated hull proof must qualify any following-cap exception."
+  ],
+  "currentCBE": {
+    "implemented": [
+      "DrivingFollowingCap continuous follow/closing/crossing observations",
+      "DrivingBypassPlan bounded stationary-obstacle bypass and separately negotiated held-queue crossing"
+    ],
+    "missing": "Moving-peer overtake admission, lateral pass executor, alongside abort/drop-back, exact native return and physical completion.",
+    "evidence": [
+      "DrivingBypassObstacleAvailable rejects speed >0.5m/s and living crew/active vehicle",
+      "DrivingBypassPlan retains NOT_STATIC_BYPASS admission",
+      "DrivingFollowingCap explicitly plans no bypass route"
+    ],
+    "files": {
+      "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf": "114b0c9f5c723cf9b766405fa018b2ef9d512966c6477165f87f8f81b4851a39",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "8df680b72c4ca7114bae918957d6d401d94d9f90224bb874cf1db891d856c4f1",
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
+    }
+  },
+  "nextImplementation": "Add moving-pass phases inside the existing driving operation and sole cap/path writers; preserve static predicate. Feed existing following observation as a candidate, then require fresh bounded road/support/traffic observations at admission and each native issue. No new autonomous movement loop.",
+  "physicalEvidence": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED"
+}

@@ -238,6 +238,18 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-disabled-carrier-policy-20261020.json",
+      "sha256": "32ae38a77b8020fca49af32fef6afdf4e9cdee57133f6a2d23a693ec942529fb",
+      "scope": "Complete HBQ crewHold, routeWaiting, refreshRoute and rearClear helper text; selected current CBE unload/mobility boundaries, not whole HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf",
+        "functions/fn_rearClear.sqf",
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-eden-navigation-module-20261019.json",
       "sha256": "745a7c340c0bb4520bf08b6c61b635963c245dbf3cd0088bc436995b03d73942",
       "scope": "HBQ navigation-area Eden authoring through existing CBE corridor execution",
@@ -318,6 +330,15 @@
         "functions/fn_unstuckLoop.sqf",
         "functions/fn_vehicleUnstuck.sqf",
         "XEH_postInit.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-moving-overtake-20261020.json",
+      "sha256": "6b8bc7819b58ab2c550e3e3c4d726213d10b9d1aef23fa22b4ffc99db2fbb42d",
+      "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
