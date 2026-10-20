@@ -3209,6 +3209,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["CBE_AIPass_Flank_BoundPause", 0]',config)
         self.assertIn('getVariable ["CBE_AIPass_Flank_BoundDistance", 55]',route)
         self.assertIn('getVariable ["CBE_AIPass_Flank_BoundDistance", 55]',advance)
+        for proof in ('_info param [6,[],[[]]]','_info param [7,[],[[]]]',
+                      'abs _crossRate >= 0.2','_along+(-_halfWidth-_lateral)/_crossRate',
+                      '_crossings pushBack [_near,_far]','_far+4 <= _length','(_far + 4) min _length'):
+            self.assertIn(proof,route)
+        self.assertNotIn('_crossings pushBack [_along, _halfWidth]',route)
         self.assertIn('private _depth = 0;',step)
         self.assertNotIn('formation _group == "WEDGE"',step)
         self.assertNotIn('private _rank = ceil (_forEachIndex / 2)',step)
