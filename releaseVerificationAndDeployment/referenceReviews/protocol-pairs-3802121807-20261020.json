@@ -57,7 +57,7 @@
   ],
   "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
   "remainingRequiredWork": [
-    "Initial existing-pair composition integrated in outdoorPairComposition. Assess first-operation pairing and replacement consistency without breaking support-specialist roles or minimum fire capacity; independent pair-granular alternation remains incomplete.",
+    "Existing and first-operation element composition integrated. Independent pair-granular alternation and later replacement consistency remain incomplete; maintain specialist roles, minimum fire capacity and one movement owner.",
     "Confirm physical role alternation, covering fire, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume.",
     "Verify binary startup/dependencies/licence before calling the whole source review complete."
   ],
@@ -80,7 +80,7 @@
     "implementation": "Read-only CombatElementSelect shared by advance/flank/assault starts prefers intact persistent pairs in ranked eligible candidates, then orphans. Minimum mover strength may override cohesion. Existing specialist, ammunition, cover-capacity and order gates remain authoritative.",
     "bounds": "Top16 ranked candidates,16 pair rows,max5movers; no world query/new worker/publication. Callers shortlist rather than rejecting larger groups.",
     "limitations": [
-      "Only previously registered eligible pairs are preserved. First operation can create new pairs after team selection.",
+      "First advance/assault operation pairing now follows committed elements via initialElementPairing; physical flow remains unverified.",
       "Independent per-pair leapfrogging is not implemented. Later casualty replacement can still split pairs when tactical capacity requires it.",
       "Runtime flow, balance, actual covering fire and performance remain unmeasured."
     ],
@@ -89,5 +89,16 @@
     "fingerprint": "4cb1c9709757e71057b14e3fd3cc451ba9c860b9bb1b8da19ac6d11325b3add9",
     "signed": false,
     "source": "4a732d96 plus intended selector/callers/docs"
+  },
+  "initialElementPairing": {
+    "status": "INTEGRATED_PHYSICAL_PENDING",
+    "gap": "OperationStart originally generated nearest pairs across the whole advance/assault roster after mover/cover selection; fresh pairs could cross element boundaries.",
+    "change": "OperationStart optional element partition is validated for disjoint membership and full requested-roster coverage before previous operation cancellation. Within live capable participants, CombatPairs calculates per-element rows without publication; combined registry published once. Advance and assault supply actual mover/cover arrays. Ordinary callers retain default behaviour.",
+    "limits": "Metadata composition only; no independent per-pair executor. Later casualty/replacement/minimum-capacity needs can still split pairs. Individual CombatPairs16actor bounds retained; no broad scalability/physical claim.",
+    "validation": "607 focused/full1477 existing tests; HEMTT/SQF/FSM/docs/package and independent verification pass.",
+    "candidate": ".qa\\candidates\\initial-element-pairs-d54dea15",
+    "fingerprint": "d70b238f5a7756fd3a263017fa4b63163df9769c7edddcafd7b5d76898da233d",
+    "signed": false,
+    "source": "d54dea15 plus intended pair composition/docs"
   }
 }

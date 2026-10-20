@@ -3,15 +3,16 @@
  * Purpose: Retains eligible infantry partners across operation changes and repairs broken pairs.
  * Intact pairs win; only unpaired actors choose the nearest remaining eligible partner in3D,
  * with roster order breaking equal-distance ties. Distance is not proof of a connected route.
- * Locality/authority: Current group owner only; writes group pairing metadata, never actor commands.
+ * Locality/authority: Current group owner only; optionally writes group pairing metadata, never actor commands.
  * Repeat/JIP: Shared publication retains untouched out-of-scope pairs without returning them
  * as active workers. Unchanged metadata does not republish; public identity survives migration/JIP.
- * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16.
+ * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16;
+ * 2 publish <BOOL,true>; false computes rows without changing the shared registry, for one combined publication.
  * Return Value: ARRAY of one- or two-actor pairs; [] for invalid authority or an oversized request.
  * Current callers: OperationStart, RebalanceRoles and CortexClearBuilding.
  * Example: [group player,[soldier1,soldier2]] call CBE_fnc_CombatPairs;
  */
-params [["_group",grpNull,[grpNull]],["_actors",[],[[]]]];
+params [["_group",grpNull,[grpNull]],["_actors",[],[[]]],["_publish",true,[true]]];
 if (isNull _group || {!local _group} || {count _actors > 16}) exitWith {[]};
 private _remaining=(_actors select {
     _x isEqualType objNull && {!isNull _x} && {local _x} && {group _x == _group}
@@ -62,5 +63,5 @@ while {_remaining isNotEqualTo []} do {
     if (_remaining isNotEqualTo []) then {_pair pushBack ([(_pair select 0)] call _takeNearest)};
     _pairs pushBack _pair;
 };
-[_group,_pairs] call CBE_fnc_CombatPairsPublish;
+if (_publish) then {[_group,_pairs] call CBE_fnc_CombatPairsPublish};
 _pairs

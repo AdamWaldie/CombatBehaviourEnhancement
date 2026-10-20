@@ -152,7 +152,7 @@ if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLe
     _state deleteAt "drill";
     ["EXTERNAL_MOVEMENT_BUSY"] call _refuse
 };
-private _operation=[_group,"ADVANCE",(_enemies select 0) select 0,_onFoot,_points apply {_x select 0},"MANOEUVRE"] call CBE_fnc_OperationStart;
+private _operation=[_group,"ADVANCE",(_enemies select 0) select 0,_onFoot,_points apply {_x select 0},"MANOEUVRE",[_element,_coverElement]] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
     [_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease;
     _state deleteAt "drill";

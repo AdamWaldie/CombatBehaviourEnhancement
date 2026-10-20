@@ -7,15 +7,28 @@
  * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
  * Repeat/JIP: Replacing an intent increments a public generation. The durable summary is replayable; local routes and callbacks rebuild on ownership migration.
  * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY>; 4 route <ARRAY>; 5 state <STRING, PLAN>.
+ * Optional argument6: pair elements <ARRAY,[]>; at most two disjoint actor arrays covering
+ * the requested participants. New pair identity is formed within each element and published once.
+ * Empty preserves ordinary pairing. Element membership grants no command or fitness authority.
  * Return Value: HASHMAP operation, or an empty HASHMAP when the group cannot be owned here.
  * Current callers: Cortex tactical, building, vehicle and air operation starts.
  * Example: [group player, "ADVANCE", getPosATL player, units group player, [], "PLAN"] call CBE_fnc_OperationStart;
  */
 params [
     ["_group",grpNull,[grpNull]], ["_intent","",[""]], ["_objective",objNull,[objNull,[]]],
-    ["_participants",[],[[]]], ["_route",[],[[]]], ["_phase","PLAN",[""]]
+    ["_participants",[],[[]]], ["_route",[],[[]]], ["_phase","PLAN",[""]], ["_pairElements",[],[[]]]
 ];
 if (isNull _group || {!local _group} || {_intent == ""}) exitWith {createHashMap};
+// Reject a malformed optional partition before retiring any previous operation.
+private _partitionValid=count _pairElements <= 2;
+private _partitioned=[];
+{
+    if (!(_x isEqualType []) || {_x findIf {!(_x isEqualType objNull) || {!(_x in _participants)}} >= 0}) exitWith {_partitionValid=false};
+    _partitioned append _x;
+} forEach (_pairElements select [0,2]);
+if (_pairElements isNotEqualTo [] && {!_partitionValid
+    || {count (_partitioned arrayIntersect _partitioned) != count _partitioned}
+    || {_participants findIf {!(_x in _partitioned)} >= 0}}) exitWith {createHashMap};
 // The shared lifecycle is the final authority boundary for every feature. Check it before
 // retiring an earlier route: a delayed job must not cancel CBE state or issue cleanup after
 // Zeus, a player or a specialist controller has claimed the group.
@@ -58,7 +71,16 @@ private _capable=_participants select {
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
 };
-private _pairs=if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {[_group,_capable] call CBE_fnc_CombatPairs} else {[]};
+private _pairs=[];
+if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {
+    if (_pairElements isEqualTo []) then {_pairs=[_group,_capable] call CBE_fnc_CombatPairs} else {
+        {
+            private _element=_x select {_x in _capable};
+            _pairs append ([_group,_element,false] call CBE_fnc_CombatPairs);
+        } forEach _pairElements;
+        [_group,_pairs] call CBE_fnc_CombatPairsPublish;
+    };
+};
 private _operation=createHashMapFromArray [
     ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
     ["pairs",_pairs], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],

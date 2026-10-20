@@ -9917,6 +9917,16 @@ class CortexOperations(unittest.TestCase):
 
         self.assertIn('call CBE_fnc_CombatPairs',source('cortexClearBuilding'))
         self.assertIn('["pairs",_pairs]',source('operationStart'))
+        start=source('operationStart')
+        self.assertIn('[_group,_element,false] call CBE_fnc_CombatPairs',start)
+        self.assertIn('[_group,_pairs] call CBE_fnc_CombatPairsPublish',start)
+        self.assertLess(start.index('private _partitionValid='),start.index('call CBE_fnc_OperationCancel'))
+        self.assertIn('count (_partitioned arrayIntersect _partitioned) != count _partitioned',start)
+        self.assertIn('_participants findIf {!(_x in _partitioned)}',start)
+        self.assertIn('if (_publish) then',pairs)
+        self.assertIn('"MANOEUVRE",[_element,_coverElement]',source('cortexAdvanceStart'))
+        self.assertIn('"ASSAULT",[_assaultElement,_coverElement]',source('cortexAssaultStart'))
+
         self.assertIn('["pairs",[_group,_current] call CBE_fnc_CombatPairs]',source('rebalanceRoles'))
         publisher=source('combatPairsPublish')
         for gate in ('count _active > 16','count _merged >= 16','_x in _seen',
