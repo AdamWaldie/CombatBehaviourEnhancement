@@ -500,6 +500,13 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/queue-auto-admission-20261020.json",
+      "sha256": "5c850cc8c05aa1554942f90be962dacc43ba76cab72cbbe36c67a674a3c33515",
+      "scope": "Default-off automatic admission from the existing traffic-retry episode into the existing authenticated queue executor; not general traffic resolution or physical acceptance.",
+      "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/queue-discovery-authority-20261018.json",
       "sha256": "04684fcea62a4f8c7514aaf6758f2c1b6492e2c9c393f60c09205a4b0f719697",
       "scope": "Original driving-brain authority across scheduled queue discovery; not queue execution",

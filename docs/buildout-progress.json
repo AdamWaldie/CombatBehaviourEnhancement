@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
+              "sha256": "f02cc72c57c4f456f31b00d0982e5ca895e823ebb348be4e04497b4760d550bd"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1608,12 +1608,12 @@
           "capability": "Queue discovery and agreement",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Bounded dependency discovery, actual-owner consent and original-expiry retirement are wired as explicit APIs. Lead-pair hull separation can be longitudinal or lateral; unknown hulls refuse.",
-          "remaining_build_gap": "Automatic persistent-jam admission, recovery-choice policy and repeat admission remain unfinished. The explicit executor exists; it is not a reason to renew or automatically submit negotiation.",
+          "implemented": "Bounded dependency discovery and actual-owner consent are wired. A default-off CBA opt-in now offers one automatic head-on proposal from persistent traffic within the original retry episode, defers competing replans and services at most two authenticated root COMMIT requests.",
+          "remaining_build_gap": "General crossing-angle and stopped-merge discovery/recovery choice remain unfinished. Unsupported native reverse crew arrangements still refuse; this is not general automatic traffic resolution.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "d167b9d1287e7d9bdcc3758896b01c5bdcc37e3681599d43eb3fa3bd93331f7d"
+              "sha256": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
@@ -1633,11 +1633,15 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
+              "sha256": "f02cc72c57c4f456f31b00d0982e5ca895e823ebb348be4e04497b4760d550bd"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
               "sha256": "805ddf39f3751aecb0b4c9c47b188292a632a4cb2277b4b4166034d594e280f7"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+              "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
             }
           ]
         },
@@ -1645,8 +1649,8 @@
           "capability": "Queue room-making execution",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified.",
-          "remaining_build_gap": "Automatic jam admission and repeated-jam/recovery-choice policy remain disabled or incomplete. Physical route continuation, delayed replication, normal/HC interruption and performance acceptance remain separate unverified work.",
+          "implemented": "Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified. Default-off automatic initiation now reaches this same executor through its existing callback, without a new worker or renewed episode.",
+          "remaining_build_gap": "Recovery-choice policy beyond the supported head-on case, general stopped merges and unsupported native reverse roles remain unfinished. Physical natural admission, route continuation, delayed replication, normal/HC interruption and overhead remain unverified.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
@@ -1654,7 +1658,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
+              "sha256": "f02cc72c57c4f456f31b00d0982e5ca895e823ebb348be4e04497b4760d550bd"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
@@ -1671,6 +1675,10 @@
             {
               "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
               "sha256": "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+              "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
             }
           ]
         },
@@ -1711,8 +1719,8 @@
       ],
       "confidence": "medium",
       "reviewed_at": "2026-10-20",
-      "source_commit": "603a6088c5eac70220ba774af43dca515d6719dc",
-      "review_note": "Reconciled changed recovery/admission and clearance role/adoption blocks against the pushed checkpoint. Existing topology, pair-flow and egress portions retain their named gaps. Scores and scope weights unchanged; source hashes refreshed only for reviewed changed files. No physical or source-parity credit."
+      "source_commit": "3f56dd8b + default-off automatic queue initiation",
+      "review_note": "Reviewed default-off queue initiation/commit wiring and shared CBA catalogue additions; scoped build gaps remain and scores/weights unchanged. No physical acceptance or whole-source parity inferred."
     },
     {
       "id": "CNV-MOVE",

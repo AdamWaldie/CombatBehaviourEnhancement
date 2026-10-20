@@ -68,13 +68,36 @@ class QueueProposalTests(unittest.TestCase):
         for front,back,expected in (([-10,10],[-45,-25],15),([-10,10],[-25,-5],-5)):
             self.assertEqual(front[0]-back[1],expected)
 
-    def test_unconsumed_queue_consent_is_not_requested_by_ordinary_driving(self):
+    def test_automatic_queue_is_default_off_bounded_and_consumes_consented_request(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
-        self.assertNotIn('call CBE_fnc_DrivingQueueProposal',s)
-        self.assertNotIn('call CBE_fnc_DrivingQueueAgreementRequest',s)
-        self.assertNotIn('CBE_DrivingQueue_ProposalAt',s)
-        # Ordinary finite traffic retries remain available; this is not disabling recovery.
-        self.assertIn('private _jamEligible=',s)
+        auto=(ROOT/'addons/vehicles/functions/drivingQueueAutoStep.sqf').read_text(encoding='utf-8')
+        spec=(ROOT/'addons/core/functions/cortexTuningSpec.sqf').read_text(encoding='utf-8')
+        setting=next(line for line in spec.splitlines() if '"CBE_AIPass_DrivingAssist_Queue_Enable"' in line)
+        self.assertIn('"CHECKBOX", [], false',setting)
+        self.assertIn('call CBE_fnc_DrivingQueueAutoStep',s)
+        self.assertIn('if (!(_queueAdmission select 0)',s)
+        self.assertIn('_jamChanged=_jamChanged || {_queueAdmission select 1}',s)
+        for guard in ('completedFSM _executor','"CBE_AIPass_DrivingAssist_Queue_Enable",false,_vehicle',
+                      '"queueAutoAttempted",false','serverTime >= _until','< 20',
+                      '_expires > _until','"requestSerial",-1','isNotEqualTo _context',
+                      '"committed",false','[_proposal,true] call CBE_fnc_DrivingQueueAgreementRequest',
+                      'call CBE_fnc_DrivingQueueProposalCurrent','_sent >= 2','serverTime-_last >= 2',
+                      '["COMMIT",[_token]] remoteExecCall'):
+            self.assertIn(guard,auto)
+        self.assertLess(auto.index('_jam set ["queueAutoAttempted",true]'),auto.index('call CBE_fnc_DrivingQueueProposal;'))
+        committed=auto.split('// A new initiation setting',1)[1]
+        self.assertLess(committed.index('"committed",false'),committed.index('if (!_enabled'))
+        owned_commit=committed.split('private _abandon=',1)[0]
+        self.assertIn('serverTime < _expires',owned_commit)
+        self.assertIn('serverTime < _until',owned_commit)
+        self.assertIn('_jam set ["queueAutoFinished",true]',owned_commit)
+        self.assertNotIn('DrivingQueueAgreementRequest',owned_commit)
+
+        body=auto.split('params [["_group"',1)[1]
+        for forbidden in (' doMove ',' forceSpeed ','sendSimpleCommand','setDriveOnPath','spawn',
+                          'waitAndExecute','execFSM','serverTime+80','set ["deadline"','set ["expires"'):
+            self.assertNotIn(forbidden,body)
+        self.assertEqual(body.count('call CBE_fnc_DrivingQueueProposal;'),1)
         self.assertIn('_jam set ["attempts",(_jam get "attempts")+1]',s)
 
     def test_queue_broker_authenticates_each_owner_with_distinct_role_contract(self):

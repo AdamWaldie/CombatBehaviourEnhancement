@@ -134,6 +134,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_VehicleJink_Enable` | `true` | Allows one short terrain-checked escape by an eligible intact fighting vehicle under close or severe danger. |
 | `CBE_AIPass_DrivingAssist_Enable` | `true` | Applies a sparse terrain-grade speed cap to ordinary AI ground vehicles while preserving their native waypoint and route. Convoys use separate driving controls. |
 | `CBE_AIPass_DrivingAssist_Passing_Enable` | `false` | Experimental automatic road-pass admission; original finite deadlines and real owner consent. Physical/performance acceptance pending. |
+| `CBE_AIPass_DrivingAssist_Queue_Enable` | `false` | Experimental automatic head-on jam initiation; one attempt per original traffic-retry episode, actual-owner consent and finite commit retry. Physical/performance acceptance pending. |
 | `CBE_AIPass_DrivingAssist_MaxSpeed` | `70` | General driving safety cap in km/h; terrain and lower authored caps still apply. |
 | `CBE_AIPass_DrivingAssist_Recovery_Enable` | `true` | Permit new finite ordinary-driving recovery attempts. |
 | `CBE_AIPass_CoverValidation_Enable` | `true` | Adds bounded slope and body clearance checks to shared cover selection. |

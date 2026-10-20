@@ -940,7 +940,10 @@ _brain set ["geometryTracks",_geometryTracks];
                     if (!_jamContinuous || {(_jam get "peer") != _jamPeer} || {(_jam get "since") < 0}) then {
                         _jam set ["peer",_jamPeer];_jam set ["since",serverTime];_jamChanged=true;
                     };
-                    if (!(_jam get "yielded") && {!_requestPending} && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
+                    private _queueAdmission=[_group,_vehicle,_brain,_jam,_jamPeer,
+                        _jamContinuous && {!_requestPending}] call CBE_fnc_DrivingQueueAutoStep;
+                    _jamChanged=_jamChanged || {_queueAdmission select 1};
+                    if (!(_queueAdmission select 0) && {!(_jam get "yielded")} && {!_requestPending} && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
                         && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
                         && {call _mayRecoverOrdinaryRoute}) then {
                         private _requestGoal=waypointPosition [_group,currentWaypoint _group];
@@ -964,9 +967,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 false
             };
 
-            // Automatic queue negotiation stays inactive until its physical executor exists.
-            // Unconsumed consent would block passing for its lifetime without making any room.
-            // Keep ordinary traffic recovery active; internal proposal/consent APIs remain separate.
+            // Automatic queue admission is separately opt-in, default off. Pending
+            // negotiation defers competing replans; motion still requires all-owner commit.
+            // Refusal consumes one attempt in the original jam budget, not a new episode.
 
             // Waiting behind traffic is not a route fault. Keep the last progress sample current so
             // clearing the queue does not immediately inherit a stale reverse deadline.

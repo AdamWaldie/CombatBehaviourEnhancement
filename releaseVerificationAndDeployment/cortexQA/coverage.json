@@ -744,7 +744,8 @@
         "CBE_AIPass_DrivingAssist_Enable",
         "CBE_AIPass_DrivingAssist_Passing_Enable",
         "CBE_AIPass_DrivingAssist_MaxSpeed",
-        "CBE_AIPass_DrivingAssist_Recovery_Enable"
+        "CBE_AIPass_DrivingAssist_Recovery_Enable",
+        "CBE_AIPass_DrivingAssist_Queue_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -827,7 +828,8 @@
         "addons/vehicles/functions/drivingRearPlan.sqf",
         "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
         "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
-        "addons/vehicles/functions/drivingQueueParentRoom.sqf"
+        "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "addons/vehicles/functions/drivingQueueAutoStep.sqf"
       ]
     },
     {

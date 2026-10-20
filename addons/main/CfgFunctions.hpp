@@ -74,6 +74,7 @@ class CfgFunctions {
             class DrivingQueueReverseCommit {file = "\z\cbe\addons\vehicles\functions\drivingQueueReverseCommit.sqf";};
             class DrivingQueueReverseCurrent {file = "\z\cbe\addons\vehicles\functions\drivingQueueReverseCurrent.sqf";};
             class DrivingQueueProposalCurrent {file = "\z\cbe\addons\vehicles\functions\drivingQueueProposalCurrent.sqf";};
+            class DrivingQueueAutoStep {file = "\z\cbe\addons\vehicles\functions\drivingQueueAutoStep.sqf";};
             class DrivingQueueAgreementRequest {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementRequest.sqf";};
             class DrivingQueueAgreementServer {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementServer.sqf";};
             class DrivingQueueAgreementOwner {file = "\z\cbe\addons\vehicles\functions\drivingQueueAgreementOwner.sqf";};

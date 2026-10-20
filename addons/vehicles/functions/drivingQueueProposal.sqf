@@ -18,8 +18,8 @@
  * 2 original episode deadline <NUMBER>,-1,serverTime. Caller supplies continuous jam dwell.
  * Return: HASHMAP status REFUSED/PROPOSAL,reason; proposal adds vehicles,roles,dependencies,
  * canonical context,observedAt,deadline. Geometry/reverse/consent/success are never inferred.
- * Current callers: Explicit local development/protocol callers only. Automatic admission is
- * inactive pending physical reliability and repeated-jam policy validation.
+ * Current callers: DrivingQueueAutoStep (default-off initiation) and explicit local protocol callers.
+ * Physical reliability and repeated-jam policy validation remain pending.
  * Example: private _p=[_own,_peer,_retryDeadline] call CBE_fnc_DrivingQueueProposal;
  */
 params [["_vehicle",objNull,[objNull]],["_peer",objNull,[objNull]],["_until",-1,[0]]];

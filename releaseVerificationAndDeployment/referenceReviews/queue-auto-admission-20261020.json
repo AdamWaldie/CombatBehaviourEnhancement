@@ -1,0 +1,64 @@
+{
+  "reviewed": "2026-10-20",
+  "baselineCommit": "3f56dd8b",
+  "scope": "Default-off automatic admission from the existing traffic-retry episode into the existing authenticated queue executor; not general traffic resolution or physical acceptance.",
+  "workshopId": "3812620045",
+  "sourceContribution": "HBQ persistent-pair and asymmetric room-making intent. CBE uses original finite episode budgets and actual-owner consent, without public timestamp requests, physics pushing, traffic-ignore windows or waypoint recreation.",
+  "runtimeSources": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+      "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "f02cc72c57c4f456f31b00d0982e5ca895e823ebb348be4e04497b4760d550bd"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+      "sha256": "2550b6122a1f88c275b382374da3f6c7b7a1635d005db2e87b6e8c9dc0c4caff"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "sha256": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
+    },
+    {
+      "path": "addons/core/functions/cortexTuningSpec.sqf",
+      "sha256": "9774d761e04be2a0e02fcda8ef998798d73839b1c5f8fd8bbf94e409a93957b3"
+    },
+    {
+      "path": "addons/main/settings/aiConfig.sqf",
+      "sha256": "08fd54d4b45c7b6e10f1a3af1499115d0da48f2cc23472e99dbb4f2d67322c91"
+    }
+  ],
+  "implementation": [
+    "CBA Queue_Enable defaultfalse, shared specification/shipped defaults/reference and per-group/vehicle disable-only policy. No Zeus settings module.",
+    "Existing ordinary-driving callback offers at most one proposal after continuous20s stationary traffic; consumption precedes bounded discovery even on refusal. One original trafficRetry deadline, unchanged progress/order reset policy.",
+    "Pending negotiation defers competing native route refresh. Matching local request serial/context and AGREED consent permit at most2 root COMMIT sends2s apart; unacknowledged retry abandons only uncommitted exact request.",
+    "Disabling initiation cannot cancel committed native motion. Expired committed metadata cannot extend the helper busy lifetime; actual finite motion cleanup stays with the existing executor.",
+    "No new speed writer, movement worker, recurring timer or route. Server and all owners still verify actual crew/route/FSM/geometry before movement."
+  ],
+  "remainingBuildGaps": [
+    "Stopped merges and non-head-on crossing-angle recovery choice.",
+    "Unsupported native reverse crew arrangements; no fabricated capability or forced seat setup.",
+    "Further recovery choice policy and composition beyond one supported head-on negotiation per episode."
+  ],
+  "validation": {
+    "tests": 1477,
+    "focusedDrivingTests": 251,
+    "newUnitCases": 0,
+    "build": ".qa/cbe-queue-auto-admission-verified-build.log",
+    "independent": ".qa/cbe-queue-auto-admission-preserved-independent.log",
+    "fingerprint": "fc6f3c602673cd08fb736ac23478c27c3d2fab61c5d7877f6300fc639e5dc58a",
+    "packageSource": "3f56dd8b plus dirty intended auto-admission/config/guide/test edits",
+    "candidate": ".qa/candidates/queue-auto-admission-3f56dd8b-fc6f3c60",
+    "initialFailure": "Published defaults omitted new opt-in; table corrected, original regression retained."
+  },
+  "physicalAcceptance": false,
+  "performanceAcceptance": false,
+  "audits": "paused",
+  "limits": [
+    "Default remains off; no in-engine natural auto-admission/commit/cancel/repeat or normal/providerHC evidence.",
+    "Source wiring and packages do not establish working traffic recovery, tactical superiority, production readiness or complete HBQ parity.",
+    "Build-out criteria remain partial due named code gaps; scores unchanged."
+  ]
+}
