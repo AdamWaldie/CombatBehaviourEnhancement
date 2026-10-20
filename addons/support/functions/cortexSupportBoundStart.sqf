@@ -6,6 +6,8 @@
  * Locality/authority: group owner consumes the current server role and matching lease.
  * Native STOP requires an exact existing support hold; matching holds transfer into the drill
  * without commands, new deadlines or an acknowledgement grace period.
+ * Admission requires the matching server role/deadline/point receipt and retains that original
+ * absolute limit across child reconstruction; owner changes cannot renew the server bound.
  * Admission, pair allocation and FSM registration share one unscheduled transaction. A stale
  * state, disabled feature, pause, replacement role or task ownership change acquires no drill.
  * Repeat/JIP: sequence prevents duplicate starts; migration restores mover leases before
@@ -32,6 +34,12 @@ _role params ["_leaseToken","_sequence","_roleName","_point","_enemy"];
 if (_roleName != "MOVE" || {_role isNotEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}) exitWith {false};
 private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _lease != 6 || {(_lease select 0) != _leaseToken} || {serverTime >= (_lease select 2)}) exitWith {false};
+private _deadlineReceipt=_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]];
+if (!(_deadlineReceipt isEqualType []) || {count _deadlineReceipt != 4}
+    || {(_deadlineReceipt select 0) isNotEqualTo _leaseToken} || {(_deadlineReceipt select 1) isNotEqualTo _sequence}
+    || {(_deadlineReceipt select 3) isNotEqualTo _point}
+    || {!((_deadlineReceipt select 2) isEqualType 0)} || {!finite (_deadlineReceipt select 2)}
+    || {serverTime >= (_deadlineReceipt select 2)} || {(_deadlineReceipt select 2) > (_lease select 2)}) exitWith {false};
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _generation=_state getOrDefault ["supportOperationGeneration",-1];
 private _ownerEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
@@ -91,6 +99,7 @@ private _token=format ["SUPPORT:%1:%2:%3",_leaseToken,_sequence,clientOwner];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["supportToken",_leaseToken],["supportSequence",_sequence],
     ["operationGeneration",_generation],["ownerEpoch",_ownerEpoch],
+    ["supportDeadline",_deadlineReceipt select 2],["supportClock",+_deadlineReceipt],
     ["nativeAdmissionChecked",true],["nativeCommands",_nativeCommands],
     ["type","ADVANCE"],["teams",[_first,_second]],["teamSizes",[count _first,count _second]],["teamTurn",0],["units",_fit],["desiredStrength",count _fit],
     ["points",[[+_point,["SUPPORT_BOUND","FINAL"] select _final]]],["index",0],["stage",""],

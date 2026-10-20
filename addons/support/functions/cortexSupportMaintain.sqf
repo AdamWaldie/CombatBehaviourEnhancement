@@ -388,7 +388,12 @@ if (_coordinating) then {
                 _settling=[_settleIdentity,serverTime+5];
                 _state set ["supportBoundSettling",_settling];
             };
-            private _localityPending=(units _group) findIf {alive _x && {!local _x}} >= 0;
+            private _roleClock=_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]];
+            private _clockReady=_roleClock isEqualType [] && {count _roleClock == 4}
+                && {(_roleClock select 0) isEqualTo _token} && {(_roleClock select 1) isEqualTo (_role select 1)}
+                && {(_roleClock select 3) isEqualTo (_role select 3)}
+                && {(_roleClock select 2) isEqualType 0} && {finite (_roleClock select 2)};
+            private _localityPending=(units _group) findIf {alive _x && {!local _x}} >= 0 || {!_clockReady};
             if (!_localityPending || {serverTime >= (_settling select 1)}) then {
             private _started=[_group,_state,_role] call CBE_fnc_CortexSupportBoundStart;
             if (!_started) then {

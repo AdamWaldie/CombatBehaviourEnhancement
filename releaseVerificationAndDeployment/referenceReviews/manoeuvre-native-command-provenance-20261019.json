@@ -264,5 +264,35 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "coordinatedServerClockFollowUp20261020": {
+    "baseline": "c4d8956b",
+    "finding": "Server boundActive retains its original watchdog and SupportAck does not renew it. Owner MOVE roles lacked that absolute clock; reconstructed child local deadlines could restart, and delayed role retirement could permit new owner commands beyond the original server bound.",
+    "change": "Coordinator publishes exact token/sequence/original deadline/point capped by lease expiry before role. Owner readiness waits within existing5s for both receipts; BoundStart rejects missing/expired/mismatched/extended deadline and captures it. Active FlankStep checks original clock after operation/eligibility interruption checks, before policy/movement; mismatched clock suspends new commands with heartbeat only, no deadline renewal. Movement issue requires unchanged captured clock and unexpired time. Cover/lease cleanup clears clock.",
+    "cost": "One small public receipt per role change, constant map/array/time checks through existing callbacks. No worker/timer/ray/world scan.",
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe",
+      "addons/support/functions/cortexSupportAck.sqf": "d88bf11d048944f15439ab60413e15aa43442be5247a0ea3f8b7f2bbf48b8795",
+      "addons/support/functions/cortexSupportAssaultServer.sqf": "918858fcbf2d56a65a404b91065e7aced703a25ffe2c104de855d2f283033d0e",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "0ad30d08fd9caa5ee11c486ac13c357508d4c080b8b5c716fe4bb57b647c9eef",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5bd587d4de378d523de99dce3438d28ee1a41064bcfb9005974b8035f1b6b444",
+      "addons/support/functions/cortexSupportStep.sqf": "ecc967778c66f85794c8033e9e42ca185a50011bf13e6634d3afdd0d4a5f0b4d"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-coordinated-server-clock-build.log",
+      "independent": ".qa/cbe-coordinated-server-clock-independent.log",
+      "candidate": ".qa/candidates/support-clock-c4d8956b-4b523a99",
+      "fingerprint": "4b523a996b30f79b7245ed880ab1c9b07c75384f3381a6a44ce1bda70d25ba50",
+      "source": "c4d8956b plus intended dirty server-clock edits"
+    },
+    "remaining": [
+      "Child-local retry counts and team-turn continuation still need transfer review; outer server deadline is now consumed locally.",
+      "Normal/providerHC receipt reordering, timeout cleanup and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

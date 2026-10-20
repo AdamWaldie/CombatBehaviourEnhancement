@@ -250,7 +250,23 @@ private _actorTaskFree={
 private _mayIssueMovement = {
     params ["_actor"];
     !([_group] call CBE_fnc_CortexExternalTakeover) && {[_actor] call _actorTaskFree}
+        && {(_drill getOrDefault ["supportToken",""]) == "" || {
+            serverTime < (_drill getOrDefault ["supportDeadline",-1])
+                && {(_drill getOrDefault ["supportClock",[]]) isEqualTo
+                    (_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]])}
+        }}
 };
+// The original server clock caps every child/owner lifetime. A transient missing
+// or successor receipt suspends new commands without renewing this finite deadline.
+private _supportExpired=false;private _supportAwaitClock=false;
+if ((_drill getOrDefault ["supportToken",""]) != "") then {
+    private _supportUntil=_drill getOrDefault ["supportDeadline",-1];
+    _supportExpired=!(_supportUntil isEqualType 0) || {!finite _supportUntil} || {serverTime >= _supportUntil};
+    _supportAwaitClock=(_drill getOrDefault ["supportClock",[]]) isNotEqualTo
+        (_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]]);
+};
+if (_supportExpired) exitWith {"TIME_LIMIT" call _end};
+if (_supportAwaitClock) exitWith {_drill set ["lastStep",time];0.25};
 // A committed bound owns movement, not weapon aiming. Prevent the native leader from
 // delegating a competing ATTACK route while TARGET/AUTOTARGET/FIREWEAPON remain untouched.
 // The common operation consumes this exact-value lease on release; an external policy edit

@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Coordinates reserved assault squads through short bounds while other squads provide cover.
+ * Publishes the original MOVE deadline with token/sequence/point before its role; owners
+ * require both matching receipts, never presumed cross-machine event ordering.
  * Locality/authority: server publishes tokened roles; each group owner executes its fire teams.
  * Repeat/JIP: roles are durable snapshots; only changed roles are broadcast. Existing support
  * lease expiry, exclusion and Zeus cancellation remain authoritative. At most six groups are read.
@@ -240,6 +242,17 @@ _job set ["boundActive",_active];
     };
     isNil {
         if !([_group,_token] call _sameLease) exitWith {};
+        // Publish the original server bound lifetime with its exact role identity.
+        // Owner admission waits for both receipts; arrival order cannot create extra time.
+        private _roleDeadline=[];
+        if (_moving) then {
+            private _record=_active select _activeIndex;
+            private _leaseNow=_group getVariable ["CBE_AIPass_SupportLease",[]];
+            _roleDeadline=[_token,_record select 1,(_record select 2) min (_leaseNow select 2),+(_role select 3)];
+        };
+        if ((_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]]) isNotEqualTo _roleDeadline) then {
+            _group setVariable ["CBE_Cortex_SupportRoleDeadline",_roleDeadline,true];
+        };
         // Compare the live role here: neither a stale unchanged-role observation nor a
         // cancelled lease may overwrite a successor while the scorer was scheduled.
         if ((_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role) then {

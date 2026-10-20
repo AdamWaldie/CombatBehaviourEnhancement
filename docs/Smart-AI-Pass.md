@@ -1931,3 +1931,10 @@ Physical normal/provider-HC cover-to-bound flow, replication ordering, casualty 
 Coordinated parents identify their support token and original expiry in the shared operation record. Ownership transfer captures the observed spent recovery counts and unavailable actors before retiring that parent. Adoption validates the token, source generation, expiry and bounded record contents before constructing the new operation. Missing, oversized or malformed budget records refuse coordinated reconstruction. Duplicate actor keys cannot replace a higher spent count with a lower one.
 
 The new parent retains those counts and exclusions. Running recovery commands, destinations and observation timers are not replayed. The normal reinforcement rally path is unchanged. This adds bounded work at parent acceptance and ownership transfer, with no periodic scanner. Replication ordering, in-flight handover, repeated transfer and measured overhead remain unverified. Child-bound retry and deadline continuity remain a separate review scope.
+
+
+### Original server clock for coordinated bounds
+
+The server publishes each MOVE role's token, sequence, original deadline and point in `CBE_Cortex_SupportRoleDeadline`. That deadline is capped by the parent lease expiry. The role and clock may arrive separately. Owner admission waits within the existing five-second readiness window for a matching pair, then captures the original absolute limit. Missing, expired, mismatched or extended clocks cannot start a bound.
+
+Active child callbacks check that limit after current ownership and interruption checks. A transient clock mismatch suspends new movement while keeping the original deadline. Every movement issue also requires the captured clock to remain current. Expiry ends through ordinary timeout cleanup; reconstruction cannot obtain another server watchdog period. Cover and reservation retirement clear the clock. No new timer or movement controller is added. Physical replication ordering and timeout handback remain unverified. Per-child retry counts still need a separate transfer review.

@@ -64,7 +64,7 @@ private _kept = [];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
-        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
+        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
     };
 } forEach _leases;
 _job set ["leases",_kept];

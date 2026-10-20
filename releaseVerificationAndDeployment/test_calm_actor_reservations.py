@@ -152,6 +152,19 @@ class SupportBoundCommitTests(unittest.TestCase):
                       '"phase",""]) == "CANCELLED"','CBE_fnc_CortexActorMoveReserved']:
             self.assertLess(boundary.index(guard),allocation)
         self.assertIn('CBE_fnc_CortexDrillStart',boundary)
+        self.assertIn('CBE_Cortex_SupportRoleDeadline',boundary)
+        self.assertIn('serverTime >= (_deadlineReceipt select 2)',boundary)
+        self.assertIn('["supportDeadline",_deadlineReceipt select 2],["supportClock",+_deadlineReceipt]',boundary)
+        coordinate=(ROOT/'addons/support/functions/cortexSupportCoordinateStep.sqf').read_text()
+        self.assertIn('(_record select 2) min (_leaseNow select 2)',coordinate)
+        self.assertLess(coordinate.index('setVariable ["CBE_Cortex_SupportRoleDeadline",_roleDeadline,true]'),
+                        coordinate.index('setVariable ["CBE_Cortex_SupportRole",_role,true]'))
+        active=(ROOT/'addons/infantry/functions/cortexFlankStep.sqf').read_text()
+        self.assertLess(active.index('call CBE_fnc_OperationStep'),active.index('private _supportExpired='))
+        self.assertLess(active.index('private _supportExpired='),active.index('call CBE_fnc_OperationAttackPolicy'))
+        self.assertIn('if (_supportExpired) exitWith {"TIME_LIMIT" call _end}',active)
+        self.assertIn('if (_supportAwaitClock) exitWith {_drill set ["lastStep",time];0.25}',active)
+
         self.assertIn('_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;',boundary)
         self.assertNotIn('_accepted=true;',boundary)
         self.assertIn('CBE_fnc_CortexSupportStopOwned',boundary)
