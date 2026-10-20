@@ -1,0 +1,55 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "c1b0f1eb",
+  "scope": "LAMBS casualty equipment recovery and actual CBE path; no parity claimed",
+  "upstream": {
+    "workshop": "1858075458",
+    "files": {
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+      ".qa/lambs-2621-review/danger/functions/fnc_tacticsReinforce.sqf": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9"
+    }
+  },
+  "implementationSources": {
+    "addons/infantry/functions/pointActorOperation.sqf": "f4fd23c6c1cb3cf58001f80a598ea2a61685fcae6dca888d168950256832991c",
+    "addons/infantry/functions/casualtyObservationSelect.sqf": "ca6593060dd7303a534a24e4835fa2d089a95b17fde1612578866fc69904764c",
+    "addons/infantry/functions/dangerEngineAct.sqf": "67d7491f465b289212557abd36c965562aac72c4bbb774dc2ceb33bdfb32b1ae",
+    "addons/infantry/functions/cortexAmmoShare.sqf": "b11311b1d9a1121f031f7428f31319fb8321ca19d58e9cb7e36715671d9c2aeb"
+  },
+  "sourceExecution": [
+    "brainHide dispatches doCheckBody for DANGER_DEADBODYGROUP after PATH gate.",
+    "tacticsReinforce checks any dead man within35m, then queues body checks per unit with random2s delay, random20m search origin/radius35, and adds wait time.",
+    "doCheckBody selects first allDeadMen entry within radius, sets weak crouch, movement/watch/forceMove, waits <=8s for range<0.8m or actor death.",
+    "On arrival requests native rearm action; if actor has no backpack, reads backpackItems and class, removes source backpack globally, recreates on actor and adds items.",
+    "If actor has no launcher, nearSupplies3 cargo arrays are inspected for type4 weapon, then TakeWeapon requested.",
+    "Arrival and timeout use unconditional doFollow leader and clear forceMove; no exact newer-order receipt."
+  ],
+  "currentCBE": [
+    "DangerEngineAct starts PointActorOperation from observed casualty clue; current actor-local token, native order receipt, original deadline and physical range/LOS gate qualify VISITED.",
+    "VISITED intentionally proves only position observation. No native rearm action, backpack transfer or launcher acquisition occurs.",
+    "CortexAmmoShare transfers bounded compatible primary reserves between current squad members; it does not recover equipment from bodies."
+  ],
+  "disposition": [
+    "IMPLEMENT source intent: finite opportunistic recovery of useful ammunition/equipment after actual approach, subordinate to tactical urgency, mission orders and specialist ownership.",
+    "REDESIGN selection: use observed/reachable specific body and bounded local supplies, not global first-match allDeadMen scan or arbitrary remote inventory enumeration.",
+    "REDESIGN execution: separate observation success from actual equipment result; actor-local native action with original finite timeout, explicit inventory delta evidence and current token/native-order checks before issue and cleanup.",
+    "DO NOT COPY destructive backpack recreation: items alone omit nested magazine ammunition, attachments and inventory-state fidelity; preserve mission loadout restrictions and source-container ownership.",
+    "DO NOT COPY first weapon-cargo slot classifier as universal launcher selection; empty/mixed cargo and compatibility must be checked.",
+    "DO NOT COPY unconditional formation recall over newer orders. No teleport, global invulnerability, forced arsenal loadout or synthetic recovered result."
+  ],
+  "nextImplementation": {
+    "priority": "First implement ammunition-only native recovery through a separately identified finite actor phase after physically approaching a qualified observed body; retain observation-only mode. Equipment/launcher adoption remains separately scoped.",
+    "requiredBeforeCode": [
+      "Verify native Rearm action and cancellation semantics against official engine documentation.",
+      "Trace body/local inventory ownership and native action acknowledgement without stealing mission-authored REARM.",
+      "Use existing actor task reservation and cleanup receipt, not a second movement controller.",
+      "Record actual acquired compatible rounds independently of visit success; failure must release exact current task without erasing replacement orders."
+    ],
+    "limits": "Original deadline, bounded candidate count and existing actor scheduler. No permanent all-body scans or inventory cloning."
+  },
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "productChanged": false
+}
