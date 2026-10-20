@@ -216,6 +216,16 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertIn('["OBSERVE","COMBAT_APPROACH"',s)
         self.assertIn('_unitState in ["INIT","PLANNING","REPLAN"]',s)
+        # Preflight shares task vetoes but cannot issue a usable native receipt or ray query.
+        self.assertIn('["_preflight",false,[true]]',s)
+        self.assertIn('if (!_preflight && {_contactValid}',s)
+        self.assertIn('if (_observe && {_preflight}) exitWith {["PREFLIGHT"]}',s)
+        self.assertLess(s.index('if (_observe && {_preflight})'),s.index('boundingBoxReal _building'))
+        self.assertIn('if (_preflight) exitWith {["PREFLIGHT"]}',s)
+        self.assertLess(s.index('if (!_mayIssue)'),s.index('if (_preflight) exitWith {["PREFLIGHT"]}'))
+        dispatch=(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()
+        self.assertIn('[_x,_target,_position,objNull,true] call CBE_fnc_IndoorActorNativeContext',dispatch)
+        self.assertLess(dispatch.index('call CBE_fnc_IndoorActorNativeContext'),dispatch.index('call CBE_fnc_BuildingContactSelect'))
         self.assertNotIn('getPosATL _contact',s)
         for command in (' doMove ','doFollow','doTarget','doFire','setDestination'):
             self.assertNotIn(command,s)

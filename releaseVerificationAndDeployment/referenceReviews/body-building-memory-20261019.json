@@ -113,5 +113,21 @@
     "productionChanged": false,
     "validation": "Read-only call-path/source comparison. Existing latest full build remains .qa/cbe-available-contact-build.log for source preceding 050d482e; no redundant build performed. Physical cleanup, repeat admission, balance and performance remain unverified.",
     "audits": "PAUSED"
+  },
+  "nativeTaskPreflight20261020": {
+    "sourceParent": "f8f68201",
+    "implementation": "Shared IndoorActorNativeContext optional preflight bool checks native command/state/contact identity/ignore and authored waypoint protection before building discovery. Distinct PREFLIGHT marker cannot supply executor admission receipt. Matching native approach is provisional until full building containment. Dispatcher uses it within existing 8-belief/16-actor short-circuit bound.",
+    "cost": "Maximum128 metadata-only preflights per8s; no extra visibility/roof/containment query. Full executor retains its existing firing check.",
+    "preserved": [
+      "STOP/FOLLOW/protected tasks and authored waypoint metadata",
+      "Native planning and compatible BUSY approach policy",
+      "Original deadlines, max2actors, three roof queries, native belief and current owner authority"
+    ],
+    "remaining": [
+      "Firing visibility, building containment and generic executor eligibility can still refuse after selection.",
+      "No full LAMBS/HBQ source parity established.",
+      "Physical behaviour and overhead remain unverified; audits paused."
+    ],
+    "validation": "Existing32indoor cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-indoor-native-preflight-build.log; candidate .qa/candidates/native-preflight-f8f68201-e4357df0 fingerprint e4357df098ff82790155cd78d54767793bfae9eae7f1dcf741b180b05d404dc8 actualf8f68201+intendeddirtyedits. No new tests or score increases."
   }
 }

@@ -6,6 +6,7 @@
  * native orders and feature gates before movement; this dispatcher issues no movement itself.
  * Repeat/JIP: At most one building selection per eight seconds per owner-local group state.
  * Sixteen actors and eight native beliefs are checked before the existing three-roof-query selector.
+ * Shared native-task preflight adds no visibility/geometry query and grants no command authority.
  * Actor journals, hard deadlines and cooldowns prevent replay; locality does not resume old jobs.
  * Shared reservation admission permits valid expired markers but refuses live or malformed records.
  * Arguments: 0 group <GROUP>, grpNull; 1 group state <HASHMAP>, empty;
@@ -40,7 +41,8 @@ private _actionable=(_enemies select [0,8]) select {
     private _position=_record param [1,[],[[]]];
     if (isNull _target || {count _position != 3}
         || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
-    _actors findIf {_x knowsAbout _target >= 1 && {_x distance2D _position <= (_range min 40)}} >= 0
+    _actors findIf {_x knowsAbout _target >= 1 && {_x distance2D _position <= (_range min 40)}
+        && {([_x,_target,_position,objNull,true] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo []}} >= 0
 };
 private _selection=[_group,_actionable,_range] call CBE_fnc_BuildingContactSelect;
 if (_selection isEqualTo []) exitWith {0};
