@@ -8,6 +8,7 @@
  * Captured participant/fallback platforms exclude later transport or vehicle switches from progress.
  * Explicitly admitted mounted crews retain their original vehicle domain. Missing legacy receipts
  * permit foot observation only; they never infer a new mounted domain.
+ * Queued ACE treatment is temporary task ownership even before the native HEAL command.
  * Recovery observations for no-longer-eligible participants retire before timeout handling;
  * observed incapacitation/capture/owner changes cannot become a stale failure on return.
  * CLEAR destination failures retire the recovery observation without quarantining a capable actor;
@@ -92,7 +93,8 @@ if (count _recovery > 0) then {
     private _key=netId _actor;
     private _record=_recovery getOrDefault [_key,[]];
     private _reserved=[_actor] call CBE_fnc_CortexActorMoveReserved;
-    private _nativeTask=currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+    private _nativeTask=(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+        || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
     private _suspended=!simulationEnabled _actor || {isObjectHidden _actor}
         || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")};
     if (_reserved || {_nativeTask} || {_suspended}) then {

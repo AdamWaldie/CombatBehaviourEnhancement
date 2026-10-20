@@ -6,7 +6,7 @@
  * Locality/authority: Current group owner and current local participant only; local or trusted
  * server call. Final eligibility, strict reservation and live retry budget are checked inside
  * one unscheduled journal/move transaction. Nonfinite destinations are invalid.
- * Hidden/simulation-disabled actors, native service/medical/assembly tasks and live finite actor reservations yield without a recovery command or consuming the retry budget. Actors outside the roster are invalid.
+ * Queued ACE care, hidden/simulation-disabled actors, native service/medical/assembly tasks and live finite actor reservations yield without a recovery command or consuming the retry budget. Actors outside the roster are invalid.
  * Repeat/JIP: Each actor receives one attempt per operation generation and owner epoch. The final command boundary rechecks takeover; actors with MOVE or PATH disabled are left untouched.
  * Arguments: 0 group <GROUP>; 1 generation <NUMBER>; 2 actor <OBJECT>; 3 destination <ARRAY, two or three numeric coordinates>.
  * Return Value: STRING - RECOVERING, EXHAUSTED, YIELDED or INVALID.
@@ -31,6 +31,7 @@ if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _ge
 if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])
     || {!(_actor in (_operation getOrDefault ["participants",[]]))}) exitWith {"INVALID"};
 if (_actor in (_operation getOrDefault ["unavailable",[]])) exitWith {"EXHAUSTED"};
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {"YIELDED"};
 private _reserved={[_actor] call CBE_fnc_CortexActorMoveReserved};
 if (call _reserved) exitWith {"YIELDED"};
 private _recovery=_operation getOrDefault ["recovery",createHashMap];
@@ -57,7 +58,8 @@ isNil {
             || {(_currentOperation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
             || {!(_actor in (_currentOperation getOrDefault ["participants",[]]))}) exitWith {"INVALID"};
         if (_actor in (_currentOperation getOrDefault ["unavailable",[]])) exitWith {"EXHAUSTED"};
-        if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"YIELDED"};
+        if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+            || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"YIELDED"};
         if (call _reserved) exitWith {"YIELDED"};
         if (!(_actor checkAIFeature "MOVE") || {!(_actor checkAIFeature "PATH")}
             || {!(simulationEnabled _actor)} || {isObjectHidden _actor}) exitWith {"YIELDED"};

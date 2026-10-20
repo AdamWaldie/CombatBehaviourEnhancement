@@ -1603,6 +1603,8 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(cover.index('[_x] call _mayIssueMovement'),cover.index('doStop _x'))
         self.assertNotIn('{call _mayIssueMovement}',bounds)
         step=source('operationStep')
+        task=step.split('private _nativeTask=',1)[1].split('private _suspended=',1)[0]
+        self.assertIn('ace_medical_ai_healQueue',task)
         temporary=step.split('if (_reserved || {_nativeTask} || {_suspended}) then',1)[1].split('if (!_reserved',1)[0]
         self.assertIn('_recovery deleteAt _key',temporary)
         self.assertIn('_temporarilyOwned pushBack _actor',temporary)
@@ -1611,6 +1613,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!(_x in _temporarilyOwned)',step)
         recovery=source('recoveryStep')
         self.assertEqual(recovery.count('if (call _reserved) exitWith {"YIELDED"}'),2)
+        self.assertEqual(recovery.count('ace_medical_ai_healQueue'),2)
+        self.assertLess(recovery.index('ace_medical_ai_healQueue'),recovery.index('if (_attempts >= 1)'))
+        self.assertLess(recovery.rindex('ace_medical_ai_healQueue'),recovery.index('_used set [_key,_attempts+1]'))
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',recovery)
         self.assertLess(recovery.index('if (call _reserved)'),recovery.index('if (_attempts >= 1)'))
         self.assertLess(recovery.rindex('if (call _reserved)'),recovery.index('_used set [_key,_attempts+1]'))
