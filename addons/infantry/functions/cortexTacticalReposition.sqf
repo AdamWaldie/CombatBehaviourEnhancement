@@ -68,8 +68,10 @@ if (_reason == "ARMOUR_OVERMATCH" && {_distance <= 120}) exitWith {
 
 // This fallback writes a group-wide waypoint. It cannot reserve only the remaining
 // actors, so preserve finite actor work rather than stealing a grenade/AT/indoor leg.
+// INIT and REPLAN are as much native path work as PLANNING. Preserve all three
+// before this routine fallback spends geometry or acquires a group movement lease.
 // The close-armour withdrawal above retains its urgent survival priority.
-if ((units _group) findIf {alive _x && {getUnitState _x == "PLANNING"
+if ((units _group) findIf {alive _x && {getUnitState _x in ["INIT","PLANNING","REPLAN"]
     || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}}} >= 0) exitWith {false};
 private _toward=_origin getDir _threatPos;
 private _away=_threatPos getDir _origin;

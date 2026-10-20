@@ -88,8 +88,10 @@ private _onFoot=(units _group) select {
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < 2) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
+// Native route creation/replanning belongs to the engine until it leaves those states.
+// Small elements cannot spare another independent mover, so defer their whole admission.
 private _smallElement=count _onFoot < 4;
-if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x == "PLANNING"}
+if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x in ["INIT","PLANNING","REPLAN"]}
     || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}} >= 0}) exitWith {
     ["SMALL_ELEMENT_UNAVAILABLE",[count _onFoot]] call _refuse
 };
