@@ -262,6 +262,8 @@ private _actorTaskFree={
     params ["_actor"];
     private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     _free && {[_actor] call _nativeCommandAvailable} && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
@@ -773,7 +775,11 @@ private _restoreFeatures = {
         if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {behaviour _unit == _owned}) then {
             _keptBehaviours pushBack _x;
         } else {
-            if ([_unit] call _mayIssueMovement && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
+            if (behaviour _unit == _owned) then {
+                if ([_unit] call _mayIssueMovement) then {_unit setCombatBehaviour _previous};
+                // An unavailable actor still needs its unchanged restoration proof later.
+                if (behaviour _unit == _owned && {_previous != _owned}) then {_keptBehaviours pushBack _x};
+            };
         };
     } forEach (_drill getOrDefault ["combatBehaviours",[]]);
     _drill set ["combatBehaviours",_keptBehaviours];
@@ -783,7 +789,10 @@ private _restoreFeatures = {
         if (_unit in _stillRecovering && {[_unit] call _mayIssueMovement} && {unitCombatMode _unit == _ownedMode}) then {
             _keptModes pushBack _x;
         } else {
-            if ([_unit] call _mayIssueMovement && {unitCombatMode _unit == _ownedMode}) then {_unit setUnitCombatMode _mode};
+            if (unitCombatMode _unit == _ownedMode) then {
+                if ([_unit] call _mayIssueMovement) then {_unit setUnitCombatMode _mode};
+                if (unitCombatMode _unit == _ownedMode && {_mode != _ownedMode}) then {_keptModes pushBack _x};
+            };
         };
     } forEach (_drill getOrDefault ["combatModes",[]]);
     _drill set ["combatModes",_keptModes];
@@ -792,6 +801,7 @@ private _restoreFeatures = {
         _x params ["_unit", "_feature"];
         if (_unit in _stillRecovering && {_feature in ["AUTOTARGET","TARGET","AUTOCOMBAT"]}) then {_kept pushBack _x} else {
             if (alive _unit && {[_unit] call _mayIssueMovement}) then {_unit enableAI _feature};
+            if (alive _unit && {!(_unit checkAIFeature _feature)}) then {_kept pushBack _x};
         };
     } forEach (_drill get "disabled");
     _drill set ["disabled", _kept];

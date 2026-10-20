@@ -159,5 +159,41 @@
     "candidate": ".qa\\candidates\\search-arrival-f4b41822",
     "fingerprint": "c25d103eefe6d9b5546f361b21995ccede439275e6379065e83886859ec23821",
     "limits": "Actual search navigation and later handback unverified; auditsPAUSED. Native receipt ownership must remain valid to count arrival."
+  },
+  "contactSearchMedicalHandover": {
+    "finding": "SearchMoveOwned verified old route/destination but did not test queued care or dormancy; valid receipt could authorise doFollow before native HEAL changed. First-contact group COMBAT gate only recognised active native commands.",
+    "change": "SearchMoveOwned now refuses dormant/queued-treatment actors for all existing recall callers. First-contact native-task-active includes ACE pending healer queue before any group COMBAT transition. No queue/AI permission mutation.",
+    "validation": "607 focused/full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/search-medical-handover-build.log",
+    "limits": "No whole-addon ACE compatibility/handover claim. Physical treatment/navigation/restoration and performance unverified.",
+    "PRDescription": "Publication of prepared description remains auto-review rejected pending explicit user approval; do not retry or workaround. Code work may continue locally.",
+    "candidate": ".qa\\candidates\\search-medical-handover-0695865a",
+    "fingerprint": "8c3754d5b3ce18ea4a9c48671da15f649aa8c29cefb7c9f37659a14abc1960f8"
+  },
+  "suppressionReadinessComparison": {
+    "LAMBS": "isLeader admits tactical leadership only below0.2 suppression. brainReact/cover and ordinary fire remain separate decisions.",
+    "CBE": "Morale includes20% average suppression and smoothing; tactical starts require STEADY but no direct actor suppression-readiness test. Thus morale does not establish current manoeuvre capacity.",
+    "disposition": "Unresolved policy/effectiveness difference. Do not disable defensive fire or impose arbitrary whole-group paralysis via shared fire admission. Trace new-bound mover/cover readiness and existing measured stagnation before selecting a bounded policy.",
+    "productChangedForReadiness": false
+  },
+  "boundActorAuthority": {
+    "finding": "Continuing CortexFlankStep uses actorTaskFree/mayIssueMovement for destination and owned combat-mode/feature restoration. That gate previously omitted dormancy and ACE pending healer queue despite native-command protection.",
+    "change": "Read-only simulation/hidden/queued-care checks added to actorTaskFree, retaining physical rosters and original bound deadlines. No suppression threshold or fire-permission change.",
+    "scope": "Shared finite flank/advance/assault/coordinated-bound execution call path; terminal FlankEnd and other restore paths still require separate inspection.",
+    "validation": "Combined full checkpoint now passed; see terminalFollowup.",
+    "terminalFollowup": {
+      "finding": "Continuing restoreFeatures dropped unchanged behaviour/mode/disabled-feature proof when command authority refused restoration. Terminal movement recall also lacked dormancy/queued-care gates.",
+      "change": "Retain unchanged unrestored behaviour/mode and still-disabled feature records in existing drill arrays; no new worker/deadline. Terminal movement roster excludes dormant/queued-treatment actors. Terminal owned-setting restoration remains available; blindly blocking it would strand disabled features.",
+      "limits": "Existing actor-specific terminal setting ownership is not upgraded to a complete external-controller restore contract. No guaranteed retry after final teardown; trace durable restoration design separately. Physical engine acknowledgement and later task resumption remain unverified.",
+      "validation": "607 focused/full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/bound-restoration-proof-build.log",
+      "candidate": ".qa\\candidates\\bound-restoration-proof-0695865a",
+      "fingerprint": "c9d3614c3773cb85517e0249f136ab2233c3ad83f731360aa277b6c28fb2b3e1"
+    }
+  },
+  "terminalRestorationArchitecture": {
+    "operationRestore": "Restores only restore.groupAttack under exact current operation identity/generation/epoch. It does not consume drill actor feature/mode/behaviour arrays.",
+    "aircraftRestore": "CortexAirPilotFeatureRelease uses8-field aircraft token/issuer/group/feature receipt and original finite release deadline, native task gating and flight-lease quiescence. It is not a drop-in ground drill restorer.",
+    "currentGround": "FlankEnd restores its captured feature settings and value-matched behaviour/modes during teardown, with distinct movement recall gating. Continuing step now preserves deferred proof in drill arrays; final durable actor-setting reconciliation is not established.",
+    "designConstraint": "Avoid a second permanent actor restoration controller. Any extension needs exact feature ownership, original baseline, successor invalidation, locality provenance and a finite retained receipt consumed by an existing lifecycle. Do not merely skip restore then delete the drill.",
+    "status": "OPEN_DESIGN_AND_IMPLEMENTATION; not functional parity or completed handover."
   }
 }

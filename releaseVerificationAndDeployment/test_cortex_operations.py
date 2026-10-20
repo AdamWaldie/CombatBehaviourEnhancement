@@ -9505,7 +9505,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))
 
     def test_danger_release_retains_blocked_original_and_confirms_restore(self):
-        for name in ('cortexActorFireTaskAvailable','cortexFireControl','indoorActorNativeContext','pointActorOperation','indoorActorOperation','dangerCoverStep','dangerGroupHideStep'):
+        for name in ('cortexActorFireTaskAvailable','cortexFireControl','indoorActorNativeContext','pointActorOperation','indoorActorOperation','dangerCoverStep','dangerGroupHideStep','cortexSearchMoveOwned','cortexFlankStep','cortexFlankEnd'):
             self.assertIn('ace_medical_ai_healQueue',source(name))
         building=source('buildingOperationStep')
         available=building.split('private _actorAvailable=',1)[1].split('private _actorTaskFree=',1)[0]

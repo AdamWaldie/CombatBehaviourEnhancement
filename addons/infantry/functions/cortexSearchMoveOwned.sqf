@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Recognises an investigation/search MOVE actually issued by CBE for safe handback.
  * Locality/Authority: Read-only on current group/actor owner; refuses external, Zeus, service,
- * mounted, reserved actors and active clearance. Actual route and 3D native destination must match.
+ * mounted, dormant, queued-treatment or reserved actors and active clearance. Actual route and 3D native destination must match.
  * Repeat/JIP: Checkpoint carries at most sixteen receipts. No replay, deadlines or settings writes.
  * Arguments: 0 group <GROUP, grpNull>; 1 state/checkpoint <HASHMAP, empty>;
  * 2 actor <OBJECT, objNull>. Receipt rows: [actor, issued ATL position, native route receipt, optional transferred issuer token].
@@ -14,6 +14,8 @@ params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["
 if (isNull _group || {!local _group} || {isNull _actor} || {!local _actor} || {group _actor != _group}
     || {isPlayer _actor} || {!isNull objectParent _actor} || {!isNull remoteControlled _actor}
     || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+    || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["MOVE","","STOP"])}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {([_actor] call CBE_fnc_CortexExternalOwner) != ""}

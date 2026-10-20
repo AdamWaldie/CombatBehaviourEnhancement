@@ -146,7 +146,9 @@ private _ownsNativeMovement={
 // only capable foot actors whose current task has not acquired a newer independent owner.
 _members=_members select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
-    _free && {[_x] call _ownsNativeMovement} && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
+    simulationEnabled _x && {!isObjectHidden _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && _free && {[_x] call _ownsNativeMovement} && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
