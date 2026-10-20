@@ -200,12 +200,24 @@ class SupportBoundCommitTests(unittest.TestCase):
 
         self.assertIn('getOrDefault ["authoredRevoked",false]',apply)
         self.assertIn('_state set ["supportAuthoredRevoked",false]',apply)
+        self.assertLess(apply.index('if (!_recoveryValid) exitWith'),apply.index('call CBE_fnc_OperationStart'))
+        self.assertIn('_operation set ["supportToken",_token]',apply)
+        self.assertIn('_operation set ["unavailable",+(_sourceRecovery select 4)]',apply)
+        self.assertIn('_operation set ["recoveryAttempts",_sourceAttempts]',apply)
+        self.assertIn('count _sourceAttempts == count (_sourceRecovery select 5)',apply)
+        self.assertIn('_operation set ["supportExpiry",_expiry]',apply)
+        self.assertIn('count (_sourceRecovery select 5) <= 64',apply)
+
 
         self.assertIn('private _mayRestoreGroup=!_externalTakeover && {!_authoredReplaced}',maintain)
         self.assertLess(maintain.index('if (_authoredReplaced) exitWith'),maintain.index('private _role='))
         locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
         self.assertIn('["authoredOrder",_restore getOrDefault ["supportAuthoredOrder",[]]]',locality)
         self.assertIn('getOrDefault ["supportAuthoredRevokedToken",""]',locality)
+        self.assertLess(locality.index('_inheritedSupportRecovery=['),locality.index('call CBE_fnc_OperationCancel'))
+        self.assertIn('["recoveryProof",_inheritedSupportRecovery]',locality)
+        self.assertIn('(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)',locality)
+
         self.assertLess(locality.index('set ["supportAuthoredRevokedToken",_revokedSupportToken]'),
                         locality.index('call CBE_fnc_CortexSupportApply'))
 

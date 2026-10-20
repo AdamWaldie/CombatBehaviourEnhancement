@@ -237,5 +237,32 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportRecoveryBudgetFollowUp20261020": {
+    "baseline": "023f6024",
+    "finding": "SupportApply constructed a fresh parent with empty recoveryAttempts/unavailable on adoption, even when the same finite support assignment had spent its budget.",
+    "change": "New parents publish exact supportToken/supportExpiry. Locality snapshots observed counters and unavailable roster before old-parent cancellation only for matching coordinated identity/expiry and <=64 rows. Coordinated adoption requires valid original token/source generation/expiry, typed nonnegative integer counts and unique keys. Missing/oversized/malformed proof refuses before OperationStart. New parent receives observed counts/exclusions before owner acknowledgement. No recovery command/destination/timer replay. Duplicate actual-parent acknowledgement also requires exact expiry.",
+    "cost": "At most64 counter and64 unavailable rows at transfer, no added periodic scan/timer/native command. One additional parent-record publication at acceptance.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8",
+      "addons/infantry/functions/recoveryStep.sqf": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2",
+      "addons/support/functions/cortexSupportApply.sqf": "9ba4f69e49a4417cd9eb6bf16a2f2f76f554054644db9066b09b91202afa575a"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-recovery-budget-build.log",
+      "independent": ".qa/cbe-support-recovery-budget-independent.log",
+      "candidate": ".qa/candidates/support-budget-023f6024-8474848a",
+      "fingerprint": "8474848a289d3d4595685502390e40e88e13739124838c95e4273bee00565198",
+      "source": "023f6024 plus intended dirty parent-budget edits"
+    },
+    "remaining": [
+      "Preserves delivered observed state; ordered replication and in-flight publication at transfer are physically unverified.",
+      "Child bound retries/deadline continuation remain separate scope.",
+      "Repeated actual-providerHC transfer and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

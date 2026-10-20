@@ -10,6 +10,8 @@
  * investigation, search, standalone manoeuvre or withdrawal after CBE or ACE migration. A Zeus hold or the
  * matching infantry-morale/vehicle-withdrawal gate cancels restoration so migration cannot revive
  * superseded work or incorrectly couple the two withdrawal types.
+ * Coordinated support captures observed spent recovery counts and unavailable actors before
+ * old-parent cancellation, bound to its exact token and original expiry.
  * Locality/authority: current group owner unless stated otherwise below.
  * Repeat/JIP: durable restoration data is public; local jobs are never replayed verbatim. A calm
  * remount keeps its original deadline and vehicle, and yields to Zeus or a newer assignment.
@@ -41,11 +43,25 @@ private _navalIntent = _group getVariable ["CBE_Cortex_NavalOperation",[]];
 // but no stale route can survive long enough to compete with the reconstructed operation.
 private _inheritedAttackLease=[];
 private _inheritedDrill=[];
+private _inheritedSupportRecovery=[];
 if (local _group) then {
     private _previousOperation=_group getVariable ["CBE_Operation",createHashMap];
     if (count _previousOperation > 0) then {
         if ((_previousOperation getOrDefault ["generation",-1]) == (_group getVariable ["CBE_OperationGeneration",-2])) then {
             _inheritedAttackLease=+((_previousOperation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]]);
+            // Preserve consumed budgets before cancelling the exact old parent. No recovery
+            // command, running timer or destination is replayed on the new owner.
+            private _spent=_previousOperation getOrDefault ["recoveryAttempts",createHashMap];
+            private _unavailable=_previousOperation getOrDefault ["unavailable",[]];
+            if (count _supportLease == 6 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+                && {(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)}
+                && {(_previousOperation getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}
+                && {_spent isEqualType createHashMap} && {count _spent <= 64}
+                && {_unavailable isEqualType []} && {count _unavailable <= 64}) then {
+                _inheritedSupportRecovery=[_supportLease select 0,_previousOperation get "generation",
+                    _previousOperation getOrDefault ["ownerEpoch",-1],_supportLease select 2,+_unavailable,
+                    (keys _spent) apply {[_x,_spent get _x]}];
+            };
             private _checkpoint=createHashMapFromArray (_group getVariable ["CBE_AIPass_Checkpoint",[]]);
             private _candidate=_checkpoint getOrDefault ["drillIntent",[]];
             private _candidateModes=[_checkpoint getOrDefault ["restoreGroupCombatMode",[]],_checkpoint getOrDefault ["restoreGroupSpeedMode",[]]];
@@ -364,7 +380,8 @@ if (_supportAdoptable) then {
         ["group",_group],["lease",_supportLease],["waitUntil",serverTime],["adopt",true],
         ["authoredOrder",_restore getOrDefault ["supportAuthoredOrder",[]]],
         ["authoredRevoked",_restore getOrDefault ["supportAuthoredRevoked",false]],
-        ["holdProof",_restore getOrDefault ["supportHoldProof",[]]]
+        ["holdProof",_restore getOrDefault ["supportHoldProof",[]]],
+        ["recoveryProof",_inheritedSupportRecovery]
     ]] call CBE_fnc_CortexSupportApply;
 };
 if (([_group] call CBE_fnc_CortexGroupState) getOrDefault ["supportToken",""] != "") exitWith {

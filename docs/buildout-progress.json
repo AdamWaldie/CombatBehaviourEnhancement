@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb"
+              "sha256": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -3440,7 +3440,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb"
+              "sha256": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",

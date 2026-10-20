@@ -1924,3 +1924,10 @@ A coordinated checkpoint includes at most 64 exact stopped holds from the curren
 The existing support callback waits up to five seconds, bounded by the original lease expiry, for actor locality. It installs a new-owner hold receipt only while the actor's STOP, destination, formation leader, fitness, movement features and reservations still permit it. A local mismatch retires the candidate immediately. Nonlocal candidates retain the same deadline; duplicate parent adoption cannot renew it. Release removes pending adoption. No native movement, new worker or public actor marker is created.
 
 Physical normal/provider-HC cover-to-bound flow, replication ordering, casualty cases and cost remain unverified. Source identity and native snapshot checks cannot distinguish an identical replacement order.
+
+
+### Coordinated recovery budgets after ownership transfer
+
+Coordinated parents identify their support token and original expiry in the shared operation record. Ownership transfer captures the observed spent recovery counts and unavailable actors before retiring that parent. Adoption validates the token, source generation, expiry and bounded record contents before constructing the new operation. Missing, oversized or malformed budget records refuse coordinated reconstruction. Duplicate actor keys cannot replace a higher spent count with a lower one.
+
+The new parent retains those counts and exclusions. Running recovery commands, destinations and observation timers are not replayed. The normal reinforcement rally path is unchanged. This adds bounded work at parent acceptance and ownership transfer, with no periodic scanner. Replication ordering, in-flight handover, repeated transfer and measured overhead remain unverified. Child-bound retry and deadline continuity remain a separate review scope.

@@ -31,7 +31,9 @@
  * full authored-order receipt; a same-position waypoint edit cannot become its new baseline.
  * Qualified passive holds enter one original five-second actor-locality window, bounded by
  * the original lease expiry. Duplicate actual-owner adoption never restarts that window.
- * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> and holdProof <ARRAY> for coordinated adoption.
+ * Coordinated adoption requires the original parent recovery budget snapshot. Spent counts
+ * and unavailable actors survive; running recovery commands/timers are never replayed.
+ * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> holdProof <ARRAY> and recoveryProof <ARRAY> for coordinated adoption.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
  * Current callers: SupportLocal through the existing scheduler and CortexLocality adoption.
  * Example: [_job] call CBE_fnc_CortexSupportApply;
@@ -152,6 +154,8 @@ if (_okay && {_adopting} && {(_state getOrDefault ["supportToken",""]) == _token
     && {(_state getOrDefault ["supportOperationGeneration",-1]) == (_existingParent getOrDefault ["generation",-2])}
     && {(_existingParent getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {(_existingParent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+    && {(_existingParent getOrDefault ["supportToken",""]) == _token}
+    && {(_existingParent getOrDefault ["supportExpiry",-1]) == _expiry}
     && {(_existingParent getOrDefault ["phase",""]) != "CANCELLED"}) exitWith {
     [_group,_token,true,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     -1
@@ -170,6 +174,32 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _intent=["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _sharedCoordinated;
     // Lease attack is one ATL position, not an array of route points.
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
+    private _sourceRecovery=_job getOrDefault ["recoveryProof",[]];
+    private _recoveryValid=!(_adopting && {_attackAllowed}) || {
+        _sourceRecovery isEqualType [] && {count _sourceRecovery == 6}
+            && {(_sourceRecovery select 0) isEqualTo _token} && {(_sourceRecovery select 3) isEqualTo _expiry}
+            && {(_sourceRecovery select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])}
+            && {(_sourceRecovery select 2) isEqualType 0} && {finite (_sourceRecovery select 2)}
+            && {(_sourceRecovery select 2) >= 0}
+            && {(_sourceRecovery select 4) isEqualType []} && {count (_sourceRecovery select 4) <= 64}
+            && {(_sourceRecovery select 4) findIf {!(_x isEqualType objNull)} < 0}
+            && {(_sourceRecovery select 5) isEqualType []} && {count (_sourceRecovery select 5) <= 64}
+            && {(_sourceRecovery select 5) findIf {
+                !(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}
+                    || {(_x select 0) == ""} || {!((_x select 1) isEqualType 0)}
+                    || {!finite (_x select 1)} || {(_x select 1) < 0}
+                    || {(_x select 1) != floor (_x select 1)}
+            } < 0}
+    };
+    private _sourceAttempts=createHashMap;
+    if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
+        _sourceAttempts=createHashMapFromArray (_sourceRecovery select 5);
+        _recoveryValid=count _sourceAttempts == count (_sourceRecovery select 5);
+    };
+    if (!_recoveryValid) exitWith {
+        _okay=false;
+        [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
+    };
     private _sourceHoldRows=[];
     private _holdProof=_job getOrDefault ["holdProof",[]];
     if (_adopting && {_attackAllowed} && {_holdProof isEqualType []} && {count _holdProof == 6}
@@ -185,6 +215,13 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         _okay=false;
         [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
+    _operation set ["supportToken",_token];
+    _operation set ["supportExpiry",_expiry];
+    if (_adopting && {_attackAllowed}) then {
+        _operation set ["unavailable",+(_sourceRecovery select 4)];
+        _operation set ["recoveryAttempts",_sourceAttempts];
+    };
+    _group setVariable ["CBE_Operation",_operation,true];
     private _generation=_operation get "generation";
     private _movementReady=true;
     if (!_attackAllowed) then {
