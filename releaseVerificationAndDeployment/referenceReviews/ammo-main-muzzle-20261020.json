@@ -138,5 +138,44 @@
     "nextImplementation": "Use the existing current-owner maintenance/ack path for finite token/sequence/epoch-bound readiness. Keep inventory observation on actual actor owner, preserve original lease deadlines and distinguish capacity/position/actual fire. Do not query nonlocal inventory or add permanent polling. Trace server use, revocation and adoption before changing dispatch.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "coordinatedCapacityAndTeams20261020": {
+    "reviewedSource": "99e2fb38",
+    "supersedes": "Earlier nextImplementation and coordinated-role exclusions in this file describe historical checkpoints; the owner report and local child checks are now implemented.",
+    "sources": {
+      "addons/support/functions/cortexSupportAck.sqf": "ce07598d0fb9fe0c9ea6f3f97698498dd9d985dbdd57ab45a1d8af3456332474",
+      "addons/support/functions/cortexSupportMaintain.sqf": "9dedb84ac945ca8417307ba5982e5c36d6a55a9140649153101573e7c16ad28b",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "4c4d1c3aa3e670aa89002dbd904f9828f610f37a68bdeb1882b99db104e80978",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "5f83e2d3c26cbc5bd709018b70d2a0b67a4c99ea64c6a26a2dc18561b9d6e139",
+      "addons/infantry/functions/cortexFlankStep.sqf": "d6b3a351864baa37636c12706242241e9dfd93b292d63adc1ca1cd14535d5ac3",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "520aaefb65c5f58dc0872263d9b9f53d537f3733b499de150444ea9206a1189b"
+    },
+    "executionTrace": [
+      "Current owner COVER maintenance reports bounded main-ammunition capacity through existing authenticated SupportAck, sampled every two seconds or role change, valid at most six original seconds.",
+      "Server accepts only exact accepted lease/current role/epoch/current sender; counts are bounded and reports cannot renew role or lease. New MOVE requires a fresh report; bootstrap publishes COVER first.",
+      "Local shared issue boundary checks actual moving and cover ammunition before new movement. In-flight samples do not enumerate inventory. Crossing exit and consolidation exceptions remain.",
+      "AMMO_CAPACITY_LOST publishes exact token/sequence child result through FlankEnd. CoordinateStep treats outcomes other than COMPLETE/PARTIAL as failures, yields the turn, applies eight-second retry, retires after two failures. Only COMPLETE on a final bound marks objective completion.",
+      "Three-person exact 2+1 responders retain arrived pair during singleton second turn. Minimum recalculates after same-callback PAUSE switch before team rebalance; larger/first turns still require two movers.",
+      "SupportMaintain consumes a refused child sequence as NOT_READY, while locality receipt/member settling retains original five-second allowance and parent deadline."
+    ],
+    "cost": "Owner report bounds roster at64, existing maintenance cadence, no new worker. Rifle checks run only at bound commitment. Runtime overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-singleton-follow-final-build.log",
+      "independent": ".qa/cbe-singleton-follow-independent.log",
+      "candidate": ".qa/candidates/singleton-follow-44fb22e4",
+      "fingerprint": "ee6e106b027930e2b19bcbe6d0bd7a7a0968bc9b7ef61e91e872809a8851e576",
+      "provenance": "44fb22e4 plus intended singleton follow source changes; unsigned development package; unrelated dirt preserved."
+    },
+    "remaining": [
+      "Mover ammunition capacity does not establish that another squad or requester has settled in cover, can see the relevant threat area, or is providing effective fire.",
+      "Initial pair partition preserves buddies but does not optimize dry/armed distribution between teams; local issue can refuse a poor partition. A future allocation change must preserve pair intent and avoid endless rejection.",
+      "No automatic resupply, corpse equipment recovery or successful suppression inference implemented here.",
+      "Physical normal/HC bootstrap, depletion, casualty, role handover, repeated small-team movement and performance remain unverified."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
