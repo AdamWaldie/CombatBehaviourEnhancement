@@ -21,6 +21,8 @@
  * release/publication commit. It does not serialize geometry or room-route planning.
  * Orders an AI group to clear a building room by room.
  *
+ * Admission excludes queued ACE treatment actors before allocating entry lanes or reserve slots;
+ * running-task ownership and cleanup remain independently checked by the executor.
  * Admission validates finite, distinct model positions with a 512-position budget before
  * geometry queries and replacement cleanup. Reported points still do not prove native access.
  * A squad-aware interior element, including the leader when needed, joins the clear up to a bounded
@@ -243,6 +245,7 @@ private _actorAdmissible={
     _canMove && {[_actor] call CBE_fnc_CortexCombatEffective} && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
         && {isNull objectParent _actor} && {_reservationFree}
         && {_resume || {simulationEnabled _actor && {!isObjectHidden _actor}}}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {isNull (remoteControlled _actor)}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}

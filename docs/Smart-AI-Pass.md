@@ -2145,3 +2145,6 @@ AA contact preference is qualified against the actual loaded station before extr
 
 
 The additional AA knowledge and station preflight now run only when routine targeting can act: the gunner is available, the vehicle can fire, ROE allows it, no combined-ground fire assignment owns the platform, and the existing target hold has ended. Held or delegated fire therefore incurs no extra aircraft query or ammunition preflight. The final live firing checks remain separate. This reduces avoidable work without adding cache lifetimes, callbacks or early retargeting; the aggregate performance budget remains unmeasured.
+
+
+Fresh clearance admission now excludes actors already queued for ACE treatment before selecting entry lanes and reserves, matching the running executor. Explicit clearance release also avoids recall and watch commands on dormant, hidden or queued-treatment actors. Exact settings release and movement-marker retirement remain independent and still run, preventing a medical handoff from inheriting CBE settings or stale movement ownership. Medical queues, living pair identity and task deadlines are unchanged. Repeated clear/move/reorder and treatment flow remain physically unverified.

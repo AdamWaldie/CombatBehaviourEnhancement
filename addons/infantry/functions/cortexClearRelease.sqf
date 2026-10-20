@@ -4,6 +4,8 @@
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
  * Individual player, remote-control and external-owner actors never receive restoration commands.
+ * Dormant, hidden or queued-treatment actors receive no recall/watch command; exact settings
+ * release and movement-marker retirement still run independently so cleanup cannot freeze them.
  * A live MOVE is recalled only when its destination matches this clearance job receipt;
  * newer individual movement survives release even when the caller requests formation restoration.
  * Mounted actors never receive formation recall from their former on-foot clearance job.
@@ -112,7 +114,9 @@ if (isNull _leader) then {_leader=leader _group};
                 && {(_stage select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}};
         [_x,_group,_releaseGeneration,_entryEpoch] call CBE_fnc_CortexClearSettingsRelease;
         private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
-        private _taskFree=!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]);
+        private _taskFree=simulationEnabled _x && {!isObjectHidden _x}
+            && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
         if (_ownedActor && {_free} && {_taskFree || {currentCommand _x == "JOIN"}}
             && {[_x] call CBE_fnc_CortexCombatEffective}
             && {isNull remoteControlled _x}

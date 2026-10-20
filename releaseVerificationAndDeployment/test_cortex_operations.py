@@ -2391,6 +2391,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_x doFollow _leader',release)
         self.assertNotIn('_x commandFollow _leader',clear)
         self.assertNotIn('_x commandFollow _leader',release)
+        admission=source('cortexClearBuilding').split('private _actorAdmissible=',1)[1].split('private _available =',1)[0]
+        self.assertIn('ace_medical_ai_healQueue',admission)
+        task=release.split('private _taskFree=',1)[1].split('if (_ownedActor',1)[0]
+        for proof in ('simulationEnabled _x','!isObjectHidden _x','ace_medical_ai_healQueue'):
+            self.assertIn(proof,task)
+        self.assertLess(release.index('call CBE_fnc_CortexClearSettingsRelease'),release.index('private _taskFree='))
+        self.assertIn('["RETIRE",_x,_motionJob] call CBE_fnc_BuildingActorMotion',release)
 
     def test_explicit_building_and_hold_orders_anchor_on_a_surviving_local_actor(self):
         """Leader loss must not turn an otherwise viable CQB, garrison or defence operation inert."""
