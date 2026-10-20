@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Runs one reserved squad bound as two successive fire-team movements, retaining eligible
- * battle buddies together. Pair cohesion takes priority over equal team sizes; all fit actors remain enrolled.
+ * battle buddies together. New partitions balance primary-ammunition capacity before headcount,
+ * without splitting pairs. Saved reconstructed teams are not re-ranked; all fit actors remain enrolled.
  * Locality/authority: group owner consumes the current server role and matching lease.
  * Reconstructed MOVE requires an exact imported native observation; the existing leg is observed without reissue.
  * Native STOP requires an exact existing support hold; matching holds transfer into the drill
@@ -127,22 +128,41 @@ private _resumeMoves=[]; private _resumeSpots=[]; private _resumeProgress=[];
 // leaders and support weapons; a temporary reservation cannot pull its partner into the bound.
 private _first=[];
 private _second=[];
+// Reconstructed bounds use the saved partition below, not a new ammunition ranking.
+if (!_reconstructing) then {
 private _remaining=+_fit;
+private _chunks=[];
 private _pairs=_group getVariable ["CBE_CombatPairs",[]];
 if (_pairs isEqualType []) then {
     {
         if (_x isEqualType [] && {count _x == 2}
             && {(_x select 0) != (_x select 1)}
             && {_x findIf {!(_x in _remaining)} < 0}) then {
-            ([_first,_second] select (count _first > count _second)) append _x;
+            _chunks pushBack +_x;
             _remaining=_remaining-_x;
         };
     } forEach (_pairs select [0,16]);
 };
-// Missing, broken or oversized historical pairing metadata never drops an eligible actor.
-{
-    ([_first,_second] select (count _first > count _second)) pushBack _x;
-} forEach _remaining;
+// Every remaining eligible actor is a singleton, including leaders/support roles.
+{_chunks pushBack [_x]} forEach _remaining;
+private _armed=_fit select {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable};
+private _ranked=_chunks apply {[_x,{_x in _armed} count _x]};
+private _armedCounts=[0,0];
+// At most64 chunks and three bounded passes. Distribute capacity before dry chunks,
+// preserving whole pairs; headcount breaks equal-capacity ties deterministically.
+for "_capacity" from 2 to 0 step -1 do {
+    {
+        _x params ["_chunk","_count"];
+        if (_count == _capacity) then {
+            private _secondTeam=(_armedCounts select 0) > (_armedCounts select 1)
+                || {(_armedCounts select 0) == (_armedCounts select 1) && {count _first > count _second}};
+            private _team=[0,1] select _secondTeam;
+            ([_first,_second] select _team) append _chunk;
+            _armedCounts set [_team,(_armedCounts select _team)+_count];
+        };
+    } forEach _ranked;
+};
+};
 // A three-person responder still fields a two-person first element and one-person cover.
 if (count _first < count _second) then {
     private _swap=_first;_first=_second;_second=_swap;

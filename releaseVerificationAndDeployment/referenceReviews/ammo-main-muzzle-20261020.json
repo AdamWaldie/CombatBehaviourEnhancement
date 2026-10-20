@@ -177,5 +177,23 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "initialPairCapacity20261020": {
+    "baseline": "b0a3c566",
+    "implementation": "Initial partitions build intact pair/singleton chunks, sample eligible primary ammo once, distribute chunks in capacity order2/1/0 to less-armed team with headcount tie-break. All fit actors retained. Reconstructed partitions bypass ranking and retain saved progress.",
+    "sourceSHA256": "6b490c59661d64d0a4854c2ffe805ea89aa202a3bf86058e7312959f62dc20cd",
+    "limits": "At most64 actors,16 historical pairs,three chunk passes. No inventory writes/controller. Not an optimal solver; pair constraints can still prevent feasible movement. Cost/physical behaviour unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-pair-capacity-build.log",
+      "independent": ".qa/cbe-pair-capacity-independent.log",
+      "candidate": ".qa/candidates/pair-capacity-b0a3c566",
+      "fingerprint": "e6a44c80510e9fed5accec00accd1c51de623a116640f3e0fa7f5c7a321acdbd"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false,
+    "retainedCorrection": "Existing may_bound test model still had historical support exemption; corrected to agree with shared issue source, retaining positive and negative support cases."
   }
 }

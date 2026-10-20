@@ -4045,13 +4045,14 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('removeMagazine',issue)
         self.assertNotIn('reload ',issue)
         def may_bound(support,kind,movers,minimum,cover):
-            return support or kind in ('CROSS_FAR','CONSOLIDATE') or (movers>=minimum and cover)
+            return kind in ('CROSS_FAR','CONSOLIDATE') or (movers>=minimum and cover)
         self.assertTrue(may_bound(False,'BOUND',1,1,True))
         self.assertFalse(may_bound(False,'BOUND',1,2,True))
         self.assertFalse(may_bound(False,'ASSAULT',2,2,False))
         self.assertTrue(may_bound(False,'CROSS_FAR',0,2,False))
         self.assertTrue(may_bound(False,'CONSOLIDATE',0,2,False))
-        self.assertTrue(may_bound(True,'BOUND',0,2,False))
+        self.assertFalse(may_bound(True,'BOUND',0,2,False))
+        self.assertTrue(may_bound(True,'BOUND',2,2,True))
 
 
     def test_coordinated_bound_team_contract_matches_server_reservation(self):
@@ -4061,7 +4062,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_pairs select [0,16])',start)
         self.assertIn('_x findIf {!(_x in _remaining)} < 0',start)
         self.assertIn('(_x select 0) != (_x select 1)',start)
-        self.assertIn('([_first,_second] select (count _first > count _second)) append _x',start)
+        self.assertIn('_chunks pushBack +_x',start)
+        self.assertIn('if (!_reconstructing) then {',start)
+        self.assertIn('for "_capacity" from 2 to 0 step -1',start)
+        self.assertIn('CortexPrimaryAmmoAvailable',start)
         self.assertIn('_remaining=_remaining-_x;',start)
         self.assertIn('} forEach _remaining;',start)
         self.assertIn('private _swap=_first;_first=_second;_second=_swap;',start)
@@ -4069,6 +4073,23 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _first < 2 || {count _second < 1}',start)
         self.assertNotIn('private _riflemen=',start)
         self.assertNotIn('CortexUnitRole',start)
+        def allocate(chunks,armed):
+            teams=[[],[]]; counts=[0,0]
+            ranked=[(chunk,sum(a in armed for a in chunk)) for chunk in chunks]
+            for capacity in (2,1,0):
+                for chunk,n in ranked:
+                    if n != capacity: continue
+                    team=int((counts[0],len(teams[0])) > (counts[1],len(teams[1])))
+                    teams[team].extend(chunk); counts[team]+=n
+            if len(teams[0]) < len(teams[1]): teams.reverse()
+            return teams
+        teams=allocate([[0,1],[2,3],[4,5]],{0,1,4,5})
+        self.assertEqual(sorted(sum(teams,[])),list(range(6)))
+        self.assertTrue(all(sum(a in {0,1,4,5} for a in t)==2 for t in teams))
+        for pair in ([0,1],[2,3],[4,5]):
+            self.assertTrue(any(set(pair)<=set(t) for t in teams))
+        self.assertEqual(allocate([[0,1],[2]],{0,1,2}),[[0,1],[2]])
+
         maintain=source('cortexSupportMaintain')
         self.assertIn('private _started=[_group,_state,_role] call CBE_fnc_CortexSupportBoundStart',maintain)
         self.assertIn('[_token,_role select 1,"NOT_READY"]',maintain)
