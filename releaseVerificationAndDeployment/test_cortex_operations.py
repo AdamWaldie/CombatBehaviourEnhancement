@@ -709,6 +709,11 @@ class CortexOperations(unittest.TestCase):
                       '_gain > 0 && {_gain == _removed}','["UNVERIFIED","VERIFIED"]'):
             self.assertIn(proof,pickup)
         self.assertEqual(pickup.count('action ["TakeMagazine"'),1)
+        self.assertIn('[_generation,"NOT_ATTEMPTED",_body,"",0,serverTime]',start)
+        self.assertLess(pickup.index('(getPosASL _actor) vectorDistance (getPosASL _body) <= 2'),
+                        pickup.index('action ["TakeMagazine"'))
+        self.assertIn('eyePos _actor,(getPosASL _body) vectorAdd',pickup)
+
         self.assertLess(step.index('lineIntersects'),step.index('action ["TakeMagazine"'))
         for forbidden in ('addMagazine','removeMagazine','CancelAction','addBackpack','setUnitLoadout'):
             self.assertNotIn(forbidden,pickup)

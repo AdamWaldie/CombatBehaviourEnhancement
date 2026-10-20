@@ -19,6 +19,8 @@
  * A VISITED result proves a position visit, never medical treatment or room safety.
  * At a verified visit, enabled ammunition sharing permits one native compatible-magazine pickup
  * for an empty primary weapon from the observed casualty clothing containers. No equipment is cloned.
+ * Each admitted observation resets its generation-bound recovery record to NOT_ATTEMPTED.
+ * Pickup rechecks proximity/LOS against the current body, not just the original observed goal.
  * Recovery journal records VERIFIED only for matching positive receiver/source round deltas;
  * command issue alone remains UNVERIFIED. The point result stays VISITED either way.
  * No recovery timer, generic action cancellation, backpack/weapon pickup or deadline extension.
@@ -130,6 +132,7 @@ if (_mode == "START") exitWith {
         ["finished",false],["pending",false],["completed",false],
         ["jobKey",format ["CBE_POINT_%1_%2",clientOwner,_actor]]];
     _actor setVariable ["CBE_PointActor_Generation",_generation];
+    _actor setVariable ["CBE_PointActor_Recovery",[_generation,"NOT_ATTEMPTED",_body,"",0,serverTime],true];
     _actor setVariable ["CBE_PointActor_Brain",_brain];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copy];
     _actor setVariable ["CBE_PointActor_Order",[_generation,_epoch,_group,_brain get "operationGeneration",
@@ -221,7 +224,9 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
                 };
             };
         } forEach [uniformContainer _body,vestContainer _body,backpackContainer _body];
-        if (!isNull _supply && {_weapon != ""}) then {
+        if (!isNull _supply && {_weapon != ""}
+            && {(getPosASL _actor) vectorDistance (getPosASL _body) <= 2}
+            && {!(lineIntersects [eyePos _actor,(getPosASL _body) vectorAdd [0,0,0.5],_actor,_body])}) then {
             private _rounds={
                 params ["_rows","_class"];
                 private _total=0;

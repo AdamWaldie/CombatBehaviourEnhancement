@@ -101,5 +101,22 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "currentBodyAndRepeat20261020": {
+    "baseline": "bdedd9d0",
+    "finding": "Original goal proximity can differ from current casualty proximity within allowed body drift; old recovery record survived new observation admission.",
+    "implementation": "Initialize NOT_ATTEMPTED with admitted generation/body; immediately before pickup require current actor/body ASL distance<=2 and current-body LOS. Existing observation/body drift cancellation and native movement cleanup unchanged.",
+    "sourceSHA256": "2a9d7591bd3fc489bdc579c56874c15b44a6b1fb065bb12ffd3ada3c5c334719",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-recovery-current-body-build.log",
+      "independent": ".qa/cbe-recovery-current-body-independent.log",
+      "candidate": ".qa/candidates/recovery-current-body-bdedd9d0",
+      "fingerprint": "4714370d33f4b910a56c956a3e602d688beebe806f60b0a512eedbe186e76910"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
