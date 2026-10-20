@@ -962,5 +962,16 @@
       "addons/vehicles/functions/drivingBypassRoom.sqf": "643a988aec673101135ab0adb684f908ba749ad069d827d367bdea9e2e06fc4f",
       "addons/vehicles/functions/drivingBypassApproach.sqf": "1ce99c9cfb1a516968d40253dbcae1b7795e80d68b2f0d7db5f3f90f0337964b"
     }
+  },
+  "approachCapDominance20261020": {
+    "sourceParent": "4b3d6aab",
+    "finding": "Solid dwell still required obstacleLimited, so fresh actual-room BACKOFF was ignored when a stricter requested speed already equalled the solid cap. Example halfhull1/2 obstacleX[-2,2], gap12 and missioncap1.2m/s: braking remains1.2, missing approach9.88m exceeds default6 but ceil(missing+1)=11 fits floor(12*1.2)=14 original extension bound.",
+    "implementation": "Allow existing solid dwell on obstacleLimited OR fresh approachUncontested. The latter requires no independent traffic object and pedestrian speed cap >= current cap with0.001 tolerance. All existing STATIC observation, stationarity, independent positive caps, same source/route/epoch continuity, no competing controllers and native rear/parent budget checks remain. No cap increase, query, timer, work record or movement writer.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-approach-cap-build.log. Copied candidate .qa/candidates/approach-cap-4b3d6aab-6dea9119 fingerprint 6dea9119f574527bc2ee6deb459b77c9631a06890eb86e20d86f52834616d228 actual4b3d6aab+dirtysource. Independent verification .qa/cbe-approach-cap-independent.log. Existing case extended; no new cases or score change.",
+    "audits": "PAUSED",
+    "limits": "Analytic source path, not reproduced in engine. Low caps can still make extended travel infeasible; no extra lifetime granted.",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+    }
   }
 }

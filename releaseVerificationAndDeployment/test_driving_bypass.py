@@ -144,6 +144,18 @@ class DrivingBypassTests(unittest.TestCase):
         self.assertIn('_sameEpisode && {"bypassSpent" in _old}',assist)
         self.assertIn('(_obstacleObservation select 2) <= 8 || {_approachBackoff}',assist)
         self.assertIn('_bypass param [4,createHashMap,[createHashMap]]',assist)
+        self.assertIn('_approachBackoff && {isNull (_withoutObstacle select 1)}',assist)
+        self.assertIn('(_pedestrianCap/3.6) >= _capMps-0.001',assist)
+        self.assertIn('(_obstacleLimited || {_approachUncontested})',assist)
+        # A low mission cap can mask braking while available original time still
+        # accommodates the missing turning room. Detection must not depend on cap reduction.
+        requested=1.2
+        braking=min(requested,math.sqrt(16**2+2*4*(12-6))-16)
+        missing=radius+3+max(1.5*(2+radius+3)/math.tan(math.radians(35)),12)-(2+12)
+        self.assertEqual(braking,requested)
+        self.assertGreater(missing,6)
+        self.assertLessEqual(math.ceil(missing+1),math.floor(12*requested))
+
         self.assertIn('!((_old get "bypassSpent") isEqualTo false)',assist)
         pause=assist.split('private _pausedParent=',1)[1].split('_recoveryResult=if (_bypassActive)',1)[0]
         for guard in ('_recoveryOwned','["bypassSpent",false]) isEqualTo true',
