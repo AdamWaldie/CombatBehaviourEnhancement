@@ -497,6 +497,10 @@ _brain set ["geometryTracks",_geometryTracks];
                     ["kind",_kind],["commandMode",_commandMode],["started",serverTime],["deadline",_deadline],["hardDeadline",_hard],
                     ["origin",_origin],["progressAnchor",_progressAnchor],["baseline",+_previous],["cap",_capMps]];
                 if (_queueBound) then {_work set ["queueBinding",_queueBinding]};
+                // Stage transitions cannot replenish a bypass spent under this same parent.
+                if (_sameEpisode && {"bypassSpent" in _old}) then {
+                    _work set ["bypassSpent",!((_old get "bypassSpent") isEqualTo false)];
+                };
                 if (_commandMode == "DESTINATION" && {count _nativeRequest == 3}
                     && {_kind in ["REFRESH","FINAL","REVERSE"]}) then {_work set ["request",_nativeRequest]};
                 if (_commandMode == "SIMPLE_BACK") then {

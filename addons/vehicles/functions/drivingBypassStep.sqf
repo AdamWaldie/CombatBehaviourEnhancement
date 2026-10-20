@@ -18,6 +18,8 @@
  * original deadline, proposal transforms, native seats/orders and caller authority repeat inside
  * that boundary before stop/path writes and FOLLOW publication; refused commits issue nothing.
  * Repeat/JIP: Public serializable work stores original 90-second deadline, two-side attempt budget,
+ * or the shorter current ordinary-recovery parent deadline. A parent permits one bypass episode;
+ * parent replacement/expiry ends its child and cannot renew either budget.
  * path/checkpoint/seat/route receipts. New owners adopt without command replay or clock renewal.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 brain <HASHMAP, empty>;
  * 3 fresh solid observation <ARRAY, []>; 4 authority predicate <CODE, {false}>, local only;
@@ -148,6 +150,21 @@ private _mayWrite={
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
 };
+// An ordinary recovery parent narrows this executor; it grants no native command authority.
+private _recoveryBinding={
+    params ["_parent"];
+    if (!(_parent isEqualType createHashMap) || {count _parent == 0}
+        || {(_parent getOrDefault ["group",grpNull]) != _group}
+        || {(_parent getOrDefault ["route",[]]) isNotEqualTo _route}
+        || {(_parent getOrDefault ["driver",objNull]) != _driver}
+        || {(_parent getOrDefault ["operator",objNull]) != _operator}) exitWith {[]};
+    private _hard=_parent getOrDefault ["hardDeadline",-1];
+    private _anchor=_parent getOrDefault ["progressAnchor",[]];
+    if (!(_hard isEqualType 0) || {!finite _hard} || {serverTime >= _hard}
+        || {!(_anchor isEqualType [])} || {count _anchor != 3}
+        || {_anchor findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {[]};
+    [_group,_route,_hard,+_anchor]
+};
 private _captureOwner=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["jobToken",""],_brain getOrDefault ["generation",-1]];
 private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if (!(call _mayWrite)) exitWith {
@@ -167,23 +184,57 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_Bypa
         private _context=[_group,_route,_observed select 1,_driver,_operator,_controllerReceipt];
         private _cooldown=_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]];
         private _command=expectedDestination _operator;
-        if (_cooldown findIf {(_x select 0) isEqualTo _context && {(_x select 1) > serverTime}} < 0
+        private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+        private _parentBound=!_convoy && {!_queue} && {!(_parent isEqualType createHashMap) || {count _parent > 0}};
+        private _parentBinding=if (_parentBound) then {[_parent] call _recoveryBinding} else {[]};
+        private _parentReady=!_parentBound || {_parentBinding isNotEqualTo []
+            && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo false}
+            && {!(_parent getOrDefault ["releasePending",false])}
+            && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}};
+        private _deadline=if (_queue) then {_queueAgreement get "expires"} else {serverTime+90};
+        if (_parentBound && {_parentReady}) then {_deadline=_deadline min (_parentBinding select 2)};
+        if (_parentReady && {_cooldown findIf {(_x select 0) isEqualTo _context && {(_x select 1) > serverTime}} < 0}
             && {call _nativeAdmissionReady}) then {
+            private _admissionWork=_work;
+            isNil {
+            if (!(call _mayWrite) || {!(call _nativeAdmissionReady)} || {serverTime >= _deadline}
+                || {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _admissionWork}) exitWith {false};
+            if (_parentBound && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _parent
+                || {([_parent] call _recoveryBinding) isNotEqualTo _parentBinding}
+                || {!((_parent getOrDefault ["bypassSpent",false]) isEqualTo false)}}) exitWith {false};
             _work=createHashMapFromArray [["group",_group],["route",_route],["driver",_driver],["operator",_operator],
                 ["context",_context],["controller",_controllerReceipt],["obstacle",_observed select 1],["transform",_observed select 8],
-                ["deadline",if (_queue) then {_queueAgreement get "expires"} else {serverTime+90}],["side",1],["phase","PLAN"],["index",0],
+                ["deadline",_deadline],["side",1],["phase","PLAN"],["index",0],
                 ["command",+_command],["driverCommand",+(expectedDestination _driver)],
                 ["driverTask",toUpperANSI currentCommand _driver],["operatorTask",toUpperANSI currentCommand _operator]];
             if (_queue) then {
                 _work set ["queueCrossingBinding",+(_queueAgreement get "crossingBinding")];
                 _work set ["points",+(_queueAgreement get "crossingPath")];
             };
+            if (_parentBound) then {
+                private _spent=createHashMapFromArray ((keys _parent) apply {[_x,_parent get _x]});
+                _spent set ["bypassSpent",true];
+                _work set ["recoveryParent",_parentBinding];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_spent,true];
+            };
             _vehicle setVariable ["CBE_DrivingBypass_Work",_work,true];
+            false
+            };
         };
     };
 };
 if (count _work == 0) exitWith {_inactive};
-private _obstacle=_work get "obstacle";private _reason="";
+private _parentCurrent={
+    private _binding=_work getOrDefault ["recoveryParent",[]];
+    _binding isEqualTo [] || {
+        private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+        ([_parent] call _recoveryBinding) isEqualTo _binding
+            && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo true}
+            && {!(_parent getOrDefault ["releasePending",false])}
+            && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+    }
+};
+private _obstacle=_work get "obstacle";private _reason=if (call _parentCurrent) then {""} else {"RECOVERY_PARENT_CHANGED"};
 if ((_work get "route") isNotEqualTo _route || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
     || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
     || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}
@@ -193,7 +244,7 @@ if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmission
 if (_reason == "" && {!([_obstacle] call _obstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
 if (_reason == "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
-if (_reason != "") exitWith {[_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive};
+if (_reason != "") exitWith {[_vehicle,_group,_reason,!(_reason in ["COMMAND_CHANGED","RECOVERY_PARENT_CHANGED"])] call CBE_fnc_DrivingBypassRelease;_inactive};
 if ((_work get "phase") == "PLAN") exitWith {
     if (count _observed != 9 || {(_observed select 1) != _obstacle} || {(_observed select 8) isNotEqualTo (_work get "transform")}) exitWith {
         [_vehicle,_group,"OBSERVATION_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive
@@ -253,7 +304,7 @@ if ((_work get "phase") == "PLAN") exitWith {
     if (_proposal isEqualTo []) exitWith {[_vehicle,_group,"QUEUE_PATH_BLOCKED"] call CBE_fnc_DrivingBypassRelease;_inactive};
     private _issued=false;
     isNil {
-        if (call _mayWrite && {call _nativeAdmissionReady}
+        if (call _mayWrite && {call _nativeAdmissionReady} && {call _parentCurrent}
             && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
             && {(_work get "phase") == "PLAN"} && {serverTime < (_work get "deadline")}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}

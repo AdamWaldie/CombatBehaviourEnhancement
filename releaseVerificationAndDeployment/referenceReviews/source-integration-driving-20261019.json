@@ -734,5 +734,22 @@
     "nextImplementationBoundary": "Use the existing ordinary recovery episode as parent: preserve hardDeadline/attempts/authored route and exact native receipts; diagnose current one-sided static contact only after qualified stationary dwell/back-off; any native lateral proposal must share that original budget and use fresh full-body support/actor/solid geometry before issue. Reuse existing path execution where possible without a second movement controller.",
     "validation": "Read-only source/caller comparison; no production change or redundant build. Latest full1477 result remains .qa/cbe-convoy-pacing-blend-build.log and preserved candidate convoy-pacing-e6475f72-f515c748. Physical/performance acceptance incomplete.",
     "audits": "PAUSED"
+  },
+  "bypassRecoveryParentBudget20261020": {
+    "sourceParent": "99bb344c",
+    "finding": "Ordinary bypass admission could start its own90s episode despite a current finite ordinary-recovery journal. This is not a safe parent boundary for future corner-release composition.",
+    "implementation": "An existing ordinary parent must match group/route/driver/operator, finite unexpired hardDeadline and finite progressAnchor; stages REFRESH/FINAL only, not pending release, exact false bypassSpent. Admission revalidates current authority/native orders/old work and parent in one unscheduled metadata transaction, sets spent true, binds [group,route,hardDeadline,anchor], and caps child deadline by parent. One child retains its existing two-side attempt budget. Parent checked during observation and native issue; changed parent ends without successor recall. Same-episode recovery rewrites preserve spent, malformed values fail spent.",
+    "preserved": [
+      "Standalone no-parent ordinary bypass, convoy and queue episode policies",
+      "Original route/crew/native task/external/geometry authority and one fixed-path writer",
+      "Existing genuine forward progress/new-route reset; no new retry timer or attempt renewal"
+    ],
+    "cost": "Bounded metadata validation/map copy and existing publication only; no new spatial query, worker or timer.",
+    "remaining": [
+      "One-sided low contact diagnosis and native corner-release path remain unimplemented.",
+      "This is parent-budget integration, not complete HBQ grinding parity.",
+      "Physical native passage/abort/transfer and performance unverified while audits paused."
+    ],
+    "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-parent-build.log; candidate .qa/candidates/bypass-parent-99bb344c-fab7bbd4 fingerprint fab7bbd487385da650d8725049ef90fb0f99bb637e67195cc76d41985ec9443d actual99bb344c+intendeddirtysource. No test-count/score increase."
   }
 }
