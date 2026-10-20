@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending ACE care revokes native reverse handback just as its later HEAL command does; queues remain read-only.
  * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
  * turn/input receipt. An unowned BACK revokes stop/route handback and deferred retention.
  * Native STOP acknowledgement must also have finite measured rest before forward handback.
@@ -120,6 +121,7 @@ private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work ge
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}
             || {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])}
     } < 0};
 // Both call sites separately establish exact reverse ownership. This helper only
@@ -198,6 +200,7 @@ private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {[_x] call CBE_fnc_CortexExternalOwner == ""}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _x != "STOP"}
         && {toUpperANSI currentCommand _x in ["","MOVE","WAIT"]}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",

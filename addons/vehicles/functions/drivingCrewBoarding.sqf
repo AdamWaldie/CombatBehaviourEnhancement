@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending ACE care ends native-boarding cooperation without clearing its queue or renewing seat deadlines.
  * Purpose: Offers a finite vehicle wait for an already-ordered operating crew member.
  * Locality/authority: Existing ordinary-driving callback, current group/vehicle owner only.
  * This reads native GET IN and the exact assigned operating seat; it never issues boarding,
@@ -78,6 +79,7 @@ private _next=[];
         && {(_x select 2) isEqualTo _path}};
     private _row=if (_index < 0) then {[]} else {+(_rows select _index)};
     private _boarding=local _actor && {toUpperANSI currentCommand _actor == "GET IN"}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}

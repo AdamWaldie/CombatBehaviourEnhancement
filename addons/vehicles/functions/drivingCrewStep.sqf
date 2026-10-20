@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending ACE treatment queues veto crew admission and each existing seat-action boundary.
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
  * A dead driver receives one native Eject action. A vacant seat permits MoveToDriver; after
  * two seconds the same dead AI occupant also permits one native internal seat-swap attempt.
@@ -135,6 +136,7 @@ private _available={
                 || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
                 || {[_actor] call CBE_fnc_CortexExternalOwner != ""}
                 || {alive _actor && {group _actor != _group || {!local _actor}
+                    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                     || {currentCommand _actor in _tasks}
                     || {currentCommand _actor == "ACTION" && {!(_actor == _candidate && {_phase == "SWITCHING"})}}}}
         } < 0}

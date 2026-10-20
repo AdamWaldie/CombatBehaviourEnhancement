@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE care owns driver/operator task admission before the native HEAL transition.
  * Exact spent bypass parents survive traffic pauses without renewing their deadline or attempt.
  * Exact queue-abort STOP handback uses current safety observations in this existing callback; no failed crossing is marked complete.
  * Repeat/JIP: Original public route/recovery clocks survive migration; acknowledgement never replays movement.
@@ -166,6 +167,7 @@ _brain set ["geometryTracks",_geometryTracks];
     private _nativeTaskFree={
         params ["_actor"];
         !isNull _actor && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+            && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _actor in [
             "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",

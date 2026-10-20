@@ -527,3 +527,8 @@ An individual indoor investigator with a CBE-issued ISSUE leg may select one alt
 ### Convoy spacing phase observations
 
 The convoy FSM takes its spacing-pair count from the current tick and task revision, using the same continuous gap measurements as lead pacing. It no longer repeats the obsolete abrupt projection/radial switch or reads each vehicle transform again for phase reporting. Tick entry discards the previous observation; early returns cannot reuse an old sample. Missing current observations do not assert a spacing violation. This changes phase evidence and removes duplicate observations, not acceleration, braking, recovery or physical acceptance. Runtime spacing stability and the performance budget remain unverified.
+
+
+### Pending treatment during driving handover
+
+Driving crew replacement now treats a living crew member with queued ACE care as task-owned before HEAL appears. Its existing availability check runs before candidate admission and both seat actions. Native boarding cooperation similarly ends for a queued healer, preserving its original terminal seat receipt instead of prolonging a speed hold. Ordinary driver/operator admission and reverse handback also refuse queued treatment. CBE only reads the queue; it does not clear treatment, manufacture seat occupancy, issue a late recall, or extend recovery deadlines. A native action or rear move issued before takeover is not proven quiescent by this refusal. Runtime medical/seat sequencing and performance remain unverified while audits are paused.

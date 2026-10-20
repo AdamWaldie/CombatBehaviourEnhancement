@@ -42,6 +42,10 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('driver _vehicle == _driver} && {!alive _driver}',s)
         self.assertEqual(s.split('// Seat vacancy and native order proof',1)[1].count('\n    isNil {'),2)
         self.assertEqual(s.count('call _commandsOwned'),2)
+        availability=s.split('private _available={',1)[1].split('private _finish=',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []',availability)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',s)
+
         self.assertIn('_phase="VACATING_ISSUED"',s)
         self.assertIn('if (_phase in ["READY","VACATING"]) then {',s)
         self.assertIn('call _commandsOwned} && {call _vacatedOrDead}',s)
@@ -133,6 +137,17 @@ class DrivingCrewTests(unittest.TestCase):
                       'CBE_DrivingPass_Work','CBE_DrivingBypass_Work','CBE_DrivingCorridor_Work'):
             self.assertIn(proof,body)
         self.assertEqual(body.count('serverTime+60'),1)
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',body)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',body)
+        native=assist.split('private _nativeTaskFree={',1)[1].split('private _routeIdentity=',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',native)
+        release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        retention=release.split('private _retainAcrossLocality=',1)[1].split('private _holdOwnedRearCap=',1)[0]
+        handback=release.split('private _owned=_resume',1)[1].split('private _hardUntil=',1)[0]
+        self.assertIn('ace_medical_ai_healQueue',retention)
+        self.assertIn('ace_medical_ai_healQueue',handback)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',release)
+
         self.assertNotIn('_row set [3,',body)
         self.assertIn('_position vectorDistance (_row select 5) >= 2',body)
         self.assertIn('serverTime-(_row select 6) >= 12',body)
