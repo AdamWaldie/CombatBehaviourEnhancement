@@ -607,5 +607,28 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "roadNativePredictionReconciliation20261020": {
+    "baseline": "ce0e2217",
+    "sources": {
+      "addons/vehicles/functions/drivingRoadCap.sqf": "7dc4e6b6fa415b84a21a0291059b34c0f0f1a7459ff914c279da5a5402e93521",
+      "addons/vehicles/functions/drivingNativePathWatch.sqf": "c8803fb34381aaa064f81b43970b0bfb5bf224dd8cdecdbe92fa97b63f5c3ceb",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    },
+    "sourceIntent": "HBQ RoadAhead836-867 walks heading-compatible connected roads and measures approach bearing; curved ray helpers and pass/planning consumers are separate observations. This is a road graph heuristic, not proof of native route.",
+    "currentDisposition": [
+      "DrivingRoadCap already preserves per-piece and vehicle-to-future approach turns, grade, junction and missing bridge geometry limits. Eight transitions/nine road metadata reads and16connections/node remain bounded. Branch selection is heading heuristic; do not call it native route choice.",
+      "DrivingNativePathWatch already keeps at most64 PathCalculated nodes bound to actual seats, authored route/controller/epoch and both native destinations,5s age. Rejects ambiguous near runs/wrong floor and walks3-6m near-path distance to derive curvature; not full-path passability.",
+      "DrivingAssistStart prefers valid native hint for existing bounded geometry sensor, otherwise measured turn track; geometry bends a short arc then continues a tangent with existing ray budgets. Do not add another planner/controller or lengthen hint lifetime without evidence."
+    ],
+    "remaining": [
+      "Future junction-branch braking and offroad obstacle anticipation beyond local native hint are not established as native-route optimality.",
+      "Physical route prediction, braking, obstacle interaction, retained useful native planning and normal/providerHC frame cost remain unverified."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
   }
 }
