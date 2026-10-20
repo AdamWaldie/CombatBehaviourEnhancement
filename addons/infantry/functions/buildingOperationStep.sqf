@@ -110,6 +110,8 @@
  * physically holds the same exit, faces its watch sector within 75 degrees and passes a fresh
  * VIEW check. Facing rejection consumes no promotion ray budget. Settled early-exit workers count
  * alongside reserves; rotated observer order prevents a blocked first post starving substitutes.
+ * Promotion windows rotate through the full eligible roster before capping sixteen candidates
+ * and twenty-four observers; late reserves cannot be trapped outside a fixed prefix.
  * One promotion ray per callback
  * and sixteen reserve candidates bound this check; deferral never renews the episode deadline.
  * Before first staging, reserves retain their episode admission command; a new MOVE/FOLLOW/CBE
@@ -1852,25 +1854,37 @@ private _delay=call {
     // substitute. One fresh VIEW ray per callback bounds casualty-time confirmation.
     // A stale role label, an approaching actor or a previous clear ray is not coverage.
     private _promotionViewBudget=1;
-    private _promotionCandidates=+(_reserves select [0,16]);
-    if (_promotionCandidates isNotEqualTo []) then {
-        private _cursor=(_job getOrDefault ["promotionCandidateCursor",0]) mod count _promotionCandidates;
-        _promotionCandidates=(_promotionCandidates select [_cursor])+(_promotionCandidates select [0,_cursor]);
-        _job set ["promotionCandidateCursor",(_cursor+1) mod count _promotionCandidates];
+    // Window the full roster before applying the fixed limits. Rotating only an
+    // already-truncated prefix permanently excludes later reserves in large groups.
+    private _promotionCandidates=[];
+    private _candidateCount=count _reserves;
+    if (_candidateCount > 0) then {
+        private _cursor=(_job getOrDefault ["promotionCandidateCursor",0]) mod _candidateCount;
+        for "_offset" from 0 to ((_candidateCount min 16)-1) do {
+            _promotionCandidates pushBack (_reserves select ((_cursor+_offset) mod _candidateCount));
+        };
+        _job set ["promotionCandidateCursor",(_cursor+1) mod _candidateCount];
     };
     // Completed interior workers can hold the same exit as a reserve. Their real watch is
     // a valid substitute, even though they remain in the original lane roster, not _reserves.
-    private _promotionObservers=+(_reserves select [0,16]);
+    private _promotionObservers=[];
+    private _extraObservers=[];
     {
         private _row=_earlyExits get _x;
-        if ((_row param [3,""]) == "ARRIVED") then {
-            _promotionObservers pushBackUnique (_row param [0,objNull]);
+        private _actor=_row param [0,objNull];
+        if ((_row param [3,""]) == "ARRIVED" && {!(_actor in _reserves)}) then {
+            _extraObservers pushBackUnique _actor;
         };
     } forEach (keys _earlyExits select [0,8]);
-    if (_promotionObservers isNotEqualTo []) then {
-        private _cursor=(_job getOrDefault ["promotionObserverCursor",0]) mod count _promotionObservers;
-        _promotionObservers=(_promotionObservers select [_cursor])+(_promotionObservers select [0,_cursor]);
-        _job set ["promotionObserverCursor",(_cursor+1) mod count _promotionObservers];
+    private _observerCount=_candidateCount+count _extraObservers;
+    if (_observerCount > 0) then {
+        private _cursor=(_job getOrDefault ["promotionObserverCursor",0]) mod _observerCount;
+        for "_offset" from 0 to ((_observerCount min 24)-1) do {
+            private _index=(_cursor+_offset) mod _observerCount;
+            private _actor=if (_index < _candidateCount) then {_reserves select _index} else {_extraObservers select (_index-_candidateCount)};
+            _promotionObservers pushBack _actor;
+        };
+        _job set ["promotionObserverCursor",(_cursor+1) mod _observerCount];
     };
     private _promotionProofs=createHashMap;
     private _mayPromoteReserve={

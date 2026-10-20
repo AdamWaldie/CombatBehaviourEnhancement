@@ -102,5 +102,20 @@
     },
     "physicalAcceptance": false,
     "limits": "Deleted/null guard lookup is not casualty evidence. Normal/provider-HC handover, physical post replacement and overhead remain unverified; audits paused."
+  },
+  "fullRosterWindowFollowUp": {
+    "baselineCommit": "f5cc7404",
+    "finding": "Promotion candidates and substitute observers were truncated to the first16 reserves before rotation. Later eligible actors never entered the selection window, unlike ordinary reserve staging.",
+    "change": "Build at most16 candidate slots directly by modular indexing over the full current reserve roster. Build at most24 observer slots over that roster plus up to8 distinct settled early-exit workers. Both local cursors advance over the full respective population; no full rotated roster copy is needed. Existing one fresh VIEW budget, task/pose/native proof, attempt counts and deadlines remain unchanged.",
+    "sourceSha256": "86331d8077b006a2febf19e295a9ca8d53f6e0979fcc79176928eaec44105f37",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-reserve-window-build.log",
+      "independent": ".qa/cbe-cqb-reserve-window-independent.log",
+      "fingerprint": "afde3339620f62912144ee039d3d9f9f65e6a4cfe134fe1d5b579585a4a37e58",
+      "packageSource": "f5cc7404 plus dirty intended window/test edits",
+      "scope": "Existing test case extended with bounded roster arithmetic and source contracts; no added unit cases or in-engine execution."
+    },
+    "limits": "Stable-roster fairness is not physical promotion acceptance. Roster churn, large groups, repeated losses and normal/providerHC behavior and overhead remain unverified. Audits paused."
   }
 }
