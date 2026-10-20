@@ -20,7 +20,22 @@
 params ["_mission"];
 if (!isServer) exitWith {-1};
 private _battery = _mission get "battery";
+private _retirePosition={
+    private _session=_mission getOrDefault ["positionSession",[]];
+    if (_session isNotEqualTo [] && {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isEqualTo _session}) then {
+        _battery setVariable ["CBE_ArtilleryPosition_Session",nil,true];
+        if ((_battery getVariable ["CBE_ArtilleryPosition_Attempt",[]]) isEqualTo _session) then {
+            _battery setVariable ["CBE_ArtilleryPosition_Attempt",nil,true];
+        };
+        private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
+        if (count _issued == 7 && {(_issued select 0) == (_mission get "token")} && {(_issued select 1) isEqualTo _session}) then {
+            _battery setVariable ["CBE_ArtilleryPosition_Issued",nil,true];
+        };
+        [_battery,_mission get "token",_session,true] remoteExecCall ["CBE_fnc_CortexArtilleryPosition",owner _battery];
+    };
+};
 private _finish = {
+    call _retirePosition;
     private _counter = (_mission get "purpose") == "COUNTER";
     private _cooldown = time + (missionNamespace getVariable [["CBE_AIPass_Artillery_Cooldown", "CBE_AIPass_CounterBattery_Interval"] select _counter, 120]);
     private _spotter = _mission get "spotter";
@@ -69,7 +84,28 @@ private _fireGenerationName=switch (_mission get "purpose") do {
 private _fireExpired=(_mission getOrDefault ["fireGeneration",-1]) != (missionNamespace getVariable [_fireGenerationName,0]);
 private _smokeExpired=(_mission get "mode") == "SMOKE"
     && {(_mission getOrDefault ["smokeGeneration",-1]) != (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])};
-private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
+// Keep the exact positioning HOLD until retirement; a newer route stops future shots.
+private _positionLost=false;
+if ((_mission getOrDefault ["positionSession",[]]) isNotEqualTo [] && {(_mission get "phase") != "POSITIONING"}) then {
+    private _session=_mission get "positionSession";
+    private _group=_session select 3;
+    private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
+    private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+    _positionLost=count _issued != 7;
+    if (!_positionLost) then {
+        _positionLost=(_issued select 0) != (_mission get "token") || {(_issued select 1) isNotEqualTo _session}
+            || {(_issued select 6) != owner _battery}
+            || {(_issued select 4) != (_group getVariable ["CBE_AIPass_Epoch",-1])}
+            || {(_operation getOrDefault ["generation",-2]) != (_issued select 3)}
+            || {(_operation getOrDefault ["intent",""]) != "ARTILLERY_POSITION"}
+            || {(_intent getOrDefault ["operationGeneration",-2]) != (_issued select 3)}
+            || {(_intent getOrDefault ["waypoint",[]]) isNotEqualTo [_group,currentWaypoint _group]}
+            || {waypointType [_group,currentWaypoint _group] != "HOLD"}
+            || {serverTime >= (_session select 9)};
+    };
+};
+private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_positionLost} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
@@ -91,6 +127,17 @@ if (_blocked) exitWith {
     } else {call _finish}
 };
 private _phase = _mission get "phase";
+if (_phase == "POSITIONING") exitWith {
+    private _session=_mission get "positionSession";
+    private _result=_mission getOrDefault ["positionResult",""];
+    if (serverTime >= (_session select 2) || {_result != "" && {_result != "READY"}}) exitWith {call _finish};
+    if (_result == "READY") exitWith {
+        _mission set ["phase","WAIT"];_mission set ["due",time];1
+    };
+    _mission set ["positionOwner",owner _battery];
+    [_battery,_mission get "token",_session] remoteExecCall ["CBE_fnc_CortexArtilleryPosition",owner _battery];
+    2
+};
 if (time < (_mission get "due")) exitWith {1};
 // A missing firing event is uncertain. Never reissue it, including after an HC disconnect.
 if (_phase in ["PENDING", "UNCERTAIN"]) exitWith {

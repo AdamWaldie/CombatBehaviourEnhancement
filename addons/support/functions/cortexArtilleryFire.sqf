@@ -101,6 +101,18 @@ private _batteryCrewUsable={
         && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
         && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
 };
+private _mayPosition={
+    params ["_asset"];
+    !_danger && {!_retreatSmoke} && {_purpose in ["SUPPORT","COUNTER"]}
+        && {!_counter || {finite _observedAt && {_observedAt >= 0}}}
+        && {_asset isKindOf "LandVehicle"} && {!(_asset isKindOf "StaticWeapon")}
+        && {canMove _asset} && {[_asset] call _batteryCrewUsable}
+        && {[driver _asset] call CBE_fnc_CortexCombatEffective}
+        && {group driver _asset == group gunner _asset}
+        && {!isPlayer driver _asset} && {vehicle leader group driver _asset == _asset}
+        && {count units group driver _asset <= 64}
+        && {(units group driver _asset) findIf {alive _x && {vehicle _x != _asset}} < 0}
+};
 if (isNull _battery) then {
     private _candidates = missionNamespace getVariable ["CBE_AIPass_AllArtillery", []];
     private _index = _candidates findIf {
@@ -110,9 +122,20 @@ if (isNull _battery) then {
         && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
         && {_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
         && {combatMode group gunner _x != "BLUE" && {unitCombatMode gunner _x != "BLUE"}}
-        && {_target inRangeOfArtillery [[_x], [_x, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo]}
+        && {([_x, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo) != ""}
     };
-    if (_index >= 0) then {_battery = _candidates select _index};
+    if (_index >= 0) then {_battery = _candidates select _index} else {
+        private _mobileIndex=_candidates findIf {
+            [_x] call _mayPosition && {side group gunner _x == _requestSide}
+                && {!((netId _x) in _missions)} && {[_x,_purpose] call CBE_fnc_CortexArtilleryRole}
+                && {[group gunner _x] call CBE_fnc_CortexIsEligible}
+                && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
+                && {combatMode group gunner _x != "BLUE" && {unitCombatMode gunner _x != "BLUE"}}
+                && {_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
+                && {([_x,_mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo) != ""}
+        };
+        if (_mobileIndex >= 0) then {_battery=_candidates select _mobileIndex};
+    };
 };
 if (isNull _battery || {!alive gunner _battery} || {!([_battery] call _batteryCrewUsable)} || {(netId _battery) in _missions}
     || {!_danger && {!([_battery, _purpose] call CBE_fnc_CortexArtilleryRole)}}
@@ -122,10 +145,16 @@ if (isNull _battery || {!alive gunner _battery} || {!([_battery] call _batteryCr
     || {!isNull _spotter && {side group _spotter != side group gunner _battery}}
     || {_retreatSmoke && {_requestSide != side group gunner _battery}}) exitWith {false};
 private _magazine = [_battery, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo;
+private _positioning=_magazine == "" && {[_battery] call _mayPosition};
+if (_positioning) then {_magazine=[_battery,_mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo};
+private _fixAt=if (finite _observedAt && {_observedAt >= 0}) then {_observedAt} else {serverTime};
+private _positionFixLifetime=if (!_counter) then {300} else {[10,120] select isNull _spotter};
+private _positionUntil=(serverTime+300) min (_fixAt+_positionFixLifetime);
+if (_positioning && {serverTime >= _positionUntil || {_fixAt > serverTime+1}}) exitWith {false};
 // Explicit batteries need the same range admission as automatically selected candidates.
 // Reject before token/busy reservation; later aim checks still enforce safety and live range.
 if (_magazine == "" || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
-    || {!(_target inRangeOfArtillery [[_battery],_magazine])}) exitWith {false};
+    || {!_positioning && {!(_target inRangeOfArtillery [[_battery],_magazine])}}) exitWith {false};
 if (_danger) then {
     _rounds=1;
     _scoot=false;
@@ -148,8 +177,14 @@ private _mission = createHashMapFromArray [
     ["burstsLeft", if (_mode == "SMOKE" || {_danger}) then {1} else {(round (missionNamespace getVariable ["CBE_AIPass_Artillery_Bursts", 3]) max 1) min 5}],
     ["burstsCompleted", 0], ["opening", !_danger], ["location", +_target],
     ["offset", if (_danger || {_mode == "SMOKE"}) then {0} else {300}], ["bearing", random 360], ["magazine", _magazine],
-    ["phase", "WAIT"], ["due", time], ["deadline", time + 900], ["scoot", _scoot], ["side", side group gunner _battery]
+    ["phase", ["WAIT","POSITIONING"] select _positioning], ["due", time], ["deadline", time + 900], ["scoot", _scoot], ["side", side group gunner _battery]
 ];
+if (_positioning) then {
+    private _session=[_magazine,+_target,_positionUntil,_movementGroup,+(_movementOrder select 1),
+        _fireEpochs select ([0,3] select _counter),_purpose,_mode,_fireEpochs select 2,serverTime+900];
+    _mission set ["positionSession",_session];_mission set ["positionResult",""];
+    _battery setVariable ["CBE_ArtilleryPosition_Session",_session,true];
+};
 if (!isNull _spotter) then {_spotter setVariable ["CBE_AIPass_NextFireRequest_" + _purpose, time + 900]};
 if (_counter && {!isNull _enemy}) then {_enemy setVariable ["CBE_AIPass_CounterUntil_" + str (side group gunner _battery), time + 900]};
 if (_danger) then {_battery setVariable ["CBE_AIPass_NextDangerFire",time+120,true]};

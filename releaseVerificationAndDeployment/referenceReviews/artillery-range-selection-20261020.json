@@ -80,5 +80,16 @@
     "candidate": ".qa/candidates/artillery-request-route-68612e90",
     "fingerprint": "ef6571fdc14261d829875a8fd16d00895f549fb4b7e14a23f0938287126c923c",
     "physicalAcceptance": false
+  },
+  "prefireImplementation": {
+    "baseline": "cdcdbe66",
+    "implementation": "Existing artillery mission FSM now has a non-firing POSITIONING phase for independent mobile battery groups. Finite native ETA probes rank supported movement proposals; original observation deadline bounds arrival. Authenticated owner/server physical arrival, measured rest and current native range admit firing. Exact HOLD operation persists within original fire deadline. Owner rechecks HOLD at both shot boundaries. Post-fire owner retires matching HOLD synchronously before validating original route for scoot.",
+    "limitations": [
+      "Static batteries and mixed vehicle/foot groups refuse repositioning.",
+      "Finite proposal exhaustion is not proof that every possible firing location is unreachable.",
+      "Locality migration cancels positioning rather than issuing a replacement move.",
+      "No physical acceptance or measured performance; audits remain paused."
+    ],
+    "physicalAcceptance": false
   }
 }

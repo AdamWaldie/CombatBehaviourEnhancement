@@ -69,6 +69,7 @@ if (_semantic == "RELOCATING") then {
     _delay=[_mission] call CBE_fnc_CortexArtilleryMissionStep;
     private _nativePhase=toUpperANSI (_mission getOrDefault ["phase","WAIT"]);
     _semantic=switch true do {
+        case (_nativePhase == "POSITIONING"): {"POSITIONING"};
         case (_nativePhase in ["READY","WARNED"]): {"WARNING"};
         case (_nativePhase in ["PENDING","FIRING","UNCERTAIN"]): {"FIRING"};
         default {"REQUESTED"};

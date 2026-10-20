@@ -4,7 +4,7 @@
  * Locality/authority: server consumes the global firing event; guns execute on their owners.
  * Repeat/JIP: server event cooldown and per-side request cooldown prevent duplicate responses across HCs.
  * Pending cooldowns and delayed fixes/wakes retain the original server counter-battery
- * generation; disabling/re-enabling cannot revive old observations or renew their delay.
+ * generation and original server observation time; disabling/re-enabling cannot revive old observations or renew their delay.
  * Arguments: 0: firing vehicle <OBJECT>, objNull; 1: gunner <OBJECT>, objNull.
  * Return Value: Boolean, detection processed.
  * Current callers: ArtilleryShellFired handler.
@@ -13,6 +13,7 @@
 params [["_vehicle", objNull, [objNull]], ["_gunner", objNull, [objNull]]];
 if (!isServer || {isNull _vehicle} || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false])}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
+private _observedAt=serverTime;
 private _counterGeneration=missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0];
 private _position = getPosATL _vehicle;
 // Private raw event evidence is not actionable relocation knowledge; qualified side receipts below are.
@@ -52,7 +53,7 @@ private _sides = [];
         private _delay = if (_radar) then {((missionNamespace getVariable ["CBE_AIPass_CounterBattery_RadarDelay", 20]) max 1) min _normalDelay} else {_normalDelay};
         _vehicle setVariable [_pendingKey,[_counterGeneration,time+_delay+1]];
         [{
-            params ["_vehicle", "_side", "_position", "_generation"];
+            params ["_vehicle", "_side", "_position", "_generation", "_observedAt"];
             if (_generation != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration", 0])) exitWith {};
             if (isNull _vehicle || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])}
                 || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false])}
@@ -60,10 +61,10 @@ private _sides = [];
             {
                 if (side group gunner _x == _side && {
                     [_x, _position, 30, "HE", missionNamespace getVariable ["CBE_AIPass_CounterBattery_Rounds", 4],
-                        missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle] call CBE_fnc_CortexArtilleryFire
+                        missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle,grpNull,_observedAt] call CBE_fnc_CortexArtilleryFire
                 }) exitWith {};
             } forEach (missionNamespace getVariable ["CBE_AIPass_AllArtillery", []]);
-        }, [_vehicle, _side, +_position, _counterGeneration], _delay] call CBA_fnc_waitAndExecute;
+        }, [_vehicle, _side, +_position, _counterGeneration, _observedAt], _delay] call CBA_fnc_waitAndExecute;
     };
 } forEach _sides;
 // An uncovered emission wakes observers; it never grants them the hidden gun position.

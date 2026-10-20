@@ -39,4 +39,38 @@ class ArtilleryFireSessions(unittest.TestCase):
         for guard in ('local _operator','isPlayer _operator','gunner _battery == _operator',
                       'CortexActorFireTaskAvailable','CortexExternalTakeover','FIREWEAPON'):
             self.assertIn(guard,available)
+
+    def test_prefire_positioning_uses_existing_fsm_and_authenticated_physical_handoff(self):
+        base=ROOT/'addons/support/functions'
+        fire=(base/'cortexArtilleryFire.sqf').read_text()
+        owner=(base/'cortexArtilleryPosition.sqf').read_text()
+        report=(base/'cortexArtilleryPositionReport.sqf').read_text()
+        step=(base/'cortexArtilleryMissionStep.sqf').read_text()
+        self.assertIn('["phase", ["WAIT","POSITIONING"] select _positioning]',fire)
+        self.assertIn('_fixAt+_positionFixLifetime',fire)
+        self.assertIn('[10,120] select isNull _spotter',fire)
+        phase=step.split('if (_phase == "POSITIONING") exitWith {',1)[1].split('if (time <',1)[0]
+        self.assertNotIn('doArtilleryFire',phase)
+        self.assertIn('positionResult',phase)
+        self.assertNotIn('call _retirePosition',phase)
+        self.assertIn('{_status != "READY"}',owner)
+        self.assertIn('vectorMagnitude velocity _battery < 0.278',report)
+        self.assertIn('{_positionLost}',step)
+        shot=(base/'cortexArtilleryShot.sqf').read_text()
+        self.assertEqual(shot.count('call _positionCurrent'),2)
+        self.assertIn('(_work getOrDefault ["status",""]) != "READY"',shot)
+        scoot=(base/'cortexArtilleryScoot.sqf').read_text()
+        self.assertLess(scoot.index('call CBE_fnc_CortexArtilleryPosition;'),
+                        scoot.index('if !(call _sessionCurrent)'))
+        self.assertIn('(_positionWork getOrDefault ["token",""]) == _token',scoot)
+
+        for proof in ('HeadlessResolveSender','_replyOwner != owner _battery','distance2D _spot <= 25',
+                      'inRangeOfArtillery','waypointType [_group,currentWaypoint _group] == "HOLD"'):
+            self.assertIn(proof,report)
+        for forbidden in ('spawn','waitUntil','setPos','setVelocity','doArtilleryFire'):
+            self.assertNotIn(forbidden,owner)
+        self.assertIn('CBE_ArtilleryPosition_Attempt',owner)
+        self.assertNotIn('_session set',owner)
+        self.assertIn('CBE_Artillery_SmokeFireGeneration',owner)
+
 if __name__=='__main__': unittest.main()

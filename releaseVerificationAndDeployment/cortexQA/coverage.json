@@ -1068,7 +1068,9 @@
         "addons/support/functions/cortexArtilleryShot.sqf",
         "addons/support/functions/cortexSetArtilleryRole.sqf",
         "addons/infantry/functions/cortexSetSpotter.sqf",
-        "addons/infantry/functions/cortexSpotterFix.sqf"
+        "addons/infantry/functions/cortexSpotterFix.sqf",
+        "addons/support/functions/cortexArtilleryPosition.sqf",
+        "addons/support/functions/cortexArtilleryPositionReport.sqf"
       ]
     },
     {

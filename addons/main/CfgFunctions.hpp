@@ -237,6 +237,8 @@ class CfgFunctions {
             class ArtilleryMissionStart {file = "\z\cbe\addons\support\functions\artilleryMissionStart.sqf";};
             class ArtilleryMissionQueue {file = "\z\cbe\addons\support\functions\artilleryMissionQueue.sqf";};
             class ArtilleryMissionStep {file = "\z\cbe\addons\support\functions\artilleryMissionStep.sqf";};
+            class CortexArtilleryPosition {file = "\z\cbe\addons\support\functions\cortexArtilleryPosition.sqf";};
+            class CortexArtilleryPositionReport {file = "\z\cbe\addons\support\functions\cortexArtilleryPositionReport.sqf";};
             class CortexArtilleryShot {file = "\z\cbe\addons\support\functions\cortexArtilleryShot.sqf";};
             class CortexArtilleryScoot {file = "\z\cbe\addons\support\functions\cortexArtilleryScoot.sqf";};
             class CortexClearSettingsRelease {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsRelease.sqf";};

@@ -44,6 +44,13 @@ private _clear = {
         };
     };
 };
+// Both server messages may arrive before remote HOLD cleanup. Retire this exact
+// preceding positioning operation locally before inspecting the original authored route.
+// Never rebase the request onto the HOLD or another mission's movement.
+private _positionWork=_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
+if ((_positionWork getOrDefault ["token",""]) == _token) then {
+    [_battery,_token,_positionWork get "session",true] call CBE_fnc_CortexArtilleryPosition;
+};
 private _movementOrder=_session select 5;
 if (!(_movementOrder isEqualType []) || {count _movementOrder != 2}
     || {!((_movementOrder select 0) isEqualType grpNull)} || {isNull (_movementOrder select 0)}

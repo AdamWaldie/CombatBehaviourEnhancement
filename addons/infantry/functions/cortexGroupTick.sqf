@@ -528,6 +528,7 @@ if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
         case "VEHICLE_JINK": {"vehicleOperationGeneration"};
         case "VEHICLE_ORIENT": {"vehicleOperationGeneration"};
         case "ARTILLERY_SCOOT": {"artilleryScootOperationGeneration"};
+        case "ARTILLERY_POSITION": {"artilleryPositionOperationGeneration"};
         case "SUPPORT_RALLY": {"supportOperationGeneration"};
         case "TACTICAL_REPOSITION": {"tacticalRepositionOperationGeneration"};
         default {""};

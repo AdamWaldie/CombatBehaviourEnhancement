@@ -17,7 +17,7 @@ class CounterBatterySettingEpoch(unittest.TestCase):
         self.assertIn('[_pendingKey,[_counterGeneration,time+_delay+1]]',s)
         self.assertIn('(_pending select 0) != _counterGeneration',s)
         self.assertIn('time >= (_pending select 1)',s)
-        self.assertIn('[_vehicle, _side, +_position, _counterGeneration], _delay]',s)
+        self.assertIn('[_vehicle, _side, +_position, _counterGeneration, _observedAt], _delay]',s)
         self.assertIn('[_vehicle,_counterGeneration],',s)
         self.assertEqual(s.count('_generation != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration"'),2)
         self.assertNotIn('setVariable ["CBE_AIPass_CounterGeneration"',s)

@@ -96,6 +96,13 @@ if (isServer) then {
     isNil {
         if (!local _vehicle) exitWith {};
         [_vehicle] call CBE_fnc_DrivingAssistRelease;
+        private _positionWork=_vehicle getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
+        if (count _positionWork > 0) then {
+            [_vehicle,_positionWork get "token",_positionWork get "session",true] call CBE_fnc_CortexArtilleryPosition;
+        };
+        _vehicle setVariable ["CBE_ArtilleryPosition_Session",nil,true];
+        _vehicle setVariable ["CBE_ArtilleryPosition_Attempt",nil,true];
+        _vehicle setVariable ["CBE_ArtilleryPosition_Issued",nil,true];
         private _unloadLease=_vehicle getVariable ["CBE_Cortex_UnloadPolicyLease",[]];
         if (count _unloadLease == 5 && {local _vehicle}) then {
             [_vehicle,_unloadLease select 0,"RELEASE",true] call CBE_fnc_CortexVehicleUnloadPolicy;

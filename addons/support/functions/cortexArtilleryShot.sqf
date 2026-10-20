@@ -64,6 +64,30 @@ private _fireSessionCurrent={
 private _danger=_purpose == "DANGER";
 private _operator=gunner _battery;
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
+// A queued shot cannot outlive its positioned battery's current local HOLD.
+// Ordinary in-range requests have no positioning work and retain their existing gates.
+private _positionCurrent={
+    private _work=_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
+    private _session=_battery getVariable ["CBE_ArtilleryPosition_Session",[]];
+    if (count _work == 0 && {_session isEqualTo []}) exitWith {true};
+    if ((_work getOrDefault ["token",""]) != _token || {count _session != 10}
+        || {(_work getOrDefault ["session",[]]) isNotEqualTo _session}
+        || {(_work getOrDefault ["status",""]) != "READY"}) exitWith {false};
+    private _group=_session select 3;
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
+    private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+    private _generation=_work get "generation";
+    local _group && {group gunner _battery == _group}
+        && {serverTime < (_session select 9)}
+        && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+        && {(_operation getOrDefault ["generation",-2]) == _generation}
+        && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_POSITION"}
+        && {(_intent getOrDefault ["operationGeneration",-2]) == _generation}
+        && {(_intent getOrDefault ["waypoint",[]]) isEqualTo [_group,currentWaypoint _group]}
+        && {waypointType [_group,currentWaypoint _group] == "HOLD"}
+        && {vectorMagnitude velocity _battery < 0.278}
+        && {vectorMagnitude angularVelocity _battery < 0.01}
+};
 private _operatorAvailable={
     local _battery && {alive _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
         && {!isNull _operator} && {local _operator} && {gunner _battery == _operator}
@@ -77,7 +101,7 @@ private _operatorAvailable={
         && {_operator checkAIFeature "FIREWEAPON"}
         && {!([_crewGroup] call CBE_fnc_CortexExternalTakeover)}
 };
-if (!(call _fireSessionCurrent) || {!(call _operatorAvailable)} || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
+if (!(call _fireSessionCurrent) || {!(call _positionCurrent)} || {!(call _operatorAvailable)} || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
     || {(_battery getVariable ["CBE_AIPass_FireToken", ""]) != _token}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}
@@ -106,7 +130,7 @@ isNil {
     _issued=call {
 private _currentRequest=call _requestState;
 if (_currentRequest != "NEW") exitWith {_currentRequest in ["DUPLICATE","STALE"]};
-if (!(call _fireSessionCurrent) || {!(call _operatorAvailable)} || {!local _battery} || {gunner _battery != _operator}
+if (!(call _fireSessionCurrent) || {!(call _positionCurrent)} || {!(call _operatorAvailable)} || {!local _battery} || {gunner _battery != _operator}
     || {!alive _battery} || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {[] call CBE_fnc_CortexIsPaused}
     || {combatMode group _operator == "BLUE"} || {unitCombatMode _operator == "BLUE"}

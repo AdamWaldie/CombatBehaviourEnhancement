@@ -6318,7 +6318,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_delayed_counterbattery_and_scoot_recheck_live_owner_gates(self):
         counter=source('cortexCounterBattery')
-        delayed=counter.split('params ["_vehicle", "_side", "_position", "_generation"]',1)[1]
+        delayed=counter.split('params ["_vehicle", "_side", "_position", "_generation", "_observedAt"]',1)[1]
         self.assertIn('CBE_AIPass_CounterBattery_Enable',delayed)
         mission=source('cortexArtilleryMissionStep')
         self.assertIn('setVariable ["CBE_Cortex_ArtilleryScootPurpose",_mission get "purpose",true]',mission)
