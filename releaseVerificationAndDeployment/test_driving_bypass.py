@@ -454,14 +454,20 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
 
     def test_bypass_uses_forward_ramps_instead_of_sideways_anchor_turns(self):
         s=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
-        for guard in ('1.5*abs _lateral/tan 35','_before < _rampTravel',
-                      'INSUFFICIENT_TURN_ROOM','_u*_u*(3-2*_u)',
-                      '_length*sqrt (1+_maxSlope^2)','count _guide+_segments > 24'):
+        room=(ROOT/'addons/vehicles/functions/drivingBypassRoom.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingBypassRoom',s)
+        for guard in ('1.5*abs _lateral/tan 35','_before < _rampTravel','INSUFFICIENT_TURN_ROOM'):
+            self.assertIn(guard,room)
+        for guard in ('_u*_u*(3-2*_u)','_length*sqrt (1+_maxSlope^2)','count _guide+_segments > 24'):
             self.assertIn(guard,s)
         self.assertNotIn('private _anchors=',s)
-        self.assertIn('_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}}',s)
+        self.assertIn('_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}}',room)
         self.assertIn('if (_straightQueue) then {[[0,_after,0,0]]}',s)
-        self.assertIn('!_straightQueue && {_before < _rampTravel}',s)
+        self.assertIn('!_straightQueue && {_before < _rampTravel}',room)
+        self.assertIn('(_radius+3+_rampTravel-_minY) max 0',room)
+        self.assertIn('!finite _radius',room)
+        for forbidden in ('setVariable','setDriveOnPath','lineIntersects','nearestObjects','modelToWorld','boundingBoxReal'):
+            self.assertNotIn(forbidden,room.split('params [[',1)[1])
         # A body beyond either corridor edge can leave a straight passage; touching
         # or straddling bodies cannot use that branch. All still require world checks.
         for bounds,radius,clear in (((-12,-6),4,True),((6,12),4,True),((-12,-3),4,False),((-2,2),4,False)):

@@ -801,5 +801,14 @@
     "nextAction": "Design one shared read-only approach-room calculation for actual obstacle/hull metadata. Determine whether a longer freshly supported native back-off can create a feasible gradual bypass within the existing parent hard deadline; if not, retain failure. Do not implement side detection as claimed corner recovery until a consuming native manoeuvre can use it. Any reverse duration reallocation must preserve total parent deadline and final native handback.",
     "validation": "Analytic source constraint only; no production change, no physical result and no redundant build. Existing latest full1477 candidate bypass-child-45324a97-0b1a9814 remains preserved.",
     "audits": "PAUSED"
+  },
+  "sharedBypassRoom20261020": {
+    "sourceParent": "390d01f5",
+    "implementation": "Extract existing projected obstacle/radius/side arithmetic into registered DrivingBypassRoom, consumed by DrivingBypassPlan. Preserves30m span/12m radius/35degree smoothstep/12m minimum ramp/straight held-queue distinction. Typed finite inputs and results; reports requiredBack under unchanged pose geometry even when approach/turn room refuses.",
+    "authority": "Pure arithmetic, no native/world reads, scans, commands, state or timer. Missing approach is not rear clearance or permission to reverse. Full planner retains actual pose/obstacle/queue/actor/support/body authority.",
+    "integrationState": "Production planner consumes shared calculation. Ordinary recovery does not yet request longer reverse travel or alter sub-phase time allocation. Native corner release remains incomplete.",
+    "cost": "Constant bounded scalar work replacing existing inline calculation; existing world queries/ray limits unchanged. Additional result HashMap allocation is unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-room-build.log; candidate .qa/candidates/bypass-room-390d01f5-103bdf74 fingerprint 103bdf749371eade67bf7a269730875b8e6f28d38fd57aa5e20b770a6d914dd3 actual390d01f5+dirtysource. Existing cases extended, no test-count/score increase.363 production functions is inventory only.",
+    "audits": "PAUSED"
   }
 }

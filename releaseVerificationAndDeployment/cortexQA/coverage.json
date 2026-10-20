@@ -782,6 +782,7 @@
         "addons/vehicles/functions/moduleDrivingCorridor.sqf",
         "addons/vehicles/functions/drivingGeometryCap.sqf",
         "addons/vehicles/functions/drivingPathGeometry.sqf",
+        "addons/vehicles/functions/drivingBypassRoom.sqf",
         "addons/vehicles/functions/drivingBypassPlan.sqf",
         "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
         "addons/vehicles/functions/drivingPassPlan.sqf",

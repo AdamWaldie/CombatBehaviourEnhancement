@@ -93,6 +93,7 @@ class CfgFunctions {
             class DrivingPassAdmission {file = "\z\cbe\addons\vehicles\functions\drivingPassAdmission.sqf";};
             class DrivingPassPlan {file = "\z\cbe\addons\vehicles\functions\drivingPassPlan.sqf";};
             class DrivingBypassObstacleAvailable {file = "\z\cbe\addons\vehicles\functions\drivingBypassObstacleAvailable.sqf";};
+            class DrivingBypassRoom {file = "\z\cbe\addons\vehicles\functions\drivingBypassRoom.sqf";};
             class DrivingBypassPlan {file = "\z\cbe\addons\vehicles\functions\drivingBypassPlan.sqf";};
             class DrivingNativePathWatch {file = "\z\cbe\addons\vehicles\functions\drivingNativePathWatch.sqf";};
             class DrivingTurnTrack {file = "\z\cbe\addons\vehicles\functions\drivingTurnTrack.sqf";};

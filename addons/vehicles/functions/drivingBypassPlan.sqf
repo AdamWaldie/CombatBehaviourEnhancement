@@ -102,19 +102,13 @@ private _knownHull=true;
     } forEach [_otherLow select 0,_otherHigh select 0];
 } forEach _bodies;
 if (!_knownHull) exitWith {["UNCERTAIN_OBSTACLE_HULL"] call _fail};
-// A yielding queue can clear the entire forward corridor. In that case a checked
-// straight crossing needs no artificial lateral pull-out ramp around an absent blocker.
-private _straightQueue=_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}};
-if (_maxX-_minX > 30 || {_maxY-_minY > 30}
-    || {!_straightQueue && {_minY <= _radius+6}}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
-private _before=_minY-_radius-3;
-private _lateral=if (_straightQueue) then {0} else {if (_side > 0) then {_maxX+_radius+3} else {_minX-_radius-3}};
-// Smoothstep's maximum lateral derivative is1.5. Reserve longitudinal room for
-// real steering instead of the old forward/sideways/forward right-angle anchors.
-private _rampTravel=(1.5*abs _lateral/tan 35) max 12;
-if (!_straightQueue && {_before < _rampTravel}) exitWith {["INSUFFICIENT_TURN_ROOM"] call _fail};
-private _clearAfter=_maxY+_radius+3;
-private _after=if (_straightQueue) then {_clearAfter max 12} else {_clearAfter+_rampTravel};
+// Share arithmetic with recovery planning; this result grants no physical clearance.
+private _room=[[_minX,_maxX,_minY,_maxY],_radius,_side,_queueMode] call CBE_fnc_DrivingBypassRoom;
+if ((_room get "status") != "ROOM") exitWith {[_room get "reason"] call _fail};
+private _straightQueue=_room get "straight";
+private _before=_room get "before";private _lateral=_room get "lateral";
+private _rampTravel=_room get "ramp";private _clearAfter=_room get "clearAfter";
+private _after=_room get "after";
 private _guide=[+_origin];private _overBudget=false;
 // Each [startY,endY,startX,endX] piece moves strictly forward. Zero-length
 // straight entry is skipped; the two ramps meet straight travel with zero slope.
