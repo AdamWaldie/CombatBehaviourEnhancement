@@ -1,0 +1,31 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "433404ea",
+  "scope": "Main-muzzle ammunition support, not whole reference equipment-recovery parity",
+  "finding": "compatibleMagazines weapon merges all muzzles. Underbarrel grenades could satisfy receiver spare count or donor surplus and be transferred instead of primary rifle ammunition.",
+  "implementation": [
+    "Prefer configured this muzzle, otherwise first named configured muzzle; use compatibleMagazines [weapon,muzzle].",
+    "Empty compatible set skips donor enumeration.",
+    "Keep twenty-second cadence, two-transfer maximum, receiver capacity/proximity and measured removed-round accounting. No reload or weapon-selection command."
+  ],
+  "nativeReference": "https://community.bistudio.com/wiki/compatibleMagazines",
+  "sourceSHA256": "b11311b1d9a1121f031f7428f31319fb8321ca19d58e9cb7e36715671d9c2aeb",
+  "cost": "One config muzzle-array lookup per receiver evaluation at existing cadence; no world query, cache, timer or worker. Runtime overhead unmeasured.",
+  "validation": {
+    "tests": 1477,
+    "newCases": 0,
+    "focused": ".qa/cbe-ammo-main-muzzle-focused.log",
+    "full": ".qa/cbe-ammo-main-muzzle-build.log",
+    "independent": ".qa/cbe-ammo-main-muzzle-independent.log",
+    "candidate": ".qa/candidates/ammo-main-muzzle-433404ea-12aec8ba",
+    "fingerprint": "12aec8bada0743d333c6c03ab783a9e421626dbdc0ab3adf8b3298aea7096ee1"
+  },
+  "remaining": [
+    "Physical multi-muzzle/modded weapon inventory exchange and runtime acceptance absent.",
+    "Custom named-muzzle ordering follows first configured muzzle; no universal weapon-semantic classifier claimed.",
+    "LAMBS casualty equipment recovery remains a distinct incomplete source contribution."
+  ],
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

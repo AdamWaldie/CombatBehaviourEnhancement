@@ -3874,6 +3874,22 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_unit ammo _weapon', suppression)
         self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('compatibleMagazines [_weapon,_magazineMuzzle]'))
         self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('magazinesAmmoFull _unit'))
+        sharing=source('cortexAmmoShare')
+        self.assertIn('"this" in _muzzles',sharing)
+        self.assertIn('_muzzles param [0,"this"]',sharing)
+        self.assertIn('compatibleMagazines [_weapon,_mainMuzzle]',sharing)
+        self.assertNotIn('compatibleMagazines (primaryWeapon _receiver)',sharing)
+        self.assertLess(sharing.index('compatibleMagazines [_weapon,_mainMuzzle]'),sharing.index('magazinesAmmo _receiver'))
+        self.assertIn('_rounds = _beforeRounds - _afterRounds',sharing)
+        self.assertIn('_receiver addMagazine [_magazine, _rounds]',sharing)
+        def count_spares(inventory,compatible):
+            return sum(1 for name,rounds in inventory if name in compatible and rounds>0)
+        rifle={'rifle_mag'}
+        self.assertEqual(count_spares([('grenade',1),('grenade',1)],rifle),0)
+        self.assertEqual(count_spares([('rifle_mag',7),('grenade',1)],rifle),1)
+        self.assertEqual(count_spares([('grenade',1)]*4,rifle),0)
+        self.assertEqual(count_spares([('rifle_mag',7)]*4,rifle),4)
+
 
     def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")

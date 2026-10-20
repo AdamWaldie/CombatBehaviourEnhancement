@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Redistributes rifle magazines inside a squad.
  *
+ * Sharing considers only the primary weapon's main muzzle: underbarrel grenades cannot
+ * satisfy a rifle reserve or become the magazine chosen for a rifle-ammunition shortage.
  * A soldier with one spare magazine or fewer for his primary weapon receives one from a squad-mate
  * within CBE_AIPass_AmmoShare_Distance who has at least four spare magazines his weapon accepts.
  * The magazine keeps its actual round count, and is only moved if the receiver has room for it. At
@@ -34,7 +36,11 @@ private _transfers = 0;
 {
     if (_transfers >= 2) exitWith {};
     private _receiver = _x;
-    private _compatible = compatibleMagazines (primaryWeapon _receiver);
+    private _weapon=primaryWeapon _receiver;
+    private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
+    private _mainMuzzle=if ("this" in _muzzles) then {"this"} else {_muzzles param [0,"this"]};
+    private _compatible=compatibleMagazines [_weapon,_mainMuzzle];
+    if (_compatible isEqualTo []) then {continue};
     if (({(_x select 0) in _compatible} count (magazinesAmmo _receiver)) <= 1) then {
         {
             private _donor = _x;

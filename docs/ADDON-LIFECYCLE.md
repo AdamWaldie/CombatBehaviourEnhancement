@@ -1098,3 +1098,8 @@ Ordinary dead-driver replacement selects only occupied crew members still assign
 An individual investigation can test up to twelve distinct native positions over the existing FSM callbacks, with at most three roof queries per callback. Previously, three nearby unroofed positions ended selection even when a valid fourth position existed. The operation retains only its tested ASL nodes, bound to the same actor, building transform and belief. Other current reservations and squad body positions are still checked on every selection.
 
 Pending selection retains the original deadline and adds no movement worker or timer. Exhausted, changed or empty candidates still finish without a visit or accessibility claim. A selected roofed node still requires native command admission and physical arrival. This increases the maximum selection work from three to twelve roof probes per operation; physical entry and frame-time effects remain unverified while audits are paused.
+
+
+### Magazine sharing separates rifle and underbarrel reserves
+
+Magazine sharing uses the recipient's primary weapon main muzzle rather than every muzzle. It chooses the configured `this` muzzle, or the first configured muzzle when the weapon uses named muzzles. Underbarrel grenades therefore neither hide a rifle-ammunition shortage nor qualify as the transferred rifle reserve. The existing low-reserve and donor-surplus thresholds, two-transfer maximum, twenty-second cadence, proximity/capacity checks and actual removed-round accounting remain. No ammunition is fabricated or weapon selection commanded. This adds one weapon-config muzzle lookup per receiver evaluation; physical inventory behaviour and performance remain unverified.
