@@ -370,5 +370,18 @@
     "audits": "PAUSED",
     "scoresChanged": false,
     "engineReference": "https://community.bistudio.com/wiki/loadMagazine"
+  },
+  "combinedReserveReload": {
+    "baseline": "a8650a1c",
+    "change": "GroundReload accepts optional exact current eight-field combined opportunity with matching target, ground role, original report stamp and unexpired original role. Pending receipt binds full opportunity; deadline min(native request bound,role expiry). Routine path still requires no combined role. Direct-fire and manoeuvre admission use existing waitForReload; active manoeuvre uses existing callback before capability/fire decisions.",
+    "authority": "Local owner/turret/actor/ROE/native route and personal knowledge still required. No role creation, new reveal, deadline renewal, new scheduler or delayed fire. Legacy seven-field roles retain native loading only. Role replacement revokes pending metadata without reversing native loading.",
+    "validation": "Full1481/HEMTT/SQF/FSM/docs/package and independent candidate passed; existing asynchronous invariant case extended, no cases added.",
+    "candidate": ".qa/candidates/combined-reserve-a8650a1c",
+    "fingerprint": "03e97b3738b8b4a320550290e9fae07050328fe329aa5017e4153742224e1d02",
+    "limits": "Physical role continuation/reload/owner migration/performance unverified. Multi-muzzle reserve loading remains unsupported. Pending metadata retirement requires a later existing caller; its fixed expiry grants no active worker or replay.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

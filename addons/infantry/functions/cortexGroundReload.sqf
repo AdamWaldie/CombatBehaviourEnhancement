@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Request a better reserve magazine for routine ground gunnery and observe its
+ * Purpose: Request a better reserve magazine for the current ground gunnery owner and observe its
  * asynchronous native loading. Never selects a target, fires, creates ammunition or moves.
  * Locality/authority: Local vehicle, gunner, turret and group owner; current native intent,
  * ROE, feature gates, personal target knowledge and protected tasks are rechecked at issue.
@@ -8,17 +8,21 @@
  * Later existing vehicle callbacks observe native completion; no timer or fire replay.
  * New orders/owner/target retire metadata only, never cancel or reverse a native reload.
  * Arguments: 0 asset OBJECT objNull; 1 gunner OBJECT objNull; 2 target OBJECT objNull;
- * 3 original native observation server timestamp NUMBER -1.
+ * 3 original native observation server timestamp NUMBER -1;
+ * 4 exact current combined opportunity ARRAY [], empty for routine gunnery.
+ * A combined request retains its original contact stamp and opportunity expiry;
+ * role replacement or expiry revokes it. No role or observation deadline is renewed.
  * Return: STRING REQUESTED/PENDING blocks this routine firing pass; READY/REFUSED does not.
  * READY means a requested magazine is actually loaded, not permission to fire.
  * Bounds: <=64 crew/128 inventory rows,16 weapons,128 compatible classes per weapon,
  * and at most49 native reads including loaded readiness and final validation. Pending
  * observation uses one read. Only unambiguous single-muzzle weapons can load.
- * Current caller: CortexVehicles routine gunnery, before normal fresh firing admission.
+ * Current callers: CortexVehicles, CortexCombinedArmsLocal and CortexCombinedGroundStep,
+ * before their own normal fresh firing/role admission.
  * Example: [_tank,gunner _tank,_enemy,serverTime] call CBE_fnc_CortexGroundReload;
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],
-    ["_target",objNull,[objNull]],["_observedAt",-1,[0]]];
+    ["_target",objNull,[objNull]],["_observedAt",-1,[0]],["_opportunity",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _asset}
     || {isNull _gunner} || {isNull _target}) exitWith {"REFUSED"};
 private _pending=_asset getVariable ["CBE_GroundReloadPending",[]];
@@ -26,6 +30,18 @@ if (_pending isEqualTo [] && {serverTime < (_asset getVariable ["CBE_GroundReloa
 private _group=group _gunner;
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _route=[_group] call CBE_fnc_NativeOrderReceipt;
+private _roleCurrent={
+    private _liveRole=_group getVariable ["CBE_Cortex_CombinedRole",[]];
+    if (_opportunity isEqualTo []) exitWith {_liveRole isEqualTo []};
+    count _opportunity == 8 && {_liveRole isEqualTo _opportunity}
+        && {(_opportunity select 2) isEqualTo _target}
+        && {(_opportunity select 4) in ["GROUND_FIRE","GROUND_MANOEUVRE"]}
+        && {(_opportunity select 5) isEqualType 0} && {finite (_opportunity select 5)}
+        && {serverTime < (_opportunity select 5)}
+        && {(_opportunity select 7) isEqualType []} && {count (_opportunity select 7) == 3}
+        && {((_opportunity select 7) select 0) isEqualTo 1}
+        && {((_opportunity select 7) select 1) isEqualTo _observedAt}
+};
 private _available={
     local _asset && {local _gunner} && {local _group} && {alive _asset} && {alive _target}
         && {_asset isKindOf "LandVehicle"} && {vehicle _gunner == _asset} && {gunner _asset == _gunner}
@@ -43,7 +59,8 @@ private _available={
         && {!((_gunner targetKnowledge _target) param [7,false,[true]])}
         && {isNull assignedTarget _gunner || {assignedTarget _gunner == _target}}
         && {isNull getAttackTarget _gunner || {getAttackTarget _gunner == _target}}
-        && {finite _observedAt} && {serverTime >= _observedAt} && {serverTime-_observedAt <= 3}
+        && {finite _observedAt} && {_observedAt >= 0} && {serverTime >= _observedAt}
+        && {_opportunity isNotEqualTo [] || {serverTime-_observedAt <= 3}}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
         && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -51,13 +68,16 @@ private _available={
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {!([_asset] call CBE_fnc_CompatibilityExternalControl)}
         && {!([_gunner] call CBE_fnc_CompatibilityExternalControl)}
-        && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+        && {call _roleCurrent}
 };
 if (_pending isNotEqualTo []) exitWith {
-    if (!(_pending isEqualType []) || {count _pending != 12}) exitWith {"REFUSED"};
-    _pending params ["_oldGroup","_oldEpoch","_oldGunner","_oldTarget","_turret","_weapon","_muzzle","_magazine","_started","_until","_oldRoute","_beforeMagazine"];
+    if (!(_pending isEqualType []) || {count _pending != 13}) exitWith {
+        if (local _asset) then {_asset setVariable ["CBE_GroundReloadPending",nil,true]};"REFUSED"
+    };
+    _pending params ["_oldGroup","_oldEpoch","_oldGunner","_oldTarget","_turret","_weapon","_muzzle","_magazine","_started","_until","_oldRoute","_beforeMagazine","_oldOpportunity"];
     if (_oldGroup != _group || {_oldEpoch != _epoch} || {_oldGunner != _gunner}
         || {_oldTarget != _target} || {_oldRoute isNotEqualTo _route}
+        || {_oldOpportunity isNotEqualTo _opportunity}
         || {serverTime >= _until} || {!(call _available)} || {!(_asset turretLocal _turret)}) exitWith {
         if (local _asset) then {_asset setVariable ["CBE_GroundReloadPending",nil,true]};
         "REFUSED"
@@ -142,8 +162,10 @@ isNil {
         && {_asset turretLocal _turret} && {(_asset turretUnit _turret) == _gunner}
         && {(weaponState [_asset,_turret,_weapon,_muzzle]) isEqualTo _before}) then {
         private _seconds=(getNumber (configFile >> "CfgWeapons" >> _weapon >> "magazineReloadTime")+3) max 5 min 60;
+        private _until=serverTime+_seconds;
+        if (_opportunity isNotEqualTo []) then {_until=_until min (_opportunity select 5)};
         _asset setVariable ["CBE_GroundReloadPending",[_group,_epoch,_gunner,_target,+_turret,_weapon,_muzzle,_magazine,
-            serverTime,serverTime+_seconds,+_route,_before select 3],true];
+            serverTime,_until,+_route,_before select 3,+_opportunity],true];
         _asset loadMagazine [_turret,_weapon,_magazine];
         _result="REQUESTED";
     };

@@ -8896,6 +8896,18 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(issue.index('CBE_GroundReloadPending'),issue.index('loadMagazine'))
         for forbidden in (' doFire ', ' doTarget ', 'waitAndExecute','setVehicleAmmo','setAmmo ', 'doMove'):
             self.assertNotIn(forbidden,text)
+        role=text.split('private _roleCurrent={',1)[1].split('private _available={',1)[0]
+        for proof in ('_liveRole isEqualTo _opportunity','GROUND_MANOEUVRE','serverTime < (_opportunity select 5)',
+                      'isEqualTo _observedAt'):
+            self.assertIn(proof,role)
+        self.assertIn('_oldOpportunity isNotEqualTo _opportunity',text)
+        self.assertIn('_until min (_opportunity select 5)',text)
+        combined=source('cortexCombinedArmsLocal')
+        self.assertEqual(combined.count('call CBE_fnc_CortexGroundReload'),2)
+        self.assertIn('_contactReceipt param [1,-1,[0]],_opportunity',combined)
+        step=source('cortexCombinedGroundStep')
+        self.assertIn('_report param [1,-1,[0]],_snapshot',step)
+        self.assertLess(step.index('call CBE_fnc_CortexGroundReload'),step.index('private _capabilityFailure='))
         caller=source('cortexVehicles')
         self.assertIn('!(_reloadStatus in ["REQUESTED","PENDING"])',caller)
         self.assertLess(caller.index('call CBE_fnc_CortexGroundReload'),caller.index('private _fireObservation=createHashMap;'))

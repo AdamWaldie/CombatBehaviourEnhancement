@@ -8,6 +8,7 @@
  * Native group-ignored contacts cancel owned movement and retire the exact support reservation.
  * Arrival fire rechecks actual loaded gunner-station ammunition against the target platform class.
  * A native magazine reload defers missing-ammo failure without renewing the original expiry.
+ * Exact-role reserve requests use this same callback and retain the original report/role expiry.
  * Reload observation is not permission to fire or claim an effect.
  * The vehicle uses one temporary Cortex waypoint to move to a safe-side firing position. It does
  * not wait for another arm, teleport, repeatedly replace the route or force progress through an
@@ -153,6 +154,11 @@ private _stationOperator=gunner _asset;
 if (!isNull _stationOperator && {group _stationOperator == _group}
     && {[_stationOperator] call CBE_fnc_CortexCombatEffective}
     && {!local _stationOperator || {!simulationEnabled _stationOperator} || {isObjectHidden _stationOperator}}) exitWith {1};
+// The role owner may request reserve loading without creating a routine gunnery owner.
+// This step already checked route/operation/expiry; the helper checks the exact snapshot again.
+private _report=_snapshot param [7,[],[[]]];
+private _reserveStatus=[_asset,_stationOperator,_target,_report param [1,-1,[0]],_snapshot] call CBE_fnc_CortexGroundReload;
+if (_reserveStatus in ["REQUESTED","PENDING"]) exitWith {1};
 private _capabilityFailure="";
 private _ammoObservation=createHashMap;
 if (serverTime >= (_job getOrDefault ["capabilityAt",serverTime])) then {

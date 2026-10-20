@@ -18,7 +18,8 @@
  * Repeat/JIP: exact opportunity/owner/epoch receipts suppress repeated application on one owner.
  * New owner admission rechecks current radio or three-dimensional voice reach before knowledge or commands.
  * Already-applied duplicate receipts retain autonomy after later communication loss.
- * Relevant native reloads defer admission through the existing group tick and original expiry.
+ * Relevant native reloads and exact-role reserve requests defer admission through the existing
+ * group tick and original expiry, preserving the original report timestamp.
  * Immediate ground fire also waits for the actual selected loaded muzzle through this
  * same finite retry path; muzzle-selection waiting never marks the role applied.
  * Pending reload receipts preserve the route/asset/gunner; report reveal occurs once per owner receipt.
@@ -221,6 +222,11 @@ if (_role == "GROUND_FIRE") exitWith {
             _firePoint=(ATLToASL _believed) vectorAdd [0,0,1];
         } else {_fireRefusal="NO_KNOWN_CONTACT"};
     };
+    private _reserveStatus="REFUSED";
+    if (_fireRefusal == "") then {
+        _reserveStatus=[_asset,_gunner,_target,_contactReceipt param [1,-1,[0]],_opportunity] call CBE_fnc_CortexGroundReload;
+    };
+    if (_reserveStatus in ["REQUESTED","PENDING"]) exitWith {[_gunner] call _waitForReload};
     private _ammoObservation=createHashMap;
     if (_fireRefusal == "") then {
         private _stationReady=[_asset,_gunner] call CBE_fnc_CortexGroundFireReady;
@@ -272,6 +278,11 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
         || {([_gunner] call CBE_fnc_CortexExternalOwner) != ""}
         || {[_gunner] call CBE_fnc_CompatibilityExternalControl}
         || {!([_gunner] call CBE_fnc_CortexActorFireTaskAvailable)}) then {_capabilityRefusal="NO_FIRE_OPERATOR"};
+    private _reserveStatus="REFUSED";
+    if (_capabilityRefusal == "") then {
+        _reserveStatus=[_asset,_gunner,_target,_contactReceipt param [1,-1,[0]],_opportunity] call CBE_fnc_CortexGroundReload;
+    };
+    if (_reserveStatus in ["REQUESTED","PENDING"]) exitWith {[_gunner] call _waitForReload};
     private _ammoObservation=createHashMap;
     if (_capabilityRefusal == "") then {
         private _stationReady=[_asset,_gunner] call CBE_fnc_CortexGroundFireReady;
