@@ -8,71 +8,71 @@ These are provisional source-based estimates using explicit, equally weighted ca
 
 | Feature family | Build-out | Separate acceptance register |
 | --- | ---: | --- |
-| TERRAIN â€” Cross-cutting uneven-terrain movement and air attack | ~83% | implemented_partial |
-| TERRAIN-BATTLE â€” Equal-force live battle on measured terrain | Acceptance-only | implemented_partial |
-| CORE â€” Master, exclusions and ownership | ~88% | implemented_partial |
-| COMPAT â€” Specialist ownership and alternative-controller handover | ~50% | implemented_partial |
-| SCHED â€” Scheduler and distance tiers | ~100% | implemented_partial |
-| PROFILE â€” Behaviour profiles and aggression | ~100% | implemented_partial |
-| SKILL â€” AI skill rebalance | ~100% | implemented_partial |
-| LAND â€” Helicopter landing | ~100% | implemented_partial |
-| DECEL â€” Helicopter braking | ~100% | implemented_partial |
-| REGROUP â€” Survivor regroup | ~83% | implemented_partial |
-| MEDICAL â€” Finite squad medical assistance | ~100% | implemented_partial |
-| CONTACT â€” Contact detection | ~88% | implemented_partial |
-| POST â€” Post-contact search | ~100% | implemented_partial |
-| FLANK â€” Flanking bounds | ~83% | implemented_partial |
-| CROSS â€” Road crossing | ~100% | implemented_partial |
-| FIRE â€” Fire distribution and suppression | ~100% | implemented_partial |
-| MORALE â€” Morale and withdrawal | ~100% | implemented_partial |
-| SURRENDER â€” Surrender | ~100% | implemented_partial |
-| GRENADE â€” Grenade avoidance | ~100% | implemented_partial |
-| CIVILIAN â€” Civilian danger response and external ownership | ~100% | implemented_partial |
-| AT â€” Anti-armour and ammunition roles | ~100% | implemented_partial |
-| VEH â€” Vehicle engagement | ~83% | implemented_partial |
-| DISMOUNT â€” Contact passenger dismount | ~100% | implemented_partial |
-| REMOUNT â€” Contact passenger remount | ~83% | implemented_partial |
-| WITHDRAW â€” Damaged vehicle withdrawal | ~83% | implemented_partial |
-| COVER â€” Cover selection and clearance | ~100% | implemented_partial |
-| VEH-DRIVING â€” Ordinary vehicle route safety | ~68% | implemented_partial |
-| CNV-MOVE â€” Mixed convoy path and spacing | ~81% | implemented_partial |
-| CNV-FIRE â€” Convoy weapon crew | ~100% | implemented_partial |
-| CNV-COVER â€” Convoy dismount positions | ~83% | implemented_partial |
-| CNV-AVOID â€” Convoy infantry avoidance | ~100% | implemented_partial |
-| CNV-HALT â€” Convoy contact drills | ~100% | implemented_partial |
-| CNV-UNLOAD â€” Convoy cargo lifecycle | ~100% | implemented_partial |
-| HEARING â€” Gunfire area reports | ~100% | implemented_partial |
-| REPORT â€” Contact sharing | ~100% | implemented_partial |
-| REINFORCE â€” Reinforcement | ~83% | implemented_partial |
-| ART â€” Spotted artillery bursts | ~100% | implemented_partial |
-| CB â€” Counter-battery | ~67% | implemented_partial |
-| AIRBORNE â€” Parachute passengers | ~100% | implemented_partial |
-| GARRISON â€” Garrison and dynamic AO | ~83% | implemented_partial |
-| FLARES â€” Aircraft countermeasures | ~100% | implemented_partial |
-| INVESTIGATE â€” Known-area investigation | ~100% | implemented_partial |
-| ASSAULT â€” Final assault | ~83% | implemented_partial |
-| ADVANCE â€” Bounding advance | ~83% | implemented_partial |
-| COORD â€” Coordinated assault | ~75% | implemented_partial |
-| STANCE â€” Cover stance | ~100% | implemented_partial |
-| AMMO â€” Magazine sharing | ~100% | implemented_partial |
-| GUNNERY â€” Vehicle threat priority | ~83% | implemented_partial |
-| ART-SMOKE â€” Artillery smoke | ~100% | implemented_partial |
-| BREAK â€” Aircraft evasive break | ~100% | implemented_partial |
-| DEFEND â€” Defence orders | ~83% | implemented_partial |
-| CLEAR â€” Building clearance | ~67% | implemented_partial |
-| UI â€” CBA configuration and diagnostics | ~83% | implemented_partial |
-| LIFECYCLE â€” Transfer, disconnect and JIP | ~75% | implemented_partial |
-| MULTI-FLANK â€” Multi-squad flank cohesion | ~67% | implemented_partial |
-| MULTI-BOUND â€” Squad and multi-squad bounding overwatch | ~83% | implemented_partial |
-| MULTI-WITHDRAW â€” Multi-squad screened withdrawal | ~50% | implemented_partial |
-| TRANSITIONS â€” Combat action transitions | ~83% | implemented_partial |
-| LIGHTING â€” Automatic darkness, night vision and illumination | ~100% | implemented_partial |
-| DRILL-HANDOVER â€” Moving flank and advance handed to Zeus | ~83% | implemented_partial |
-| DRILL-RECOVERY â€” Bound continuation and straggler rejoin | ~83% | implemented_partial |
-| COMBINED-ARMS â€” Contact-led combined-arms opportunity | ~88% | implemented_partial |
-| COMBINED-OPERATION â€” Dynamic multi-squad combined operation | ~50% | implemented_partial |
-| ATTACK-FLARES â€” Attack-run approach and departure flares | ~100% | implemented_partial |
-| AIR-ATTACK â€” Threat-aware finite aircraft attack patterns | ~88% | implemented_partial |
+| TERRAIN: Cross-cutting uneven-terrain movement and air attack | ~83% | implemented_partial |
+| TERRAIN-BATTLE: Equal-force live battle on measured terrain | Acceptance-only | implemented_partial |
+| CORE: Master, exclusions and ownership | ~88% | implemented_partial |
+| COMPAT: Specialist ownership and alternative-controller handover | ~50% | implemented_partial |
+| SCHED: Scheduler and distance tiers | ~100% | implemented_partial |
+| PROFILE: Behaviour profiles and aggression | ~100% | implemented_partial |
+| SKILL: AI skill rebalance | ~100% | implemented_partial |
+| LAND: Helicopter landing | ~100% | implemented_partial |
+| DECEL: Helicopter braking | ~100% | implemented_partial |
+| REGROUP: Survivor regroup | ~83% | implemented_partial |
+| MEDICAL: Finite squad medical assistance | ~100% | implemented_partial |
+| CONTACT: Contact detection | ~88% | implemented_partial |
+| POST: Post-contact search | ~100% | implemented_partial |
+| FLANK: Flanking bounds | ~83% | implemented_partial |
+| CROSS: Road crossing | ~100% | implemented_partial |
+| FIRE: Fire distribution and suppression | ~100% | implemented_partial |
+| MORALE: Morale and withdrawal | ~100% | implemented_partial |
+| SURRENDER: Surrender | ~100% | implemented_partial |
+| GRENADE: Grenade avoidance | ~100% | implemented_partial |
+| CIVILIAN: Civilian danger response and external ownership | ~100% | implemented_partial |
+| AT: Anti-armour and ammunition roles | ~100% | implemented_partial |
+| VEH: Vehicle engagement | ~83% | implemented_partial |
+| DISMOUNT: Contact passenger dismount | ~100% | implemented_partial |
+| REMOUNT: Contact passenger remount | ~83% | implemented_partial |
+| WITHDRAW: Damaged vehicle withdrawal | ~83% | implemented_partial |
+| COVER: Cover selection and clearance | ~100% | implemented_partial |
+| VEH-DRIVING: Ordinary vehicle route safety | ~68% | implemented_partial |
+| CNV-MOVE: Mixed convoy path and spacing | ~81% | implemented_partial |
+| CNV-FIRE: Convoy weapon crew | ~100% | implemented_partial |
+| CNV-COVER: Convoy dismount positions | ~83% | implemented_partial |
+| CNV-AVOID: Convoy infantry avoidance | ~100% | implemented_partial |
+| CNV-HALT: Convoy contact drills | ~100% | implemented_partial |
+| CNV-UNLOAD: Convoy cargo lifecycle | ~100% | implemented_partial |
+| HEARING: Gunfire area reports | ~100% | implemented_partial |
+| REPORT: Contact sharing | ~100% | implemented_partial |
+| REINFORCE: Reinforcement | ~83% | implemented_partial |
+| ART: Spotted artillery bursts | ~100% | implemented_partial |
+| CB: Counter-battery | ~67% | implemented_partial |
+| AIRBORNE: Parachute passengers | ~100% | implemented_partial |
+| GARRISON: Garrison and dynamic AO | ~83% | implemented_partial |
+| FLARES: Aircraft countermeasures | ~100% | implemented_partial |
+| INVESTIGATE: Known-area investigation | ~100% | implemented_partial |
+| ASSAULT: Final assault | ~83% | implemented_partial |
+| ADVANCE: Bounding advance | ~83% | implemented_partial |
+| COORD: Coordinated assault | ~75% | implemented_partial |
+| STANCE: Cover stance | ~100% | implemented_partial |
+| AMMO: Magazine sharing | ~100% | implemented_partial |
+| GUNNERY: Vehicle threat priority | ~83% | implemented_partial |
+| ART-SMOKE: Artillery smoke | ~100% | implemented_partial |
+| BREAK: Aircraft evasive break | ~100% | implemented_partial |
+| DEFEND: Defence orders | ~83% | implemented_partial |
+| CLEAR: Building clearance | ~67% | implemented_partial |
+| UI: CBA configuration and diagnostics | ~83% | implemented_partial |
+| LIFECYCLE: Transfer, disconnect and JIP | ~75% | implemented_partial |
+| MULTI-FLANK: Multi-squad flank cohesion | ~67% | implemented_partial |
+| MULTI-BOUND: Squad and multi-squad bounding overwatch | ~83% | implemented_partial |
+| MULTI-WITHDRAW: Multi-squad screened withdrawal | ~50% | implemented_partial |
+| TRANSITIONS: Combat action transitions | ~83% | implemented_partial |
+| LIGHTING: Automatic darkness, night vision and illumination | ~100% | implemented_partial |
+| DRILL-HANDOVER: Moving flank and advance handed to Zeus | ~83% | implemented_partial |
+| DRILL-RECOVERY: Bound continuation and straggler rejoin | ~83% | implemented_partial |
+| COMBINED-ARMS: Contact-led combined-arms opportunity | ~88% | implemented_partial |
+| COMBINED-OPERATION: Dynamic multi-squad combined operation | ~50% | implemented_partial |
+| ATTACK-FLARES: Attack-run approach and departure flares | ~100% | implemented_partial |
+| AIR-ATTACK: Threat-aware finite aircraft attack patterns | ~88% | implemented_partial |
 
 ## Registered product-plan build-out
 
@@ -99,7 +99,7 @@ Workshop integration is a separate unfinished scope review; no source-parity per
 
 Workshop source-integration/parity percentages are not inferred from these figures. Source contributions need their own explicit scope and disposition. Compatibility-only sources remain separate.
 
-## TERRAIN â€” Cross-cutting uneven-terrain movement and air attack
+## TERRAIN: Cross-cutting uneven-terrain movement and air attack
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -111,7 +111,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CORE â€” Master, exclusions and ownership
+## CORE: Master, exclusions and ownership
 
 Source checkpoint: `fb392dd1 + finite pending posture cleanup`; reviewed 2026-10-19; confidence: low.
 
@@ -124,7 +124,7 @@ Source checkpoint: `fb392dd1 + finite pending posture cleanup`; reviewed 2026-10
 
 Calculation: 3.5 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## COMPAT â€” Specialist ownership and alternative-controller handover
+## COMPAT: Specialist ownership and alternative-controller handover
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -137,7 +137,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## SCHED â€” Scheduler and distance tiers
+## SCHED: Scheduler and distance tiers
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -149,7 +149,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## PROFILE â€” Behaviour profiles and aggression
+## PROFILE: Behaviour profiles and aggression
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -161,7 +161,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## SKILL â€” AI skill rebalance
+## SKILL: AI skill rebalance
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -173,7 +173,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## LAND â€” Helicopter landing
+## LAND: Helicopter landing
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -185,7 +185,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## DECEL â€” Helicopter braking
+## DECEL: Helicopter braking
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -197,7 +197,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## REGROUP â€” Survivor regroup
+## REGROUP: Survivor regroup
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -209,7 +209,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## MEDICAL â€” Finite squad medical assistance
+## MEDICAL: Finite squad medical assistance
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -221,7 +221,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CONTACT â€” Contact detection
+## CONTACT: Contact detection
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -234,7 +234,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3.5 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## POST â€” Post-contact search
+## POST: Post-contact search
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -246,7 +246,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## FLANK â€” Flanking bounds
+## FLANK: Flanking bounds
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -258,7 +258,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CROSS â€” Road crossing
+## CROSS: Road crossing
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -270,7 +270,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## FIRE â€” Fire distribution and suppression
+## FIRE: Fire distribution and suppression
 
 Source checkpoint: `b8ac7bae + native MOVE fire-control protection`; reviewed 2026-10-19; confidence: low.
 
@@ -282,7 +282,7 @@ Source checkpoint: `b8ac7bae + native MOVE fire-control protection`; reviewed 20
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## MORALE â€” Morale and withdrawal
+## MORALE: Morale and withdrawal
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -294,7 +294,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## SURRENDER â€” Surrender
+## SURRENDER: Surrender
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -306,7 +306,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## GRENADE â€” Grenade avoidance
+## GRENADE: Grenade avoidance
 
 Source checkpoint: `f5e54d0d + actor danger posture handover`; reviewed 2026-10-19; confidence: low.
 
@@ -318,7 +318,7 @@ Source checkpoint: `f5e54d0d + actor danger posture handover`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CIVILIAN â€” Civilian danger response and external ownership
+## CIVILIAN: Civilian danger response and external ownership
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -330,7 +330,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## AT â€” Anti-armour and ammunition roles
+## AT: Anti-armour and ammunition roles
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -342,7 +342,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## VEH â€” Vehicle engagement
+## VEH: Vehicle engagement
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -354,7 +354,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## DISMOUNT â€” Contact passenger dismount
+## DISMOUNT: Contact passenger dismount
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -366,7 +366,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## REMOUNT â€” Contact passenger remount
+## REMOUNT: Contact passenger remount
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -378,7 +378,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## WITHDRAW â€” Damaged vehicle withdrawal
+## WITHDRAW: Damaged vehicle withdrawal
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -390,7 +390,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## COVER â€” Cover selection and clearance
+## COVER: Cover selection and clearance
 
 Source checkpoint: `f32bcf1f + native planning and shared admission`; reviewed 2026-10-19; confidence: low.
 
@@ -402,9 +402,9 @@ Source checkpoint: `f32bcf1f + native planning and shared admission`; reviewed 2
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## VEH-DRIVING â€” Ordinary vehicle route safety
+## VEH-DRIVING: Ordinary vehicle route safety
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: medium.
+Source checkpoint: `603a6088c5eac70220ba774af43dca515d6719dc`; reviewed 2026-10-20; confidence: medium.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
@@ -412,17 +412,17 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 | Route identity and speed policy | 1 / 1 | Authored route, terrain and following caps are consumed by ordinary driving. [drivingRouteReceipt](../addons/vehicles/functions/drivingRouteReceipt.sqf); [drivingFollowingCap](../addons/vehicles/functions/drivingFollowingCap.sqf); [drivingRoadCap](../addons/vehicles/functions/drivingRoadCap.sqf) |
 | Predictive obstacle handling | 0.5 / 1 | Bounded native-path and hull prediction exists. Remaining: Complete dynamic traffic resolution is unfinished. [drivingGeometryCap](../addons/vehicles/functions/drivingGeometryCap.sqf); [drivingPathGeometry](../addons/vehicles/functions/drivingPathGeometry.sqf) |
 | Gate interaction | 0.5 / 1 | Indexed barrier detection and authenticated opening are wired. Remaining: Broader gate-action coverage and automatic closure remain incomplete or unsupported. [drivingGateCap](../addons/vehicles/functions/drivingGateCap.sqf); [drivingGateOpenServer](../addons/vehicles/functions/drivingGateOpenServer.sqf) |
-| Finite native rear recovery | 1 / 1 | Native rear request, live corridor/damage monitoring and owned release are implemented. [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingRearClear](../addons/vehicles/functions/drivingRearClear.sqf); [drivingRecoveryRelease](../addons/vehicles/functions/drivingRecoveryRelease.sqf); [drivingRearPlan](../addons/vehicles/functions/drivingRearPlan.sqf) |
+| Finite native rear recovery | 1 / 1 | Native rear requests, live corridor/damage monitoring and exact owned release are wired. Finite linear and angular rest now gates stationary recovery and handback. [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingRearClear](../addons/vehicles/functions/drivingRearClear.sqf); [drivingRecoveryRelease](../addons/vehicles/functions/drivingRecoveryRelease.sqf); [drivingRearPlan](../addons/vehicles/functions/drivingRearPlan.sqf) |
 | Static bypass and corridor execution | 1 / 1 | Finite owner-local approach/crossing/return executors exist. [drivingBypassStep](../addons/vehicles/functions/drivingBypassStep.sqf); [drivingCorridorStep](../addons/vehicles/functions/drivingCorridorStep.sqf) |
 | Negotiated passing | 0.5 / 1 | Consent and finite passing/return execution are wired. Remaining: Stopped-merge recovery and all native handover cases remain unfinished. [drivingPassAgreementOwner](../addons/vehicles/functions/drivingPassAgreementOwner.sqf); [drivingPassStep](../addons/vehicles/functions/drivingPassStep.sqf) |
-| Queue discovery and agreement | 0.5 / 1 | Bounded dependency discovery, owner agreement and monotonic retirement exist as internal APIs; owners also bind native vehicle move/turn input. Remaining: Automatic runtime admission is inactive until an execution path can consume agreement without blocking passing. Reintegrate discovery/consent with that executor. [drivingQueueProposal](../addons/vehicles/functions/drivingQueueProposal.sqf); [drivingQueueAgreementServer](../addons/vehicles/functions/drivingQueueAgreementServer.sqf); [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf); [drivingQueueContext](../addons/vehicles/functions/drivingQueueContext.sqf); [drivingQueueProposalCurrent](../addons/vehicles/functions/drivingQueueProposalCurrent.sqf); [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingQueueCrossingVehicle](../addons/vehicles/functions/drivingQueueCrossingVehicle.sqf) |
+| Queue discovery and agreement | 0.5 / 1 | Bounded dependency discovery, actual-owner consent and original-expiry retirement are wired as explicit APIs. Lead-pair hull separation can be longitudinal or lateral; unknown hulls refuse. Remaining: Automatic persistent-jam admission, recovery-choice policy and repeat admission remain unfinished. The explicit executor exists; it is not a reason to renew or automatically submit negotiation. [drivingQueueProposal](../addons/vehicles/functions/drivingQueueProposal.sqf); [drivingQueueAgreementServer](../addons/vehicles/functions/drivingQueueAgreementServer.sqf); [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf); [drivingQueueContext](../addons/vehicles/functions/drivingQueueContext.sqf); [drivingQueueProposalCurrent](../addons/vehicles/functions/drivingQueueProposalCurrent.sqf); [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingQueueCrossingVehicle](../addons/vehicles/functions/drivingQueueCrossingVehicle.sqf) |
 | Queue room-making execution | 0.5 / 1 | Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified. Remaining: Automatic jam admission and repeated-jam/recovery-choice policy remain disabled or incomplete. Physical route continuation, delayed replication, normal/HC interruption and performance acceptance remain separate unverified work. [drivingQueueAgreementOwner](../addons/vehicles/functions/drivingQueueAgreementOwner.sqf); [drivingAssistStart](../addons/vehicles/functions/drivingAssistStart.sqf); [drivingQueueReverseCommit](../addons/vehicles/functions/drivingQueueReverseCommit.sqf); [drivingQueueReverseCurrent](../addons/vehicles/functions/drivingQueueReverseCurrent.sqf); [drivingQueueAgreementServer](../addons/vehicles/functions/drivingQueueAgreementServer.sqf); [drivingQueueParentRoom](../addons/vehicles/functions/drivingQueueParentRoom.sqf) |
 | Crew handover | 0.5 / 1 | Current seat and replacement-driver ownership paths exist. Remaining: Complete cross-owner crew transitions and native task preservation still need implementation review. [drivingCrewStep](../addons/vehicles/functions/drivingCrewStep.sqf); [drivingRecoveryCrewAdopt](../addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf) |
 | Native order and external handback | 0.5 / 1 | Exact owned settings and changed routes are guarded. Remaining: Separate crew STOP and repeated identical native command cases are not completely resolved. [drivingAssistRelease](../addons/vehicles/functions/drivingAssistRelease.sqf); [drivingOperationFinish](../addons/vehicles/functions/drivingOperationFinish.sqf) |
 
 Calculation: 7.5 implemented capability units / 11 scoped units. Acceptance is not part of this calculation.
 
-## CNV-MOVE â€” Mixed convoy path and spacing
+## CNV-MOVE: Mixed convoy path and spacing
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: medium.
 
@@ -439,7 +439,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 6.5 implemented capability units / 8 scoped units. Acceptance is not part of this calculation.
 
-## CNV-FIRE â€” Convoy weapon crew
+## CNV-FIRE: Convoy weapon crew
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -451,7 +451,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CNV-COVER â€” Convoy dismount positions
+## CNV-COVER: Convoy dismount positions
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -463,7 +463,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CNV-AVOID â€” Convoy infantry avoidance
+## CNV-AVOID: Convoy infantry avoidance
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -475,7 +475,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CNV-HALT â€” Convoy contact drills
+## CNV-HALT: Convoy contact drills
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -487,7 +487,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CNV-UNLOAD â€” Convoy cargo lifecycle
+## CNV-UNLOAD: Convoy cargo lifecycle
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -499,7 +499,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## HEARING â€” Gunfire area reports
+## HEARING: Gunfire area reports
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -511,7 +511,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## REPORT â€” Contact sharing
+## REPORT: Contact sharing
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -523,7 +523,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## REINFORCE â€” Reinforcement
+## REINFORCE: Reinforcement
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -535,7 +535,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## ART â€” Spotted artillery bursts
+## ART: Spotted artillery bursts
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -548,7 +548,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 4 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## CB â€” Counter-battery
+## CB: Counter-battery
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -560,7 +560,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## AIRBORNE â€” Parachute passengers
+## AIRBORNE: Parachute passengers
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -572,7 +572,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## GARRISON â€” Garrison and dynamic AO
+## GARRISON: Garrison and dynamic AO
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -584,7 +584,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## FLARES â€” Aircraft countermeasures
+## FLARES: Aircraft countermeasures
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -596,7 +596,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## INVESTIGATE â€” Known-area investigation
+## INVESTIGATE: Known-area investigation
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -608,7 +608,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## ASSAULT â€” Final assault
+## ASSAULT: Final assault
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -620,7 +620,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## ADVANCE â€” Bounding advance
+## ADVANCE: Bounding advance
 
 Source checkpoint: `a498b71a + belief and depleted native engagement`; reviewed 2026-10-19; confidence: low.
 
@@ -632,7 +632,7 @@ Source checkpoint: `a498b71a + belief and depleted native engagement`; reviewed 
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## COORD â€” Coordinated assault
+## COORD: Coordinated assault
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -645,7 +645,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## STANCE â€” Cover stance
+## STANCE: Cover stance
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -657,7 +657,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## AMMO â€” Magazine sharing
+## AMMO: Magazine sharing
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -669,7 +669,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## GUNNERY â€” Vehicle threat priority
+## GUNNERY: Vehicle threat priority
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -681,7 +681,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## ART-SMOKE â€” Artillery smoke
+## ART-SMOKE: Artillery smoke
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -693,7 +693,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## BREAK â€” Aircraft evasive break
+## BREAK: Aircraft evasive break
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -705,7 +705,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## DEFEND â€” Defence orders
+## DEFEND: Defence orders
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -717,25 +717,25 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## CLEAR â€” Building clearance
+## CLEAR: Building clearance
 
-Source checkpoint: `c2aca953 + native stance normalisation and retained restoration`; reviewed 2026-10-19; confidence: medium.
+Source checkpoint: `603a6088c5eac70220ba774af43dca515d6719dc`; reviewed 2026-10-20; confidence: medium.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Clear task and operation ownership | 1 / 1 | Explicit task dispatch, generation and owner-local operation are wired. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [buildingOperationStart](../addons/infantry/functions/buildingOperationStart.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
+| Clear task and operation ownership | 1 / 1 | Explicit task dispatch, generation and owner-local operation are wired. Matching episode/transform adoption retains validated casualty-post history as metadata without restoring movement authority. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [buildingOperationStart](../addons/infantry/functions/buildingOperationStart.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
 | Dynamic building topology and access | 0.5 / 1 | Runtime entrances, nodes and bounded selection exist. Remaining: Reliable classification of inaccessible modded points and general through-building routing remain unfinished. [cortexClearBuilding](../addons/infantry/functions/cortexClearBuilding.sqf); [indoorActorNodeSelect](../addons/infantry/functions/indoorActorNodeSelect.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
 | Individual native interior movement | 1 / 1 | Finite native movement, command context, progress and cancellation paths are wired. [indoorActorOperation](../addons/infantry/functions/indoorActorOperation.sqf); [indoorActorDispatch](../addons/infantry/functions/indoorActorDispatch.sqf) |
 | Buddy and pair flow | 0.5 / 1 | Pair assignment, progress and follow-through paths exist. Remaining: Coherent concurrent entry and straggler handling still require logic refinement. [combatPairs](../addons/infantry/functions/combatPairs.sqf); [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
-| Casualty replenishment | 0.5 / 1 | Survivor/pair replacement and role safeguards exist. Remaining: Whole-pair replacement continuity and relief of failed assaulters remain incomplete. [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
-| Exterior isolation/security | 0.5 / 1 | Exterior posts, exit observation and lane exclusions are implemented. Remaining: Complete dynamic isolation across approaches/exits and relief behaviour are unfinished. [buildingExteriorCandidate](../addons/infantry/functions/buildingExteriorCandidate.sqf); [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
+| Casualty replenishment | 0.5 / 1 | Survivor/pair replacement and role safeguards are wired. Bounded candidate and substitute-observer windows rotate through the full current eligible roster; known guard loss can retain an existing relief leg. Remaining: Whole-pair replacement continuity and relief of failed assaulters remain incomplete. [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
+| Exterior isolation/security | 0.5 / 1 | Exterior posts, actual exit observation and lane exclusions are wired. Known guard casualties can trigger one reassignment from a duplicated post using existing coverage proof and original allocation budgets. Matching owner adoption retains casualty history; complete admitted post exclusions are checked before planning. Remaining: General isolation across approaches, uncovered-exit reassessment without redundant reserve cover, and complete security-role relief remain unfinished. Physical normal/HC/repeated-use outcomes remain separate unverified work. [buildingExteriorCandidate](../addons/infantry/functions/buildingExteriorCandidate.sqf); [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
 | Egress and consolidation | 0.5 / 1 | Separated exterior assignments, physical exit tracking and bounded allocation retries with owner-adopted budgets are wired. Remaining: Coherent post-clear security/consolidation and broader straggler flow remain incomplete. [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [buildingExteriorProposal](../addons/infantry/functions/buildingExteriorProposal.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
 | Door handling | 1 / 1 | Production proximity/ownership door handling exists. [cortexBuildingDoor](../addons/infantry/functions/cortexBuildingDoor.sqf); [cortexRouteDoors](../addons/infantry/functions/cortexRouteDoors.sqf) |
 | Interruption, repeat and handback | 0.5 / 1 | Generation-scoped interruption, exact movement retirement and shared settings-only release with finite existing-brain retries are wired. Remaining: Complete post-clear security/repeat lifecycle and deferred settings release after brain shutdown or retry expiry remain unfinished. [cortexClearRelease](../addons/infantry/functions/cortexClearRelease.sqf); [buildingOperationStep](../addons/infantry/functions/buildingOperationStep.sqf); [cortexClearSettingsRelease](../addons/infantry/functions/cortexClearSettingsRelease.sqf); [actorSettings](../addons/core/functions/actorSettings.sqf); [cortexClearSettingsApply](../addons/infantry/functions/cortexClearSettingsApply.sqf) |
 
 Calculation: 6 implemented capability units / 9 scoped units. Acceptance is not part of this calculation.
 
-## UI â€” CBA configuration and diagnostics
+## UI: CBA configuration and diagnostics
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -747,7 +747,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## LIFECYCLE â€” Transfer, disconnect and JIP
+## LIFECYCLE: Transfer, disconnect and JIP
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -760,7 +760,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## MULTI-FLANK â€” Multi-squad flank cohesion
+## MULTI-FLANK: Multi-squad flank cohesion
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -772,7 +772,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## MULTI-BOUND â€” Squad and multi-squad bounding overwatch
+## MULTI-BOUND: Squad and multi-squad bounding overwatch
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -784,7 +784,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## MULTI-WITHDRAW â€” Multi-squad screened withdrawal
+## MULTI-WITHDRAW: Multi-squad screened withdrawal
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -796,7 +796,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 1.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## TRANSITIONS â€” Combat action transitions
+## TRANSITIONS: Combat action transitions
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -808,7 +808,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## LIGHTING â€” Automatic darkness, night vision and illumination
+## LIGHTING: Automatic darkness, night vision and illumination
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -820,7 +820,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## DRILL-HANDOVER â€” Moving flank and advance handed to Zeus
+## DRILL-HANDOVER: Moving flank and advance handed to Zeus
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -832,7 +832,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## DRILL-RECOVERY â€” Bound continuation and straggler rejoin
+## DRILL-RECOVERY: Bound continuation and straggler rejoin
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -844,7 +844,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## COMBINED-ARMS â€” Contact-led combined-arms opportunity
+## COMBINED-ARMS: Contact-led combined-arms opportunity
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -857,7 +857,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3.5 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## COMBINED-OPERATION â€” Dynamic multi-squad combined operation
+## COMBINED-OPERATION: Dynamic multi-squad combined operation
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -870,7 +870,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 2 implemented capability units / 4 scoped units. Acceptance is not part of this calculation.
 
-## ATTACK-FLARES â€” Attack-run approach and departure flares
+## ATTACK-FLARES: Attack-run approach and departure flares
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 
@@ -882,7 +882,7 @@ Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
-## AIR-ATTACK â€” Threat-aware finite aircraft attack patterns
+## AIR-ATTACK: Threat-aware finite aircraft attack patterns
 
 Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
 

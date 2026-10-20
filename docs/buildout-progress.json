@@ -1549,12 +1549,12 @@
           "capability": "Finite native rear recovery",
           "weight": 1,
           "built": 1,
-          "implemented": "Native rear request, live corridor/damage monitoring and owned release are implemented.",
+          "implemented": "Native rear requests, live corridor/damage monitoring and exact owned release are wired. Finite linear and angular rest now gates stationary recovery and handback.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
+              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1608,8 +1608,8 @@
           "capability": "Queue discovery and agreement",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Bounded dependency discovery, owner agreement and monotonic retirement exist as internal APIs; owners also bind native vehicle move/turn input.",
-          "remaining_build_gap": "Automatic runtime admission is inactive until an execution path can consume agreement without blocking passing. Reintegrate discovery/consent with that executor.",
+          "implemented": "Bounded dependency discovery, actual-owner consent and original-expiry retirement are wired as explicit APIs. Lead-pair hull separation can be longitudinal or lateral; unknown hulls refuse.",
+          "remaining_build_gap": "Automatic persistent-jam admission, recovery-choice policy and repeat admission remain unfinished. The explicit executor exists; it is not a reason to renew or automatically submit negotiation.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
@@ -1629,11 +1629,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "46929207b2d54c518097d32d03554df5f2b86f9b966a8ad7d9460c80897f497d"
+              "sha256": "ece36c1209e5e7772cfcf30ed1674a6a1eda2fa96b8b8acd5c5462dc6d7e7736"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
+              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1654,7 +1654,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "70a0edef85cbb92dcafe42f06ac3c23f1be31d56840a3c7162ad9a45770481c5"
+              "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
@@ -1710,8 +1710,9 @@
         }
       ],
       "confidence": "medium",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-20",
+      "source_commit": "603a6088c5eac70220ba774af43dca515d6719dc",
+      "review_note": "Reconciled changed recovery/admission and clearance role/adoption blocks against the pushed checkpoint. Existing topology, pair-flow and egress portions retain their named gaps. Scores and scope weights unchanged; source hashes refreshed only for reviewed changed files. No physical or source-parity credit."
     },
     {
       "id": "CNV-MOVE",
@@ -3137,12 +3138,12 @@
           "capability": "Clear task and operation ownership",
           "weight": 1,
           "built": 1,
-          "implemented": "Explicit task dispatch, generation and owner-local operation are wired.",
+          "implemented": "Explicit task dispatch, generation and owner-local operation are wired. Matching episode/transform adoption retains validated casualty-post history as metadata without restoring movement authority.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
+              "sha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
@@ -3171,7 +3172,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
+              "sha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767"
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
@@ -3221,7 +3222,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3237,12 +3238,12 @@
           "capability": "Casualty replenishment",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Survivor/pair replacement and role safeguards exist.",
+          "implemented": "Survivor/pair replacement and role safeguards are wired. Bounded candidate and substitute-observer windows rotate through the full current eligible roster; known guard loss can retain an existing relief leg.",
           "remaining_build_gap": "Whole-pair replacement continuity and relief of failed assaulters remain incomplete.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3258,8 +3259,8 @@
           "capability": "Exterior isolation/security",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Exterior posts, exit observation and lane exclusions are implemented.",
-          "remaining_build_gap": "Complete dynamic isolation across approaches/exits and relief behaviour are unfinished.",
+          "implemented": "Exterior posts, actual exit observation and lane exclusions are wired. Known guard casualties can trigger one reassignment from a duplicated post using existing coverage proof and original allocation budgets. Matching owner adoption retains casualty history; complete admitted post exclusions are checked before planning.",
+          "remaining_build_gap": "General isolation across approaches, uncovered-exit reassessment without redundant reserve cover, and complete security-role relief remain unfinished. Physical normal/HC/repeated-use outcomes remain separate unverified work.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
@@ -3267,7 +3268,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3288,7 +3289,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3334,7 +3335,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
@@ -3352,9 +3353,9 @@
         }
       ],
       "confidence": "medium",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "c2aca953 + native stance normalisation and retained restoration",
-      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
+      "reviewed_at": "2026-10-20",
+      "source_commit": "603a6088c5eac70220ba774af43dca515d6719dc",
+      "review_note": "Reconciled changed recovery/admission and clearance role/adoption blocks against the pushed checkpoint. Existing topology, pair-flow and egress portions retain their named gaps. Scores and scope weights unchanged; source hashes refreshed only for reviewed changed files. No physical or source-parity credit."
     },
     {
       "id": "UI",

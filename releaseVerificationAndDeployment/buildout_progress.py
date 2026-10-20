@@ -35,7 +35,7 @@ def render():
             if not row["criteria"] or row["assessment"] != "provisional_source_assessment":
                 raise ValueError("Assessed family needs its explicit capability denominator")
             earned = total = 0
-            detail = [f"## {row['id']} â€” {row['title']}", "", f"Source checkpoint: `{row['source_commit']}`; reviewed {row['reviewed_at']}; confidence: {row['confidence']}.", "", "| Capability | Built | Implementation / remaining build gap |", "| --- | ---: | --- |"]
+            detail = [f"## {row['id']}: {row['title']}", "", f"Source checkpoint: `{row['source_commit']}`; reviewed {row['reviewed_at']}; confidence: {row['confidence']}.", "", "| Capability | Built | Implementation / remaining build gap |", "| --- | ---: | --- |"]
             for criterion in row["criteria"]:
                 score, weight = criterion["built"], criterion["weight"]
                 if type(score) not in (int, float) or score not in (0, 0.5, 1) or type(weight) not in (int, float) or not math.isfinite(weight) or weight <= 0:
@@ -59,7 +59,7 @@ def render():
             scores[row["id"]] = earned / total
             percentage = f"~{earned / total * 100:.0f}%"
             details += detail + ["", f"Calculation: {earned:g} implemented capability units / {total:g} scoped units. Acceptance is not part of this calculation.", ""]
-        lines.append(f"| {row['id']} â€” {row['title']} | {percentage} | {cases[row['id']]['status']} |")
+        lines.append(f"| {row['id']}: {row['title']} | {percentage} | {cases[row['id']]['status']} |")
     areas = data.get("areas", [])
     area_lines = []
     if areas:
