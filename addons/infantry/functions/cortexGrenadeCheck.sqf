@@ -18,6 +18,8 @@
  * destination, an available on-foot soldier and no current clearance, defence, garrison,
  * support or actor-participating operation. Exact marker cleanup remains independent.
  * Admission and delayed recall yield to dormant/hidden actors and queued ACE care.
+ * An interrupted acknowledged room MOVE retains a local return proposal for the same
+ * clearing executor; it issues no return command here and never survives owner migration.
  * Soldiers held in place by a
  * garrison order (PATH disabled) cannot move and are skipped.
  * Locality and authority: scheduler job on the machine that received the event; orders go only to
@@ -133,8 +135,21 @@ private _regroupActors = [];
                 _state set ["supportHeld",_supportHeld-[_unit]];
             };
             private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
-            _unit doMove _spot;
             private _expires=time+6;
+            private _clearMotion=_unit getVariable ["CBE_Cortex_ClearMotion",[]];
+            private _beforeEscape=(expectedDestination _unit) param [0,[]];
+            // Local proposal only. The clearing executor rechecks every receipt before use.
+            private _clearReturn=[];
+            if (count _clearMotion == 5 && {(_clearMotion select 0) isEqualTo _group}
+                && {(_clearMotion select 1) isEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
+                && {(_clearMotion select 2) == "MOVE"} && {count _beforeEscape == 3}
+                && {_beforeEscape isEqualTo (_clearMotion select 3)}) then {
+                _clearReturn=[+_clearMotion,+_spot,_expires,
+                    _group getVariable ["CBE_AIPass_Epoch",0],
+                    _group getVariable ["CBE_OperationGeneration",0],clientOwner];
+            };
+            _unit setVariable ["CBE_Cortex_ClearEvasionReturn",_clearReturn];
+            _unit doMove _spot;
             _unit setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION",+_spot,_expires]];
             _reacted = _reacted + 1;
             _regroupActors pushBack [_unit,_group,+_spot,+(_group getVariable ["CBE_AIPass_ZeusHold",[]]),

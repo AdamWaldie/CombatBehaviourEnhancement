@@ -22,7 +22,7 @@
     "Reissue only through existing clearance executor after fresh geometry/task checks; never replay a stale ClearMotion receipt as live authority.",
     "Changed order, death, expiry of overall clearance or external ownership must retain existing cancellation/replacement semantics."
   ],
-  "status": "Live acknowledged evasion retains lane; post-evasion native command handback remains incomplete",
+  "status": "Acknowledged live evasion retains lane; exact owner-local interrupted MOVE handback implemented, physical acceptance pending",
   "physicalEvidence": false,
   "audits": "PAUSED",
   "implementation": {
@@ -38,5 +38,19 @@
     "candidate": ".qa/candidates/cqb-evasion-retention-ed00a8d3",
     "fingerprint": "76c966c6dc26ccffe5006a21fe3ed1548b569fbf982e83623db4a1896344aff9",
     "physicalAcceptance": false
+  },
+  "returnImplementation": {
+    "capture": "Before escape, only an acknowledged existing room MOVE matching current ClearMotion and visit context receives a local proposal.",
+    "proof": "Original ClearMotion unchanged, same visit context/owner epoch/operation/issuing client, expired evasion, unchanged actual escape destination, no replacement actor reservation.",
+    "executor": "Existing roomCommandOwned and atomic room mutation boundary select current target and issue; rememberMove consumes proposal. Exact motion retirement clears matching proposal.",
+    "limits": [
+      "No proposal transfer across locality/epoch changes",
+      "No handback for unacknowledged initial room orders or interrupted non-MOVE tasks",
+      "Original hard deadline, physical visit proof and geometry budgets unchanged",
+      "Native escape acknowledgement timing and repeated interruption remain unverified in engine"
+    ],
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "candidate": ".qa/candidates/cqb-evasion-return-e9542b20",
+    "fingerprint": "97ebf6aacd4ecc7a2ed3364dce2d28cb6496b5c774f70b4e59a03d27c8cedb5a"
   }
 }

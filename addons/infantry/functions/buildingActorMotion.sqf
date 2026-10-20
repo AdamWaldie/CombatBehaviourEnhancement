@@ -32,6 +32,10 @@ isNil {
         if (_mode == "RETIRE") exitWith {
             if (_receipt isEqualType [] && {count _receipt == 5}
                 && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}) then {
+                private _return=_actor getVariable ["CBE_Cortex_ClearEvasionReturn",[]];
+                if (count _return == 6 && {(_return select 0) isEqualTo _receipt}) then {
+                    _actor setVariable ["CBE_Cortex_ClearEvasionReturn",nil];
+                };
                 _actor setVariable ["CBE_Cortex_ClearMotion",nil,true];true
             } else {false}
         };

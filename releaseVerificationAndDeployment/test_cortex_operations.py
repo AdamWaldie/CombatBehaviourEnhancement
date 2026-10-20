@@ -10051,6 +10051,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
         text=source('buildingOperationStep')
+        handback=text.split('private _evasionReturnOwned={',1)[1].split('// Preserve native replacement tasks',1)[0]
+        for proof in ('_issuer == clientOwner','_epoch == (_job get "ownerEpoch")',
+                      '_operationId == (_job get "operationGeneration")','time >= _expiry',
+                      '_live vectorDistance _escape <= 0.25','CBE_Cortex_ClearMotion',
+                      '_reservation isEqualTo [] ||'):
+            self.assertIn(proof,handback)
+        self.assertIn('private _unitIssue=_issue || {[_unit] call _evasionReturnOwned}',text)
         for proof in ('private _evadingWorkers=', '[_x,true] call _actorAvailable',
                       'if (_pair findIf {_x in _evadingWorkers} >= 0) then {continue}',
                       'if (_laneRoster findIf {_x in _evadingWorkers} >= 0) then {continue}',

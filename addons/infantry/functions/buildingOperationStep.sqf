@@ -4,7 +4,8 @@
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
  * The original configured lane count still bounds retries after casualties.
  * A live acknowledged grenade evasion retains lane identity/claims without movement or
- * deadline renewal. Expiry alone does not restore the interrupted native room command.
+ * deadline renewal. Return from an acknowledged interrupted room MOVE requires an exact
+ * local escape/clearance receipt; the existing room writer chooses and issues the current leg.
  * Partner entry stall timing accepts actual motion on its unchanged owned native leg,
  * including detours around the building. A target change adopts a position baseline
  * without renewing progress, retry or operation deadlines; motion never credits entry.
@@ -290,6 +291,7 @@ private _delay=call {
         (_job getOrDefault ["roomHolds",createHashMap]) deleteAt (netId _actor);
         (_job getOrDefault ["formationFallbackHolds",createHashMap]) deleteAt (netId _actor);
         ["MOVE",_actor,_job,_target] call CBE_fnc_BuildingActorMotion;
+        _actor setVariable ["CBE_Cortex_ClearEvasionReturn",nil];
     };
     private _ownsCurrentMove={
         params ["_actor"];
@@ -297,6 +299,24 @@ private _delay=call {
         private _live=(expectedDestination _actor) param [0,[]];
         currentCommand _actor == "MOVE" && {count _issued == 3} && {count _live == 3}
             && {_live vectorDistance _issued <= 0.25}
+    };
+    private _evasionReturnOwned={
+        params ["_actor"];
+        private _return=_actor getVariable ["CBE_Cortex_ClearEvasionReturn",[]];
+        if (count _return != 6) exitWith {false};
+        _return params ["_receipt","_escape","_expiry","_epoch","_operationId","_issuer"];
+        private _live=(expectedDestination _actor) param [0,[]];
+        private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+        count _receipt == 5 && {(_receipt select 0) isEqualTo _group}
+            && {(_receipt select 1) isEqualTo (_job getOrDefault ["visitContext",[]])}
+            && {_receipt isEqualTo (_actor getVariable ["CBE_Cortex_ClearMotion",[]])}
+            && {_issuer == clientOwner} && {_epoch == (_job get "ownerEpoch")}
+            && {_operationId == (_job get "operationGeneration")}
+            && {_expiry isEqualType 0} && {finite _expiry} && {time >= _expiry}
+            && {count _escape == 3} && {count _live == 3}
+            && {_live vectorDistance _escape <= 0.25}
+            && {currentCommand _actor in ["","MOVE"]}
+            && {_reservation isEqualTo [] || {_reservation isEqualTo ["GRENADE_EVASION",_escape,_expiry]}}
     };
     // Preserve native replacement tasks; only owned legs/holds or exact initial admission may issue.
     private _roomCommandOwned={
@@ -313,6 +333,7 @@ private _delay=call {
         if ([_actor] call _ownsCurrentMove || {_command == ""}) exitWith {true};
         private _ownedHold=[_actor,_job] call CBE_fnc_BuildingActorHoldOwned;
         if (_ownedHold) exitWith {true};
+        if ([_actor] call _evasionReturnOwned) exitWith {true};
         if (_actor in (_job get "started")) exitWith {false};
         private _admitted=(_job getOrDefault ["reserveAdmissionCommands",createHashMap]) getOrDefault [netId _actor,[]];
         if (count _admitted != 4 || {(_admitted select 0) != _actor} || {(_admitted select 1) != _command}) exitWith {false};
@@ -3293,7 +3314,7 @@ private _delay=call {
                                 private _buddyCommitted=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _unit,[]];
                                 private _buddyTargetChanged=_unit != _point && {count _arrivalTarget == 3}
                                     && {count _buddyCommitted != 3 || {_buddyCommitted vectorDistance _arrivalTarget > 0.25}};
-                                private _unitIssue=_issue || {_buddyTargetChanged} || {_unit != _point
+                                private _unitIssue=_issue || {[_unit] call _evasionReturnOwned} || {_buddyTargetChanged} || {_unit != _point
                                     && {!(_unit in (_job get "started"))}
                                     && {!(_unit in (_job getOrDefault ["enteredActors",[]]))}};
                                 if (_unitIssue && {!(_unit in (_job get "started"))}) then {
