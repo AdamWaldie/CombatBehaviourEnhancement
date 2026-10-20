@@ -78,6 +78,33 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(ack.index('_lease isNotEqualTo _snapshot'),ack.index('CBE_Cortex_SupportEligibility'))
         self.assertIn('[_token,groupOwner _group,_lease select 2]',ack)
         self.assertIn('CBE_Cortex_SupportPreparedReceipt',ack)
+        report=ack.split('if (_capacity isNotEqualTo []) exitWith {',1)[1].split('// A delayed owner reply',1)[0]
+        for proof in ('count _capacity != 7','_epoch != (_group getVariable',
+                      '_until > _observed+6','_armed > _fit','capacityByToken',
+                      '(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role'):
+            self.assertIn(proof,report)
+        self.assertLess(ack.index('HeadlessResolveSender'),ack.index('if (_capacity isNotEqualTo [])'))
+        self.assertLess(ack.index('_lease isNotEqualTo _snapshot'),ack.index('if (_capacity isNotEqualTo [])'))
+        maintain=source('cortexSupportMaintain')
+        self.assertIn('_observed+2',maintain)
+        self.assertIn('(_observed+6) min (_lease select 2)',maintain)
+        self.assertIn('count _members <= 64',maintain)
+        self.assertIn('CortexPrimaryAmmoAvailable',maintain)
+        coordinator=source('cortexSupportCoordinateStep')
+        self.assertIn('[_group,_token] call _capacityReady',coordinator)
+        self.assertNotIn('magazinesAmmo',coordinator)
+        self.assertNotIn('CortexPrimaryAmmoAvailable',coordinator)
+        self.assertIn('(_entry select 1) != groupOwner _group',coordinator)
+        self.assertIn('serverTime < (_report select 4)',coordinator)
+        def capacity(owner,current_owner,role,current_role,epoch,current_epoch,now,until,fit,armed):
+            return owner==current_owner and role==current_role and epoch==current_epoch and now<until and fit>=3 and armed>=3
+        self.assertTrue(capacity(4,4,'cover1','cover1',2,2,1,6,4,3))
+        self.assertFalse(capacity(4,5,'cover1','cover1',2,2,1,6,4,3))
+        self.assertFalse(capacity(4,4,'cover1','move1',2,2,1,6,4,3))
+        self.assertFalse(capacity(4,4,'cover1','cover1',2,3,1,6,4,3))
+        self.assertFalse(capacity(4,4,'cover1','cover1',2,2,6,6,4,3))
+        self.assertFalse(capacity(4,4,'cover1','cover1',2,2,1,6,4,2))
+
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedOperation.sqf').read_text()
         self.assertIn('COMBINED-OP-prepared-contact-becomes-coordinated-movement',qa)
         self.assertIn('_receipt select 0) == (_status select 0)',qa)
@@ -9385,7 +9412,7 @@ class CortexOperations(unittest.TestCase):
         gate='if (!_localityPending || {serverTime >= (_settling select 1)}) then {'
         self.assertLess(boundary.index(gate),boundary.index('CBE_fnc_CortexSupportBoundStart'))
         self.assertLess(boundary.index(gate),boundary.index('_state set ["supportBoundSequence"'))
-        self.assertIn('"assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves"]',text)
+        self.assertIn('"assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves","supportCapacityRole","supportCapacityNextAt"]',text)
         self.assertGreaterEqual(text.count('deleteAt "supportBoundSettling"'),2)
 
     def test_cba_feedback_uses_separate_content_rows_for_title_and_body(self):

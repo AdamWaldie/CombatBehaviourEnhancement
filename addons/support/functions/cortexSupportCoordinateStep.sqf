@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * New MOVE admission also requires a fresh current-owner COVER ammunition-capacity receipt;
+ * bootstrap publishes COVER before movement. In-flight bounds keep their original lifetime.
+ * This is the moving squad's capacity, not proof that another squad is firing effectively.
  * Coordinates reserved assault squads through short bounds while other squads provide cover.
  * Publishes the original MOVE deadline with token/sequence/point before its role; owners
  * require both matching receipts, never presumed cross-machine event ordering.
@@ -120,6 +123,19 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
 } forEach _teams;
 _job set ["boundRetired",_retired];
 
+// Inventory is observable only on its actor owner. New bounds consume a fresh
+// authenticated COVER capacity receipt; accepted leases alone cannot supply it.
+private _capacities=_job getOrDefault ["capacityByToken",createHashMap];
+private _capacityReady={
+    params ["_group","_token"];
+    private _entry=_capacities getOrDefault [_token,[]];
+    if (count _entry != 3 || {(_entry select 0) != _group} || {(_entry select 1) != groupOwner _group}) exitWith {false};
+    private _report=_entry select 2;
+    count _report == 7 && {(_report select 1) isEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}
+        && {((_report select 1) select 2) == "COVER"}
+        && {(_report select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {serverTime < (_report select 4)} && {(_report select 5) >= 3} && {(_report select 6) >= 3}
+};
 private _cursor=_job getOrDefault ["boundCursor",0];
 private _maxConcurrent=(count _teams) min (_job getOrDefault ["boundMaxConcurrent",2]);
 for "_slot" from count _active to (_maxConcurrent-1) do {
@@ -152,7 +168,8 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             };
             _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         };
-        if (count _fit >= 3 && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
+        if (count _fit >= 3 && {[_group,_token] call _capacityReady}
+            && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
             // Concurrent movers need genuinely different approach lanes. A second squad on the

@@ -5,17 +5,46 @@
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Arguments: 0: helper <GROUP>, grpNull; 1: token <STRING>, empty; 2: accepted <BOOL>, false; 3: exact lease snapshot <ARRAY>, [].
  * 4: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
+ * 5: optional capacity <ARRAY,[]> [1,exact COVER role,owner epoch,observed server time,
+ * expiry,fit count,main-ammunition count]. Stored only in the server job; cannot renew a lease.
+ * Capacity replies authenticate through the same sender and exact lease checks, then require
+ * the current role/epoch, accepted token and an original observation window of at most six seconds.
  * Return Value: Nothing.
- * Current callers: SupportApply.
+ * Current callers: SupportApply and SupportMaintain owner capacity observation.
  * Example: [_group, _token, true, _lease, clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck", 2];
  */
-params [["_group",grpNull,[grpNull]],["_token","",[""]],["_accepted",false,[true]],["_snapshot",[],[[]]],["_replyOwner",-1,[0]]];
+params [["_group",grpNull,[grpNull]],["_token","",[""]],["_accepted",false,[true]],["_snapshot",[],[[]]],["_replyOwner",-1,[0]],["_capacity",[],[[]]]];
 if (!isServer || {isNull _group} || {([_replyOwner,groupOwner _group] call CBE_fnc_HeadlessResolveSender) < 0}) exitWith {};
 private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (count _lease != 6 || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
 private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId (_lease select 1),createHashMap];
 if (count _job == 0) exitWith {};
+// Capacity is an authenticated owner observation, not another reservation acceptance.
+if (_capacity isNotEqualTo []) exitWith {
+    if (!_accepted || {count _capacity != 7} || {(_capacity select 0) isNotEqualTo 1}
+        || {!((_capacity select 1) isEqualType [])}
+        || {[2,3,4,5,6] findIf {!((_capacity select _x) isEqualType 0) || {!finite (_capacity select _x)}} >= 0}) exitWith {};
+    _capacity params ["","_role","_epoch","_observed","_until","_fit","_armed"];
+    private _leases=_job get "leases";
+    if (count _role != 5 || {(_role select 0) isNotEqualTo _token} || {(_role select 2) != "COVER"}
+        || {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role}
+        || {_epoch < 1} || {_epoch != floor _epoch} || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_observed > serverTime+0.25} || {_observed < serverTime-6}
+        || {_until <= serverTime} || {_until <= _observed} || {_until > _observed+6}
+        || {serverTime >= (_lease select 2)} || {serverTime >= (_job get "expiry")}
+        || {_fit < 0} || {_fit > 64} || {_fit != floor _fit}
+        || {_armed < 0} || {_armed > _fit} || {_armed != floor _armed}
+        || {_leases findIf {(_x select 0) == _group && {(_x select 1) == _token} && {(_x select 4) == "ACCEPTED"}} < 0}) exitWith {};
+    private _capacities=_job getOrDefault ["capacityByToken",createHashMap];
+    private _old=_capacities getOrDefault [_token,[]];
+    if (count _old == 3 && {(_old select 1) == groupOwner _group}
+        && {((_old select 2) select 3) > _observed}) exitWith {};
+    private _receipt=+_capacity;
+    _receipt set [4,_until min (serverTime+6) min (_lease select 2) min (_job get "expiry")];
+    _capacities set [_token,[_group,groupOwner _group,_receipt]];
+    _job set ["capacityByToken",_capacities];
+};
 // A delayed owner reply may arrive after either finite deadline. Keep a matching
 // rejection valid for cleanup, but never publish fresh eligibility for expired work.
 _accepted=_accepted && {serverTime < (_lease select 2)}
@@ -23,6 +52,10 @@ _accepted=_accepted && {serverTime < (_lease select 2)}
 private _leases = _job get "leases";
 private _index = _leases findIf {(_x select 0) == _group && {(_x select 1) == _token}};
 if (_index >= 0) then {
+    if (!_accepted) then {
+        private _capacities=_job getOrDefault ["capacityByToken",createHashMap];
+        _capacities deleteAt _token;
+    };
     (_leases select _index) set [4,["REJECTED","ACCEPTED"] select _accepted];
     // Prepared contact peers own no movement yet. Publish authenticated eligibility separately
     // from SupportStatus, which describes an operation that has actually started on its owner.

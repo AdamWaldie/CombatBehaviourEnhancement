@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Current COVER capacity is sampled owner-locally at most every two seconds (or role change)
+ * through the existing acknowledgement endpoint, with six-second maximum freshness.
+ * This reports eligible main-ammunition capacity, not position/arrival or actual covering fire.
  * Older server role sequences never rewind the parent bound progress or consumed local sequence.
  * Actual COVER stops retain separate token/generation/epoch/native destination receipts. Release
  * recalls only unchanged current-owner holds, without enabling PATH. Deferred/changed proof is
@@ -238,7 +241,7 @@ private _releaseSupport={
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     call _restoreAttack;
-    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves"];
+    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves","supportCapacityRole","supportCapacityNextAt"];
 };
 // Engagement teardown requests release only; it must never consume a fresh role or start a bound.
 if (_mode == "RELEASE") exitWith {
@@ -482,4 +485,39 @@ if (_coordinating) then {
             };
         };
     };
+};
+
+// Observe only the current local COVER roster, on this existing maintenance cadence.
+// Capacity is not a hold/arrival acknowledgement or proof of effective covering fire.
+if (_coordinating && {!_moving} && {(_role select 2) == "COVER"}
+    && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _role}
+    && {(_group getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo _lease}
+    && {serverTime < (_lease select 2)}
+    && {(_state getOrDefault ["supportCapacityRole",[]]) isNotEqualTo _role
+        || {serverTime >= (_state getOrDefault ["supportCapacityNextAt",-1])}}) then {
+    private _members=units _group;
+    private _fit=[];
+    if (count _members <= 64) then {
+        _fit=_members select {
+            local _x && {!isPlayer _x} && {isNull objectParent _x}
+                && {[_x] call CBE_fnc_CortexCombatEffective}
+                && {simulationEnabled _x} && {!isObjectHidden _x}
+                && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                && {isNull remoteControlled _x}
+                && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+                && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+                && {toUpperANSI currentCommand _x in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+        };
+    };
+    private _armed=if (combatMode _group in ["YELLOW","RED"]) then {
+        {unitCombatMode _x in ["YELLOW","RED"] && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _fit
+    } else {0};
+    private _observed=serverTime;
+    private _capacity=[1,+_role,_group getVariable ["CBE_AIPass_Epoch",0],_observed,
+        (_observed+6) min (_lease select 2),count _fit,_armed];
+    [_group,_token,true,_lease,clientOwner,_capacity] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
+    _state set ["supportCapacityRole",+_role];
+    _state set ["supportCapacityNextAt",_observed+2];
 };
