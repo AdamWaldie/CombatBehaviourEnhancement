@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Exact queue-abort STOP handback uses current safety observations in this existing callback; no failed crossing is marked complete.
  * Repeat/JIP: Original public route/recovery clocks survive migration; acknowledgement never replays movement.
  * Native BACK uses the existing finite rear leg only with distinct driver/effective commander.
  * Its immutable pre-command turn/move receipt and observed acknowledgement bind ownership;
@@ -166,6 +167,8 @@ _brain set ["geometryTracks",_geometryTracks];
         ])}
     };
     private _routeIdentity=call _readRouteIdentity;
+    // Empty safety input performs metadata validation only, before successor work can retire.
+    [_vehicle,_group,_brain,[],{false}] call CBE_fnc_DrivingAbortHandback;
     private _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group}
         && {_recoveryWork getOrDefault ["releasePending",false]}) then {
@@ -845,6 +848,12 @@ _brain set ["geometryTracks",_geometryTracks];
                 [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
             };
             _vehicle setVariable ["CBE_DrivingAssist_Traffic",_traffic];
+            if (!_queueNativeActive && {!_queueCrossing} && {!_queueHold} && {!_crewBoardingHold}
+                && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass}) then {
+                [_vehicle,_group,_brain,[_traffic,_gateObservation,_obstacleObservation,_capMps],
+                    {call _mayRecoverRoute}] call CBE_fnc_DrivingAbortHandback;
+            };
+
             // Retain the owning group for diagnostics only. The lease remains the forced-speed
             // value: this reference never grants route or movement ownership to CBE.
             // Native vehicles can abandon an otherwise valid MOVE command after a small collision

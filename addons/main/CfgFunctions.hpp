@@ -57,6 +57,7 @@ class CfgFunctions {
             class DrivingCorridorGeometry {file = "\z\cbe\addons\vehicles\functions\drivingCorridorGeometry.sqf";};
             class DrivingPathGeometry {file = "\z\cbe\addons\vehicles\functions\drivingPathGeometry.sqf";};
             class DrivingBypassStep {file = "\z\cbe\addons\vehicles\functions\drivingBypassStep.sqf";};
+            class DrivingAbortHandback {file = "\z\cbe\addons\vehicles\functions\drivingAbortHandback.sqf";};
             class DrivingBypassRelease {file = "\z\cbe\addons\vehicles\functions\drivingBypassRelease.sqf";};
             class DrivingPassBegin {file = "\z\cbe\addons\vehicles\functions\drivingPassBegin.sqf";};
             class DrivingPassStep {file = "\z\cbe\addons\vehicles\functions\drivingPassStep.sqf";};

@@ -801,6 +801,7 @@
         "addons/vehicles/functions/drivingPassAgreementServer.sqf",
         "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
         "addons/vehicles/functions/drivingBypassStep.sqf",
+        "addons/vehicles/functions/drivingAbortHandback.sqf",
         "addons/vehicles/functions/drivingBypassRelease.sqf",
         "addons/vehicles/functions/drivingTurnTrack.sqf",
         "addons/vehicles/functions/drivingNativePathWatch.sqf",

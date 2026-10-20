@@ -325,5 +325,61 @@
     ],
     "scoresChanged": false,
     "physical": false
+  },
+  "crossingCancellationHandbackReview20261020": {
+    "baseline": "bb2c0df7",
+    "verifiedGuards": [
+      "Active crossing validates current native/crew/route identity and fixed held-participant poses; peer movement or replacement intent invalidates it.",
+      "BypassRelease only stops exact-owned current native work and protects successor queue/convoy/external orders.",
+      "Queue route resume requires matching accepted clearance and permitted completion reason. Cancellation cannot grant crossing success."
+    ],
+    "finding": "On an owned aborted crossing, release issues doStop, cannot resume without accepted crossing clearance, then deletes Bypass_Work and retires consent. Result/cooldown retains no actor/native STOP provenance for later safe abort handback. Ordinary nativeRouteIntent explicitly refuses STOP. If the resulting STOP persists, unchanged authored travel cannot recover automatically after the obstruction clears. Static source establishes this path, not its frequency or engine-visible persistence.",
+    "sourceIntent": "HBQ overtaking end/abort restores route through bounded refresh. Retain useful continuation intent, but require actual safe lane and exact owned STOP; never copy unconditional route refresh or invent crossing completion.",
+    "nextImplementation": [
+      "Retain exact original queue binding, route, crew, owner generation/epoch, STOP destinations/tasks and original bounded cleanup deadline after an owned abort.",
+      "Within existing driving/release maintenance, restore authored travel only after fresh traffic/path safety, unchanged applied native STOP, no successor/reservation/external controller, and exact current authority.",
+      "Keep cancelled/failed result distinct from completed crossing. Do not replenish queue/recovery budgets or introduce another persistent movement controller.",
+      "Cover repeated interruption, changed native STOP and owner migration; missing proof must not grant recall."
+    ],
+    "sources": {
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "6d966f70ed7a080e235f384576e4fdd30b47c8eedcab0e877bf66d1ad838f990",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "0621d068fdda825e735339cdbed00543b82cdc75e87b78e6e616d522c609530e",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2",
+      "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0",
+      "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+    },
+    "runtimeChanged": false,
+    "testsRepeated": false,
+    "physical": false,
+    "scoresChanged": false
+  },
+  "queueAbortHandbackImplementation20261020": {
+    "baseline": "bb2c0df7",
+    "change": "BypassRelease captures only actually observed exact owned STOP after an aborted queue crossing. Retains original binding, crew, owner receipt, route, native destinations/formation leaders and original queue deadline+15s. Existing DrivingAssist callback validates metadata before successor processing and consumes handback once after current clear traffic/geometry, stationary vehicle and owned cap checks; caller current plain MOVE/authority predicate remains mandatory. New native/route/seat/owner/successor changes retire receipt. Failed crossing result unchanged; no queue completion or attempt reset. Observed player/remote/specialist/reservation/Zeus/convoy takeover irrevocably retires the receipt before safety waiting.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "3685765313eff6cd455296303742cc720231937448bf3f29e0b22fe08db5558d",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "99a86bf84ed9a7e9ea510f2cb27489d608604f316b17bc048fa79bb4339e2e73",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374"
+    },
+    "cost": "Two bounded receipt checks through existing callback, two-seat comparisons; no new timer/controller, geometry/traffic search or speed writer.",
+    "validation": {
+      "focused": "251 existing driving cases pass before final typed-boundary/docs edits",
+      "newCases": 0,
+      "build": ".qa/cbe-queue-abort-handback-final-build.log",
+      "superseded": ".qa/cbe-queue-abort-handback-build.log passed before explicit irreversible takeover retirement",
+      "tests": 1477,
+      "independent": ".qa/cbe-queue-abort-handback-independent.log",
+      "candidate": ".qa/candidates/queue-abort-bb2c0df7-f0b85f0c",
+      "fingerprint": "f0b85f0c29778e3a82749a750043caa7637fb20884407bd10f341935ba5f8602",
+      "source": "bb2c0df7 plus intended dirty abort-handback edits",
+      "postBuild": "Same assertions moved from ramp case to existing release-authority case;251 focused driving checks pass. No production edits."
+    },
+    "remaining": [
+      "No auto-adoption after owner migration; feature-disabled cleanup remains incomplete.",
+      "Missing immediate native STOP acknowledgement grants no receipt. Identical repeated native orders remain indistinguishable.",
+      "Physical route handback, command acknowledgement, flow and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

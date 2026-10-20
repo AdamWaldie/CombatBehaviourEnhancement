@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2"
+              "sha256": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2"
+              "sha256": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1662,7 +1662,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2"
+              "sha256": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
@@ -1712,7 +1712,7 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Exact owned settings and changed routes are guarded.",
-          "remaining_build_gap": "Separate crew STOP and repeated identical native command cases are not completely resolved.",
+          "remaining_build_gap": "Exact observed owned queue-abort STOP has a finite clear-lane handback path on the original owner. Migration, feature-disabled cleanup, missing STOP acknowledgement and repeated identical native commands remain incomplete or unresolved.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
@@ -1721,6 +1721,10 @@
             {
               "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
               "sha256": "bce811c3534a8b9cc4cddc2b7f8a3b7cc6240a00cd937f63e36bc743dbe10918"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAbortHandback.sqf",
+              "sha256": "3685765313eff6cd455296303742cc720231937448bf3f29e0b22fe08db5558d"
             }
           ]
         }

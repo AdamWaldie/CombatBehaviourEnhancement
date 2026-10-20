@@ -14,7 +14,8 @@
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
  * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
  * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
- * failed/expired owned paths stop only, then retire their exact original queue consent.
+ * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
+ * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
  * A successor queue binding forbids native cleanup and survives metadata retirement.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
  * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored-route handback.
@@ -91,6 +92,18 @@ isNil {
     if (_owned) then {
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
+        if (_queue && {!_queueMayResume} && {_resume} && {!_stopOnly}
+            && {currentCommand _driver == "STOP"} && {currentCommand _operator == "STOP"}) then {
+            private _owner=[_group] call CBE_fnc_DrivingOwnerReceipt;
+            if (_owner isNotEqualTo []) then {
+                _vehicle setVariable ["CBE_DrivingAbort_Hold",createHashMapFromArray [
+                    ["binding",+_queueBinding],["group",_group],["driver",_driver],["operator",_operator],
+                    ["owner",_owner],["route",+_route],["deadline",(_work get "deadline")+15],
+                    ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _operator)],
+                    ["driverLeader",formLeader _driver],["operatorLeader",formLeader _operator]
+                ],true];
+            };
+        };
         private _index=currentWaypoint _group;
         if (_resume && {_queueMayResume} && {_index > 0} && {_index < count waypoints _group}
             && {_convoy || {vehicle leader _group == _vehicle}}

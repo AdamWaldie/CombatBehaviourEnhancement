@@ -162,6 +162,21 @@ class DrivingBypassTests(unittest.TestCase):
                       'queueClearReportedAt','["CROSS_CLEAR",',
                       '(_assist param [0,-1]) == 0'):
             self.assertIn(proof,step)
+        handback=(ROOT/'addons/vehicles/functions/drivingAbortHandback.sqf').read_text()
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        self.assertIn('(_work get "deadline")+15',release)
+        self.assertIn('currentCommand _driver == "STOP"',release)
+        self.assertIn('currentCommand _operator == "STOP"',release)
+        for guard in ('REPLACED_OR_EXPIRED','SUCCESSOR','serverTime >= _deadline',
+                      'CortexExternalTakeover','CortexZeusHeld','CompatibilityExternalControl',
+                      'time-(_traffic select 3) > 1.5','_solid isNotEqualTo []',
+                      'call _mayResume','getForcedSpeed _vehicle','_linear >= 0.1',
+                      '(expectedDestination _driver)','(expectedDestination _operator)'):
+            self.assertIn(guard,handback)
+        self.assertLess(handback.index('["HANDOFF_ISSUED"] call _retire'),handback.index('_operator doMove'))
+        for forbidden in ('forceSpeed ','setDriveOnPath','nearEntities','lineIntersectsSurfaces','spawn','queueClearanceAccepted'):
+            self.assertNotIn(forbidden,handback)
+
         self.assertIn('_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]',release)
         self.assertIn('isEqualTo _queueBinding',release)
         self.assertIn('_freshGuide set [0,getPosASL _vehicle]',step)
