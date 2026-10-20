@@ -1836,6 +1836,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexExternalTakeover',rebalance)
         self.assertIn('_operation getOrDefault ["ownerEpoch",-1]',rebalance)
         self.assertIn('private _blocked=(_operation getOrDefault ["unavailable",[]])+_excluded',rebalance)
+        eligibility=rebalance.split('private _actorEligible=',1)[1].split('private _capable=',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',eligibility)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',rebalance)
+
         flank=source('cortexFlankStep')
         self.assertIn('[_group,_operationGeneration,count _units,(units _group)-_units] call CBE_fnc_RebalanceRoles;',flank)
         self.assertNotIn('[_group,_operationGeneration,count _units,_units] call CBE_fnc_RebalanceRoles;',flank)

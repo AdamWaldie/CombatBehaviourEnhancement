@@ -6,7 +6,8 @@
  * A stopped actor outside the entry roster cannot be recruited. Existing covering/arrival
  * participants retain the current policy; this does not prove ownership of a later STOP on them.
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
- * Protected native tasks and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
+ * Protected native tasks, queued medical treatment and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
+ * Temporary treatment does not remove living pair identity or mutate the medical queue.
  * Repeat/JIP: Idempotent for an unchanged generation and owner epoch. Only roster changes publish
  * operation state; unchanged callbacks do not retransmit it. Public state carries the roster after
  * migration; actors marked unavailable remain excluded.
@@ -35,6 +36,7 @@ private _actorEligible={
         && {isNull objectParent _actor} && {!(_actor in _blocked)}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {_reservationFree}
         && {currentCommand _actor != "STOP" || {_actor in _entryParticipants}}

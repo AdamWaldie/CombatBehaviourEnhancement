@@ -1,0 +1,78 @@
+{
+  "workshopId": "3802121807",
+  "name": "PROTOCOL AI PAIRS",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807\\addons\\prototcol_ai_pairs.pbo",
+    "sha256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 472,
+        "sha256": "a73ed6ca0bb3db0519706048962c4b7172ed00dfcfca0ab51a688b2b4e3a4e97"
+      },
+      {
+        "name": "functions\\fn_pairs.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 1656,
+        "sha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284"
+      }
+    ]
+  },
+  "scope": "All one readable SQF reviewed. Binary config/startup, dependencies and licensing remain unverified; no source copied into product.",
+  "contributions": [
+    {
+      "intent": "A moving buddy is supported by the other, then roles alternate.",
+      "source": "Consecutive roster pairs toggle _leapFrog on the first actor; one doMove and one doSuppressiveFire per iteration.",
+      "cbe": "OperationStart/CombatPairs preserves pair metadata; CortexAdvanceStart/CortexAssaultStart and CortexFlankStep own finite group-element bounding and fire roles.",
+      "status": "PARTIAL: group-element bounding is not proof of independent pair-granular alternation. Outdoor team selection does not currently guarantee every persistent buddy stays in the same element."
+    },
+    {
+      "intent": "Keep a partner when casualties occur.",
+      "source": "Every iteration rebuilds consecutive alive roster pairs; no persistent identity or orphan repair and an odd actor gets no work.",
+      "cbe": "CombatPairs preserves intact eligible pairs and repairs orphans by nearest eligible3D partner; CombatPairsPublish retains out-of-scope living identity. RebalanceRoles repairs active participants under current generation/epoch and native-task guards.",
+      "status": "IMPLEMENTED_DIFFERENT_METHOD_PHYSICAL_ACCEPTANCE_PENDING"
+    },
+    {
+      "intent": "Move toward the fight while supporting fire remains available.",
+      "source": "Random15..25m zigzag toward a current live enemy transform, without terrain/path/fire-lane checks or route ownership.",
+      "cbe": "Finite authored/believed routes, actor admission, physical progress, original deadlines, screened avenues and native-order receipts. Suppression is separate owner-local fire control with ammunition, policy and protected-lane checks.",
+      "status": "INTEGRATED_BUILDING_BLOCKS_NOT_FULL_SOURCE_PARITY"
+    }
+  ],
+  "rejectedMechanics": [
+    "Endless allGroups loop with no sleep/interval; repeated native orders and group COMBAT writes even before enemy check.",
+    "No locality/player/Zeus/medical/ROE/external-owner guards; direct hidden live target position reads.",
+    "Unleased UP/MIDDLE stance and FULL speed writes with no restoration; role turn toggles per scan rather than after actual arrival or covering fire."
+  ],
+  "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
+  "remainingRequiredWork": [
+    "Compose persistent pairs with outdoor mover/cover element selection, preserving actual ammunition/weapon capabilities and casualty replacement. Pair identity alone must not grant movement authority.",
+    "Confirm physical role alternation, covering fire, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume.",
+    "Verify binary startup/dependencies/licence before calling the whole source review complete."
+  ],
+  "audits": "PAUSED",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "validation": {
+    "fullTests": 1477,
+    "focusedTests": 607,
+    "build": "PASS",
+    "independentVerification": "PASS",
+    "candidate": ".qa\\candidates\\role-replacement-medical-738d65a8",
+    "fingerprint": "4a2d14d492855298a0cb3fecf597fb13aaa1353f292a3a09cdc73d2039848936",
+    "signed": false,
+    "source": "738d65a8 plus intended replacement fix/docs"
+  }
+}

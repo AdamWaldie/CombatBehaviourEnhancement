@@ -37,9 +37,11 @@
       "name": "PROTOCOL AI PAIRS",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807",
       "metadataSHA256": "75bb5e4bc28cce88c69c8cbaa2cc2e4775617c0b6b08d195367b60b9bc72428f",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPT_REVIEWED_PARTIAL_INTENT_INTEGRATION",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-pairs-3802121807-20261020.json",
+      "remaining": "Persistent pair composition with outdoor mover/cover elements, binary startup/dependencies/licence, physical validation."
     },
     {
       "workshopId": "3803702313",
