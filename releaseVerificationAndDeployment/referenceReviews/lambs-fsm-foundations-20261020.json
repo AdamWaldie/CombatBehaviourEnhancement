@@ -29,7 +29,10 @@
     ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupCommandoDeploy.sqf": "0e7b5d6a94ce09a0432f36fba914adb0d9b45409b7c4ecdead726547fdded07a",
     ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupCommandoPack.sqf": "5b8364f6559fbd324315b39f87a403a032c86c17cf49a439f47190f6038cc532",
     ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleSuppress.sqf": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a",
-    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doSelectWarhead.sqf": "c42c29f48ee777f9a1ac49d5891e90f95224ef5435be30180b72b9081678f17a"
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doSelectWarhead.sqf": "c42c29f48ee777f9a1ac49d5891e90f95224ef5435be30180b72b9081678f17a",
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleAssault.sqf": "a3732f580364328744a7c2460e576b605341d35b1c8c6b5d25140fc75a99a637",
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleAssaultMove.sqf": "358718c429b2cabd07233ddc2ab8609f4d8d5df003e6e3de92649f758a526bd8",
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleRotate.sqf": "7169a6963c64d43c9699002f9cdb69b0cdc8c9831fca44f23360c3117fd154f7"
   },
   "branches": [
     {
@@ -603,5 +606,34 @@
       "Native suppression cannot be claimed quiescent merely by retiring CBE requests."
     ],
     "validation": "Full1482 static/unit, HEMTT/SQF/config/FSM/docs/build pass; no live audit, full-source parity, acceptance or score credit."
+  },
+  "vehicleManoeuvreComparison": {
+    "baseline": "a2a8f661",
+    "sources": [
+      ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleAssault.sqf",
+      ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleAssaultMove.sqf",
+      ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleRotate.sqf"
+    ],
+    "scope": "Initial assault/assault-move/rotation execution comparison, not whole vehicle acceptance.",
+    "sourceIntent": [
+      "Assault known hostile/building vicinity with native suppression; occasional aligned cannon request, jink when suppression fails.",
+      "For a mobile short-range vehicle, try forward clear firing position, oblique/road candidate then target vicinity.",
+      "Face threat with tracked native turn, or wheeled reposition; close threat gets watch instead. Timed callback stops turn and refreshes movement."
+    ],
+    "CBEAlready": [
+      "Tracked orientation uses finite8second operation, current danger/operation generation, alignment observation and movement lease; no transform snapping or extra persistent driver.",
+      "Jink uses native shared group route with finite operation/terrain avenue and refuses competing group movement; combined ground role has owned route/arrival/fire logic.",
+      "Known-belief/fire-lane/ammo and actual native weapon gates retain dedicated movement executor."
+    ],
+    "fixed": "Direct orientation bypassed group-waypoint external driving gate. Entry now refuses platform CBE_ExternalDrivingOwner or platform external-control marker. Current finite turn retires/cancels upon declaration; normal and CALM cleanup suppress STOPTURNING over that platform owner.",
+    "remaining": [
+      "Declared marker protection is not real provider handover/quiescence acknowledgement; no HBQ runtime interoperability proved.",
+      "Native turn may persist after metadata retirement until successor acts; no stop guarantee.",
+      "Source close35m watch policy and wheeled facing branch differ; assess against existing combat/fire/movement roles before adding parallel manoeuvre.",
+      "Autonomous assault versus explicit combined role coverage, safe building/cannon fire and source firemode intent remain incomplete.",
+      "Driver pending-care/native-task admission and full crew/platform authority across all movement paths still need review.",
+      "Actual manoeuvre, provider takeover and overhead are unmeasured."
+    ],
+    "validation": "Full1482 existing unit/static, HEMTT/SQF/config/FSM/docs/package pass; no audit, scores or whole-source parity."
   }
 }

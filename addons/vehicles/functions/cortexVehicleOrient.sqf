@@ -3,7 +3,8 @@
  * Purpose: Starts one finite chassis-orientation response for a stopped tracked fighting vehicle
  * toward the real hostile retained by the current native danger generation.
  * Locality / Authority: Runs on the current group and vehicle owner. It yields to convoy, player,
- * Zeus, specialist, existing operation and movement ownership before issuing a turn command.
+ * Zeus, specialist, declared platform driving ownership, existing operation and movement ownership
+ * before issuing a turn command. Platform takeover retires the turn receipt without replay.
  * Repeat/JIP: Acceptance and refusal are recorded by the caller for one danger generation. An
  * accepted response uses the shared operation generation and movement lease; the normal group tick
  * proves alignment or timeout and releases only the matching command owner.
@@ -26,6 +27,8 @@ if !([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnable
     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {false};
 if ([_group] call CBE_fnc_CortexExternalTakeover
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
+    || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+    || {[_vehicle] call CBE_fnc_CompatibilityExternalControl}
     || {!(_vehicle isKindOf "Tank")} || {!alive _vehicle} || {!canMove _vehicle}
     || {abs speed _vehicle > 5}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}

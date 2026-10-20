@@ -209,7 +209,10 @@ private _orientVehicle=_vehicleOrient param [1,objNull,[objNull]];
 if (!isNull _orientVehicle && {local _orientVehicle}) then {
     private _orientMarker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
     if (_orientMarker param [1,grpNull,[grpNull]] == _group) then {
-        if (!_yieldToExternal) then {_orientVehicle sendSimpleCommand "STOPTURNING"};
+        if (!_yieldToExternal && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
+            && {!([_orientVehicle] call CBE_fnc_CompatibilityExternalControl)}) then {
+            _orientVehicle sendSimpleCommand "STOPTURNING";
+        };
         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
     };
 };

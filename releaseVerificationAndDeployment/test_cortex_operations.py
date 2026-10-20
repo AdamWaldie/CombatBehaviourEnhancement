@@ -8661,6 +8661,18 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ['setDir','setVectorDir','setVelocity','setPos','doMove','commandMove','addWaypoint','while {']:
             self.assertNotIn(forbidden,orient)
         self.assertIn('vehicleDangerOrient',vehicles)
+
+        self.assertIn('CBE_ExternalDrivingOwner',orient)
+        self.assertLess(orient.index('CBE_ExternalDrivingOwner'),orient.index('call CBE_fnc_OperationStart'))
+        active=vehicles.split('private _orientControllerExternal=',1)[1].split('private _reverse=',1)[0]
+        self.assertIn('CBE_ExternalDrivingOwner',active)
+        self.assertIn('_activeVehicleMove=!_orientControllerExternal',active)
+        self.assertIn('if (_orientControllerExternal ||',vehicles)
+        self.assertIn('if (!_orientControllerExternal &&',vehicles)
+        calm=source('cortexRestoreCalm').split('private _vehicleOrient=',1)[1].split('if (!_yieldToExternal && {_state',1)[0]
+        self.assertLess(calm.index('CBE_ExternalDrivingOwner'),calm.index('sendSimpleCommand "STOPTURNING"'))
+        self.assertIn('CompatibilityExternalControl',calm)
+
         self.assertIn('_dangerProfile == "ARMOURED"',vehicles)
         self.assertIn('sendSimpleCommand "STOPTURNING"',vehicles)
         for marker in ['CBE_fnc_OperationCancel','VEHICLE_ORIENT_TIMEOUT','VEHICLE_ORIENT_ALIGNED',

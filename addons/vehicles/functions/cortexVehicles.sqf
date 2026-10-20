@@ -95,6 +95,7 @@ if (_vehicleMove isNotEqualTo []) then {
     private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"];
     if (_vehicleOwnsLease) then {
         private _movementOwner=_vehicleMove param [0,""];
+        private _orientControllerExternal=false;
         if (_movementOwner == "VEHICLE_ORIENT") then {
             private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
             private _orientVehicle=_orientState param [1,objNull,[objNull]];
@@ -102,7 +103,11 @@ if (_vehicleMove isNotEqualTo []) then {
                 _orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]
             } else {[]};
             private _targetPosition=_marker param [2,[],[[]]];
-            _activeVehicleMove=count _marker == 5
+            _orientControllerExternal=!isNull _orientVehicle && {
+                !isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}
+                    || {[_orientVehicle] call CBE_fnc_CompatibilityExternalControl}
+            };
+            _activeVehicleMove=!_orientControllerExternal && {count _marker == 5}
                 && {_marker param [1,grpNull,[grpNull]] == _group}
                 && {serverTime < (_marker param [3,0,[0]])}
                 && {count _targetPosition >= 2}
@@ -139,7 +144,7 @@ if (_vehicleMove isNotEqualTo []) then {
                     private _aligned=!isNull _orientVehicle && {count _targetPosition >= 2}
                         && {private _relative=_orientVehicle getRelDir _targetPosition;
                             _relative <= 20 || {_relative >= 340}};
-                    if ([_group] call CBE_fnc_CortexExternalTakeover) then {
+                    if (_orientControllerExternal || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
                         [_group,_generation,"EXTERNAL_OWNER"] call CBE_fnc_OperationCancel;
                     } else {
                         [_group,_generation,["INCOMPLETE","COMPLETE"] select _aligned,
@@ -173,7 +178,7 @@ if (_vehicleMove isNotEqualTo []) then {
                 if (!isNull _orientVehicle && {local _orientVehicle}) then {
                     private _marker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
                     if (_marker param [1,grpNull,[grpNull]] == _group) then {
-                        if !([_group] call CBE_fnc_CortexExternalTakeover) then {
+                        if (!_orientControllerExternal && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
                             _orientVehicle sendSimpleCommand "STOPTURNING";
                         };
                         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];

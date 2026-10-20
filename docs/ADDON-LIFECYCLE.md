@@ -1194,3 +1194,10 @@ muzzle. When none is ready, the existing reload observation retains its original
 wait; no deadline is renewed. Final selection still independently verifies the selected station,
 loaded magazine, rounds and completed reload. This changes no ammunition, route or movement owner.
 Physical alternate-weapon selection during reload and its effectiveness remain unverified.
+
+Tracked danger orientation shares the platform driving boundary used by group movement.
+A declared external driving owner or platform external-control marker refuses new turn commands.
+If ownership appears during the finite turn, CBE cancels its operation and removes its markers
+without sending STOPTURNING into the successor controller. Return-to-calm uses the same boundary.
+This is command ownership protection, not proof that either controller's queued engine actions
+have stopped. Physical takeover, native turn quiescence and performance remain unverified.
