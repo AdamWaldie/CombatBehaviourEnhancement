@@ -321,5 +321,31 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportBoundRetryFollowUp20261020": {
+    "baseline": "22771602",
+    "finding": "Child-local one-refresh counts could reset on coordinated bound reconstruction or parent adoption.",
+    "change": "Parent boundRetryAttempts retains at most64 actor keys with latest server sequence and spent refresh count. Consume and publish before native refresh. Only greater sequence replaces an older row; malformed or older rows refuse. Adoption validates and restores the journal before ACK. Standalone policy unchanged.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4",
+      "addons/support/functions/cortexSupportApply.sqf": "068c72e699e13d211dff41a849bdacb10f5f8b57a307e0c59f09985954635e1b"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": "48 actor reservation and607 operation cases pass",
+      "build": ".qa/cbe-support-bound-retry-build.log",
+      "independent": ".qa/cbe-support-bound-retry-independent.log",
+      "candidate": ".qa/candidates/support-bound-retry-22771602-74ddb1d4",
+      "fingerprint": "74ddb1d43bc2ce22111194ef4288a8f71bb7fa67b0f6458ef171998b736b143e",
+      "source": "22771602 plus intended dirty bound-retry changes"
+    },
+    "remaining": [
+      "Team-turn continuation and main-move replay review remain open.",
+      "Observed snapshot preservation does not prove ordered in-flight replication; normal/providerHC transfer and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

@@ -219,6 +219,17 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('_operation set ["recoveryAttempts",_sourceAttempts]',apply)
         self.assertIn('count _sourceAttempts == count (_sourceRecovery select 5)',apply)
         self.assertIn('_operation set ["supportExpiry",_expiry]',apply)
+        self.assertIn('_operation set ["boundRetryAttempts",_sourceBoundAttempts]',apply)
+        self.assertIn('count _sourceRecovery == 7',apply)
+        self.assertIn('count _sourceBoundAttempts == count (_sourceRecovery select 6)',apply)
+        retry=active.split('private _supportRetryAvailable=',1)[1].split('private _nativeCommandAvailable=',1)[0]
+        self.assertIn('count _budget > 64',retry)
+        self.assertIn('(_used select 0) < (_drill get "supportSequence")',retry)
+        self.assertIn('(_used select 0) == (_drill get "supportSequence")',retry)
+        issue=active.split('_x params ["_action","_unit","_slot"];',1)[1].split('} forEach _moveActions',1)[0]
+        self.assertLess(issue.index('_liveOperation set ["boundRetryAttempts",_budget]'),issue.index('_unit doMove'))
+        self.assertIn('_budget set [netId _unit,[_drill get "supportSequence",1]]',issue)
+
         self.assertIn('count (_sourceRecovery select 5) <= 64',apply)
 
 

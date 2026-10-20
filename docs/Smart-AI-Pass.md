@@ -1930,14 +1930,14 @@ Physical normal/provider-HC cover-to-bound flow, replication ordering, casualty 
 
 Coordinated parents identify their support token and original expiry in the shared operation record. Ownership transfer captures the observed spent recovery counts and unavailable actors before retiring that parent. Adoption validates the token, source generation, expiry and bounded record contents before constructing the new operation. Missing, oversized or malformed budget records refuse coordinated reconstruction. Duplicate actor keys cannot replace a higher spent count with a lower one.
 
-The new parent retains those counts and exclusions. Running recovery commands, destinations and observation timers are not replayed. The normal reinforcement rally path is unchanged. This adds bounded work at parent acceptance and ownership transfer, with no periodic scanner. Replication ordering, in-flight handover, repeated transfer and measured overhead remain unverified. Child-bound retry and deadline continuity remain a separate review scope.
+The new parent retains those counts and exclusions. Running recovery commands, destinations and observation timers are not replayed. The normal reinforcement rally path is unchanged. This adds bounded work at parent acceptance and ownership transfer, with no periodic scanner. Replication ordering, in-flight handover, repeated transfer and measured overhead remain unverified. Later sections describe the server deadline and parent-bound retry continuity; team-turn continuation remains open.
 
 
 ### Original server clock for coordinated bounds
 
 The server publishes each MOVE role's token, sequence, original deadline and point in `CBE_Cortex_SupportRoleDeadline`. That deadline is capped by the parent lease expiry. The role and clock may arrive separately. Owner admission waits within the existing five-second readiness window for a matching pair, then captures the original absolute limit. Missing, expired, mismatched or extended clocks cannot start a bound.
 
-Active child callbacks check that limit after current ownership and interruption checks. A transient clock mismatch suspends new movement while keeping the original deadline. Every movement issue also requires the captured clock to remain current. Expiry ends through ordinary timeout cleanup; reconstruction cannot obtain another server watchdog period. Cover and reservation retirement clear the clock. No new timer or movement controller is added. Physical replication ordering and timeout handback remain unverified. Per-child retry counts still need a separate transfer review.
+Active child callbacks check that limit after current ownership and interruption checks. A transient clock mismatch suspends new movement while keeping the original deadline. Every movement issue also requires the captured clock to remain current. Expiry ends through ordinary timeout cleanup; reconstruction cannot obtain another server watchdog period. Cover and reservation retirement clear the clock. No new timer or movement controller is added. Physical replication ordering and timeout handback remain unverified. The parent-bound retry journal below preserves the single refresh across reconstruction.
 
 
 ### Server redelivery after a support owner change
@@ -1945,3 +1945,9 @@ Active child callbacks check that limit after current ownership and interruption
 The server labels ownership-change redelivery separately from a new reservation. Its queued delivery waits within the original readiness window for the canonical locality-adopted parent, matching the actual machine, epoch, generation, token, expiry and support intent. It then uses that parent's original authored-order receipt to acknowledge the existing operation. If adoption does not become ready, the delivery rejects the exact lease snapshot. It cannot fall through into new operation admission.
 
 This prevents server redelivery from independently resetting recovery journals or hold-adoption windows. The ordinary first-delivery path remains separate. No extra worker or adoption trigger is introduced. Physical server-delivery/Local-event ordering and actual-provider HC flow remain unverified.
+
+### Coordinated route-refresh continuity
+
+A coordinated bound permits one native route refresh per actor and server bound sequence. The parent records that spent refresh before issuing the command, so rebuilding the child or adopting the parent cannot replenish it. A newer server sequence gets its own budget; an older sequence cannot replace a newer record. The journal retains at most 64 actor records. Malformed or oversized records refuse refresh/adoption rather than granting fresh authority. Standalone bounds retain their existing local policy.
+
+Ownership transfer carries these counts alongside generic recovery counts and exclusions, before the new parent is acknowledged. No command, destination or observation timer is replayed. This adds bounded journal work to existing callbacks and transfer, with no new worker. Team-turn continuation, physical transfer ordering and measured cost remain unverified.

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Coordinated adoption restores bounded recovery and route-refresh journals before acknowledgement.
  * Waits for the matching server reservation before issuing a support order on its current owner.
  * Locality/authority: queued only by authenticated SupportLocal; all execution gates are checked again.
  * Repeat/JIP: at most five seconds waiting for ordered lease/contact state; stale tokens never issue movement.
@@ -210,7 +211,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
     private _sourceRecovery=_job getOrDefault ["recoveryProof",[]];
     private _recoveryValid=!(_adopting && {_attackAllowed}) || {
-        _sourceRecovery isEqualType [] && {count _sourceRecovery == 6}
+        _sourceRecovery isEqualType [] && {count _sourceRecovery == 7}
             && {(_sourceRecovery select 0) isEqualTo _token} && {(_sourceRecovery select 3) isEqualTo _expiry}
             && {(_sourceRecovery select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])}
             && {(_sourceRecovery select 2) isEqualType 0} && {finite (_sourceRecovery select 2)}
@@ -225,10 +226,21 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
                     || {(_x select 1) != floor (_x select 1)}
             } < 0}
     };
+    if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
+        _recoveryValid=(_sourceRecovery select 6) isEqualType [] && {count (_sourceRecovery select 6) <= 64}
+            && {(_sourceRecovery select 6) findIf {
+                !(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}
+                    || {(_x select 0) == ""} || {!((_x select 1) isEqualType [])} || {count (_x select 1) != 2}
+                    || {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} >= 0}
+            } < 0};
+    };
+    private _sourceBoundAttempts=createHashMap;
     private _sourceAttempts=createHashMap;
     if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
         _sourceAttempts=createHashMapFromArray (_sourceRecovery select 5);
-        _recoveryValid=count _sourceAttempts == count (_sourceRecovery select 5);
+        _sourceBoundAttempts=createHashMapFromArray (_sourceRecovery select 6);
+        _recoveryValid=count _sourceAttempts == count (_sourceRecovery select 5)
+            && {count _sourceBoundAttempts == count (_sourceRecovery select 6)};
     };
     if (!_recoveryValid) exitWith {
         _okay=false;
@@ -255,6 +267,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     if (_adopting && {_attackAllowed}) then {
         _operation set ["unavailable",+(_sourceRecovery select 4)];
         _operation set ["recoveryAttempts",_sourceAttempts];
+        _operation set ["boundRetryAttempts",_sourceBoundAttempts];
     };
     _group setVariable ["CBE_Operation",_operation,true];
     private _generation=_operation get "generation";

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Coordinated recovery snapshots retain generic and per-server-bound refresh budgets; commands are not replayed.
  * Individual indoor work is cancelled on transfer; only an exact journal-owned native leg may
  * return to formation on the new owner. No indoor movement or deadline is replayed.
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
@@ -53,14 +54,18 @@ if (local _group) then {
             // command, running timer or destination is replayed on the new owner.
             private _spent=_previousOperation getOrDefault ["recoveryAttempts",createHashMap];
             private _unavailable=_previousOperation getOrDefault ["unavailable",[]];
+            private _boundSpent=_previousOperation getOrDefault ["boundRetryAttempts",createHashMap];
             if (count _supportLease == 6 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
                 && {(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)}
                 && {(_previousOperation getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}
                 && {_spent isEqualType createHashMap} && {count _spent <= 64}
-                && {_unavailable isEqualType []} && {count _unavailable <= 64}) then {
+                && {_unavailable isEqualType []} && {count _unavailable <= 64}
+                && {_boundSpent isEqualType createHashMap} && {count _boundSpent <= 64}) then {
                 _inheritedSupportRecovery=[_supportLease select 0,_previousOperation get "generation",
                     _previousOperation getOrDefault ["ownerEpoch",-1],_supportLease select 2,+_unavailable,
-                    (keys _spent) apply {[_x,_spent get _x]}];
+                    (keys _spent) apply {[_x,_spent get _x]},
+                    (keys _boundSpent) apply {private _entry=_boundSpent get _x;
+                        [_x,if (_entry isEqualType []) then {+_entry} else {_entry}]}];
             };
             private _checkpoint=createHashMapFromArray (_group getVariable ["CBE_AIPass_Checkpoint",[]]);
             private _candidate=_checkpoint getOrDefault ["drillIntent",[]];

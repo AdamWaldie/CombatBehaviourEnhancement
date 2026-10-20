@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8"
+              "sha256": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -778,7 +778,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -795,7 +795,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
@@ -843,7 +843,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -860,7 +860,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -2654,7 +2654,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -2671,7 +2671,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -2715,7 +2715,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -3440,7 +3440,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8"
+              "sha256": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",
@@ -3523,7 +3523,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -3580,7 +3580,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
@@ -3711,7 +3711,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",
-              "sha256": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe"
+              "sha256": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4"
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",

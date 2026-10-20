@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
  * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
+ * Coordinated route-refresh budgets remain in the parent, one per actor/server sequence, across reconstruction.
  * Local command receipts do not migrate. Initial admission and indistinguishable replacement
  * STOP over an unchanged owned hold remain limits; no native command-origin identity is available.
  * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
@@ -203,6 +204,23 @@ private _recordNativeCommand={
     } else {[]};
     _commands set [_key,[_actor,_kind,+(expectedDestination _actor),formLeader _actor,serverTime+2,_priorHold,+_goal]];
     _drill set ["nativeCommands",_commands];
+};
+// One refresh per actor/server bound survives child reconstruction. This shares the
+// parent operation, not a second retry controller; standalone policy is unchanged.
+private _supportRetryAvailable={
+    params ["_retryActor"];
+    if ((_drill getOrDefault ["supportToken",""]) == "") exitWith {true};
+    private _retryParent=_group getVariable ["CBE_Operation",createHashMap];
+    private _budget=_retryParent getOrDefault ["boundRetryAttempts",createHashMap];
+    if (!(_budget isEqualType createHashMap) || {count _budget > 64}
+        || {count _budget >= 64 && {!(netId _retryActor in _budget)}}) exitWith {false};
+    if (!(netId _retryActor in _budget)) exitWith {true};
+    private _used=_budget get (netId _retryActor);
+    _used isEqualType [] && {count _used == 2}
+        && {_used findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} < 0}
+        && {(_used select 0) < (_drill get "supportSequence") || {
+            (_used select 0) == (_drill get "supportSequence") && {(_used select 1) < 1}
+        }}
 };
 private _nativeCommandAvailable={
     params ["_actor"];
@@ -938,7 +956,17 @@ private _issue = {
     _drill set ["retries",_units apply {
         private _actor=_x;
         private _record=_resumeRetries findIf {(_x select 0) == _actor};
-        [if (_record < 0) then {0} else {(_resumeRetries select _record) select 1},_now]
+        private _count=if (_record < 0) then {0} else {(_resumeRetries select _record) select 1};
+        if (_support) then {
+            private _budget=(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["boundRetryAttempts",createHashMap];
+            private _used=if (_budget isEqualType createHashMap && {count _budget <= 64}) then {
+                _budget getOrDefault [netId _actor,[]]
+            } else {[]};
+            if (_used isEqualType [] && {count _used == 2}
+                && {(_used select 0) == (_drill get "supportSequence")}
+                && {(_used select 1) isEqualType 0} && {finite (_used select 1)}) then {_count=_count max (_used select 1)};
+        };
+        [_count,_now]
     }];
     _drill deleteAt "resumeSpots";
     _drill deleteAt "resumeRetries";
@@ -1024,7 +1052,8 @@ switch (_drill get "stage") do {
                     if ((_now-(_last select 3) >= 8 || {_returnedToWaypoint}) && {_now-(_retry select 1) >= 8}
                         && {(_retry select 0) < 1} && {_now <= _moveDeadline}
                         && {_unit checkAIFeature "PATH"}
-                        && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}) then {
+                        && {_unit checkAIFeature "MOVE"} && {[_unit] call _mayIssueMovement}
+                        && {[_unit] call _supportRetryAvailable}) then {
                         // Replan the same destination; do not move the actor or waive arrival.
                         // One native route refresh is allowed only after measured no-progress.
                         // Target and combat behaviour remain engine-owned.
@@ -1099,12 +1128,20 @@ switch (_drill get "stage") do {
                         [_unit,"HOLD"] call _recordNativeCommand;
                         _unit doWatch _enemyPos;
                     } else {
-                        _unit doMove (_spots select _slot);
-                        [_unit,"MOVE",_spots select _slot] call _recordNativeCommand;
-                        private _retry=_retries select _slot;
-                        _retry set [0,(_retry select 0)+1];
-                        _retry set [1,time];
-                        diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _slot)),currentCommand _unit,expectedDestination _unit,_spots select _slot,assignedTarget _unit];
+                        if ([_unit] call _supportRetryAvailable) then {
+                            if (_support) then {
+                                private _budget=_liveOperation getOrDefault ["boundRetryAttempts",createHashMap];
+                                _budget set [netId _unit,[_drill get "supportSequence",1]];
+                                _liveOperation set ["boundRetryAttempts",_budget];
+                                _group setVariable ["CBE_Operation",_liveOperation,true];
+                            };
+                            _unit doMove (_spots select _slot);
+                            [_unit,"MOVE",_spots select _slot] call _recordNativeCommand;
+                            private _retry=_retries select _slot;
+                            _retry set [0,(_retry select 0)+1];
+                            _retry set [1,time];
+                            diag_log format ["[CBE] Bound retry group=%1 unit=%2 bound=%3 attempt=%4 remaining=%5 command=%6 destination=%7 committed=%8 assignedTarget=%9",_group,netId _unit,_drill get "index",_retry select 0,(getPosASL _unit) vectorDistance (ATLToASL (_spots select _slot)),currentCommand _unit,expectedDestination _unit,_spots select _slot,assignedTarget _unit];
+                        };
                     };
                 };
             } forEach _moveActions;

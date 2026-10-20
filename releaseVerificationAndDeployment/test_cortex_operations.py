@@ -2637,7 +2637,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {[_unit] call _mayIssueMovement}) then {',step)
         for command in ['_actor doMove _rally;','_unit doMove _spot;','_unit doMove (_spots select _slot);']:
             index=step.index(command)
-            self.assertIn('_mayIssueMovement',step[max(0,index-800):index])
+            # Include the bounded retry journal published between admission and native issue.
+            self.assertIn('_mayIssueMovement',step[max(0,index-1400):index])
     def test_combined_arms_and_convoy_crew_yield_at_final_command_boundaries(self):
         combined=source('cortexCombinedArmsLocal')
         ground=source('cortexCombinedGroundStep')
