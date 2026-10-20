@@ -97,5 +97,26 @@
       "buildout": "passed; scores unchanged"
     },
     "physicalAcceptance": false
+  },
+  "finishRequestFollowUp": {
+    "baselineCommit": "776f50b0",
+    "finding": "DrivingQueueAgreementRelease retired private consent on FSM finish/owner loss but retained its root request. Terminal delivery uses current owners and expiry requires surviving consent, so neither guarantees old-machine request cleanup.",
+    "change": "In the same exact-consent retirement transaction, root context index0 also retires its request only when serial/context/original deadline/expiry all match. No current vehicle locality requirement or native commands were added.",
+    "holdReview": "DrivingQueueHold requires committed AGREED consent. AutoStep tests matching committed work before lost continuity, so the zero-cap hold does not trigger uncommitted cancellation.",
+    "runtimeSource": {
+      "path": "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+      "sha256": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+    },
+    "validation": {
+      "tests": 1477,
+      "focusedDriving": 251,
+      "newCases": 0,
+      "build": ".qa/cbe-queue-finish-request-build.log",
+      "independent": ".qa/cbe-queue-finish-request-preserved-independent.log",
+      "candidate": ".qa/candidates/queue-retirement-776f50b0-a59cbece",
+      "fingerprint": "a59cbece9b89a43de7bcf25157f8c651c33abfcfbe71e70f5c14e38d1d0f6813",
+      "source": "776f50b0 plus intended dirty finish-request edits"
+    },
+    "physicalAcceptance": false
   }
 }

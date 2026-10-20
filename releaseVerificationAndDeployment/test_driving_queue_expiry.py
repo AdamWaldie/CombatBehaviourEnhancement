@@ -113,5 +113,10 @@ class DrivingQueueExpiry(unittest.TestCase):
             self.assertNotIn(forbidden,executable)
         self.assertLess(release.index('if (!_matches) exitWith'),release.index('setVariable ["CBE_DrivingQueue_Consent",nil]'))
         self.assertIn('class DrivingQueueAgreementRelease', (ROOT/'addons/main/CfgFunctions.hpp').read_text())
+        self.assertIn('if (_index == 0 && {',release)
+        self.assertIn('_consent getOrDefault ["serial",-1],_context',release)
+        self.assertIn('_consent getOrDefault ["deadline",-1],_consent getOrDefault ["expires",-1]',release)
+        self.assertLess(release.index('isEqualTo _consent'),release.index('CBE_DrivingQueue_Request",nil'))
+
 
 if __name__=='__main__':unittest.main()

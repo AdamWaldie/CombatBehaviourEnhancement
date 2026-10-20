@@ -5,7 +5,8 @@
  * The captured vehicle-owner row must name this machine and both crew receipts must match the
  * retiring group, owner epoch and generation. Metadata cancellation remains valid after vehicle
  * locality is lost. The server authenticates this original participant; no native command follows.
- * A successor private receipt is never overwritten.
+ * Exact root request metadata retires with its consent, including on the old owner.
+ * A successor private receipt or request is never overwritten.
  * Repeat/JIP: Missing, malformed or replaced receipts do nothing. No handlers, timer renewal,
  * movement, speed restoration, peer state writes or JIP replay. Old expiry timers remain harmless.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
@@ -47,6 +48,11 @@ isNil {
     if (!isNull _vehicle && {(_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) isEqualTo _consent}) then {
         [_token,_consent getOrDefault ["expires",-1]] call CBE_fnc_DrivingQueueTokenClosed;
         _vehicle setVariable ["CBE_DrivingQueue_Consent",nil];
+        if (_index == 0 && {
+            (_vehicle getVariable ["CBE_DrivingQueue_Request",[]]) isEqualTo [
+                _consent getOrDefault ["serial",-1],_context,
+                _consent getOrDefault ["deadline",-1],_consent getOrDefault ["expires",-1]]
+        }) then {_vehicle setVariable ["CBE_DrivingQueue_Request",nil]};
         _retired=true;
     };
 };
