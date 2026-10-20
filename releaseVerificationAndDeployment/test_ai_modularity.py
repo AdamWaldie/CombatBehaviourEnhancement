@@ -67,6 +67,22 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('/ 256',text)
         self.assertIn('/ 512',text)
         self.assertNotIn('leader group',text)
+        primary=src('cortexPrimaryAmmoAvailable')
+        self.assertIn('!local _unit',primary)
+        self.assertIn('"this" in _muzzles',primary)
+        self.assertIn('_unit ammo _loadedMuzzle > 0',primary)
+        self.assertIn('compatibleMagazines [_weapon,_mainMuzzle]',primary)
+        self.assertIn('(_x select 1) > 0',primary)
+        self.assertLess(primary.index('_unit ammo _loadedMuzzle > 0'),primary.index('magazinesAmmo _unit'))
+        for name in ('cortexTacticalAssess','cortexAssaultStart'):
+            self.assertIn('CBE_fnc_CortexPrimaryAmmoAvailable',src(name))
+        def primary_available(loaded,reserves,compatible):
+            return loaded>0 or any(rounds>0 and name in compatible for name,rounds in reserves)
+        self.assertTrue(primary_available(4,[],{'rifle'}))
+        self.assertTrue(primary_available(0,[('rifle',7)],{'rifle'}))
+        self.assertFalse(primary_available(0,[('grenade',1)]*4,{'rifle'}))
+        self.assertFalse(primary_available(0,[('rifle',0)],{'rifle'}))
+
         for name in ['cortexAntiArmour','cortexMorale','cortexSupportApply']:
             self.assertIn('CBE_fnc_CortexCapabilities',src(name))
     def test_passengers_share_safety_checks_and_cleanup_does_not_board(self):

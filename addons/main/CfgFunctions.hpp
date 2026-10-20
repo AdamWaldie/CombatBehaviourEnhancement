@@ -365,6 +365,7 @@ class CfgFunctions {
             class CortexTacticalStart {file = "\z\cbe\addons\infantry\functions\cortexTacticalStart.sqf";};
             class CortexAssaultStart {file = "\z\cbe\addons\infantry\functions\cortexAssaultStart.sqf";};
             class CortexAdvanceStart {file = "\z\cbe\addons\infantry\functions\cortexAdvanceStart.sqf";};
+            class CortexPrimaryAmmoAvailable {file = "\z\cbe\addons\infantry\functions\cortexPrimaryAmmoAvailable.sqf";};
             class CortexAmmoShare {file = "\z\cbe\addons\infantry\functions\cortexAmmoShare.sqf";};
             class CortexCoordinatedAssault {file = "\z\cbe\addons\support\functions\cortexCoordinatedAssault.sqf";};
             class CortexDefend {file = "\z\cbe\addons\infantry\functions\cortexDefend.sqf";};

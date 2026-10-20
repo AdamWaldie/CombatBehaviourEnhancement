@@ -1244,7 +1244,8 @@
         "addons/infantry/functions/cortexAdvanceStart.sqf",
         "addons/infantry/functions/cortexTacticalStart.sqf",
         "addons/infantry/functions/cortexTacticalAssess.sqf",
-        "addons/infantry/functions/cortexTacticalReposition.sqf"
+        "addons/infantry/functions/cortexTacticalReposition.sqf",
+        "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf"
       ]
     },
     {

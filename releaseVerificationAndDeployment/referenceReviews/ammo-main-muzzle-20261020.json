@@ -27,5 +27,39 @@
   ],
   "physicalAcceptance": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "tacticalRifleCapacity20261020": {
+    "baseline": "65bbfa3b",
+    "finding": "Assessment and direct close-assault admission counted possession of a primary weapon without any primary-ammunition availability.",
+    "implementation": [
+      "Shared actor-owner read-only main-muzzle ammunition predicate; loaded rounds fast exit before compatible-reserve enumeration.",
+      "Assessment armed rifle count and close-assault roster require loaded main rounds or a compatible positive reserve.",
+      "Keep native reloading/firing, separate immediate readiness/ROE, physical squad counts and existing launcher classifier. No inventory or native command writes."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf": "73a26a0c8230f3be0f067dc8e40839f158429db342e65bc603c51476c72cb79f",
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "1642aed9c0ae5c9cfcadacff5beb37b0c399b6a818cc96ed607f73177c5ffd16",
+      "addons/infantry/functions/cortexAssaultStart.sqf": "641108f666c1e85c5c272a128b126dbb4e2183f7449ab6afc365fcfb9ab0754c"
+    },
+    "cost": "One main-muzzle config lookup/loaded count per considered actor; empty main muzzle reads compatible reserves. No cache/controller/world scan. Runtime cost unmeasured.",
+    "validation": {
+      "focusedTests": 656,
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-rifle-ammo-capacity-focused-final.log",
+      "full": ".qa/cbe-rifle-ammo-capacity-build.log",
+      "independent": ".qa/cbe-rifle-ammo-capacity-independent.log",
+      "candidate": ".qa/candidates/rifle-ammo-capacity-65bbfa3b-41e80b6e",
+      "fingerprint": "41e80b6e840acc4eaab7a852654902714ef78b3b9be0df53ff39d1957bfdfcd5",
+      "retainedInitialFailure": ".qa/cbe-rifle-ammo-capacity-focused.log: generated source-coverage report stale after helper registration; regenerated before rerun."
+    },
+    "remaining": [
+      "Physical mixed ammunition/reload and small-element outcomes unverified.",
+      "Existing flank/advance direct admission and active-drill exhaustion/role reassessment are separate scopes.",
+      "Custom named-muzzle ordering and frame-time acceptance remain unverified."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
 }

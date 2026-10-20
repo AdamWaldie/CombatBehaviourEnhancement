@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Current rifle capacity also requires loaded or spare main-muzzle ammunition;
+ * an underbarrel reserve cannot substitute for an empty primary rifle.
  * Current rifle/AT/AA capacity uses the shared protected-task/reservation predicate;
  * no available actor leaves existing work in control, without a group fallback request.
  * Purpose: Select one bounded group-level combat intent from existing native knowledge, force capability, terrain and mission orders.
@@ -76,7 +78,7 @@ if (_availableFoot isEqualTo []) exitWith {
     _result set ["evidence",[count _foot,0]];
     _result
 };
-private _armedFoot=_availableFoot select {primaryWeapon _x != ""};
+private _armedFoot=_availableFoot select {primaryWeapon _x != "" && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 if (count _armedFoot < 2) exitWith {
     // A single fresh infantry opponent at immediate firing range is not, by itself,
     // a reason to turn a surviving rifleman away. Keep native engagement/mission movement;
