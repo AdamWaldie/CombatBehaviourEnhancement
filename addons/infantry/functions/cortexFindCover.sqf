@@ -90,12 +90,7 @@ private _result = [];
     };
     if (_free) then {
         private _endASL = _candidateASL vectorAdd [0, 0, 1];
-        // Start the object ray 2 m out from the threat: starting at the believed enemy position
-        // would hit the enemy soldier (or his own cover) and make every spot look covered.
-        private _rayStart = _threatASL vectorAdd ((_threatASL vectorFromTo _endASL) vectorMultiply 2);
-        private _blocked = terrainIntersectASL [_threatASL, _endASL]
-            || {(lineIntersectsSurfaces [_rayStart, _endASL, _actor, objNull, true, 1, ["FIRE","VIEW"] select (_mode == "CONCEALMENT"),
-                ["GEOM","NONE"] select (_mode == "CONCEALMENT")]) isNotEqualTo []};
+        private _blocked=[_threatASL,_endASL,_actor,_mode] call CBE_fnc_CortexCoverScreened;
         if (_blocked) then {_result = [_candidate, true]};
     };
     if (_result isNotEqualTo []) exitWith {};

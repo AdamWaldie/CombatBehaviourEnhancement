@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-21",
+  "baseline": "f6ca19a9",
+  "scope": "Shared cover screening surface identity and finite segment clipping",
+  "finding": "Selection/adoption accepted any returned object hit; a human surface could grant false screening. Their duplicate policy also risked drift. Fixed2m source offset could overshoot a close endpoint.",
+  "change": "Single read-only CortexCoverScreened uses existing mode/actor semantics, terrain test, atmostone4-hit objectray; parent-first identity excludes CAManBase. Segment offset min2m/half length never passesendpoint. Invalid/degenerate points failbeforequeries. Both existing consumers call it; no new movement/setting/worker/cache/deadline.",
+  "cost": "One objectray unchanged, maximum returned surfaces rises1to4; bounded4identity checks. Saturation can conservatively miss solid behindpeople. Runtime unmeasured.",
+  "limits": "Does not establish path/continuous screening/physical cover quality or overall performance budget. No audit/parity/score claim.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexCoverScreened.sqf",
+      "sha256": "e3abb4fccf76724bd72090a66149aa003a6aebbb5556f20f1e191e0d3711f570"
+    },
+    {
+      "path": "addons/infantry/functions/cortexFindCover.sqf",
+      "sha256": "d32e142cabd78c8cc99b55e4b53d00b5996747ef9bed66b796239dfe883ff668"
+    },
+    {
+      "path": "addons/infantry/functions/dangerCoverStep.sqf",
+      "sha256": "89679566541425161014bb1d62f4df168ce35680860a20d023cd3b7ede88bc01"
+    },
+    {
+      "path": "addons/main/CfgFunctions.hpp",
+      "sha256": "8e40860ca58cd6ddb94cf858c172e01d3fe9ee35e25c1ffb7a83066217e87739"
+    }
+  ],
+  "validation": "Full1482 unit/static, HEMTT/SQF/config/FSM/docs/package passed .qa/cover-screen-identity-verified-build.log. Initial source-coverage failure corrected mapping newhelper to existing COVER case, then generated FEATURE_STATUS sourcecount refreshed; acceptance unchanged. Unsignedcandidate .qa/candidates/cover-screen-identity-f6ca19a9 independentfingerprintb3bac08a42432d6a64ac373709e02df4166547651526ed69d74df10a607cb841. No physical/performance claim."
+}

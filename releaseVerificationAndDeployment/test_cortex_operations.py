@@ -9865,8 +9865,10 @@ class CortexOperations(unittest.TestCase):
     def test_concealment_is_explicit_and_separate_from_ballistic_cover(self):
         cover=source('cortexFindCover')
         self.assertIn('["_mode","COVER",[""]]',cover)
-        self.assertIn('["FIRE","VIEW"] select (_mode == "CONCEALMENT")',cover)
-        self.assertIn('["GEOM","NONE"] select (_mode == "CONCEALMENT")',cover)
+        screen=source('cortexCoverScreened')
+        self.assertIn('["FIRE","VIEW"] select (_mode == "CONCEALMENT")',screen)
+        self.assertIn('["GEOM","NONE"] select (_mode == "CONCEALMENT")',screen)
+        self.assertIn('CBE_fnc_CortexCoverScreened',cover)
         danger=source('dangerCoverStep')
         self.assertEqual(danger.count('call CBE_fnc_CortexFindCover'),1)
         self.assertIn('"NO_VALID_COVER"',danger)
@@ -9876,10 +9878,9 @@ class CortexOperations(unittest.TestCase):
         adoption=danger.split('// A fresh observation is not automatically',1)[1].split('_lease set [1,_generation]',1)[0]
         self.assertIn('_generation == (_group getVariable ["CBE_Danger_Generation",0])',adoption)
         self.assertIn('_screening in ["COVER","CONCEALMENT"]',adoption)
-        self.assertIn('["FIRE","VIEW"] select (_screening == "CONCEALMENT")',adoption)
-        self.assertIn('["GEOM","NONE"] select (_screening == "CONCEALMENT")',adoption)
-        self.assertIn('terrainIntersectASL [_screenStart,_screenEnd]',adoption)
-        self.assertIn('[_rayStart,_screenEnd,_actor,objNull',adoption)
+        self.assertIn('[_screenStart,_screenEnd,_actor,_screening] call CBE_fnc_CortexCoverScreened',adoption)
+        self.assertIn('terrainIntersectASL [_start,_end]',screen)
+        self.assertIn('!(_object isKindOf "CAManBase")',screen)
         self.assertNotIn('doMove',adoption.replace('// deadline, repeat doMove','// deadline, repeat command'))
 
     def test_alert_observation_is_finite_and_preserves_committed_movement(self):

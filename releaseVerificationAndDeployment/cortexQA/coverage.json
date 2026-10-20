@@ -735,7 +735,8 @@
         "runCover.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexFindCover.sqf"
+        "addons/infantry/functions/cortexFindCover.sqf",
+        "addons/infantry/functions/cortexCoverScreened.sqf"
       ]
     },
     {

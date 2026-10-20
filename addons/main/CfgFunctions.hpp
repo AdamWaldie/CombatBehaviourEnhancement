@@ -301,6 +301,7 @@ class CfgFunctions {
             class BuildingExteriorCandidate {file = "\z\cbe\addons\infantry\functions\buildingExteriorCandidate.sqf";};
             class BuildingExteriorProposal {file = "\z\cbe\addons\infantry\functions\buildingExteriorProposal.sqf";};
             class CortexFindCover {file = "\z\cbe\addons\infantry\functions\cortexFindCover.sqf";};
+            class CortexCoverScreened {file = "\z\cbe\addons\infantry\functions\cortexCoverScreened.sqf";};
             class CortexFireControl {file = "\z\cbe\addons\core\functions\cortexFireControl.sqf";};
             class CortexFireCountermeasure {file = "\z\cbe\addons\infantry\functions\cortexFireCountermeasure.sqf";};
             class CortexMissileDefenceStep {file = "\z\cbe\addons\aircraft\functions\cortexMissileDefenceStep.sqf";};

@@ -1334,3 +1334,14 @@ order receipts remain required; no doMove is repeated and the original deadline 
 extended. Endpoint heights and recipient exclusion match selection. At most one object
 ray plus a terrain-intersection check runs for this eligible event transition. Physical
 screening and performance remain unverified.
+
+Cover selection and active danger-leg adoption now share a read-only screening predicate.
+Human surfaces cannot establish either cover or concealment. Parent/direct hit resolution
+checks at most four returned surfaces from the existing single object ray, allowing a solid
+object behind a passing person to qualify within that bound. Terrain screening, recorded
+mode and intended-actor exclusion remain. Saturation may conservatively miss an obstruction
+behind several human hits. The source-body offset is capped to half the segment length,
+so a close threat cannot reverse the ray beyond its endpoint; invalid or degenerate segments
+refuse. No movement, persistent cache, new setting or scheduler is introduced. The ray count
+is unchanged; returned-hit processing grows from one to at most four. Physical screening
+and frame-time cost remain unverified.

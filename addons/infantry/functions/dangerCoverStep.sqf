@@ -87,11 +87,7 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease s
         // A geometry-only obstruction cannot promote visual concealment to ballistic cover.
         private _screenStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
         private _screenEnd=(AGLToASL (_lease select 3)) vectorAdd [0,0,1];
-        private _rayStart=_screenStart vectorAdd ((_screenStart vectorFromTo _screenEnd) vectorMultiply 2);
-        terrainIntersectASL [_screenStart,_screenEnd]
-            || {lineIntersectsSurfaces [_rayStart,_screenEnd,_actor,objNull,true,1,
-                ["FIRE","VIEW"] select (_screening == "CONCEALMENT"),
-                ["GEOM","NONE"] select (_screening == "CONCEALMENT")] isNotEqualTo []}
+        [_screenStart,_screenEnd,_actor,_screening] call CBE_fnc_CortexCoverScreened
     }) then {
     _lease set [1,_generation];
     _lease set [4,+_threat];
