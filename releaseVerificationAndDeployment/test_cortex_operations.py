@@ -896,6 +896,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_AIPass_Epoch',queued)
         self.assertIn('currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]',queued)
         self.assertLess(queued.index('["NEW_TASK",'),queued.index('_unit doWatch'))
+        for guard in ('simulationEnabled _unit','isObjectHidden _unit','ace_medical_ai_healQueue'):
+            self.assertIn(guard,queued)
+            self.assertGreaterEqual(throw.count(guard),3)
+        self.assertLess(queued.index('["ACTOR_UNAVAILABLE"]'),queued.index('_unit doWatch'))
+        self.assertLess(queued.index('["ACTOR_UNAVAILABLE"]'),queued.index('_unit forceWeaponFire'))
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',queued)
+        smoke=source('dangerSmokeStep')
+        for guard in ('simulationEnabled _actor','!isObjectHidden _actor','ace_medical_ai_healQueue'):
+            self.assertIn(guard,smoke.split('private _actorAvailable=',1)[1].split('private _members=',1)[0])
+
         throw_qa=(Path(__file__).parent/'cortexQA/runContact.sqf').read_text(encoding='utf-8')
         self.assertIn('GRENADE-direction-%1-%2-%3',throw_qa)
         self.assertIn('[_throwActor,_destination,_kind] call CBE_fnc_CortexThrowGrenade',throw_qa)

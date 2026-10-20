@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Admission, queue commitment and every delayed aim/release retry yield to hidden or
+ * simulation-disabled actors and queued medical treatment; no queue or deadline is changed.
  * Makes one soldier throw a smoke or fragmentation grenade he is carrying, towards a position.
  *
  * Grenade types are identified from config, so mod grenades work: smoke is ammo simulation shotSmoke
@@ -46,7 +48,8 @@
  */
 
 params [["_unit", objNull, [objNull]], ["_towards", [], [[]]], ["_kind", "SMOKE", [""]], ["_context",[],[[]]]];
-if (isNull _unit || {!alive _unit} || {!local _unit} || {isPlayer _unit} || {!isNull remoteControlled _unit} || {vehicle _unit != _unit} || {count _towards < 2}) exitWith {false};
+if (isNull _unit || {!alive _unit} || {!local _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit}
+    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []} || {isPlayer _unit} || {!isNull remoteControlled _unit} || {vehicle _unit != _unit} || {count _towards < 2}) exitWith {false};
 if (!([_unit] call CBE_fnc_CortexCombatEffective)
     || {([_unit] call CBE_fnc_CortexExternalOwner) != ""}
     || {[_unit] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
@@ -126,6 +129,8 @@ private _thrown = false;
         if (_muzzleIndex >= 0) then {
             isNil {
             if (!([_unit,_context] call _contextMatches) || {!local _unit}
+                || {!simulationEnabled _unit} || {isObjectHidden _unit}
+                || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                 || {!([_unit] call CBE_fnc_CortexCombatEffective)}
                 || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {};
             private _muzzle = _muzzles select _muzzleIndex;
@@ -151,6 +156,10 @@ private _thrown = false;
                 };
                 if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
                 if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
+                if (!simulationEnabled _unit || {isObjectHidden _unit}
+                    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {
+                    ["ACTOR_UNAVAILABLE"] call _cancel;
+                };
                 if ((_group getVariable ["CBE_OperationGeneration",0]) != _operationGeneration
                     || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _ownerEpoch}
                     || {!local _group}

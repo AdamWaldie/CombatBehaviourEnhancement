@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Dormant/hidden actors and queued medical healers are excluded before inventory work.
  * Direction requires retained native contact; an impact without contact cannot define a throw bearing.
  * Purpose: Opportunistically deploy one carried smoke grenade during a severe finite danger response without delaying cover, movement, firing or the group operation state.
  * Locality / Authority: Runs inside the owner-local group-brain scheduler. It selects one local foot soldier and queues one local throw after rechecking CBE, Zeus, specialist and generation ownership.
@@ -31,7 +32,9 @@ private _reserved=if (count _operation > 0) then {+(_operation getOrDefault ["pa
 private _actorAvailable={
     params ["_actor"];
     // Unknown/malformed reservations retain their owner; only the shared typed lease can expire.
-    !([_actor] call CBE_fnc_CortexActorMoveReserved)
+    simulationEnabled _actor && {!isObjectHidden _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
 };
 private _members=(units _group) select [0,64];
 private _candidates=_members select {

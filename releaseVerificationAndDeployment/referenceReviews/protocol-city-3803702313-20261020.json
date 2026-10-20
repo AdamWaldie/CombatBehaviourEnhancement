@@ -1,0 +1,85 @@
+{
+  "workshopId": "3803702313",
+  "name": "PROTOCOL AI CITY TACTICS",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3803702313\\addons\\prototcol_ai_city_tactics.pbo",
+    "sha256": "3723886a871b8460a833c3d03ab8d183973ef4abe7e7c99f9f4bba91e6bd87e4",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 676,
+        "sha256": "ea887b51a097b73a6b43f988df5be92a4f2b076528b389b9481f93fca275c9cb"
+      },
+      {
+        "name": "functions\\fn_city_tactics.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 3653,
+        "sha256": "7ef96881b268d0147ecce0b95f32a6ecaa75c5228e93687f1a0ba1d78f77c2a2"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 532,
+        "sha256": "8ba7a3a9c080df36458f68cfa4e958cbfbff93af7dabf5b52d0e060479dd78d0"
+      }
+    ]
+  },
+  "scope": "Both readable SQF files fully reviewed. Binary config/startup binding, dependency declaration and licence unverified. No source copied into product.",
+  "contributions": [
+    {
+      "intent": "A covering soldier supports others moving behind building cover.",
+      "source": "First alive unit moves2.5m from building centre, crouches/watches/suppresses; remaining soldiers move to random offsets4m behind centre after2s.",
+      "cbe": "CortexFindCover/CortexSelectAvenue screen routes and cover; CortexFlankStep finite mover/cover roles and actual arrival drive stages. Persistent pairs and capacity balance compose with those roles.",
+      "departure": "No building-centre offset as proof of cover or access, no fixed delay as evidence of arrival, no automatic leader-as-cover assignment.",
+      "status": "EXISTING_PATHS_PHYSICAL_QUALITY_PENDING"
+    },
+    {
+      "intent": "Smoke screens street movement.",
+      "source": "Carrier forceWeaponFire after playAction. CoverSmoke true assignment is commented out; its false reset can leave repeated throws until inventory empty.",
+      "cbe": "CROSS_NEAR arrival dispatches carried smoke through CortexThrowGrenade; DangerSmokeStep retains independent danger generation/cooldown and native contact direction. Queued release has original1.5s window and alignment/inventory/authority checks.",
+      "departure": "No grenade creation, no waiting for smoke as movement completion and no renewal by repeated retry. Safety fix now yields to queued treatment/dormancy.",
+      "status": "EXISTING_EXECUTION_WITH_CONCRETE_LIFECYCLE_FIX"
+    },
+    {
+      "intent": "Continue from one covered position to the next.",
+      "source": "After another1s, all actors including original coverman receive another building-centre move.",
+      "cbe": "Finite planned routes/points, physical progress and role alternation retain the original operation deadline and native-order receipts.",
+      "departure": "No overlapping arbitrary target-centre movements. Detailed building/obstacle cover quality still requires runtime evidence.",
+      "status": "EXISTING_FINITE_EXECUTION_NOT_PARITY_PROOF"
+    }
+  ],
+  "ownershipAndCostDefects": [
+    "Loop has no outer delay when there is no eligible contact/building; scans allGroups and peractor findNearestEnemy, repeated nearby building queries.",
+    "Uses live hostile transform; forcibly sets RED/COMBAT and enableAttack true over mission intent.",
+    "No actor/locality/medical/native-task/Zeus/new-operation lifecycle; local leader check alone does not grant authority over every actor."
+  ],
+  "configuration": "Two CBA toggles are behaviour intent references, not a reason to add duplicate source-branded switches or Zeus settings modules.",
+  "concreteFix": "CortexThrowGrenade admission, prequeue commitment and delayed aim/release now reject hidden, simulation-disabled and queued-treatment actors. DangerSmokeStep filters same before inventory work. No treatment mutation, grenade spending on refusal, timer renewal or wait worker.",
+  "validation": {
+    "focusedTests": 607,
+    "fullTests": 1477,
+    "compilerFsmDocsPackage": "PASS",
+    "independentVerification": "PASS",
+    "candidate": ".qa\\candidates\\throw-availability-927f1a00",
+    "fingerprint": "6856a7294838a363521cfdc48fa2054a3d4ce6a328d1d6eb3112d626610a68c8",
+    "signed": false,
+    "source": "927f1a00 plus intended throw availability/docs"
+  },
+  "remaining": "Physical cover/route quality, actual smoke deployment/effect, casualty/owner handover and performance remain unverified. No broad parity claim.",
+  "audits": "PAUSED",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false
+}
