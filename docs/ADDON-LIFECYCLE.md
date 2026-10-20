@@ -1201,3 +1201,11 @@ If ownership appears during the finite turn, CBE cancels its operation and remov
 without sending STOPTURNING into the successor controller. Return-to-calm uses the same boundary.
 This is command ownership protection, not proof that either controller's queued engine actions
 have stopped. Physical takeover, native turn quiescence and performance remain unverified.
+
+Danger orientation and jink starts require a combat-effective local driver whose MOVE/PATH remain
+enabled and whose native tasks, medical queue and actor reservation are free. Both refuse declared
+platform driving ownership before creating an operation. Orientation records the original driver;
+a seat change or protected task cancels it and suppresses late turn cleanup in the group tick and
+return-to-calm. Existing eight-second orientation and twenty-five-second jink budgets are unchanged.
+These checks preserve identifiable task authority; they do not stop or acknowledge queued native
+turning, nor establish physical medical/seat handback or external-controller interoperability.

@@ -6,7 +6,8 @@
  * Zeus, specialist, declared platform driving ownership, existing operation and movement ownership
  * before issuing a turn command. Platform takeover retires the turn receipt without replay.
  * Repeat/JIP: Acceptance and refusal are recorded by the caller for one danger generation. An
- * accepted response uses the shared operation generation and movement lease; the normal group tick
+ * accepted response binds its original driver and uses the shared operation generation and movement
+ * lease. A replaced/protected driver retires without late turn commands; the normal group tick
  * proves alignment or timeout and releases only the matching command owner.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat position <ARRAY>;
  * 4 threat object <OBJECT>; 5 danger generation <NUMBER, -1>.
@@ -37,7 +38,11 @@ private _commander=effectiveCommander _vehicle;
 private _driver=driver _vehicle;
 if (isNull _commander || {!alive _commander} || {!local _commander} || {isPlayer _commander}
     || {group _commander != _group} || {!isNull (remoteControlled _commander)}
-    || {isNull _driver} || {!alive _driver} || {!local _driver} || {isPlayer _driver}) exitWith {false};
+    || {isNull _driver} || {!alive _driver} || {!local _driver} || {isPlayer _driver}
+    || {group _driver != _group} || {!isNull remoteControlled _driver}
+    || {!([_driver] call CBE_fnc_CortexCombatEffective)}
+    || {!(_driver checkAIFeature "MOVE")} || {!(_driver checkAIFeature "PATH")}
+    || {!([_driver] call CBE_fnc_CortexActorFireTaskAvailable)}) exitWith {false};
 if (_commander knowsAbout _threat <= 0) exitWith {false};
 private _relative=_vehicle getRelDir _threatPosition;
 if (_relative <= 20 || {_relative >= 340}) exitWith {false};
@@ -52,6 +57,6 @@ _vehicle sendSimpleCommand (["LEFT","RIGHT"] select (_relative < 180));
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
 _vehicle setVariable ["CBE_Danger_VehicleOrient",[
-    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration
+    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver
 ],true];
 true

@@ -209,8 +209,14 @@ private _orientVehicle=_vehicleOrient param [1,objNull,[objNull]];
 if (!isNull _orientVehicle && {local _orientVehicle}) then {
     private _orientMarker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
     if (_orientMarker param [1,grpNull,[grpNull]] == _group) then {
+        private _turnDriver=_orientMarker param [5,objNull,[objNull]];
         if (!_yieldToExternal && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
-            && {!([_orientVehicle] call CBE_fnc_CompatibilityExternalControl)}) then {
+            && {!([_orientVehicle] call CBE_fnc_CompatibilityExternalControl)}
+            && {!isNull _turnDriver} && {driver _orientVehicle == _turnDriver}
+            && {local _turnDriver} && {group _turnDriver == _group} && {!isPlayer _turnDriver}
+            && {isNull remoteControlled _turnDriver}
+            && {[_turnDriver] call CBE_fnc_CortexCombatEffective}
+            && {[_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable}) then {
             _orientVehicle sendSimpleCommand "STOPTURNING";
         };
         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];

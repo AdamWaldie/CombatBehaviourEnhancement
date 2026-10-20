@@ -30,6 +30,8 @@ if !([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnable
     && {[_group,"CBE_AIPass_VehicleJink_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {["DISABLED"] call _refuse};
 if ([_group] call CBE_fnc_CortexExternalTakeover
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
+    || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+    || {[_vehicle] call CBE_fnc_CompatibilityExternalControl}
     || {_vehicle isKindOf "StaticWeapon"} || {!(_vehicle isKindOf "LandVehicle")}
     || {!alive _vehicle} || {!canMove _vehicle} || {abs speed _vehicle > 25}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
@@ -37,6 +39,10 @@ if ([_group] call CBE_fnc_CortexExternalTakeover
 private _driver=driver _vehicle;
 if (isNull _driver || {!alive _driver} || {!local _driver} || {isPlayer _driver}
     || {group _driver != _group} || {!isNull (remoteControlled _driver)}) exitWith {["DRIVER"] call _refuse};
+// Share the existing protected-task/reservation predicate; refuse before reserving an operation.
+if (!([_driver] call CBE_fnc_CortexCombatEffective)
+    || {!(_driver checkAIFeature "MOVE")} || {!(_driver checkAIFeature "PATH")}
+    || {!([_driver] call CBE_fnc_CortexActorFireTaskAvailable)}) exitWith {["DRIVER_TASK"] call _refuse};
 // A vehicle carrying passengers first owes them the normal task-safe dismount decision. The jink
 // is reserved for a crewed fighting platform and cannot drag an unloading squad away.
 if ((fullCrew [_vehicle,"",false]) findIf {

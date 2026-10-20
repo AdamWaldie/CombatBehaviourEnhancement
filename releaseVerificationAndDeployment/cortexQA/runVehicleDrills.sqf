@@ -228,6 +228,7 @@ private _orientVehicle=createVehicle ["O_MBT_02_cannon_F",[1580,880,0],[],0,"NON
 createVehicleCrew _orientVehicle;
 _orientVehicle allowDamage false;
 _orientVehicle setDir 0;
+private _orientOriginalDriver=driver _orientVehicle;
 private _orientGroup=group driver _orientVehicle;
 [_orientGroup] call _pin;
 _orientGroup setCombatMode "RED";
@@ -273,7 +274,9 @@ private _orientKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientTar
     str [_orientCrew apply {[_x knowsAbout _orientTarget,_x targetKnowledge _orientTarget]},
         getPosATL _orientVehicle,getPosATL _orientTarget]] call _check;
 private _orientOwned=[{
-    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 5
+    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 6
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [5,objNull,[objNull]]) == _orientOriginalDriver}
+        && {driver _orientVehicle == _orientOriginalDriver}
         && {private _state=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];
             (_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_ORIENT"}
 },25] call _wait;

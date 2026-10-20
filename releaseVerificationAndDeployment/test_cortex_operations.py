@@ -8663,6 +8663,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('vehicleDangerOrient',vehicles)
 
         self.assertIn('CBE_ExternalDrivingOwner',orient)
+
+        jink=source('cortexVehicleJink')
+        for starter in [orient,jink]:
+            for guard in ['CortexActorFireTaskAvailable','CortexCombatEffective','checkAIFeature "MOVE"','checkAIFeature "PATH"']:
+                self.assertIn(guard,starter)
+            self.assertLess(starter.index('CortexActorFireTaskAvailable'),starter.index('call CBE_fnc_OperationStart'))
+        self.assertIn('_operationGeneration,_driver',orient)
+        self.assertIn('driver _orientVehicle != _turnDriver',vehicles)
+        self.assertIn('!_orientDriverProtected',vehicles)
+        self.assertIn('DRIVER_TASK_OR_SEAT',vehicles)
+
         self.assertLess(orient.index('CBE_ExternalDrivingOwner'),orient.index('call CBE_fnc_OperationStart'))
         active=vehicles.split('private _orientControllerExternal=',1)[1].split('private _reverse=',1)[0]
         self.assertIn('CBE_ExternalDrivingOwner',active)
@@ -8672,6 +8683,8 @@ class CortexOperations(unittest.TestCase):
         calm=source('cortexRestoreCalm').split('private _vehicleOrient=',1)[1].split('if (!_yieldToExternal && {_state',1)[0]
         self.assertLess(calm.index('CBE_ExternalDrivingOwner'),calm.index('sendSimpleCommand "STOPTURNING"'))
         self.assertIn('CompatibilityExternalControl',calm)
+        self.assertIn('driver _orientVehicle == _turnDriver',calm)
+        self.assertIn('CortexActorFireTaskAvailable',calm)
 
         self.assertIn('_dangerProfile == "ARMOURED"',vehicles)
         self.assertIn('sendSimpleCommand "STOPTURNING"',vehicles)
@@ -8680,6 +8693,8 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,vehicles)
         self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
+        self.assertIn('driver _orientVehicle == _orientOriginalDriver',audit)
+        self.assertIn('param [5,objNull,[objNull]]) == _orientOriginalDriver',audit)
         for marker in ['DANGER-VEHICLE-orient-disabled','DANGER-VEHICLE-orient-operation-owned',
                        'DANGER-VEHICLE-orient-physical-alignment','DANGER-VEHICLE-orient-no-travel',
                        'DANGER-VEHICLE-orient-crew-retained']:

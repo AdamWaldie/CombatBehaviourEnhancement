@@ -96,6 +96,7 @@ if (_vehicleMove isNotEqualTo []) then {
     if (_vehicleOwnsLease) then {
         private _movementOwner=_vehicleMove param [0,""];
         private _orientControllerExternal=false;
+        private _orientDriverProtected=false;
         if (_movementOwner == "VEHICLE_ORIENT") then {
             private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
             private _orientVehicle=_orientState param [1,objNull,[objNull]];
@@ -107,7 +108,14 @@ if (_vehicleMove isNotEqualTo []) then {
                 !isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}
                     || {[_orientVehicle] call CBE_fnc_CompatibilityExternalControl}
             };
-            _activeVehicleMove=!_orientControllerExternal && {count _marker == 5}
+            private _turnDriver=_marker param [5,objNull,[objNull]];
+            _orientDriverProtected=isNull _turnDriver || {driver _orientVehicle != _turnDriver}
+                || {!local _turnDriver} || {group _turnDriver != _group} || {isPlayer _turnDriver}
+                || {!isNull remoteControlled _turnDriver}
+                || {!([_turnDriver] call CBE_fnc_CortexCombatEffective)}
+                || {!(_turnDriver checkAIFeature "MOVE")} || {!(_turnDriver checkAIFeature "PATH")}
+                || {!([_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable)};
+            _activeVehicleMove=!_orientControllerExternal && {!_orientDriverProtected} && {count _marker == 6}
                 && {_marker param [1,grpNull,[grpNull]] == _group}
                 && {serverTime < (_marker param [3,0,[0]])}
                 && {count _targetPosition >= 2}
@@ -144,8 +152,8 @@ if (_vehicleMove isNotEqualTo []) then {
                     private _aligned=!isNull _orientVehicle && {count _targetPosition >= 2}
                         && {private _relative=_orientVehicle getRelDir _targetPosition;
                             _relative <= 20 || {_relative >= 340}};
-                    if (_orientControllerExternal || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
-                        [_group,_generation,"EXTERNAL_OWNER"] call CBE_fnc_OperationCancel;
+                    if (_orientControllerExternal || {_orientDriverProtected} || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
+                        [_group,_generation,["EXTERNAL_OWNER","DRIVER_TASK_OR_SEAT"] select _orientDriverProtected] call CBE_fnc_OperationCancel;
                     } else {
                         [_group,_generation,["INCOMPLETE","COMPLETE"] select _aligned,
                             ["VEHICLE_ORIENT_TIMEOUT","VEHICLE_ORIENT_ALIGNED"] select _aligned]
@@ -178,7 +186,8 @@ if (_vehicleMove isNotEqualTo []) then {
                 if (!isNull _orientVehicle && {local _orientVehicle}) then {
                     private _marker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
                     if (_marker param [1,grpNull,[grpNull]] == _group) then {
-                        if (!_orientControllerExternal && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+                        if (!_orientControllerExternal && {!_orientDriverProtected}
+                            && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
                             _orientVehicle sendSimpleCommand "STOPTURNING";
                         };
                         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];

@@ -634,6 +634,14 @@
       "Driver pending-care/native-task admission and full crew/platform authority across all movement paths still need review.",
       "Actual manoeuvre, provider takeover and overhead are unmeasured."
     ],
-    "validation": "Full1482 existing unit/static, HEMTT/SQF/config/FSM/docs/package pass; no audit, scores or whole-source parity."
+    "validation": "Full1482 existing unit/static, HEMTT/SQF/config/FSM/docs/package pass; no audit, scores or whole-source parity.",
+    "driverAuthorityFollowup": {
+      "baseline": "f73a4e8e",
+      "admission": "Orientation and jink reuse existing read-only ActorFireTaskAvailable native-task/medical-queue/reservation predicate, plus combat-effective driver and MOVE/PATH. Orientation additionally verifies driver group/remote control. Jink now refuses platform driving/external markers before operation reservation, not only later GroupMove.",
+      "orientationLifecycle": "Marker now six fields including original driver in field5; current driver, locality/group/player/remote, combat-effective, MOVE/PATH and task availability must remain valid. Protected/replaced driver cancels with DRIVER_TASK_OR_SEAT; tick/CALM suppress STOPTURNING over it. Old five-field receipt grants no continuing permission.",
+      "fixture": "Existing runVehicleDrills ownership prerequisite updated to six-field original driver/current seat; real alignment/travel/crew checks unchanged. Prepared only, no runtime result.",
+      "limits": "Reuse of native fire-task predicate is intentional for identical protected-task/reservation semantics; it does not exclude all ordinary MOVE/ATTACK commands or prove authored-route ownership. Jink continuation retains existing shared movement lifecycle; full mid-leg treatment/seat handback, native queued turn quiescence and external interoperability remain unresolved.",
+      "validation": "Full1482/HEMTT/config/FSM/docs/build pass. Final QA-only receipt assertion update reran1482 tests and SQF433 files, zero errors. No new case count/acceptance/scores."
+    }
   }
 }
