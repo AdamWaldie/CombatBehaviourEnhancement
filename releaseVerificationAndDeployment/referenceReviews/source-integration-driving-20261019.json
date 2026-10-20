@@ -769,5 +769,37 @@
     ],
     "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-child-build.log; candidate .qa/candidates/bypass-child-45324a97-0b1a9814 fingerprint 0b1a98140e8ac3b8b8662c58c5e745982a1b10b0ffed792a251e5f681fdeb5a6 actual45324a97+intendeddirtysource. Initial4 source-contract mismatches retained .qa/cbe-bypass-child-focused-initial.log; original route veto prefix preserved and cap classification case extended for exact child. No new tests/scores.",
     "audits": "PAUSED"
+  },
+  "cornerApproachRoomConstraint20261020": {
+    "sourceParent": "b86d832a",
+    "hashes": {
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "4d785006088ffd2884fac85d5c3c259c1c081935a93a9af2e987383ad8425996",
+      "addons/vehicles/functions/drivingPathGeometry.sqf": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "b8835ba389d82556beedfa70ae92187987e441b465fd1bb39f1f637a6648f51b"
+    },
+    "finding": "Ordinary static bypass requires minY>radius+6 and before=minY-radius-3 >= rampTravel=max(1.5*abs(lateral)/tan35,12). Therefore it needs at least radius+15m approach, and often more. Current ordinary rear plan prefers6m travel, falls back2m. Side sensing alone cannot make this planner execute a corner release from a close-contact start.",
+    "examples": [
+      {
+        "halfWidth": 1,
+        "halfLength": 2,
+        "radius": 3.23606797749979,
+        "optimisticMinimumApproach": 18.23606797749979,
+        "contactThenSixMetreBackoffApproximateApproach": 8,
+        "note": "Lower bound only: required ramp can exceed12m with actual obstacle lateral span. Contact pose and obstacle geometry are illustrative, not in-engine measurements."
+      },
+      {
+        "halfWidth": 2,
+        "halfLength": 4,
+        "radius": 5.47213595499958,
+        "optimisticMinimumApproach": 20.47213595499958,
+        "contactThenSixMetreBackoffApproximateApproach": 10,
+        "note": "Lower bound only: required ramp can exceed12m with actual obstacle lateral span. Contact pose and obstacle geometry are illustrative, not in-engine measurements."
+      }
+    ],
+    "geometryBoundary": "DrivingPathGeometry does not ignore the source obstacle and uses a circumscribed body envelope. Removing the approach gate or ignoring the contacted obstacle would discard required swept clearance. No such relaxation made.",
+    "sourceDisposition": "HBQ side push was examined as explicit velocity-model-space/yaw forcing in a finite EachFrame list. It does not provide a native steering trajectory. Current CBE native-recovery design rejects copying that physical-control method; this is an engineering disposition, not a claim that the user categorically forbids all source shortcuts.",
+    "nextAction": "Design one shared read-only approach-room calculation for actual obstacle/hull metadata. Determine whether a longer freshly supported native back-off can create a feasible gradual bypass within the existing parent hard deadline; if not, retain failure. Do not implement side detection as claimed corner recovery until a consuming native manoeuvre can use it. Any reverse duration reallocation must preserve total parent deadline and final native handback.",
+    "validation": "Analytic source constraint only; no production change, no physical result and no redundant build. Existing latest full1477 candidate bypass-child-45324a97-0b1a9814 remains preserved.",
+    "audits": "PAUSED"
   }
 }
