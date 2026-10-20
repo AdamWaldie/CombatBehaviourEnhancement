@@ -973,5 +973,34 @@
     "implementationHashes": {
       "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
     }
+  },
+  "mixedConvoyExecutionReview20261020": {
+    "reviewedSource": "56ed7b63",
+    "upstreamSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "sources": {
+      "addons/vehicles/functions/convoyTick.sqf": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e",
+      "addons/vehicles/functions/convoyOperationStep.sqf": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+    },
+    "upstreamIntent": [
+      "HBQ _fnc_Release refuses general speed release while _TrafHold is active; traffic release owns its own reset. Busy state is finite.",
+      "Retain safety holds across recovery release instead of forceSpeed-1 momentarily reopening collision motion."
+    ],
+    "currentExecution": [
+      "ConvoyTick ordinary revision/speed/halt edits preserve predecessor trail/cursor unless vehicle line or explicit reacquire changes; actual reacquisition invalidates movement commitments.",
+      "Lead severe-gap measured-speed pacing blends across tolerance, rather than a discrete cap jump at twice target gap.",
+      "Follower forward speed distinguishes reverse predecessor motion; proportional spacing and bounded outer-gap boost feed a mass-adjusted raw closing cap.",
+      "Existing acceleration/deceleration smoothing is subordinate to raw compression closing cap and immediate reverse yield.",
+      "Lead final writer applies bypass, traffic/geometry and infantry minima before forceSpeed; follower writer applies traffic/passage/bypass/infantry minima after spacing smoothing. Guarded owner writes retain exact owned speed receipts."
+    ],
+    "disposition": "Do not tune gains or weaken closing limits from source review alone. HBQ general-vs-traffic hold invariant has corresponding min-composition in the inspected CBE writers; this is structural correspondence, not whole-controller parity or physical proof.",
+    "retainedGaps": [
+      "Mixed tracked/wheeled physical step-off/braking and sustained gap convergence remain unverified.",
+      "Current docs/code cannot establish whether old observed stop-start came from spacing, native path acquisition, obstacle cap, infantry cap or actual track response.",
+      "When audits are authorized, use existing captureControl cap provenance/native endpoint journals for repeated mixed convoy stop/resume; measure actual position/speed and retained zero-cap source rather than tune by visual impression alone."
+    ],
+    "productChanged": false,
+    "audits": "PAUSED",
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

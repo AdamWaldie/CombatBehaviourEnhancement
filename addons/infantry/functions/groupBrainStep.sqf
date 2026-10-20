@@ -11,7 +11,9 @@
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
- * committed delay or a danger wake. A migrated or superseded callback records cancellation only.
+ * committed delay or a danger wake. Live coordinated COVER maintenance caps that delay at two
+ * seconds so distance/reaction tuning cannot outlast its six-second capacity report. No new worker.
+ * A migrated or superseded callback records cancellation only.
  * A callback whose FSM ended retires its queue flags without running decisions or cleanup;
  * the existing discovery sweep owns replacement of the recurring group brain.
  * Arguments: 0: brain <HASHMAP> created by CBE_fnc_GroupBrainStart.
@@ -193,6 +195,15 @@ if (isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}) exitWith {
 };
 
 private _state=[_group] call CBE_fnc_CortexGroupState;
+// Capacity freshness is a protocol deadline, not tactical reaction tuning. Keep only
+// a live coordinated COVER helper on this existing callback within its six-second TTL.
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+private _supportRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
+if (_state getOrDefault ["assaulting",false] && {count _supportLease == 6}
+    && {count _supportRole == 5} && {(_supportRole select 0) == (_supportLease select 0)}
+    && {(_supportRole select 2) == "COVER"} && {serverTime < (_supportLease select 2)}) then {
+    _delay=_delay min 2;
+};
 private _legacyPhase=_state getOrDefault ["phase","CALM"];
 private _semanticPhase=switch (_legacyPhase) do {
     case "RETREAT": {"WITHDRAW"};

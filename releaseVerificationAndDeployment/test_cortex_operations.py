@@ -85,6 +85,16 @@ class CortexOperations(unittest.TestCase):
 
 
     def test_prepared_coordination_is_separate_from_execution_and_rally(self):
+        brain=source('groupBrainStep')
+        maintenance=brain.split('// Capacity freshness is a protocol deadline',1)[1].split('private _legacyPhase=',1)[0]
+        for guard in ('count _supportLease == 6','count _supportRole == 5',
+                      '(_supportRole select 0) == (_supportLease select 0)',
+                      '(_supportRole select 2) == "COVER"','serverTime < (_supportLease select 2)',
+                      '_delay=_delay min 2'):
+            self.assertIn(guard,maintenance)
+        self.assertLess(brain.index('_delay=_delay min 2'),brain.index('_brain set ["nextAt",time+_delay]'))
+        for delay in (0.5,2,20,80):
+            self.assertLessEqual(min(delay,2),2)
         ack=source('cortexSupportAck')
         self.assertLess(ack.index('HeadlessResolveSender'),ack.index('CBE_Cortex_SupportEligibility'))
         self.assertLess(ack.index('_lease isNotEqualTo _snapshot'),ack.index('CBE_Cortex_SupportEligibility'))

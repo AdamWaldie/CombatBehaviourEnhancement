@@ -213,5 +213,22 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "coverProtocolCadence20261020": {
+    "baseline": "56ed7b63",
+    "finding": "GroupTick distance tier can return20s and reaction tuning can extend this to80s, exceeding six-second capacity freshness.",
+    "implementation": "GroupBrainStep caps existing callback delay at2s only for active assault plus exact current COVER role/lease token and unexpired lease, after tactical reaction/distance delay. No worker/TTL renewal; stale observations still fail closed under overload.",
+    "sourceSHA256": "975fd6c6cf35947d2f82b316e2cb45c9b43a3e1e177fccee8dd48c51b79a165f",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-cover-cadence-build.log",
+      "independent": ".qa/cbe-cover-cadence-independent.log",
+      "candidate": ".qa/candidates/cover-cadence-56ed7b63",
+      "fingerprint": "c52752ee96ff8bfd4dc65a54410c10b5e3983080a2237a746ab5191828d0afd4"
+    },
+    "limits": "Distant active helpers now receive more callbacks; runtime overhead and actual scheduler latency unmeasured. Physical normal/HC bootstrap remains unverified.",
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
