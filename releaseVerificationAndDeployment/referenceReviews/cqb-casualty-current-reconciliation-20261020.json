@@ -117,5 +117,19 @@
       "scope": "Existing test case extended with bounded roster arithmetic and source contracts; no added unit cases or in-engine execution."
     },
     "limits": "Stable-roster fairness is not physical promotion acceptance. Roster churn, large groups, repeated losses and normal/providerHC behavior and overhead remain unverified. Audits paused."
+  },
+  "completePostExclusionsFollowUp": {
+    "baselineCommit": "edb8648d",
+    "finding": "The proactive reallocation path collected planned post exclusions from only the first16 eligible reserves, so a later actor approaching a reserved destination could be omitted.",
+    "change": "Read all current eligible reserve stage positions within the existing64-actor journal bound. Held rejected/exhausted posts still reserve their positions; active approaches/arrivals also contribute observation lanes. Include the existing at-most8 early-exit rows. Counts above the existing128-position/64-lane geometry limits defer before search budget mutation or query; no truncated exclusion list is treated as complete.",
+    "sourceSha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-full-post-exclusions-build.log",
+      "independent": ".qa/cbe-cqb-full-post-exclusions-independent.log",
+      "fingerprint": "b9ef770425bac197305034768469dc62c11f399110fa582bbbf62988ef4d9e19",
+      "packageSource": "edb8648d plus dirty intended exclusion/test edits"
+    },
+    "limits": "No additional world scan, scheduler or geometry selection budget. Metadata work can cover more actors; runtime overhead and physical destination convergence/spacing remain unverified. Audits paused."
   }
 }

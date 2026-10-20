@@ -48,6 +48,14 @@ class ClearExitRelief(unittest.TestCase):
             self.assertNotIn(forbidden,rebalance)
         self.assertLess(rebalance.index('_stageSearchCounts set'),rebalance.index('call CBE_fnc_BuildingExteriorProposal'))
         self.assertIn('_reserveStages set [_candidateKey,[+_target,false,"APPROACH"',dispatch)
+        reservations=rebalance.split('// Include every admitted reserve destination',1)[1].split('private _searchAdmitted=',1)[0]
+        self.assertIn('forEach _reserves;',reservations)
+        self.assertNotIn('_reserves select [0,16]',reservations)
+        self.assertIn('_post isNotEqualTo []',reservations)
+        self.assertIn('count _reserves > 64',rebalance)
+        self.assertLess(rebalance.index('count _taken <= 128 && {count _lanes <= 64}'),
+                        rebalance.index('_stageSearchCounts set'))
+
 
     def test_unrun_fixture_requires_natural_readiness_and_physical_overlap(self):
         s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')

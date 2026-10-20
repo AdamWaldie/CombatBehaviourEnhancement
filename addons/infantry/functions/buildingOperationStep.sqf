@@ -2227,7 +2227,7 @@ private _delay=call {
     };
     private _securityRebalanced=false;
     {
-        if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0}) exitWith {};
+        if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0} || {count _reserves > 64}) exitWith {};
         private _lostKey=_x;
         private _lostGuard=objectFromNetId _lostKey;
         private _lostStage=+(_reserveStages getOrDefault [_lostKey,[]]);
@@ -2247,9 +2247,33 @@ private _delay=call {
                     && {(_candidateStage param [5,[]]) isNotEqualTo _lostExit}
                     && {_searchCount < 3} && {[_candidate] call _mayPromoteReserve}) then {
                     private _proof=_promotionProofs get _candidateKey;
+                    // Include every admitted reserve destination, not a fixed prefix.
+                    // Even an exhausted held post occupies space; only active watching
+                    // posts contribute observation corridors. Full inputs fail closed
+                    // against the existing geometry limits before spending an attempt.
+                    private _taken=[];private _lanes=[];
+                    {
+                        private _post=_reserveStages getOrDefault [netId _x,[]];
+                        if (_x != _candidate && {[_x] call _reserveReady}
+                            && {_post isNotEqualTo []}) then {
+                            _taken pushBack +(_post select 0);
+                            if ((_post param [2,""]) in ["APPROACH","ARRIVED"]
+                                && {count (_post param [4,[]]) == 3}) then {
+                                _lanes pushBack [+(_post select 0),+(_post select 4)];
+                            };
+                        };
+                    } forEach _reserves;
+                    {
+                        private _row=_earlyExits get _x;
+                        if ((_row param [3,""]) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
+                            _taken pushBack +(_row select 1);
+                            _lanes pushBack [+(_row select 1),+(_row select 6)];
+                        };
+                    } forEach (keys _earlyExits select [0,8]);
                     private _searchAdmitted=false;
                     isNil {
-                        if (call _mayIssueMovement && {[_candidate,_proof] call _promotionProofCurrent}) then {
+                        if (count _taken <= 128 && {count _lanes <= 64}
+                            && {call _mayIssueMovement} && {[_candidate,_proof] call _promotionProofCurrent}) then {
                             _stageSearchBudget=_stageSearchBudget-1;
                             _stageAttempts pushBackUnique _candidateKey;
                             _stageSearchCounts set [_candidateKey,_searchCount+1];
@@ -2258,23 +2282,6 @@ private _delay=call {
                         };
                     };
                     if (_searchAdmitted) then {
-                        private _taken=[];private _lanes=[];
-                        {
-                            private _post=_reserveStages getOrDefault [netId _x,[]];
-                            if (_x != _candidate && {[_x] call _reserveReady}
-                                && {(_post param [2,""]) in ["APPROACH","ARRIVED"]}
-                                && {count (_post param [4,[]]) == 3}) then {
-                                _taken pushBack +(_post select 0);
-                                _lanes pushBack [+(_post select 0),+(_post select 4)];
-                            };
-                        } forEach (_reserves select [0,16]);
-                        {
-                            private _row=_earlyExits get _x;
-                            if ((_row param [3,""]) in ["MOVING","ARRIVED"] && {count (_row param [6,[]]) == 3}) then {
-                                _taken pushBack +(_row select 1);
-                                _lanes pushBack [+(_row select 1),+(_row select 6)];
-                            };
-                        } forEach (keys _earlyExits select [0,8]);
                         private _watch=+(_lostStage select 4);
                         private _target=[_candidate,_lostStage select 0,_lostExit,_taken,_lanes] call CBE_fnc_BuildingExteriorProposal;
                         private _valid=count _target == 3 && {[_candidate,_building,_target,_lostExit,_watch,
