@@ -18,6 +18,8 @@
  * command, or explicit STOP, cancels seat actions even when its destination is unchanged.
  * The issued candidate seat switch may expose its own asynchronous ACTION phase. A newer
  * indistinguishable ACTION during that window cannot be identified by command observations.
+ * Candidate selection requires current assignment to the actual occupied seat, using the
+ * existing fullCrew assigned-unit field. Newer seat intent and explicit unassignment defer.
  * Candidate selection and each seat-action boundary preserve strict actor movement reservations.
  * A newly reserved candidate cancels this attempt before ejecting or switching seats.
  * Journals without these command receipts retire without replaying a seat action.
@@ -162,9 +164,11 @@ if (count _work == 0) then {
         private _actor=_x select 0;
         alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {simulationEnabled _actor} && {!isObjectHidden _actor}
             && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
-            && {assignedVehicle _actor in [objNull,_vehicle]}
+            && {assignedVehicle _actor == _vehicle}
+            && {(_x param [5,objNull]) == _actor}
             && {currentCommand _actor != "STOP"}
     };
     private _cargo=_choices select {toLowerANSI (_x select 1) == "cargo"};

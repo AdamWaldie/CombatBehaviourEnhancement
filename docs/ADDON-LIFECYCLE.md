@@ -1086,3 +1086,8 @@ Natural contact-led and body-clue building investigation excludes individual BLU
 ### Combat replacement preserves the commander's seat intent
 
 A mounted commander can replace a lost primary gunner only while still assigned to the actual commander turret they occupy. Recovery reads that vehicle's commander seat and compares its assigned occupant and turret path with the candidate's native assignment. Explicit unassignment, a different vehicle, or a newer driver/cargo/other-turret assignment refuses before assignment or internal seat action. No fixed commander turret path is assumed. The existing incoming-gunner, native task, owner, reservation and once-per-generation guards remain. This adds one filtered crew-seat observation per attempted combat recovery, with no scan or worker. Physical seat transitions and performance remain unverified while audits are paused.
+
+
+### Driver replacement admission preserves seat intent
+
+Ordinary dead-driver replacement selects only occupied crew members still assigned to that vehicle and that actual seat. It reads the assigned-unit field from the existing crew snapshot. Explicit unassignment and another seat assignment cannot become a recovery baseline merely because the actor remains physically aboard. Hidden or suspended candidates also defer before selection, so they cannot consume an attempt before a usable alternative. Cargo, commander, other crew and primary-gunner priority applies after this eligibility filter. Existing command/assignment receipts still protect the admitted attempt and native seat-action boundaries. No additional crew query, scan, timer or forced seating is added. Actual seat switching, repeated recovery, HC transfer and performance remain unverified while audits are paused.

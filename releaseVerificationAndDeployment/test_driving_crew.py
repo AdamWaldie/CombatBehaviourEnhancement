@@ -16,6 +16,24 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertNotIn('moveIn',selection)
         admission=s.split('if (count _work == 0) then {',1)[1]
         self.assertLess(admission.index('private _cargo='),admission.index('_work=createHashMapFromArray'))
+        choices=admission.split('private _choices=',1)[1].split('private _cargo=',1)[0]
+        self.assertIn('assignedVehicle _actor == _vehicle',choices)
+        self.assertIn('(_x param [5,objNull]) == _actor',choices)
+        self.assertIn('simulationEnabled _actor',choices)
+        self.assertIn('!isObjectHidden _actor',choices)
+        self.assertNotIn('assignedVehicle _actor in [objNull,_vehicle]',choices)
+        self.assertNotIn('fullCrew',choices)
+        # Role priority applies only after actual-seat assignment eligibility.
+        def choose(rows):
+            eligible=[row for row in rows if row[2] and row[3] and (len(row)<5 or row[4])]
+            return next((row[0] for role in ('cargo','commander','turret','gunner')
+                         for row in eligible if row[1]==role),None)
+        self.assertEqual(choose([('reassigned','cargo',True,False),('ready','commander',True,True)]),'ready')
+        self.assertEqual(choose([('unassigned','cargo',False,False),('gunner','gunner',True,True)]),'gunner')
+        self.assertEqual(choose([('cargo','cargo',True,True),('commander','commander',True,True)]),'cargo')
+        self.assertIsNone(choose([('unassigned','cargo',False,False)]))
+        self.assertEqual(choose([('hidden','cargo',True,True,False),('ready','commander',True,True,True)]),'ready')
+
 
     def test_actions_are_once_per_phase_and_vacancy_is_observed(self):
         s=self.source().split('params [[',1)[1]
@@ -141,7 +159,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('&& {!_crewBoardingHold}',assist)
         self.assertIn('"CREW_BOARDING"',step)
 
-        source=self.source()
+        source=self.source().split('params [[',1)[1]
         self.assertLess(source.index('count _liveWork == 0'),source.index('call CBE_fnc_DrivingRouteReceipt'))
         self.assertLess(source.index('count _liveWork == 0'),source.index('fullCrew'))
 
