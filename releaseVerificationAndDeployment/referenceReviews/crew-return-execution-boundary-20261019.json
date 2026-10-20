@@ -108,5 +108,24 @@
     },
     "validation": "613 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-noop-build.log. Candidate .qa/candidates/unload-noop-090afe15-3d4f22e5 fingerprint 3d4f22e5dc64ccea49e80fb24dbc05f3926930da9668a4a54c8bc7c780d0c4dd actual090afe15+dirtysource. Independent copied-package verification .qa/cbe-unload-noop-independent.log. No added cases or scores.",
     "audits": "PAUSED"
+  },
+  "convoySeatIntent20261020": {
+    "sourceParent": "bd474b34",
+    "sourceIntent": "HBQ crew return treats changed/unassigned vehicle intent as ordered-out rather than automatic return consent. CBE explicit convoy upkeep adopts actual occupants, but cannot continually reclaim newer assigned seats/vehicles on the same convoy revision.",
+    "finding": "Mounted-upkeep repairSeat treated assignment changes as faults on every sample, and only driver/effective-commander native tasks were checked at entry. A gunner/passenger assignment or service task could be overwritten by assignAs/orderGetIn upkeep.",
+    "implementation": "Read previous actual-adoption marker before per-unit admission. Same group/revision plus changed vehicle or occupied-seat assignment vetoes repair and boarding, independent of recorded clientOwner; a fresh explicit revision can adopt. Shared existing task list and actor movement-reservation veto apply to each occupant before native seat writes. Existing driver/operator whole-callback guard remains. No forced seats/new worker/timer/settings.",
+    "cost": "Reuses existing per-occupant assignment reads; adds marker comparison and per-actor native task/reservation predicate. No extra world/seat scan or publication. Engine cost unmeasured.",
+    "limits": "Physical assignment transitions, service tasks, owner migration, renewed explicit revisions and actual boarding unverified. Identical native writes remain indistinguishable. This does not implement automatic crew recall or prove source parity.",
+    "implementationHashes": {
+      "addons/vehicles/functions/convoyCrewLocal.sqf": "52a26a0f3073b2c1a204e27245c4279bc6ca949771c1e83b82fc2ecbbdabba6f"
+    },
+    "validation": "689 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-convoy-seat-intent-build.log. Candidate .qa/candidates/convoy-seat-intent-bd474b34-f1624117 fingerprint f1624117121ba3e2048971c6c79ce1deabbd0ab1600d3065322eed81e58f13fa actualbd474b34+dirtysource. Independent copied-package verification .qa/cbe-convoy-seat-intent-independent.log. No new cases or scores.",
+    "audits": "PAUSED"
+  },
+  "differentValueRestorationReview20261020": {
+    "finding": "Ordinary master stop/group release and convoy release restore exact previous/applied lease without an existing dedicated deferred unload-property service. Native setUnloadInCombat side effect on different-value restoration has not been reproduced.",
+    "disposition": "Retain exact existing restoration for now. Do not discard a changed policy without restoring it, blindly reissue incoming orderGetIn true, or add an unbounded/new cleanup worker based on the documentation alone. Preserve as explicit engine acceptance boundary, distinct from completed no-op/initial-admission protections.",
+    "audits": "PAUSED",
+    "productChange": "NONE"
   }
 }

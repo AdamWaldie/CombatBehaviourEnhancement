@@ -1899,7 +1899,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
-              "sha256": "6c79870b48c56594ec1e7574e4f5584a038d04f69af561a769f5590f67c85979"
+              "sha256": "52a26a0f3073b2c1a204e27245c4279bc6ca949771c1e83b82fc2ecbbdabba6f"
             }
           ]
         },
@@ -1912,7 +1912,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
-              "sha256": "6c79870b48c56594ec1e7574e4f5584a038d04f69af561a769f5590f67c85979"
+              "sha256": "52a26a0f3073b2c1a204e27245c4279bc6ca949771c1e83b82fc2ecbbdabba6f"
             },
             {
               "path": "addons/vehicles/functions/convoyTick.sqf",
@@ -2107,7 +2107,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
-              "sha256": "6c79870b48c56594ec1e7574e4f5584a038d04f69af561a769f5590f67c85979"
+              "sha256": "52a26a0f3073b2c1a204e27245c4279bc6ca949771c1e83b82fc2ecbbdabba6f"
             }
           ]
         },

@@ -111,6 +111,15 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         self.assertIn('CortexActorMoveReserved',task_free)
         crew=(ROOT/'addons/vehicles/functions/convoyCrewLocal.sqf').read_text(encoding='utf-8')
         self.assertLess(crew.index('if (_nativeCrewTask) exitWith {}'),crew.index('orderGetIn true'))
+        upkeep=crew.split('private _assignedOccupant =',1)[1].split('private _fireEnabled',1)[0]
+        for guard in ('(_previousAssignment select [0,2]) isEqualTo [_group,_revision]',
+                      '&& {_repairSeat}','!_assignmentReplaced',
+                      '[_unit] call CBE_fnc_CortexActorMoveReserved',
+                      'toUpperANSI currentCommand _unit in _crewTaskNames'):
+            self.assertIn(guard,upkeep)
+        self.assertLess(upkeep.index('!_assignmentReplaced'),upkeep.index('assignAsDriver'))
+        self.assertLess(upkeep.index('currentCommand _unit'),upkeep.index('orderGetIn true'))
+
         self.assertLess(crew.index('if (_nativeCrewTask) exitWith {}'),crew.index('_vehicle forceSpeed 0'))
         self.assertIn('CortexActorMoveReserved',crew.split('if (_nativeCrewTask) exitWith {}',1)[0])
 

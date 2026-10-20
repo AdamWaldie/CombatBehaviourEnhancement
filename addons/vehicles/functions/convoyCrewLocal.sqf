@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Same-revision seat/vehicle assignment changes and every occupant native task/reservation
+ * veto assignment/boarding upkeep. Locality adoption cannot reclaim that changed intent.
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
  * Explicit mounted fire requests require an available operating crew member and the shared
@@ -31,14 +33,15 @@ _configuration params ["_revision", "", "", "", "_vehicles", "_phase", "_cargo",
 if (((_group getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-1]) == _revision) exitWith {};
 // Registry synchronization can call this before the owner driving tick. Protect actual
 // local driving-seat tasks here too; a nonlocal crew callback cannot release the group.
+private _crewTaskNames=["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+    "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
 private _nativeCrewTask=_vehicles findIf {
     private _driver=driver _x;private _operator=effectiveCommander _x;
     if (isNull _operator) then {_operator=_driver};
     [_driver,_operator] findIf {
         !isNull _x && {local _x} && {
             [_x] call CBE_fnc_CortexActorMoveReserved
-            || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
-                "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+            || {toUpperANSI currentCommand _x in _crewTaskNames}
         }
     } >= 0
 } >= 0;
@@ -83,15 +86,21 @@ private _seats = createHashMap;
             // Only occupants already aboard are adopted; dismounted troops are not forced back in.
             private _passenger = _role == "cargo" || {_role == "turret" && {_personTurret}};
             private _assignedOccupant = _x param [5,objNull];
+            private _repairSeat=assignedVehicle _unit != _vehicle || {_assignedOccupant != _unit};
+            private _previousAssignment=_unit getVariable ["CBE_Convoy_PassengerRevision",[]];
+            // An explicit new convoy revision may adopt actual occupied seats. Repeated
+            // upkeep or locality change cannot reclaim a later native seat/vehicle assignment.
+            private _assignmentReplaced=(_previousAssignment select [0,2]) isEqualTo [_group,_revision]
+                && {_repairSeat};
             if ((_phase == "TRAVEL" || {!_passenger}) && {canMove _vehicle} && {local _unit} && {alive _unit} && {!isPlayer _unit}
-                && {vehicle _unit == _vehicle}
+                && {vehicle _unit == _vehicle} && {!_assignmentReplaced}
+                && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
+                && {!(toUpperANSI currentCommand _unit in _crewTaskNames)}
                 && {!isPlayer leader group _unit} && {!([group _unit] call CBE_fnc_CortexZeusHeld)}
                 && {!([group _unit] call CBE_fnc_CompatibilityExternalControl)}
                 && {!("ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures",[]]))}
                 && {isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}) then {
-                private _repairSeat=assignedVehicle _unit != _vehicle || {_assignedOccupant != _unit};
-                private _previousAssignment=_unit getVariable ["CBE_Convoy_PassengerRevision",[]];
                 private _newAssignment=_previousAssignment isNotEqualTo [_group,_revision,clientOwner];
                 private _newController=(_previousAssignment param [0,grpNull]) != _group || {(_previousAssignment param [2,-1]) != clientOwner};
                 if (_repairSeat) then {
