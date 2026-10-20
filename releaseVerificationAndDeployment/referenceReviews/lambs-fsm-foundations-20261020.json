@@ -705,5 +705,15 @@
     "limits": "Actual seat changes, medical task sequencing, native turn retirement and performance unverified; no new controller or scan.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "orientationContactLifecycle": {
+    "baseline": "ecb383d9",
+    "finding": "Ordinary vehicle danger/fire rejects friendly/captive/surrendered sources, but direct orientation admitted alive remembered objects and its finite continuation only checked crew/order/generation/geometry.",
+    "implementation": "Entry rejects logic/HC/friendly/captive/surrender/handcuffs. Existing orientation lifecycle reads objective identity from original operation, rechecks type/existence/alive/hostility/captivity, cancels CONTACT_INVALID instead of completion. Cleanup can STOPTURNING only under unchanged existing crew/order/operation authority; invalid contact alone does not suppress owned stop.",
+    "knowledge": "Uses retained belief point and identity state only; no new live target-position or world query. Does not require ongoing visibility or overwrite native knowledge.",
+    "limits": "Actual side/surrender transition and native turn quiescence unverified. Jink safety escape remains separate; targetless incoming danger may still justify evasion.",
+    "validation": "Existing609 source checks passed; full build result in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

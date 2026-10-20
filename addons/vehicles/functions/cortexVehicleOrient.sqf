@@ -46,6 +46,11 @@ if (isNull _commander || {!alive _commander} || {!local _commander} || {isPlayer
     || {!([_driver] call CBE_fnc_CortexActorFireTaskAvailable)}) exitWith {false};
 if (!([_commander] call CBE_fnc_CortexCombatEffective)
     || {_commander != _driver && {!([_commander] call CBE_fnc_CortexActorFireTaskAvailable)}}) exitWith {false};
+// Remembered identity cannot authorise a hostile manoeuvre after allegiance/captivity changes.
+if (_threat isKindOf "Logic" || {_threat isKindOf "HeadlessClient_F"} || {captive _threat}
+    || {_threat getVariable ["ace_captives_isSurrendering",false]}
+    || {_threat getVariable ["ace_captives_isHandcuffed",false]}
+    || {(side _group) getFriend (side _threat) >= 0.6}) exitWith {false};
 if (_commander knowsAbout _threat <= 0) exitWith {false};
 private _relative=_vehicle getRelDir _threatPosition;
 if (_relative <= 20 || {_relative >= 340}) exitWith {false};

@@ -101,6 +101,7 @@ if (_vehicleMove isNotEqualTo []) then {
         private _orientCommanderProtected=false;
         private _orientOrderChanged=false;
         private _orientOperationChanged=false;
+        private _orientThreatInvalid=false;
         private _vehicleRouteChanged=false;
         if (_movementOwner == "VEHICLE_ORIENT") then {
             private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
@@ -128,6 +129,12 @@ if (_vehicleMove isNotEqualTo []) then {
                 || {_turnCommander != _turnDriver && {!([_turnCommander] call CBE_fnc_CortexActorFireTaskAvailable)}};
             _orientOrderChanged=(_marker param [6,[],[[]]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt);
             private _orientOperation=_group getVariable ["CBE_Operation",createHashMap];
+            private _turnThreat=_orientOperation getOrDefault ["objective",objNull];
+            _orientThreatInvalid=!(_turnThreat isEqualType objNull) || {isNull _turnThreat} || {!alive _turnThreat}
+                || {_turnThreat isKindOf "Logic"} || {_turnThreat isKindOf "HeadlessClient_F"}
+                || {captive _turnThreat} || {_turnThreat getVariable ["ace_captives_isSurrendering",false]}
+                || {_turnThreat getVariable ["ace_captives_isHandcuffed",false]}
+                || {(side _group) getFriend (side _turnThreat) >= 0.6};
             private _turnGeneration=_marker param [4,-1,[0]];
             _orientOperationChanged=_turnGeneration != (_state getOrDefault ["vehicleOperationGeneration",-2])
                 || {_turnGeneration != (_orientOperation getOrDefault ["generation",-2])}
@@ -135,7 +142,7 @@ if (_vehicleMove isNotEqualTo []) then {
                 || {(_orientOperation getOrDefault ["intent",""]) != "VEHICLE_ORIENT"}
                 || {(_orientOperation getOrDefault ["phase",""]) == "CANCELLED"};
             _activeVehicleMove=!_orientControllerExternal && {!_orientDriverProtected} && {!_orientCommanderProtected}
-                && {!_orientOrderChanged} && {!_orientOperationChanged} && {count _marker == 8}
+                && {!_orientOrderChanged} && {!_orientOperationChanged} && {!_orientThreatInvalid} && {count _marker == 8}
                 && {_marker param [1,grpNull,[grpNull]] == _group}
                 && {serverTime < (_marker param [3,0,[0]])}
                 && {count _targetPosition >= 2}
@@ -204,12 +211,14 @@ if (_vehicleMove isNotEqualTo []) then {
                     private _aligned=!isNull _orientVehicle && {count _targetPosition >= 2}
                         && {private _relative=_orientVehicle getRelDir _targetPosition;
                             _relative <= 20 || {_relative >= 340}};
-                    if (_orientControllerExternal || {_orientDriverProtected} || {_orientCommanderProtected} || {_orientOrderChanged} || {_orientOperationChanged}
+                    if (_orientControllerExternal || {_orientDriverProtected} || {_orientCommanderProtected} || {_orientOrderChanged} || {_orientOperationChanged} || {_orientThreatInvalid}
                         || {[_group] call CBE_fnc_CortexExternalTakeover}) then {
                         private _reason=if (_orientOperationChanged) then {"OPERATION_REPLACED"} else {
                             if (_orientOrderChanged) then {"NATIVE_ORDER_CHANGED"} else {
-                                if (_orientCommanderProtected) then {"COMMANDER_TASK_OR_SEAT"} else {
-                                    ["EXTERNAL_OWNER","DRIVER_TASK_OR_SEAT"] select _orientDriverProtected
+                                if (_orientThreatInvalid) then {"CONTACT_INVALID"} else {
+                                    if (_orientCommanderProtected) then {"COMMANDER_TASK_OR_SEAT"} else {
+                                        ["EXTERNAL_OWNER","DRIVER_TASK_OR_SEAT"] select _orientDriverProtected
+                                    }
                                 }
                             }
                         };

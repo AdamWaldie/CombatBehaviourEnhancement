@@ -8720,6 +8720,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_orientOrderChanged=(_marker param [6,[],[[]]]) isNotEqualTo',vehicles)
         self.assertIn('!_orientOrderChanged',vehicles)
         self.assertIn('NATIVE_ORDER_CHANGED',vehicles)
+        for guard in ('captive _threat','ace_captives_isSurrendering','ace_captives_isHandcuffed',
+                      '(side _group) getFriend (side _threat) >= 0.6'):
+            self.assertIn(guard,orient)
+        for guard in ('_orientThreatInvalid','getOrDefault ["objective",objNull]',
+                      'captive _turnThreat','(side _group) getFriend (side _turnThreat) >= 0.6',
+                      '!_orientThreatInvalid','CONTACT_INVALID'):
+            self.assertIn(guard,vehicles)
+        threat_check=vehicles.split('private _turnThreat=',1)[1].split('private _turnGeneration=',1)[0]
+        self.assertNotIn('getPos',threat_check)
+        self.assertNotIn('nearEntities',threat_check)
         for guard in ['_orientOperationChanged','_turnGeneration != (_orientOperation getOrDefault ["generation",-2])',
                       '(_orientOperation getOrDefault ["intent",""]) != "VEHICLE_ORIENT"',
                       '(_orientOperation getOrDefault ["phase",""]) == "CANCELLED"',
