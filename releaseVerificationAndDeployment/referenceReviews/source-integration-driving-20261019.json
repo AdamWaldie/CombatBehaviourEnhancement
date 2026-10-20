@@ -533,5 +533,30 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "routeWaitRefreshReconciliation20261020": {
+    "baseline": "9a90461a",
+    "sources": {
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "46beb12799ecae8fc6a9be5ac4f37db7fc306586bb08e182e9461a9c03bd5374",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+    },
+    "sourceIntent": [
+      "routeWaiting protects near-waypoint HOLD, inactive synchronized triggers, timeout and nontrue condition from watchdog/unstuck. It does not execute arbitrary condition code.",
+      "refreshRoute replaces current waypoint metadata to wake native planning, has distinct effective-commander path, optionally ends fixed path, enables crew movement/planning and uses three-second source throttle."
+    ],
+    "currentDisposition": [
+      "DrivingAssistStart nativeWaiting covers same near-waypoint intent with whitespace-normalized condition; additionally requires physical rest and unitReady. RecoveryOrderFree independently refuses scripted/timed/synchronized/attached or nonplain MOVE even far away, so differing wait labels do not authorize bypass.",
+      "DrivingRouteReceipt delegates complete current authored identity to AuthoredRouteReceipt. Ordinary recovery retains native effective-commander issue and exact driver/operator observations within existing finite retry budget.",
+      "Do not duplicate refresh controller or copy waypoint delete/re-add, blanket enableAI/engine/crew recall. Preserve condition, synchronization, actor intent and mission feature choices. This is intentional redesign; physical route-wakeup equivalence is not established."
+    ],
+    "remaining": [
+      "Native planning wake-up after fixed-path cancellation, stationary intentional waits, commanded vehicle continuation, repeated recovery and provider-HC transfer require later physical comparison.",
+      "Whole HBQ parity/performance remains unproven. No new runtime capability or build-out increase claimed."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
   }
 }
