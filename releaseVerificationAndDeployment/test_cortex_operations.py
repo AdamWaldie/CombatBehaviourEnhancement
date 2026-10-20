@@ -10350,6 +10350,11 @@ class CortexOperations(unittest.TestCase):
         for guard in ('count _ranked > 16','_registry select [0,16]','count _selected+2 <= _maximum',
                       'count _selected >= _minimum','_candidates-_selected'):
             self.assertIn(guard,element)
+        self.assertIn('count _incumbents > 16',element)
+        self.assertIn('_ranked findIf {_x in _incumbents}',element)
+        self.assertLess(element.index('private _selected=[];'),element.index('private _intact=[];'))
+        self.assertIn('_x findIf {_x in _incumbents} >= 0',element)
+        self.assertIn('_candidates=_candidates-_selected',element)
         for mutation in ('doMove','doSuppressiveFire','setVariable','enableAI','disableAI'):
             self.assertNotIn(mutation,element)
         for caller in ('cortexAdvanceStart','cortexFlankStart','cortexAssaultStart'):

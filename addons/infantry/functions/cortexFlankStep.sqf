@@ -27,7 +27,8 @@
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
  * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
- * together where vacancies permit. A single required vacancy may still split a pair.
+ * together where vacancies permit, preferring eligible buddies of existing team members.
+ * A single required vacancy may still split an unrelated reserve pair.
  * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
  * strength permits. Minimum surviving movement and cover capacity may require splitting a pair.
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
@@ -416,7 +417,7 @@ if (_teams isEqualTo []) then {
     private _candidates=[_fitSquad-_units] call _rankCandidates;
     while {count _units < _desiredStrength && {_candidates isNotEqualTo []}} do {
         private _vacancies=(_desiredStrength-count _units) min 5;
-        private _relief=[_group,_candidates select [0,16],_vacancies,1] call CBE_fnc_CombatElementSelect;
+        private _relief=[_group,_candidates select [0,16],_vacancies,1,_units select [0,16]] call CBE_fnc_CombatElementSelect;
         if (_relief isEqualTo []) exitWith {};
         {
             _units pushBack _x;
@@ -436,7 +437,7 @@ if (_teams isEqualTo []) then {
         while {count _team < _desired && {_candidates isNotEqualTo []}} do {
             private _teamIndex=_forEachIndex;
             private _vacancies=(_desired-count _team) min 5;
-            private _relief=[_group,_candidates select [0,16],_vacancies,1] call CBE_fnc_CombatElementSelect;
+            private _relief=[_group,_candidates select [0,16],_vacancies,1,_team select [0,16]] call CBE_fnc_CombatElementSelect;
             if (_relief isEqualTo []) exitWith {};
             {
                 _team pushBack _x;

@@ -145,5 +145,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "receivingTeamReunion": {
+    "baseline": "f0e9335a",
+    "finding": "Pair-aware reserve refill ignored a candidate whose recorded buddy already belonged to the receiving team, so unrelated intact reserve pairs could take vacancies first.",
+    "implementation": "CombatElementSelect optional receiving-team identities, bounded16 and disjoint from ranked candidates. Ranked eligible partners of those identities are selected first, removed from remaining candidate pool, then existing intact-pair/orphan/minimum selection runs. Both refill paths supply their current receiving team shortlist; initial callers default empty.",
+    "authority": "Identity preference only; candidate qualification and exact final owner/task/native commit remain. No movement, publication, query, worker or deadline.",
+    "cost": "Additional bounded candidate-by-registry membership pass when receiving team is nonempty, max16x16 pair rows; runtime unmeasured.",
+    "limits": "Receiving team and candidate shortlist16; historical identity must still be present. Does not restore overwritten old relationships, promise physical reunion or supply independent pair-level alternation.",
+    "validation": "Existing source-contract checks extended; full build result in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

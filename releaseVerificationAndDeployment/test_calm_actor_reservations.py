@@ -140,7 +140,8 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
         refill=source.split('private _units=[];',1)[1].split('// Candidate selection prepares',1)[0]
         self.assertEqual(refill.count('call CBE_fnc_CombatElementSelect'),2)
         self.assertEqual(refill.count('_candidates=_candidates-_relief'),2)
-        self.assertIn('_candidates select [0,16],_vacancies,1',refill)
+        self.assertIn('_vacancies,1,_team select [0,16]',refill)
+        self.assertIn('_vacancies,1,_units select [0,16]',refill)
         self.assertIn('private _teamIndex=_forEachIndex',refill)
         self.assertNotIn('_candidates deleteAt 0',refill)
         self.assertIn('forEach ([_second,2] call _selectRelief)',source)
