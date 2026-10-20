@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Individual BLUE/GREEN orders defer new investigation and end active execution;
+ * exact owned movement cleanup remains available without changing combat mode.
  * Physical progress and arrival use absolute ASL coordinates; native destinations remain ATL.
  * Terrain differences between cells cannot fabricate motion or hide same-floor arrival.
  * Native INIT/planning/replanning blocks new legs and defers stagnation classification within the original deadline.
@@ -68,7 +70,7 @@ private _available={
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {getSuppression _actor < 0.5} && {currentWeapon _actor != ""}
-        && {combatMode _group in ["YELLOW","RED","WHITE"]}
+        && {combatMode _group in ["YELLOW","RED","WHITE"]} && {unitCombatMode _actor in ["YELLOW","RED","WHITE"]}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}

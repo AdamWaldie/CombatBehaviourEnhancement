@@ -282,11 +282,26 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('local _x',roster)
         self.assertIn('CortexCombatEffective',roster)
         self.assertIn('CortexActorMoveReserved',roster)
+        for name in ('indoorActorOperation','pointActorOperation'):
+            operation=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            available=operation.split('private _available=',1)[1].split('if (_mode',1)[0]
+            self.assertIn('unitCombatMode _actor in ["YELLOW","RED","WHITE"]',available)
+            release=operation.split('private _releaseAvailable=',1)[1].split('private _available=',1)[0]
+            self.assertNotIn('unitCombatMode',release)
+            step=operation.split('if (_mode != "STEP")',1)[1] if name=='pointActorOperation' else operation.split('if (serverTime >= (_brain get "deadline"))',1)[1]
+            self.assertIn('call _available',step)
+        def permitted(group_mode,actor_mode):
+            return group_mode in ('YELLOW','RED','WHITE') and actor_mode in ('YELLOW','RED','WHITE')
+        self.assertTrue(permitted('RED','YELLOW'))
+        self.assertTrue(permitted('YELLOW','WHITE'))
+        self.assertFalse(permitted('RED','GREEN'))
+        self.assertFalse(permitted('RED','BLUE'))
+        self.assertFalse(permitted('BLUE','RED'))
         for candidate_source in (dispatch,(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()):
             candidates=candidate_source.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
             for gate in ('simulationEnabled _x','!isObjectHidden _x',
                          'checkAIFeature "MOVE"','checkAIFeature "PATH"',
-                         'getSuppression _x < 0.5','currentWeapon _x != ""','CortexExternalOwner'):
+                         'getSuppression _x < 0.5','currentWeapon _x != ""','CortexExternalOwner','unitCombatMode _x in ["YELLOW","RED","WHITE"]'):
                 self.assertIn(gate,candidates)
             for query in ('lineIntersectsSurfaces','nearestObjects','checkVisibility'):
                 self.assertNotIn(query,candidates)

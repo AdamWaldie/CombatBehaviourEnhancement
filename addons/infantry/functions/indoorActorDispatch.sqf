@@ -35,6 +35,7 @@ private _actors=((units _group) select [0,16]) select {
         && {simulationEnabled _x} && {!isObjectHidden _x}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
         && {getSuppression _x < 0.5} && {currentWeapon _x != ""}
+        && {unitCombatMode _x in ["YELLOW","RED","WHITE"]}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}

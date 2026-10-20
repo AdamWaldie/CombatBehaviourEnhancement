@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Individual BLUE/GREEN orders defer new investigation and end active execution;
+ * exact owned movement cleanup remains available without changing combat mode.
  * Purpose: Execute one finite investigation of an engine-observed own-group casualty location.
  * Locality/authority: Actor and group owner only; shared scheduler executes each bounded step.
  * Repeat/JIP: One actor per group, original twelve-second deadline, public cancellation journal.
@@ -36,7 +38,7 @@ private _available={call _releaseAvailable && {missionNamespace getVariable ["CB
     && {[_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {[_group,"CBE_AIPass_Investigate_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {behaviour _actor in ["SAFE","AWARE"]} && {!fleeing _actor}
-    && {combatMode _group in ["YELLOW","RED","WHITE"]} && {getSuppression _actor < 0.25}
+    && {combatMode _group in ["YELLOW","RED","WHITE"]} && {unitCombatMode _actor in ["YELLOW","RED","WHITE"]} && {getSuppression _actor < 0.25}
     && {isNull getAttackTarget _actor} && {isNull assignedTarget _actor}
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}};

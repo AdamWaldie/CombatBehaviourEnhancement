@@ -163,5 +163,32 @@
       "addons/infantry/functions/indoorActorDispatch.sqf": "279ed7ba8e386ab98060614419d9ccb57f7853e0d99169ebeb6adc66a2ef90aa"
     },
     "audits": "PAUSED"
+  },
+  "individualEngagementMode20261020": {
+    "baseline": "f7650910",
+    "finding": "Natural individual investigation checked group YELLOW/RED/WHITE but did not check the individual unit mode; shared eligibility/native context did not supply that missing gate.",
+    "implementation": [
+      "Both executor available predicates require individual YELLOW/RED/WHITE at admission and active steps.",
+      "Contact/body building candidate rosters exclude individually restricted actors before bounded ranking.",
+      "Release eligibility deliberately retains no new individual ROE gate: exact owned cleanup remains possible and does not write combat mode."
+    ],
+    "sourceIntent": "LAMBS doCheckBody and doAssaultMemory provide individual investigation/memory examples. This change preserves CBE mission-order intent; it does not implement LAMBS equipment recovery or establish whole-source parity.",
+    "sources": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "9fb73a428a1b6d30509ad1370d131531967a141e833418d438580950bbc1a5dc",
+      "addons/infantry/functions/pointActorOperation.sqf": "f4fd23c6c1cb3cf58001f80a598ea2a61685fcae6dca888d168950256832991c",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "c421407f15de0b8b8106bbd267a964eb6c269410aaae06c97b6699e4a6133fb5",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "c778345f6af8d682b9b94d1e21e71c3a1adc1511040ba9948eb5cb9b09d4cba9"
+    },
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "focused": ".qa/cbe-investigation-roe-focused.log",
+      "full": ".qa/cbe-investigation-roe-build.log",
+      "independent": ".qa/cbe-investigation-roe-independent.log",
+      "candidate": ".qa/candidates/investigation-roe-f7650910-ce333496",
+      "fingerprint": "ce33349685da9cc1a4d6be3a73e14cf84629c213af18cabd5cd111246d465f0a"
+    },
+    "remaining": "Physical mixed-mode candidate selection, mid-leg hold, exact native cleanup, HC and performance remain unverified; audits paused.",
+    "scoresChanged": false
   }
 }
