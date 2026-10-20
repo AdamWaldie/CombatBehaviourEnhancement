@@ -1359,6 +1359,7 @@ class CortexOperations(unittest.TestCase):
         for marker in [
             'CBE_AIPass_StaticSupport_Enable','nearestObjects [_anchor,["StaticWeapon"],75,true]',
             'crew _x isEqualTo []','damage _x < 0.9','someAmmo _x','_x != leader _group',
+            '!isObjectHidden _x','isObjectHidden _weapon','ace_medical_ai_healQueue',
             'assignAsGunner _weapon','orderGetIn true','CBE_Danger_StaticAttempt',
             'CBE_Cortex_ActorMove",["STATIC_SUPPORT"','time+20'
         ]:

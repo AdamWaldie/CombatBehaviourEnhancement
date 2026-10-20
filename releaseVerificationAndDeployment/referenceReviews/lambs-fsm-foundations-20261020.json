@@ -450,5 +450,23 @@
       "addonPackage": "Existing verified 4fbe7248 product; no unchanged-addon rebuild.",
       "physicalAcceptance": false
     }
+  },
+  "staticFindComparison": {
+    "baseline": "36074d9a",
+    "source": "main/functions/GroupAction/fnc_doGroupStaticFind.sqf",
+    "sourceIntent": "Find a simulated visible unlocked empty armed static within 75m; assign nearest ready nonleader using native boarding. Source clears watch and adds vehicle to group.",
+    "existingCBE": "Nearest eligible emplacement and actor, same 75m search, native assignment, original 20s boarding deadline, one contact episode attempt, separate carried deployment executor. No forced seating or new movement controller.",
+    "fixed": [
+      "Exclude hidden static weapons at discovery and retire a lease if its weapon becomes hidden.",
+      "Pending ACE healer queue excludes new actor assignment and yields active work without further native commands.",
+      "Both feature release and separate CALM static cleanup refuse native unassign/GetOut writes while healer queue is pending."
+    ],
+    "limits": [
+      "Previously issued native boarding is not proven cancelled or quiescent when yielding.",
+      "Generic CALM static teardown still needs full actor task and successor ownership review.",
+      "Deploy/pack semantic comparison remains incomplete.",
+      "Physical boarding, firing, repeated contact, locality and overhead remain unverified."
+    ],
+    "validation": "Full 1482 existing unit/static cases, HEMTT compilation and build gates pass. No live audit; scores unchanged."
   }
 }

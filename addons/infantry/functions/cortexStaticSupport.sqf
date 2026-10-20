@@ -47,6 +47,7 @@ private _release={
         if (!_external && {!_protectedTask} && {!_newMove} && {!isNull _actor} && {alive _actor} && {local _actor}
             && {!isPlayer _actor} && {group _actor == _group}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!isNull _weapon} && {assignedVehicle _actor == _weapon}) then {
             [_actor] orderGetIn false;
@@ -84,7 +85,8 @@ if (count _lease >= 7) exitWith {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
             || {_actor in (_operation getOrDefault ["participants",[]])}
     };
-    if (_operationConflict || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
+    if (_operationConflict || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
+        || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
         [true] call _release;
         "YIELDED"
     };
@@ -94,7 +96,7 @@ if (count _lease >= 7) exitWith {
     };
     if (_leaseEpisode != _episode || {isNull _actor} || {!alive _actor} || {!local _actor}
         || {isPlayer _actor} || {group _actor != _group} || {isNull _weapon} || {!alive _weapon}
-        || {!(simulationEnabled _weapon)} || {assignedVehicle _actor != _weapon && {vehicle _actor != _weapon}}) exitWith {
+        || {!(simulationEnabled _weapon)} || {isObjectHidden _weapon} || {assignedVehicle _actor != _weapon && {vehicle _actor != _weapon}}) exitWith {
         [false] call _release;
         "FAILED"
     };
@@ -132,7 +134,7 @@ if (isNull _anchor) exitWith {"IDLE"};
 private _sideIndex=switch (side _group) do {case west:{1}; case east:{0}; case independent:{2}; default {3}};
 private _weapons=(nearestObjects [_anchor,["StaticWeapon"],75,true]) select {
     // canFire requires an operator and cannot qualify an empty emplacement.
-    alive _x && {simulationEnabled _x} && {damage _x < 0.9} && {someAmmo _x}
+    alive _x && {simulationEnabled _x} && {!isObjectHidden _x} && {damage _x < 0.9} && {someAmmo _x}
         && {_x emptyPositions "gunner" > 0}
         && {crew _x isEqualTo []} && {locked _x < 2}
         && {getNumber (configOf _x >> "side") in [_sideIndex,3]}
@@ -154,7 +156,8 @@ _rankedWeapons sort true;
 private _weapon=(_rankedWeapons select 0) select 1;
 private _candidates=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {_x != leader _group}
-        && {[_x] call CBE_fnc_CortexCombatEffective} && {vehicle _x == _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {vehicle _x == _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
         // Native contact commands such as TARGET and WATCH are transient observations, not an

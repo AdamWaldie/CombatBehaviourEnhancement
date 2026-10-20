@@ -195,6 +195,7 @@ if (count _staticSupport >= 7) then {
     private _staticActor=_staticSupport param [1,objNull,[objNull]];
     private _staticWeapon=_staticSupport param [2,objNull,[objNull]];
     if (!_yieldToExternal && {!isNull _staticActor} && {alive _staticActor} && {local _staticActor}
+        && {(_staticActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!isNull _staticWeapon} && {assignedVehicle _staticActor == _staticWeapon}) then {
         [_staticActor] orderGetIn false;
         unassignVehicle _staticActor;
