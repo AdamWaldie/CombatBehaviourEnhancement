@@ -9494,6 +9494,7 @@ class CortexOperations(unittest.TestCase):
         actor=source('dangerEngineAct')
         self.assertIn('private _nativeRouteTask=currentCommand _actor == "MOVE"',actor)
         self.assertIn('getUnitState _actor in ["PLANNING","REPLAN"]',actor)
+        self.assertIn('currentCommand _actor == "FOLLOW" && {abs (speed _actor) >= 0.5}',actor)
         native=actor.index('if (_nativeRouteTask) then {_committedMover=true}')
         self.assertLess(native,actor.index('playActionNow'))
         self.assertLess(native,actor.index('if (_mode == "IMMEDIATE")'))
