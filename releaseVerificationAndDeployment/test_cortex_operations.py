@@ -157,6 +157,16 @@ class CortexOperations(unittest.TestCase):
         for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
             self.assertIn('"'+field+'"',checkpoint)
         self.assertIn('migrationClocks',checkpoint)
+        self.assertIn('"authoredOrder"',checkpoint)
+        start=source('cortexDrillStart')
+        self.assertIn('if (isNil {_drill get "authoredOrder"})',start)
+        self.assertIn('_drill set ["authoredOrder",[_group] call CBE_fnc_NativeOrderReceipt]',start)
+        self.assertLess(resume.index('private _authoredOrder='),resume.index('if (_inspectOnly)'))
+        self.assertIn('_authoredOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',resume)
+        active=source('cortexFlankStep')
+        self.assertLess(active.index('private _authoredOrder='),active.index('call CBE_fnc_OperationStep'))
+        self.assertIn('exitWith {"REPLACED" call _end}',active)
+
         restore=source('cortexRestoreCalm')
         self.assertIn('if (!_preservePhase || {_reason != "OWNERSHIP_ADOPTED"})',restore)
         self.assertIn('DRILL_LOCALITY_SETTLING',resume)

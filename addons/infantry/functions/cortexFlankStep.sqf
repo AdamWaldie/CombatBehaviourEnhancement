@@ -149,6 +149,12 @@ if (count _executorRecord != 2 || {(_executorRecord select 0) != _token}
     || {(_executorRecord select 1) isNotEqualTo _executor}) exitWith {-1};
 if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
     || {completedFSM _executor}) exitWith {"FSM_EXECUTOR_ENDED" call _end};
+// A waypoint edit may leave its index and position intact. Preserve conditions,
+// scripts, attachments and synchronisation through the same frozen authored receipt.
+private _authoredOrder=_drill getOrDefault ["authoredOrder",[]];
+if (_authoredOrder isNotEqualTo [] && {
+    _authoredOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+}) exitWith {"REPLACED" call _end};
 // The generic lifecycle owns interruption and physical-progress accounting.  The drill remains
 // responsible for its own finite bound recovery, but it cannot continue after a replacement
 // order, Zeus intervention, ownership migration or external controller handover.

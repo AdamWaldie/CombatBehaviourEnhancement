@@ -93,5 +93,34 @@
     },
     "physical": false,
     "scoresChanged": false
+  },
+  "authoredOrderFollowUp20261020": {
+    "baseline": "d539b638",
+    "finding": "Resume guarded boundWaypoint index/position only; unchanged-position edits to conditions/scripts/attachments/synchronisation could resume old drill intent. Checkpoints did not carry full original authored identity.",
+    "change": "DrillStart freezes authoredOrder once using existing NativeOrderReceipt; checkpoint serialises original value. Active FlankStep retires REPLACED before operation progress or movement when changed. Resume rejects absent/changed receipt before inspectOnly admission, protecting locality mode preservation as well as actual reconstruction.",
+    "cost": "One read-only native current-order receipt per active callback, using existing metadata helper. Native waypoint handle count scales with route length; overhead unmeasured. No new query/ray/controller/worker.",
+    "sources": {
+      "addons/core/functions/nativeOrderReceipt.sqf": "52d06fec20595d048242239024f440d05cd421cb8b71849e5cfc985dbad64bd0",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "f0547c029b5ae116443b77cd5bd307a919d5f50226b28970c02b9b381e370e3b",
+      "addons/infantry/functions/cortexDrillResume.sqf": "fd544aa2d3b14c15ff9bb3c1f968c2a1cef1491fdf8fd36e42e107f9358b463b",
+      "addons/infantry/functions/cortexDrillStart.sqf": "2225a9aa0d8bd03425865ba8003ddde1ac42874b6814ee3dda7957b1ba504aa9",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ad109123de24862d6f36919edb8cadc4e66f4a3f301345710c3c5dfdbae94a72"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-drill-authored-order-build.log",
+      "independent": ".qa/cbe-drill-authored-order-preserved-independent.log",
+      "candidate": ".qa/candidates/drill-order-d539b638-2c1c8e24",
+      "fingerprint": "2c1c8e2412f308e3464dfc7a0a333d775d073f79ff06c125c8759e26fc7dc7ae",
+      "source": "d539b638 plus intended dirty authored-order edits"
+    },
+    "limits": [
+      "Independent native actor STOP/MOVE and identical-order provenance remain separate.",
+      "If locality changes before the initial executor captures its receipt, missing receipt refuses resume.",
+      "Normal and actual-provider HC interruption/performance remain unrun; audits paused."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

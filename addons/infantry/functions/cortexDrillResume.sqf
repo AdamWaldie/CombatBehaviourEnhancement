@@ -4,6 +4,7 @@
  * Locality/authority: Current group owner only, after CortexLocality releases previous-owner leases.
  * Repeat/JIP: Source generation is consumed once. JIP observes checkpoints without starting work.
  * Committed route, actor destinations and absolute deadline survive; local commands and FSM handles do not.
+ * Full original authored waypoint metadata must still match before inspect or resume admission.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
  * Return Value: BOOL - resumed or queued for bounded actor-locality settling; false when refused.
  * Current callers: CortexLocality and its finite shared-scheduler locality-settling callback.
@@ -41,6 +42,10 @@ private _waypoint=_drill getOrDefault ["boundWaypoint",[]];
 if (count _waypoint == 2 && {currentWaypoint _group != (_waypoint select 0)
     || {waypointPosition [_group,_waypoint select 0] isNotEqualTo (_waypoint select 1)}}) exitWith {false};
 if (_waypoint isEqualTo [] && {currentWaypoint _group < count waypoints _group}) exitWith {false};
+private _authoredOrder=_drill getOrDefault ["authoredOrder",[]];
+if (_authoredOrder isEqualTo [] || {
+    _authoredOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+}) exitWith {false};
 if (_inspectOnly) exitWith {true};
 // A group Local event may precede its members' Local events. Wait at most five seconds in the
 // existing scheduler, retaining the source generation and deadline; never adopt a partial roster.

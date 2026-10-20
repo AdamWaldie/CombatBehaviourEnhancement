@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Natural admission transfers only exact completed CBE STOP holds into current-drill proof,
  * retiring their old recall tokens without issuing movement or creating a new hold deadline.
+ * The full authored-order receipt freezes once for active execution and locality resume.
  * Purpose: Starts the finite scripted FSM which executes one accepted flank, advance, direct assault or coordinated
  * support bound. The FSM observes lifecycle completion; the shared scheduler owns tactical cadence; bounded tactical calculations and actor
  * commands remain in CortexFlankStep so one implementation serves every manoeuvre type.
@@ -45,6 +46,11 @@ if ((count _existing == 2 && {(_existing select 0) == _token})
     false
 };
 
+// Freeze authored intent once at admission. Repeated callbacks/checkpoints cannot
+// adopt an edited waypoint condition, script, attachment or synchronisation as baseline.
+if (isNil {_drill get "authoredOrder"}) then {
+    _drill set ["authoredOrder",[_group] call CBE_fnc_NativeOrderReceipt];
+};
 // Natural starts may inherit an exact completed CBE hold, never a bare native STOP.
 // Move its passive proof into this already-accepted drill and retire the old recall token
 // atomically. No actor command is issued and no acknowledgement interval is created.

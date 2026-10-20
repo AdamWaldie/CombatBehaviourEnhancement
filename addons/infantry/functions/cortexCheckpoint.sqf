@@ -63,7 +63,7 @@ if (count _drill > 0) then {
                 _payload pushBack [_x,_value];
             };
         } forEach ["type","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
-            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint"];
+            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint","authoredOrder"];
         _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
         private _movers=_drill getOrDefault ["movers",[]];
         private _resumeRetries=+(_drill getOrDefault ["resumeRetries",[]]);

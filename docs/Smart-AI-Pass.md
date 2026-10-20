@@ -1887,3 +1887,10 @@ Automatic head-on jam recovery is separately opt-in through CBA **Experimental a
 An independently stopped soldier is excluded from a new coordinated bound or covering STOP. A current CBE support hold may continue only when its actor, support token, operation generation, owner epoch, native destination, formation leader and original support expiry still match. The bound transfers those exact holds into its existing native-command journal without issuing movement or granting a new acknowledgement interval. The former support rows retire so later support cleanup cannot recall actors now controlled by that drill. Changed orders remain protected before the first drill callback.
 
 This uses the existing owner-local allocation transaction and finite tactical FSM. No new scheduler or movement controller is added. Support-hold metadata remains local; owner-resume admission, indistinguishable replacement orders and physical cover-to-move flow still require further work or validation.
+
+
+### Manoeuvre authored-order continuity
+
+A tactical drill freezes the full current authored waypoint receipt when its executor first starts. Active execution and ownership resume compare that original receipt, including conditions, scripts, attachments and synchronisation. Editing those values at the same waypoint position retires or refuses the old drill. Checkpoints carry the original receipt without refreshing its baseline. Replacement cleanup preserves the new order.
+
+This adds one read-only authored-order comparison per active drill callback and resume check. It creates no movement controller or polling job. Runtime overhead, physical mission-order interruption and actual-provider ownership transfer remain unmeasured or unverified. Active individual STOP provenance across ownership transfer remains a separate open issue.
