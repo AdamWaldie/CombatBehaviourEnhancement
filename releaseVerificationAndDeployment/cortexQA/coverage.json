@@ -651,7 +651,8 @@
         "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
         "addons/vehicles/functions/cortexVehicleJink.sqf",
         "addons/vehicles/functions/cortexVehicleOrient.sqf",
-        "addons/vehicles/functions/cortexVehicleReverseStep.sqf"
+        "addons/vehicles/functions/cortexVehicleReverseStep.sqf",
+        "addons/vehicles/functions/cortexAAObserve.sqf"
       ]
     },
     {

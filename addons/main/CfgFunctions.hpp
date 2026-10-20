@@ -363,6 +363,7 @@ class CfgFunctions {
             class CortexInfantrySpeed {file = "\z\cbe\addons\infantry\functions\cortexInfantrySpeed.sqf";};
             class CortexUnitRole {file = "\z\cbe\addons\infantry\functions\cortexUnitRole.sqf";};
             class CortexOnboardContact {file = "\z\cbe\addons\infantry\functions\cortexOnboardContact.sqf";};
+            class CortexAAObserve {file = "\z\cbe\addons\vehicles\functions\cortexAAObserve.sqf";};
             class CortexVehicles {file = "\z\cbe\addons\vehicles\functions\cortexVehicles.sqf";};
             class CortexNavalAssault {file = "\z\cbe\addons\vehicles\functions\cortexNavalAssault.sqf";};
             class CortexNavalRelease {file = "\z\cbe\addons\vehicles\functions\cortexNavalRelease.sqf";};

@@ -135,6 +135,8 @@ if (isServer) then {
         };
     };
 } forEach (vehicles select {local _x});
+{[_x,true] call CBE_fnc_CortexAAObserve} forEach +(missionNamespace getVariable ["CBE_AA_ObservedVehicles",[]]);
+missionNamespace setVariable ["CBE_AA_ObservedVehicles",[]];
 if (hasInterface && {!isServer}) exitWith {};
 missionNamespace setVariable ["CBE_AIPass_Active", false];
 missionNamespace setVariable ["CBE_AIPass_InitPending", false];

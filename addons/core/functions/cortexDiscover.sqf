@@ -213,6 +213,7 @@ private _wantArtillery = (missionNamespace getVariable ["CBE_AIPass_Artillery_En
     || {missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable", false]};
 // Cleanup uses the existing bounded vehicle slice even when air/artillery features are disabled.
 {
+    [_x] call CBE_fnc_CortexAAObserve;
     if (local _x && {!isNil {_x getVariable "CBE_DrivingPass_Leg"}}) then {
         [_x] call CBE_fnc_DrivingPassRetireInherited;
     };

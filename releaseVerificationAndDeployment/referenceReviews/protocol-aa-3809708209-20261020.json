@@ -82,5 +82,16 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "nativeShotObservation": {
+    "baseline": "38644251",
+    "finding": "Existing ArtilleryShellFired mission listener serves artillery; ordinary AA gunnery has no qualified native-shot record usable by relocation. Vehicle target assignment is not proof of a shot.",
+    "implementation": "CortexAAObserve installs versioned local Fired listener only for eligible native editor-role AA vehicles through existing16vehicle discovery slice. Actual local AI gunner, projectile, current feature/owner/task checks; coalesced1s real-shot receipt contains group/epoch/time/station ammo/self-position, no hostile transform or reveal. Discovery locality/feature loss and pre-client-exit shutdown remove listener/receipt.",
+    "api": "https://community.bohemia.net/wiki/Arma_3:_Event_Handlers",
+    "validation": "1479 tests, HEMTT/full build passed.",
+    "nextRequired": "Consume exact epoch/current-order shot episode through existing group operation/FSM for finite relocation after engagement; CortexVehicles currently exits before air query on empty contact and GroupTick targetless safety call is not general relocation. No movement should be appended to observer.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "featureCredit": "Observation foundation only, no AA relocation/interception completion."
+  }
 }
