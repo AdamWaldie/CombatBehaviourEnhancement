@@ -5875,6 +5875,12 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(text.count('[_group,-1,"AIR"] call CBE_fnc_CortexKnowledge'),1)
         self.assertIn('== "edsubcat_aas"',text)
         self.assertIn('case (_freshAir): {-1}',text)
+        self.assertIn('private _freshAir=_airPreference &&',text)
+        preflight=text.split('private _freshAircraft=',1)[1].split('private _ranked =',1)[0]
+        self.assertIn('(_freshAircraft select 0) select 0,_stationSelection,true]',preflight)
+        self.assertLess(preflight.index('call CBE_fnc_CortexGroundFireReady'),preflight.index('if (_airPreference) then'))
+        self.assertEqual(text.count('private _stationSelection=createHashMap;'),1)
+
         self.assertIn('private _contactRange=[600,_airRange] select _freshAir;',text)
         self.assertIn('_gunneryContacts select (_x select 2)',selection)
         knowledge=source('cortexKnowledge')
@@ -8727,7 +8733,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_selectionPass) then {_rows pushBack',ready)
         vehicles=source('cortexVehicles')
         fire=vehicles.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
-        self.assertIn('private _stationSelection=createHashMap',fire)
+        self.assertIn('private _stationSelection=createHashMap',vehicles)
+        self.assertLess(vehicles.index('private _stationSelection=createHashMap'),vehicles.index('private _target=objNull;'))
         self.assertIn('[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady',fire)
         self.assertIn('_gunner selectWeapon _muzzle',fire)
         self.assertLess(fire.index('currentMuzzle _gunner == _muzzle'),fire.index('_gunner doFire'))

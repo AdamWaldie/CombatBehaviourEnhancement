@@ -34,5 +34,24 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "loadedStationFollowup": {
+    "baseline": "81fc5533",
+    "problem": "Metadata-only aircraft priority could fill all eight target slots with incompatible aircraft and starve usable ground contacts after merging the separate air shortlist.",
+    "fix": "Aircraft preference and extra-row merge now require CortexGroundFireReady against an actual fresh aircraft using the selected actual loaded station. One local station-selection container covers preflight and target selection; a completed failed scan can be reused in the same frame, but final firing always rechecks fresh native ammunition.",
+    "cost": "One extra bounded station preflight per eligible AA platform with fresh aircraft, up to32 native state queries. Failed complete scan reuse avoids repeating native queries for ground candidates; successful partial scans are never cached as complete. Aggregate overhead unmeasured.",
+    "sourceSha256": "8895bf140b1aa21758dacf7330374f31441ced2e392a9d939d32cb1765d15127",
+    "validation": {
+      "fullTests": 1477,
+      "buildExit": 0,
+      "log": ".qa/native-aa-station-preference-build.log",
+      "candidate": ".qa/candidates/native-aa-station-preference-81fc5533",
+      "fingerprint": "cc7a50ed55af07a7bb128abeee921c06c233177ac24400d69ae9efc297410796",
+      "independentVerification": true,
+      "signed": false,
+      "initialFailure": "Existing source-scope assertion expected stationSelection after target declaration; updated to assert unique earlier shared scope. Other snapshot/fresh-fire contracts retained.",
+      "physicalAcceptance": false,
+      "audits": "PAUSED"
+    }
   }
 }

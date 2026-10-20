@@ -52,6 +52,7 @@
  * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
  * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
  * Native AA editor-role platforms prefer fresh aircraft out to the configured engagement range.
+ * Loaded air-suitable station ammunition must qualify this preference before aircraft rows merge.
  * One additional aircraft-only knowledge pass per group callback avoids nearby ground-contact
  * crowding; at most sixteen rows merge and eight receive station/lane checks. Other vehicles
  * retain the ordinary policy. This is native gunnery, not anti-munition interception.
@@ -732,25 +733,36 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         // Native editor role is a preference, never ammunition or engagement permission.
         // Custom categories keep ordinary policy; no classname list or revealing scan.
         private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
+        private _airPreference=false;
+        private _stationSelection=createHashMap;
         private _gunneryContacts=+(_enemies select [0,8]);
         if (_airDefence && {[_vehicle,_gunner] call _gunnerAvailable} && {canFire _vehicle}) then {
             if (!_airContactsRead) then {
                 _airContacts=([_group,-1,"AIR"] call CBE_fnc_CortexKnowledge) select 0;
                 _airContactsRead=true;
             };
-            {
-                private _airRow=_x;
-                if ((_airRow select 2) <= 3
-                    && {_gunneryContacts findIf {(_x select 0) == (_airRow select 0)} < 0}) then {
-                    _gunneryContacts pushBack _airRow;
-                };
-            } forEach _airContacts;
+            private _freshAircraft=_airContacts select {(_x select 2) <= 3};
+            // Metadata cannot spend all eight target slots on aircraft when this actual
+            // loaded station only has ground ammunition. A failed full scan can be reused
+            // for ground selection in this frame; success is still not firing authority.
+            if (_freshAircraft isNotEqualTo []) then {
+                _airPreference=[_vehicle,_gunner,(_freshAircraft select 0) select 0,_stationSelection,true]
+                    call CBE_fnc_CortexGroundFireReady;
+            };
+            if (_airPreference) then {
+                {
+                    private _airRow=_x;
+                    if (_gunneryContacts findIf {(_x select 0) == (_airRow select 0)} < 0) then {
+                        _gunneryContacts pushBack _airRow;
+                    };
+                } forEach _freshAircraft;
+            };
         };
         private _ranked = [];
         {
             _x params ["_enemy", "_position", "_age"];
             private _distance = _vehicle distance2D _position;
-            private _freshAir=_airDefence && {_enemy isKindOf "Air"} && {_age <= 3};
+            private _freshAir=_airPreference && {_enemy isKindOf "Air"} && {_age <= 3};
             private _contactRange=[600,_airRange] select _freshAir;
             if (_age <= 15 && {_distance <= _contactRange} && {alive _enemy} && {!captive _enemy}
                 && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
@@ -777,7 +789,6 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
             private _suppressionPoint=[];
-            private _stationSelection=createHashMap;
             {
                 private _contactRow=_gunneryContacts select (_x select 2);
                 private _candidate=_contactRow select 0;
