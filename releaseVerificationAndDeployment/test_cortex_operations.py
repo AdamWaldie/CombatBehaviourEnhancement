@@ -3563,6 +3563,12 @@ class CortexOperations(unittest.TestCase):
         for proof in ('CortexSearchMoveOwned','_searchActor distance2D _goal > 2','(_goal select 2)) > 1.5','SEARCH_TIMEOUT','NO_SEARCH_ACTORS'):
             self.assertIn(proof,search)
         self.assertNotIn('distance2D _searchPos > 15',search)
+        self.assertIn('serverTime > _searchDeadline',search)
+        locality=source('cortexLocality')
+        self.assertIn('_adopted set ["searchMoveReceipts",_resumedSearchReceipts]',locality)
+        self.assertIn('_adopted set ["searchDeadline",_deadline]',locality)
+        self.assertIn('getOrDefault ["searchDeadline",_startedAt+_duration]',source('cortexCheckpoint'))
+
         for reason in ['VISIBLE_CONTACT','AREA_REPORT','KNOWN_CONTACT','CONTACT_LOST',
                        'NO_SEARCH_TEAM','SEARCH_TEAM_SENT','SEARCH_COMPLETE',
                        'WITHDRAWAL_COMPLETE','WITHDRAWAL_TIMEOUT']:

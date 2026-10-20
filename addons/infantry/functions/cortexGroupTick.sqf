@@ -1501,6 +1501,7 @@ switch (_state get "phase") do {
             _delay=3;
         };
         _state set ["searchTeam", _team];
+        _state set ["searchDeadline",serverTime + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
         _delay = 3;
     };
@@ -1523,7 +1524,9 @@ switch (_state get "phase") do {
                 || {_searchActor distance2D _goal > 2}
                 || {abs (((getPosATL _searchActor) select 2)-(_goal select 2)) > 1.5}
         } < 0};
-        private _searchTimedOut=_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get);
+        private _searchDeadline=_state getOrDefault ["searchDeadline",serverTime-(_now-(_state get "phaseStart")) + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
+        _state set ["searchDeadline",_searchDeadline];
+        private _searchTimedOut=serverTime > _searchDeadline;
         private _done = _visible isNotEqualTo [] || {_team isEqualTo []}
             || {_allSearchArrived} || {_searchTimedOut};
         if (_done) then {

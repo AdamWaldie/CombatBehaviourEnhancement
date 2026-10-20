@@ -484,10 +484,28 @@ if (_transitionResumeEligible) then {
             // the leader instead of treating migration as successful completion.
             if (_team isEqualTo [] && {alive _leader} && {local _leader} && {vehicle _leader == _leader}) then {_team = [_leader]};
         };
+        private _resumedSearchReceipts=[];
+        if (_transitionPhase == "SEARCH") then {
+            // A checkpoint is intent, not authority over a newly queued medical/native task.
+            _team=_team select {
+                simulationEnabled _x && {!isObjectHidden _x}
+                    && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+                    && {[_group,_restore,_x] call CBE_fnc_CortexSearchMoveOwned
+                        || {currentCommand _x == ""}
+                        || {currentCommand _x == "FOLLOW" && {formLeader _x == _leader}}}
+            };
+        };
         if (_team isNotEqualTo []) then {
-            {_x doMove (_target getPos [4+_forEachIndex*4,random 360])} forEach _team;
+            private _resumedRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+            {
+                private _goal=_target getPos [4+_forEachIndex*4,random 360];
+                _x doMove _goal;
+                _resumedSearchReceipts pushBack [_x,+_goal,+_resumedRoute];
+            } forEach (_team select [0,16]);
         } else {
-            [_group,_target getPos [30,_target getDir _leader],25] call CBE_fnc_CortexGroupMove;
+            if (_transitionPhase != "SEARCH") then {
+                [_group,_target getPos [30,_target getDir _leader],25] call CBE_fnc_CortexGroupMove;
+            };
         };
         _adopted set ["baseBehaviour",behaviour _leader];
         _adopted set ["baseSpeed",speedMode _group];
@@ -497,6 +515,10 @@ if (_transitionResumeEligible) then {
         [_group,_adopted,_transitionPhase,"OWNERSHIP_RESUME",time-((serverTime-_startedAt) max 0),true] call CBE_fnc_CortexSetPhase;
         _adopted set ["enemyPos",+_target];
         _adopted set ["searchTeam",_team];
+        if (_transitionPhase == "SEARCH") then {
+            _adopted set ["searchMoveReceipts",_resumedSearchReceipts];
+            _adopted set ["searchDeadline",_deadline];
+        };
         if (_areaMode != "") then {_adopted set ["areaInvestigation",_areaMode]};
         _group setVariable ["CBE_Cortex_TransitionIntent",[_transitionPhase,+_target,_startedAt,_deadline,_areaMode,+_team],true];
     } else {

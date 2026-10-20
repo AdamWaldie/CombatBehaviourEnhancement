@@ -195,5 +195,41 @@
     "currentGround": "FlankEnd restores its captured feature settings and value-matched behaviour/modes during teardown, with distinct movement recall gating. Continuing step now preserves deferred proof in drill arrays; final durable actor-setting reconciliation is not established.",
     "designConstraint": "Avoid a second permanent actor restoration controller. Any extension needs exact feature ownership, original baseline, successor invalidation, locality provenance and a finite retained receipt consumed by an existing lifecycle. Do not merely skip restore then delete the drill.",
     "status": "OPEN_DESIGN_AND_IMPLEMENTATION; not functional parity or completed handover."
+  },
+  "sharedInvestigationIntegration": {
+    "verifiedExistingBlocks": [
+      "DangerStep publishes original observed20s body clue with owner epoch.",
+      "IndoorObservationDispatch bounds16 actors/four nearby houses, uses current executor and original clue deadline.",
+      "IndoorActorNodeSelect bounds512 metadata positions/three roof queries per callback/twelve probes and sixteen shared reservations/visits.",
+      "IndoorActorOperation binds exact clue/building transform/epoch/deadline; visited OBSERVE nodes are not room-clearance proof.",
+      "GroupTick post-contact stores one enemyPos and lastSeen; SEARCH owns distinct movement receipts and original configured deadline. RestoreCalm clears contact/search episode fields."
+    ],
+    "remainingImplementation": "Unify a position-only last-known-contact episode with existing indoor observation selection/visit lifecycle, without a parallel worker or treating expired native knowledge as a fresh sighting. Current body clue schema and20s maximum cannot simply be reused by resetting timestamps after the default30s contact-loss delay.",
+    "requiredContracts": [
+      "Retain the actual native observation timestamp and uncertainty separately from episode start; deadline is fixed once and cannot be renewed by polling, phase transition or actor turnover.",
+      "Distinguish BODY_FOUND and LAST_KNOWN_CONTACT provenance; reject hazard-only danger positions as contact memory.",
+      "Existing active native/group/Zeus/specialist tasks and current fire/stealth policy outrank investigation; no forced target reveal or hidden live target transform.",
+      "Reuse at mosttwo indoor actors and the same reservation/visit budget, avoiding concurrent duplicate open-point and indoor search assignments to one actor.",
+      "Physical visit records remain bound to original clue/building transform/owner epoch; failure/timeouts never mean searched/clear.",
+      "New contact invalidates old investigative intent and uses exact owned-leg cleanup; locality change does not replay expired memory."
+    ],
+    "nextImplementationBoundary": "Review existing CortexCheckpoint/CortexLocality contact/search snapshot shape before extending clue schema. New memory must not silently reset on adoption or lose original deadline.",
+    "status": "DESIGN_CONSTRAINTS_FROM_VERIFIED_CALLERS; no product integration or parity credit."
+  },
+  "searchMigrationIntegration": {
+    "finding": "Original adoption issued fresh random search destinations but no searchMoveReceipts. Strict destination arrival added earlier therefore could not complete migrated search. Deadline was reconstructed from current tuning rather than retained explicitly.",
+    "change": "New search captures absolute server-time deadline once; checkpoint carries it and adoption retains it. Owner-issued resumed destinations get fresh route/destination receipts. SEARCH adoption filters protected/dormant actors and does not replace an empty team with group movement. RestoreCalm clears deadline at final teardown.",
+    "validation": "607 focused/full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-migration-receipts-build.log; existing tests extended, no new cases.",
+    "candidate": ".qa\\candidates\\search-migration-receipts-4ed39017",
+    "fingerprint": "8c24060ccded5e1c7c13bfcd71940a6684a2cc578449cb8c57462bed07531e4e",
+    "limits": "Physical client/HC ownership transfer, native destination acknowledgement and search/medical resumption unverified. This repairs existing search lifecycle, not general shared suspicious-position memory. AuditsPAUSED."
+  },
+  "preparedSearchMigrationProcedure": {
+    "path": "releaseVerificationAndDeployment/cortexQA/runLifecycle.sqf",
+    "change": "Existing HC search transfer case now reads published movement receipts and rejects a SEARCH_COMPLETE observed away from their actual same-floor goals. Existing physical continuation/deadline checks and early Zeus interruption retained. Malformed receipt rows filtered before reporting.",
+    "limits": "Prepared/unrun; no claim of physical full-search arrival or owner-receipt freshness solely from metadata. Original case interrupts search early; full completed migration search still needs separate runtime evidence.",
+    "validation": "Final full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/search-migration-checkpoint-build.log. Still physically unrun. Exact new candidate preserved because nine PBO hashes differed from earlier build; do not equate package fingerprints.",
+    "candidate": ".qa\\candidates\\search-migration-checkpoint-4ed39017",
+    "fingerprint": "fa2b3f8ced701fe59981e06f819c15d25916a304e7d618bbcca8ebcbdecb921e"
   }
 }

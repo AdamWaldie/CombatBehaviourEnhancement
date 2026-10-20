@@ -223,7 +223,8 @@ if (_phase in ["INVESTIGATE","SEARCH"]) then {
             [45,60] select (_phase == "INVESTIGATE")
         ];
         private _startedAt = serverTime-((time-(_state getOrDefault ["phaseStart",time])) max 0);
-        _transitionIntent = [_phase,+_target,_startedAt,_startedAt+_duration,_state getOrDefault ["areaInvestigation",""],+(_state getOrDefault ["searchTeam",[]])];
+        private _transitionDeadline=if (_phase == "SEARCH") then {_state getOrDefault ["searchDeadline",_startedAt+_duration]} else {_startedAt+_duration};
+        _transitionIntent = [_phase,+_target,_startedAt,_transitionDeadline,_state getOrDefault ["areaInvestigation",""],+(_state getOrDefault ["searchTeam",[]])];
     };
 };
 if (_transitionIntent isNotEqualTo (_group getVariable ["CBE_Cortex_TransitionIntent",[]])) then {
