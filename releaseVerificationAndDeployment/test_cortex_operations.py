@@ -157,6 +157,22 @@ class CortexOperations(unittest.TestCase):
         for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
             self.assertIn('"'+field+'"',checkpoint)
         self.assertIn('migrationClocks',checkpoint)
+        support_local=source('cortexSupportLocal')
+        support_step=source('cortexSupportStep')
+        support_apply=source('cortexSupportApply')
+        self.assertIn('[_helper,_lease,true] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner]',support_step)
+        self.assertIn('["ownerChange",_ownerChange],["adopt",_ownerChange]',support_local)
+        self.assertLess(support_apply.index('if (!_deliveryReady) exitWith'),support_apply.index('call CBE_fnc_OperationStart'))
+        owner_wait=support_apply.split('if (!_deliveryReady) exitWith',1)[1].split('private _directCoordinationPending',1)[0]
+        self.assertIn('serverTime < (_job get "waitUntil")',owner_wait)
+        self.assertNotIn('CortexLocality',owner_wait)
+        self.assertNotIn('OperationStart',owner_wait)
+        self.assertNotIn('serverTime+',owner_wait)
+        self.assertIn('getOrDefault ["supportOwner",-1]) == clientOwner',support_apply)
+        self.assertIn('_operation set ["supportOwner",clientOwner]',support_apply)
+        self.assertLess(support_apply.index('if (_ownerDelivery) exitWith'),support_apply.index('call CBE_fnc_OperationStart'))
+
+
         hold_checkpoint=checkpoint.split('// Carry passive HOLD provenance only.',1)[1].split('_payload pushBack ["resumeSpots"',1)[0]
         for proof in ('count _nativeCommands <= 64','(_row select 1) == "HOLD"',
                       'currentCommand _actor == "STOP"','formLeader _actor == (_row select 3)',

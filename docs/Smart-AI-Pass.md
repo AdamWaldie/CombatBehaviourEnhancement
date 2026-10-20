@@ -1938,3 +1938,10 @@ The new parent retains those counts and exclusions. Running recovery commands, d
 The server publishes each MOVE role's token, sequence, original deadline and point in `CBE_Cortex_SupportRoleDeadline`. That deadline is capped by the parent lease expiry. The role and clock may arrive separately. Owner admission waits within the existing five-second readiness window for a matching pair, then captures the original absolute limit. Missing, expired, mismatched or extended clocks cannot start a bound.
 
 Active child callbacks check that limit after current ownership and interruption checks. A transient clock mismatch suspends new movement while keeping the original deadline. Every movement issue also requires the captured clock to remain current. Expiry ends through ordinary timeout cleanup; reconstruction cannot obtain another server watchdog period. Cover and reservation retirement clear the clock. No new timer or movement controller is added. Physical replication ordering and timeout handback remain unverified. Per-child retry counts still need a separate transfer review.
+
+
+### Server redelivery after a support owner change
+
+The server labels ownership-change redelivery separately from a new reservation. Its queued delivery waits within the original readiness window for the canonical locality-adopted parent, matching the actual machine, epoch, generation, token, expiry and support intent. It then uses that parent's original authored-order receipt to acknowledge the existing operation. If adoption does not become ready, the delivery rejects the exact lease snapshot. It cannot fall through into new operation admission.
+
+This prevents server redelivery from independently resetting recovery journals or hold-adoption windows. The ordinary first-delivery path remains separate. No extra worker or adoption trigger is introduced. Physical server-delivery/Local-event ordering and actual-provider HC flow remain unverified.

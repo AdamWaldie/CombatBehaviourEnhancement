@@ -294,5 +294,32 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportOwnerRedeliveryFollowUp20261020": {
+    "baseline": "8f8cb3de",
+    "finding": "SupportStep owner-change branch sent ordinary SupportLocal delivery. Its job lacked adopt/proof context and could reach fresh SupportApply admission independently of canonical Locality recovery.",
+    "change": "Server owner-change branch sends explicit thirdBOOL. SupportLocal labels ownerChange/adopt and keeps original5s readiness window. Apply waits for exact current local parent identity including supportOwner/clientOwner, currentepoch/generation/token/expiry/intent/status, then borrows original local authored receipt and ACKs actual existing parent. Explicit ownerDelivery guard prevents any fallthrough into OperationStart. Parent acceptance publishes supportOwner. Duplicate actual-parent ACK now supports both coordinated and rally intents. No forced Locality call or new queue/worker.",
+    "sources": {
+      "addons/core/functions/cortexQueueJob.sqf": "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11",
+      "addons/core/functions/cortexSchedulerTick.sqf": "e45cd0675bb7a67865cf043a7d24121f6070b6e05b29348682eb6069427b5ecf",
+      "addons/support/functions/cortexSupportApply.sqf": "d715d69a5c7f337f45c8dd83aaa9d78c12416697725a39882f5123322cf0385c",
+      "addons/support/functions/cortexSupportLocal.sqf": "6020adaab753ffcbf886d2d75926f51659db5c3a04344f3d53659785b3679ec1",
+      "addons/support/functions/cortexSupportStep.sqf": "f8a91b5a043883b9279bd992278de354ba43bbbc60c21e30669e79297a1e3794"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-owner-redelivery-build.log",
+      "independent": ".qa/cbe-support-owner-redelivery-independent.log",
+      "candidate": ".qa/candidates/support-delivery-8f8cb3de-bd49baab",
+      "fingerprint": "bd49baab79abeaa42689d78a416bd9d2ffb8e3626eec440cddcdcfe300786372",
+      "source": "8f8cb3de plus intended dirty owner-redelivery edits"
+    },
+    "remaining": [
+      "Actual SupportStep delivery before/after Local event, stale queued-epoch retirement and providerHC readiness remain physically unverified.",
+      "Canonical adoption can refuse missing original proof; server redelivery deliberately cannot rebuild it."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

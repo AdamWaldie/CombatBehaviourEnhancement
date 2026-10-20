@@ -29,6 +29,8 @@
  * support lifecycle. It reconstructs only semantic state and lets SupportMaintain consume the
  * current public role on the new owner. Coordinated adoption requires the original
  * full authored-order receipt; a same-position waypoint edit cannot become its new baseline.
+ * Server owner-change redelivery waits for the canonical locality-adopted parent and may
+ * only acknowledge it. It never recreates an operation or recaptures its journals.
  * Qualified passive holds enter one original five-second actor-locality window, bounded by
  * the original lease expiry. Duplicate actual-owner adoption never restarts that window.
  * Coordinated adoption requires the original parent recovery budget snapshot. Spent counts
@@ -83,6 +85,31 @@ private _supportEnabled = _sharedReinforce || {_sharedCoordinated};
 private _groupTransmitter = [_group] call CBE_fnc_CortexGroupTransmitter;
 private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
 private _attackAllowed = _attack isNotEqualTo [] && {_sharedCoordinated};
+// Server redelivery after an owner change is an acknowledgement request only.
+// Locality adoption must first reconstruct and validate the original semantic journals.
+private _ownerDelivery=_job getOrDefault ["ownerChange",false];
+private _deliveryParent=_group getVariable ["CBE_Operation",createHashMap];
+private _deliveryReady=!_ownerDelivery || {
+    _adopting && {(_state getOrDefault ["supportToken",""]) == _token}
+        && {(_state getOrDefault ["supportOperationGeneration",-1]) == (_deliveryParent getOrDefault ["generation",-2])}
+        && {(_deliveryParent getOrDefault ["generation",-1]) == (_group getVariable ["CBE_OperationGeneration",-2])}
+        && {(_deliveryParent getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_deliveryParent getOrDefault ["supportOwner",-1]) == clientOwner}
+        && {(_deliveryParent getOrDefault ["supportToken",""]) == _token}
+        && {(_deliveryParent getOrDefault ["supportExpiry",-1]) == _expiry}
+        && {(_deliveryParent getOrDefault ["phase",""]) != "CANCELLED"}
+        && {(_deliveryParent getOrDefault ["intent",""]) == (["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _attackAllowed)}
+};
+if (!_deliveryReady) exitWith {
+    if (serverTime < (_job get "waitUntil")) then {0.25} else {
+        [_group,_token,false,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
+        -1
+    }
+};
+if (_ownerDelivery) then {
+    _job set ["authoredOrder",+(_state getOrDefault ["supportAuthoredOrder",[]])];
+    _job set ["authoredRevoked",_state getOrDefault ["supportAuthoredRevoked",false]];
+};
 private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated};
 private _adoptedOrder=_job getOrDefault ["authoredOrder",[]];
 private _adoptOrderCurrent=!(_adopting && {_attackAllowed}) || {
@@ -153,11 +180,18 @@ private _existingParent=_group getVariable ["CBE_Operation",createHashMap];
 if (_okay && {_adopting} && {(_state getOrDefault ["supportToken",""]) == _token}
     && {(_state getOrDefault ["supportOperationGeneration",-1]) == (_existingParent getOrDefault ["generation",-2])}
     && {(_existingParent getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-    && {(_existingParent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+    && {(_existingParent getOrDefault ["intent",""]) == (["SUPPORT_RALLY","COORDINATED_ASSAULT"] select _attackAllowed)}
+    && {(_existingParent getOrDefault ["supportOwner",-1]) == clientOwner}
     && {(_existingParent getOrDefault ["supportToken",""]) == _token}
     && {(_existingParent getOrDefault ["supportExpiry",-1]) == _expiry}
     && {(_existingParent getOrDefault ["phase",""]) != "CANCELLED"}) exitWith {
     [_group,_token,true,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
+    -1
+};
+// A delivery labelled as ownership-change acknowledgement may never fall through
+// into fresh operation admission, even if its observed parent was superseded above.
+if (_ownerDelivery) exitWith {
+    [_group,_token,false,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     -1
 };
 if (_okay && {_replaceLocalDrill}) then {
@@ -216,6 +250,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
     _operation set ["supportToken",_token];
+    _operation set ["supportOwner",clientOwner];
     _operation set ["supportExpiry",_expiry];
     if (_adopting && {_attackAllowed}) then {
         _operation set ["unavailable",+(_sourceRecovery select 4)];

@@ -60,7 +60,7 @@ private _kept = [];
         && {_lease isNotEqualTo [] && {(_lease select 0) == _token}};
     if (_keep && {groupOwner _helper != _owner}) then {
         _owner = groupOwner _helper; _ackBy = serverTime+15; _status = "PENDING";
-        [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
+        [_helper,_lease,true] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
