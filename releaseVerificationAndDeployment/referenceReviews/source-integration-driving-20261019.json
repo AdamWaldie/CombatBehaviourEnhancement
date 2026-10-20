@@ -490,5 +490,24 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "abortRepeatTransferStatusFollowUp20261020": {
+    "baseline": "0ebd544e",
+    "finding": "Adoption updated abort owner but left group Driving_State stamped by previous owner. A subsequent group locality edge could capture the obsolete identity and refuse the otherwise matching receipt.",
+    "change": "After exact adoption publishes its owner, republish HANDBACK/ABORT_ADOPTED with current owner/epoch/generation only when no driving brain exists. No movement, worker, timer or deadline change. Subsequent edge still requires source identity/native/baseline validation; replication ordering remains physical item.",
+    "sources": {
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "0b0d8832683629e7ab6a0920b839735c6ecb8b8f62ad4bb2001ede7b1cda8ecc"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-abort-repeat-transfer-build.log",
+      "independent": ".qa/cbe-abort-repeat-transfer-independent.log",
+      "candidate": ".qa/candidates/abort-repeat-0ebd544e-d7915e9f",
+      "fingerprint": "d7915e9ffc049e76a21e58d8bb70595b3fa357d1fbd8ffdc72264790c9c3fc6e",
+      "source": "0ebd544e plus intended dirty adopted-status edits"
+    },
+    "physical": false,
+    "scoresChanged": false
   }
 }

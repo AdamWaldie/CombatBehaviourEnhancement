@@ -26,6 +26,10 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         adopt=handback.split('if (_adoptionValid) exitWith {',1)[1].split('private _released=',1)[0]
         self.assertNotIn('doMove',adopt)
         self.assertNotIn('deadline',adopt)
+        self.assertIn('"ABORT_ADOPTED",clientOwner,_ownerNow select 1',adopt)
+        self.assertIn('count (_group getVariable ["CBE_Driving_Brain",createHashMap]) == 0',adopt)
+        self.assertLess(adopt.index('_hold set ["owner"'),adopt.index('"ABORT_ADOPTED"'))
+
         stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
         edge=stop.split('private _stoppingGroup=',1)[1].split('} forEach allGroups',1)[0]
         self.assertLess(edge.index('CBE_fnc_DrivingOwnerReceipt'),edge.index('CBE_AIPass_Epoch'))

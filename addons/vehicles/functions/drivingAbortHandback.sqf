@@ -7,6 +7,7 @@
  * Repeat/JIP: consume once before native issue; original queue expiry plus15s bounds cleanup.
  * Public receipt alone grants no replay authority. Migration requires the local group-edge proposal,
  * unchanged released baseline and native/crew/route proof before registering existing cleanup.
+ * Adopted cleanup republishes its owner identity for a subsequent transfer only when no driving brain exists.
  * Controlled same-owner master-stop adoption requires source identity, exact next epoch,
  * unchanged generation, released baseline and current STOP/route/crew validation; it issues no movement.
  * A released-cap receipt permits original-owner cleanup through the existing bounded observer,
@@ -90,6 +91,12 @@ if (_adoptionValid) exitWith {
             && {([_group] call CBE_fnc_DrivingOwnerReceipt) isEqualTo _ownerNow}) then {
             _hold set ["owner",+_ownerNow];
             _vehicle setVariable ["CBE_DrivingAbort_Hold",_hold,true];
+            // A second transfer must observe this adopted identity, not the previous
+            // owner's status. This is cleanup status only, never FSM liveness or motion.
+            if (count (_group getVariable ["CBE_Driving_Brain",createHashMap]) == 0) then {
+                _group setVariable ["CBE_Driving_State",["HANDBACK",_ownerNow select 2,
+                    serverTime,"ABORT_ADOPTED",clientOwner,_ownerNow select 1],true];
+            };
             [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
         };
     };
