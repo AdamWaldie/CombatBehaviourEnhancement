@@ -162,6 +162,11 @@ class DrivingBypassTests(unittest.TestCase):
                       'queueClearReportedAt','["CROSS_CLEAR",',
                       '(_assist param [0,-1]) == 0'):
             self.assertIn(proof,step)
+        assist_release=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
+        bypass_cleanup=assist_release.split('private _bypass=',1)[1].split('// Final cap restoration',1)[0]
+        self.assertIn('in ["ORDINARY","QUEUE"]',bypass_cleanup)
+        self.assertIn('"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease',bypass_cleanup)
+        self.assertLess(assist_release.index('call CBE_fnc_DrivingBypassRelease'),assist_release.index('_vehicle forceSpeed'))
         handback=(ROOT/'addons/vehicles/functions/drivingAbortHandback.sqf').read_text()
         release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
         self.assertIn('(_work get "deadline")+15',release)

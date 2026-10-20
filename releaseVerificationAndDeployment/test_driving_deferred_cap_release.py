@@ -6,6 +6,24 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
     def test_final_release_preserves_successor_receipts(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistRelease.sqf').read_text()
         commit=text.split('// Final cap restoration and receipt retirement',1)[1]
+        self.assertIn('_abort set ["releasedCap",_baseline]',commit)
+        self.assertLess(commit.index('_vehicle forceSpeed'),commit.index('_abort set ["releasedCap",_baseline]'))
+        self.assertIn('abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1',commit)
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text()
+        self.assertIn('(_head+4) min count _queue',cleanup)
+        self.assertIn('[_vehicle,_proof,"ABORT"]',cleanup)
+        self.assertIn('CBE_DrivingAbort_CleanupTicket',cleanup)
+        self.assertGreaterEqual(cleanup.count('serverTime < _abortUntil'),2)
+        self.assertGreaterEqual(cleanup.count('!isNull _abortGroup && {local _abortGroup}'),2)
+
+        self.assertIn('call CBE_fnc_DrivingAbortHandback',cleanup)
+        handback=(ROOT/'addons/vehicles/functions/drivingAbortHandback.sqf').read_text()
+        self.assertIn('_hold set ["observeAt",serverTime+1]',handback)
+        self.assertIn('CAP_REPLACED_OR_HELD',handback)
+        self.assertIn('call CBE_fnc_DrivingFollowingCap',handback)
+        self.assertIn('call CBE_fnc_DrivingGeometryCap',handback)
+        self.assertNotIn('CBA_fnc_waitAndExecute',handback)
+
         for proof in ('isNil {','!local _vehicle','isNotEqualTo _releaseState',
                       'isNotEqualTo _releaseRestore','_releaseEpoch !='):
             self.assertLess(commit.index(proof),commit.index('_vehicle forceSpeed'))

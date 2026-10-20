@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queue crossing paths also retire through exact BypassRelease ownership before cap restoration; convoy work remains separately owned.
  * Unknown recovery command modes retain their cap/baseline and journal. Destination and
  * SIMPLE_BACK cleanup use their own exact native ownership proof before cap restoration.
  * Purpose: Releases the standalone CBE driving safety speed cap and restores the exact pre-CBE
@@ -81,7 +82,7 @@ if (!isNull _corridorGroup && {isNull _expectedGroup || {_expectedGroup == _corr
 private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 private _bypassGroup=_bypass getOrDefault ["group",grpNull];
 if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypassGroup}}
-    && {((_bypass getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) == "ORDINARY"}) then {
+    && {((_bypass getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) in ["ORDINARY","QUEUE"]}) then {
     [_vehicle,_bypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
 };
 // Final cap restoration and receipt retirement are one transaction. Earlier helpers do not
@@ -118,6 +119,20 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
     && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) then {
     _vehicle forceSpeed (_restore param [0,-1]);
+    // Release cleanup can observe an abort STOP only after this exact baseline was
+    // actually restored. This receipt never authorizes another speed write.
+    private _abort=_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
+    private _baseline=_restore param [0,-1];
+    if (_abort isEqualType createHashMap && {count _abort > 0}
+        && {(_abort getOrDefault ["group",grpNull]) == _ownerGroup}
+        && {(_abort getOrDefault ["owner",[]]) isEqualTo ([_ownerGroup] call CBE_fnc_DrivingOwnerReceipt)}
+        && {(_abort getOrDefault ["route",[]]) isEqualTo ([_ownerGroup] call CBE_fnc_DrivingRouteReceipt)}
+        && {_baseline isEqualType 0} && {finite _baseline}
+        && {abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1}) then {
+        _abort set ["releasedCap",_baseline];
+        _vehicle setVariable ["CBE_DrivingAbort_Hold",_abort,true];
+    };
+
 };
 _vehicle setVariable ["CBE_DrivingAssist_Restore",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Next",nil];
@@ -129,3 +144,5 @@ _vehicle setVariable ["CBE_DrivingAssist_Traffic",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Obstacle",nil];
 
 };
+// Register with the existing bounded observer after cap/receipt retirement.
+[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;

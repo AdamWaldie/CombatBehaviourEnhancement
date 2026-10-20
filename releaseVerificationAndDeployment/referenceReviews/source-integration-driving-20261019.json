@@ -381,5 +381,63 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "queueShutdownPathReleaseFollowUp20261020": {
+    "baseline": "e6ed34bb",
+    "finding": "DrivingOperationFinish retires queue consent then calls DrivingAssistRelease. That helper restricted bypass cleanup to ORDINARY, excluding its QUEUE crossing. It could restore/remove the cap while the old fixed path remained journaled without a running driving FSM.",
+    "change": "Include QUEUE alongside ORDINARY in existing bypass release filter before final cap restoration. Existing BypassRelease exact native/route/crew/controller checks stop only owned failed crossing or restore route only after accepted completion. Successor queue bindings still revoke native cleanup; CONVOY excluded. No new callback, scan or authority shortcut.",
+    "sources": {
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "7d4ede9a7aad0303be8b3608d42b1370d9358ab0b3b2bb8ce9a7e82cbc908ccd"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-released-abort-handback-final-build.log",
+      "independent": ".qa/cbe-released-abort-handback-independent.log",
+      "candidate": ".qa/candidates/released-abort-e6ed34bb-ec26540c",
+      "fingerprint": "ec26540c9eae3152d984f5e9cb198347e8ffedf7b6f86ebe6454e5d84e661af2",
+      "source": "e6ed34bb plus intended dirty shutdown/released cleanup edits",
+      "superseded": ".qa/cbe-released-abort-handback-build.log passed before final abort-ticket expiry/local-group guard"
+    },
+    "remaining": [
+      "Feature-disabled safe abort handback still needs bounded cleanup integration, with separate exact released-cap proof; original-owner active callback alone is insufficient.",
+      "Ownership migration of abort STOP and actual shutdown/path-stop ordering unverified.",
+      "Physical continuation and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false,
+    "nextImplementation": [
+      "Extend existing DrivingRecoveryCleanup FIFO ticket service with an exact abort-hold ticket, keeping its at-most-four-ticket service bound and original deadline.",
+      "Only record a released-cap baseline after actual exact-owned cap restoration; cleanup must validate that unchanged baseline, not pretend the removed driving cap is still owned.",
+      "Throttle new safety observations per abort ticket; use existing geometry/traffic primitives and no additional permanent timer.",
+      "Distinguish original-owner released cleanup from ownership migration; no public receipt alone may authorize a new owner."
+    ]
+  },
+  "releasedAbortCleanupFollowUp20261020": {
+    "baseline": "e6ed34bb",
+    "change": "DrivingAssistRelease handles QUEUE paths before cap restoration and records releasedCap only after actual exact-owned baseline restoration. Existing DrivingRecoveryCleanup FIFO admits separate ABORT tickets with original immutable receipt signature, sharing four-ticket service and single existing timer. DrivingAbortHandback validates original owner/route/STOP and exact released baseline without claiming a live speed lease; fresh existing traffic/geometry sensors throttled once/sec per receipt. Same original deadline, no speed write or renewed recovery/queue budget. Same executor may remain for another vehicle; different generation/epoch revokes. Abort ticket registration and service independently require unexpired typed deadline, local live group and exact original owner receipt; orphan/expired/migrated tickets cannot requeue indefinitely.",
+    "sources": {
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "aaaa0c6c816e53fb6856d9dcce3422dfcc297e9d7c7f6a2fb646e2e464046e71",
+      "addons/vehicles/functions/drivingAbortHandback.sqf": "8cd9578c495fcaae4eabd39c2fa1a92dd1410f99eb33ff4827067d4edc09ac02",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "c95409330507d99f5371762a038a192add7b2a93e0762bbd5bb13515725f8907"
+    },
+    "cost": "Existing timer only; four tickets/callback. Abort sensor calls at mostonce/sec per ticket; fixed existing sensor budgets but aggregate/frame overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-released-abort-handback-final-build.log",
+      "independent": ".qa/cbe-released-abort-handback-independent.log",
+      "candidate": ".qa/candidates/released-abort-e6ed34bb-ec26540c",
+      "fingerprint": "ec26540c9eae3152d984f5e9cb198347e8ffedf7b6f86ebe6454e5d84e661af2",
+      "source": "e6ed34bb plus intended dirty shutdown/released cleanup edits",
+      "superseded": ".qa/cbe-released-abort-handback-build.log passed before final abort-ticket expiry/local-group guard"
+    },
+    "remaining": [
+      "Actual migration and master-stop epoch changes still revoke receipt; explicit validated transfer remains needed.",
+      "Immediate STOP acknowledgement absent gives no authority; physical route command acknowledgement/continuation unverified.",
+      "Runtime performance and normal/providerHC shutdown ordering unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

@@ -1712,11 +1712,11 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Exact owned settings and changed routes are guarded.",
-          "remaining_build_gap": "Exact observed owned queue-abort STOP has a finite clear-lane handback path on the original owner. Migration, feature-disabled cleanup, missing STOP acknowledgement and repeated identical native commands remain incomplete or unresolved.",
+          "remaining_build_gap": "Exact queue-abort STOP supports active and released-cap original-owner cleanup. Owner migration, master-stop epoch rebind, missing STOP acknowledgement and repeated identical native commands remain incomplete or unresolved.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
-              "sha256": "282fc0661677e90a27babfcf5211376b2661aac0332fde0471a92b81f9f5ad93"
+              "sha256": "aaaa0c6c816e53fb6856d9dcce3422dfcc297e9d7c7f6a2fb646e2e464046e71"
             },
             {
               "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
@@ -1724,7 +1724,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAbortHandback.sqf",
-              "sha256": "3685765313eff6cd455296303742cc720231937448bf3f29e0b22fe08db5558d"
+              "sha256": "8cd9578c495fcaae4eabd39c2fa1a92dd1410f99eb33ff4827067d4edc09ac02"
             }
           ]
         }
