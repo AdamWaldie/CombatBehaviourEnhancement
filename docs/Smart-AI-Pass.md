@@ -2127,3 +2127,6 @@ An aircraft missile-defence response now retires when the known live missile pos
 
 
 Building-memory visits now recheck interior bounds, floor height, unobstructed node sightline and a roof belonging to the same building after the observation interval. Arrival alone cannot certify a later visit if the actor drifts outside. The existing finite executor terminates an unconfirmed visit without adding shared history. This adds at most two geometry queries per attempted visit, not a polling worker. Physical flow and overhead remain unverified while audits are paused.
+
+
+Convoy command admission now yields when either the actual driver or movement operator is hidden, simulation-disabled or queued for ACE treatment. Every existing speed, hold and path writer using the shared seat check receives this guard. Medical queues and exact release cleanup are unchanged; no worker, cadence or spacing gain is added. Mixed-convoy flow, crew recovery and owner migration still require physical verification.

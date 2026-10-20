@@ -13,6 +13,8 @@
  * more than3m endpoint advance; moving legs retain the8m refresh threshold.
  * Ongoing native/steering receipts bind both crew destinations. A distinct driver order
  * yields the current revision before commander acknowledgement can adopt it as our own.
+ * Driver and movement-operator commands yield while either actual seat actor is dormant,
+ * hidden or queued for ACE treatment. This does not clear medical state or alter release cleanup.
  * Speed corrects toward the target; the tolerance band bounds catch-up and stronger close-gap braking.
  * Excess stretch beyond the upper band adds a continuous nonlinear catch-up correction capped
  * at 8 km/h; crossing the band never imposes a new minimum-speed step.
@@ -294,6 +296,8 @@ private _mayIssueDriving = {
         || {!isNull _expectedOperator && {_taskOperator != _expectedOperator}}) exitWith {false};
     [_taskDriver,_taskOperator] findIf {
         !local _x || {group _x != _group} || {vehicle _x != _taskVehicle}
+        || {!simulationEnabled _x} || {isObjectHidden _x}
+        || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
         || {!isNull remoteControlled _x}
         || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}

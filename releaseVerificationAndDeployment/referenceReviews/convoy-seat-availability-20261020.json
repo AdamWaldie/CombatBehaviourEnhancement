@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-20",
+  "scope": "Current mixed-convoy pacing and competing obstacle caps; actual-seat mutation admission. Selected HBQ ranges only.",
+  "baseline": "7a2d4fa7",
+  "reference": {
+    "path": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesRead": [
+      "1020-1066 traffic mass/reaction intake",
+      "1271-1338 traffic-ray stop versus continuous following"
+    ]
+  },
+  "findings": [
+    "HBQ distinguishes same-direction moving following from occupied hard-stop constraints; source comments alone do not establish throughput.",
+    "CBE ConvoyTick retains continuous gap correction, outer-band catch-up, mass-adjusted closing allowance and bounded acceleration/dip smoothing. DrivingFollowingCap leaves aligned living predecessor spacing to that controller except contact-range hull stop.",
+    "DrivingGeometryCap excludes occupied/active land hulls from generic static-obstacle braking. No duplicate aligned occupied-predecessor brake was established by this trace; this is not proof across every bend or crew transition.",
+    "Actual convoy seat check lacked actor simulation, hidden and queued-treatment guards despite protecting the vehicle and native commands. Added these reads for both driver and effective movement operator before existing speed/hold/path writes. Cleanup and medical queues are unchanged."
+  ],
+  "productionFiles": {
+    "addons\\vehicles\\functions\\convoyTick.sqf": "865103ae20e9ebd0a580542698de2e2368e9de26e1a0d74da06884b83b834549",
+    "addons\\vehicles\\functions\\drivingFollowingCap.sqf": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1",
+    "addons\\vehicles\\functions\\drivingGeometryCap.sqf": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
+  },
+  "validation": {
+    "focusedCases": 2,
+    "fullTests": 1477,
+    "buildExit": 0,
+    "log": ".qa/convoy-seat-availability-build.log",
+    "candidate": ".qa/candidates/convoy-seat-availability-7a2d4fa7",
+    "fingerprint": "4c86918dda261eef8ea0230b8de05b93c3ff4c6ae1c423905292779a3d1d5898",
+    "independentVerification": true,
+    "signed": false,
+    "source": "baseline plus intended dirty product/test/guide changes; review and handover follow build"
+  },
+  "limits": [
+    "Audits paused. No measured braking, crew resumption, mixed-column flow, owner migration or performance acceptance.",
+    "Do not retune spacing gains from this static trace or claim whole-HBQ/convoy parity.",
+    "Earlier dated queue reviews describe historical implementation snapshots; current queue native execution helpers must be inspected before repeating their missing-executor claims."
+  ]
+}
