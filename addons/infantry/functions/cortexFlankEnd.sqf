@@ -18,6 +18,8 @@
  * orders or external ownership prohibit movement commands. A failed coordinated
  * bound instead holds its gained ground until the next server sequence; it must not regroup
  * Completed ordinary holds capture original issuer and native destination/order provenance.
+ * Completed support bounds retain parent support-hold receipts for the next role; passive
+ * MOVE-to-COVER handover transfers only exact current-drill STOPs without native commands.
  * This does not turn failed support-bound holds or transient retry stops into ordinary holds.
  * backwards before a retry. Holding uses an ordinary stop order and never disables PATH, so a
  * replacement mission, Zeus order or locality handover cannot inherit frozen actors.
@@ -81,8 +83,12 @@ private _mayRestore=_sameOperation && {!(_reason in ["ZEUS","OWNERSHIP_LOST","EX
     && {!([_group] call CBE_fnc_CortexExternalTakeover)};
 // A legitimate internal role change restores exact-owned controls without recalling the
 // manoeuvre element. The incoming support/cover operation owns the next movement command.
+private _endingAuthored=_drill getOrDefault ["authoredOrder",[]];
+private _authoredCurrent=_endingAuthored isNotEqualTo [] && {
+    _endingAuthored isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+};
 private _mayCommand = _mayRestore && {!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])}
-    && {[_group] call CBE_fnc_CortexIsEligible};
+    && {_authoredCurrent} && {[_group] call CBE_fnc_CortexIsEligible};
 private _mayRestoreActor={
     params ["_actor"];
     alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
@@ -147,16 +153,35 @@ _members=_members select {
 private _stragglers = ((_drill getOrDefault ["recovery",[]]) apply {_x select 0}) select {_x in _members};
 _supportToken=_drill getOrDefault ["supportToken",""];
 private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-private _holdFailedBound=_mayCommand && {_supportToken != ""}
-    && {_reason in ["STALLED","TIME_LIMIT","RECOVERY_FAILED"]}
+private _supportLeaseCurrent=_supportToken != "" && {(_state getOrDefault ["supportToken",""]) == _supportToken}
     && {_state getOrDefault ["assaulting",false]}
-    && {count _lease == 6} && {(_lease select 0) == _supportToken}
-    && {serverTime < (_lease select 2)}
+    && {_authoredCurrent}
+    && {count _lease == 6} && {(_lease select 0) == _supportToken} && {serverTime < (_lease select 2)};
+// A role handover issues no native command. Carry only current-drill owned STOPs
+// into the same parent support journal before the child drill retires.
+private _nextRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
+if (_reason == "ROLE_HANDOVER" && {_mayRestore} && {_supportLeaseCurrent}
+    && {count _nextRole == 5} && {(_nextRole select 0) == _supportToken}
+    && {(_nextRole select 2) == "COVER"}) then {
+    private _handoverHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+    if (_handoverHolds isEqualType createHashMap && {count _handoverHolds <= 64}) then {
+        {
+            if (currentCommand _x == "STOP" && {count _handoverHolds < 64 || {netId _x in _handoverHolds}}) then {
+                _handoverHolds set [netId _x,[_x,_supportToken,_endingGeneration,_endingEpoch,
+                    +(expectedDestination _x),formLeader _x,_lease select 2]];
+            };
+        } forEach _members;
+        _state set ["supportStopHolds",_handoverHolds];
+    };
+};
+private _holdFailedBound=_mayCommand && {_supportLeaseCurrent}
+    && {_reason in ["STALLED","TIME_LIMIT","RECOVERY_FAILED"]}
     && {[_group] call CBE_fnc_CortexIsEligible};
 private _hold = _mayCommand && {_reason in ["COMPLETE","CLOSE"]};
 if (_hold && {_stragglers isNotEqualTo []}) then {_reason = "PARTIAL"};
 _group setVariable ["CBE_Cortex_DrillRecovery",[_reason,_stragglers,_drill getOrDefault ["index",-1]],true];
-if (_holdFailedBound) then {
+private _holdCompletedSupport=_hold && {_supportLeaseCurrent};
+if (_holdFailedBound || {_holdCompletedSupport}) then {
     // A failed movement remains a failure. Preserve physical gains while the server
     // yields the turn; doFollow here creates repeated outward/return journeys.
     private _supportHolds=_state getOrDefault ["supportStopHolds",createHashMap];
@@ -168,8 +193,9 @@ if (_holdFailedBound) then {
             _supportHolds set [netId _x,[_x,_supportToken,_endingGeneration,_endingEpoch,
                 +(expectedDestination _x),formLeader _x,_lease select 2]];
         };
-    } forEach _members;
+    } forEach (if (_holdCompletedSupport) then {_members-_stragglers} else {_members});
     _state set ["supportStopHolds",_supportHolds];
+    if (_holdCompletedSupport) then {{_x doFollow leader _group} forEach _stragglers};
     };
 } else {
 if (_hold) then {
@@ -178,7 +204,7 @@ if (_hold) then {
         _x isEqualType [] && {count _x == 8} && {(_x select 0) in _holders}
     };
     _holdRows=_holdRows select [0,64];
-    private _holdOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+    private _holdOrder=+_endingAuthored;
     {
         private _actor=_x;
         private _slot=_holdRows findIf {(_x select 0) isEqualTo _actor};

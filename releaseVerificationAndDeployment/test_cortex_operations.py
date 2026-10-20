@@ -2945,7 +2945,7 @@ class CortexOperations(unittest.TestCase):
     def test_failed_coordinated_bound_holds_until_new_sequence(self):
         end=source('cortexFlankEnd')
         self.assertIn('_reason in ["STALLED","TIME_LIMIT","RECOVERY_FAILED"]',end)
-        hold=end.split('if (_holdFailedBound) then {',1)[1].split('} else {',1)[0]
+        hold=end.split('if (_holdFailedBound || {_holdCompletedSupport}) then {',1)[1].split('} else {',1)[0]
         self.assertIn('doStop _x',hold)
         self.assertNotIn('disableAI "PATH"',hold)
         self.assertNotIn('supportHeld',hold)

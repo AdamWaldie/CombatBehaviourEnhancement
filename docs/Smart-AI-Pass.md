@@ -1901,3 +1901,10 @@ This adds one read-only authored-order comparison per active drill callback and 
 Standalone drill checkpoints carry at most 64 passive HOLD receipts whose native STOP, destination and formation leader still match the actual issued hold. The source token, owner, epoch and operation generation identify the checkpoint. A new owner checks the original drill token and generation, unchanged authored order, actual actor locality, native hold, fitness, movement features and reservations before admitting stopped actors. Valid holds enter the new drill journal without movement or a fresh acknowledgement interval. Unknown STOPs remain excluded, including before the first resumed callback.
 
 MOVE commands, their acknowledgement windows and FSM handles are not replayed. This uses the existing checkpoint and finite locality-settling path, with no actor marker broadcasts or new worker. Snapshot matching cannot distinguish an identical replacement order. Coordinated support-hold migration, physical standalone continuation and measured checkpoint overhead remain open.
+
+
+### Coordinated bound completion and cover handover
+
+Completed support bounds keep their stopped main element in the parent support-hold journal. Stragglers retain the existing formation-return path. The next bound can consume those exact holds through normal admission. During a MOVE-to-COVER role handover, unchanged current-drill STOPs transfer passively to that same support journal before the child drill retires. The incoming cover role owns any subsequent command.
+
+These transitions require the current parent token, operation generation, owner epoch, original lease expiry and unchanged authored order. Unknown stops remain outside the transferred roster. Completion cleanup also checks the frozen authored-order receipt before issuing STOP or formation-return commands and records the original receipt for completed standalone holds. No timer, movement controller or renewed lease is added. Physical repeat flow and coordinated-hold migration remain unverified or incomplete.

@@ -201,8 +201,21 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertLess(cover.index('doStop _x'),cover.index('_stopHolds set [netId _x'))
         self.assertIn('count _stopHolds < 64',cover)
         end=(ROOT/'addons/infantry/functions/cortexFlankEnd.sqf').read_text()
-        failed=end.split('if (_holdFailedBound) then {',1)[1].split('} else {',1)[0]
+        failed=end.split('if (_holdFailedBound || {_holdCompletedSupport}) then {',1)[1].split('} else {',1)[0]
         self.assertIn('supportStopHolds',failed)
+        self.assertIn('private _holdCompletedSupport=_hold && {_supportLeaseCurrent}',end)
+        self.assertIn('_endingAuthored isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',end)
+        self.assertIn('&& {_authoredCurrent} && {[_group] call CBE_fnc_CortexIsEligible}',end)
+        self.assertIn('private _holdOrder=+_endingAuthored;',end)
+
+        self.assertIn('_members-_stragglers',failed)
+        handover=end.split('// A role handover issues no native command.',1)[1].split('private _holdFailedBound=',1)[0]
+        for proof in ('_reason == "ROLE_HANDOVER"','_supportLeaseCurrent','(_nextRole select 2) == "COVER"',
+                      'currentCommand _x == "STOP"','_lease select 2','supportStopHolds'):
+            self.assertIn(proof,handover)
+        for forbidden in ('doStop','doMove','doFollow','serverTime+'):
+            self.assertNotIn(forbidden,handover)
+
         self.assertLess(failed.index('doStop _x'),failed.index('_supportHolds set [netId _x'))
         self.assertNotIn('sleep ',boundary)
         self.assertNotIn('nearEntities',boundary)

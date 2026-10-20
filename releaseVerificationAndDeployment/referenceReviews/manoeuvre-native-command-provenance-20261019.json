@@ -149,5 +149,32 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportTransitionFollowUp20261020": {
+    "baseline": "3b3a06a4",
+    "finding": "Stricter coordinated STOP admission exposed existing split journals: completed support bounds wrote generic holder receipts, while next bound requires supportStopHolds. Active ROLE_HANDOVER retires child without recall, losing its exact local HOLD proof. Genuine CBE stops could then be excluded.",
+    "change": "Completed support holds stay in parent supportStopHolds, with original expiry; stragglers preserve existing doFollow path. ROLE_HANDOVER to matching COVER passively transfers only current-drill owned STOPs from the already-filtered members, before child retirement. Completion cleanup also verifies original authoredOrder before any native command; generic completed holds retain original frozen receipt, not a fresh baseline.",
+    "cost": "At most64 existing actor/hold rows, one authored-order receipt per end. Reuses existing cleanup transaction and journals, no new handler/query/ray/timer/lease.",
+    "source": {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "sha256": "cb1784f589c9c095388682f29c41e56c7b6f654c4df9fe24eddf47b18342682d"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperationTests": 607,
+      "build": ".qa/cbe-support-hold-transition-build.log",
+      "independent": ".qa/cbe-support-hold-transition-independent.log",
+      "candidate": ".qa/candidates/support-transition-3b3a06a4-1e10f10f",
+      "fingerprint": "1e10f10f6236fd217cf2e8f5bb6f5bcfec3174bc53886b90d21a58a425f2c966",
+      "source": "3b3a06a4 plus intended dirty support-transition edits"
+    },
+    "remaining": [
+      "Actual-provider coordinated support hold migration remains open; no portable support cleanup granted.",
+      "Repeat MOVE/COVER flow, stragglers, casualty and authored-order interruption require later physical validation."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }
