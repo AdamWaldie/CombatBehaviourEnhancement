@@ -1280,7 +1280,8 @@
         "addons/support/functions/cortexSupportStep.sqf",
         "addons/support/functions/supportRequestStart.sqf",
         "addons/support/functions/supportRequestQueue.sqf",
-        "addons/support/functions/supportRequestStep.sqf"
+        "addons/support/functions/supportRequestStep.sqf",
+        "addons/support/functions/cortexSupportStopOwned.sqf"
       ]
     },
     {

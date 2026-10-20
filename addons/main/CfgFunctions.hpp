@@ -326,6 +326,7 @@ class CfgFunctions {
             class CortexSupportAck {file = "\z\cbe\addons\support\functions\cortexSupportAck.sqf";};
             class CortexSupportMaintain {file = "\z\cbe\addons\support\functions\cortexSupportMaintain.sqf";};
             class CortexSupportCoordinateStep {file = "\z\cbe\addons\support\functions\cortexSupportCoordinateStep.sqf";};
+            class CortexSupportStopOwned {file = "\z\cbe\addons\support\functions\cortexSupportStopOwned.sqf";};
             class CortexSupportBoundStart {file = "\z\cbe\addons\support\functions\cortexSupportBoundStart.sqf";};
             class CortexReinforce {file = "\z\cbe\addons\support\functions\cortexReinforce.sqf";};
             class CortexReleaseGroup {file = "\z\cbe\addons\infantry\functions\cortexReleaseGroup.sqf";};

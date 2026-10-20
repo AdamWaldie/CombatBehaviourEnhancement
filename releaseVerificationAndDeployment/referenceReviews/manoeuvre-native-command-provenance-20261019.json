@@ -63,5 +63,35 @@
     "cleanup": "CortexFlankEnd recalls native STOP only with exact current-drill HOLD receipt. MOVE or absent receipts grant no STOP cleanup authority.",
     "move_destination": "Actual main/retry/recovery requested destinations are retained independently of expectedDestination. Active MOVE must match the requested point, except unchanged post-write sampled native state during original2second acknowledgement. HOLD-to-MOVE acknowledgement remains bounded. Cleanup has no acknowledgement exemption and requires a matching MOVE target/formLeader.",
     "natural_admission": "Advance/flank/assault initial rosters reject unknown STOP; exact completed CBE holder receipts may transfer in CortexDrillStart under current state/token/epoch/generation. Old holder recall tokens/rows retire atomically. Passive transfer issues no command or new acknowledgement interval. Checked natural starts refuse an unknown STOP before first callback."
+  },
+  "coordinatedStopFollowUp20261020": {
+    "baseline": "4f880d55",
+    "finding": "Coordinated bound roster and covering STOP admission accepted unknown native STOP. Active nativeAdmissionChecked was absent, allowing that baseline through the first callback.",
+    "change": "Read-only CortexSupportStopOwned compares exact seven-field local support hold. Coordinated bound/cover reject unowned STOP. Matching bound holds transfer as HOLD nativeCommands with ack=-1 and nativeAdmissionChecked=true; consumed support rows retire in the same allocation transaction. A roster larger than64 refuses rather than partially transferring STOP ownership.",
+    "cost": "At most64 direct map lookups, no scan/ray/worker/timer or new native write. Existing callback and drill lifecycle retained.",
+    "remaining": [
+      "Owner-resume initial STOP admission and portable active proof remain open.",
+      "Independent MOVE attribution and identical replacement orders remain open.",
+      "Cover-to-move, casualty flow, normal/providerHC migration and overhead remain physically unverified."
+    ],
+    "sources": {
+      "addons/support/functions/cortexSupportBoundStart.sqf": "409d33d42bccce98383c86174544743f9bfa8092ff89944797a5d3a4aabe22f0",
+      "addons/support/functions/cortexSupportMaintain.sqf": "1a51706e2752b45e2f1612f988618a4880c0904de4e90551ebdaeab10691dedb",
+      "addons/support/functions/cortexSupportStopOwned.sqf": "6446a77b8b4482b4f85eb4bd944ace64825eff22c902644aed3f513004df599a"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperations": 607,
+      "build": ".qa/cbe-coordinated-stop-admission-build.log",
+      "independent": ".qa/cbe-coordinated-stop-admission-independent.log",
+      "candidate": ".qa/candidates/coordinated-stop-4f880d55-0731e402",
+      "fingerprint": "0731e402a252e49a1e8d5ee6e07e29be289fc1342f048fb8972cf7529e99f4b8",
+      "source": "4f880d55 plus intended dirty coordinated-admission edits",
+      "initialFailures": "Coverage lacked new source and old exact minimum-roster assertion rejected combined upper bound. Source registered; upper bound split into separate guard, original minimum regression retained."
+    },
+    "physical": false,
+    "scoresChanged": false
   }
 }

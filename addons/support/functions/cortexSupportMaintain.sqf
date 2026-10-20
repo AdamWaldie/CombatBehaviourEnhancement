@@ -371,6 +371,9 @@ if (_coordinating) then {
                     && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
                     && {!(toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
                     && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                    && {toUpperANSI currentCommand _x != "STOP" || {
+                        [_group,_state,_x,_token,_operationGeneration,_lease select 2] call CBE_fnc_CortexSupportStopOwned
+                    }}
                     && {count _stopHolds < 64 || {netId _x in _stopHolds}}) then {
                     doStop _x;
                     _stopHolds set [netId _x,[_x,_token,_operationGeneration,

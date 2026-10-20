@@ -154,8 +154,22 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexDrillStart',boundary)
         self.assertIn('_accepted=[_group,_token] call CBE_fnc_CortexDrillStart;',boundary)
         self.assertNotIn('_accepted=true;',boundary)
+        self.assertIn('CBE_fnc_CortexSupportStopOwned',boundary)
+        self.assertIn('["nativeAdmissionChecked",true],["nativeCommands",_nativeCommands]',boundary)
+        self.assertIn('[_x,"HOLD",+(expectedDestination _x),formLeader _x,-1,[],[]]',boundary)
+        self.assertLess(boundary.index('_transferredHolds deleteAt'),boundary.index('_accepted=[_group,_token]'))
+        owned=(ROOT/'addons/support/functions/cortexSupportStopOwned.sqf').read_text()
+        for proof in ('!local _holdGroup','!local _holdActor','CBE_OperationGeneration',
+                      'CBE_AIPass_Epoch','serverTime >= _holdExpiry','count _holds > 64',
+                      'isEqualTo [','expectedDestination _holdActor,formLeader _holdActor,_holdExpiry'):
+            self.assertIn(proof,owned)
+        for forbidden in ('doMove','doStop','doFollow','setVariable','spawn','waitAndExecute'):
+            self.assertNotIn(forbidden,owned)
+
         self.assertTrue(source.rstrip().endswith('_accepted'))
         maintain=(ROOT/'addons/support/functions/cortexSupportMaintain.sqf').read_text()
+        cover=maintain.split('private _coverIdentity=',1)[1]
+        self.assertLess(cover.index('call CBE_fnc_CortexSupportStopOwned'),cover.index('doStop _x'))
         cleanup=maintain.split('private _releaseStopHolds={',1)[1].split('private _releaseSupport={',1)[0]
         for proof in ('isNil {','supportStopHolds','count _holds > 64','(_row select 1) == _token',
                       'CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalTakeover',

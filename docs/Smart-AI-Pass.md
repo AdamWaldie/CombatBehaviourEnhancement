@@ -1880,3 +1880,10 @@ No global enemy/corpse scan, new setting, recurring movement worker, automatic s
 
 
 Automatic head-on jam recovery is separately opt-in through CBA **Experimental automatic head-on jam recovery** (`CBE_AIPass_DrivingAssist_Queue_Enable`, default **off**). It can initiate one authenticated queue attempt from sustained stationary ordinary traffic, within the existing recovery episode. It preserves participant refusal, native crew prerequisites, finite movement and exact handback. Disabling stops uncommitted initiation; an admitted operation retains its original cleanup. This is unverified experimental behaviour, not accepted general traffic resolution.
+
+
+### Coordinated cover-to-bound STOP admission
+
+An independently stopped soldier is excluded from a new coordinated bound or covering STOP. A current CBE support hold may continue only when its actor, support token, operation generation, owner epoch, native destination, formation leader and original support expiry still match. The bound transfers those exact holds into its existing native-command journal without issuing movement or granting a new acknowledgement interval. The former support rows retire so later support cleanup cannot recall actors now controlled by that drill. Changed orders remain protected before the first drill callback.
+
+This uses the existing owner-local allocation transaction and finite tactical FSM. No new scheduler or movement controller is added. Support-hold metadata remains local; owner-resume admission, indistinguishable replacement orders and physical cover-to-move flow still require further work or validation.
