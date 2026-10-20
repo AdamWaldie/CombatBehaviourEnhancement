@@ -6,6 +6,7 @@
  * Repeat/JIP: One public clue with original twenty-second expiry and owner epoch; no replay on gain.
  * At most one bounded selection per eight seconds, four nearby buildings and sixteen squad actors.
  * At most two investigators use the existing per-group indoor actor limit. No permanent worker.
+ * Witness availability is not a live execution lease; current investigators retain their own gates.
  * The original clue remains until expiry; physically visited nodes guide later eligible actors
  * within that same episode. Assignment/failure never records a visit or renews its deadline.
  * Arguments: group GROUP grpNull; state HASHMAP empty.
@@ -25,8 +26,10 @@ private _vector={_this isEqualType [] && {count _this == 3}
 private _valid=_position call _vector && {_observed isEqualType 0} && {finite _observed}
     && {_expires isEqualType 0} && {finite _expires} && {_expires > _observed}
     && {_expires <= _observed+20} && {serverTime >= _observed} && {serverTime < _expires}
-    && {_witness isEqualType objNull} && {!isNull _witness} && {group _witness == _group}
-    && {local _witness} && {[_witness] call CBE_fnc_CortexCombatEffective}
+    // The witness was validated when the group recorded this observation. It is
+    // historical provenance, not the executor: injury, deletion or separate locality
+    // must not erase already shared memory or its physically visited-node history.
+    && {_witness isEqualType objNull}
     && {_epoch isEqualType 0} && {finite _epoch}
     && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])};
 if (!_valid) exitWith {

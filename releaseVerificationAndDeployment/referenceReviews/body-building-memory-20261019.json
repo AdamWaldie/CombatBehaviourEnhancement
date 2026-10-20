@@ -139,5 +139,16 @@
     "implementationHash": "a9e06efb6637cd2ade0aedc5bc531e0177a6a33283154aaedba301b8b35038ef",
     "validation": "Existing3 focused selector cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-building-select-bound-build.log. Candidate .qa/candidates/building-select-bound-e12f5922-61678423 fingerprint 61678423025b4ddbd29744c46e970828325660a21ebbd72690dd0d826f14204d actuale12f5922+dirtysource. Independent copied-package verification .qa/cbe-building-select-bound-independent.log. No new cases or scores.",
     "audits": "PAUSED"
+  },
+  "historicalWitness20261020": {
+    "sourceParent": "00caf795",
+    "sourceIntent": "LAMBS doAssaultMemory operates on remembered group positions rather than requiring the original witness to remain an available soldier. CBE position-only body-clue memory is already shared at creation and should not vanish when its historical observer becomes unavailable.",
+    "finding": "IndoorObservationDispatch validity required live combat-effective local same-group witness, deleting clue and visited-node history after witness incapacitation, deletion or separate actor locality. IndoorActorOperation already binds clue/epoch/expiry without that witness-availability dependency.",
+    "implementation": "Retain typed witness as historical provenance only. Existing fresh finite observation, original<=20s expiry, exact group-held clue and epoch remain; actual selected investigators still require current local health/native-task/actor reservation/operation eligibility. No clue renewal, hostile identity, new actor job, query, state format or worker. DangerStep still validates actual observer before publishing the original group record.",
+    "cost": "Removes witness current-availability queries; no added recurring work. Engine cost unmeasured.",
+    "validation": "639 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-clue-witness-build.log. Candidate .qa/candidates/clue-witness-00caf795-82ad8f38 fingerprint 82ad8f38d246dcf880539b850662a16155e37a362a5648d6ca845079b64246a7 actual00caf795+dirtysource. Independent copied-package verification .qa/cbe-clue-witness-independent.log. No new cases or scores.",
+    "limits": "This repairs one finite shared memory path, not full LAMBS group memory parity. Witness casualties/deletion/locality, later actor participation and physical investigation remain unverified. Owner epoch changes still invalidate the clue; no migration replay.",
+    "implementationHash": "50bcdc540ce1b436d0420f79f7fa6cd878f5df0316c85f75665f2222240471bf",
+    "audits": "PAUSED"
   }
 }

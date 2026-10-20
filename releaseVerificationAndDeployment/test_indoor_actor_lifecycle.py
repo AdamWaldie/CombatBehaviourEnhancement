@@ -271,6 +271,18 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,dispatch)
         self.assertEqual(dispatch.count('setVariable ["CBE_Danger_BuildingClue",nil,true]'),1)
         self.assertIn('["observationClue",_clue]',dispatch)
+        validation=dispatch.split('private _valid=',1)[1].split('if (!_valid)',1)[0]
+        self.assertIn('_witness isEqualType objNull',validation)
+        for obsolete in ('!isNull _witness','group _witness','local _witness','[_witness] call CBE_fnc_CortexCombatEffective'):
+            self.assertNotIn(obsolete,validation)
+        for retained in ('_expires <= _observed+20','serverTime < _expires',
+                         '_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])'):
+            self.assertIn(retained,validation)
+        roster=dispatch.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
+        self.assertIn('local _x',roster)
+        self.assertIn('CortexCombatEffective',roster)
+        self.assertIn('CortexActorMoveReserved',roster)
+
         actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         visits=actor.split('// Keep only historical physical visits',1)[1].split('CBE_IndoorActor_Result',1)[0]
         for proof in ('== "VISITED"','== "OBSERVE"','vectorDistance (AGLToASL _target) <= 2',
