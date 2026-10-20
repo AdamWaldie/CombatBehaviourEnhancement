@@ -9,7 +9,11 @@
     ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
     ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
     ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
-    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf"
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
   },
   "branches": [
     {
@@ -90,5 +94,28 @@
     "candidate": ".qa\\candidates\\indoor-queued-care-49efc839",
     "fingerprint": "42cb43283ce4291130ab2c427e45cd41c581904f88fdbffdf8418ea933d1b2e3",
     "limits": "Existing journals and finite deadlines remain authoritative; delayed cleanup availability is not confirmed resumed travel. Physical treatment/re-entry/cleanup not tested; auditsPAUSED."
+  },
+  "openGroundDistinction": {
+    "source": "doAssault no-building fallback uses native getHideFrom and setDestination LEADER PLANNED unless visibility/building branch requests doMove; it avoids repeating destinations within1m and may stay indoors.",
+    "CBE": "TacticalAssess NATIVE_CLOSE_CONTACT explicitly preserves native engagement for one armed actor/one dismounted hostile within20m and5s. IndoorActorDispatch is independent of group assault headcount.",
+    "finding": "An actor-level open-ground destination augmentation is a source functionality difference, not evidence native AI is broken. Need a witnessed stagnation/admission contract and mission-order preservation before extending existing actor FSM; do not force a new move every danger callback."
+  },
+  "hideImmediateComparison": {
+    "LAMBSHide": "Scream watches position; own body calls doCheckBody; unknown body seeds nearby building memory; rare indoor random reposition; otherwise weak prone.",
+    "CBE": "Existing body point operation, body-clue indoor memory and finite danger posture/cover paths cover selected intent; casualty equipment recovery only scoped one-magazine subset. Do not claim full hide parity from presence.",
+    "LAMBSImmediate": "Writes ACE lastHit, then cover for suppression>0.5/REPLAN/STOP/fire; otherwise dodge.",
+    "CBEReviewRequired": "Trace DangerCoverStep/DangerGroupHideStep and actor evasion against source route/STOP semantics; do not copy ACE timer mutation or unconditional movement over authored STOP.",
+    "nextAction": "Review actual finite cover selection/issue/cleanup and group-hide membership, keeping medical safeguards as established baseline."
+  },
+  "coverHideAuthority": {
+    "sourceIntent": "Lower silhouette, choose nearby concealment/protection and react directionally. LAMBS cover chooses terrain6m away then moveTo/setDestination; dodge chooses directional animations and can force posture.",
+    "CBEComparison": "Finite cover has original deadline, generation/owner/native-order receipts, screening geometry and arrival/timeout evidence; group hide retains exact applied/prior stance proof. These controls improve authority, not demonstrated tactical quality.",
+    "finding": "Group-hide application/restoration lacked hidden/simulation/queued-care checks. Cover maintenance and timeout follow cleanup could continue over queued treatment before native command changed.",
+    "change": "Group-hide admission/restoration now guard dormancy and queued care; failed restore uses existing deferred actor proof. Cover maintenance/new issue/recall boundaries guard actor dormancy and queued care. No queue writes, roster mutation or new worker.",
+    "validation": "607 focused/full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/danger-cover-hide-authority-build.log; no new test cases.",
+    "remaining": "Physical cover approach quality, gesture blend, renewed danger, treatment overlap and deferred stance cleanup remain unverified. Audits PAUSED.",
+    "candidate": ".qa\\candidates\\danger-cover-hide-76c1c2e3",
+    "fingerprint": "f15350859f018bcc460fb181fca8742003ea02d04bbff3e1ce98dd651e540bd2",
+    "ongoingLeaseReview": "Existing same-generation group-hide leases retain exact proof without reapplying commands. Generation change/ending calls guarded restore or existing deferred engine-stance cleanup. Cover issue/maintenance/recall checks prevent commands during dormancy/queuedcare; existing deadlines remain unchanged."
   }
 }

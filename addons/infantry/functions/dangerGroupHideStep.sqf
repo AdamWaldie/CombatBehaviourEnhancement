@@ -45,6 +45,8 @@ private _mayRestore={
         && {isNull remoteControlled _unit}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {[_unit] call CBE_fnc_CortexCombatEffective}
+        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
         && {_postureFree}
         && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
@@ -162,6 +164,8 @@ private _candidates=_members select {
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!(_x in _reserved)}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _x in ["","ATTACK","FIRE","SUPPRESS"]}
         && {abs (speed _x) <= 0.5}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}

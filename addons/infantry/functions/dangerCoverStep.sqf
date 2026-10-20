@@ -105,6 +105,8 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4} && {(_lease s
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {isNull objectParent _actor}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+    && {simulationEnabled _actor} && {!isObjectHidden _actor}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
     && {currentCommand _actor in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}) exitWith {true};
 private _arrived=false;
 private _timedOut=false;
@@ -142,6 +144,8 @@ if (count _lease >= 4) then {
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                 && {!([_leasedActor] call CBE_fnc_CompatibilityExternalControl)}
+                && {simulationEnabled _leasedActor} && {!isObjectHidden _leasedActor}
+                && {(_leasedActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {currentCommand _leasedActor in ["","MOVE"]}) then {
                 _leasedActor doFollow (leader _group);
             };
@@ -169,6 +173,8 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
     || {getUnitState _actor == "PLANNING"}
+    || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {
     _group setVariable ["CBE_Danger_CoverBlockedContext",[time,currentCommand _actor,
@@ -240,6 +246,8 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {getUnitState _actor == "PLANNING"}
+    || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
 _group setVariable ["CBE_Danger_CoverPending",nil];
 _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];
