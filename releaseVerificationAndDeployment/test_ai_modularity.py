@@ -265,6 +265,14 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
             self.assertIn('!(_active isEqualType true) || {_active}',text)
             self.assertNotIn('setVariable',text)
         self.assertLess(owner.index('AR_Is_Rappelling'),owner.index('configOf _unit'))
+        self.assertLess(owner.index('if (_wbkMarker)'),owner.index('getOrDefault [_class,-1]'))
+        cache=owner.split('if (_static isEqualTo -1) then {',1)[1].split('if (_static) exitWith',1)[0]
+        self.assertIn('configOf _unit',cache)
+        self.assertIn('count CBE_ExternalOwnerClassCache < 256',cache)
+        for runtime in ('AR_Is_Rappelling','IMS_ISAI','animationState','getVariable'):
+            self.assertNotIn(runtime,cache)
+        self.assertLess(owner.index('if (_static) exitWith'),owner.index('animationState _unit'))
+
 
 
     def test_aircraft_cannot_bypass_external_operation_ownership(self):

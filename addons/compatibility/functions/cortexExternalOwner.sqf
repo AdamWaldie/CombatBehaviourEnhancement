@@ -6,8 +6,11 @@
  * Ordinary infantry remains eligible when those addons are merely loaded. Verified active
  * rappelling markers also yield actor/vehicle control, without assuming descent completion.
  *
- * Locality / Authority: read-only and callable anywhere. No public state or addon variable is changed.
- * Repeat/JIP: repeat-safe; it reads current config and public runtime markers on every call.
+ * Locality / Authority: callable anywhere. Classification changes no actor, provider or public
+ * state; only the bounded machine-local class memo is populated.
+ * Repeat/JIP: repeat-safe; live runtime markers are read on every call. A machine-local
+ * cache retains at most256 immutable class classifications; overflow computes without storing.
+ * No actor/provider/public state changes, new worker or locality replay.
  *
  * Arguments:
  * 0: actor <OBJECT>, default objNull
@@ -32,26 +35,34 @@ if (["AR_Is_Rappelling","AR_Units_Rappelling"] findIf {
     !(_active isEqualType true) || {_active}
 } >= 0) exitWith {"RAPPEL"};
 
-private _config=configOf _unit;
-private _class=typeOf _unit;
-private _faction=getText (_config >> "faction");
-private _author=toLowerANSI (getText (_config >> "author"));
-private _subcategory=getText (_config >> "editorSubcategory");
-private _wbkFactions=[
-    "WBK_AI_ZHAMBIES","WBK_AI_StarWars_Droids","WBK_AI","WBK_AI_Melee",
-    "WBK_EOO_Secession","WBK_EOO_Vamp","Empires_Of_Old_faction_Vamp",
-    "WBK_EOO_FreeCompany","WBK_EOO_Empire","WBK_HL_Aliens","WBK_HL_resistance",
-    "WBK_HL_Combines","OPTRE_FC_Covenant","dev_flood","dev_mutants"
-];
 private _wbkMarker=!(isNil {_unit getVariable "WBK_AI_ISZombie"})
     || {!(isNil {_unit getVariable "Droid_Health"})}
     || {!(isNil {_unit getVariable "WBK_Droids_VoiceType"})}
     || {!(isNil {_unit getVariable "WBK_AI_ZombieMoveSet"})};
-// A non-standard movement config alone is not a specialist contract. Several ordinary content
-// packs use custom movement sets, and excluding them would silently disable CBE for unrelated AI.
-// Match only the specialist's own public runtime markers, class/faction identity or declared author.
-if (_wbkMarker || {_class find "WBK_" == 0} || {_faction in _wbkFactions}
-    || {_subcategory == "WBK_MeleeAi_SPACE_MARINES"} || {_author find "webknight" >= 0}) exitWith {"SPECIALIST"};
+if (_wbkMarker) exitWith {"SPECIALIST"};
+
+// Config identity is immutable for this mission; cache only that classification.
+// Live runtime markers above and melee/animation below are never cached.
+private _class=typeOf _unit;
+if (isNil "CBE_ExternalOwnerClassCache") then {CBE_ExternalOwnerClassCache=createHashMap};
+private _static=CBE_ExternalOwnerClassCache getOrDefault [_class,-1];
+if (_static isEqualTo -1) then {
+    private _config=configOf _unit;
+    private _faction=getText (_config >> "faction");
+    private _author=toLowerANSI (getText (_config >> "author"));
+    private _subcategory=getText (_config >> "editorSubcategory");
+    private _wbkFactions=[
+        "WBK_AI_ZHAMBIES","WBK_AI_StarWars_Droids","WBK_AI","WBK_AI_Melee",
+        "WBK_EOO_Secession","WBK_EOO_Vamp","Empires_Of_Old_faction_Vamp",
+        "WBK_EOO_FreeCompany","WBK_EOO_Empire","WBK_HL_Aliens","WBK_HL_resistance",
+        "WBK_HL_Combines","OPTRE_FC_Covenant","dev_flood","dev_mutants"
+    ];
+    // Custom movement config alone remains insufficient evidence of specialist ownership.
+    _static=_class find "WBK_" == 0 || {_faction in _wbkFactions}
+        || {_subcategory == "WBK_MeleeAi_SPACE_MARINES"} || {_author find "webknight" >= 0};
+    if (count CBE_ExternalOwnerClassCache < 256) then {CBE_ExternalOwnerClassCache set [_class,_static]};
+};
+if (_static) exitWith {"SPECIALIST"};
 
 // external controller only owns an actor while its melee runtime says so. Loading external controller must not exclude every rifleman.
 private _animation=toLowerANSI animationState _unit;
