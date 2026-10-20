@@ -1969,3 +1969,7 @@ A reconstructed pending team reuses those destinations and observes unchanged na
 The parent retains the original native-adoption deadline while observations are still waiting for a running child or an established cover role. Another owner receives the same absolute deadline. An expired window cannot grant more settling time. Checkpoints carry unresolved observations and imported MOVE records within the existing 64-actor limit, preserving their destination and progress samples. Local changed commands are dropped; nonlocal proposals still require validation by the receiving owner.
 
 Starting a running child or establishing cover ends that pending episode. Later active work supplies its own fresh checkpoint. This adds no callback or timer. Physical rapid-transfer ordering, missing snapshots and performance remain unverified.
+
+### Sweeping road bends
+
+Road observation considers both the change between connected road pieces and the bearing from the vehicle to the sampled point ahead. A substantial bend made from many small pieces can therefore lower the existing safety ceiling. Ordinary driving and convoy leaders share this observer. The existing eight-transition road walk, metadata limit, thresholds and sole speed writer are unchanged. Branch selection remains a heading heuristic; this does not establish native route choice or physical braking performance.

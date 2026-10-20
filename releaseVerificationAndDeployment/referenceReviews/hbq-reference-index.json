@@ -193,7 +193,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "sha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96",
+      "sha256": "c499c131bb265ccf6bc11cf502e4914fb9cf31586a093b4ca853dd6a9f5cb2a5",
       "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -736,9 +736,9 @@
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
       "recordedSha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96",
-      "status": "exact-historic-hash",
+      "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "currentSha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96"
+      "currentSha256": "c499c131bb265ccf6bc11cf502e4914fb9cf31586a093b4ca853dd6a9f5cb2a5"
     },
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",
