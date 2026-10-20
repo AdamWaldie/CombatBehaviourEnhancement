@@ -26,6 +26,8 @@
  *
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
+ * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
+ * together where vacancies permit. A single required vacancy may still split a pair.
  * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
  * strength permits. Minimum surviving movement and cover capacity may require splitting a pair.
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
@@ -413,9 +415,14 @@ if (_teams isEqualTo []) then {
     _units=(_drill get "units") select {_x in _fitSquad};
     private _candidates=[_fitSquad-_units] call _rankCandidates;
     while {count _units < _desiredStrength && {_candidates isNotEqualTo []}} do {
-        private _replacement=_candidates deleteAt 0;
-        _units pushBack _replacement;
-        _reinforcements pushBack ["MANOEUVRE",netId _replacement];
+        private _vacancies=(_desiredStrength-count _units) min 5;
+        private _relief=[_group,_candidates select [0,16],_vacancies,1] call CBE_fnc_CombatElementSelect;
+        if (_relief isEqualTo []) exitWith {};
+        {
+            _units pushBack _x;
+            _reinforcements pushBack ["MANOEUVRE",netId _x];
+        } forEach _relief;
+        _candidates=_candidates-_relief;
     };
 } else {
     _teams=_teams apply {_x select {_x in _fitSquad}};
@@ -427,9 +434,15 @@ if (_teams isEqualTo []) then {
         private _team=_x;
         private _desired=_desiredSizes param [_forEachIndex,count _team];
         while {count _team < _desired && {_candidates isNotEqualTo []}} do {
-            private _replacement=_candidates deleteAt 0;
-            _team pushBack _replacement;
-            _reinforcements pushBack [format ["TEAM_%1",_forEachIndex+1],netId _replacement];
+            private _teamIndex=_forEachIndex;
+            private _vacancies=(_desired-count _team) min 5;
+            private _relief=[_group,_candidates select [0,16],_vacancies,1] call CBE_fnc_CombatElementSelect;
+            if (_relief isEqualTo []) exitWith {};
+            {
+                _team pushBack _x;
+                _reinforcements pushBack [format ["TEAM_%1",_teamIndex+1],netId _x];
+            } forEach _relief;
+            _candidates=_candidates-_relief;
         };
     } forEach _teams;
     if (count _teams == 2) then {

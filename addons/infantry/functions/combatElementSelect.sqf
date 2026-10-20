@@ -8,7 +8,7 @@
  * Arguments: 0 group <GROUP,grpNull>; 1 ranked eligible candidates <ARRAY,[]>, at most16;
  * 2 maximum element size <NUMBER,2>,1..5; 3 minimum mover count <NUMBER,2>,1..maximum.
  * Return: ARRAY of selected actors, or [] for invalid scope/insufficient candidates.
- * Current callers: CortexAdvanceStart, CortexFlankStart and CortexAssaultStart.
+ * Current callers: CortexAdvanceStart, CortexFlankStart, CortexAssaultStart and CortexFlankStep refill.
  * Cost: At most16 candidates and16 persistent rows; no geometry or world scan.
  * Example: [group soldier1,[soldier1,soldier2,soldier3,soldier4],2,2] call CBE_fnc_CombatElementSelect;
  */

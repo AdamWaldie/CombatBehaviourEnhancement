@@ -137,6 +137,12 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
             self.assertNotIn(forbidden,helper)
         candidates=source.split('private _rankCandidates={',1)[1].split('private _units=[];',1)[0]
         self.assertIn('currentCommand _x != "STOP"',candidates)
+        refill=source.split('private _units=[];',1)[1].split('// Candidate selection prepares',1)[0]
+        self.assertEqual(refill.count('call CBE_fnc_CombatElementSelect'),2)
+        self.assertEqual(refill.count('_candidates=_candidates-_relief'),2)
+        self.assertIn('_candidates select [0,16],_vacancies,1',refill)
+        self.assertIn('private _teamIndex=_forEachIndex',refill)
+        self.assertNotIn('_candidates deleteAt 0',refill)
         self.assertIn('forEach ([_second,2] call _selectRelief)',source)
         self.assertIn('forEach ([_first,2] call _selectRelief)',source)
         self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',source)

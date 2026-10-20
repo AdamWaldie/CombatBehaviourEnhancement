@@ -7525,7 +7525,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CompatibilityExternalControl',rank)
         self.assertIn('"CARRY SOLDIER"',rank)
         refill=step.split('private _units=[];',1)[1]
-        self.assertLess(refill.index('call _rankCandidates'),refill.index('_units pushBack _replacement'))
+        self.assertLess(refill.index('call _rankCandidates'),refill.index('_units pushBack _x'))
 
     def test_drill_steps_cannot_adopt_a_replacement_action(self):
         step=source('cortexFlankStep')

@@ -134,5 +134,16 @@
     "validation": "Existing pair-publication regression extended with reassignment and singleton cases; full build result recorded in handover.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "pairAwareReserveRefill": {
+    "baseline": "3e64b041",
+    "finding": "CortexFlankStep refill selected individual ranked reserves even when two vacancies could accept an intact reserve buddy pair. Donor transfer and initial admission were pair-aware but reserve refill was not.",
+    "implementation": "Reuse CombatElementSelect for existing non-team and team refill loops: up to five vacancies, top sixteen eligible ranked candidates, remove selected batch before next team. Preserve outer team index for replacement history.",
+    "authority": "Same existing private proposal and exact drill/native/operation/epoch commit boundary. No new command, worker, world query, lifetime or attempt.",
+    "limits": "Minimum capacity or a single vacancy can split a pair; shortlist and registry bounds remain. Existing buddy already assigned to a team receives no special candidate priority. Independent per-pair leapfrog and physical flow remain incomplete.",
+    "validation": "Existing casualty ownership regression extended; complete build result in handover.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
