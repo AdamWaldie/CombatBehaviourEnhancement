@@ -5,11 +5,17 @@
  * Locality/authority: read-only query on the battery owner; callers coordinate fire on the server.
  * Repeat/JIP: repeat-safe; immutable ammunition profiles are cached locally, available rounds are read each call.
  * Arguments: 0: battery <OBJECT>, default objNull; 1: smoke <BOOL>, default false.
+ * 2: reported ATL target <ARRAY>, default [] preserves range-independent selection.
+ * A supplied target must be a finite pair/triple; range qualifies each suitable magazine
+ * before preference ranking. An unusable preferred shell cannot mask a reachable one.
+ * Range checks are live, never cached with immutable ammunition classification.
  * Return Value: String magazine class, or empty string.
  * Current callers: ArtilleryFire and ArtilleryShot.
  * Example: private _mag = [_gun, false] call CBE_fnc_CortexArtilleryAmmo;
  */
-params [["_battery", objNull, [objNull]], ["_smoke", false, [true]]];
+params [["_battery", objNull, [objNull]], ["_smoke", false, [true]],["_target",[],[[]]]];
+if (isNull _battery || {_target isNotEqualTo [] && {!(count _target in [2,3])
+    || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}}) exitWith {""};
 private _best = "";
 private _available = (magazinesAllTurrets [_battery,true]) select {(_x select 2) > 0};
 private _cache = missionNamespace getVariable ["CBE_AIPass_ArtilleryAmmoProfiles",createHashMap];
@@ -69,7 +75,10 @@ private _classifySmoke = {
         _cache set [_x,_profile];
     };
     _profile params ["_isSmoke","_special","_hit"];
-    if (_isSmoke == _smoke && {_smoke || {!_special && {_hit > _bestHit}}}) then {_best = _x; _bestHit = _hit};
+    if (_isSmoke == _smoke && {_smoke || {!_special && {_hit > _bestHit}}}
+        && {_target isEqualTo [] || {_target inRangeOfArtillery [[_battery],_x]}}) then {
+        _best = _x; _bestHit = _hit
+    };
 } forEach ((getArtilleryAmmo [_battery]) select {private _magazine = _x; _available findIf {(_x select 0) == _magazine} >= 0});
 missionNamespace setVariable ["CBE_AIPass_ArtilleryAmmoProfiles",_cache];
 

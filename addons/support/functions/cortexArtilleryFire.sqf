@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Magazine preference is ranked only among currently loaded target-reaching candidates.
+ * A stronger but out-of-range shell cannot hide another eligible loaded magazine.
  * Queues a finite mission of bounded bursts on the authoritative server. This is dispatch
  * acceptance, not proof that a shell fired. The selected battery's owner executes later physical
  * fire steps through the shared scheduler.
@@ -95,7 +97,7 @@ if (isNull _battery) then {
         && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
         && {_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
         && {combatMode group gunner _x != "BLUE" && {unitCombatMode gunner _x != "BLUE"}}
-        && {_target inRangeOfArtillery [[_x], [_x, _mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo]}
+        && {_target inRangeOfArtillery [[_x], [_x, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo]}
     };
     if (_index >= 0) then {_battery = _candidates select _index};
 };
@@ -106,7 +108,7 @@ if (isNull _battery || {!alive gunner _battery} || {(netId _battery) in _mission
     || {_mode == "SMOKE" && {!([group gunner _battery,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
     || {!isNull _spotter && {side group _spotter != side group gunner _battery}}
     || {_retreatSmoke && {_requestSide != side group gunner _battery}}) exitWith {false};
-private _magazine = [_battery, _mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo;
+private _magazine = [_battery, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo;
 // Explicit batteries need the same range admission as automatically selected candidates.
 // Reject before token/busy reservation; later aim checks still enforce safety and live range.
 if (_magazine == "" || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}

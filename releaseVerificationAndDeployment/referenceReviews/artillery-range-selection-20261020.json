@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-20",
+  "baseline": "98202ff6",
+  "scope": "Artillery ammunition reachability before preference; pre-fire movement remains missing",
+  "finding": "Fire chose strongest eligible HE (or smoke) before range. The preferred magazine could fail range and reject a battery without considering a reachable alternative.",
+  "implementation": "ArtilleryAmmo optional finite ATL target filters each suitable available magazine by native inRangeOfArtillery before updating preference. Fire supplies reported target for automatic and explicit batteries. No-target API retains prior selection. Immutable classification cache never stores live range permission. Owner Shot still checks actual ammunition and current aim range.",
+  "sourceIntent": "Protocol artillery uses available ammunition ETA and attempts pre-fire relocation when none reaches. Its unbounded movement wait, oracle target selection and unsafe multiple crew movement are not copied. This change fixes false range refusal only.",
+  "remainingGap": "Actual out-of-range mobile battery pre-fire movement with original reported-fix age, magazine, route/crew/owner authority, finite deadline, physical arrival and fresh native range proof remains unimplemented. Post-fire Scoot is not equivalent.",
+  "files": {
+    "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
+    "addons/support/functions/cortexArtilleryFire.sqf": "292a243120c7d86629bcb16e02c6591483b1537c9217e14bb23f39094a7cd18e",
+    "addons/support/functions/cortexArtilleryShot.sqf": "e20c6b0a293b34ca7b9c0ea0da37d7ea97e4245b0b1b952a5323bf9ee6cda9e8"
+  },
+  "validation": {
+    "tests": 1477,
+    "gates": "HEMTT/FSM/full build and independent candidate verify passed",
+    "initialFailure": "SQF validator found missing input-guard brace; corrected before final complete pass",
+    "candidate": ".qa/candidates/artillery-range-selection-98202ff6",
+    "fingerprint": "b712f054e3e398076f045ca6c567d5e6650361cdc825b66b4572b4dafa56ae9e",
+    "signed": false,
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "audits": "PAUSED"
+}
