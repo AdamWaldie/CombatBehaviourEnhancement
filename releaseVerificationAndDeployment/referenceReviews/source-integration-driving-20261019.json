@@ -678,5 +678,24 @@
     ],
     "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-remaining-corridor-build.log; candidate .qa/candidates/pass-remaining-abe6144b-79a15cb0 fingerprint 79a15cb0117bdc4a49aa64243d465bf98b69e33d1de069e6212868d5019d6bef actualabe6144b+intendeddirtysource. No test-count/score increase.",
     "audits": "PAUSED"
+  },
+  "convoyLeadPacingContinuity20261020": {
+    "sourceParent": "e6475f72",
+    "intent": "Keep mixed columns flowing without feeding every tracked acceleration dip into the lead, while allowing substantially stretched followers to regain spacing.",
+    "finding": "Actual-speed lead pacing switched fully at gap>2*target. With cruise reserve42kmh and slow follower pacing5kmh, a tiny boundary crossing could change the requested cap by37kmh before independent constraints.",
+    "implementation": "Blend cruise reserve toward the existing actual-forward-speed pacing over max(20percent target,3m) beyond twice target. Original threshold value retained at blend0; full former pacing at blend1. Actual speed still excludes reverse.",
+    "preserved": [
+      "Same bounded aligned gap sample and no ordinary-band actual-speed feedback",
+      "Same five-kmh pacing floor subject to stronger independent safety caps",
+      "Contact bypass, arrival, road/traffic/geometry/infantry braking and acceleration limit"
+    ],
+    "cost": "Only bounded scalar arithmetic for substantially stretched pairs; no new query, metadata state, timer, setting or controller.",
+    "limits": [
+      "Blend applies less slowdown within its transition band than the former abrupt switch.",
+      "Physical gap convergence, native track acceleration/braking and speed-wave improvement unverified.",
+      "No source parity or performance acceptance inferred."
+    ],
+    "validation": "251 existing driving and32 indoor lifecycle focused cases plus full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-convoy-pacing-blend-build.log; candidate .qa/candidates/convoy-pacing-e6475f72-f515c748 fingerprint f515c7488e40851b0f5f20603770611707b11dcd7b13266e6d781c8cbea5b429 actuale6475f72+intendeddirtysource. No test-count/score increase.",
+    "audits": "PAUSED"
   }
 }

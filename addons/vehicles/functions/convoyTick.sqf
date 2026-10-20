@@ -26,6 +26,8 @@
  * Acceleration is bounded; outside contact the lead slows to let stretched followers catch up.
  * Lead catch-up pacing reuses the same aligned longitudinal gap as stretch assessment, so
  * lateral drift alone does not create a false rearward gap or feed acceleration lag forward.
+ * At twice the target gap, actual-speed pacing blends across the existing tolerance
+ * instead of abruptly switching from cruise reserve to a slow follower's speed.
  * The lead alone uses registered corridor approach/crossing through this same callback. Active
  * corridors suppress lead route recovery; followers keep measured predecessor trails and spacing.
  * Finite static-obstacle bypass shares this lead writer. Followers yield only the exact source
@@ -787,7 +789,12 @@ if (!_contact) then {
             if (_gap > _target*2) then {
                 // Reversing during recovery is not forward convoy progress.
                 private _followerForwardKmh=((velocityModelSpace _follower select 1) max 0)*3.6;
-                _catchup=_catchup min ((_followerForwardKmh - (((_gap-_target*1.2)*0.15) min 8)) max 5);
+                private _paced=_catchup min ((_followerForwardKmh - (((_gap-_target*1.2)*0.15) min 8)) max 5);
+                // A centimetre across twice the target gap must not turn a cruise
+                // reserve into a walking-speed command. Reuse the normal tolerance
+                // as the blend width; severe stretch retains full actual-speed pacing.
+                private _pacingBlend=((_gap-_target*2)/((_target*0.2) max 3)) min 1;
+                _catchup=_catchup+(_paced-_catchup)*_pacingBlend;
             };
             _leadLimit=_leadLimit min _catchup;
         };

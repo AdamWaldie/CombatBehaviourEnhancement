@@ -232,6 +232,21 @@ class ConvoyLeadGapMetricTests(unittest.TestCase):
         self.assertIn('private _gap=_spacingGaps select _i',pacing)
         self.assertNotIn('distance2D',pacing)
         self.assertIn('if (_gap > _target*2)',source)
+        self.assertIn('((_gap-_target*2)/((_target*0.2) max 3)) min 1',source)
+        self.assertIn('_catchup=_catchup+(_paced-_catchup)*_pacingBlend',source)
+        # Independent endpoint requirements: the blend must preserve the reserve at
+        # entry, reach actual-speed pacing at the tolerance edge, and have no jump.
+        for target in (10,30,50,100):
+            width=max(target*.2,3)
+            reserve,paced=42,5
+            caps=[reserve+(paced-reserve)*min(max(offset/width,0),1)
+                  for offset in (0,.001,width/2,width,width+1)]
+            self.assertEqual(caps[0],reserve)
+            self.assertEqual(caps[-1],paced)
+            self.assertEqual(caps[2],(reserve+paced)/2)
+            self.assertLess(abs(caps[1]-caps[0]),.02)
+            self.assertEqual(caps,sorted(caps,reverse=True))
+
         self.assertIn('_limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0',source)
 
     def test_approaching_lane_hull_retains_closing_speed_during_reaction_and_braking(self):
