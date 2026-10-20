@@ -96,6 +96,10 @@ private _fixtureComposition=[count _groups,
 diag_log format ["CBE STANDALONE PERF COMPOSITION: %1",_fixtureComposition];
 private _scenario=["INFANTRY_PATROL","MIXED_PATROL"] select (_composition == "mixed");
 diag_log format ["CBE STANDALONE PERF IDENTITY: %1",[_loaded,_fsm,50,_expectedActors,_scenario,groupOwner (_groups select 0)]];
+// Exclude isModded: loading CBE is the intentional difference between the two arms.
+private _engine=productVersion;
+diag_log format ["CBE STANDALONE PERF ENGINE: %1",[_engine select 2,_engine select 3,
+    _engine select 4,_engine select 6,_engine select 7,_engine param [8,""]]];
 sleep 20;
 private _origins=_groups apply {getPosATL leader _x};
 missionNamespace setVariable ["CBE_QA_StandaloneSamples",[]];

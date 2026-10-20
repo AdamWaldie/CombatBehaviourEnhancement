@@ -18,6 +18,10 @@ def read_run(folder):
     if (not isinstance(fixtures,dict) or not {'mission.sqm','cortexQAStandalonePerformance.sqf'} <= fixtures.keys() or any(
             not isinstance(name,str) or not name or not digest(value) for name,value in fixtures.items())):
         raise ValueError('Hashed mission fixture inventory is required')
+    policies=manifest.get('enginePolicies')
+    if (not isinstance(policies,list) or any(type(value) is not str or value != 'turret_aiming' for value in policies)
+            or len(policies) != len(set(policies)) or (manifest['native_baseline'] and policies)):
+        raise ValueError('Explicit supported engine-policy selection is required; native must be empty')
     logs=list((folder/'server').glob('*.rpt'))
     if len(logs) != 1:
         raise ValueError('Exactly one server RPT is required')
@@ -30,11 +34,23 @@ def read_run(folder):
         lines=[line.split(marker,1)[1] for line in text.splitlines() if marker in line]
         if len(lines) != 1:
             raise ValueError('Exactly one identity and result are required')
-        raw=lines[0].strip().rstrip('"').replace('""','"').replace('\\','\\\\')
-        return json.loads(raw)
+        raw=lines[0].strip()
+        if raw.endswith(']"'):
+            raw=raw[:-1]  # RPT's enclosing log-string quote, not an array value.
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            # Native RPT doubles embedded quotes and uses SQF path backslashes.
+            return json.loads(raw.replace('""','"').replace('\\','\\\\'))
     identity=row('CBE STANDALONE PERF IDENTITY: ')
     result=row('CBE STANDALONE PERF RESULT: ')
     composition=row('CBE STANDALONE PERF COMPOSITION: ')
+    engine=row('CBE STANDALONE PERF ENGINE: ')
+    if (not isinstance(engine,list) or len(engine) != 6
+            or any(type(value) not in (int,float) or not math.isfinite(value) or value <= 0 for value in engine[:2])
+            or any(type(value) is not str for value in engine[2:])
+            or any(not value for value in engine[2:5])):
+        raise ValueError('Complete engine version/build/platform/architecture identity is required')
     if (not isinstance(identity,list) or not isinstance(result,list) or not isinstance(composition,list)
             or len(identity) != 6 or len(result) != 11 or identity[2] != 50
             or identity[4] not in ('INFANTRY_PATROL','MIXED_PATROL')):
@@ -55,13 +71,13 @@ def read_run(folder):
         raise ValueError('Addon identity or physical fixture failed')
     if expected != ('cbe' in identity[1].lower()) or identity[5] != 2:
         raise ValueError('Danger FSM identity or server ownership mismatch')
-    if result[2] < 100 or result[6:9] != [50,identity[3],50] or result[9:] != [1,True]:
+    if result[2] < 100 or result[6:9] != [50,identity[3],50] or result[9:] != [1,True] or result[10] is not True:
         raise ValueError('Samples, movement, actor survival or observer validation failed')
     if any(type(value) not in (int,float) or not math.isfinite(value) or value <= 0 for value in result[3:6]):
         raise ValueError('Invalid frame-time measurement')
     if not result[3] <= result[4] <= result[5]:
         raise ValueError('Invalid quantile ordering')
-    return dict(manifest=manifest,identity=identity,result=result,composition=composition)
+    return dict(manifest=manifest,identity=identity,result=result,composition=composition,engine=engine)
 
 
 def compare(native,cbe):
@@ -82,9 +98,12 @@ def compare(native,cbe):
         raise ValueError('Mission fixtures differ')
     if native['identity'][2:5] != cbe['identity'][2:5]:
         raise ValueError('Group/actor composition differs')
+    if native['engine'] != cbe['engine']:
+        raise ValueError('Engine version/build/platform/architecture/branch differs')
     overhead=[(cbe['result'][i]/native['result'][i]-1)*100 for i in (3,4)]
     return dict(scope=native['identity'][4]+'_50',status='PASS' if overhead[0] <= 5+1e-9 and overhead[1] <= 10+1e-9 else 'FAIL',
                 median_overhead_percent=overhead[0],p95_overhead_percent=overhead[1],
+                engine=native['engine'],engine_policies=list(b['enginePolicies']),
                 native=native['result'],cbe=cbe['result'],
                 limitation='Patrol only; combat behavior, queue growth and stalled operations remain unaccepted.')
 
