@@ -526,7 +526,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/source-integration-driving-20261019.json",
-      "sha256": "e54d1ab1b1414fa33961e62f43e01cd53153aed24cea37ce92a5607a2ef45062",
+      "sha256": "09e74477d6bdac175110ce18ec05110e8527372b297b04b8484038cedc8fdd57",
       "scope": "Merge complementary source intentions into CBE execution; not source-count parity or completion credit",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",

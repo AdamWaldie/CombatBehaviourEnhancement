@@ -828,5 +828,19 @@
     ],
     "validation": "251 existing focused driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-corner-backoff-build.log; candidate .qa/candidates/corner-backoff-a33cc34a-2d6f69e3 fingerprint 2d6f69e3238b562097f76bc1a3b05a2021d9923f5982fee9af0d6195640155e7 actuala33cc34a+dirtysource. Initial source-contract mismatches retained .qa/cbe-corner-backoff-focused-initial.log; existing cases extended, no tests/scores added.",
     "audits": "PAUSED"
+  },
+  "qualifiedSideContact20261020": {
+    "sourceParent": "ca7accd2",
+    "sourceIntent": "HBQ grinding branch uses low diagonal/side contact after stalled route recovery and excludes gates, traffic and arrival; current implementation uses its diagnosis intent with existing native recovery rather than physics displacement.",
+    "implementation": "DrivingGeometryCap optional fifth flag adds twelve low current-hull diagonal/quarter/mid-side probes at box-minZ+0.3/0.6. Shared gate/static classification, <=16 cached obstacle-availability checks, exactly one qualifying contact side and current finite full rest. Side gates do not issue forward gate caps. Original return shape and forward callers remain.",
+    "admission": "DrivingAssistStart only under owned REFRESH stage1, original started+3, stationary SAFE/AWARE unsuppressed driver, unspent bypass parent, no boarding/queue/crossing/pass/corridor/bypass and existing ordinary native-route permission. Existing close-static three-second dwell and fresh rear/native admission remain required.",
+    "cost": "Forward sample rows now allocated before one shared query loop. Default9/27 rays unchanged; qualified path adds12 rays, max39/four hits each, no new discovery, timer, worker or movement writer. Availability cache max16 objects with existing bounded crew classification. Allocation and runtime overhead unmeasured.",
+    "limits": "No lateral clearance or movement inferred. Two qualifying sides and exhausted classification budget discard side diagnosis. Rays can miss unsupported geometry. Complete native corner release, repeated physical progress, provider HC and performance remain unverified. Historical missing-side findings above describe their earlier checkpoint.",
+    "validation": "251 existing focused driving cases and full1477/config/FSM/HEMTT/docs/package gates passed .qa/cbe-corner-contact-build.log. Preserved candidate .qa/candidates/corner-contact-ca7accd2-2747a5c2 fingerprint 2747a5c286f9ac4b019ab900d047abe781212a04e1898fa4b8d77f4b1a643a72 actualca7accd2+dirtysource. Independent copied-package verification .qa/cbe-corner-contact-independent.log. No new cases or score increase.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
+    }
   }
 }

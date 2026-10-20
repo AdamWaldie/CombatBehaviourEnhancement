@@ -728,7 +728,20 @@ _brain set ["geometryTracks",_geometryTracks];
             _geometryTracks set [netId _vehicle,_turn select 1];
             private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
             private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
-            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _cornerJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _cornerStarted=_cornerJournal getOrDefault ["started",-1];
+            private _cornerProbe=!_reverseLeg && {!_crewBoardingHold} && {!_queueHold} && {!_queueNativeActive} && {!_queueCrossing}
+                && {_recoveryOwned} && {(_state param [6,0]) == 1}
+                && {(_cornerJournal getOrDefault ["kind",""]) == "REFRESH"}
+                && {(_cornerJournal getOrDefault ["bypassSpent",false]) isEqualTo false}
+                && {_cornerStarted isEqualType 0} && {finite _cornerStarted}
+                && {serverTime >= _cornerStarted+3} && {([_vehicle] call _stationary)}
+                && {behaviour leader _group in ["SAFE","AWARE"]} && {getSuppression _driver <= 0.1}
+                && {isNil {_vehicle getVariable "CBE_DrivingPass_Work"}}
+                && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
+                && {isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}}
+                && {call _mayRecoverOrdinaryRoute};
+            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,_curveHint,_cornerProbe] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
             private _gateObservation=_geometry select 0;
             private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};

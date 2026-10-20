@@ -10,11 +10,15 @@
  * 3 measured curvature <ARRAY, []> optional finite inverse-metre value from local track;
  * optional second BOOL permits stopped prediction only for fresh native-path evidence.
  * Empty retains instantaneous native-yaw fallback for independent server/script rechecks.
+ * 4 near-contact probe BOOL false; a current stationary pose permits twelve low diagonal/side
+ * probes. Callers must qualify failed ordinary recovery before enabling them. Gates, actors,
+ * active/attached objects and ambiguous two-sided contact do not become a side diagnosis.
  * Return Value: ARRAY [gate observation ARRAY, solid observation ARRAY]. Gate observation retains
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
- * Work: nine straight or at most 27 turning GEOM rays/four hits each; nominal braking horizon <=600 m.
- * Gate classification is cached only within this call: up to 108 hit objects/up to32 config checks
+ * Work: nine straight or at most27 turning rays, plus at most12 qualified near-contact rays;
+ * each returns <=4hits. Nominal braking horizon <=600m. No new discovery query or timer.
+ * Gate classification is cached only within this call: up to156 hit objects/up to32 config checks
  * each for ambiguous barrier names and native Wall/Fence classes. Static walls and
  * H-barriers are not assumed to be animated gates; house doors gain no generic fallback.
  * Current forward motion and model-space yaw predict at most 2.5 seconds of curved travel,
@@ -30,7 +34,7 @@
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
  * Example: private _observed=[truck1,15] call CBE_fnc_DrivingGeometryCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]],["_nearContact",false,[true]]];
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle && {!(_serverCheck && {isServer})}} || {!alive _vehicle}) exitWith {[[_requested,objNull,-1,time,0],[]]};
@@ -76,6 +80,7 @@ private _bottom=(_low select 2)+0.45;
 private _top=((_high select 2)-0.2) max _bottom;
 private _heights=[_bottom,(_bottom+_top)*0.5,_top];
 _heights=_heights arrayIntersect _heights;
+private _samples=[];
 {
     private _height=_x;
     {
@@ -88,6 +93,33 @@ _heights=_heights arrayIntersect _heights;
         };
         private _from=_vehicle modelToWorldWorld (_modelPoints select 0);
         private _to=_vehicle modelToWorldWorld (_modelPoints select 1);
+        _samples pushBack [_from,_to,(_stations select (_segment-1)) select 3,(_stations select _segment) select 3,0];
+        };
+    } forEach [_left,(_left+_right)*0.5,_right];
+} forEach _heights;
+private _leftContact=[];private _rightContact=[];private _probeBudget=true;private _probeObjects=createHashMap;
+if (_nearContact) then {
+    private _linear=vectorMagnitude velocity _vehicle;private _angular=vectorMagnitude angularVelocity _vehicle;
+    if (finite _linear && {finite _angular} && {_linear < (1/3.6)} && {_angular < 0.01}) then {
+        private _frontY=_high select 1;private _rearY=_low select 1;
+        private _quarter=_frontY-(_frontY-_rearY)*0.25;
+        {
+            private _side=_x;
+            private _edge=if (_side < 0) then {(_low select 0)+0.1} else {(_high select 0)-0.1};
+            {
+                private _z=(_low select 2)+_x;
+                {
+                    _x params ["_fromY","_toY","_reach"];
+                    private _from=_vehicle modelToWorldWorld [_edge,_fromY,_z];
+                    private _to=_vehicle modelToWorldWorld [_edge+_side*_reach,_toY,_z];
+                    _samples pushBack [_from,_to,0,0,_side];
+                } forEach [[_frontY-0.1,_frontY+0.55,0.7],[_quarter,_quarter,0.6],[0,0,0.6]];
+            } forEach [0.3,0.6];
+        } forEach [-1,1];
+    };
+};
+{
+        _x params ["_from","_to","_segmentStart","_segmentEnd","_probeSide"];
         _rays=_rays+1;
         private _hits=lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,4,"GEOM","NONE"];
         {
@@ -96,8 +128,6 @@ _heights=_heights arrayIntersect _heights;
             if (isNull _object) then {_object=_hit select 2};
             private _position=_hit select 0;private _normal=_hit select 1;
             // Braking uses vehicle travel, not the longer arc of its outer body edge.
-            private _segmentStart=(_stations select (_segment-1)) select 3;
-            private _segmentEnd=(_stations select _segment) select 3;
             private _fraction=((_from vectorDistance _position)/((_from vectorDistance _to) max 0.01)) min 1;
             private _gap=_segmentStart+_fraction*(_segmentEnd-_segmentStart);
             private _isGate=false;
@@ -124,7 +154,7 @@ _heights=_heights arrayIntersect _heights;
                     };
                     _gateClasses set [_classKey,_isGate];
                 };
-                if (_isGate && {_gap < _nearest}) then {_nearest=_gap;_gate=_object};
+                if (_probeSide == 0 && {_isGate} && {_gap < _nearest}) then {_nearest=_gap;_gate=_object};
             };
             // Traffic and pedestrians retain their existing hull observers. Static/classless
             // props, parked aircraft/boats and steep terrain add no synthetic collision props.
@@ -143,19 +173,37 @@ _heights=_heights arrayIntersect _heights;
                 };
             };
             private _represented=!isNull _object && {_object isKindOf "CAManBase" || {_object isKindOf "LandVehicle" && {!_staticHull}}};
-            if (!_isGate && {!_represented} && {(_normal select 2) < 0.7} && {_gap < _solidGap}) then {
-                _solidGap=_gap;
+            if (!_isGate && {!_represented} && {(_normal select 2) < 0.7}) then {
                 private _kind=if (isNull _object) then {"TERRAIN"} else {
                     ["STATIC","MOVING_OBJECT"] select (abs speed _object > 0.5)
                 };
                 private _transform=if (isNull _object) then {[]} else {[getPosWorld _object,vectorDir _object,vectorUp _object]};
-                _solid=[_object,_kind,+_position,+_normal,_transform];
+                private _candidate=[_object,_kind,+_position,+_normal,_transform];
+                if (_probeSide == 0) then {
+                    if (_gap < _solidGap) then {_solidGap=_gap;_solid=_candidate};
+                } else {
+                    if (!isNull _object && {_kind == "STATIC"}) then {
+                        private _key=str _object;private _available=_probeObjects getOrDefault [_key,-1];
+                        if !(_available isEqualType true) then {
+                            if (count _probeObjects >= 16) then {_probeBudget=false;_available=false} else {
+                                _available=[_object] call CBE_fnc_DrivingBypassObstacleAvailable;
+                                _probeObjects set [_key,_available];
+                            };
+                        };
+                        if (_available) then {
+                            if (_probeSide < 0 && {_leftContact isEqualTo []}) then {_leftContact=_candidate};
+                            if (_probeSide > 0 && {_rightContact isEqualTo []}) then {_rightContact=_candidate};
+                        };
+                    };
+                };
             };
-
         } forEach _hits;
-        };
-    } forEach [_left,(_left+_right)*0.5,_right];
-} forEach _heights;
+} forEach _samples;
+// Sampled contact on both sides is not a one-sided diagnosis. Preserve the normal
+// forward result in that case; no side clearance or lateral movement is inferred.
+if (_probeBudget && {(_leftContact isEqualTo []) != (_rightContact isEqualTo [])}) then {
+    _solidGap=0;_solid=if (_leftContact isNotEqualTo []) then {_leftContact} else {_rightContact};
+};
 private _capForGap={
     params ["_gap"];
     private _room=(_gap-6) max 0;

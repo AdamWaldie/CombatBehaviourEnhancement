@@ -1520,7 +1520,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingGeometryCap.sqf",
-              "sha256": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6"
+              "sha256": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
             },
             {
               "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "83fd063c865aee4cb24a62bcf448891e62921edf18c71ebb39b5cda529ef66a5"
+              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "83fd063c865aee4cb24a62bcf448891e62921edf18c71ebb39b5cda529ef66a5"
+              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1662,7 +1662,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "83fd063c865aee4cb24a62bcf448891e62921edf18c71ebb39b5cda529ef66a5"
+              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
