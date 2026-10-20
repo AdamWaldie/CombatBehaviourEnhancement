@@ -121,5 +121,22 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "transitionAndCoordinationReview20261020": {
+    "reviewedSource": "1b0bdab1",
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "59b5db3979f98050857ff3c96bdc6e5c95fad2e91dda91bd9c060cfb46c445f5",
+      "addons/support/functions/cortexSupportMaintain.sqf": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f"
+    },
+    "findings": [
+      "Flank consolidation constructs explicit teams from the original movers and consolidation actors; no evidence supports another whole-squad ammo exception.",
+      "COVER maintenance establishes exact native holds, while server coordinate dispatch consumes accepted leases and tokened outcomes. These inspected paths contain no owner-local ammunition-capacity report for external cover.",
+      "SupportBoundStart admits native-fit teams without the newly added primary-ammunition predicate. Applying ordinary bound termination alone would not establish coordinated cover readiness."
+    ],
+    "nextImplementation": "Use the existing current-owner maintenance/ack path for finite token/sequence/epoch-bound readiness. Keep inventory observation on actual actor owner, preserve original lease deadlines and distinguish capacity/position/actual fire. Do not query nonlocal inventory or add permanent polling. Trace server use, revocation and adoption before changing dispatch.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }
