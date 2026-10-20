@@ -1554,7 +1554,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
+              "sha256": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
             },
             {
               "path": "addons/vehicles/functions/drivingRearClear.sqf",
@@ -1633,7 +1633,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
+              "sha256": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
@@ -1662,7 +1662,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
-              "sha256": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca"
+              "sha256": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",

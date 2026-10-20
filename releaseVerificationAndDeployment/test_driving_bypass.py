@@ -124,6 +124,16 @@ class DrivingBypassTests(unittest.TestCase):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('_sameEpisode && {"bypassSpent" in _old}',assist)
         self.assertIn('!((_old get "bypassSpent") isEqualTo false)',assist)
+        pause=assist.split('private _pausedParent=',1)[1].split('_recoveryResult=if (_bypassActive)',1)[0]
+        for guard in ('_recoveryOwned','["bypassSpent",false]) isEqualTo true',
+                      '["REFRESH","FINAL"]','releasePending','_routeIdentity',
+                      '_recoveryWork getOrDefault ["hardDeadline",-2]',
+                      '_recoveryWork getOrDefault ["progressAnchor",[]]',
+                      'call CBE_fnc_DrivingRecoveryCommandState',
+                      '["OWNED","PENDING","BYPASS"]','&& {!_keepBypassBudget}'):
+            self.assertIn(guard,pause)
+        self.assertNotIn('set ["hardDeadline"',pause)
+        self.assertNotIn('set ["bypassSpent"',pause)
         classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
         for guard in ('_childDeadline <= _hard','["ORDINARY",-1]','== "FOLLOW"',
                       'recoveryParent','_driverNative isEqualTo (_child',

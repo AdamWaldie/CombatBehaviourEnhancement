@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Exact spent bypass parents survive traffic pauses without renewing their deadline or attempt.
  * Exact queue-abort STOP handback uses current safety observations in this existing callback; no failed crossing is marked complete.
  * Repeat/JIP: Original public route/recovery clocks survive migration; acknowledgement never replays movement.
  * Native BACK uses the existing finite rear leg only with distinct driver/effective commander.
@@ -1041,7 +1042,21 @@ _brain set ["geometryTracks",_geometryTracks];
                 // Keep an already-issued rear leg finite. After the pedestrian clears,
                 // its expired deadline returns to the authored route instead of losing
                 // the rear-leg receipt and treating backward travel as ordinary progress.
-                if !(_recoveryStage in [2,4]) then {
+                // A spent bypass is part of this recovery episode, not unrelated traffic.
+                // Preserve its original budget through active work, exact native return and
+                // later obstacle waits. Otherwise the next child callback loses its parent,
+                // and a failed child can replenish the same stalled episode indefinitely.
+                private _pausedParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                private _keepBypassBudget=_recoveryOwned
+                    && {(_pausedParent getOrDefault ["bypassSpent",false]) isEqualTo true}
+                    && {(_pausedParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+                    && {!(_pausedParent getOrDefault ["releasePending",false])}
+                    && {(_pausedParent getOrDefault ["group",grpNull]) == _group}
+                    && {(_pausedParent getOrDefault ["route",[]]) isEqualTo _routeIdentity}
+                    && {(_pausedParent getOrDefault ["hardDeadline",-1]) isEqualTo (_recoveryWork getOrDefault ["hardDeadline",-2])}
+                    && {(_pausedParent getOrDefault ["progressAnchor",[]]) isEqualTo (_recoveryWork getOrDefault ["progressAnchor",[]])}
+                    && {([_vehicle,_pausedParent] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","BYPASS"]};
+                if (!(_recoveryStage in [2,4]) && {!_keepBypassBudget}) then {
                     [_vehicle,_group,"RECOVERY_PAUSED",false] call CBE_fnc_DrivingRecoveryRelease;
                     _recoveryStage=0;_recoveryUntil=-1;_reverseIssued=false
                 };

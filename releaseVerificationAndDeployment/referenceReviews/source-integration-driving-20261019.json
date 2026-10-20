@@ -842,5 +842,17 @@
       "addons/vehicles/functions/drivingAssistStart.sqf": "e861f3473f8cb07a21e600141cd89a2a4256a3174b16cd375e83b7f908ee7fca",
       "addons/vehicles/functions/drivingGeometryCap.sqf": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
     }
+  },
+  "bypassPauseRetention20261020": {
+    "sourceParent": "da5cc8ac",
+    "finding": "Later generic traffic/controller pause branch retired REFRESH/FINAL parent whenever bypass was active or had just returned. Earlier child native-command retention alone did not survive this branch; next callback would lose its parent binding. Failed-child obstacle waits could also replenish the spent episode.",
+    "implementation": "Inside existing pause branch, preserve only current owned spent REFRESH/FINAL parent with unchanged group/route/original hard deadline/progress anchor, no release pending, and fresh native classifier OWNED/PENDING/BYPASS. No new movement permission, attempt, deadline, query or timer. Unrelated/unowned contexts still retire; existing reverse/exhausted retention and route-progress replenishment remain.",
+    "cost": "One bounded current native/child receipt classification only for an owned spent parent in an existing pause; no discovery or geometry. Performance unmeasured.",
+    "validation": "251 focused existing driving cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-bypass-pause-final-build.log. Candidate .qa/candidates/bypass-pause-da5cc8ac-9abdb2e3 fingerprint 9abdb2e37b07d8af9edd147020f702bec84b34c48d6fb3e456c420080ec155fd actualda5cc8ac+dirtysource. Independent copied-package verification .qa/cbe-bypass-pause-independent.log. Initial old-literal assertion failures retained in focused/build logs; original reverse/exhausted and pedestrian suppression guards remain. No new cases or score change.",
+    "limits": "Source flow fault, not physically reproduced while audits paused. Complete repeated native bypass and handback, split/provider HC and performance unverified.",
+    "audits": "PAUSED",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
+    }
   }
 }

@@ -137,7 +137,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('_recoveryStage=4;',s)
         self.assertIn('["EXHAUSTED"] call _recordRecovery',s)
         self.assertIn('case "EXHAUSTED":{4}',s)
-        self.assertIn('if !(_recoveryStage in [2,4]) then {',s)
+        self.assertIn('if (!(_recoveryStage in [2,4]) && {!_keepBypassBudget}) then {',s)
         follower=s.split('// A follower must not retain',1)[1].split('private _origin=',1)[0]
         self.assertIn('(_state param [6,0]) != 4',follower)
         step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text()
