@@ -92,5 +92,30 @@
     "runtimeChanged": false,
     "physical": false,
     "scoresChanged": false
+  },
+  "sharedPairPublicationFollowUp20261020": {
+    "baseline": "3c679aec",
+    "change": "New semantic metadata-only CombatPairsPublish used by CombatPairs and building replacement. Active rows win; retain untouched out-of-scope pairs up to16rows, unique living same-group identity. Normal helper returns current eligible pairs only; building exact operation pairSnapshot/routes unchanged. Metadata keeps dormant/incapacitated/mounted identity without fitness/role/movement authority. No actor command, reservation, worker, timer or spatial query. Invalid active schema/duplicate living actors refuses publication; malformed history cannot expand work.",
+    "sources": {
+      "addons/infantry/functions/combatPairs.sqf": "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea",
+      "addons/infantry/functions/combatPairsPublish.sqf": "13796eb17e224aed023625f253fefe79478bceca2b46f216c112b812ffeddc24",
+      "addons/infantry/functions/buildingOperationStep.sqf": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-pair-publication-final-build.log",
+      "independent": ".qa/cbe-pair-publication-independent.log",
+      "candidate": ".qa/candidates/pair-publication-3c679aec-830d3039",
+      "fingerprint": "830d303950b3ed6fc506e3afa15d2b1e6721e0b7847090510c296e71cc571bbd",
+      "source": "3c679aec plus intended dirty shared-pair-publication edits",
+      "superseded": ".qa/cbe-pair-publication-build.log stopped on outdated direct-writer assertion; existing assertion now traces shared atomic publisher. First focused run needed generated coverage report refresh."
+    },
+    "remaining": [
+      "Physical entry cohesion, repeated clearance, casualty replacement, owner/JIP continuity and overhead unverified.",
+      "Bounded16row registry may evict out-of-scope history when full; current operation remains authoritative."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

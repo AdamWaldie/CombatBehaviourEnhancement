@@ -43,5 +43,9 @@ class PromotionCommitTests(unittest.TestCase):
         self.assertIn('_stageJournalChanged=true',commit)
         self.assertLess(text.index('if (_pairRosterChanged) then'),text.index('private _budgetRows='))
         pairs=text.split('if (_pairRosterChanged) then {',1)[1].split('// Build the migration journal',1)[0]
-        self.assertLess(pairs.index('isNil {'),pairs.index('setVariable ["CBE_CombatPairs"'))
-        self.assertLess(pairs.index('call _mayIssueMovement'),pairs.index('setVariable ["CBE_CombatPairs"'))
+        self.assertLess(pairs.index('isNil {'),pairs.index('call CBE_fnc_CombatPairsPublish'))
+        self.assertLess(pairs.index('call _mayIssueMovement'),pairs.index('call CBE_fnc_CombatPairsPublish'))
+
+        publisher=(ROOT/'addons/infantry/functions/combatPairsPublish.sqf').read_text()
+        self.assertLess(publisher.index('isNil {'),publisher.index('setVariable ["CBE_CombatPairs"'))
+        self.assertLess(publisher.index('if (!local _group)'),publisher.index('setVariable ["CBE_CombatPairs"'))

@@ -2014,3 +2014,8 @@ Navigation-area steering yields to native BACK, direct-commander input or LEFT/R
 
 
 When a finite group hide posture ends while a protected task prevents restoration, unchanged same-owner stance proof passes to the existing actor cleanup. This preserves the original stance without interrupting treatment, rearming or reserved movement. The first transfer uses the existing thirty-second cleanup observation window; it creates no danger action, movement or timer. A changed stance, operation, owner or existing actor lease prevents transfer. Automatic continuation after tactical scheduling stops remains dependent on an existing cleanup caller.
+
+
+### Pair identity across operation subsets
+
+Shared pair publication prioritises the current operation rows and retains untouched outside-roster partners, up to sixteen pair rows. Normal pairing and clearance casualty replacement use the same publication path. Active operation pairs remain separate from this shared metadata. A partner record does not make a dormant, incapacitated, mounted or externally controlled soldier eligible for movement or a role. Changed active assignments take precedence; dead or departed group members and duplicate references cannot accumulate. Unchanged metadata is not retransmitted. Physical entry cohesion and casualty flow remain unverified.

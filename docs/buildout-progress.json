@@ -3238,11 +3238,11 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/combatPairs.sqf",
-              "sha256": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f"
+              "sha256": "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
+              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3263,7 +3263,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
+              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3288,7 +3288,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
+              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
             },
             {
               "path": "addons/core/functions/actorSettings.sqf",
@@ -3309,7 +3309,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
+              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
@@ -3355,7 +3355,7 @@
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36"
+              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
@@ -3588,7 +3588,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/combatPairs.sqf",
-              "sha256": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f"
+              "sha256": "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea"
             },
             {
               "path": "addons/infantry/functions/cortexFlankStep.sqf",

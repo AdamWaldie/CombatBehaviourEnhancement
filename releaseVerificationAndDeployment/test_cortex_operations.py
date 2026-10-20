@@ -9596,16 +9596,34 @@ class CortexOperations(unittest.TestCase):
         pairs=source('combatPairs')
         self.assertIn('!local _group',pairs)
         self.assertIn('count _actors > 16',pairs)
-        self.assertIn('_pairs isNotEqualTo _previous',pairs)
+        self.assertIn('call CBE_fnc_CombatPairsPublish',pairs)
         self.assertNotIn('doMove',pairs)
         self.assertIn('call CBE_fnc_CombatPairs',source('cortexClearBuilding'))
         self.assertIn('["pairs",_pairs]',source('operationStart'))
         self.assertIn('["pairs",[_group,_current] call CBE_fnc_CombatPairs]',source('rebalanceRoles'))
+        publisher=source('combatPairsPublish')
+        for gate in ('count _active > 16','count _merged >= 16','_x in _seen',
+                     '_merged isNotEqualTo _previous','remoteExecutedOwner != 2'):
+            self.assertIn(gate,publisher)
+        for forbidden in ('doMove','CortexCombatEffective','simulationEnabled','checkAIFeature','waitAndExecute'):
+            self.assertNotIn(forbidden,publisher)
+        def publish(active,previous):
+            result=[list(row) for row in active];seen={actor for row in result for actor in row}
+            for row in previous[:16]:
+                if len(result)>=16:break
+                if row and len(row)<=2 and not any(actor in seen for actor in row):
+                    result.append(list(row));seen.update(row)
+            return result
+        self.assertEqual(publish([['a','b']],[['a','b'],['c','d']]),[['a','b'],['c','d']])
+        self.assertEqual(publish([['a','c']],[['a','b'],['c','d'],['e','f']]),[['a','c'],['e','f']])
+        self.assertEqual(publish([['a']],[['x','y'],['x','z']]),[['a'],['x','y']])
+        self.assertLessEqual(len(publish([['active']],[[str(i)] for i in range(20)])),16)
+
 
     def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
         text=source('buildingOperationStep')
         update=text.split('if (_pairRosterChanged) then {',1)[1].split('// Release reservations before selection',1)[0]
-        self.assertIn('_group setVariable ["CBE_CombatPairs",_pairSnapshot,true]',update)
+        self.assertIn('[_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish',update)
         self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
         self.assertNotIn('_pairRoutes=',update)
         self.assertNotIn('_state set [0',update)

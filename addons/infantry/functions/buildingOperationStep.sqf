@@ -2181,11 +2181,12 @@ private _delay=call {
     } forEach _pairs;
     _job set ["rotatedOut",_rotatedOut];
     if (_pairRosterChanged) then {
-        // Publish the actual lane partners, without rebuilding an active lane's route.
+        // Publish actual lane partners through shared metadata, retaining out-of-scope buddies
+        // without rebuilding an active lane route or recruiting dormant owned members.
         private _pairSnapshot=_pairs apply {+_x};
         isNil {
             if (call _mayIssueMovement) then {
-                _group setVariable ["CBE_CombatPairs",_pairSnapshot,true];
+                [_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish;
                 private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
                 if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
                     && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {

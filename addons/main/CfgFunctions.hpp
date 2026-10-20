@@ -190,6 +190,7 @@ class CfgFunctions {
             class OperationAttackPolicy {file = "\z\cbe\addons\core\functions\operationAttackPolicy.sqf";};
             class ActorSettings {file = "\z\cbe\addons\core\functions\actorSettings.sqf";};
             class CombatPairs {file = "\z\cbe\addons\infantry\functions\combatPairs.sqf";};
+            class CombatPairsPublish {file = "\z\cbe\addons\infantry\functions\combatPairsPublish.sqf";};
             class RebalanceRoles {file = "\z\cbe\addons\infantry\functions\rebalanceRoles.sqf";};
             class RecoveryStep {file = "\z\cbe\addons\infantry\functions\recoveryStep.sqf";};
             class CortexDrillInterrupt {file = "\z\cbe\addons\infantry\functions\cortexDrillInterrupt.sqf";};

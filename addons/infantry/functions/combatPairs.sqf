@@ -4,7 +4,8 @@
  * Intact pairs win; only unpaired actors choose the nearest remaining eligible partner in3D,
  * with roster order breaking equal-distance ties. Distance is not proof of a connected route.
  * Locality/authority: Current group owner only; writes group pairing metadata, never actor commands.
- * Repeat/JIP: Unchanged pairs do not republish. Public receipts survive owner migration and JIP.
+ * Repeat/JIP: Shared publication retains untouched out-of-scope pairs without returning them
+ * as active workers. Unchanged metadata does not republish; public identity survives migration/JIP.
  * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16.
  * Return Value: ARRAY of one- or two-actor pairs; [] for invalid authority or an oversized request.
  * Current callers: OperationStart, RebalanceRoles and CortexClearBuilding.
@@ -20,11 +21,12 @@ private _remaining=(_actors select {
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
 }) arrayIntersect _actors;
 private _previous=_group getVariable ["CBE_CombatPairs",[]];
+if !(_previous isEqualType []) then {_previous=[]};
 private _pairs=[];
 private _orphans=[];
 // Intact pairs take priority so repairing an orphan cannot steal another partner.
 {
-    private _pair=_x select {_x in _remaining};
+    private _pair=if (_x isEqualType [] && {count _x in [1,2]}) then {(_x arrayIntersect _x) select {_x in _remaining}} else {[]};
     if (count _pair == 2) then {
         _pairs pushBack _pair;
         _remaining=_remaining-_pair;
@@ -60,5 +62,5 @@ while {_remaining isNotEqualTo []} do {
     if (_remaining isNotEqualTo []) then {_pair pushBack ([(_pair select 0)] call _takeNearest)};
     _pairs pushBack _pair;
 };
-if (_pairs isNotEqualTo _previous) then {_group setVariable ["CBE_CombatPairs",_pairs,true]};
+[_group,_pairs] call CBE_fnc_CombatPairsPublish;
 _pairs
