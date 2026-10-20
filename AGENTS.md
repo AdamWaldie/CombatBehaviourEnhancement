@@ -1,5 +1,13 @@
 # Contribution guidance
 
+## Definition of done
+
+Work toward a clear, finite definition of done. Treat the task as complete when the requested outcome is delivered, the relevant checks pass, and no known material issue remains within scope.
+
+Do not continually subdivide the work, move the completion criteria, or add optional refinements. Every additional step must resolve a specific unmet requirement, failed check, or material uncertainty. Once those are resolved, stop and deliver the result.
+
+If completion is blocked, state the exact blocker, what is already complete, and the minimum action needed to finish. Do not substitute repeated planning, monitoring, or status updates for completion.
+
 - Every SQF file must begin with a useful documentation block naming `WaldoTheWarfighter` as author and documenting purpose, locality, repeat/JIP behaviour, arguments, return value, callers and an example.
 - AI operations must be finite, locality-aware and immediately interruptible by Zeus or a newer mission order.
 - SQF `call` uses dynamic scope. Do not shadow an outer control flag with an actor array or another type in a block that calls helper CODE; pass context explicitly where practical. Queued CBA callbacks need explicit argument payloads, not presumed lexical captures.

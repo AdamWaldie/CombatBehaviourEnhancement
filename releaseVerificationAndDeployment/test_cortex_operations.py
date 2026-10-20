@@ -203,6 +203,10 @@ class CortexOperations(unittest.TestCase):
         checkpoint=source('cortexCheckpoint')
         resume=source('cortexDrillResume')
         locality=source('cortexLocality')
+        resumed_roster=resume.split('private _capable=_living select {',1)[1].split('if (count _capable < 2)',1)[0]
+        for guard in ('simulationEnabled _x','!isObjectHidden _x','ace_medical_ai_healQueue'):
+            self.assertIn(guard,resumed_roster)
+        self.assertNotIn('ace_medical_ai_healQueue',resume.split('private _living=',1)[1].split('private _capable=',1)[0])
         for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
             self.assertIn('"'+field+'"',checkpoint)
         self.assertIn('migrationClocks',checkpoint)

@@ -7,6 +7,8 @@
  * Full original authored waypoint metadata must still match before inspect or resume admission.
  * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
  * No source MOVE or acknowledgement grace is replayed; reserved/unavailable/service actors stay excluded.
+ * Hidden or simulation-disabled actors and medics with queued treatment stay in the living roster
+ * but cannot be recruited into the resumed movement operation; treatment queues are never changed.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
  * Return Value: BOOL - resumed or queued for bounded actor-locality settling; false when refused.
  * Current callers: CortexLocality and its finite shared-scheduler locality-settling callback.
@@ -107,7 +109,9 @@ if (_holdIssuerValid && {_holdRows isEqualType []} && {count _holdRows <= 64}) t
 };
 private _resumeUnavailable=_drill getOrDefault ["resumeUnavailable",[]];
 private _capable=_living select {
-    [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
+    simulationEnabled _x && {!isObjectHidden _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
         && {!isPlayer _x} && {isNull remoteControlled _x}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}

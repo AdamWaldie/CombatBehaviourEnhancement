@@ -271,5 +271,16 @@
     "fingerprint": "ca51f4bf8d798334f46390d17408218aa64acdc591164c8a72b7de6eaba52d36",
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "drillResumeAvailability": {
+    "finding": "Owner migration capable roster lacked simulation, hidden and queued-treatment admission guards used by ordinary movement.",
+    "change": "CortexDrillResume excludes dormant/hidden actors and queued medics from resumed movement without changing living roster, medical queue, original deadline or order provenance.",
+    "restorationScopeCorrection": "Current standalone manoeuvre writers initialise disabled/combatBehaviours empty and do not disable AI features or set actor combat behaviour. Retained restoration/checkpoint paths alone do not justify adding a new restoration worker. Individual RED-to-YELLOW combat-mode leases remain current.",
+    "validation": "607 focused and full1477 existing tests; HEMTT/SQF/FSM/documentation/package and independent candidate verification passed.",
+    "candidate": ".qa/candidates/drill-resume-availability-f9486866",
+    "fingerprint": "5b9c758ac39ea1a3bdbb0abdd7061b71ef46ae7a72dc87a821dfa0a3676e4f74",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED"
   }
 }
