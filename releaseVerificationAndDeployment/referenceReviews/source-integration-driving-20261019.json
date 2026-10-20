@@ -854,5 +854,98 @@
     "implementationHashes": {
       "addons/vehicles/functions/drivingAssistStart.sqf": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f"
     }
+  },
+  "approachDeferralBlindSpot20261020": {
+    "sourceParent": "96af25bd",
+    "finding": "Fixed forward-gap<=8 deferral/dwell is narrower than actual circumscribed-hull/ramp approach refusal. At gap9..16 an ordinary child can be admitted and spend its recovery parent before both sides reject insufficient turn room. If observed gap remains>8, extended backoff dwell cannot qualify and default6m may still be insufficient. Before a recovery parent exists, a standalone failed proposal also spends its cooldown; that is not evidence of physical recovery.",
+    "callOrder": [
+      "Geometry observer",
+      "DrivingBypassStep admission writes parent bypassSpent=true before PLAN",
+      "DrivingBypassPlan uses real projected bounds and shared room predicate; two side attempts can both refuse before any movement",
+      "DrivingAssistStart solid dwell accepts only gap<=8; extended rear plan also requires unspent parent",
+      "Generic traffic wait cannot replenish spent parent after96af25bd, correctly preserving finite budget but not supplying missing room"
+    ],
+    "analyticExamples": [
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 8,
+        "projectedMinY": 10,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 3.76393202250021,
+        "room": false,
+        "requiredBack": 13.879554075688116,
+        "fixed8mDefers": true,
+        "extendedBackoffDwellEligible": true
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 9,
+        "projectedMinY": 11,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 4.76393202250021,
+        "room": false,
+        "requiredBack": 12.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 12,
+        "projectedMinY": 14,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 7.76393202250021,
+        "room": false,
+        "requiredBack": 9.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      },
+      {
+        "illustrativeHullHalfWidth": 1,
+        "illustrativeHullHalfLength": 2,
+        "obstacleProjectedX": [
+          -2,
+          2
+        ],
+        "forwardRayGap": 16,
+        "projectedMinY": 18,
+        "radius": 3.23606797749979,
+        "ramp": 17.643486098188326,
+        "before": 11.76393202250021,
+        "room": false,
+        "requiredBack": 5.879554075688116,
+        "fixed8mDefers": false,
+        "extendedBackoffDwellEligible": false
+      }
+    ],
+    "exampleLimits": "Illustrative level aligned rectangular hull and obstacle, not engine measurements, ray-hit certification or physical failures. Values use unchanged production radius and smoothstep arithmetic. Projection/ray gap can differ on rotated/irregular geometry.",
+    "nextImplementation": "Use actual shared approach-room status before spending ordinary bypass episode, and carry a qualified fresh insufficient-room observation into existing finite native backoff under original parent lifetime. Do not merely widen8m to another arbitrary constant, weaken full-hull geometry, reset spent attempts, renew hard deadline, or copy physics displacement. Keep queue/convoy admission distinct. Trace no-parent admission and PLAN failures as well as active child/return.",
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a9e53ad2b8145871d325ad935423d50bb8766d5c4f9d8b32f0ebe60f41cd679f",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "06391c47995543d1b9e3b7d603424bd7ef553c4966e1c8c9f0f69da891251e02",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "8df680b72c4ca7114bae918957d6d401d94d9f90224bb874cf1db891d856c4f1",
+      "addons/vehicles/functions/drivingBypassRoom.sqf": "63f04f2c5770b8ca701c035becb121492795d8f5e508484bc99c4fb4eb625e34",
+      "addons/vehicles/functions/drivingRearPlan.sqf": "a3aa38e97150ef79492d39954920c5402808160cdefa8c0f979f72d80500209e"
+    },
+    "validation": "Read current complete relevant admission/PLAN/dwell/rear branches and independently calculate illustrative feasibility. No product changes or new tests; latest full1477 candidate bypass-pause-da5cc8ac-9abdb2e3 unchanged.",
+    "audits": "PAUSED",
+    "wholeParity": false
   }
 }
