@@ -93,5 +93,23 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "featureCredit": "Observation foundation only, no AA relocation/interception completion."
+  },
+  "finiteRelocationIntegration": {
+    "baseline": "ff878ca9",
+    "implementation": [
+      "Actual AA shot receipt now retains original native route and recent personally known assigned air-contact belief/time. Other qualified fire updates quiet-time clock without erasing the air episode.",
+      "CortexGroupTick services active AA operation before contact-off return; admission follows authored task classification. One original shot+120s episode, one five-candidate terrain attempt after8s fire quiet, throttled5s native-air checks.",
+      "Eligible independent idle native-AA mobile crew group only, no authored route replacement. Close fresh ground threats, current assigned native threats, mixed foot/vehicle groups, convoy/external ownership, unavailable seats and role reservations refuse.",
+      "Native HOLD operation and movement lease use existing group FSM; arrival physically observed; order/owner/epoch change, new threat/fire, feature closure and expiry retire matching generation. Existing Contact/Vehicles/Gunnery/Standoff gates.",
+      "No new timer, reveal, radar override, free smoke, physics recovery, interception or permanent controller. Uninvolved discovery vehicles avoid nil/registry writes."
+    ],
+    "validation": "1479 tests, HEMTT/SQF/FSM/full build passed.",
+    "limits": [
+      "AA custom editor-role classification, mixed/multi-vehicle groups and authored-route continuation are not covered by this scoped implementation.",
+      "Ground anti-munition interception and layered AA allocation remain unimplemented.",
+      "Actual movement, cancellation/repeat/locality handback, tactical balance and 5%median/10%p95 budget remain physically unverified; audits paused."
+    ],
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }

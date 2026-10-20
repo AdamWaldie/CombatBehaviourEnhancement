@@ -69,7 +69,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-aa-3809708209-20261020.json",
-      "remaining": "Ground AA anti-munition and role-scoped relocation integration; weapon capability/shot proof; binary startup/dependencies/licence; physical performance validation."
+      "remaining": "Scoped idle mobile native-AA relocation integrated through actual-shot/native-contact receipts and existing group FSM; mixed/custom-AA/authored-route cases remain. Ground anti-munition/layered allocation, weapon/shot/hit proof, binary startup/dependencies/licence and physical performance validation remain."
     },
     {
       "workshopId": "3813369033",

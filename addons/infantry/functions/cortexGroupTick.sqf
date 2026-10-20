@@ -444,6 +444,11 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
         };
     };
 };
+// Continue the existing finite AA episode even when contact tactics are disabled.
+// Admission below still waits for authored-order classification and the current group context.
+if (count (_state getOrDefault ["aaRelocation",createHashMap]) > 0) then {
+    [_group,_state,false] call CBE_fnc_CortexAARelocate;
+};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 // Follow the committed screened corridor rather than skipping to its final endpoint. This
@@ -769,6 +774,9 @@ private _authoredStationary=_waypointIndex < _waypointCount
 private _ordered = _garrisoned || {_defending}
     || {_group getVariable ["CBE_AIPass_ClearBuilding", false]}
     || {_authoredStationary};
+if (count (_state getOrDefault ["aaRelocation",createHashMap]) == 0) then {
+    if ([_group,_state,_ordered,_enemies] call CBE_fnc_CortexAARelocate) then {_groupMovementOwned=true};
+};
 // Passenger squads can hear their own vehicle crew without acquiring exact target knowledge.
 // Run this lightweight own-vehicle check at every distance tier: the far cadence is already
 // bounded, and suppressing it outside FarRange made separate passenger squads unable to react.
@@ -1403,7 +1411,8 @@ switch (_state get "phase") do {
         private _manoeuvreActive = count (_state getOrDefault ["drill",createHashMap]) > 0
             || {_state getOrDefault ["assaulting",false]}
             || {_state getOrDefault ["responding",false]}
-            || {_clearContinuing};
+            || {_clearContinuing}
+            || {count (_state getOrDefault ["aaRelocation",createHashMap]) > 0};
         // A hit, explosion or suppression event is useful immediate safety information, but it is
         // not a thirty-second contact. Release the temporary COMBAT posture as soon as the finite
         // danger context ends unless native knowledge or an already-committed manoeuvre justifies it.
