@@ -1,0 +1,58 @@
+{
+  "workshopId": "3822504009",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3822504009",
+  "name": "PROTOCOL AI ARMORED FORCE",
+  "author": "Biden",
+  "added": "2026-10-20",
+  "priority": "HIGH",
+  "status": "READABLE_SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+  "scope": "High-priority evaluation of the complete AI armoured-force and vehicle-engagement scope. Select complementary improvements and merge intent into current CBE ground-vehicle and combined-arms FSMs; not an automatic wholesale port.",
+  "identityEvidence": "Installed mod.cpp identifies name/author and describes an armoured-force vehicle AI engagement overhaul. meta.cpp publishedid is0; supplied URL and installation folder identify the Workshop item. Web page unavailable.",
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
+  "files": {
+    "addons\\protocol_ai_armored_force.pbo": "443b80ca124a1c0c15756dc8dc7d15e2cd2fea461f61490cda2341ddb0d3fcbe",
+    "meta.cpp": "cf22de073b2aec0682ea9f179af7c4705492d998c17798357eae1ba36989253f",
+    "mod.cpp": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628"
+  },
+  "evaluationTopics": [
+    "Review all readable AI source and actual call paths before claiming individual capabilities.",
+    "Assess engagement selection, weapon/ammunition use, crew roles, threat prioritisation, movement and cooperation where present.",
+    "Compare useful methods with existing CBE vehicle suppression, direct fire, manoeuvre, driving and combined-arms ownership; avoid competing controllers.",
+    "Respect mission skill/fire orders, native knowledge, friendly safety, locality, interruption and repeat-safe cleanup.",
+    "Record unique strengths, selected/reworked/rejected methods, balance and bounded execution cost."
+  ],
+  "dependencies": "UNVERIFIED",
+  "licence": "UNVERIFIED; inspect before incorporating code.",
+  "sourceProtection": "Installed originals, extracts and archives remain protected read-only inputs; no raw source in product packages.",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md absent; preserve intake separately for reconciliation.",
+  "acceptance": "No implementation/parity/physical acceptance claimed; audits PAUSED.",
+  "sourceReview": {
+    "privateInventory": ".qa/protocol-armour-3822504009-review/inventory.json",
+    "readableSQF": 2,
+    "scope": "Entire readable SQF payload plus addon info; config.bin present but registration/dependencies not decoded.",
+    "observedIntent": [
+      "Fire smoke through a crewed turret, then move toward nearby cover.",
+      "Recognise selected ATGM names with available magazines and request ATGM plus ordinary vehicle fire.",
+      "Short fire cooldowns and intermittent relocation/backward displacement."
+    ],
+    "defectsAndDepartures": [
+      "Outer allGroups loop calls a routine whose group argument is unused; that routine scans allUnits. Work repeats for every mounted group every0.5s.",
+      "sleep0.5 is inside the enabled branch; disabled while-true has no sleep. Do not import.",
+      "No local/player/remote/specialist/mission-order/fire-policy ownership guards before movement or fire. Delayed workers do not revalidate authority.",
+      "Cover is a random terrain object20m away with0.6m offset, not a hull-safe screened firing position; bush/fence/tree need not protect armour.",
+      "ATGM classification uses display/class-name substrings and whole-vehicle ammo; wrong station, target suitability and loaded-muzzle readiness are not established. selectRandom can receive empty ATGM list.",
+      "Uses exact live target pose/velocity and reveal; fixed one-second lead and ASL watch are not justified native believed-position fire control.",
+      "Unconditional forceSpeed-1 on no/dead target can overwrite another controller. Farther branch calls cover even when cover setting is false.",
+      "Counts requested fire cycles rather than actual shots; relocation marker cleared immediately because arrival wait is commented out. Retreat can overlap other movement and is not threat/hull/path validated."
+    ],
+    "CBEComparison": [
+      "Current GroundFireReady evaluates actual selected gunner station, loaded damaging ammunition and target suitability, with qualified-muzzle acknowledgement at direct-fire issue. This is code evidence, not actual effect.",
+      "Current vehicle danger/routine suppression retains native belief and fire policy; new danger correction passed1477 existing tests/full build and independent package verification.",
+      "Smoke and finite retreat/combined manoeuvre paths already exist; inspect their actual selection and authority before adopting smoke-and-relocate intent. Cover exposure evaluation and suitable ATGM selection require further comparison."
+    ],
+    "licence": "Still unverified; no code copied into product.",
+    "performanceMeasured": false,
+    "physicalAcceptance": false,
+    "productIntegrationClaim": false
+  }
+}
