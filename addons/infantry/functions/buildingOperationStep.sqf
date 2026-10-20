@@ -365,8 +365,10 @@ private _delay=call {
     // FOLLOW/ATTACK/CBE is not permission to stop, recall or send an actor to an exit.
     private _exitMovementOwned={
         params ["_actor"];
-        currentCommand _actor == "" || {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}
-            || {[_actor] call _ownsCurrentMove}
+        // An unchanged move/hold receipt is not permission to interrupt queued care.
+        [_actor] call _actorTaskFree && {currentCommand _actor == ""
+            || {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}
+            || {[_actor] call _ownsCurrentMove}}
     };
     private _activeOwnMove={
         params ["_actor"];

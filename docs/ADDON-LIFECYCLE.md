@@ -1297,3 +1297,12 @@ metadata-only discovery remains read-only and available. No queue is cleared, do
 or interaction radius changed. Existing three-metre, same-floor, lock, task, ownership and
 fresh visibility gates remain. This avoids an unrelated world interaction while treatment
 is pending; it does not establish successful building entry or improve inaccessible model paths.
+
+Clearance egress ownership now combines its exact native move/hold receipt with the shared
+live task-free check. Queued medical care can therefore veto the first exit command as well
+as later arrival, retry and handback paths using that predicate. An actor diverted by a
+new task is not recalled or counted as a successful egress; the existing incomplete result
+is retained. Passive movement receipts remain available for diagnostics and cleanup.
+Room retry exhaustion still cannot create a physical visit or successful clearance. No
+new retry, timer, scan or deadline is introduced. Real treatment-to-movement transitions
+and post-clear flow remain unverified.

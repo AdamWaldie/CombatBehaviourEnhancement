@@ -25,6 +25,11 @@ class ClearEgressHandoverTests(unittest.TestCase):
         transition = source.split('// Complete physical coverage and participation', 1)[1]
         admission = transition.split('private _entries=', 1)[0]
         self.assertIn('if !([_actor] call _exitMovementOwned) then', admission)
+        ownership=source.split('private _exitMovementOwned={',1)[1].split('private _activeOwnMove=',1)[0]
+        self.assertIn('[_actor] call _actorTaskFree &&',ownership)
+        task=source.split('private _actorTaskFree={',1)[1].split('// Record only stops',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',task)
+        self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',ownership)
         self.assertIn('_diverted pushBackUnique _actor', admission)
         self.assertIn('deleteAt (netId _actor)', admission)
         self.assertIn('!(_actor in _diverted)', admission)

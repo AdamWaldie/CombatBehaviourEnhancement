@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-20",
+  "baseline": "62fb5832",
+  "scope": "CQB egress pending-care native ownership",
+  "finding": "_exitMovementOwned checked idle/owned native HOLD/MOVE only. At initial SWEEP->EGRESS an actor with queued care but unchanged old movement could receive exit order before native HEAL. Later some commits already checked taskfree, leaving inconsistent boundary.",
+  "change": "Combine exact native ownership with existing _actorTaskFree in shared egress predicate. Initial admission/diversion, later arrivals/retries and handback consumers now veto queued care. Existing diverted/incomplete semantics retained, queue untouched. Passive motion receipt semantics unchanged.",
+  "limits": "Source already keeps unreachable rooms separate from physical visits and requires complete coverage/entry/egress for COMPLETE. No claimed fix to model reachability or physical CQB flow; audits remain paused.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "09957302b394bbd2eb32b1f11ee69947272944441f321426b39c3e4059141296"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_clear_egress_handover.py",
+      "sha256": "6c2e457c23c52309cacfc507f77fedf40ea971a71a76375b8424416b8c2eac93"
+    }
+  ],
+  "validation": "Full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/cqb-egress-care-build.log. Unsignedcandidate .qa/candidates/cqb-egress-care-62fb5832 independentlyverified fingerprinte4388fc70ff451008b7c7d8e317f12f910080ae27c616804c7fdbfd1cc3b5a71. No physical/percentage claim."
+}
