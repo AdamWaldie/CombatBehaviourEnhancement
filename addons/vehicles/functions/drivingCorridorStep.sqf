@@ -22,7 +22,7 @@
  * 3 controller <STRING, ORDINARY> - ORDINARY or CONVOY; never admits convoy followers.
  * Return Value: ARRAY [active BOOL, taskCapMps NUMBER, phase STRING]. False grants no movement.
  * Cost: At most 32 passive area rows per admission; one geometry proposal per eligible area after
- * metadata selection, bounded to 231 rays. Failed proposals and terminal episodes cool down for
+ * metadata selection by total approach/crossing/onward distance, bounded to 231 rays. Failed proposals and terminal episodes cool down for
  * 120 seconds by exact area revision/transform/route context. No added scheduler or global scan.
  * Current callers: DrivingAssistStart and ConvoyTick; registered areas come from server task dispatch.
  * Example: private _corridor=[_group,_vehicle,_brain] call CBE_fnc_DrivingCorridorStep;
@@ -303,10 +303,10 @@ private _selected=[];private _best=1e9;
                 private _entry=_centre vectorAdd (_axis vectorMultiply ((_halfLength+10)*_side));
                 private _exit=_centre vectorDiff (_axis vectorMultiply ((_halfLength+10)*_side));
                 private _distance=_origin distance2D _entry;
-                if (_distance < 400 && {_distance < _best}
-                    && {_distance+(_entry distance2D _exit)+(_exit distance2D _destination)
-                        < 1.5*(_origin distance2D _destination)+100}) then {
-                    _best=_distance;_selected=[_area,_definition,_transform,_context,_side,_axis];
+                private _via=_distance+(_entry distance2D _exit)+(_exit distance2D _destination);
+                if (_distance < 400 && {_via < _best}
+                    && {_via < 1.5*(_origin distance2D _destination)+100}) then {
+                    _best=_via;_selected=[_area,_definition,_transform,_context,_side,_axis];
                 };
             };
         };

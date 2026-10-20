@@ -558,5 +558,31 @@
     "runtimeChanged": false,
     "physical": false,
     "scoresChanged": false
+  },
+  "navigationAreaRouteChoiceFollowUp20261020": {
+    "baseline": "332cbea8",
+    "sourceIntent": "HBQ driveAssist lines2380-2467 filters other-side areas and selects minimum full via distance under shortcut threshold. moduleNavArea registers rectangular axis/extent; native route handback follows finite approach/cross.",
+    "finding": "CBE filtered full shortcut distance but ranked only distance to entrance, choosing a longer complete route when entrances differ.",
+    "change": "Rank eligible area metadata by full approach+crossing+onward distance. Preserve400m approach,1.5x direct+100 threshold,32area limit,one selected geometry proposal and all existing authority/support/hull/convoy-tail/revision/cooldown/handback checks. Cache already computed scalar via distance; no added spatial query, controller or timer.",
+    "sources": {
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "daa03298650f455dd967ca36f4112601ccd2c544356280c72af021dc4a5b28cf",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_moduleNavArea.sqf": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-corridor-route-choice-build.log",
+      "independent": ".qa/cbe-corridor-route-choice-independent.log",
+      "candidate": ".qa/candidates/corridor-choice-332cbea8-df7048dc",
+      "fingerprint": "df7048dc6280143d66ef8d5cbd9d355489377e234b660fa4a6662b3788861e2f",
+      "source": "332cbea8 plus intended dirty corridor-route-choice edits"
+    },
+    "remaining": [
+      "Physical native corridor selection, bridge/ford support, route continuation, normal/providerHC convoy traversal and performance unverified.",
+      "Selection uses centreline proposal distance, not road-network or combat-risk optimality; failed selected geometry retains existing cooldown/next-admission policy."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

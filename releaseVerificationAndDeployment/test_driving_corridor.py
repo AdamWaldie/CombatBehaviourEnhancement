@@ -118,6 +118,19 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(required, source)
         self.assertNotIn('unitReady', source)
         self.assertEqual(source.count('setDriveOnPath'), 1)
+        self.assertIn('_best=_via',source)
+        self.assertIn('_via < 1.5*(_origin distance2D _destination)+100',source)
+        self.assertEqual(source.count('call CBE_fnc_DrivingCorridorGeometry'),1)
+        # Both areas are eligible shortcuts. The nearer entrance has a longer onward
+        # leg; selecting it loses the useful route-choice intent of navigation areas.
+        origin=(0,0);destination=(200,0)
+        areas={'near':((10,100),(50,100)), 'direct':((110,0),(150,0))}
+        costs={name:math.dist(origin,entry)+math.dist(entry,exit)+math.dist(exit,destination)
+               for name,(entry,exit) in areas.items()}
+        self.assertEqual(min(areas,key=lambda name:math.dist(origin,areas[name][0])),'near')
+        self.assertEqual(min(costs,key=costs.get),'direct')
+        self.assertTrue(all(cost < 1.5*math.dist(origin,destination)+100 for cost in costs.values()))
+
         for forbidden in ('addWaypoint', 'deleteWaypoint', 'enableAI', 'setPos', 'spawn', 'waitUntil'):
             self.assertNotIn(forbidden, source)
     def test_controller_owns_one_writer_and_suppresses_route_recovery(self):
