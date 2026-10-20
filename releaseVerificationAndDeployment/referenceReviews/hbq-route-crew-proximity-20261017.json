@@ -124,5 +124,22 @@
     "runtimeChangeRequired": false,
     "physicalAcceptance": false,
     "audits": "paused"
+  },
+  "ordinaryUnloadRepeat20261020": {
+    "sourceParent": "058c3238",
+    "sourceIntent": "HBQ crewHold changes unload policy only when its mobility/enable state changes. CBE exact unload ownership has a different intent from full crew retention; ordinary passenger-control lease must not be labelled automatic crew recall or immobility policy.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/setUnloadInCombat",
+      "https://community.bistudio.com/wiki/getUnloadInCombat",
+      "https://community.bistudio.com/wiki/allowCrewInImmobile"
+    ],
+    "finding": "Ordinary CortexVehicleUnloadPolicy republished unchanged five-field lease and tracked group roster on every ACQUIRE, unlike already guarded convoy adoption. This was avoidable public state traffic, not a new physical crew failure.",
+    "implementation": "Publish existing lease only for changed epoch/clientOwner, copy before editing. Publish tracked roster only for new membership; removal publishes only if membership changes. Exact original previous/applied policy, changed-value blocked epoch, current owner, convoy exclusion, external takeover and release rules remain. No engine policy rewrite on adoption, extra scan/timer/handler or setting.",
+    "limits": "No measured network or frame improvement. Same-value external writes remain unobservable. HBQ physical recall, mobility-sensitive policy and actual handovers remain incomplete.",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "7972637ed0f3b3753475f504158aa86b7ef9639df970dbc53c85bf8a0af30e72"
+    },
+    "validation": "607 existing operation cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-repeat-build.log. Candidate .qa/candidates/unload-repeat-058c3238-055b1fa4 fingerprint 055b1fa4812207d895559d76115587a4944c1ad76de329eff64e4d07002aeb06 actual058c3238+dirtysource. Independent copied-package verification .qa/cbe-unload-repeat-independent.log. No added cases or scores.",
+    "audits": "PAUSED"
   }
 }

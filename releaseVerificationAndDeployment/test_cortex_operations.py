@@ -6749,6 +6749,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Convoy_Active',policy)
         self.assertIn('CBE_fnc_CortexExternalTakeover',policy)
         self.assertIn('getUnloadInCombat _vehicle isEqualTo _applied',policy)
+        adoption=policy.split('if (count _lease == 5) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('(_lease select 1) != _epoch || {(_lease select 4) != clientOwner}',adoption)
+        self.assertIn('_lease=+_lease',adoption)
+        self.assertNotIn('setUnloadInCombat',adoption)
+        self.assertIn('if !(_vehicle in _tracked) then {',policy)
+        removal=policy.split('private _removeTracked={',1)[1].split('if (_action == "RELEASE")',1)[0]
+        self.assertIn('if (_tracked isNotEqualTo _previousTracked) then {',removal)
+
         self.assertIn('_vehicle setUnloadInCombat _previous;',policy)
         self.assertIn('CBE_Cortex_UnloadPolicyBlocked',policy)
         self.assertNotIn('while {',policy)

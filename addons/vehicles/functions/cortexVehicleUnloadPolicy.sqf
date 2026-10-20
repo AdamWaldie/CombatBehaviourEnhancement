@@ -15,7 +15,8 @@
  * Locality and authority: call on the machine local to the vehicle. The effective commander's group
  * must be the supplied local group for ACQUIRE. Lease and tracked-vehicle records are public so a
  * replacement owner can adopt or release them after locality migration.
- * Repeat/JIP: ACQUIRE is idempotent for an unchanged lease; RELEASE is idempotent. No loop or
+ * Repeat/JIP: Unchanged ACQUIRE publishes neither lease nor tracked roster. Adoption writes
+ * only a changed epoch/owner; RELEASE changes the tracked roster only when membership changes. No loop or
  * scheduled work is created.
  *
  * Arguments:
@@ -44,11 +45,14 @@ if (isNull _vehicle || {isNull _group} || {!local _vehicle}) exitWith {false};
 _action=toUpperANSI _action;
 private _lease=_vehicle getVariable ["CBE_Cortex_UnloadPolicyLease",[]];
 private _removeTracked={
-    private _tracked=(_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]]) - [_vehicle];
-    if (_tracked isEqualTo []) then {
-        _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",nil,true];
-    } else {
-        _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
+    private _previousTracked=_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]];
+    private _tracked=_previousTracked - [_vehicle];
+    if (_tracked isNotEqualTo _previousTracked) then {
+        if (_tracked isEqualTo []) then {
+            _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",nil,true];
+        } else {
+            _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
+        };
     };
 };
 
@@ -84,9 +88,12 @@ if (count _lease == 5 && {getUnloadInCombat _vehicle isNotEqualTo (_lease select
     false
 };
 if (count _lease == 5) then {
-    _lease set [1,_epoch];
-    _lease set [4,clientOwner];
-    _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",_lease,true];
+    if ((_lease select 1) != _epoch || {(_lease select 4) != clientOwner}) then {
+        _lease=+_lease;
+        _lease set [1,_epoch];
+        _lease set [4,clientOwner];
+        _vehicle setVariable ["CBE_Cortex_UnloadPolicyLease",_lease,true];
+    };
 } else {
     private _previous=getUnloadInCombat _vehicle;
     private _applied=[false,false];
@@ -95,6 +102,8 @@ if (count _lease == 5) then {
     _vehicle setVariable ["CBE_Cortex_UnloadPolicyBlocked",nil,true];
 };
 private _tracked=_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]];
-_tracked pushBackUnique _vehicle;
-_group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
+if !(_vehicle in _tracked) then {
+    _tracked pushBack _vehicle;
+    _group setVariable ["CBE_Cortex_UnloadPolicyVehicles",_tracked,true];
+};
 true
