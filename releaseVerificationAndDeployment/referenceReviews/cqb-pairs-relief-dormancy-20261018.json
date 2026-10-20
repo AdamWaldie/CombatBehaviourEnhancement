@@ -66,5 +66,31 @@
   "followUp": {
     "review": "cqb-exit-relief-20261018.json",
     "status": "Finite proactive relief implemented after this diagnosis; physical outcomes remain unverified. Original findings describe baseline09915932."
+  },
+  "pairRegistryScopeReview20261020": {
+    "baseline": "1260bda4",
+    "sources": {
+      "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
+      "addons/infantry/functions/rebalanceRoles.sqf": "75eb9ed44578369292f346403f5d1cdb5f247fbab0bd928f99ab1b22f304ebd4",
+      "addons/core/functions/operationStart.sqf": "143e833000353213d08cacf5cdb2d2c34d9d5338ba3ccbdd8aa9ba1362e96b35",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767",
+      "addons/infantry/functions/buildingOperationStep.sqf": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36",
+      "addons/infantry/functions/cortexFlankStep.sqf": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+    },
+    "finding": "CombatPairs preserves intact pairs only inside supplied eligible roster and overwrites group CBE_CombatPairs with that subset. OperationStart/RebalanceRoles/clear admission can therefore erase intact out-of-scope pairs. BuildingOperationStep separately publishes exact pairSnapshot during replacement, so changing CombatPairs alone would not preserve continuity across all publishers.",
+    "actualConsumers": [
+      "CortexClearBuilding admission intersects group pairs with remaining eligible team before ordering/capacity; operation pair arrays remain active roster only.",
+      "CortexFlankStep relief accepts only distinct two-actor pairs wholly within actual donors, refusing duplicate actors.",
+      "Building replacement updates exact owned pairSnapshot and operation pairs without resetting pairRoutes/state. Dormant ownership must remain; CombatPairs eligibility filtering cannot be used as a replacement publisher."
+    ],
+    "nextImplementation": [
+      "Separate active operation pair return from bounded shared group pairing metadata. Preserve untouched outside-roster pairs only; current assignments take precedence and no actor can occur twice.",
+      "Use one semantic metadata publication path from CombatPairs and clearance replacement, accepting existing owned dormant pair rows without treating them as new eligible workers. Validate local group, bounded typed unique row members and group membership; never issue commands/reservations.",
+      "Retain existing max16 active-actor admission and bounded16 shared pair rows, prioritize active rows. Do not pair across groups, infer room routing from distance, renew operation budget or claim shared metadata as physical cohesion.",
+      "Extend existing pair regression cases for subset operations, dead/changed partner, duplicate/malformed snapshots, dormant owned rows and unchanged publication. No new test count needed."
+    ],
+    "runtimeChanged": false,
+    "physical": false,
+    "scoresChanged": false
   }
 }
