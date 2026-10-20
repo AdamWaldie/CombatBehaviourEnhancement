@@ -2164,3 +2164,5 @@ Road-pass and shared queue consent defer while either control seat has queued AC
 Coordinated bound admission, cover holds and support recalls yield to queued treatment and unavailable simulation. The existing owner-authenticated ammunition-capacity report still gates new bounds; neither a role label nor a stopped soldier proves effective covering fire.
 
 Artillery admission selects from loaded, role-suitable magazines that currently reach the reported target, then applies its existing ammunition preference. A preferred out-of-range shell no longer masks another eligible shell. This does not add pre-fire relocation; genuinely out-of-range batteries still refuse the request.
+
+Artillery selection skips visibly unavailable operating crew. The battery owner independently checks the actual gunner, protected tasks/treatment, simulation, fire capability and player/specialist control before safety work and again before native fire. A server-side eligibility observation never substitutes for owner authority or a confirmed shot.

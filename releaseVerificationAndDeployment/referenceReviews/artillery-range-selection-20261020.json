@@ -8,8 +8,8 @@
   "remainingGap": "Actual out-of-range mobile battery pre-fire movement with original reported-fix age, magazine, route/crew/owner authority, finite deadline, physical arrival and fresh native range proof remains unimplemented. Post-fire Scoot is not equivalent.",
   "files": {
     "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
-    "addons/support/functions/cortexArtilleryFire.sqf": "292a243120c7d86629bcb16e02c6591483b1537c9217e14bb23f39094a7cd18e",
-    "addons/support/functions/cortexArtilleryShot.sqf": "e20c6b0a293b34ca7b9c0ea0da37d7ea97e4245b0b1b952a5323bf9ee6cda9e8"
+    "addons/support/functions/cortexArtilleryFire.sqf": "eae86b6639dde315bbd799a6d80e730aad9f6051a1505d9c4b51d885060b2bea",
+    "addons/support/functions/cortexArtilleryShot.sqf": "951bcf051d7cad5c795b16390ad71b94a3df404b00ada8ed2121488a201806ca"
   },
   "validation": {
     "tests": 1477,
@@ -21,5 +21,15 @@
     "physicalAcceptance": false,
     "performanceMeasured": false
   },
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "crewAuthorityFollowup": {
+    "baseline": "ffbb205e",
+    "finding": "Automatic first-match selection used living gunner only, while owner Shot later rejected incapacitation. A visibly unavailable first battery could mask an eligible later battery. Shot lacked explicit actual-gunner task/treatment/player/specialist availability at its two authority boundaries.",
+    "implementation": "Server candidate and explicit admission use observable battery/gunner health, simulation, visibility and nonplayer/remote-control checks. Owner Shot independently requires current local actual gunner, protected-task availability, fire feature, no player/curator/specialist takeover before safety and again atomically before receipt/native fire.",
+    "limits": "Server observations do not establish remote task state. No fallback dispatch after an uncertain native shot, owner reassignment or relocation added.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "candidate": ".qa/candidates/artillery-crew-authority-ffbb205e",
+    "fingerprint": "7450f68dc3d1324592e8b155762377f0efe535ecdb2ffe39636c49870434be33",
+    "physicalAcceptance": false
+  }
 }

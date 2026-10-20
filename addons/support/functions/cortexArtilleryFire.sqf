@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Automatic and explicit admission refuse visibly incapacitated, player-controlled or dormant
+ * operating crew before reservation. Remote observations never replace owner-local task checks.
  * Magazine preference is ranked only among currently loaded target-reaching candidates.
  * A stronger but out-of-range shell cannot hide another eligible loaded magazine.
  * Queues a finite mission of bounded bursts on the authoritative server. This is dispatch
@@ -88,10 +90,19 @@ if (_danger) then {
     _requestSide=side _crewGroup;
 };
 if (_purpose == "") exitWith {false};
+// Server-visible eligibility only. Current actor tasks and inventory remain owner checks.
+private _batteryCrewUsable={
+    params ["_asset"];
+    private _gunner=gunner _asset;
+    alive _asset && {simulationEnabled _asset} && {!isObjectHidden _asset}
+        && {[_gunner] call CBE_fnc_CortexCombatEffective}
+        && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
+        && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
+};
 if (isNull _battery) then {
     private _candidates = missionNamespace getVariable ["CBE_AIPass_AllArtillery", []];
     private _index = _candidates findIf {
-        alive _x && {alive gunner _x} && {side group gunner _x == _requestSide}
+        alive _x && {alive gunner _x} && {[_x] call _batteryCrewUsable} && {side group gunner _x == _requestSide}
         && {!((netId _x) in _missions)} && {[_x, _purpose] call CBE_fnc_CortexArtilleryRole}
         && {[group gunner _x] call CBE_fnc_CortexIsEligible}
         && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
@@ -101,7 +112,7 @@ if (isNull _battery) then {
     };
     if (_index >= 0) then {_battery = _candidates select _index};
 };
-if (isNull _battery || {!alive gunner _battery} || {(netId _battery) in _missions}
+if (isNull _battery || {!alive gunner _battery} || {!([_battery] call _batteryCrewUsable)} || {(netId _battery) in _missions}
     || {!_danger && {!([_battery, _purpose] call CBE_fnc_CortexArtilleryRole)}}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
     || {!([group gunner _battery,_feature,false] call CBE_fnc_CortexFeatureEnabled)}

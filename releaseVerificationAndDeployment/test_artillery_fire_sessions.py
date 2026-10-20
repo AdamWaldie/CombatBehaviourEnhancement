@@ -16,6 +16,11 @@ class ArtilleryFireSessions(unittest.TestCase):
     def test_admission_captures_original_epochs_and_mission_checks_mode_separately(self):
         fire=(ROOT/'addons/support/functions/cortexArtilleryFire.sqf').read_text(encoding='utf-8')
         self.assertLess(fire.index('private _fireEpochs='),fire.index('private _retreatSmoke'))
+        self.assertIn('[_x] call _batteryCrewUsable',fire)
+        self.assertIn('!([_battery] call _batteryCrewUsable)',fire)
+        crew=fire.split('private _batteryCrewUsable=',1)[1].split('if (isNull _battery)',1)[0]
+        for guard in ('CortexCombatEffective','isPlayer _gunner','simulationEnabled _asset'):
+            self.assertIn(guard,crew)
         self.assertIn('["fireGeneration",_fireEpochs select',fire)
         self.assertIn('["smokeGeneration",_fireEpochs select 2]',fire)
         step=(ROOT/'addons/support/functions/cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
@@ -29,4 +34,9 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('_mode != "SMOKE"',gate)
         self.assertIn('_smokeGeneration == (missionNamespace getVariable',gate)
         self.assertEqual(shot.count('call _fireSessionCurrent'),2)
+        self.assertEqual(shot.count('call _operatorAvailable'),2)
+        available=shot.split('private _operatorAvailable=',1)[1].split('if (!(call _fireSessionCurrent)',1)[0]
+        for guard in ('local _operator','isPlayer _operator','gunner _battery == _operator',
+                      'CortexActorFireTaskAvailable','CortexExternalTakeover','FIREWEAPON'):
+            self.assertIn(guard,available)
 if __name__=='__main__': unittest.main()

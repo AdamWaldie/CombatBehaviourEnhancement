@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Current gunner availability, protected tasks/treatment, simulation and player/specialist
+ * control are checked before safety work and again at the atomic native shot boundary.
  * Executes exactly one checked shot on the current battery owner. The server observes the actual firing event.
  * Locality/authority: documented guards enforce server coordination and owner-local execution.
  * Smoke enablement is checked both before safety work and at the final command boundary.
@@ -62,7 +64,20 @@ private _fireSessionCurrent={
 private _danger=_purpose == "DANGER";
 private _operator=gunner _battery;
 private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner _battery};
-if (!(call _fireSessionCurrent) || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
+private _operatorAvailable={
+    local _battery && {alive _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
+        && {!isNull _operator} && {local _operator} && {gunner _battery == _operator}
+        && {vehicle _operator == _battery} && {!isPlayer _operator}
+        && {simulationEnabled _operator} && {!isObjectHidden _operator}
+        && {isNull remoteControlled _operator}
+        && {isNull (_operator getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        && {[_operator] call CBE_fnc_CortexExternalOwner == ""}
+        && {!([_operator] call CBE_fnc_CompatibilityExternalControl)}
+        && {[_operator] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {_operator checkAIFeature "FIREWEAPON"}
+        && {!([_crewGroup] call CBE_fnc_CortexExternalTakeover)}
+};
+if (!(call _fireSessionCurrent) || {!(call _operatorAvailable)} || {!local _battery} || {!alive _battery} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"}
     || {(_battery getVariable ["CBE_AIPass_FireToken", ""]) != _token}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}
@@ -91,7 +106,7 @@ isNil {
     _issued=call {
 private _currentRequest=call _requestState;
 if (_currentRequest != "NEW") exitWith {_currentRequest in ["DUPLICATE","STALE"]};
-if (!(call _fireSessionCurrent) || {!local _battery} || {gunner _battery != _operator}
+if (!(call _fireSessionCurrent) || {!(call _operatorAvailable)} || {!local _battery} || {gunner _battery != _operator}
     || {!alive _battery} || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {[] call CBE_fnc_CortexIsPaused}
     || {combatMode group _operator == "BLUE"} || {unitCombatMode _operator == "BLUE"}
