@@ -34,7 +34,7 @@
  * Routine standoff first retires an exact stationary ground-fire role through server
  * fallback, once per role, and waits for its removal; it never moves under that assignment.
  * Routine reports older than3s use native believed-position suppression, not hidden aimPos.
- * It requires nonexplosive station bullets/20 loaded rounds, >=50m separation, <30km/h,
+ * Both ground danger and routine point suppression require nonexplosive station bullets/20 loaded rounds, >=50m separation, <30km/h,
  * no unrelated engagement and the existing eight-second fire hold; no new controller.
  * Mounted danger watch converts its ASL firing point back to AGL; suppressive fire
  * retains ASL, so elevation does not offset the watch point a second time.
@@ -539,7 +539,6 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
                     && {[_vehicle,_gunner] call _gunnerAvailable}
                     && {canFire _vehicle}
-                    && {!(_vehicle isKindOf "LandVehicle") || {[_vehicle,_gunner,_dangerSource] call CBE_fnc_CortexGroundFireReady}}
                     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                     && {combatMode _group in ["YELLOW","RED"]}
                     && {unitCombatMode _gunner in ["YELLOW","RED"]}
@@ -549,13 +548,38 @@ if (_dangerDismount isNotEqualTo []) then {
                     // Use the same native believed ATL contract as CortexKnowledge.
                     private _believed=(effectiveCommander _vehicle) getHideFrom _dangerSource;
                     private _aimPosition=(ATLToASL _believed) vectorAdd [0,0,1];
-                    if (_believed isNotEqualTo [0,0,0]
-                        && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}) then {
-                        // Watching consumes ground-relative position; suppression consumes ASL.
-                        _gunner doWatch (ASLToAGL _aimPosition);
-                        _gunner doSuppressiveFire _aimPosition;
-                        _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
-                        _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
+                    private _dangerFireObservation=createHashMap;
+                    private _dangerGround=_vehicle isKindOf "LandVehicle";
+                    private _engaging=getAttackTarget _gunner;
+                    private _assigned=assignedTarget _gunner;
+                    // A point estimate is suppression, not authority to spend an arbitrary
+                    // explosive round. Preserve native engagements and the existing burst hold.
+                    private _dangerSuppressionReady=_believed isNotEqualTo [0,0,0] && {
+                        !_dangerGround || {
+                            abs speed _vehicle < 30 && {_vehicle distance2D _believed >= 50}
+                                && {toUpperANSI currentCommand _gunner != "SUPPRESS"}
+                                && {time >= (_gunner getVariable ["CBE_AIPass_TargetHold",0])}
+                                && {isNull _engaging || {_engaging == _dangerSource}}
+                                && {isNull _assigned || {_assigned == _dangerSource}}
+                                && {!terrainIntersectASL [eyePos _gunner,_aimPosition]}
+                                && {[_vehicle,_gunner,_dangerSource,_dangerFireObservation,false,true] call CBE_fnc_CortexGroundFireReady}
+                        }
+                    };
+                    if (_dangerSuppressionReady
+                        && {[_gunner,_aimPosition] call CBE_fnc_CortexLineOfFireClear}
+                        && {[] call _mayIssueVehicle}) then {
+                        private _muzzle=_dangerFireObservation getOrDefault ["loadedMuzzle",""];
+                        if (_dangerGround && {_muzzle != ""} && {currentMuzzle _gunner != _muzzle}) then {
+                            _gunner selectWeapon _muzzle;
+                        };
+                        if (!_dangerGround || {_muzzle != "" && {currentMuzzle _gunner == _muzzle}}) then {
+                            // Watching consumes ground-relative position; suppression consumes ASL.
+                            _gunner doWatch (ASLToAGL _aimPosition);
+                            _gunner doSuppressiveFire _aimPosition;
+                            if (_dangerGround) then {_gunner setVariable ["CBE_AIPass_TargetHold",time + 8]};
+                            _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
+                            _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
+                        };
                     };
                 };
             } forEach _affectedVehicles;

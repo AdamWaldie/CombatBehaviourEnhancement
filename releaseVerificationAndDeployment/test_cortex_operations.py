@@ -5789,6 +5789,17 @@ class CortexOperations(unittest.TestCase):
             for proof in ('!_combinedGroundFireOwned','call _gunnerAvailable','canFire _vehicle','CortexGroundFireReady','CortexLineOfFireClear'):
                 self.assertIn(proof,block)
         self.assertLess(routine.index('CortexLineOfFireClear'),routine.index('_gunner doFire _target'))
+        for proof in ('_vehicle distance2D _believed >= 50','abs speed _vehicle < 30',
+                      'currentCommand _gunner != "SUPPRESS"','CBE_AIPass_TargetHold',
+                      'isNull _engaging || {_engaging == _dangerSource}',
+                      'isNull _assigned || {_assigned == _dangerSource}',
+                      '!terrainIntersectASL [eyePos _gunner,_aimPosition]',
+                      '[_vehicle,_gunner,_dangerSource,_dangerFireObservation,false,true] call CBE_fnc_CortexGroundFireReady',
+                      'currentMuzzle _gunner == _muzzle'):
+            self.assertIn(proof,danger)
+        self.assertLess(danger.index('CortexGroundFireReady'),danger.index('_gunner selectWeapon'))
+        self.assertLess(danger.index('currentMuzzle _gunner == _muzzle'),danger.index('_gunner doSuppressiveFire'))
+
 
     def test_vehicle_gunnery_selects_first_usable_ranked_contact_with_finite_work(self):
         text=source('cortexVehicles')

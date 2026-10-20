@@ -1,0 +1,29 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "57c806ab",
+  "scope": "Ground vehicle danger point-suppression qualification; direct target fire unchanged",
+  "source": "LAMBS main/functions/VehicleAction/fnc_doVehicleSuppress.sqf",
+  "sourceSHA256": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a",
+  "finding": "Danger point suppression used general damaging-ammunition readiness without selecting or acknowledging the qualified muzzle. It bypassed routine speed/range/terrain/current-engagement guards.",
+  "change": "Ground danger point suppression now requires nonexplosive shotBullet with at least20 loaded rounds, >=50m separation, speed<30km/h, terrain clearance, no current suppression/unrelated native engagement, existing target hold and selected-muzzle acknowledgement. Eight-second hold starts only on issued suppression.",
+  "intent": "Use bounded native suppression without competing movement, arbitrary explosive fire or overriding an existing engagement. Direct identified-target and combined ground fire retain target-qualified ammunition choices.",
+  "departures": [
+    "No delayed random UseWeapon shot from upstream.",
+    "No forced movement, projectile changes or new controller.",
+    "Air branch retains existing policy; this is not air-suppression acceptance."
+  ],
+  "limits": [
+    "Protected-person cone is not blast/geometry proof.",
+    "Native muzzle selection and actual firing/effect remain physically unverified.",
+    "Runtime overhead unmeasured; one bounded station scan only after cheap danger gates."
+  ],
+  "validation": {
+    "focused": 607,
+    "fullBuild": "PASS",
+    "buildLog": ".qa/vehicle-danger-policy-build.log",
+    "newTestCases": 0,
+    "audits": "PAUSED"
+  },
+  "candidate": ".qa/candidates/vehicle-danger-policy-57c806ab",
+  "fingerprint": "96377176a52b9246be8b994255fce17472e74fd1e176c54a3fdcea9e89b085cb"
+}
