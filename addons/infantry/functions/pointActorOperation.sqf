@@ -40,7 +40,9 @@ private _releaseAvailable={local _actor && {local _group} && {!isNull _group}
     && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
     && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
     && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
-    && {!([_group] call CBE_fnc_CortexZeusHeld)}};
+    && {!([_group] call CBE_fnc_CortexZeusHeld)}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+};
 private _available={call _releaseAvailable && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
     && {!([] call CBE_fnc_CortexIsPaused)}
     && {[_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible}

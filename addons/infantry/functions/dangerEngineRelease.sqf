@@ -53,7 +53,8 @@ if (!simulationEnabled _actor || {isObjectHidden _actor}) exitWith {["ACTOR_DORM
 if ([_actor] call CBE_fnc_CortexActorMoveReserved) exitWith {
     ["ACTOR_RESERVATION"] call _evidence
 };
-if (!([_actor] call CBE_fnc_CortexCombatEffective)
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {["NATIVE_TASK_OR_MEDICAL"] call _evidence};
 
 private _prior=toUpperANSI (_lease param [0,"",[""]]);

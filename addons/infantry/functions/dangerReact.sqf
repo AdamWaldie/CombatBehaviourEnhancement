@@ -96,7 +96,8 @@ isNil {
             || {[_group] call CBE_fnc_CortexExternalTakeover}
             || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {"IGNORED"};
         if (combatMode _group in ["BLUE","GREEN"]) exitWith {"ASSESS"};
-        if (!isNull objectParent _actor || {fleeing _actor}
+        if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+            || {!isNull objectParent _actor} || {fleeing _actor}
             || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"ASSESS"};
         _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
         if (isNull _postureActor) then {_postureActor=leader _group};

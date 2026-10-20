@@ -1912,7 +1912,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('CBE_fnc_CortexIsPaused',text)
             self.assertIn('[_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible',text)
         self.assertIn('CBE_fnc_CortexExternalTakeover',source('cortexIsEligible'))
-        self.assertLess(mode.index('CBE_AIPass_Danger_Enable'),mode.index('if (fleeing _actor'))
+        self.assertLess(mode.index('CBE_AIPass_Danger_Enable'),mode.index('ace_medical_ai_healQueue'))
         self.assertLess(action.index('CBE_AIPass_Danger_Enable'),action.index('private _baseDelay='))
 
     def test_danger_cleanup_never_restores_wait_posture_after_ownership_takeover(self):
@@ -9501,6 +9501,19 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('forEach _placed'),text.index('_ranked sort true'))
 
     def test_danger_release_retains_blocked_original_and_confirms_restore(self):
+        for name in ('cortexActorFireTaskAvailable','cortexFireControl','indoorActorNativeContext','pointActorOperation','indoorActorOperation'):
+            self.assertIn('ace_medical_ai_healQueue',source(name))
+        building=source('buildingOperationStep')
+        available=building.split('private _actorAvailable=',1)[1].split('private _actorTaskFree=',1)[0]
+        task_free=building.split('private _actorTaskFree=',1)[1].split('// Record only stops',1)[0]
+        self.assertNotIn('ace_medical_ai_healQueue',available)
+        self.assertIn('ace_medical_ai_healQueue',task_free)
+
+        for name in ('dangerEngineMode','dangerEngineCanContinue','dangerEngineAct','dangerEngineRelease','dangerActionSelect','dangerReact'):
+            queued=source(name)
+            self.assertIn('getVariable ["ace_medical_ai_healQueue",[]]',queued)
+            self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',queued)
+
         for name in ('dangerEngineCanContinue','dangerEngineMode','dangerEngineAct','dangerEngineRelease'):
             actor_gate=source(name)
             self.assertIn('simulationEnabled _actor',actor_gate)

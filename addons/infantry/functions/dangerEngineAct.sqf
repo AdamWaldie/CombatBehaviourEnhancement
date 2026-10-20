@@ -29,7 +29,9 @@ if (isNull _group || {!local _group}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {0};
 // Recheck actor-level authority at the command boundary; group eligibility alone does not
 // cover a specialist actor sharing an otherwise ordinary group.
-if ([_actor] call CBE_fnc_CompatibilityExternalControl
+// ACE queues treatment before the native command becomes HEAL; pending care owns this actor.
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {_mode != "FORCED" && {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}) exitWith {0};
 // Eligibility already checked player, curator and external ownership in this unscheduled call.
 // Use fixed branch values instead of allocating a lookup map for every actor reaction.

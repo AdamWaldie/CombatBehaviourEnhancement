@@ -37,6 +37,7 @@ if ("ALL" in _disabled || {"CBE_AIPass_Danger_Enable" in _disabled}
 // is waiting. Recheck only the affected actor here so a fresh boarding, action, treatment, rearm,
 // join or fleeing task interrupts before another CBE stance or recycle. ATTACK deliberately remains
 // eligible because the engine also uses it for ordinary autonomous combat.
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {false};
 if (behaviour _actor == "CARELESS" || {!_initial && {fleeing _actor
     || {toUpperANSI (currentCommand _actor) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}}) exitWith {false};
 

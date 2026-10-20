@@ -19,6 +19,8 @@
 params [["_actor",objNull,[objNull]],["_contact",objNull,[objNull]],
     ["_belief",[],[[]]],["_building",objNull,[objNull]],["_preflight",false,[true]]];
 if (isNull _actor || {!local _actor} || {!local group _actor}) exitWith {[]};
+// Queued treatment precedes native HEAL; it forbids investigation admission and new legs.
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {[]};
 if (_preflight && {isNull _contact}) exitWith {[]};
 private _vectorValid={_this isEqualType [] && {count _this == 3}
     && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};

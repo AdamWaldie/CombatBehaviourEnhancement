@@ -107,6 +107,7 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {getUnitState _x != "PLANNING"}
         && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}

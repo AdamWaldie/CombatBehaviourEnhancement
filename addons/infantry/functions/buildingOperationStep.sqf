@@ -244,6 +244,7 @@ private _delay=call {
     private _actorTaskFree={
         params ["_actor"];
         simulationEnabled _actor && {!isObjectHidden _actor}
+            && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
     // Record only stops actually issued by this callback. Native holds are not inferred

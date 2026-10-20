@@ -62,6 +62,8 @@ private _releaseAvailable={
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
+
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 private _available={
     local _actor && {local _group} && {!isNull _group} && {!isPlayer _actor}
@@ -84,6 +86,7 @@ private _available={
         && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
         && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
         && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 if (_mode == "FINISH") exitWith {
     if (count _brain > 0) then {
