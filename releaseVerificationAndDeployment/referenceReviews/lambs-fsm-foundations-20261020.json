@@ -650,6 +650,14 @@
       "scope": "Existing NativeOrderReceipt reads current node metadata only and enumerates native handles with route length. No waypoint conditions/scripts executed, no new world scan/worker or deadline renewal. Jink shared route ownership remains separate; this change is tracked orientation only.",
       "validation": "Full1482 existing tests, HEMTT/SQF/config/FSM/docs/build passed; existing vehicle fixture updated7field receipt prerequisite, physical checks unchanged. No Arma launch, score or physical result.",
       "limits": "Direct doMove/native control that leaves authored receipt and protected marker unchanged remains indistinguishable. Turn quiescence and complete external/task handover are not established; actual engine route edits/migration/performance still required."
+    },
+    "routeLifecycleFollowup": {
+      "baseline": "795667e5",
+      "finding": "Vehicle active check accepted any current/future CBE-labelled node. Group tick independently required obsolete five-field orientation marker, rejecting current seven-field turns before vehicle executor.",
+      "change": "Existing lease gets lifecycle-only CortexVehicles dispatch before group movement decisions, irrespective of tactical range. This slice returns before vehicle enumeration/new combat work. Group tick delegates vehicle validity to this executor. Route continuation requires exact committed generation/live intent/epoch/noncancelled operation, node geometry/type/radius and native policy. Edited/replaced route cancels instead of objective completion; passed node retains physical arrival check. Reverse keeps its own finite receipt.",
+      "cost": "No worker/world scan/deadline renewal. One-node native receipt comparison reads waypoint handles and metadata; repeated active contact evaluation remains bounded by existing callback but overhead unmeasured.",
+      "validation": "Full1482 static/unit, HEMTT/SQF/config/FSM/docs/package gates pass in .qa/vehicle-route-lifecycle-final-build.log. No Arma launch, parity percentage or physical acceptance.",
+      "limits": "Engine order replacement, native turn quiescence, provider handover, reverse fallback and performance remain unverified. Same-value native control without changed receipts remains ambiguous."
     }
   }
 }

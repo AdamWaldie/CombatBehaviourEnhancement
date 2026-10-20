@@ -5893,7 +5893,13 @@ class CortexOperations(unittest.TestCase):
         tick=source('cortexGroupTick')
         restore=source('cortexRestoreCalm')
         self.assertIn('getOrDefault ["movementLease",[]]',vehicles)
-        self.assertIn('waypointDescription _x == "CBE AI PASS"',vehicles)
+        self.assertIn('waypointDescription _moveWaypoint == "CBE AI PASS"',vehicles)
+        route=vehicles.split('private _moveIntent=',1)[1].split('if (!_activeVehicleMove)',1)[0]
+        self.assertNotIn('findIf',route)
+        self.assertIn('_moveGeneration == (_moveIntent getOrDefault ["operationGeneration",-2])',route)
+        self.assertIn('_moveGeneration == (_moveOperation getOrDefault ["generation",-2])',route)
+        self.assertIn('_policy isEqualTo (_moveIntent getOrDefault ["nativePolicy",[]])',route)
+        self.assertIn('"VEHICLE_ROUTE_REPLACED"] call CBE_fnc_OperationCancel',vehicles)
         self.assertIn('private _movementOwned = _activeVehicleMove',vehicles)
         self.assertIn('if (_enemies isEqualTo []) exitWith {_movementOwned}',vehicles)
         self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]]',vehicles)
@@ -5904,6 +5910,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_state getOrDefault ["phase",""]) == "CONTACT"',tick)
         self.assertIn('"movementLease"',restore)
         self.assertIn('private _groupMovementOwned = count _movementLease == 2',tick)
+        dispatch=tick.split('private _groupMovementOwned =',1)[1].split('if (!_groupMovementOwned',1)[0]
+        self.assertIn('case "VEHICLE_ORIENT": {true}',dispatch)
+        self.assertNotIn('CBE_Danger_VehicleOrient',dispatch)
+        self.assertNotIn('count _marker == 5',dispatch)
+        self.assertLess(tick.index('[_group,_state,[],true] call CBE_fnc_CortexVehicles'),tick.index('private _movementLease ='))
+        self.assertLess(vehicles.index('if (_lifecycleOnly) exitWith'),vehicles.index('private _vehicles = []'))
         self.assertIn('if (!_groupMovementOwned && {_movementLease isNotEqualTo []})',tick)
 
     def test_vehicle_combat_layer_preserves_other_movement_owners(self):

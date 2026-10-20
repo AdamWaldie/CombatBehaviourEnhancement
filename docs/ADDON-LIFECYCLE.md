@@ -1223,3 +1223,14 @@ original owner epoch and VEHICLE_ORIENT intent still live. Cancellation or repla
 permission rather than inheriting another operation. Cleanup removes only its matching generation's
 marker; an old callback or calm snapshot preserves a newer turn marker. This establishes source
 ownership checks, not actual engine stop acknowledgement.
+
+
+Vehicle manoeuvre continuation now requires the exact committed waypoint and operation generation,
+current owner epoch, unchanged native policy and geometry. Another CBE-labelled node cannot retain
+an old jink, standoff or withdrawal. Edited/replaced routes cancel rather than report objective
+completion; existing generation-bound cleanup preserves edited and successor orders. The existing
+reverse controller retains its separate receipt. The group tick delegates these four vehicle
+lifecycles, including expiry, to CortexVehicles; it no longer rejects current turn markers using
+the obsolete five-field schema. No new worker or deadline renewal is introduced. The route check
+reads one node's native metadata; actual engine handover and performance remain unverified while
+audits are paused.

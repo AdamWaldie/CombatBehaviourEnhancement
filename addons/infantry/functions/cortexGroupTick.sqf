@@ -449,6 +449,12 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
 if (count (_state getOrDefault ["aaRelocation",createHashMap]) > 0) then {
     [_group,_state,false] call CBE_fnc_CortexAARelocate;
 };
+// Service existing vehicle work even outside tactical range or after its feature is disabled.
+// This read/retirement slice cannot start new movement, targeting or passenger work.
+private _priorVehicleLease=_state getOrDefault ["movementLease",[]];
+if ((_priorVehicleLease param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]) then {
+    [_group,_state,[],true] call CBE_fnc_CortexVehicles;
+};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 // Follow the committed screened corridor rather than skipping to its final endpoint. This
@@ -506,19 +512,12 @@ private _groupMovementOwned = count _movementLease == 2 && {time < (_movementLea
             _state getOrDefault ["assaulting",false]
                 && {(_state getOrDefault ["supportToken",""]) != ""}
         };
-        case "VEHICLE_WITHDRAW": {
-            (_group getVariable ["CBE_VehicleReverse",[]]) isNotEqualTo []
-                || {(waypoints _group) findIf {waypointDescription _x == "CBE AI PASS" && {(_x select 1) >= currentWaypoint _group}} >= 0}
-        };
-        case "VEHICLE_ORIENT": {
-            private _vehicle=(_state getOrDefault ["vehicleDangerOrient",[]]) param [1,objNull,[objNull]];
-            private _marker=if (isNull _vehicle) then {[]} else {_vehicle getVariable ["CBE_Danger_VehicleOrient",[]]};
-            private _target=_marker param [2,[],[[]]];
-            count _marker == 5 && {(_marker param [1,grpNull]) == _group}
-                && {serverTime < (_marker param [3,0])} && {count _target >= 2}
-                && {alive _vehicle} && {canMove _vehicle}
-                && {private _relative=_vehicle getRelDir _target; _relative > 20 && {_relative < 340}}
-        };
+        // Vehicle lifecycle is evaluated once by CortexVehicles, including expiry and receipts.
+        // A second marker schema here previously retired valid seven-field turns as five-field.
+        case "VEHICLE_WITHDRAW";
+        case "VEHICLE_STANDOFF";
+        case "VEHICLE_JINK";
+        case "VEHICLE_ORIENT": {true};
         default {
             (waypoints _group) findIf {
                 (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}

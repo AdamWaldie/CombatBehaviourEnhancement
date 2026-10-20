@@ -77,6 +77,7 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: enemies <ARRAY> - from CBE_fnc_CortexKnowledge
+ * 3: lifecycle only <BOOL, false> - service existing vehicle lease without new combat work
  *
  * Return Value:
  * Boolean - true while vehicle withdrawal, standoff, danger jink or tracked orientation owns group movement
@@ -88,7 +89,7 @@
  * Current caller: CBE_fnc_CortexGroupTick.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]]];
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_lifecycleOnly",false,[true]]];
 private _vehicleMove = _state getOrDefault ["movementLease",[]];
 private _activeVehicleMove = false;
 if (_vehicleMove isNotEqualTo []) then {
@@ -99,6 +100,7 @@ if (_vehicleMove isNotEqualTo []) then {
         private _orientDriverProtected=false;
         private _orientOrderChanged=false;
         private _orientOperationChanged=false;
+        private _vehicleRouteChanged=false;
         if (_movementOwner == "VEHICLE_ORIENT") then {
             private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
             private _orientVehicle=_orientState param [1,objNull,[objNull]];
@@ -145,9 +147,41 @@ if (_vehicleMove isNotEqualTo []) then {
                 && {(_reverseVehicle getVariable ["CBE_VehicleReverseOwner",[]]) isEqualTo [_group,_reverse select 1]};
             // A native reverse leg intentionally has no forward waypoint. Its matching finite
             // record is movement evidence; GroupTick owns its progress and fallback checks.
-            _activeVehicleMove = _reverseActive || {((waypoints _group) findIf {
-                (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}
-            } >= 0) && {time < (_vehicleMove select 1)}};
+            // A label elsewhere in the route cannot retain this operation's movement lease.
+            // Compare only the committed node; never evaluate authored conditions/statements.
+            private _moveIntent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+            private _moveGeneration=_state getOrDefault ["vehicleOperationGeneration",-1];
+            private _moveOperation=_group getVariable ["CBE_Operation",createHashMap];
+            private _moveWaypoint=_moveIntent getOrDefault ["waypoint",[]];
+            private _movePosition=_moveIntent getOrDefault ["position",[]];
+            private _routeOwned=count _moveWaypoint == 2
+                && {(_moveWaypoint select 0) isEqualTo _group}
+                && {(_moveWaypoint select 1) >= currentWaypoint _group}
+                && {(_moveWaypoint select 1) < count waypoints _group}
+                && {_moveGeneration >= 0}
+                && {_moveGeneration == (_moveIntent getOrDefault ["operationGeneration",-2])}
+                && {_moveGeneration == (_moveOperation getOrDefault ["generation",-2])}
+                && {(_moveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {(_moveOperation getOrDefault ["intent",""]) == _movementOwner}
+                && {(_moveOperation getOrDefault ["phase",""]) != "CANCELLED"}
+                && {waypointDescription _moveWaypoint == "CBE AI PASS"}
+                && {count _movePosition >= 2}
+                && {waypointPosition _moveWaypoint distance2D _movePosition <= 1}
+                && {abs (((waypointPosition _moveWaypoint) param [2,0])-(_movePosition param [2,0])) <= 1.5}
+                && {waypointType _moveWaypoint == (_moveIntent getOrDefault ["type",""])}
+                && {abs (waypointCompletionRadius _moveWaypoint-(_moveIntent getOrDefault ["radius",-1])) <= 0.1};
+            if (_routeOwned) then {
+                private _rows=[_group,"",false,_moveWaypoint select 1] call CBE_fnc_AuthoredRouteReceipt;
+                private _row=_rows param [0,[]];
+                private _policy=if (count _row >= 7) then {[_row select 3,_row select [6]]} else {[]};
+                _routeOwned=_policy isNotEqualTo []
+                    && {_policy isEqualTo (_moveIntent getOrDefault ["nativePolicy",[]])};
+            };
+            // Passing the committed node is ordinary completion; an edited/replaced current or
+            // future node is interruption and must never be reported as objective completion.
+            _vehicleRouteChanged=!_reverseActive && {!_routeOwned}
+                && {count _moveWaypoint != 2 || {(_moveWaypoint select 1) >= currentWaypoint _group}};
+            _activeVehicleMove = _reverseActive || {_routeOwned && {time < (_vehicleMove select 1)}};
         };
         if (!_activeVehicleMove) then {
             private _finishedOwner=_vehicleMove param [0,""];
@@ -177,6 +211,9 @@ if (_vehicleMove isNotEqualTo []) then {
                             call CBE_fnc_OperationRelease;
                     };
                 } else {
+                    if (_vehicleRouteChanged) then {
+                        [_group,_generation,"VEHICLE_ROUTE_REPLACED"] call CBE_fnc_OperationCancel;
+                    } else {
                     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
                     private _position=_intent getOrDefault ["position",[]];
                     private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
@@ -184,6 +221,7 @@ if (_vehicleMove isNotEqualTo []) then {
                         && {vehicle _anchor distance2D _position <= (_intent getOrDefault ["radius",25])};
                     [_group,_generation,["INCOMPLETE","COMPLETE"] select _arrived,
                         ["VEHICLE_MOVE_NO_ARRIVAL","OBJECTIVE_REACHED"] select _arrived] call CBE_fnc_OperationRelease;
+                    };
                 };
                 _state deleteAt "vehicleOperationGeneration";
             };
@@ -225,6 +263,7 @@ if (_vehicleMove isNotEqualTo []) then {
 // Movement ownership blocks only another destination. Reporting, dismount handling and
 // gunnery remain composable for the duration of the physical move.
 private _movementOwned = _activeVehicleMove;
+if (_lifecycleOnly) exitWith {_movementOwned};
 private _vehicles = [];
 {
     private _vehicle = vehicle _x;
