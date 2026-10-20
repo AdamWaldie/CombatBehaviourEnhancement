@@ -127,5 +127,18 @@
     "disposition": "Retain exact existing restoration for now. Do not discard a changed policy without restoring it, blindly reissue incoming orderGetIn true, or add an unbounded/new cleanup worker based on the documentation alone. Preserve as explicit engine acceptance boundary, distinct from completed no-op/initial-admission protections.",
     "audits": "PAUSED",
     "productChange": "NONE"
+  },
+  "convoyFireTask20261020": {
+    "sourceParent": "3a430e89",
+    "finding": "Convoy mounted fire did not use shared protected-native-task/actor-reservation fire predicate. Seat upkeep could correctly yield a gunner task while later doTarget/doFire still overwrote it; disabled/blocked cleanup also issued target-clear into protected native task if assigned target still matched old marker.",
+    "implementation": "Shared CortexActorFireTaskAvailable qualifies mounted-fire readiness before threat/lane work. Changed same-revision seat intent also refuses fire. Both target-clear paths require task availability; protected successor tasks retire only the old CBE marker. Existing ROE, operator health, target identity and shared full-corridor lane veto remain.",
+    "cost": "One existing bounded read-only native-task/reservation predicate per occupied row at five-second crew upkeep. Protected actors skip later threat/lane queries. No new observer, timer, scan or movement permission. Cost unmeasured.",
+    "validation": "640 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-convoy-fire-task-build.log. Candidate .qa/candidates/convoy-fire-task-3a430e89-d82ea6aa fingerprint d82ea6aadd65ae58d9dc582bc974182c3b538639f1bc8b5cc8308dfb37312aff actual3a430e89+dirtysource. Independent copied-package verification .qa/cbe-convoy-fire-task-independent.log. No added cases or scores.",
+    "limits": "Actual protected service/boarding tasks, interrupted firing, locality/HC and performance remain unverified; same-value native target ownership remains indistinguishable. Target clearing is not burst-stop proof.",
+    "implementationHashes": {
+      "addons/vehicles/functions/convoyCrewLocal.sqf": "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "ffdf9390c1b8e680b68a9ee678386f0dddb9364a25f9f491f015e4fa8bf29e60"
+    },
+    "audits": "PAUSED"
   }
 }

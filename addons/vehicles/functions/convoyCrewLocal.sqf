@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Mounted-fire admission uses the shared protected-task predicate. A protected successor
+ * task retires the old target marker without issuing target-clear into that new task.
  * Same-revision seat/vehicle assignment changes and every occupant native task/reservation
  * veto assignment/boarding upkeep. Locality adoption cannot reclaim that changed intent.
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
@@ -120,7 +122,8 @@ private _seats = createHashMap;
                 };
             };
             private _fireEnabled = [_group,"CBE_Convoy_MountedFire_Enable",true] call CBE_fnc_CortexFeatureEnabled && {[group _unit,"CBE_Convoy_MountedFire_Enable",true] call CBE_fnc_CortexFeatureEnabled};
-            private _fireReady=_fireEnabled && {local _unit} && {!isPlayer _unit}
+            private _fireTaskAvailable=[_unit] call CBE_fnc_CortexActorFireTaskAvailable;
+            private _fireReady=_fireEnabled && {_fireTaskAvailable} && {!_assignmentReplaced} && {local _unit} && {!isPlayer _unit}
                 && {!_passenger} && {_role in ["gunner","commander","turret"]}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}
                 && {simulationEnabled _unit} && {!isObjectHidden _unit}
@@ -128,7 +131,7 @@ private _seats = createHashMap;
                 && {!([group _unit] call CBE_fnc_CortexExternalTakeover)};
             if (local _unit && {!isPlayer _unit} && {!_fireReady || {!(combatMode group _unit in ["YELLOW", "RED"] && {unitCombatMode _unit in ["YELLOW", "RED"]})}}) then {
                 private _previous = _unit getVariable ["CBE_Convoy_Target", objNull];
-                if (!isNull _previous && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
+                if (_fireTaskAvailable && {!isNull _previous} && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
                 if (!isNil {_unit getVariable "CBE_Convoy_Target"}) then {_unit setVariable ["CBE_Convoy_Target", nil, true]};
             };
             if (_fireReady && {combatMode group _unit in ["YELLOW","RED"]}
@@ -144,7 +147,7 @@ private _seats = createHashMap;
                     };
                 } else {
                     private _previous = _unit getVariable ["CBE_Convoy_Target", objNull];
-                    if (!isNull _previous && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
+                    if (_fireTaskAvailable && {!isNull _previous} && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
                     if (!isNil {_unit getVariable "CBE_Convoy_Target"}) then {_unit setVariable ["CBE_Convoy_Target", nil, true]};
                 };
             };

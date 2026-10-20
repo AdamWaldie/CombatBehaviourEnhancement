@@ -20,4 +20,11 @@ class ConvoyFireLaneTests(unittest.TestCase):
                        'simulationEnabled _vehicle','isObjectHidden _vehicle','CortexExternalTakeover'):
             self.assertIn(marker,ready)
         self.assertIn('!_fireReady ||',source)
+        self.assertIn('_fireEnabled && {_fireTaskAvailable} && {!_assignmentReplaced}',source)
+        self.assertLess(source.index('call CBE_fnc_CortexActorFireTaskAvailable'),source.index('call CBE_fnc_ConvoyThreat'))
+        self.assertEqual(source.count('if (_fireTaskAvailable && {!isNull _previous} && {assignedTarget _unit == _previous})'),2)
+        protected_cleanup=source.split('if (local _unit && {!isPlayer _unit} && {!_fireReady',1)[1].split('if (_fireReady &&',1)[0]
+        self.assertIn('CBE_Convoy_Target", nil, true',protected_cleanup)
+        self.assertNotIn('doMove',protected_cleanup)
+
 if __name__=='__main__': unittest.main()
