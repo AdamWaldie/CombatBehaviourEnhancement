@@ -83,6 +83,8 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Individual indoor HC fixtures require a dedicated headless batch and real provider')
     if focus in ('indooractors','indoornatural') and batch_mode != 'normal':
         raise ValueError('Individual indoor normal fixtures require a separate batch from HC migration')
+    if focus == 'illumination' and batch_mode != 'normal':
+        raise ValueError('Infantry illumination mechanics require a separate normal batch')
     if focus == 'convoynativestop' and batch_mode != 'normal':
         raise ValueError('Native convoy STOP handover requires a separate normal batch')
     if headless_provider and batch_mode != 'headless':

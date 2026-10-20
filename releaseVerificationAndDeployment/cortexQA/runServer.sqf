@@ -65,6 +65,14 @@ if (_focus == "roadpassing") exitWith {
     missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
     diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
+// Separate normal-owner illumination mechanics; no unrelated fixtures or HC adoption.
+if (_focus == "illumination") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIllumination.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
 // This terrain-aware focus does not create unrelated fixed-coordinate VR fixtures.
 if (_focus == "convoynativestop") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAConvoyMatrix.sqf";

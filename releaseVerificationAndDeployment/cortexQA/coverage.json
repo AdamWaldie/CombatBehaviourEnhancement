@@ -1599,13 +1599,14 @@
         "CBE_AIPass_Illumination_Enable"
       ],
       "status": "implemented_partial",
-      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed.",
+      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed. Separate normal-only illumination focus now checks disabled/native-contact/real projectile upward travel/ammo consumption/handback/live-disable mechanics; saved, not run. Controlled support-role actor, not full combat or light-effectiveness acceptance.",
       "live_evidence": [
         ".qa/pr-review-audit/runtime-20260927-115212/cortex-results.md"
       ],
       "executable_sources": [
         "runProfiles.sqf",
-        "runLighting.sqf"
+        "runLighting.sqf",
+        "runIllumination.sqf"
       ],
       "production_sources": [
         "addons/infantry/functions/cortexIlluminationStep.sqf"

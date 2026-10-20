@@ -95,6 +95,12 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertTrue((mission.parent/'@CBE/addons/main.pbo').is_file())
         with self.assertRaises(ValueError): stage(self.folder, mission.parent, 'airskills')
 
+        illumination=stage(self.folder,Path(self.temp.name)/'illumination-normal','illumination',batch_mode='normal')
+        self.assertTrue((illumination/'cortexQAIllumination.sqf').is_file())
+        self.assertIn('"illumination"',(illumination/'cortexQAServer.sqf').read_text())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'illumination-hc','illumination',batch_mode='headless')
+
     def test_standalone_native_stage_has_no_addon_function_dependency(self):
         mission=stage(self.folder,Path(self.temp.name)/'native','standaloneperformance',native_baseline=True)
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())

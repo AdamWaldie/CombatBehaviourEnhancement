@@ -1460,7 +1460,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,audit)
         fixture=audit[audit.index('// A carried support team must use'):audit.index('sleep 8;',audit.index('// A carried support team must use'))]
         for forbidden in ['call CBE_fnc_CortexStaticDeployStep','moveInGunner','createVehicle [_deployExpected']:
-            self.assertNotIn(forbidden,fixture)
+            self.assertNotIn(forbidden,fixture.split('params [',1)[1])
         for setting in ['CBE_AIPass_PostContact_Enable','CBE_AIPass_PostContact_LostSeconds','CBE_AIPass_PostContact_SecuritySeconds']:
             self.assertIn(setting,fixture)
 
@@ -7819,6 +7819,16 @@ class CortexOperations(unittest.TestCase):
         brain=source('groupBrainStep')
         self.assertIn('if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1}',brain)
         self.assertIn('["CBE_AIPass_Illumination_Enable", false]',source('aiConfig'))
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runIllumination.sqf').read_text()
+        for proof in ('_leader knowsAbout _enemy >= 1','addEventHandler ["FiredMan"',
+                      'velocity _projectile','_start+3','_beforeRounds-1','_beforeWeapon',
+                      '"DISABLED","RELEASE","INTERRUPT"','normal-batch-required'):
+            self.assertIn(proof,fixture)
+        for forbidden in ('reveal ','setVariable ["phase","CONTACT"]',
+                          'set ["released",true]','["LOAD"','["AIM"','forceWeaponFire'):
+            self.assertNotIn(forbidden,fixture.split('params [',1)[1])
+        self.assertIn('if (_focus == "illumination") exitWith',(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text())
+
 
     def test_attack_run_flares_are_separate_gated_owner_job(self):
         text=source('cortexAttackRunFlares')

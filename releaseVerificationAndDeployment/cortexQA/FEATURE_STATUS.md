@@ -65,7 +65,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-WITHDRAW - Multi-squad screened withdrawal | 0 | 0 | 0 | `runReactions.sqf` | 0 | implemented_partial |
 | TRANSITIONS - Combat action transitions | 0 | 0 | 2 | `runCombat.sqf`, `runContact.sqf` | 2 | implemented_partial |
-| LIGHTING - Automatic darkness, night vision and illumination | 2 | 0 | 1 | `runProfiles.sqf`, `runLighting.sqf` | 1 | implemented_partial |
+| LIGHTING - Automatic darkness, night vision and illumination | 2 | 0 | 1 | `runProfiles.sqf`, `runLighting.sqf`, `runIllumination.sqf` | 1 | implemented_partial |
 | DRILL-HANDOVER - Moving flank and advance handed to Zeus | 0 | 0 | 1 | `runCombat.sqf` | 2 | implemented_partial |
 | DRILL-RECOVERY - Bound continuation and straggler rejoin | 0 | 0 | 2 | `runCombat.sqf` | 2 | implemented_partial |
 | COMBINED-ARMS - Contact-led combined-arms opportunity | 1 | 0 | 10 | `runCombinedArms.sqf` | 0 | implemented_partial |
@@ -444,7 +444,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Automatic lighting follows ambient conditions without compounded penalties; NVG capability is classname independent; flashlights do not grant omnidirectional vision. Record actual acquisition and shots independently of skill values.
 
-**Automation and open work:** runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed.
+**Automation and open work:** runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed. Separate normal-only illumination focus now checks disabled/native-contact/real projectile upward travel/ammo consumption/handback/live-disable mechanics; saved, not run. Controlled support-role actor, not full combat or light-effectiveness acceptance.
 
 ### DRILL-HANDOVER - Moving flank and advance handed to Zeus
 

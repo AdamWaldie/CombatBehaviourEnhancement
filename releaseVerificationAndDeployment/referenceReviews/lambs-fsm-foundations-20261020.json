@@ -434,6 +434,21 @@
       "Normal/HC validation separately when authorized; runtimeperformance5%median/10%p95 remains unmeasured."
     ],
     "candidate": ".qa/candidates/infantry-illumination-d40cd96d",
-    "fingerprint": "301a3e4bd80bda40466bc03edfd0c41cf2300470c4c059ae5e8b3838fcecd5fe"
+    "fingerprint": "301a3e4bd80bda40466bc03edfd0c41cf2300470c4c059ae5e8b3838fcecd5fe",
+    "preparedNormalFixture": {
+      "focus": "illumination",
+      "source": "releaseVerificationAndDeployment/cortexQA/runIllumination.sqf",
+      "staged": ".qa/illumination-mechanics-stage-4fbe7248/CBE_Audit.VR",
+      "fixtureSHA256": "e640517a13bf8389c25e4053474d267ebb5dd7cb0652d5e3fa9b31aa1e4aad50",
+      "cases": [
+        "disabled control",
+        "real native release/upward travel/ammo/handback",
+        "live disable before release"
+      ],
+      "scope": "Controlled stationary support-role mechanics with real native enemy acquisition; not full combat integration, light efficacy, repeat-use or HC proof. No CONTACT/finished-state injection or deadline reset.",
+      "validation": "1482 static,432 SQF files,documentation/wiki and source-equal normal staging pass. Headless staging rejected. No Arma launch or physical result.",
+      "addonPackage": "Existing verified 4fbe7248 product; no unchanged-addon rebuild.",
+      "physicalAcceptance": false
+    }
   }
 }
