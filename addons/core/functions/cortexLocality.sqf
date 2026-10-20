@@ -34,6 +34,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_gained", false, [true]]];
 if (isNull _group) exitWith {};
+[_group,true] call CBE_fnc_CortexIlluminationStep;
 // Capture the previous published driving identity at the actual group locality edge,
 // before retirement can overwrite it. This local proposal alone grants no commands.
 private _abortSource=[];

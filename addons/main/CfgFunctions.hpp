@@ -156,6 +156,7 @@ class CfgFunctions {
             class DangerEngineMode {file = "\z\cbe\addons\infantry\functions\dangerEngineMode.sqf";};
             class DangerEngineSelect {file = "\z\cbe\addons\infantry\functions\dangerEngineSelect.sqf";};
             class DangerEngineSubmit {file = "\z\cbe\addons\infantry\functions\dangerEngineSubmit.sqf";};
+            class CortexIlluminationStep {file = "\z\cbe\addons\infantry\functions\cortexIlluminationStep.sqf";};
             class CortexStaticSupport {file = "\z\cbe\addons\infantry\functions\cortexStaticSupport.sqf";};
             class CortexStaticDeployStep {file = "\z\cbe\addons\infantry\functions\cortexStaticDeployStep.sqf";};
             class DangerCoverStep {file = "\z\cbe\addons\infantry\functions\dangerCoverStep.sqf";};

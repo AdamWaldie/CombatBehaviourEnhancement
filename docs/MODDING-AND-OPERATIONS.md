@@ -537,3 +537,16 @@ Driving crew replacement now treats a living crew member with queued ACE care as
 ### Attack-run countermeasure timing from native belief
 
 The fallback aircraft countermeasure sampler requires an assigned hostile that a current crew witness knows and a finite nonzero native believed position. At most sixteen crew witnesses are inspected; no target transform is read. Approach and departure use the fixed ASL estimate for the original ninety-second episode, which ends on target invalidation or expiry. The adaptive attack controller taking ownership discards fallback episode/burst state. The three-request/eight-second burst bound and thirty-second cooldown remain; helper return values count requests, not observed releases. This changes fallback countermeasure timing only, without flight paths, target revelation or weapon attacks. Native release, tactical effectiveness and runtime cost remain unverified while audits are paused.
+
+
+### Experimental infantry illumination
+
+CBA `CBE_AIPass_Illumination_Enable` defaults to false. When enabled during CONTACT in darkness, an idle nonleader grenadier can use an existing nonexplosive `shotIlluminating` UGL magazine. NVG-equipped group anchors, stealth/careless behaviour, native tasks, suppression, other reservations and operation ownership veto admission. The existing group FSM services LOAD, AIM and AWAIT_RELEASE with a fixed 25-second deadline, at most one attempt per 60 seconds and a one-second requested callback cadence while active. Inventory selection examines at most 16 actors, eight muzzles and 128 magazine rows per actor; compatibility uses native magazine wells.
+
+The native reload command consumes carried inventory normally. Selection waits for the requested muzzle/magazine, positive rounds and completed reload; fire requires actual upward muzzle alignment and a clear sky segment. There is one firing request, and only the matching FiredMan projectile records release. No dummy targets, reveal, inventory duplication, projectile creation or movement commands are used. Release/locality cleanup removes the listener and exact reservation; weapon selection restores only while the applied selection and original owner/order receipt still match. Native magazine loading is not reversed or fabricated, and an indistinguishable later watch direction cannot be detected. Physical aim/reload/trajectory/light, interruption, owner transfer and runtime cost remain unverified. This experimental path has not established functional parity or acceptance.
+
+Native API references: https://community.bistudio.com/wiki/reload and https://community.bohemia.net/wiki/weaponState
+
+Illumination cleanup receipts are public, but native handlers remain machine-local. Locality gain only attempts handback of unchanged selected state under original route/epoch/operation proof and never resumes the inherited firing phases. Split actor/group locality may prevent handback; refusal preserves the new owner, and is not proof of successful restoration.
+
+The disabled/empty illumination path exits before route or roster observation. A new common operation releases finite weapon support before replacing its generation, so unchanged weapon selection can hand back while the original proof still exists. The same-value native selection/watch ambiguity remains an engine limitation.

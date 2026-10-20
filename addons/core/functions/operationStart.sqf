@@ -41,6 +41,8 @@ if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
     [_group,true] call CBE_fnc_CortexLocality;
 };
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
+// Relinquish finite weapon support before changing the original operation proof.
+[_group,true] call CBE_fnc_CortexIlluminationStep;
 private _previous=_group getVariable ["CBE_Operation",createHashMap];
 private _generation=(_group getVariable ["CBE_OperationGeneration",0])+1;
 if (count _previous > 0) then {

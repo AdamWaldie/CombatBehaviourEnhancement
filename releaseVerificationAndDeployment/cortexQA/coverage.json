@@ -1595,10 +1595,11 @@
       "setup": "Compare daylight and darkness with unaided AI, NVG-capable mod equipment, ordinary HMDs and active/inactive flashlights. Repeat equipment changes and ownership transfer. Use real opposing targets inside and outside the beam.",
       "expected": "Automatic lighting follows ambient conditions without compounded penalties; NVG capability is classname independent; flashlights do not grant omnidirectional vision. Record actual acquisition and shots independently of skill values.",
       "settings": [
-        "CBE_AIRebalance_Mode"
+        "CBE_AIRebalance_Mode",
+        "CBE_AIPass_Illumination_Enable"
       ],
       "status": "implemented_partial",
-      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated.",
+      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed.",
       "live_evidence": [
         ".qa/pr-review-audit/runtime-20260927-115212/cortex-results.md"
       ],
@@ -1606,7 +1607,9 @@
         "runProfiles.sqf",
         "runLighting.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexIlluminationStep.sqf"
+      ]
     },
     {
       "id": "DRILL-HANDOVER",

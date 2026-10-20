@@ -150,6 +150,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_DangerObservation_Enable` | `true` | Eligible idle actors glance toward body/scream positions without target revelation or movement authority. Requires danger response. |
 | `CBE_AIPass_DangerConcealment_Enable` | `true` | Separately budgeted visual screening fallback after solid cover fails; does not imply ballistic protection. |
 | `CBE_AIPass_DangerSmoke_Enable` | `true` | One available soldier may throw carried smoke during severe finite danger. The current operation continues without waiting for it. |
+| `CBE_AIPass_Illumination_Enable` | `false` | Experimental finite carried UGL illumination in darkness; physical validation pending. |
 | `CBE_AIPass_StaticSupport_Enable` | `true` | During confirmed contact, one uncommitted nonleader may physically occupy a nearby empty friendly static weapon. The squad does not wait for the mount. |
 | `CBE_AIPass_StaticDeploy_Enable` | `true` | When no suitable emplacement exists, a compatible two-person bag team may physically assemble its carried weapon and occupy the real gunner seat without holding squad movement. |
 | `CBE_AIPass_Hearing_Enable` | `true` | Nearby gunfire creates throttled approximate investigation reports, never target reveals. |

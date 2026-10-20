@@ -47,7 +47,7 @@
       "disposition": "Existing implementation with recent ground suppression qualification; full crew-domain parity and physical evidence incomplete."
     }
   ],
-  "nextAction": "Implement missing infantry UGL illumination through finite owner-local native execution; continue complete LAMBS/static-support and Protocol source comparison. Do not equate aircraft countermeasures or lighting policy with UGL illumination. Audits remain paused.",
+  "nextAction": "Continue source-functional comparison and required native weapon handback/illumination proof; do not count opt-in wiring as completed source parity. Audits remain paused.",
   "validation": "No product edits in this comparison; prior candidate full1477/HEMTT/package verified. Audits PAUSED.",
   "sourceProtection": "No raw source copied into product; protected original sources unchanged.",
   "queuedMedicalFollowup": {
@@ -403,14 +403,14 @@
   },
   "infantryIlluminationComparison": {
     "baseline": "7d00c8cf",
-    "status": "MISSING_EXECUTION_PATH_NOT_AIRCRAFT_COUNTERMEASURES",
+    "status": "EXPERIMENTAL_NATIVE_EXECUTION_WIRED_PHYSICAL_PENDING",
     "sourceEntry": [
       "tacticsAssess and tacticsReinforce call isNight then doUGL on available infantry.",
       "isNight refuses STEALTH or an equipped HMD; otherwise reads native night environment controller."
     ],
     "sourceSelection": "doUGL finds first local nonplayer grenadier, first non-main/non-SAFE muzzle, compatible magazine arrays plus magazine wells intersected with carried magazines, then shotIlluminating simulation (optional other type).",
     "sourceExecution": "Removes chosen actor from returned roster; doStop, weak crouch and forceMove flag; creates/reveals dummy high target; modifies current/flare magazine inventory; after2s selects muzzle/forces fire, clears watch, doFollow and forceMove, deletes dummy.",
-    "existingCBE": "AILightingStep provides ambient/NVG/flashlight policy. CortexAttackRunFlares, CortexFireCountermeasure and missile defence cover aircraft/vehicle countermeasures. No standalone infantry UGL illumination selector/executor or registration was found in production addons. ArtilleryAmmo deliberately excludes illumination.",
+    "existingCBE": "CortexIlluminationStep now provides opt-in native UGL illumination through existing GroupBrainStep; lighting and aircraft countermeasures remain distinct.",
     "requiredIntent": "One eligible grenadier provides finite native illumination support when darkness and actual equipment justify it, preserving stealth, mission orders, ammunition and other actor tasks.",
     "doNotCopy": [
       "Dummy hostile/target revelation or projectile fabrication.",
@@ -420,11 +420,20 @@
     ],
     "implementationBoundary": "Use existing owner-local actor admission/scheduler/lifecycle. Complete actual compatible muzzle/magazine selection, finite native aim/loading/fire acknowledgement and exact restoration before wiring autonomous tactical/support callers. New CBA setting only when backed by the executor; Zeus is behaviour control, not global configuration.",
     "completionEvidence": "Actual illumination projectile from existing inventory, useful trajectory/light, preserved rifle/UGL state and mission/treatment/Zeus interruption with finite cleanup; requires later authorized engine validation.",
-    "notImplemented": true,
+    "notImplemented": false,
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "audits": "PAUSED",
     "scoresChanged": false,
-    "validation": "Full readable source and current production registration/implementation search; no product edit and no repeated package build."
+    "validation": "1482 static cases plus HEMTT/SQF/config/FSM/docs/151settings/package pass; independent unsigned candidate verified. Distinct new lifecycle case only, no new runtime fixture passed.",
+    "implementation": "Defaultfalse CBA setting; <=16 actor/8muzzle/128inventory rows,60s attempts,25s original action deadline; native reload exactmuzzle/magazine with phase0 then selected-state and upward aim/sky-segment gates. One fire request, exact FiredMan projectile observation. No dummy/reveal/inventory edit/projectile creation.",
+    "lifecycle": "Existing group FSM callback requests1s cadence only while work active. ReleaseGroup, Locality and OperationStart cleanup; published cleanup-only receipt carries original epoch/operation/route and selected/baseline weapon, handler removal machine-owner-bound. New owner cannot resume firing.",
+    "remainingRequiredWork": [
+      "Physical native reload/selection/trajectory/light and actual ammo conservation.",
+      "Interruption, same-value native watch/weapon ambiguity, split actor/group locality and refused weapon handback; no guaranteed quiescence/restoration claim.",
+      "Normal/HC validation separately when authorized; runtimeperformance5%median/10%p95 remains unmeasured."
+    ],
+    "candidate": ".qa/candidates/infantry-illumination-d40cd96d",
+    "fingerprint": "301a3e4bd80bda40466bc03edfd0c41cf2300470c4c059ae5e8b3838fcecd5fe"
   }
 }

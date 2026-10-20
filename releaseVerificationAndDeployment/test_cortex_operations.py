@@ -7788,6 +7788,38 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(drop.index('CBE_fnc_CortexExternalTakeover'),drop.index('CBE_fnc_CortexParachuteJump'))
         self.assertLess(landing.index('CBE_fnc_CortexExternalTakeover'),landing.index('_group addWaypoint'))
 
+    def test_infantry_illumination_uses_finite_native_inventory_and_release_evidence(self):
+        text=source('cortexIlluminationStep')
+        for proof in ('serverTime+25','serverTime+60','select [0,16]','count _muzzles > 8',
+                      'count _inventory > 128','compatibleMagazines [_weapon,_muzzle]',
+                      '"shotilluminating"','_actor reload [_muzzle,_magazine]',
+                      'param [6,1]) != 0','_direction select 2','vectorDotProduct',
+                      'addEventHandler ["FiredMan"','removeEventHandler ["FiredMan"',
+                      '_thisEventHandler','"AWAIT_RELEASE"','!isNull _projectile',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','NativeOrderReceipt',
+                      'ace_medical_ai_healQueue','_actor selectWeapon (_work get "before")'):
+            self.assertIn(proof,text)
+        for forbidden in ('addMagazine','removeMagazine','addWeaponItem','createVehicle','reveal ',
+                          'setVelocity','setPos','spawn','sleep','execFSM','setUnitPos'):
+            self.assertNotIn(forbidden,text)
+        self.assertEqual(text.count('forceWeaponFire'),1)
+        self.assertLess(text.index('if (count _work == 0 &&'),text.index('call CBE_fnc_NativeOrderReceipt'))
+        start=source('operationStart')
+        self.assertLess(start.index('call CBE_fnc_CortexIlluminationStep'),start.index('private _generation='))
+
+        self.assertIn('if (_migration) exitWith {["OWNER_CHANGED"] call _finish}',text)
+        self.assertIn('(_work getOrDefault ["ownerId",-1]) == clientOwner',text)
+        self.assertIn('_migration && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}',text)
+        self.assertIn('CBE_Illumination_Work",_work,true]',text)
+
+        self.assertLess(text.index('_work set ["phase","AWAIT_RELEASE"]'),text.index('forceWeaponFire'))
+        self.assertNotIn('released",true',text.split('if (_phase == "AIM")',1)[1])
+        for name in ('operationStart','cortexReleaseGroup','cortexLocality'):
+            self.assertIn('[_group,true] call CBE_fnc_CortexIlluminationStep',source(name))
+        brain=source('groupBrainStep')
+        self.assertIn('if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1}',brain)
+        self.assertIn('["CBE_AIPass_Illumination_Enable", false]',source('aiConfig'))
+
     def test_attack_run_flares_are_separate_gated_owner_job(self):
         text=source('cortexAttackRunFlares')
         for requirement in ['local _aircraft','CortexIsEligible','CortexAircraftEligible','CBE_Cortex_AttackRunFlares_Enable','isTouchingGround','vectorDotProduct','closest','APPROACH','DEPARTURE','serverTime+30','CortexFireCountermeasure','effectiveCommander _aircraft','gunner _aircraft','commander _aircraft','crew _aircraft','assignedTarget _x']:

@@ -48,6 +48,7 @@
 
 params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
+[_group,true] call CBE_fnc_CortexIlluminationStep;
 {
     private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
     if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {

@@ -111,6 +111,7 @@
  * - CBE_AIPass_DangerObservation_Enable (MISSION MAKER): Enables position-only body/scream glances for idle infantry. Requires danger response. Default true.
  * - CBE_AIPass_DangerConcealment_Enable (MISSION MAKER): Allows visual screening fallback after failed solid cover. Default true.
  * - CBE_AIPass_DangerSmoke_Enable (MISSION MAKER): Allows one carried smoke screen during severe finite danger without holding the current operation. Default true.
+ * - CBE_AIPass_Illumination_Enable (MISSION MAKER): Experimental finite carried UGL illumination in darkness. Default false.
  * - CBE_AIPass_StaticSupport_Enable (MISSION MAKER): Allows one uncommitted soldier to physically occupy a nearby useful empty static weapon during confirmed contact. Default true.
  * - CBE_AIPass_StaticDeploy_Enable (MISSION MAKER): Allows a compatible two-person bag team to physically assemble and occupy its carried static weapon. Default true.
  * - CBE_AIPass_Hearing_Enable (MISSION MAKER): Coarse nearby-gunfire reports for eligible squad leaders; requires investigation. Default true.
@@ -398,6 +399,7 @@ createHashMapFromArray [
         ["CBE_AIPass_DangerObservation_Enable", true], // Position-only idle alert observation.
         ["CBE_AIPass_DangerConcealment_Enable", true], // Separately budgeted visual screening fallback.
         ["CBE_AIPass_DangerSmoke_Enable", true], // One generation-scoped carried smoke response; movement does not wait.
+        ["CBE_AIPass_Illumination_Enable", false], // Opt-in until physical illumination/handback validation.
         ["CBE_AIPass_StaticSupport_Enable", true], // One actor may occupy a nearby empty friendly static without holding squad movement.
         ["CBE_AIPass_StaticDeploy_Enable", true], // A compatible pair may physically assemble a carried static without holding squad movement.
         ["CBE_AIPass_Hearing_Enable", true], // Nearby gunfire area reports, never target reveals.
