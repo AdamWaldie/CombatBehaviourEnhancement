@@ -13,7 +13,13 @@
     ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
     ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
     ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
-    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/danger/functions/fnc_isLeader.sqf": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
+    ".qa/lambs-2621-review/danger/functions/fnc_tactics.sqf": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
+    ".qa/lambs-2621-review/danger/functions/fnc_tacticsAssess.sqf": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
+    ".qa/lambs-2621-review/danger/functions/fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
   },
   "branches": [
     {
@@ -117,5 +123,41 @@
     "candidate": ".qa\\candidates\\danger-cover-hide-76c1c2e3",
     "fingerprint": "f15350859f018bcc460fb181fca8742003ea02d04bbff3e1ce98dd651e540bd2",
     "ongoingLeaseReview": "Existing same-generation group-hide leases retain exact proof without reapplying commands. Generation change/ending calls guarded restore or existing deferred engine-stance cleanup. Cover issue/maintenance/recall checks prevent commands during dormancy/queuedcare; existing deadlines remain unchanged."
+  },
+  "leaderAssessmentMemory": {
+    "sourceExecution": [
+      "FSM isLeader gate -> tactics; tactics invokes first contact or leader tacticsAssess while no tactic executes.",
+      "Assessment suppresses autonomous group attack, evaluates environment/armour/launcher/indoor/HOLD/elevation/fortification and chooses a weighted random plan with delayed execution.",
+      "Before plan launch, support includes artillery, smoke, illumination and static find/deploy. Individual tactic executors must be reviewed before judging delayed handover safety.",
+      "brainAssess uses shared groupMemory through doAssaultMemory: positions ranked by floor and leader distance, near/visible nodes removed, group follows leader when memory drains."
+    ],
+    "CBEExecution": [
+      "GroupBrainStep/CortexGroupTick provide persistent owner-local group decision layer; TacticalAssess/Start selects bounded candidate intents and finite operation starts.",
+      "CortexKnowledge supplies finite native beliefs; contact/support/static/illumination and manoeuvre paths are distinct composed helpers. Actual effectiveness and full branch parity remain unverified.",
+      "DangerStep body clue -> IndoorObservationDispatch -> IndoorActorOperation gives original20s expiry, owner epoch, visit preference and no room-clearance claim. Live-contact indoor routing is separate."
+    ],
+    "openScope": [
+      "General shared suspicious-position memory beyond the body-clue/current-contact cases is not yet shown equivalent to source groupMemory. Need complete intake/retention/consumption/expiry and actor allocation trace before implementation.",
+      "Source autonomous garrison/hide/full attack, illumination/static support and delayed tactic lifecycle require function-level comparison; states/names do not establish parity."
+    ],
+    "intentToPreserve": [
+      "Group cooperation continues after an individual loses its exact target, using finite uncertain observations rather than live hidden positions.",
+      "Lower-floor preference and actual visit history support natural investigation flow, while stale clues cannot renew task authority."
+    ],
+    "methodsNotBlindlyCopied": [
+      "Unbounded persistent groupMemory without explicit timestamp/provenance.",
+      "Whole-group doFollow when memory empties, random position churn, or replacing authored paths.",
+      "Delayed plan admission without current generation/owner/order revalidation; assess actual executors first."
+    ],
+    "nextAction": "Trace CBE post-contact search and existing observation/visit records as the likely shared-memory building block; determine missing behaviour with actual caller coverage before adding state."
+  },
+  "postContactSearch": {
+    "existingPath": "CortexGroupTick SECURITY selects two available riflemen and issues distinct offset destinations with native-order receipts. SEARCH previously ended when actors were within15m of last enemyPos, not issued destinations.",
+    "change": "All surviving search actors must physically arrive within2m horizontal/1.5m floor band of exact still-owned issued destination before SEARCH_COMPLETE. Original45s configurable deadline stays unchanged. Deadline yields SEARCH_TIMEOUT, empty team NO_SEARCH_ACTORS; sighting returns CONTACT. No new destination or actor worker.",
+    "scope": "This fixes point-visit completion evidence; it does not implement general shared suspicious-position/building memory or prove a room safe.",
+    "validation": "607 focused/full1477/HEMTT/build passed .qa/search-arrival-build.log; existing tests extended, no new cases.",
+    "candidate": ".qa\\candidates\\search-arrival-f4b41822",
+    "fingerprint": "c25d103eefe6d9b5546f361b21995ccede439275e6379065e83886859ec23821",
+    "limits": "Actual search navigation and later handback unverified; auditsPAUSED. Native receipt ownership must remain valid to count arrival."
   }
 }

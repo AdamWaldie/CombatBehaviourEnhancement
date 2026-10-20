@@ -1,3 +1,17 @@
+# Latest foundations checkpoint - 2026-10-20
+
+This section supersedes older commit/next-action snapshots below. Full production-readiness objective remains unchanged. Foundations/FSM lifecycle and functional LAMBS parity/improvement first; then implement/fix/improve the entire Protocol AI collection. Nine locally installed Protocol entries are inventoried, not proof of complete collection discovery.
+
+Product baseline before this final search change: f4b41822. Current intended change requires exact owned destination arrival for SEARCH_COMPLETE, original timeout yields SEARCH_TIMEOUT; no room-clearance claim. Latest preserved candidate .qa/candidates/search-arrival-f4b41822 is unsigned baseline plus intended dirty search source, with independent .qa/search-arrival-independent.log and full1477/HEMTT/build .qa/search-arrival-build.log. No new test cases. Source comparisons are in referenceReviews/lambs-fsm-foundations-20261020.json. Recent fixes include qualified ground danger suppression, dormant actor posture, queued ACE treatment and cover/group-hide execution/cleanup guards.
+
+Important correction: singleton building investigation ALREADY exists through GroupTick CONTACT -> IndoorActorDispatch -> IndoorActorOperation. Do not add a duplicate controller based on the superseded missing-singleton claim. Open-ground actor pursuit differs from LAMBS but native CLOSE_CONTACT is deliberately retained; no proof native movement is broken. Next trace bounded shared suspicious-position investigation beyond existing body clues and current contact, composing existing indoor actor and post-contact lifecycle.
+
+Audits remain PAUSED. No Arma launches, merge, release, Steam, ready-for-review or manual CI. Physical reliability, LAMBS functional parity and performance remain unproven. All recent1477 tests are static/build gates. Build-out percentages are unchanged and not Workshop parity.
+
+New Workshop intakes in tracked referenceReviews/workshop-intake-<ID>.json and private .qa/implementation-register-additions.json:3820669449,3818040165,3822271074,3815260246,3822504009,3817252579,3380337397. Historical LOCAL_IMPLEMENTATION_LEDGER.md and some older private comparison indexes are absent; do not reconstruct or claim full ledger. Preserve available HBQ indexes, LAMBS extracts, PinnedDown archive, installed originals, immutable signing keys and unrelated dirty files. Raw upstream sources remain private; FPV AI Drones explicitly restricts code redistribution without permission. Current source permissions are not assumed.
+
+Recheck live branch/PR17 before mutations; batch is being committed/pushed to existing OPEN/DRAFT PR, never infer completion from this note. The chat cwd is unrelated WMP; explicit CBE root remains C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, remote AdamWaldie/CombatBehaviourEnhancement.
+
 # Current continuation checkpoint - 2026-10-20
 
 Read this checkpoint before the historical notes below. It supersedes their old remote heads and next-step instructions, not retained runtime failures.

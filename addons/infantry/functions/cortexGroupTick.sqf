@@ -1505,10 +1505,26 @@ switch (_state get "phase") do {
     };
     case "SEARCH": {
         private _team = (_state getOrDefault ["searchTeam", []]) select {alive _x && {local _x}};
-        private _searchPos = _state getOrDefault ["enemyPos", []];
+        // Being near the last contact is not proof of visiting either issued search point.
+        // Require the exact still-owned destination and same-floor physical arrival; keep the
+        // original episode deadline when navigation cannot reach it. This is not room clearance.
+        private _searchReceipts=_state getOrDefault ["searchMoveReceipts",[]];
+        private _allSearchArrived=_team isNotEqualTo [] && {_team findIf {
+            private _searchActor=_x;
+            private _receiptIndex=(_searchReceipts select [0,16]) findIf {
+                _x isEqualType [] && {count _x in [3,4]} && {(_x select 0) == _searchActor}
+            };
+            if (_receiptIndex < 0) exitWith {true};
+            private _goal=(_searchReceipts select _receiptIndex) select 1;
+            !(_goal isEqualType []) || {count _goal != 3}
+                || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                || {!([_group,_state,_searchActor] call CBE_fnc_CortexSearchMoveOwned)}
+                || {_searchActor distance2D _goal > 2}
+                || {abs (((getPosATL _searchActor) select 2)-(_goal select 2)) > 1.5}
+        } < 0};
+        private _searchTimedOut=_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get);
         private _done = _visible isNotEqualTo [] || {_team isEqualTo []}
-            || {_team findIf {_x distance2D _searchPos > 15} < 0}
-            || {_now - (_state get "phaseStart") > (["CBE_AIPass_PostContact_SearchSeconds", 45] call _get)};
+            || {_allSearchArrived} || {_searchTimedOut};
         if (_done) then {
             if ([] call _mayIssueMovement) then {
                 {isNil {if ((_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state
@@ -1519,7 +1535,10 @@ switch (_state get "phase") do {
     _state set ["searchTeam", []];
     _state deleteAt "searchMoveReceipts";
             if (_visible isNotEqualTo []) then {call _beginContact} else {
-                [_group,_state,"REGROUP","SEARCH_COMPLETE",_now] call CBE_fnc_CortexSetPhase;
+                private _searchEndReason=if (_allSearchArrived) then {"SEARCH_COMPLETE"} else {
+                    ["NO_SEARCH_ACTORS","SEARCH_TIMEOUT"] select _searchTimedOut
+                };
+                [_group,_state,"REGROUP",_searchEndReason,_now] call CBE_fnc_CortexSetPhase;
                 _delay = 3;
             };
         } else {
