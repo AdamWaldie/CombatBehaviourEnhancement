@@ -6,7 +6,7 @@
  * Zeus, specialist, declared platform driving ownership, existing operation and movement ownership
  * before issuing a turn command. Platform takeover retires the turn receipt without replay.
  * Repeat/JIP: Acceptance and refusal are recorded by the caller for one danger generation. An
- * accepted response binds its original driver and authored native order, and uses the shared
+ * accepted response binds its original driver, effective commander and authored native order, and uses the shared
  * operation generation and movement
  * lease. A replaced/protected driver retires without late turn commands; the normal group tick
  * proves alignment or timeout and releases only the matching command owner.
@@ -44,6 +44,8 @@ if (isNull _commander || {!alive _commander} || {!local _commander} || {isPlayer
     || {!([_driver] call CBE_fnc_CortexCombatEffective)}
     || {!(_driver checkAIFeature "MOVE")} || {!(_driver checkAIFeature "PATH")}
     || {!([_driver] call CBE_fnc_CortexActorFireTaskAvailable)}) exitWith {false};
+if (!([_commander] call CBE_fnc_CortexCombatEffective)
+    || {_commander != _driver && {!([_commander] call CBE_fnc_CortexActorFireTaskAvailable)}}) exitWith {false};
 if (_commander knowsAbout _threat <= 0) exitWith {false};
 private _relative=_vehicle getRelDir _threatPosition;
 if (_relative <= 20 || {_relative >= 340}) exitWith {false};
@@ -59,6 +61,6 @@ _vehicle sendSimpleCommand (["LEFT","RIGHT"] select (_relative < 180));
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
 _vehicle setVariable ["CBE_Danger_VehicleOrient",[
-    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder
+    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder,_commander
 ],true];
 true

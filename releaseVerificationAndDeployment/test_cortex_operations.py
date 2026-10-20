@@ -8710,6 +8710,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('driver _orientVehicle != _turnDriver',vehicles)
         self.assertIn('!_orientDriverProtected',vehicles)
         self.assertIn('DRIVER_TASK_OR_SEAT',vehicles)
+        self.assertIn('CortexActorFireTaskAvailable',orient.split('if (!([_commander]',1)[1])
+        self.assertIn('_nativeOrder,_commander',orient)
+        for guard in ('effectiveCommander _orientVehicle != _turnCommander','!_orientCommanderProtected',
+                      'COMMANDER_TASK_OR_SEAT','count _marker == 8'):
+            self.assertIn(guard,vehicles)
         self.assertIn('private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt',orient)
         self.assertIn('_operationGeneration,_driver,_nativeOrder',orient)
         self.assertIn('_orientOrderChanged=(_marker param [6,[],[[]]]) isNotEqualTo',vehicles)
@@ -8731,6 +8736,8 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(calm.index('CBE_ExternalDrivingOwner'),calm.index('sendSimpleCommand "STOPTURNING"'))
         self.assertIn('CompatibilityExternalControl',calm)
         self.assertIn('driver _orientVehicle == _turnDriver',calm)
+        self.assertIn('effectiveCommander _orientVehicle == _turnCommander',calm)
+        self.assertIn('count _orientMarker == 8',calm)
         self.assertIn('CortexActorFireTaskAvailable',calm)
         self.assertIn('(_orientMarker param [6,[],[[]]]) isEqualTo',calm)
         self.assertIn('NativeOrderReceipt',calm)

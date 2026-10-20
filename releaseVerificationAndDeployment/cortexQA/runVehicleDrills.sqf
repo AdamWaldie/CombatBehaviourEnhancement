@@ -231,6 +231,7 @@ createVehicleCrew _orientVehicle;
 _orientVehicle allowDamage false;
 _orientVehicle setDir 0;
 private _orientOriginalDriver=driver _orientVehicle;
+private _orientOriginalCommander=effectiveCommander _orientVehicle;
 private _orientGroup=group driver _orientVehicle;
 [_orientGroup] call _pin;
 _orientGroup setCombatMode "RED";
@@ -276,9 +277,11 @@ private _orientKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientTar
     str [_orientCrew apply {[_x knowsAbout _orientTarget,_x targetKnowledge _orientTarget]},
         getPosATL _orientVehicle,getPosATL _orientTarget]] call _check;
 private _orientOwned=[{
-    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 7
+    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 8
         && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [5,objNull,[objNull]]) == _orientOriginalDriver}
         && {driver _orientVehicle == _orientOriginalDriver}
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [7,objNull,[objNull]]) == _orientOriginalCommander}
+        && {effectiveCommander _orientVehicle == _orientOriginalCommander}
         && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [6,[],[[]]])
             isEqualTo ([_orientGroup] call CBE_fnc_NativeOrderReceipt)}
         && {private _state=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];

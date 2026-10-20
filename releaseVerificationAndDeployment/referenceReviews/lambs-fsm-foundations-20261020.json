@@ -695,5 +695,15 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "orientationCommanderAuthority": {
+    "baseline": "80d968f0",
+    "finding": "Direct tracked orientation guarded original driver and authored route but effective commander only had initial alive/local/player checks. Queued care/native protected commander tasks or later effective-commander replacement did not retire the turn. Jink shared group movement already checks crew native tasks.",
+    "implementation": "Eight-field marker adds original effective commander. Initial commander combat fitness and shared task/reservation predicate qualify admission; active orientation and normal/CALM retirement require unchanged current commander/local group/fitness/task authority. Protected commander cancels COMMANDER_TASK_OR_SEAT without late STOPTURNING. Same driver/commander avoids duplicate task predicate.",
+    "authority": "Original operation/native order/driver/epoch/deadline checks retained. Unknown older marker refuses cleanup authority. Marker retirement is not native turn quiescence or provider handover proof.",
+    "validation": "Existing609 source-contract checks passed; normal physical fixture prerequisite now checks driver plus commander marker, but fixture not run. Full build result in handover.",
+    "limits": "Actual seat changes, medical task sequencing, native turn retirement and performance unverified; no new controller or scan.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

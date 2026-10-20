@@ -213,6 +213,7 @@ if (!isNull _orientVehicle && {local _orientVehicle}) then {
     if (_orientMarker param [1,grpNull,[grpNull]] == _group
         && {(_orientMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}) then {
         private _turnDriver=_orientMarker param [5,objNull,[objNull]];
+        private _turnCommander=_orientMarker param [7,objNull,[objNull]];
         if (!_yieldToExternal
             && {(_group getVariable ["CBE_OperationGeneration",-1]) == (_orientMarker param [4,-2,[0]])}
             && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
@@ -222,7 +223,13 @@ if (!isNull _orientVehicle && {local _orientVehicle}) then {
             && {isNull remoteControlled _turnDriver}
             && {(_orientMarker param [6,[],[[]]]) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
             && {[_turnDriver] call CBE_fnc_CortexCombatEffective}
-            && {[_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable}) then {
+            && {[_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable}
+            && {count _orientMarker == 8}
+            && {!isNull _turnCommander} && {effectiveCommander _orientVehicle == _turnCommander}
+            && {local _turnCommander} && {group _turnCommander == _group} && {!isPlayer _turnCommander}
+            && {isNull remoteControlled _turnCommander}
+            && {[_turnCommander] call CBE_fnc_CortexCombatEffective}
+            && {_turnCommander == _turnDriver || {[_turnCommander] call CBE_fnc_CortexActorFireTaskAvailable}}) then {
             _orientVehicle sendSimpleCommand "STOPTURNING";
         };
         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
