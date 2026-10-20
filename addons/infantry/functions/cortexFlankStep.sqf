@@ -540,7 +540,17 @@ private _helperCurrent={
 // Reserved multi-squad roles retain their existing three-person admission contract.
 private _minimumStrength=[2,3] select _support;
 if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
-private _minimumMovers=[2,1] select (!_support && {count _units == 2});
+// A three-person coordinated responder admits a 2+1 partition. Once the first
+// element has arrived, the singleton follows under its two-person cover. Do not
+// steal a soldier back out of that arrived pair merely to make the follow team two.
+private _movingMinimum={
+    params ["_total"];
+    private _singletonFollow=_support && {_total == 3}
+        && {(_drill getOrDefault ["teamTurn",0]) == 1}
+        && {count _teams == 2} && {count (_teams select 0) == 2} && {count (_teams select 1) == 1};
+    [2,1] select ((!_support && {_total == 2}) || {_singletonFollow})
+};
+private _minimumMovers=[count _units] call _movingMinimum;
 // Recovery stays in this existing bounded group job; no per-soldier loop is spawned.
 private _recoveryEntry=(_drill getOrDefault ["recovery",[]]) apply {+_x};
 private _recoveryIdentity=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
@@ -790,6 +800,8 @@ private _restoreFeatures = {
     _restored
 };
 private _issue = {
+    // PAUSE can change teamTurn in this callback; derive the new turn minimum now.
+    _minimumMovers=[count _fit] call _movingMinimum;
     if !([] call _restoreFeatures) exitWith {_result=0.25};
     private _viable=true;
     if (_teams isNotEqualTo []) then {

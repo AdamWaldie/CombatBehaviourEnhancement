@@ -60,7 +60,19 @@ class CortexOperations(unittest.TestCase):
         issue=step.split('private _issue = {',1)[1].split('private _result =',1)[0]
         self.assertLess(issue.index('call _ensureMovingTeam'),issue.index('_unit doMove _spot'))
         self.assertIn('count _units >= _minimumMovers && {count (_roster select 1) >= 1}',issue)
-        self.assertIn('private _minimumMovers=[2,1] select (!_support && {count _units == 2})',step)
+        self.assertIn('private _minimumMovers=[count _units] call _movingMinimum',step)
+        self.assertLess(issue.index('_minimumMovers=[count _fit] call _movingMinimum'),issue.index('call _ensureMovingTeam'))
+        for guard in ('_support && {_total == 3}', 'count _teams == 2',
+                      'count (_teams select 0) == 2', 'count (_teams select 1) == 1'):
+            self.assertIn(guard,step)
+        def minimum(support,total,turn,teams):
+            singleton=support and total == 3 and turn == 1 and teams == (2,1)
+            return 1 if (not support and total == 2) or singleton else 2
+        self.assertEqual(minimum(True,3,0,(2,1)),2)
+        self.assertEqual(minimum(True,3,1,(2,1)),1)
+        self.assertEqual(minimum(True,4,1,(3,1)),2)
+        self.assertEqual(minimum(True,3,1,(1,2)),2)
+        self.assertEqual(minimum(False,2,1,(1,1)),1)
         self.assertIn('private _minimumStrength=[2,3] select _support',step)
         self.assertIn('count _first < 2 || {count _second < 1}',start)
         self.assertIn('count _fit < 3',coordinator)
