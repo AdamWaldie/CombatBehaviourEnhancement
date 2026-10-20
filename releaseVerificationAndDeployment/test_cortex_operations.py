@@ -8879,6 +8879,27 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('selectWeapon',text)
         self.assertNotIn('loadMagazine',text)
 
+    def test_ground_reserve_load_is_finite_native_request_not_delayed_fire(self):
+        text=source('cortexGroundReload')
+        for proof in ('magazinesAllTurrets [_asset,true]','count _inventory > 128',
+                      '(_x select 1) isEqualTo _turret','(_x select 2) > 0',
+                      'count _muzzles == 1','_asset turretLocal _turret','_asset turretUnit _turret',
+                      'CortexActorFireTaskAvailable','CBE_Cortex_CombinedRole','NativeOrderReceipt',
+                      'CBE_GroundReloadAfter','serverTime+15','serverTime >= _until',
+                      '(_native select 3) == _magazine','(_native select 4) > 0',
+                      'isEqualTo _before','_rank > _bestRank','CortexIsEligible',
+                      '_asset loadMagazine [_turret,_weapon,_magazine]'):
+            self.assertIn(proof,text)
+        issue=text.split('private _result="REFUSED";',1)[1]
+        self.assertIn('isNil {',issue)
+        self.assertLess(issue.index('call _available'),issue.index('loadMagazine'))
+        self.assertLess(issue.index('CBE_GroundReloadPending'),issue.index('loadMagazine'))
+        for forbidden in (' doFire ', ' doTarget ', 'waitAndExecute','setVehicleAmmo','setAmmo ', 'doMove'):
+            self.assertNotIn(forbidden,text)
+        caller=source('cortexVehicles')
+        self.assertIn('!(_reloadStatus in ["REQUESTED","PENDING"])',caller)
+        self.assertLess(caller.index('call CBE_fnc_CortexGroundReload'),caller.index('private _fireObservation=createHashMap;'))
+
     def test_direct_door_calls_cannot_borrow_reserved_or_service_actors(self):
         text=source('cortexBuildingDoor')
         direct=text.split('if (_context isEqualTo []) exitWith {',1)[1].split('};',1)[0]

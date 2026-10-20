@@ -28,7 +28,7 @@
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]]];
 _observation set ["reloadInProgress",false];
-{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret"];
+{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret","loadedPreference"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -105,6 +105,7 @@ private _evaluateState={
     };
     if (_score > _bestScore) then {
         _bestScore=_score;
+        _observation set ["loadedPreference",_score];
         _observation set ["reloadInProgress",_reloading];
         _observation set ["loadedWeapon",_weapon];
         _observation set ["loadedMuzzle",_muzzle];

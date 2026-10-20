@@ -348,5 +348,27 @@
     "performanceMeasured": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "groundReserveReload": {
+    "baseline": "bcff764f",
+    "sourceIntent": "LAMBS brainVehicle/doSelectWarhead changes reserve warhead via native loadMagazine. Implemented CBE-owned native request/observation path; no imported source code or delayed fire callback.",
+    "execution": "CortexVehicles highest-priority fresh ground contact -> CortexGroundReload -> actual local gunner/turret positive reserve inventory -> native loadMagazine -> existing callback pending native state observation -> unchanged fresh GroundFireReady/SelectMuzzle/lane/ROE fire admission. Original request deadline fixed; owner/route/target/availability changes retire metadata without undoing native loading.",
+    "controls": "Existing Contact/Vehicles/VehicleGunnery and actor ROE/task/Zeus/external eligibility; native active burst and CBE target hold defer admission. Combined roles retain own controller. No new setting/module/timer.",
+    "bounds": "15s vehicle cadence,128 inventory/64 crew rows,16 supported single-muzzle weapons,128 compatible classes each,2048 reserve class checks,up to49 native state reads including loaded preflight/final check; pending1 read. Cooldown fast-exits before route snapshot.",
+    "limits": [
+      "Multi-muzzle reserve loading unsupported; native behaviour retained.",
+      "Combined-role reload integration remains unfinished.",
+      "Existing native AI can still choose/fire independently; this only gates routine CBE firing.",
+      "Same-value external native intent is observationally indistinguishable.",
+      "Physical reload acknowledgement, normal/provider-HC migration, effectiveness and performance unverified."
+    ],
+    "validation": "Full1481/HEMTT/SQF/FSM/docs/package and independent candidate passed; one distinct asynchronous-request invariant test added. Coverage wiring not physical acceptance.",
+    "candidate": ".qa/candidates/ground-reserve-bcff764f",
+    "fingerprint": "e6d5f8261f1e9975ae62b5f83d04bb7a042538a231ed1cba24113dc9b4485c7f",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false,
+    "engineReference": "https://community.bistudio.com/wiki/loadMagazine"
   }
 }

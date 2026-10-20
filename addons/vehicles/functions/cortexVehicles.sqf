@@ -782,7 +782,19 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             };
         } forEach _gunneryContacts;
         _ranked sort true;
+        // One highest-priority fresh contact may request native reserve loading. Later
+        // callbacks observe it; no delayed target/fire action is queued with the request.
+        private _reloadStatus="REFUSED";
+        if (_ranked isNotEqualTo [] && {_vehicle isKindOf "LandVehicle"}
+            && {!_combinedGroundFireOwned} && {[_vehicle,_gunner] call _gunnerAvailable}) then {
+            private _reloadContact=_gunneryContacts select ((_ranked select 0) select 2);
+            if ((_reloadContact select 2) <= 3) then {
+                _reloadStatus=[_vehicle,_gunner,_reloadContact select 0,serverTime-(_reloadContact select 2)]
+                    call CBE_fnc_CortexGroundReload;
+            };
+        };
         if (_ranked isNotEqualTo [] && {[_vehicle,_gunner] call _gunnerAvailable}
+            && {!(_reloadStatus in ["REQUESTED","PENDING"])}
             && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
             && {canFire _vehicle}
             && {combatMode _group in ["YELLOW", "RED"]} && {unitCombatMode _gunner in ["YELLOW", "RED"]}

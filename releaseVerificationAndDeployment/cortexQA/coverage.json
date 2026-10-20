@@ -1351,7 +1351,9 @@
       "executable_sources": [
         "runGunnery.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexGroundReload.sqf"
+      ]
     },
     {
       "id": "ART-SMOKE",
