@@ -82,6 +82,7 @@ private _positionCurrent={
         && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
         && {(_operation getOrDefault ["generation",-2]) == _generation}
         && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_POSITION"}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_operation getOrDefault ["artilleryPositionOrder",[]])}
         && {(_intent getOrDefault ["operationGeneration",-2]) == _generation}
         && {(_intent getOrDefault ["waypoint",[]]) isEqualTo [_group,currentWaypoint _group]}
         && {waypointType [_group,currentWaypoint _group] == "HOLD"}

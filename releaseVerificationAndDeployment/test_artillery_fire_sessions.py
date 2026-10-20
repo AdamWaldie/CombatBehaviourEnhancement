@@ -56,6 +56,11 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('{_status != "READY"}',owner)
         self.assertIn('vectorMagnitude velocity _battery < 0.278',report)
         self.assertIn('{_positionLost}',step)
+        for body in (owner,report,step,(base/'cortexArtilleryShot.sqf').read_text()):
+            self.assertIn('call CBE_fnc_NativeOrderReceipt)',body)
+            self.assertIn('getOrDefault ["artilleryPositionOrder",[]]',body)
+        self.assertLess(owner.index('private _waypoint='),owner.index('_operation set ["artilleryPositionOrder"'))
+
         shot=(base/'cortexArtilleryShot.sqf').read_text()
         self.assertEqual(shot.count('call _positionCurrent'),2)
         self.assertIn('(_work getOrDefault ["status",""]) != "READY"',shot)

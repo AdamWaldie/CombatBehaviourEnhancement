@@ -101,6 +101,7 @@ if (_ours) exitWith {
     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
     private _legOwned=(_operation getOrDefault ["generation",-2]) == _generation
         && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_POSITION"}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_operation getOrDefault ["artilleryPositionOrder",[]])}
         && {(_intent getOrDefault ["operationGeneration",-2]) == _generation}
         && {(_intent getOrDefault ["requestedPosition",[]]) isEqualTo (_work get "spot")}
         && {(_intent getOrDefault ["waypoint",[]]) isEqualTo [_group,currentWaypoint _group]}
@@ -160,6 +161,9 @@ isNil {
             _battery setVariable ["CBE_ArtilleryPosition_Work",_work];_ours=true;
             private _waypoint=[_group,_spot,5,"HOLD",_generation] call CBE_fnc_CortexGroupMove;
             if (!isNull (_waypoint param [0,grpNull]) && {(_waypoint param [1,-1]) >= 0}) then {
+                // Capture after insertion: the pre-insertion mission receipt remains for handback.
+                _operation set ["artilleryPositionOrder",[_group] call CBE_fnc_NativeOrderReceipt];
+                _group setVariable ["CBE_Operation",_operation,true];
                 private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
                 _state set ["movementLease",["ARTILLERY_POSITION",time+((_holdUntil-serverTime) max 0)]];
                 _state set ["artilleryPositionOperationGeneration",_generation];
