@@ -1266,7 +1266,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf",
-              "sha256": "7972637ed0f3b3753475f504158aa86b7ef9639df970dbc53c85bf8a0af30e72"
+              "sha256": "649a60f8e5565b08096c02ff298a384d3fcad5060de83e73cb76e248dcc42e81"
             }
           ]
         },
@@ -1859,7 +1859,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
-              "sha256": "2592fe9f879c36b5f465ca94c225a16f1fc3e845c42078750474fd2fb0ec653e"
+              "sha256": "5d33c36e665c9952f9e53d2ad4af9e7bf5aaf4f1c758f04b50479c51a7eb0fbc"
             },
             {
               "path": "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
@@ -2094,7 +2094,7 @@
           "evidence": [
             {
               "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
-              "sha256": "2592fe9f879c36b5f465ca94c225a16f1fc3e845c42078750474fd2fb0ec653e"
+              "sha256": "5d33c36e665c9952f9e53d2ad4af9e7bf5aaf4f1c758f04b50479c51a7eb0fbc"
             }
           ]
         },

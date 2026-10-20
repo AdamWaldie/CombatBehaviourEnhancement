@@ -6759,6 +6759,14 @@ class CortexOperations(unittest.TestCase):
 
         self.assertIn('_vehicle setUnloadInCombat _previous;',policy)
         self.assertIn('CBE_Cortex_UnloadPolicyBlocked',policy)
+        initial=policy.split('// First acquisition alone',1)[1].split('if (count _lease == 5) then',1)[0]
+        for guard in ('count _lease != 5','count _seats > 64','fullCrew [_vehicle,"",true]',
+                      'assignedVehicle _incoming == _vehicle','objectParent _incoming != _vehicle',
+                      '!local _incoming','== "GET IN"','if (_incomingBoarding) exitWith {false}'):
+            self.assertIn(guard,initial)
+        self.assertNotIn('setVariable',initial)
+        self.assertNotIn('orderGetIn',policy)
+
         self.assertNotIn('while {',policy)
         self.assertNotIn('spawn',policy)
         self.assertIn('CBE_AIPass_VehicleDismount_Enable',vehicles)

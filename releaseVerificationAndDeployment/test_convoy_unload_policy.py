@@ -19,6 +19,14 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         self.assertIn('CBE_Convoy_UnloadPolicyBlocked",_group,true',mutation)
         self.assertNotIn('setUnloadInCombat',mutation)
         self.assertIn('if (_blocked == _group) exitWith {false}',s)
+        first=s.split('// First acquisition alone',1)[1].split('if (count _lease == 5) then',1)[0]
+        for guard in ('count _lease != 5','fullCrew [_vehicle,"",true]','count _seats > 64',
+                      'assignedVehicle _incoming == _vehicle','objectParent _incoming != _vehicle',
+                      '!local _incoming','== "GET IN"','if (_incomingBoarding) exitWith {false}'):
+            self.assertIn(guard,first)
+        self.assertNotIn('setVariable',first)
+        self.assertNotIn('setUnloadInCombat',first)
+
         self.assertNotIn('_blocked == [_group,_revision]',s)
         adoption=s.split('if (count _lease == 5) then {',1)[1].split('} else {',1)[0]
         self.assertIn('_lease set [1,_revision]',adoption)

@@ -80,5 +80,19 @@
     ],
     "remaining": "Automatic operating-crew recall, absent-driver return and cross-group pickup remain incomplete; physical re-entry, delayed planning, repeated departures, interruption and normal/HC cost remain unverified.",
     "physicalAcceptance": false
+  },
+  "unloadBoardingAcquisition20261020": {
+    "sourceParent": "4a8fb2cc",
+    "finding": "First ordinary/convoy unload-policy acquisition called setUnloadInCombat without checking assigned incoming native GET IN. Official engine documentation describes forced orderGetIn false as a command side effect. Actual in-engine interruption has not been reproduced while audits are paused.",
+    "engineReference": "https://community.bistudio.com/wiki/setUnloadInCombat",
+    "implementation": "Before first lease acquisition only, observe fullCrew including assignments; process <=64 rows. Defer with no lease/roster publication if a living actor assigned to this vehicle is outside it and has native GET IN, or is not local so intent is unverifiable. Oversized snapshot also refuses. Already-owned adoption remains write-free; newer-policy blocking, epochs/revisions, exact previous/applied restoration and takeover policy unchanged. Guard exits outer function before success/tracked publication.",
+    "cost": "One fullCrew engine observation at first acquisition attempts only, <=64 returned rows processed. No new world scan/timer/handler/native boarding command. Rejected acquisition can retry at existing caller cadence; no new cadence. Runtime cost unmeasured.",
+    "limits": "Protects existing boarding; does not authorize orderGetIn true from retained assignment alone, force seating, recall absent drivers or establish HBQ crew-return parity. orderGetIn false may preserve assignment; that intent remains respected. Existing release restoration remains a separate native-side-effect review boundary.",
+    "validation": "613 existing focused cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-boarding-build.log. Candidate .qa/candidates/unload-boarding-4a8fb2cc-a9db6e22 fingerprint a9db6e22b9b6298f16afb73b9ab1ffde8876419abd7db8997fc4ccb682fc5bf1 actual4a8fb2cc+dirtysource. Independent copied-package verification .qa/cbe-unload-boarding-independent.log. No added cases or scores.",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "649a60f8e5565b08096c02ff298a384d3fcad5060de83e73cb76e248dcc42e81",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "5d33c36e665c9952f9e53d2ad4af9e7bf5aaf4f1c758f04b50479c51a7eb0fbc"
+    },
+    "audits": "PAUSED"
   }
 }

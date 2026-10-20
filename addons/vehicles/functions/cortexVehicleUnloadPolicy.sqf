@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial acquisition defers for assigned incoming native GET IN or unknown remote intent;
+ * at most64 returned seat rows are inspected before the first engine policy write. No boarding is issued.
  * Owns the engine unload-in-combat policy for one ordinary CBE-controlled ground vehicle.
  *
  * ACQUIRE prevents the engine from independently unloading cargo while CBE is responsible for
@@ -87,6 +89,19 @@ if (count _lease == 5 && {getUnloadInCombat _vehicle isNotEqualTo (_lease select
     call _removeTracked;
     false
 };
+// First acquisition alone can change engine boarding state. Refusal must leave
+// without publishing a lease, tracked membership or a success result.
+private _incomingBoarding=false;
+if (count _lease != 5) then {
+    private _seats=fullCrew [_vehicle,"",true];
+    _incomingBoarding=count _seats > 64 || {_seats findIf {
+        private _incoming=_x param [5,objNull];
+        !isNull _incoming && {alive _incoming} && {assignedVehicle _incoming == _vehicle}
+            && {objectParent _incoming != _vehicle}
+            && {!local _incoming || {toUpperANSI currentCommand _incoming == "GET IN"}}
+    } >= 0};
+};
+if (_incomingBoarding) exitWith {false};
 if (count _lease == 5) then {
     if ((_lease select 1) != _epoch || {(_lease select 4) != clientOwner}) then {
         _lease=+_lease;

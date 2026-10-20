@@ -138,7 +138,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/crew-return-execution-boundary-20261019.json",
-      "sha256": "223e11251f61ec571f8e08f5892fa91939ecc47d2c7bfd3b8182174893463c10",
+      "sha256": "3f727304ee4324933015d91a46943b80a1d26bffbeedeefc92013d6c8d86d4d0",
       "scope": "HBQ crew-left-behind intent and CBE passenger/crew boundary",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
