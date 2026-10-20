@@ -1457,7 +1457,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_current set [17,true]',deploy)
         self.assertNotIn('nearestObjects [_deployPos,[_expectedClass],8,true]',deploy)
         self.assertNotIn('moveInGunner',deploy)
-        self.assertNotIn('createVehicle',deploy)
+        self.assertEqual(re.findall(r'createVehicle\s*\["([^"\n]+)"',deploy), ['GroundWeaponHolder_Scripted'])
+        solo=deploy.split('if (_singlePart) exitWith',1)[1].split('// Keep the exact support bag',1)[0]
+        for native in ['_gunner action ["Assemble",_holder]', '_record set [1,"ASSEMBLING"]',
+                       'CBE_StaticAssemblyHolder', '_record set [29,_holder]']:
+            self.assertIn(native,solo)
+        self.assertNotIn('PutBag',solo)
+        self.assertIn('_singlePart=isText _baseConfig && {getText _baseConfig == ""}',deploy)
+        self.assertIn('count _bags == ([2,1] select _singlePart)',deploy)
+        self.assertIn('if (!_singlePart) then {_assistant action ["TakeBag",_baseBag]}',deploy)
+        holder=deploy.split('private _cleanupAssemblyHolder=',1)[1].split('private _retire=',1)[0]
+        for guard in ['CBE_StaticAssemblyHolder', 'getWeaponCargo', 'getMagazineCargo',
+                      'getItemCargo', 'getBackpackCargo', 'crew _holder isEqualTo []']:
+            self.assertIn(guard,holder)
+        self.assertEqual(deploy.count('deleteVehicle'),1)
+
         self.assertNotIn('setPos',deploy)
         self.assertNotIn('while {',deploy)
         self.assertNotIn('CortexQueueJob',deploy)

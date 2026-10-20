@@ -1,6 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Physically assemble one compatible carried static weapon during confirmed contact and give its original carrier a finite chance to occupy the real gunner seat.
+ * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
+ * original carrier a finite chance to occupy the real gunner seat. A one-part record uses the
+ * carrier in both legacy actor slots but issues each action only once; no second soldier is reserved.
+ * A marked empty ground holder is the native one-part assembly target; cleanup deletes only that
+ * exact empty holder. Equipment, produced bags and occupied/cargo-bearing holders are preserved.
  * Locality / Authority: Runs only on the current group owner from the shared group brain. It uses native backpack assembly and boarding actions on local AI actors; it never creates, teleports, rearms, repairs or force-seats a weapon.
  * A ready pair may deploy at its actual safe firing position instead of waiting for both actors to converge on one exact point.
  * After dropping, a still-owned gunner may make one short physical approach to the bag holder within the unchanged drop deadline.
@@ -20,6 +24,7 @@
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_allowPack",false,[false]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
 private _record=_group getVariable ["CBE_Danger_StaticDeployment",[]];
+private _singlePart=_record param [28,false,[true]];
 private _external=[_group] call CBE_fnc_CortexExternalTakeover;
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _operationActors=_operation getOrDefault ["participants",[]];
@@ -79,6 +84,20 @@ private _canReleaseActor={
         || {_status == "PACKING" && {_actor == _gunner} && {_command == "DISASSEMBLE"}}
         || {_status == "TAKING" && {_command == "TAKE BAG" || {_actor == _gunner && {_command == "DISASSEMBLE"}}}};
     _ownedEquipment || {!(_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+};
+private _cleanupAssemblyHolder={
+    private _holder=_record param [29,objNull,[objNull]];
+    if (!isNull _holder && {typeOf _holder == "GroundWeaponHolder_Scripted"}
+        && {(_holder getVariable ["CBE_StaticAssemblyHolder",[]]) isEqualTo
+            [_group,_record param [19,[],[[]]],_record param [27,-1,[0]]]}
+        && {crew _holder isEqualTo []}
+        && {(getWeaponCargo _holder select 1) isEqualTo []}
+        && {(getMagazineCargo _holder select 1) isEqualTo []}
+        && {(getItemCargo _holder select 1) isEqualTo []}
+        && {(getBackpackCargo _holder select 1) isEqualTo []}) then {
+        deleteVehicle _holder;
+        _record set [29,objNull];
+    };
 };
 private _retire={
     params ["_commandFree"];
@@ -141,9 +160,10 @@ private _retire={
             {if ((_releaseActors select _forEachIndex) && {isNull objectParent _x}
                 && {currentCommand _x in ["","MOVE","STOP","ASSEMBLE","DISASSEMBLE"]}) then {
                 _x doFollow (leader _group);
-            }} forEach [_gunner,_assistant];
+            }} forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
         };
     };
+    call _cleanupAssemblyHolder;
     _group setVariable ["CBE_Danger_StaticDeployment",nil,true];
 };
 
@@ -322,7 +342,7 @@ if (count _record >= 10) exitWith {
                         _x doMove _deployPos;
                         _refreshed=true;
                     };
-                } forEach [_gunner,_assistant];
+                } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
                 if (_refreshed) then {
                     _record set [20,true];
                     _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
@@ -367,6 +387,21 @@ if (count _record >= 10) exitWith {
                     };
                 }];
                 _record set [12,_assemblyHandler];
+
+                if (_singlePart) exitWith {
+                    private _holder=createVehicle ["GroundWeaponHolder_Scripted",getPosATL _gunner,[],0,"CAN_COLLIDE"];
+                    if (isNull _holder) exitWith {[false] call _retire; "FAILED"};
+                    _holder setVariable ["CBE_StaticAssemblyHolder",[_group,+(_record select 19),_record select 27],true];
+                    _record set [29,_holder];
+                    _record set [1,"ASSEMBLING"];
+                    _record set [6,time+12];
+                    _gunner setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_record select 6]];
+                    [_gunner] call _rememberActorMove;
+                    _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
+                    _gunner action ["Assemble",_holder];
+                    "ASSEMBLING"
+                };
+
                 // Keep the exact support bag before native dropping changes unitBackpack.
                 _record set [13,unitBackpack _assistant];
                 // Native dropping may replace the attached bag object with ground cargo. Snapshot
@@ -382,7 +417,7 @@ if (count _record >= 10) exitWith {
                 {
                     _x setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_record select 6]];
                     [_x] call _rememberActorMove;
-                } forEach [_gunner,_assistant];
+                } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
                 _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
                 _gunner action ["PutBag",_assistant];
                 "DROPPING"
@@ -439,7 +474,7 @@ if (count _record >= 10) exitWith {
             && {backpack _gunner == _gunnerBag}) then {
             // The assistant's physical contribution is complete once its exact bag is down.
             // Keep only the gunner reserved; ordinary native fire and movement may resume for support.
-            [_assistant] call _clearActor;
+            if (!_singlePart) then {[_assistant] call _clearActor};
             _record set [1,"ASSEMBLING"];
             _record set [6,time+12];
             _gunner setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_record select 6]];
@@ -469,11 +504,12 @@ if (count _record >= 10) exitWith {
                 _assembled setDir (_assembled getDir _sector);
                 _record set [17,true];
             };
+            call _cleanupAssemblyHolder;
             _gunner assignAsGunner _assembled;
             [_gunner] orderGetIn true;
             _gunner setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",getPosATL _assembled,time+20]];
             [_gunner] call _rememberActorMove;
-            [_assistant] call _clearActor;
+            if (!_singlePart) then {[_assistant] call _clearActor};
             _record set [1,"MOUNTING"];
             _record set [6,time+20];
             _record set [7,_assembled];
@@ -526,7 +562,7 @@ if (count _record >= 10) exitWith {
                 _x doMove _approach;
                 _x setVariable ["CBE_Cortex_ActorMove",["STATIC_PACK",_approach,time+15]];
                 [_x] call _rememberActorMove;
-            } forEach [_gunner,_assistant];
+            } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
             _record set [21,time+5];
             _record set [22,time];
             _record set [23,[_gunner distance2D _weapon,_assistant distance2D _weapon]];
@@ -564,7 +600,7 @@ if (count _record >= 10) exitWith {
                         _x setVariable ["CBE_Cortex_ActorMove",_move];
                         [_x] call _rememberActorMove;
                     };
-                } forEach [_gunner,_assistant];
+                } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
                 _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
             };
         };
@@ -578,7 +614,7 @@ if (count _record >= 10) exitWith {
                     && {currentCommand _x in ["","STOP"]} && {_x distance2D _weapon > 4}) then {
                     _x doMove (_move select 1);
                 };
-            } forEach [_gunner,_assistant];
+            } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
             _record set [21,time+5];
             _record set [24,(_record param [24,0,[0]])+1];
             _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
@@ -590,7 +626,7 @@ if (count _record >= 10) exitWith {
             if (vehicle _gunner == _gunner && {_gunner distance2D _weapon <= 4} && {_assistant distance2D _weapon <= 4}) then {
                 _gunner setVariable ["CBE_Danger_StaticPackContext",[_group,_recordEpisode,_assistant,_gunnerBag,_assistantBag]];
                 _handler=_gunner addEventHandler ["WeaponDisassembled",{
-                    params ["_actor","_primaryBag","_baseBag"];
+                    params ["_actor","_primaryBag",["_baseBag",objNull,[objNull]]];
                     private _context=_actor getVariable ["CBE_Danger_StaticPackContext",[]];
                     _context params [["_owner",grpNull,[grpNull]],["_recordEpisode",-1,[0]],["_assistant",objNull,[objNull]],["_primaryClass","",[""]],["_baseClass","",[""]]];
                     private _current=if (isNull _owner) then {[]} else {_owner getVariable ["CBE_Danger_StaticDeployment",[]]};
@@ -614,7 +650,8 @@ if (count _record >= 10) exitWith {
                             [_owner,_current param [19,[],[[]]],_current param [27,-1,[0]],
                                 _assistant getVariable ["CBE_Cortex_ActorMove",[]]]}
                         && {(_current param [10,-1,[0]]) == _thisEventHandler}
-                        && {[_actor,true] call _taskFree} && {[_assistant,false] call _taskFree}
+                        && {[_actor,true] call _taskFree}
+                        && {(_current param [28,false,[true]]) || {[_assistant,false] call _taskFree}}
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
                         && {[_assistant] call CBE_fnc_CortexCombatEffective}
                         && {group _actor == _owner} && {group _assistant == _owner}
@@ -627,10 +664,11 @@ if (count _record >= 10) exitWith {
                         && {count _current >= 11} && {(_current select 0) == _recordEpisode}
                         && {(_current select 1) == "PACKING"} && {(_current select 2) == _actor}
                         && {(_current select 3) == _assistant}
-                        && {typeOf _primaryBag == _primaryClass} && {typeOf _baseBag == _baseClass}) then {
+                        && {typeOf _primaryBag == _primaryClass}
+                        && {if (_current param [28,false,[true]]) then {isNull _baseBag} else {typeOf _baseBag == _baseClass}}) then {
                         // Record the event only. Another equipment action here can interrupt
                         // native disassembly before its original emplacement is removed.
-                        _current set [25,[_primaryBag,_baseBag]];
+                        _current set [25,if (_current param [28,false,[true]]) then {[_primaryBag]} else {[_primaryBag,_baseBag]}];
                         _current set [26,false];
                         _current set [1,"TAKING"];
                         _current set [6,time+8];
@@ -662,10 +700,10 @@ if (count _record >= 10) exitWith {
     if (_status == "TAKING") exitWith {
         if (isNull _weapon && {!(_record param [26,false,[false]])}) then {
             private _bags=_record param [25,[],[[]]];
-            if (count _bags == 2 && {_bags findIf {isNull _x} < 0}) then {
-                _bags params ["_primaryBag","_baseBag"];
+            if (count _bags == ([2,1] select _singlePart) && {_bags findIf {isNull _x} < 0}) then {
+                _bags params ["_primaryBag",["_baseBag",objNull,[objNull]]];
                 _gunner action ["TakeBag",_primaryBag];
-                _assistant action ["TakeBag",_baseBag];
+                if (!_singlePart) then {_assistant action ["TakeBag",_baseBag]};
                 _record set [26,true];
                 _deadline=time+8;
                 _record set [6,_deadline];
@@ -674,7 +712,7 @@ if (count _record >= 10) exitWith {
         };
         // Bags alone do not prove native packing removed the original emplacement.
         // Never report success while that weapon still exists, or delete it to fake completion.
-        if (isNull _weapon && {backpack _gunner == _gunnerBag} && {backpack _assistant == _assistantBag}) then {
+        if (isNull _weapon && {backpack _gunner == _gunnerBag} && {_singlePart || {backpack _assistant == _assistantBag}}) then {
             [false] call _retire;
             _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"PACKED",serverTime],true];
             "PACKED"
@@ -740,14 +778,15 @@ private _expectedClass=getText (_assembleInfo >> "assembleTo");
 private _baseConfig=_assembleInfo >> "base";
 private _compatibleBases=if (isText _baseConfig) then {[getText _baseConfig]} else {getArray _baseConfig};
 _compatibleBases=_compatibleBases - [""];
+_singlePart=isText _baseConfig && {getText _baseConfig == ""};
 private _assistantIndex=_ready findIf {(backpack _x) in _compatibleBases};
-if (_assistantIndex < 0) exitWith {
+if (!_singlePart && {_assistantIndex < 0}) exitWith {
     if ((units _group) findIf {alive _x && {local _x} && {(backpack _x) in _compatibleBases}} >= 0) exitWith {"IDLE"};
     _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"NO_BASE_BAG",serverTime],true];
     "IDLE"
 };
-private _assistant=_ready select _assistantIndex;
-private _assistantBag=backpack _assistant;
+private _assistant=if (_singlePart) then {_gunner} else {_ready select _assistantIndex};
+private _assistantBag=if (_singlePart) then {""} else {backpack _assistant};
 private _targetPos=+((_enemies select 0) param [1,[],[[]]]);
 if (count _targetPos < 2) exitWith {"IDLE"};
 if (count _targetPos == 2) then {_targetPos pushBack 0};
@@ -772,11 +811,12 @@ _record set [19,[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]];
 private _sequence=(_group getVariable ["CBE_Danger_StaticSequence",0])+1;
 _group setVariable ["CBE_Danger_StaticSequence",_sequence];
 _record set [27,_sequence];
+_record set [28,_singlePart];
 {
     _x doMove _deployPos;
     _x setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_deadline]];
     [_x] call _rememberActorMove;
-} forEach [_gunner,_assistant];
+} forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
 // Hold only the primary carrier at an already valid sector. This is the finite deployment
 // task, not a group stop; native targets/fire remain available and failure cleanup resumes follow.
 if (_gunner distance2D _deployPos <= 0.5) then {doStop _gunner};

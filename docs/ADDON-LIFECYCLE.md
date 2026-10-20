@@ -174,8 +174,12 @@ usable emplacement exists, the same finite support opportunity may select one co
 weapon bag and base bag from uncommitted local AI. Selection considers at most 64 group actors and
 prefers a complete ready pair over an earlier unmatched primary carrier. The primary backpack
 must assemble into a configured static weapon; UAVs and other deployables are outside this path.
-Base compatibility follows the primary backpack configuration. One-part weapons still require
-a separate execution path and are not implemented by this two-person deployment. The pair physically moves to one of two bounded,
+Base compatibility follows the primary backpack configuration. A primary with an explicitly empty text base uses the same finite phases with one carrier,
+no bag drop or second soldier. Native assembly receives one marked empty ground holder. The actual
+assembly event identifies the weapon before ordinary boarding; native disassembly must return one
+matching bag, remove the original weapon and physically restore that bag to the carrier. Cleanup
+only deletes the exact owned holder while empty; added cargo and all equipment remain untouched.
+One-part execution is newly wired and has no physical acceptance evidence. The pair physically moves to one of two bounded,
 dry, low-slope positions with a clear firing sector, uses the engine assembly action and gives the
 original carrier a real gunner assignment. The squad does not wait. Failure is recorded once for
 the contact episode; CBE does not create a weapon, consume bags directly or force-seat the gunner.

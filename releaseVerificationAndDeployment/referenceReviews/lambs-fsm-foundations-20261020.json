@@ -535,7 +535,7 @@
       "sourceIntent": "Single carrier carries complete Reaction Forces mortar, approaches safe position, assembles, mans weapon, later exits/disassembles and recovers one backpack.",
       "sourceExecution": "Deploy creates GroundWeaponHolder_Scripted target and calls native Assemble; WeaponAssembled force-seats carrier, delayed one-second registration/terrain alignment; finite nine-second approach. Pack force-exits carrier then native Disassemble and event TakeBag.",
       "notCopied": "moveInGunner/moveOut and unguarded delayed terrain/stance/controller writes. Created empty holder is action-target infrastructure, not proof of native one-part assembly success or fabricated weapon; any future scoped holder must have lifecycle cleanup.",
-      "CBEStatus": "NOT_IMPLEMENTED: current deployment requires a distinct assistant/base and two-bag recovery. Do not mark one-person parity.",
+      "CBEStatus": "EXPERIMENTAL_SINGLE_PART_NATIVE_WIRED_PHYSICAL_PENDING: explicit empty text base uses original carrier only in existing deployment phases; no addon dependency or forced seat/exit.",
       "nextRequirement": "Compose native one-part assembly and one-bag recovery with finite owner-local receipts, original deadlines, real resulting weapon/bag evidence and physical validation. No new required source addon."
     },
     "generationReceiptFollowup": {
@@ -544,6 +544,24 @@
       "scope": "Nine existing marker writes including packing deadline update use the same recorder; no new worker, world scan, movement writer or remote replay. Receipts are machine-local, absent after migration cannot grant commands.",
       "validation": "1482 existing unit/static cases plus HEMTT/SQF/config/FSM/docs/package pass; initial ordering assertion matched an earlier refresh branch, scoped to actual admission before final pass. No new tests or runtime result.",
       "limits": "Identical native orders without changed marker remain indistinguishable; missing marker by itself does not establish native action completion. Native quiescence, split-locality handback, one-part deployment and retained assembly/fire/packing failures remain unresolved."
+    },
+    "singlePartImplementation": {
+      "baseline": "9e0f04a8",
+      "selection": "Valid static primary with explicitly empty text base; complete two-part teams retain preference. One carrier occupies both legacy record actor slots, all action loops deduplicate; no second actor reservation.",
+      "execution": "MOVING -> marked empty GroundWeaponHolder_Scripted -> native Assemble -> exact existing WeaponAssembled receipt -> ordinary native boarding. No PutBag for solo. Existing finite packing exits/approaches/disassembles, optional missing second bag accepted only in solo mode; TAKING requires actual original weapon deletion and one returned matching bag physically restored to original carrier.",
+      "holder": "record29 tracks exact holder; public identity [group,ownerEpoch,sequence]; cleanup only if exact expected class/identity, no crew and empty weapons/magazines/items/backpacks. Produced equipment and cargo-bearing holders are never deleted.",
+      "lifecycle": "record28 singlePart flag. Same owner/epoch, handler/deadline/feature/medical/operation/movement receipts, interruption and CALM release as pair path. No new FSM, scheduler or worker.",
+      "references": [
+        "https://community.bistudio.com/wiki/CfgVehicles_Config_Reference#assembleInfo",
+        "https://community.bohemia.net/wiki/Arma_3_Actions#Assemble"
+      ],
+      "limits": [
+        "Empty-holder action argument follows preserved source usage; public engine reference documents object-target Assemble but does not prove this specific one-part action succeeds.",
+        "Reaction Forces and other modded one-part weapon configs require actual engine cases; no blanket source parity.",
+        "Native action quiescence, same-value replacement orders, split-locality/repeat and overhead unverified.",
+        "Holder with external cargo intentionally remains; no background cleanup or fabricated weapon/bag."
+      ],
+      "validation": "Existing609 operation-focused cases plus full1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no physical audit or percentage credit."
     }
   }
 }

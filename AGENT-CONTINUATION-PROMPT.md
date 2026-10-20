@@ -1,3 +1,11 @@
+# Current source checkpoint - native one-part static path
+
+Baseline before this batch9e0f04a8. One-part static assembly/one-bag recovery now wired into existing StaticDeployStep phases, record28solo/29holder, unique actor action loops, original receipts/deadlines and native boarding/exit. Only explicit empty text base qualifies; no RF/source mod dependency. Exact empty owned holder cleanup, actual weapon/event/bag identity and native deletion/physical backpack restoration required. No forced seating, fabricated weapon/bag, new FSM or worker.
+
+Full1482/HEMTT/package pass .qa/static-solo-build.log, existing609 focused cases .qa/static-solo-focused.log. Unsigned candidate .qa/candidates/static-solo-9e0f04a8. This is experimental source wiring with no physical acceptance. Empty holder target follows LAMBS source; native documentation alone does not prove the action works. Next requirement: prepare separate real one-part mechanism case and review native deadline/authority flow; actual audits remain PAUSED. Do not claim commando-mortar/general mod parity. Same-value native orders, quiescence, repeated/split-locality flow, retained paired assembly/fire/packing failures and measured overhead remain unresolved.
+
+Preserve full production-readiness goal and CBE checkout boundary; no WMP edits, pushes, release/Steam, merge or audit permission added. Read latest handover and source review, verify live Git/PR before mutations, preserve unrelated dirt/Workshop originals/archive/signing.
+
 # Current source checkpoint - static generation receipts
 
 Baseline before this batch b3d195d0; current source adds record27 deployment sequence and exact local actor-movement receipts across all existing static phase writes, cleanup and native callbacks. Older tag-only cleanup limitations below are superseded for changed markers; identical native orders without marker changes and physical/native quiescence remain open. Pack entry preserves a separately reserved assistant. Full1482/HEMTT/package pass .qa/static-generation-final-build.log; unsigned candidate .qa/candidates/static-generation-b3d195d0. No live evidence or percentage credit.
