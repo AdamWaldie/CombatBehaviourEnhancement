@@ -90,7 +90,8 @@ if (_targetIndex < 0) exitWith {["NO_TARGET_IN_RANGE",[_enemies apply {_x select
 private _target = (_enemies select _targetIndex) select 0;
 private _enemyPos = (_enemies select _targetIndex) select 1;
 private _distance = (_enemies select _targetIndex) select 3;
-private _armedFoot=_onFoot select {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable};
+private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
+    && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 private _riflemen = _armedFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
 private _candidates = [];
 {_candidates pushBack [_x distance2D _leader, _forEachIndex]} forEach _riflemen;

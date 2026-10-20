@@ -129,5 +129,40 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "manoeuvreIndividualFirePolicy20261020": {
+    "baseline": "4f69aa6d",
+    "finding": "FireControl respected individual ROE but initial manoeuvre armed selection, coordinated pair capacities and new-bound check could count hold-fire or FIREWEAPON-disabled actors.",
+    "implementation": [
+      "Require individualYELLOW/RED andFIREWEAPON alongside primary ammunition in assessment, close-assault admission, flank/advance armed selection, coordinated report/initial partition and shared new-bound capacity.",
+      "Retain physical flank/advance/support rosters and main-ammunition helper semantics. No combat mode, AI permission or inventory mutations.",
+      "New-bound failure reason FIRE_CAPACITY_LOST accurately includes permission/ammunition loss; existing cancellation/result path handles it as failure. Crossing-exit/consolidation exceptions retained."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "297ae9eb2f9f3b9a672014d90e209b425ada05a0d41a0426bcaa6102bc52f030",
+      "addons/infantry/functions/cortexAssaultStart.sqf": "2abfcd909db7b882d3c57b76e011cb1c602d125a5ad884b3f686c5b8be1569d8",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "8a8f5896713b1ccc907d092acc2ea34e9add9f618019f699c23ad07167d28301",
+      "addons/infantry/functions/cortexFlankStart.sqf": "64e7530671b3164fbb11ef3f1d361f86c9b31ffc2805456c8e2197ef5504a021",
+      "addons/infantry/functions/cortexFlankStep.sqf": "2a7d6096641a58c4aba8e200309741df17ce1f5854407021fe6f8fac03490d4c",
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "683f7e05aee234b761c228048254cb45a488e31ef7cb2d7ce0757f16f30cf734",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "12d884f146c7197ad9f805122753d48d5f32ade0258b52599b2f3422e41d7336",
+      "addons/support/functions/cortexSupportMaintain.sqf": "2cd6eacbb0665551c4ea306cbd2c0270b705d162ae1ad9bd602460ad478925b2"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-manoeuvre-fire-policy-build.log",
+      "independent": ".qa/cbe-manoeuvre-fire-policy-independent.log",
+      "candidate": ".qa/candidates/manoeuvre-fire-policy-4f69aa6d",
+      "fingerprint": "7918ecd18afcf44c373f3ac6f0a00fb5df35e1dce715ba679deaf0cb14e1c67e"
+    },
+    "limits": [
+      "Individual fire permission changes during committed movement do not interrupt that movement solely for inventory/policy checks; next bound revalidates.",
+      "Existing failure reason consumers accepting arbitrary failure continue; no success inferred.",
+      "Mission-order transitions, paired casualty flow, HC and performance unverified."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

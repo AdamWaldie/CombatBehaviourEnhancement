@@ -512,7 +512,8 @@ if (_coordinating && {!_moving} && {(_role select 2) == "COVER"}
         };
     };
     private _armed=if (combatMode _group in ["YELLOW","RED"]) then {
-        {unitCombatMode _x in ["YELLOW","RED"] && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _fit
+        {unitCombatMode _x in ["YELLOW","RED"] && {_x checkAIFeature "FIREWEAPON"}
+            && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _fit
     } else {0};
     private _observed=serverTime;
     private _capacity=[1,+_role,_group getVariable ["CBE_AIPass_Epoch",0],_observed,

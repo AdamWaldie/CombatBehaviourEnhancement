@@ -99,7 +99,8 @@ private _onFoot = (units _group) select {
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
-private _armedFoot=_onFoot select {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable};
+private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
+    && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 private _riflemen = _armedFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
 private _candidates = [];
 {_candidates pushBack [_x distance2D _objective, _forEachIndex]} forEach _riflemen;

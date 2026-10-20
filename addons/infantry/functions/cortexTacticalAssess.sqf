@@ -76,6 +76,7 @@ private _foot=(units _group) select {
 // Physical squad strength remains separate in _foot for diagnostics and other layers.
 private _availableFoot=_foot select {
     simulationEnabled _x && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
+        && {unitCombatMode _x in ["YELLOW","RED"]}
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
 };
 if (_availableFoot isEqualTo []) exitWith {

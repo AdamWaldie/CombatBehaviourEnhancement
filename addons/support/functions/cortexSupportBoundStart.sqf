@@ -145,7 +145,8 @@ if (_pairs isEqualType []) then {
 };
 // Every remaining eligible actor is a singleton, including leaders/support roles.
 {_chunks pushBack [_x]} forEach _remaining;
-private _armed=_fit select {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable};
+private _armed=_fit select {unitCombatMode _x in ["YELLOW","RED"]
+    && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 private _ranked=_chunks apply {[_x,{_x in _armed} count _x]};
 private _armedCounts=[0,0];
 // At most64 chunks and three bounded passes. Distribute capacity before dry chunks,

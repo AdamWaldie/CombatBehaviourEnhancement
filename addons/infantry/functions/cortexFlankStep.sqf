@@ -818,12 +818,14 @@ private _issue = {
     // Finishing a road crossing or consolidating must not strand dry actors in place.
     // Coordinated dispatch capacity cannot replace this current local team check.
     if (!(_kind in ["CROSS_FAR","CONSOLIDATE"])) then {
-        private _armedMovers={[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} count _units;
+        private _armedMovers={unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _units;
         private _coverCandidates=if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units};
-        private _armedCover=_coverCandidates findIf {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} >= 0;
+        private _armedCover=_coverCandidates findIf {unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} >= 0;
         if (_armedMovers < _minimumMovers || {!_armedCover}) then {_viable=false};
     };
-    if (!_viable) exitWith {_result="AMMO_CAPACITY_LOST" call _end};
+    if (!_viable) exitWith {_result="FIRE_CAPACITY_LOST" call _end};
     _point=+_point;
     private _issueEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _issuePhase=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];

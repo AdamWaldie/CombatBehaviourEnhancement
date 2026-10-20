@@ -4068,11 +4068,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["teamSizes",[count _first,count _second]]',source('cortexSupportBoundStart'))
         issue=step.split('private _issue = {',1)[1].split('private _issueEpoch=',1)[0]
         for proof in ('["CROSS_FAR","CONSOLIDATE"]','_armedMovers < _minimumMovers',
-                      '_coverCandidates findIf','AMMO_CAPACITY_LOST'):
+                      '_coverCandidates findIf','FIRE_CAPACITY_LOST'):
             self.assertIn(proof,issue)
         self.assertIn('if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units}',issue)
         self.assertNotIn('CortexPrimaryAmmoAvailable',step.split('private _issue = {',1)[0])
-        self.assertIn('_result="AMMO_CAPACITY_LOST" call _end',issue)
+        self.assertIn('_result="FIRE_CAPACITY_LOST" call _end',issue)
         self.assertNotIn('if (!_support &&',issue)
         support=source('cortexSupportBoundStart')
         self.assertIn('simulationEnabled _x',support)
@@ -6498,6 +6498,12 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(case,matrix)
 
     def test_infantry_explicit_fire_respects_group_and_unit_roe(self):
+        for name in ('cortexTacticalAssess','cortexAssaultStart','cortexFlankStart',
+                     'cortexAdvanceStart','cortexSupportBoundStart','cortexSupportMaintain','cortexFlankStep'):
+            text=source(name)
+            self.assertIn('unitCombatMode _x in ["YELLOW","RED"]',text)
+            self.assertIn('_x checkAIFeature "FIREWEAPON"',text)
+        self.assertNotIn('unitCombatMode',source('cortexPrimaryAmmoAvailable'))
         assessment=source('cortexTacticalAssess')
         available=assessment.split('private _availableFoot=',1)[1].split('if (_availableFoot isEqualTo [])',1)[0]
         for guard in ('simulationEnabled _x','!isObjectHidden _x','_x checkAIFeature "FIREWEAPON"',
