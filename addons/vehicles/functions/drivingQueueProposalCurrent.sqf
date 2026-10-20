@@ -10,9 +10,10 @@
  * The crossing holder has no reverse role; no crew or input is changed to manufacture capability.
  * Actual owners compare the original vehicle move/turn input too; unchanged crew
  * destinations alone cannot preserve consent after a new independent driving directive.
- * The opposing lead pair also requires a nonnegative padded whole-hull gap.
+ * The opposing lead pair requires separated padded longitudinal or lateral hull intervals.
+ * At most two additional projections are read only if its longitudinal intervals overlap.
  * Rear dependencies retain a nonnegative whole-hull gap of at most25m; centre distance
- * cannot admit overlapping bodies or overlook long vehicles. At most four projections.
+ * cannot admit overlapping bodies or overlook long vehicles. At most four primary-axis projections.
  * Arguments: 0 vehicles ARRAY [];1 roles ARRAY [];2 dependencies ARRAY [];3 context ARRAY [];4 localRows BOOL false.
  * Return: BOOL current proposal observation, never execution authority.
  * Current callers: DrivingQueueAgreementRequest/Server/Owner and DrivingQueueHold.
@@ -110,10 +111,19 @@ if (_first distance2D _yield > 30 || {(_front vectorDotProduct _axis) <= 0}
 private _origin=getPosWorld _yield;
 private _spans=_vehicles apply {[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval};
 if (_spans findIf {_x isEqualTo []} >= 0) exitWith {false};
-// The opposing lead pair needs physical separation too. Ordered centres do not
-// prove that long hulls are clear; do not acquire a chain already interpenetrating.
+// Ordered centres do not prove lead hull separation. Longitudinal overlap may
+// still have a clear lateral gap on a wide road; test that axis before refusing.
+// These necessary bounds are not a crossing path or movement grant.
 private _leadGap=((_spans select 0) select 0)-((_spans select 1) select 1);
-if (_leadGap < 0) exitWith {false};
+private _leadSeparated=_leadGap >= 0;
+if (!_leadSeparated) then {
+    private _firstSide=[_first,_origin,_right] call CBE_fnc_DrivingHullInterval;
+    private _yieldSide=[_yield,_origin,_right] call CBE_fnc_DrivingHullInterval;
+    _leadSeparated=_firstSide isNotEqualTo [] && {_yieldSide isNotEqualTo []}
+        && {((_firstSide select 0)-(_yieldSide select 1)) >= 0
+            || {((_yieldSide select 0)-(_firstSide select 1)) >= 0}};
+};
+if (!_leadSeparated) exitWith {false};
 for "_i" from 2 to (_n-1) do {
     private _gap=((_spans select (_i-1)) select 0)-((_spans select _i) select 1);
     private _delta=(getPosASL (_vehicles select _i)) vectorDiff (getPosASL (_vehicles select (_i-1)));
