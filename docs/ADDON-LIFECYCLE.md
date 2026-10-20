@@ -1091,3 +1091,10 @@ A mounted commander can replace a lost primary gunner only while still assigned 
 ### Driver replacement admission preserves seat intent
 
 Ordinary dead-driver replacement selects only occupied crew members still assigned to that vehicle and that actual seat. It reads the assigned-unit field from the existing crew snapshot. Explicit unassignment and another seat assignment cannot become a recovery baseline merely because the actor remains physically aboard. Hidden or suspended candidates also defer before selection, so they cannot consume an attempt before a usable alternative. Cargo, commander, other crew and primary-gunner priority applies after this eligibility filter. Existing command/assignment receipts still protect the admitted attempt and native seat-action boundaries. No additional crew query, scan, timer or forced seating is added. Actual seat switching, repeated recovery, HC transfer and performance remain unverified while audits are paused.
+
+
+### Individual indoor selection continues after roof misses
+
+An individual investigation can test up to twelve distinct native positions over the existing FSM callbacks, with at most three roof queries per callback. Previously, three nearby unroofed positions ended selection even when a valid fourth position existed. The operation retains only its tested ASL nodes, bound to the same actor, building transform and belief. Other current reservations and squad body positions are still checked on every selection.
+
+Pending selection retains the original deadline and adds no movement worker or timer. Exhausted, changed or empty candidates still finish without a visit or accessibility claim. A selected roofed node still requires native command admission and physical arrival. This increases the maximum selection work from three to twelve roof probes per operation; physical entry and frame-time effects remain unverified while audits are paused.

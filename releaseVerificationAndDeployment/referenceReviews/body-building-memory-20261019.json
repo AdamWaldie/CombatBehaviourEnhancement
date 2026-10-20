@@ -190,5 +190,35 @@
     },
     "remaining": "Physical mixed-mode candidate selection, mid-leg hold, exact native cleanup, HC and performance remain unverified; audits paused.",
     "scoresChanged": false
+  },
+  "roofSearchContinuation20261020": {
+    "baseline": "63f491d5",
+    "finding": "Selector only tested first three ranked roofs. Missing own-building roof at those nodes ended the task even when the fourth node was valid. Repeated selection could revisit the same misses.",
+    "implementation": [
+      "Optional caller-owned operation-local search context binds actor, building transform and native belief; up to twelve tested ASL nodes excluded from later ranking.",
+      "Existing FSM SELECT continues pending search across existing half-second callbacks, at most three roof probes per call and twelve per operation.",
+      "Current reservations, squad bodies, native task and original operation deadline remain authoritative; no actor/group cache or new worker/timer.",
+      "No roof miss marks inaccessible, visited, safe or cleared. Exhausted search still returns NO_CANDIDATE."
+    ],
+    "sourceIntent": "LAMBS sympathetic memory checks multiple building positions; CBE retains bounded native-position selection without broad group reset or unseen occupancy knowledge. This is individual investigation selection, not full room-clearance parity.",
+    "sources": {
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "e6ed8ae6d4c286284d4120057ae2c3815e94a0db1052fee723889af467762662",
+      "addons/infantry/functions/indoorActorOperation.sqf": "99a924ee3e6fc7c36bf18836e25408a159aacedb97ce43a64ee82bc3a1bbeb65"
+    },
+    "cost": "Maximum roof probes per operation rises from3 to12; per-call3 and native512-position ranking remain. Added bounded tested-node comparisons. Runtime overhead unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-indoor-roof-search-focused.log",
+      "operations": ".qa/cbe-indoor-roof-search-operations.log",
+      "full": ".qa/cbe-indoor-roof-search-build.log",
+      "independent": ".qa/cbe-indoor-roof-search-independent.log",
+      "candidate": ".qa/candidates/indoor-roof-search-63f491d5-1a2caec0",
+      "fingerprint": "1a2caec0b3ce9276b069b37a0d10bb137d566f8dee9b952e6d13e9f4bd5f2ac8"
+    },
+    "remaining": "Valid positions beyond12, physical inaccessible-node response, actual entry, interruption/locality and performance remain incomplete or unverified.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

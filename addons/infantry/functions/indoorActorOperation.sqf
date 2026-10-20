@@ -415,8 +415,15 @@ if (_phase == "SELECT") exitWith {
         };
     } forEach ((_group getVariable ["CBE_IndoorActor_Actors",[]]) select [0,2]);
     if (_escalate) then {_reserved pushBack +(_brain get "target")};
-    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,_brain getOrDefault ["observationClue",[]]] call CBE_fnc_IndoorActorNodeSelect;
-    if (_node isEqualTo []) exitWith {["NO_CANDIDATE"] call _finish};
+    private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
+    _brain set ["nodeSearch",_nodeSearch];
+    private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
+        _brain getOrDefault ["observationClue",[]],_nodeSearch] call CBE_fnc_IndoorActorNodeSelect;
+    if (_node isEqualTo []) exitWith {
+        // A roof miss is not an inaccessible building. Continue the bounded search on
+        // the existing FSM callback, under the unchanged original operation deadline.
+        if (_nodeSearch getOrDefault ["pending",false]) then {-1} else {["NO_CANDIDATE"] call _finish}
+    };
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)
         || {([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission}

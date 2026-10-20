@@ -1,8 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Plan one actor's indoor observation destination near a supplied native contact belief.
- * Locality/authority: Read-only on the actor and group owner. No movement or access is granted.
- * Repeat/JIP: Read-only. At most 512 native positions are ranked and three roof queries are issued.
+ * Locality/authority: Read-only world observation on the actor/group owner; only the optional
+ * caller-owned search HashMap is updated. No movement or access is granted.
+ * Repeat/JIP: At most 512 native positions ranked and three roof queries per call. A supplied
+ * operation-local search retains up to twelve tested nodes across callbacks, bound to the
+ * exact actor/building transform/belief. It does not mark accessibility, visits or clearance.
  * Reservation, failed-node and body separation use absolute ASL coordinates. Native
  * outputs remain ATL; terrain-cell differences cannot alias distinct floors.
  * Current positions of at most16 living, simulated, visible, dismounted squadmates exclude
@@ -13,6 +16,7 @@
  * Arguments: 0 actor <OBJECT>, objNull; 1 building <OBJECT>, objNull;
  * 2 believed ATL position <ARRAY>, []; 3 reserved ATL destinations <ARRAY>, [];
  * 4 original observation clue <ARRAY,[]> enables same-episode physical-visit preference.
+ * 5 optional caller-owned search <HASHMAP,empty>; pending BOOL and probed ASL nodes are outputs.
  * Visit preferences share the sixteen-destination exclusion budget after live reservations;
  * they never affect known-contact work or add roof rays.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
@@ -21,7 +25,9 @@
  * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
-    ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]]];
+    ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]],
+    ["_search",createHashMap,[createHashMap]]];
+_search set ["pending",false];
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -35,6 +41,14 @@ private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _binding=[_actor,_building,_transform,+_belief];
+private _previousBinding=_search getOrDefault ["binding",[]];
+if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};
+private _probed=_search getOrDefault ["probed",[]];
+if (!(_probed isEqualType []) || {count _probed >= 12}
+    || {_probed findIf {!(_x call _positionValid)} >= 0}) exitWith {[]};
+_probed=+_probed;
+_search set ["binding",_binding];
 private _history=(group _actor) getVariable ["CBE_Danger_BuildingVisits",[]];
 if (count _clue == 5 && {(_clue select 4) isEqualTo _epoch}
     && {(_clue select 2) isEqualType 0} && {finite (_clue select 2)} && {serverTime < (_clue select 2)}
@@ -82,6 +96,7 @@ private _ranked=[];
         private _nodeASL=AGLToASL _node;
         private _height=_nodeASL select 2;
         if (_inside && {abs (_height-_beliefHeight) <= 1.5}
+            && {_probed findIf {_x vectorDistance _nodeASL < 0.1} < 0}
             && {_reservedASL findIf {_x vectorDistance _nodeASL < 1.5} < 0}
             && {_bodies findIf {_x distance2D _nodeASL < 1.5 && {abs ((_x select 2)-_height) <= 1}} < 0}
             && {_failedNodes findIf {_x vectorDistance _nodeASL < 1.5} < 0}) then {
@@ -94,9 +109,10 @@ _ranked sort true;
 private _selected=[];
 private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
 {
-    if (_selected isNotEqualTo []) exitWith {};
+    if (_selected isNotEqualTo [] || {count _probed >= 12}) exitWith {};
     private _node=_positions select (_x select 2);
     private _asl=AGLToASL _node;
+    _probed pushBack +_asl;
     private _hits=if (_roofTop > (_asl select 2)+0.4) then {
         lineIntersectsSurfaces [_asl vectorAdd [0,0,0.4],
             [_asl select 0,_asl select 1,_roofTop],_actor,objNull,true,1,"GEOM","NONE"]
@@ -108,4 +124,6 @@ private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
         };
     };
 } forEach (_ranked select [0,3]);
+_search set ["probed",_probed];
+_search set ["pending",_selected isEqualTo [] && {count _ranked > 3} && {count _probed < 12}];
 _selected

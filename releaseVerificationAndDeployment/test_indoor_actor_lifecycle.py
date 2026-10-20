@@ -92,6 +92,29 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'private _hit=_hits select 0','_selected isNotEqualTo []'):
             self.assertIn(guard,s)
         self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        for proof in ('count _probed >= 12','_previousBinding isNotEqualTo _binding',
+                      '_probed findIf {_x vectorDistance _nodeASL < 0.1}',
+                      '_search set ["pending"','count _ranked > 3'):
+            self.assertIn(proof,s)
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        self.assertIn('_brain set ["nodeSearch",_nodeSearch]',operation)
+        self.assertIn('if (_nodeSearch getOrDefault ["pending",false]) then {-1}',operation)
+        # Later native nodes remain selectable without increasing the per-call ray budget.
+        def search(nodes,roofed):
+            probed=[];counts=[]
+            while len(probed)<12:
+                batch=[x for x in nodes if x not in probed][:min(3,12-len(probed))]
+                if not batch:return None,counts
+                counts.append(0)
+                for node in batch:
+                    probed.append(node);counts[-1]+=1
+                    if node in roofed:return node,counts
+            return None,counts
+        self.assertEqual(search(list(range(20)),{3}),(3,[3,1]))
+        self.assertEqual(search(list(range(20)),{11}),(11,[3,3,3,3]))
+        self.assertEqual(search(list(range(20)),{12}),(None,[3,3,3,3]))
+        self.assertEqual(search([0,1],set()),(None,[2]))
+
         self.assertNotIn('getPosATL _enemy',s)
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         self.assertIn('private _initialTarget=if ((_admission select 0) == "OBSERVE")',operation)
