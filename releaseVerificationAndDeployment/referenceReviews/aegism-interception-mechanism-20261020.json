@@ -1,0 +1,118 @@
+{
+  "workshopId": "3815260246",
+  "date": "2026-10-20",
+  "scope": "Focused native-shot/interception-effect/aim-correction mechanism trace only, not complete AEGIS source evaluation. Three PBO inventories preserved; ten named SQF files fully read. Other source functions were located only, not reviewed.",
+  "archiveEvidence": [
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_intercept.pbo",
+      "sha256": "6e95c3634ca937d24bdb2d12c98a0eb3f45e65034e69fedbe503d7f26711055c",
+      "entries": 127
+    },
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_main.pbo",
+      "sha256": "4ac7052efb96161cc39aea20a80f375255f25d299bac83d49cd056fd8d3bfbd0",
+      "entries": 67
+    },
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_detection.pbo",
+      "sha256": "0ff517a938bcabd3599c7aab870c2ff335ce52a376281b3164a4f9c2c566d1e9",
+      "entries": 59
+    }
+  ],
+  "readFiles": [
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_onSystemFired.sqf",
+      "sha256": "34684764e808afc8694a613b85ec104851e248514f5dca828593f3ab28355d3e"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_ciwsRounds.sqf",
+      "sha256": "d857b92b4dbe7b33059734d2811e88c91acbced20e6e7661910a8eccbcd7d3a8"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_interceptorPFH.sqf",
+      "sha256": "fa7ff533eb1c4c5e92ada817932f2b626090184b255964a176d332d08a6606e9"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_interceptHit.sqf",
+      "sha256": "d17877dd3a197f919e447eab73ee37b2aa637e5e625d495678fc7ce4cf26c272"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_bodyPass.sqf",
+      "sha256": "d9eff138afcea406fb187eca266203ca1daf2f40299fe54be0de9bc180f758b9"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_targetHitRadius.sqf",
+      "sha256": "b696288a666961460e739c607367fc33da634bd94963fe3bee8155f45c447092"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_ciwsSpot.sqf",
+      "sha256": "1e62e8d509de779ef9f2d1c432818e21052b86cadba3acede0fcf4a16c4131e4"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_destroyMunition.sqf",
+      "sha256": "7b933180052e83b534ce108e27ff94c63551848665b1ccc9eb02813492fb3c47"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_detonate.sqf",
+      "sha256": "5ad8901481345da4441117407a6d4ec2485a1bc446628b5286d348aecd0c181d"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_blastMunitions.sqf",
+      "sha256": "5d45c3f684c843efca419216504999605cc70f6e4111ceff6213b4b902d63217"
+    }
+  ],
+  "executionTrace": [
+    "OnSystemFired matches exact gunner turret and weapon to a short-lived capture receipt; absent context leaves ordinary fire unmodified. Launcher captures attempt setMissileTarget and start an interceptor observer; gun captures start round observation and every third eligible spot sample.",
+    "CIWS rounds and missile observers compare swept projectile/target relative segments against configured radius/body geometry and minimum arming distance. Missing-projectile handling may extrapolate its last-frame segment before evaluating a hit.",
+    "InterceptHit delegates munition destruction to destroyMunition -> detonate -> triggerAmmo; submunition carriers mark interception and suppress child payload. Nearby tracked munitions can also be detonated via blastMunitions radius checks.",
+    "Launcher targeting changes missile target after native shot. This is not a proof that native fireAtTarget/collision alone can provide the same result, nor proof the engine universally requires scripted detonation.",
+    "CIWSSpot estimates bounded lead/elevation bias by ammo and target class from sampled misses, applies decay and outlier rejection, and retains four burst summaries. This is aim calibration, distinct from simulated hit/fuze effects."
+  ],
+  "intentDispositions": [
+    {
+      "intent": "Actual incoming-munition interception",
+      "selection": "Requires native shot capture and measured armed closest-pass evidence plus a deliberate game fuze/effect policy; a command/request or projectile disappearing is not success.",
+      "constraint": "No unconditional target deletion/detonation from a target flag or distance to shooter. Scripted fuse based on a real qualifying shot is a separate implementation decision, not automatically rejected as all script physics."
+    },
+    {
+      "intent": "CIWS learning/correction",
+      "selection": "Ammo/class-scoped decayed correction and rejection of outliers are useful. Preserve authored AI skill; calibrating aim must not rewrite mission skill or make every round hit.",
+      "constraint": "Actual gun aim application, detection uncertainty and current weapon station remain to trace before implementation."
+    },
+    {
+      "intent": "Layered AA allocation/threat urgency",
+      "selection": "Located assignEngagements/launchSolution/timeToImpact but not fully reviewed. Do not claim complete layered defence or clone the entire network.",
+      "constraint": "Use normal CBE group/asset relationships, observation confidence, ammunition/weapon capability and finite owner epochs."
+    }
+  ],
+  "excluded": [
+    "Optional infiniteAmmo branch in OnSystemFired; source network/module construction; unrelated surface-strike seeker behaviour."
+  ],
+  "performanceRisks": [
+    "CIWS creates one zero-interval PFH per active turret-round collection and loops all live rounds. No explicit round-count cap found in the reviewed function; lifetime/time-of-flight expires records.",
+    "InterceptorPFH creates a zero-interval observer per interceptor. bodyPass does up to20 ternary steps per checked body pass. Additional nearby blast chain scans the tracked-munition registry.",
+    "CBE5percentmedian/10percentp95 budget needs measurement and a bounded/coalesced observer design before promotion. Source instrumentation is not performance acceptance."
+  ],
+  "remaining": [
+    "Full detection/track uncertainty and allocation/crew-timing/aim application trace.",
+    "Provider/source licensing and exact binary configuration/dependencies.",
+    "CBE current-owner shot receipt, bounded projectile observer, hostile track and exact weapon admission integration.",
+    "Normal/HC physical firing, intercept, friend/neutral protection, ammunition depletion, cleanup/migration and performance validation."
+  ],
+  "sourceProtection": "Original three archives and named extracted files rehashed unchanged; no upstream code copied into CBE.",
+  "validation": "JSON parsing and exact source-hash checks only. No product changes, runtime test or new implementation credit.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

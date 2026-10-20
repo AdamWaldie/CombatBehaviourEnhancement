@@ -4,7 +4,7 @@
   "name": "AEGIS-M - Integrated Air Defence Framework",
   "author": "Snow(Dryden)",
   "added": "2026-10-20",
-  "status": "REGISTERED_PENDING_SOURCE_EVALUATION",
+  "status": "FOCUSED_INTERCEPTION_MECHANISM_REVIEWED_FULL_SCOPE_PENDING",
   "scope": "Selective AI anti-air improvements integrated into normal CBE behaviour without requiring placed/synced modules. Not a wholesale port or external addon dependency.",
   "includedIntent": [
     "Shoot down incoming munitions where supported by weapon/platform capabilities.",
@@ -42,5 +42,6 @@
   "licence": "UNVERIFIED; inspect before incorporating code.",
   "sourceProtection": "Read installed originals only; preserve archives and provenance. Keep raw upstream material private and outside CBE packages.",
   "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md absent; preserve addition separately for reconciliation.",
-  "acceptance": "No implementation, parity or physical validation claimed; audits PAUSED."
+  "acceptance": "No implementation, parity or physical validation claimed; audits PAUSED.",
+  "focusedReview": "aegism-interception-mechanism-20261020.json"
 }
