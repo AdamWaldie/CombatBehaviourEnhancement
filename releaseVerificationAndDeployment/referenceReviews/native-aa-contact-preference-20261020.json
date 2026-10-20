@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-20",
+  "baseline": "d826ca4b",
+  "scope": "Native anti-air contact preference for CBE vehicle gunnery; no projectile interception.",
+  "sourceIntentReview": "releaseVerificationAndDeployment/referenceReviews/protocol-aa-3809708209-20261020.json",
+  "intent": "Dedicated AA should not prefer every nearby anti-tank rifleman or lose known aircraft behind an eight-ground-contact shortlist. Retain existing knowledge, station, ROE and owner authority.",
+  "implementation": [
+    "CortexKnowledge optional third argument ALL/AIR filters native candidates before the existing eight-contact personal-knowledge evaluation; default callers unchanged. No new revealed or exact hostile position.",
+    "CortexVehicles recognises native editorSubcategory EdSubcat_AAs as target preference only. The first eligible firing AA platform obtains one AIR-domain query, shared by other AA platforms in this group callback.",
+    "Merge up to eight ordinary rows and eight fresh aircraft rows, deduplicated by known object. Rank fresh aircraft first and inspect at most eight target/station/lane candidates.",
+    "Fresh means last native seen/threat age <=3s. Only those AA aircraft candidates use the existing engagement-range setting; other contacts and platforms retain600m and ordinary AT/armour priorities.",
+    "Actual loaded turret/muzzle ammunition, fresh command-boundary checks, gunner availability, mission/combined-ground ownership, ROE and firing lanes remain authoritative. No worker, radar/reveal command, missile guidance, synthetic shot or collision effect."
+  ],
+  "limits": [
+    "Native AA editor category only: custom mod categories retain ordinary gunnery. This role metadata never proves loaded weapon suitability.",
+    "The existing vehicle callback contact prerequisite remains; this is not an independent long-range radar or threat-discovery service.",
+    "No ground anti-munition interception, layered allocation, AA displacement or complete Protocol/AEGIS parity.",
+    "Additional native knowledge query/personal evaluation is bounded and shared, but aggregate overhead and actual range/aim/firing need physical measurement."
+  ],
+  "productionSha256": {
+    "addons/infantry/functions/cortexKnowledge.sqf": "2e58ced68cc7e5d72098a26f7ab39f67fdc575caca841379387e600cd31925e4",
+    "addons/vehicles/functions/cortexVehicles.sqf": "acf019d25413d251638e341ee86fd730fc0f27150af2c9b1fb63c57f8cc665d6"
+  },
+  "validation": {
+    "focusedOperations": 607,
+    "fullTests": 1477,
+    "buildExit": 0,
+    "log": ".qa/native-aa-contact-preference-build.log",
+    "candidate": ".qa/candidates/native-aa-contact-preference-d826ca4b",
+    "fingerprint": "e5c7d5b6fd158dc9b84530ea2603cc37a2594c5b0ee2d4c6f5b1ddb3cbcbc034",
+    "independentVerification": true,
+    "signed": false,
+    "source": "baseline plus intended dirty product/test/guide changes, review/handover follow build",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
+}

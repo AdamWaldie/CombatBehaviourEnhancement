@@ -51,6 +51,10 @@
  * enemy seen in the last 15 s within 600 m: anti-tank infantry first, then armour, then anything
  * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
  * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
+ * Native AA editor-role platforms prefer fresh aircraft out to the configured engagement range.
+ * One additional aircraft-only knowledge pass per group callback avoids nearby ground-contact
+ * crowding; at most sixteen rows merge and eight receive station/lane checks. Other vehicles
+ * retain the ordinary policy. This is native gunnery, not anti-munition interception.
  * Up to eight known contacts are considered in threat order, stopping at the first usable lane;
  * an incompatible or blocked first choice cannot starve a lower-priority usable target.
  * A live combined-ground role suppresses competing routine ground targeting until its original
@@ -591,6 +595,9 @@ if (_dangerDismount isNotEqualTo []) then {
     };
 };
 if (_enemies isEqualTo []) exitWith {_movementOwned};
+// One additional bounded native-knowledge pass shared by every eligible AA platform.
+private _airContacts=[];private _airContactsRead=false;
+private _airRange=missionNamespace getVariable ["CBE_AIPass_EngageRange",800];
 private _enemyPos = (_enemies select 0) select 1;
 private _selectVehicleEscape = {
     params ["_vehicle","_threatPosition","_threatObject","_distance"];
@@ -722,36 +729,57 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
     // Reports older than3s use fixed-position bullet suppression within the existing15s window.
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
         private _gunner = gunner _vehicle;
+        // Native editor role is a preference, never ammunition or engagement permission.
+        // Custom categories keep ordinary policy; no classname list or revealing scan.
+        private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
+        private _gunneryContacts=+(_enemies select [0,8]);
+        if (_airDefence && {[_vehicle,_gunner] call _gunnerAvailable} && {canFire _vehicle}) then {
+            if (!_airContactsRead) then {
+                _airContacts=([_group,-1,"AIR"] call CBE_fnc_CortexKnowledge) select 0;
+                _airContactsRead=true;
+            };
+            {
+                private _airRow=_x;
+                if ((_airRow select 2) <= 3
+                    && {_gunneryContacts findIf {(_x select 0) == (_airRow select 0)} < 0}) then {
+                    _gunneryContacts pushBack _airRow;
+                };
+            } forEach _airContacts;
+        };
         private _ranked = [];
         {
             _x params ["_enemy", "_position", "_age"];
             private _distance = _vehicle distance2D _position;
-            if (_age <= 15 && {_distance <= 600} && {alive _enemy} && {!captive _enemy}
+            private _freshAir=_airDefence && {_enemy isKindOf "Air"} && {_age <= 3};
+            private _contactRange=[600,_airRange] select _freshAir;
+            if (_age <= 15 && {_distance <= _contactRange} && {alive _enemy} && {!captive _enemy}
                 && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _enemy) < 0.6}) then {
                 private _priority = switch (true) do {
+                    case (_freshAir): {-1};
                     case (_enemy isKindOf "CAManBase" && {"AT" in ([_enemy] call CBE_fnc_CortexCapabilities)}): {0};
                     case (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}): {1};
                     default {2};
                 };
                 _ranked pushBack [_priority, _distance, _forEachIndex];
             };
-        } forEach _enemies;
+        } forEach _gunneryContacts;
         _ranked sort true;
         if (_ranked isNotEqualTo [] && {[_vehicle,_gunner] call _gunnerAvailable}
             && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
             && {canFire _vehicle}
             && {combatMode _group in ["YELLOW", "RED"]} && {unitCombatMode _gunner in ["YELLOW", "RED"]}
             && {(_gunner getVariable ["CBE_AIPass_TargetHold", -1]) < time}) then {
-            // CortexKnowledge supplies at most eight contacts. Preserve threat order, but
+            // Two bounded knowledge domains supply at most sixteen ranked rows; inspect only
+            // eight. Preserve threat order, but
             // an unusable first contact must not starve the next safe, compatible target.
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
             private _suppressionPoint=[];
             private _stationSelection=createHashMap;
             {
-                private _contactRow=_enemies select (_x select 2);
+                private _contactRow=_gunneryContacts select (_x select 2);
                 private _candidate=_contactRow select 0;
                 private _reported=+(_contactRow select 1);
                 private _suppressOnly=(_contactRow select 2) > 3;

@@ -5870,6 +5870,17 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexVehicles')
         selection=text.split('private _target=objNull;',1)[1].split('private _standoff',1)[0]
         self.assertIn('forEach (_ranked select [0,8])',selection)
+        self.assertIn('private _airContacts=[];private _airContactsRead=false;',text)
+        self.assertIn('if (!_airContactsRead) then {',text)
+        self.assertEqual(text.count('[_group,-1,"AIR"] call CBE_fnc_CortexKnowledge'),1)
+        self.assertIn('== "edsubcat_aas"',text)
+        self.assertIn('case (_freshAir): {-1}',text)
+        self.assertIn('private _contactRange=[600,_airRange] select _freshAir;',text)
+        self.assertIn('_gunneryContacts select (_x select 2)',selection)
+        knowledge=source('cortexKnowledge')
+        self.assertIn('_domain == "ALL" || {_enemy isKindOf "Air"}',knowledge)
+        self.assertLess(knowledge.index('_domain == "ALL"'),knowledge.index('if (count _candidates > 8)'))
+
         self.assertIn('[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady',selection)
         self.assertIn('[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear',selection)
         self.assertIn('exitWith {\n                    _target=_candidate;',selection)

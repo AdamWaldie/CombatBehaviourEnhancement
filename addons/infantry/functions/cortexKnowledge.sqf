@@ -27,6 +27,8 @@
  * Arguments:
  * 0: group <GROUP>
  * 1: range <NUMBER> - metres from the leader (optional, default: CBE_AIPass_EngageRange)
+ * 2: domain <STRING> - ALL (default) or AIR; filters native candidates before the eight-contact
+ * shortlist, retaining the same personal-knowledge, ignore and observer bounds. No new detection.
  *
  * Return Value:
  * Array - [enemies, seenCount]. enemies is an array of
@@ -37,10 +39,11 @@
  * ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
  * Result: the group's nearest known enemies and how many of them it can currently see.
  *
- * Current callers: CBE_fnc_CortexGroupTick and the behaviour functions it calls.
+ * Current callers: CBE_fnc_CortexGroupTick and CBE_fnc_CortexVehicles (one shared AA-domain query).
  */
 
-params [["_group", grpNull, [grpNull]], ["_range", -1, [0]]];
+params [["_group", grpNull, [grpNull]], ["_range", -1, [0]],["_domain","ALL",[""]]];
+if !(_domain in ["ALL","AIR"]) exitWith {[[],0]};
 if (isNull _group || {!local _group}) exitWith {[[],0]};
 if (_range < 0) then {_range = missionNamespace getVariable ["CBE_AIPass_EngageRange", 800]};
 private _leader = leader _group;
@@ -84,7 +87,8 @@ private _candidateTargets=+(_leader targets [true, _range]);
 private _candidates = [];
 {
     private _enemy = _x;
-    if (!(_enemy isKindOf "Logic") && {alive _enemy} && {!captive _enemy}
+    if ((_domain == "ALL" || {_enemy isKindOf "Air"})
+        && {!(_enemy isKindOf "Logic")} && {alive _enemy} && {!captive _enemy}
         && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
         && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side _enemy) < 0.6}) then {
