@@ -144,7 +144,7 @@ if (_blocked) exitWith {
     private _relocationRoute=[_group] call CBE_fnc_NativeOrderReceipt;
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     if !([_gunner] call _actorAvailable) exitWith {false};
-    private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group] call CBE_fnc_CortexFindCover) select 0;
+    private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group,"COVER",_gunner] call CBE_fnc_CortexFindCover) select 0;
     if (!call _mayRelocate || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
     _gunner doMove _spot;
     _gunner setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];

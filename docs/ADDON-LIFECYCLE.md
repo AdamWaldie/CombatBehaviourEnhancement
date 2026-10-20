@@ -1315,3 +1315,12 @@ available when requested; egress proposal logging uses the same gate. Terminal f
 retry-exhaustion evidence remain available. Acceptance predicates, actor/geometry budgets,
 movement authority and deadlines are unchanged. This removes avoidable work by inspection;
 no measured frame-time or 5% median/10% p95 budget claim is made.
+
+Cover selection accepts an optional intended actor after its screening-mode argument. Danger
+cover, anti-armour relocation, grenade avoidance and clearance reserve selection pass their
+actual recipient. Occupancy excludes only that actor, and every object ray ignores the same
+actor so its body cannot fabricate cover or invalidate standing room. Other soldiers retain
+their existing occupancy and geometry constraints. Unassigned formation-slot searches keep
+the default null actor. The helper remains read-only; native task/movement ownership is still
+checked by each executor. No search radius, query/ray budget, reservation or deadline changes.
+Actual stable-cover retention and movement quality remain unverified.

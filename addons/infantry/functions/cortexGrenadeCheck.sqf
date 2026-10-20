@@ -129,7 +129,7 @@ private _regroupActors = [];
         private _chance = (0.5 + 0.5 * (_unit skill "general")) * (1 - 0.5 * ((getSuppression _unit) max 0 min 1));
         if (_sees && {random 1 < _chance}) then {
             private _direction = (_grenadePos getDir _unit) + ((_reacted mod 3) - 1) * 35;
-            private _spot = ([(getPosATL _unit) getPos [9, _direction], _grenadePos, 6, [], _group] call CBE_fnc_CortexFindCover) select 0;
+            private _spot = ([(getPosATL _unit) getPos [9, _direction], _grenadePos, 6, [], _group,"COVER",_unit] call CBE_fnc_CortexFindCover) select 0;
             if (_unit in _supportHeld) then {
                 _unit enableAI "PATH";
                 _state set ["supportHeld",_supportHeld-[_unit]];

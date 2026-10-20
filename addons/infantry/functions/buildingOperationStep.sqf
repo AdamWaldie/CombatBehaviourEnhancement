@@ -1617,7 +1617,7 @@ private _delay=call {
                         };
                     };
                 } forEach keys _reserveStages;
-                private _cover=[_search,_centre,12,_taken,_group] call CBE_fnc_CortexFindCover;
+                private _cover=[_search,_centre,12,_taken,_group,"COVER",_reserve] call CBE_fnc_CortexFindCover;
                 private _target=_cover select 0;
                 private _covered=_cover select 1;
                 private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);

@@ -213,7 +213,7 @@ private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 
     && {_origin vectorDistance (_failedSearch select 1) <= 2}
     && {_threat vectorDistance (_failedSearch select 2) <= 3};
 private _cover=if (_sameGeometry) then {[_origin,false]} else {
-    private _result=[_origin,_threat,18,[],_group,_screenMode] call CBE_fnc_CortexFindCover;
+    private _result=[_origin,_threat,18,[],_group,_screenMode,_actor] call CBE_fnc_CortexFindCover;
     if !(_result select 1) then {
         _failedSearches set [_screenMode,[time+3,+_origin,+_threat]];
         _actor setVariable ["CBE_Danger_CoverFailedSearches",_failedSearches];

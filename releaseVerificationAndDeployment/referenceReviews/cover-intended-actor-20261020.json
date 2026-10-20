@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-20",
+  "baseline": "28feccca",
+  "scope": "Cover candidate recipient occupancy and ray identity",
+  "finding": "Cover occupancy rejected every nearby person including intended actor, while BuildingExteriorCandidate already excluded its actual recipient. Simply removing occupancy rejection would let ownbody obstruct standing/body rays or falsely supply cover.",
+  "change": "Optional final actor argument defaultsnull. Explicit recipient passed by dangercover/reserve/AT/grenade callers. Exclude only that actor from people occupancy and all four object-ray sites, including threat->candidate screen ray. Other people/collision geometry remain. Flank slots unassigned at search retain null.",
+  "limits": "Read-only proposal does not grant movement, cover immunity or actual path. No queries/radius/budget/deadline added. Engine physical cover and movement not tested; no parity/score/performance claim.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexFindCover.sqf",
+      "sha256": "7626a24e2670a65958a015b89cdbfd4b1fd2c5859ad837d164af25ef395690d8"
+    },
+    {
+      "path": "addons/infantry/functions/dangerCoverStep.sqf",
+      "sha256": "d6382cbfc56046fcda098cd5b186cb74bd39a956e0946f88f677a8ad12254c78"
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "165563ae8436787ce402c6f7dfa7b2615373cbfa3c9bcfca2aa57c701329424b"
+    },
+    {
+      "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+      "sha256": "a98e2911c83841bc22f0080d21232306febbc2320d71405521bbf709e1b66b68"
+    },
+    {
+      "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+      "sha256": "43cb234b5f4ce24d5583a7c7fb445bbc9a8023bfa1af6982ae75b0e83eb773bd"
+    }
+  ],
+  "validation": "Focused existing danger-admission/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package passed .qa/cover-intended-actor-build.log. Unsignedcandidate .qa/candidates/cover-intended-actor-28feccca independentlyverified fingerprint77528858a7c1db831114b316d51f43d45dec5834cf8f8b690ebb9eae122b518a. No engine outcome/percentage claim."
+}

@@ -7,6 +7,13 @@ class DangerCoverAdmission(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/dangerCoverStep.sqf').read_text(encoding='utf-8')
         first=s.index('call CBE_fnc_CortexActorMoveReserved')
         self.assertLess(first,s.index('call CBE_fnc_CortexFindCover'))
+        self.assertIn('[_origin,_threat,18,[],_group,_screenMode,_actor]',s)
+        cover=(ROOT/'addons/infantry/functions/cortexFindCover.sqf').read_text(encoding='utf-8')
+        self.assertIn('findIf {_x != _actor} < 0',cover)
+        self.assertEqual(cover.count('lineIntersectsSurfaces'),4)
+        self.assertNotIn('objNull,objNull,true,1',cover)
+        self.assertNotIn('objNull, objNull, true, 1',cover)
+        self.assertIn('_rayStart, _endASL, _actor, objNull',cover)
         commit=s.split('if (_entryContext isNotEqualTo',1)[1].split('_actor doMove _spot',1)[0]
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',commit)
         self.assertNotIn('(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []',s)
