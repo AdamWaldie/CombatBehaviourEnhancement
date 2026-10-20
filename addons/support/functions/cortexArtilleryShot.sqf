@@ -20,6 +20,9 @@
 params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]],["_fireGeneration",-1,[0]],["_smokeGeneration",-1,[0]]];
 if (remoteExecutedOwner != 2) exitWith {false};
 if (!finite _shotSerial || {_shotSerial < 1} || {_shotSerial != floor _shotSerial}) exitWith {false};
+// Malformed geometry cannot consume a shot receipt or reject a genuine pending shot.
+if (!(_aim isEqualType []) || {!(count _aim in [2,3])}
+    || {_aim findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
 private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration,_fireGeneration,_smokeGeneration];
 private _requestState={
     private _receipt=_battery getVariable ["CBE_AIPass_ShotReceipt",[]];

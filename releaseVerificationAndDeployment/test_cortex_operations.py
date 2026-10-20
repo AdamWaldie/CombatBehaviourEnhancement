@@ -541,6 +541,15 @@ class CortexOperations(unittest.TestCase):
         start=source('artilleryMissionStart');queue=source('artilleryMissionQueue');step=source('artilleryMissionStep')
         stop=source('cortexStop');diagnostics=source('aiGetDiagnostics')
         fsm=(ROOT/'addons/main/fsm/artilleryMission.fsm').read_text(encoding='utf-8')
+        admission=fire.split('// Validate before range/aim planning',1)[1].split('private _missions =',1)[0]
+        for proof in ('count _target in [2,3]','!finite _x','!finite _error','!finite _rounds','!finite _scoot'):
+            self.assertIn(proof,admission)
+        self.assertLess(fire.index('!finite _error'),fire.index('private _serial ='))
+        shot=source('cortexArtilleryShot')
+        geometry=shot.split('// Malformed geometry',1)[1].split('private _signature=',1)[0]
+        for proof in ('_aim isEqualType []','count _aim in [2,3]','!finite _x','exitWith {false}'):
+            self.assertIn(proof,geometry)
+        self.assertNotIn('setVariable',geometry)
         self.assertIn('CBE_fnc_ArtilleryMissionStart',fire)
         self.assertNotIn('[CBE_fnc_CortexArtilleryMissionStep, _mission, 0]',fire)
         self.assertIn('artilleryMission.fsm',start)

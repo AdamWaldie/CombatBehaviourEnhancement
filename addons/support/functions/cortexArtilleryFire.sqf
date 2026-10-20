@@ -15,6 +15,8 @@
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
  * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
  * Counter missions retain the server cancellation generation through their queued shots.
+ * Target coordinates must be finite ATL pairs/triples; error, rounds and numeric scoot
+ * defaults must be finite before planning or reservation. Invalid input has no busy/cooldown effect.
  * Return Value: Boolean, request queued or accepted.
  * Current callers: ArtilleryRequest, CounterBattery, Retreat and server mission scripts.
  * Example: [_gun, _reportedPosition, 40] call CBE_fnc_CortexArtilleryFire;
@@ -35,7 +37,10 @@ if (remoteExecutedOwner > 2) then {
     private _hc = allPlayers findIf {_x isKindOf "HeadlessClient_F" && {owner _x == remoteExecutedOwner}};
     if (_hc < 0 || {if (_retreatSmoke) then {remoteExecutedOwner != groupOwner _requester} else {if (isNull _spotter) then {remoteExecutedOwner != owner _battery} else {remoteExecutedOwner != owner _spotter}}}) then {_purpose = ""};
 };
-if (!(_purpose in ["SUPPORT", "COUNTER", "DANGER"]) || {!(_mode in ["HE", "SMOKE"])} || {count _target < 2} || {_target findIf {!(_x isEqualType 0)} >= 0}
+// Validate before range/aim planning and any token, busy or observer cooldown mutation.
+if (!(_purpose in ["SUPPORT", "COUNTER", "DANGER"]) || {!(_mode in ["HE", "SMOKE"])}
+    || {!(count _target in [2,3])} || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!finite _error} || {!finite _rounds} || {_scoot isEqualType 0 && {!finite _scoot}}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
 if (_retreatSmoke && {isNull ([_requester] call CBE_fnc_CortexGroupTransmitter)
     || {!([_requester] call CBE_fnc_CortexIsEligible)}

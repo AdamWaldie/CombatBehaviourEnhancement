@@ -2130,3 +2130,6 @@ Building-memory visits now recheck interior bounds, floor height, unobstructed n
 
 
 Convoy command admission now yields when either the actual driver or movement operator is hidden, simulation-disabled or queued for ACE treatment. Every existing speed, hold and path writer using the shared seat check receives this guard. Medical queues and exact release cleanup are unchanged; no worker, cadence or spacing gain is added. Mixed-convoy flow, crew recovery and owner migration still require physical verification.
+
+
+Artillery requests reject malformed coordinate lengths and non-finite coordinates, error, rounds or numeric scoot defaults before range planning, battery reservation and observer cooldown. The battery owner independently rejects malformed aim coordinates before touching a shot receipt, so invalid geometry cannot consume or reject a genuine pending request. Existing finite valid defaults and shot acknowledgements are unchanged. This does not implement pre-fire range relocation: that remains separate from the post-fire scoot operation. Runtime ammunition, movement and overhead remain unverified.
