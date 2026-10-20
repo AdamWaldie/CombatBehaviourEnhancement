@@ -53,6 +53,18 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('_enter=_enter max (_first min _last)',code)
         self.assertIn('_leave=_leave min (_first max _last)',code)
         self.assertNotIn('private _closing=-',code)
+        # Only live monitoring may shorten the observation, and only behind the full hull.
+        self.assertIn('getOrDefault ["monitorRemaining",false]',code)
+        for guard in ('_nearRuns == 1','_distance <= 3','<= 2','>= cos 35',
+                      'sqrt (_halfLength^2+_width^2)+2','_back >= _rearBuffer',
+                      '_monitorPose isNotEqualTo'):
+            self.assertIn(guard,code)
+        self.assertIn('_guide=_guide select [_start]',code)
+        step=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text()
+        self.assertEqual(step.count('["monitorRemaining",true]'),3)
+        issue=step.split('private _issue={',1)[1].split('if (!(_work get "issued")',1)[0]
+        self.assertNotIn('monitorRemaining',issue)
+
         for forbidden in ('setVariable','doMove','setDriveOnPath','forceSpeed','setVelocity','remoteExec'):
             self.assertNotIn(forbidden,code)
     def test_query_envelope_covers_fast_road_approach_for_entire_proposal(self):

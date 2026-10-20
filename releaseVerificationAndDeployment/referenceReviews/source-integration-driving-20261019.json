@@ -664,5 +664,19 @@
     ],
     "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-abort-traffic-build.log; candidate .qa/candidates/pass-abort-ff734714-bdcf097b fingerprint bdcf097bfee9237bf70c5b5e00090b619ca3e6fa6cb5ed821a098793ac1a4e36 actualff734714+intendeddirtyedits. No test-count/score increase.",
     "audits": "PAUSED"
+  },
+  "passingRemainingCorridor20261020": {
+    "sourceParent": "abe6144b",
+    "finding": "Traffic monitoring reserves the whole issued corridor, including distant passed stations. After adding live DROP_BACK checks, a stationary actor on a completed portion could hold the passer despite being behind its entire hull.",
+    "implementation": "Optional monitorRemaining BOOLdefaultfalse in DrivingPassTraffic, used only by ongoing OUT/RETURN/DROP_BACK. One contiguous near segment <=3m horizontal/2m vertical, headingdot>=cos35, must permit a suffix beginning behind sqrt(halfLength^2+width^2)+2m along the path. Retain whole start station. Ambiguous/off-path/wrongfloor/misaligned keeps full corridor. Exact pose rechecked before returning monitor evidence.",
+    "authority": "Only observation guide is shortened. Native path, issue/admission geometry, discovery envelope, consent expiry and progress/completion remain unchanged.",
+    "cost": "At most127 segment projections and127 backward steps once before existing <=64candidate*127segment traffic loop. No extra spatial query, ray, handler or timer.",
+    "limits": [
+      "Contiguous stretches at complex geometry can still conservatively retain too much path.",
+      "Rear traffic forecast remains finite constant-course; native steering/braking and performance unverified.",
+      "No new HBQ parity or physical acceptance claim."
+    ],
+    "validation": "36 existing passing cases and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-pass-remaining-corridor-build.log; candidate .qa/candidates/pass-remaining-abe6144b-79a15cb0 fingerprint 79a15cb0117bdc4a49aa64243d465bf98b69e33d1de069e6212868d5019d6bef actualabe6144b+intendeddirtysource. No test-count/score increase.",
+    "audits": "PAUSED"
   }
 }
