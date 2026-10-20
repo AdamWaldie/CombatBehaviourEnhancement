@@ -9620,6 +9620,16 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,replay)
         self.assertIn('select [0,64]',replay)
         self.assertIn('(_count max 0) min 3',replay)
+        history=replay.split('// A known casualty',1)[1].split('if (count _stage in [4,7]',1)[0]
+        for gate in ('count _stage == 7','"ARRIVED"','!isNull _historicGuard',
+                     '!alive _historicGuard','"INCAPACITATED"','"ACE_isUnconscious"',
+                     '_stage select 0,_stage select 4,_stage select 5','!finite _x',
+                     '"securityEntries"','if (_historicPost) then {_stages set [_key,+_stage]}'):
+            self.assertIn(gate,history)
+        for forbidden in ('setVariable','doMove','doStop','doWatch','_moves set','SettingsApply',
+                          '_counts set','_job set','enableSimulation'):
+            self.assertNotIn(forbidden,history)
+
         for command in [' doMove ', ' doFollow ', 'doStop ', ' setDestination ']:
             self.assertNotIn(command,replay)
         self.assertIn('_live vectorDistance _target <= 0.25',replay)

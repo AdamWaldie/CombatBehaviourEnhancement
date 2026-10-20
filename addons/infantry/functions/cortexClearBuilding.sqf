@@ -31,6 +31,8 @@
  * attempts every room, and makes a large squad flow through the building instead of parking around it.
  * Final egress journals pending native-leg receipts and assigned exits across owner
  * migration; planning and travel share the original finite exit deadline.
+ * Owner adoption retains validated known-casualty post history for the same episode/transform;
+ * this metadata grants no live observation, movement, settings or renewed search budget.
  * Exterior reserves consider up to sixteen already-discovered native exits independently of
  * the four nearest interior entry choices; this does not establish complete building isolation.
  * Delayed reserve admission retains original native command/formation-leader receipts across
@@ -872,6 +874,20 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
         _tried set [_key,+(_targets select [0,6])];
         _triedEntries set [_key,+(_entryHistory select [0,3])];
         private _actor=_actors getOrDefault [_key,objNull];
+        // A known casualty's established post is history, not a live observer or
+        // movement lease. Retain it across adoption so proactive exit replacement
+        // can still recognise the gap. Missing network lookup never proves loss.
+        private _historicGuard=if (_key isEqualType "") then {objectFromNetId _key} else {objNull};
+        private _historicPost=count _stage == 7 && {(_stage select 2) == "ARRIVED"}
+            && {!isNull _historicGuard} && {!alive _historicGuard
+                || {lifeState _historicGuard == "INCAPACITATED"}
+                || {_historicGuard getVariable ["ACE_isUnconscious",false]}}
+            && {[_stage select 0,_stage select 4,_stage select 5] findIf {
+                !(_x isEqualType []) || {count _x != 3}
+                    || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            } < 0}
+            && {(_stage select 5) in (_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]])};
+        if (_historicPost) then {_stages set [_key,+_stage]};
         if (count _stage in [4,7] && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
             && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
             && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}

@@ -87,5 +87,20 @@
       "Current source package passes1477 static tests/build; this fixture has not run in Arma."
     ],
     "validation": ".qa/cbe-cqb-security-fixture-build.log"
+  },
+  "casualtyHistoryAdoptionFollowUp": {
+    "baselineCommit": "762f210d",
+    "finding": "Owner adoption kept reserve posts only for currently capable actors. Dead/incapacitated established guards could lose their historical stage, leaving the successor without the evidence needed by proactive security replacement.",
+    "change": "Within the existing matching building/hard-deadline/transform stage-budget replay, retain seven-field ARRIVED history for a non-null known dead/incapacitated guard only after finite post/watch/exit coordinates and membership of the discovered security exits validate. History changes only the local stage map: no movement targets, actor settings, native commands, watching, budget reset or live observer receipt. Existing capable-actor adoption remains separate.",
+    "sourceSha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-security-history-adoption-build.log",
+      "independent": ".qa/cbe-cqb-security-history-adoption-independent.log",
+      "fingerprint": "39d53699ccfc9fb58a7f27d4344f4dfe0caa229fd0ad32c9d841fe8ec95294a5",
+      "packageSource": "762f210d plus dirty intended adoption/test edits"
+    },
+    "physicalAcceptance": false,
+    "limits": "Deleted/null guard lookup is not casualty evidence. Normal/provider-HC handover, physical post replacement and overhead remain unverified; audits paused."
   }
 }
