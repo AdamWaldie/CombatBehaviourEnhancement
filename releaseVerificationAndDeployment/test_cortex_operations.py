@@ -4283,6 +4283,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('Any live contact can provide fire context',assessment)
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)
         self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}',assessment)
+        capacity=assessment.split('private _availableFoot=',1)[1].split('private _houses=',1)[0]
+        self.assertIn('_foot select {[_x] call CBE_fnc_CortexActorFireTaskAvailable}',capacity)
+        self.assertIn('if (_availableFoot isEqualTo []) exitWith',capacity)
+        self.assertIn('"ACTOR_TASKS_BUSY"',capacity)
+        self.assertIn('private _armedFoot=_availableFoot select',capacity)
+        self.assertIn('private _capableAT=_availableFoot findIf',capacity)
+        self.assertIn('private _capableAA=_availableFoot findIf',capacity)
+        self.assertLess(capacity.index('"ACTOR_TASKS_BUSY"'),capacity.index('if (count _armedFoot < 2)'))
+        self.assertIn('case "ACTOR_TASKS_BUSY": {"ACTOR_TASK_HANDOFF"}',selector)
+
         self.assertIn('if (count _onFoot < 2) exitWith',assault)
         self.assertIn('SMALL_ELEMENT_UNAVAILABLE',assault)
         roster=assault.split('private _onFoot=',1)[1].split('if (count _onFoot < 2)',1)[0]

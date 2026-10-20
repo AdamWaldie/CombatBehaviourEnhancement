@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Current rifle/AT/AA capacity uses the shared protected-task/reservation predicate;
+ * no available actor leaves existing work in control, without a group fallback request.
  * Purpose: Select one bounded group-level combat intent from existing native knowledge, force capability, terrain and mission orders.
  * Locality / Authority: Read-only on the current group owner. It never reveals targets, issues commands or acquires movement ownership.
  * Close infantry assessment includes the executor's two/three-person element support;
@@ -66,7 +68,15 @@ private _forwardOrder=_waypointIndex < count waypoints _group
 private _foot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
 };
-private _armedFoot=_foot select {primaryWeapon _x != ""};
+// Current tactical capacity excludes protected tasks and independently leased actors.
+// Physical squad strength remains separate in _foot for diagnostics and other layers.
+private _availableFoot=_foot select {[_x] call CBE_fnc_CortexActorFireTaskAvailable};
+if (_availableFoot isEqualTo []) exitWith {
+    _result set ["reason","ACTOR_TASKS_BUSY"];
+    _result set ["evidence",[count _foot,0]];
+    _result
+};
+private _armedFoot=_availableFoot select {primaryWeapon _x != ""};
 if (count _armedFoot < 2) exitWith {
     // A single fresh infantry opponent at immediate firing range is not, by itself,
     // a reason to turn a surviving rifleman away. Keep native engagement/mission movement;
@@ -92,8 +102,8 @@ if (count _armedFoot < 2) exitWith {
     _result set ["evidence",[count _foot,count _armedFoot]];
     _result
 };
-private _capableAT=_foot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
-private _capableAA=_foot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAT=_availableFoot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAA=_availableFoot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 private _houses=(getPosATL _leader) getEnvSoundController "houses";
 private _trees=(getPosATL _leader) getEnvSoundController "trees";
 private _forest=(getPosATL _leader) getEnvSoundController "forest";

@@ -125,5 +125,20 @@
     "runtimeChanged": false,
     "physical": false,
     "scoresChanged": false
+  },
+  "availableTacticalCapacity20261020": {
+    "sourceParent": "53072894",
+    "sourceIntent": "LAMBS brainAssess/brainEngage preserve protected native work and let individual memory/CQB actions coexist with group decision-making. CBE actual tactical assessment must agree with executor task/reservation availability; healthy armed headcount alone is not present manoeuvre capacity.",
+    "finding": "Tactical assessment counted protected/reserved riflemen and AT/AA operators as currently available even though manoeuvre rosters refused those actors. It could propose unavailable roles and fall through repeated refusal to a whole-group reposition request, which separately deferred.",
+    "implementation": "Shared fire-task/reservation predicate selects availableFoot from existing healthy local dismounted roster. Rifle threshold and AT/AA capability use available roster; no available actor returns HOLD/default empty candidates with ACTOR_TASKS_BUSY before low-firepower fallback. Dispatcher reports ACTOR_TASK_HANDOFF. Physical foot strength remains diagnostic, morale/vehicle priority and executor guards remain.",
+    "cost": "One bounded existing read-only predicate per local foot actor, replacing later futile role attempts when all are protected. No world query/timer/controller or new movement. Runtime effect unmeasured.",
+    "validation": "688 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-tactical-available-build.log. Candidate .qa/candidates/tactical-available-53072894-60b612b7 fingerprint 60b612b7079e6c627ac98c0aad5f85c4ea3157fcc5e2b666cace545a160b0257 actual53072894+dirtysource. Independent copied-package verification .qa/cbe-tactical-available-independent.log. No new cases or scores.",
+    "limits": "This aligns decision/execution capacity, not whole LAMBS parity. Actual concurrent indoor/group roles, native planning, casualties, owner changes and performance remain unverified.",
+    "implementationHashes": {
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "3214f2c04dd08e1a7f0b4bc4c23b5f7e3a5b588fe184a8b05c5c30db74de6a01",
+      "addons/infantry/functions/cortexTacticalStart.sqf": "a423714738740f320fa85c5954df42708460663dccd33789c9098366cfcb5a2d",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "b006dfb066a4a5c3f3c261757828f7b2fb5e00a083cd85dc8afef1a26f1fd365"
+    },
+    "audits": "PAUSED"
   }
 }

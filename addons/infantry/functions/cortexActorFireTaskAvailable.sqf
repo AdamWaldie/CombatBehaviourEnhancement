@@ -6,7 +6,7 @@
  * Arguments: 0 actor <OBJECT, objNull>.
  * Return: BOOL, true only for a local actor without a protected task or movement reservation.
  * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles,
- * CortexAssaultStart, CortexFlankStart, CortexAdvanceStart and ConvoyCrewLocal.
+ * CortexAssaultStart, CortexFlankStart, CortexAdvanceStart, CortexTacticalAssess and ConvoyCrewLocal.
  * Example: private _available=[gunner tank1] call CBE_fnc_CortexActorFireTaskAvailable;
  */
 params [["_actor",objNull,[objNull]]];
