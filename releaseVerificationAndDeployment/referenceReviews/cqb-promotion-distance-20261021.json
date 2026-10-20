@@ -8,5 +8,13 @@
   "validation": "Existing promotion tests extended; full build and independent candidate results recorded in handover.",
   "physicalAcceptance": false,
   "performanceMeasured": false,
-  "scoresChanged": false
+  "scoresChanged": false,
+  "proofFairnessFollowup": {
+    "baseline": "ef0b6cf4",
+    "finding": "Strict nearest-first retries can starve farther promotable posts when the nearest candidate repeatedly spends the single ray on blocked coverage. This supersedes the previous strict distance-priority description.",
+    "implementation": "Per casualty-slot private cursor stores only the identity of a candidate that actually spent the ray. The next callback rotates the currently distance-ranked bounded window after that identity, wrapping naturally. Success deletes the cursor. Equal-distance ties use stable netId, not rotating window index.",
+    "bounds": "At most one identity per existing lane slot, no extra query, timer, worker, retry or deadline. Cursor is proposal fairness only, not authority or coverage evidence.",
+    "limits": "Fixed candidate set gets round-robin probe opportunity; moving actors, larger rotating windows and physical flow remain unverified. Cursor may reset on owner adoption without renewing operation time.",
+    "validation": "Existing promotion regression extended with blocked-near/tie/far sequence; full build result in handover."
+  }
 }

@@ -17,7 +17,7 @@
  * Egress allocation retains up to three scene-query batches per actor, one due actor per callback.
  * Original deadlines and retry counts survive owner adoption; no retry grants arrival or task authority.
  * Casualty promotion ranks its bounded candidate window before spending the shared VIEW ray,
- * so roster order cannot consume cover proof ahead of a nearer reserve.
+ * then resumes after the last probed reserve so blocked near posts cannot monopolise proof.
  * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
  * before retiring an exterior leg and updating the lane/common participant roster together.
  * Reserve staging records attempts only after its initial hold is admitted; refused holds
@@ -1952,6 +1952,7 @@ private _delay=call {
         _job set ["promotionObserverCursor",(_cursor+1) mod _observerCount];
     };
     private _promotionProofs=createHashMap;
+    private _promotionProbeLast=_job getOrDefault ["promotionProbeLast",createHashMap];
     private _mayPromoteReserve={
         params ["_candidate"];
         if (!(_candidate in _reserves) || {!([_candidate] call _reserveReady)}) exitWith {false};
@@ -2084,7 +2085,7 @@ private _delay=call {
         for "_slot" from 0 to ((count _pair)-1) do {
             private _member=_pair select _slot;
             if ((!([_member] call _actorAvailable) || {_member in _unavailable}) && {_reserves isNotEqualTo []}) then {
-                // Reinforce the surviving buddy from the nearest eligible reserve rather
+                // Start with nearer reserves, rotating scarce proof after an attempted post rather
                 // than roster order. With no available buddy, approach the building itself.
                 // Candidate ranking shares the bounded promotion VIEW budget above.
                 private _buddy=_pair select ((_slot+1) mod count _pair);
@@ -2092,14 +2093,28 @@ private _delay=call {
                     && {!(_buddy in _unavailable)}) then {_buddy} else {_building};
                 private _replacementIndex=-1;
                 // Rank before calling the promotion gate: that gate can consume the sole
-                // callback VIEW ray. Stable window indexes resolve equal-distance ties.
+                // callback VIEW ray. Stable actor identities resolve equal-distance ties.
                 private _replacementRanks=[];
-                {_replacementRanks pushBack [_x distance2D _reinforceAnchor,_forEachIndex,_x]} forEach _promotionCandidates;
+                {_replacementRanks pushBack [_x distance2D _reinforceAnchor,netId _x,_x]} forEach _promotionCandidates;
                 _replacementRanks sort true;
+                private _probeKey=format ["%1:%2",_pairIndex,_slot];
+                private _lastProbe=_promotionProbeLast getOrDefault [_probeKey,""];
+                private _lastProbeIndex=_replacementRanks findIf {(_x select 1) == _lastProbe};
+                if (_lastProbeIndex >= 0) then {
+                    private _nextProbe=_lastProbeIndex+1;
+                    _replacementRanks=(_replacementRanks select [_nextProbe])+(_replacementRanks select [0,_nextProbe]);
+                };
                 {
                     private _candidate=_x select 2;
-                    if ([_candidate] call _mayPromoteReserve) exitWith {
+                    private _viewBefore=_promotionViewBudget;
+                    private _mayPromote=[_candidate] call _mayPromoteReserve;
+                    if (_promotionViewBudget < _viewBefore) then {
+                        _promotionProbeLast set [_probeKey,netId _candidate];
+                        _job set ["promotionProbeLast",_promotionProbeLast];
+                    };
+                    if (_mayPromote) exitWith {
                         _replacementIndex=_reserves find _candidate;
+                        _promotionProbeLast deleteAt _probeKey;
                     };
                 } forEach _replacementRanks;
                 // Keep the casualty slot pending if the only replacements hold sole exit cover.

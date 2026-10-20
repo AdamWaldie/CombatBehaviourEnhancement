@@ -21,11 +21,21 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         self.assertIn('private _replacementIndex=-1',s)
         selection=s.split('private _replacementIndex=-1;',1)[1].split('// Keep the casualty slot pending',1)[0]
         self.assertLess(selection.index('_replacementRanks sort true'),selection.index('call _mayPromoteReserve'))
-        self.assertIn('if ([_candidate] call _mayPromoteReserve) exitWith',selection)
-        self.assertIn('_forEachIndex,_x',selection)
-        # A scarce cover probe must go to the nearest candidate, independent of roster order.
+        self.assertIn('if (_mayPromote) exitWith',selection)
+        self.assertIn('netId _x,_x',selection)
+        self.assertIn('_promotionViewBudget < _viewBefore',selection)
+        self.assertIn('_lastProbeIndex+1',selection)
+        self.assertIn('_promotionProbeLast deleteAt _probeKey',selection)
+        # Start nearest, then rotate after actual failed probes to reach a farther viable post.
         candidates=[(30,0,'far'),(4,1,'near'),(4,2,'tie')]
-        self.assertEqual([row[2] for row in sorted(candidates)],['near','tie','far'])
+        ranked=sorted(candidates)
+        self.assertEqual([row[2] for row in ranked],['near','tie','far'])
+        seen=[];last=None
+        for _ in range(3):
+            offset=next((i+1 for i,row in enumerate(ranked) if row[2]==last),0)
+            ordered=ranked[offset:]+ranked[:offset]
+            last=ordered[0][2];seen.append(last)
+        self.assertEqual(seen,['near','tie','far'])
         self.assertIn('[_candidate] call _mayPromoteReserve',s)
         guard=s.index('if (_replacementIndex < 0) then {')
         refusal=s[guard:s.index('private _replacement=_reserves select _replacementIndex')]
