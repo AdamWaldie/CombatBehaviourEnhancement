@@ -79,12 +79,14 @@ private _evaluateState={
                 && {getNumber (_ammo >> "explosive") <= 0}
                 && {finite _rounds} && {_rounds >= 20}
         }};
-    private _reload=_state param [6,0,[0]];
+    private _reload=_state param [6,1,[0]];
     private _reloading=count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
         && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1};
     if (_bestScore < 0 && {_reloading}) then {_observation set ["reloadInProgress",true]};
-    private _usable=count _state >= 5 && {(_state select 0) == _weapon}
-        && {(_state select 1) == _muzzle}
+    // Loading is not readiness. Keep scanning for a completed alternative while a preferred
+    // muzzle reloads; retain the finite wait observation only when no ready muzzle wins.
+    private _usable=count _state >= 7 && {finite _reload} && {_reload == 0}
+        && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
         && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable};
     private _score=-1;
     if (_usable) then {

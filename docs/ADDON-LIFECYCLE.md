@@ -1187,3 +1187,10 @@ Suppression requires both the belief proxy and the resolved cover face to remain
 Tactical assessment uses the same visibility, simulation and FIREWEAPON availability gates as infantry fire control when counting usable rifle/launcher actors. Physical roster strength remains separate. If every actor is unavailable, the existing task handoff preserves current work instead of treating that as a low-firepower reposition request. No mission AI feature is changed. Suppression obstruction samples remain partial observations and do not independently authorize whole-group movement.
 
 Manoeuvre fire-capacity counts require individual YELLOW/RED permission and FIREWEAPON as well as primary ammunition. This applies to tactical assessment, close-assault admission, initial flank/advance armed selection, coordinated capacity reports/pair allocation and the shared new-bound boundary. Physical flank/advance/support rosters remain enrolled; no hold-fire order is overwritten and no actor is forced to reload or fire. Existing crossing-exit/consolidation exceptions preserve committed movement. Permission loss can refuse a new bound through existing failure cleanup. Ammunition availability remains a separate read-only inventory predicate. Physical mission-order transitions and performance remain unverified.
+
+Ground station readiness excludes incomplete or unknown native magazine reload phases before
+ranking loaded weapons. A reloading preferred main gun cannot hide a completed usable alternate
+muzzle. When none is ready, the existing reload observation retains its original finite operation
+wait; no deadline is renewed. Final selection still independently verifies the selected station,
+loaded magazine, rounds and completed reload. This changes no ammunition, route or movement owner.
+Physical alternate-weapon selection during reload and its effectiveness remain unverified.

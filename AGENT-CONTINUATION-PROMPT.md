@@ -1,10 +1,12 @@
-# Current source checkpoint - native one-part static path
+# Current source checkpoint - mounted readiness and prepared solo fixture
 
-Baseline before this batch9e0f04a8. One-part static assembly/one-bag recovery now wired into existing StaticDeployStep phases, record28solo/29holder, unique actor action loops, original receipts/deadlines and native boarding/exit. Only explicit empty text base qualifies; no RF/source mod dependency. Exact empty owned holder cleanup, actual weapon/event/bag identity and native deletion/physical backpack restoration required. No forced seating, fabricated weapon/bag, new FSM or worker.
+Baseline before current batch c5f18a4a. GroundFireReady now excludes in-progress/unknown magazine reload before warhead ranking, allowing ready loaded alternative within existing32query cap; no deadline renewal or movement writes. Full1482/HEMTT/package pass .qa/ground-ready-reload-build.log; unsigned candidate .qa/candidates/ground-ready-reload-c5f18a4a. Physical switching/fire/wait and overhead remain unmeasured.
 
-Full1482/HEMTT/package pass .qa/static-solo-build.log, existing609 focused cases .qa/static-solo-focused.log. Unsigned candidate .qa/candidates/static-solo-9e0f04a8. This is experimental source wiring with no physical acceptance. Empty holder target follows LAMBS source; native documentation alone does not prove the action works. Next requirement: prepare separate real one-part mechanism case and review native deadline/authority flow; actual audits remain PAUSED. Do not claim commando-mortar/general mod parity. Same-value native orders, quiescence, repeated/split-locality flow, retained paired assembly/fire/packing failures and measured overhead remain unresolved.
+Single-carrier static deployment is wired into existing phases and staticsolo normal-only mechanics fixture is ALREADY prepared/staged at .qa/static-solo-mechanics-stage-9fa86089/CBE_Audit.VR (source-equal). Do not duplicate it or claim runtime results. It needs an actually loaded one-part static backpack and fails missing prerequisite. No actual audit ran. See latest handover and foundations reference JSON for source hashes, current fixes, retained gaps and evidence.
 
-Preserve full production-readiness goal and CBE checkout boundary; no WMP edits, pushes, release/Steam, merge or audit permission added. Read latest handover and source review, verify live Git/PR before mutations, preserve unrelated dirt/Workshop originals/archive/signing.
+Next work: complete actual mounted-fire/warhead/guidance source semantics from foundations upward. Ground reserve loader excludes laser guidance while loaded readiness does not; native laserLock is capability, not proof of mandatory guidance. Determine intended/native lock support before speculative exclusion. Vehicle firemode/assault/jink/rotation source comparison and physical existing failures remain open. Native quiescence/same-value external orders remain unproven.
+
+Full production-readiness goal unchanged. Audits remain PAUSED. CBE root only, not chat WMP; verify live root/remote/branch/PR17 before mutation, preserve unrelated dirt and protected Workshop sources/archive/signing. No push/publication/merge permission added.
 
 # Current source checkpoint - static generation receipts
 

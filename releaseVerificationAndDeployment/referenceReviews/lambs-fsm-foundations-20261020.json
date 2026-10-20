@@ -27,7 +27,9 @@
     ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticDeploy.sqf": "566327ec85c372a3b36a019026a59d5eda926aedef9988d9dea1bc032ebb4a57",
     ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupStaticPack.sqf": "6d39e4d969e61275df1558cfe877b96baaacfcdba34ac8d82a288837c5a274e0",
     ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupCommandoDeploy.sqf": "0e7b5d6a94ce09a0432f36fba914adb0d9b45409b7c4ecdead726547fdded07a",
-    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupCommandoPack.sqf": "5b8364f6559fbd324315b39f87a403a032c86c17cf49a439f47190f6038cc532"
+    ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupCommandoPack.sqf": "5b8364f6559fbd324315b39f87a403a032c86c17cf49a439f47190f6038cc532",
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleSuppress.sqf": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a",
+    ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doSelectWarhead.sqf": "c42c29f48ee777f9a1ac49d5891e90f95224ef5435be30180b72b9081678f17a"
   },
   "branches": [
     {
@@ -573,5 +575,33 @@
         "validation": "Full1482 tests/HEMTT/SQF/config/FSM/docs/build passed; final QA cleanup-wait edit reran1482 tests and SQF validation. Independent unsigned candidate/stage/source equality verified. No Arma launch."
       }
     }
+  },
+  "mountedFireComparison": {
+    "baseline": "c5f18a4a",
+    "scope": "Initial mounted suppression and warhead selection comparison; not full vehicle parity.",
+    "sources": [
+      ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doVehicleSuppress.sqf",
+      ".qa/lambs-2621-review/main/functions/VehicleAction/fnc_doSelectWarhead.sqf"
+    ],
+    "sourceIntent": [
+      "Prefer suitable carried warhead and optionally switch muzzle/top-down mode; skip laser-sensor guided rounds without supplied designation.",
+      "Slow ground vehicle suppresses a nearby unoccluded point, redirects toward first obstruction, checks nearby friendlies and issues native watch/suppression.",
+      "Delayed extra UseWeapon six seconds later uses random weapon index while suppression command persists."
+    ],
+    "CBEAlready": [
+      "Exact station/muzzle/native loaded magazine selection, target-class warhead preference, bounded compatible reserve loading, current gunner/ROE/owner/order gates.",
+      "Ground bullet suppression has min distance, near-belief surface resolution and protected corridor; source blanket obstruction retargeting/random-index delayed force fire not copied.",
+      "Explicit ground combined role retains movement executor; fire selection helpers do not issue movement."
+    ],
+    "fixed": "GroundFireReady previously counted positive loaded rounds during native magazine reload as usable and could early-exit on preferred main gun. Usable now requires complete native state and finite phase zero; continue existing bounded scan for ready alternate. Reload wait observation retained only absent ready winner, no deadline renewal.",
+    "nativeReference": "https://community.bistudio.com/wiki/weaponState",
+    "cost": "Same max32 state-query budget; a previously early-exiting reloading gun can now require more bounded queries to discover an alternative. Actual overhead unmeasured.",
+    "unresolved": [
+      "Physical alternate selection/Fired effect while main reloads and no-alternative finite wait not tested.",
+      "Loaded guided-ammo selection versus reserve-loader designation policy needs explicit guidance/lock evidence; laserLock supports laser acquisition but is not proof a weapon requires it. No speculative blanket exclusion added.",
+      "Full vehicle assault/jink/rotation/firemode and building-demolition semantics not completed by this review.",
+      "Native suppression cannot be claimed quiescent merely by retiring CBE requests."
+    ],
+    "validation": "Full1482 static/unit, HEMTT/SQF/config/FSM/docs/build pass; no live audit, full-source parity, acceptance or score credit."
   }
 }

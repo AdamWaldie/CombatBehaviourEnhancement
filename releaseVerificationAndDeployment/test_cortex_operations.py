@@ -8979,7 +8979,12 @@ class CortexOperations(unittest.TestCase):
     def test_combined_ground_reload_wait_keeps_original_deadline_and_never_grants_fire(self):
         ready=source('cortexGroundFireReady')
         self.assertIn('_observation set ["reloadInProgress",false]',ready)
-        reload=ready.split('private _reload=',1)[1].split('count _state >= 5',1)[0]
+        usable=ready.split('private _usable=',1)[1].split('private _score=',1)[0]
+        for guard in ['count _state >= 7','finite _reload','_reload == 0']:
+            self.assertIn(guard,usable)
+        self.assertIn('if (_bestScore < 0 && {_reloading})',ready)
+        self.assertIn('_observation set ["reloadInProgress",_reloading]',ready)
+        reload=ready.split('private _reload=',1)[1].split('private _usable=',1)[0]
         for guard in ['_suitable','finite _reload','_reload > 0','_reload <= 1']:
             self.assertIn(guard,reload)
         step=source('cortexCombinedGroundStep')
