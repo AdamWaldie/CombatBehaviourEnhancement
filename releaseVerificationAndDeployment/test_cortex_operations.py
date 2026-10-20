@@ -3782,7 +3782,7 @@ class CortexOperations(unittest.TestCase):
                       'CBE_AIPass_SuppressCursor', '_now + 2.5 + random 1.5']:
             self.assertIn(token, fire)
         suppression = fire.split('// Disciplined suppression', 1)[1]
-        self.assertIn('if (_issued) exitWith {}', suppression)
+        self.assertIn('if (_issued || {_geometryChecks >= 3}) exitWith {}', suppression)
         self.assertIn('_cursor + 1', suppression)
         self.assertGreaterEqual(fire.count('_group setVariable ["CBE_AIPass_NextSuppress",nil]'), 2)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
@@ -3934,7 +3934,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_suppression_requires_the_loaded_primary_bullet_muzzle(self):
         suppression = source("cortexFireControl").split('// Disciplined suppression', 1)[1]
-        boundary = suppression.index('_unit doSuppressiveFire _targetASL')
+        boundary = suppression.index('_unit doSuppressiveFire _aimASL')
         for proof in ['currentMuzzle _unit', 'currentMagazine _unit',
                       '_unit ammo _muzzle', 'currentWeapon _unit == _weapon',
                       '_loaded > 0', '== "shotbullet"',
@@ -3988,7 +3988,7 @@ class CortexOperations(unittest.TestCase):
         # The parity handoff must still use the existing bounded safety path rather than
         # manufacture target knowledge, direct fire, or a second worker.
         self.assertIn('call CBE_fnc_CortexLineOfFireClear',suppression)
-        self.assertIn('_unit doSuppressiveFire _targetASL',suppression)
+        self.assertIn('_unit doSuppressiveFire _aimASL',suppression)
         self.assertNotIn('doTarget',suppression)
         self.assertNotIn('spawn',suppression)
 
@@ -6496,6 +6496,13 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(case,matrix)
 
     def test_infantry_explicit_fire_respects_group_and_unit_roe(self):
+        suppression=source('cortexFireControl').split('// Disciplined suppression',1)[1]
+        for marker in ('_geometryChecks >= 3','!terrainIntersectASL',
+                       'true,1,"FIRE","GEOM"','_surface vectorDistance _targetASL <= 3',
+                       '[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear',
+                       '_unit doSuppressiveFire _aimASL','_cursor+(_geometryChecks max 1)'):
+            self.assertIn(marker,suppression)
+        self.assertNotIn('doMove',suppression)
         fire=source('cortexFireControl')
         eligible=fire.split('private _eligible =',1)[1].split('private _reservedActors=',1)[0]
         for guard in ('simulationEnabled _x','!isObjectHidden _x','_x checkAIFeature "FIREWEAPON"'):

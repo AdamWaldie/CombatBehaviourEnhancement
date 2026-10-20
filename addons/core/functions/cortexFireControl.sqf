@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
+ * near-objective cover face within three metres, then the protected-actor cone at the issued point.
+ * Blocked batches rotate candidates. Raw belief remains unchanged; this never issues movement.
  * Hidden, simulation-disabled or FIREWEAPON-disabled actors receive no scripted fire assignment.
  * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
@@ -239,7 +242,8 @@ if (_suppressPos isEqualTo []) then {
     };
 };
 if (_suppressPos isNotEqualTo []) then {
-    private _targetASL = ATLToASL _suppressPos;
+    // Belief positions are ATL ground/body positions, not a disclosed enemy eye point.
+    private _targetASL = (ATLToASL _suppressPos) vectorAdd [0,0,1];
     private _limit = missionNamespace getVariable ["CBE_AIPass_FireControl_MaxSuppressors", 2];
     private _active = {(_x getVariable ["CBE_AIPass_LastSuppress", -1e6]) > _now - 8} count _members;
     private _nextWindow = _group getVariable ["CBE_AIPass_NextSuppress",-1];
@@ -254,8 +258,9 @@ if (_suppressPos isNotEqualTo []) then {
         private _cursor = (_group getVariable ["CBE_AIPass_SuppressCursor",0]) mod (count _ranked max 1);
         private _ordered = (_ranked select [_cursor]) + (_ranked select [0,_cursor]);
         private _issued = false;
+        private _geometryChecks=0;
         {
-            if (_issued) exitWith {};
+            if (_issued || {_geometryChecks >= 3}) exitWith {};
             private _unit = _members select (_x select 1);
             if (unitReady _unit && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}
                 && {(_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8} && {getSuppression _unit < 0.5}) then {
@@ -280,18 +285,41 @@ if (_suppressPos isNotEqualTo []) then {
                     };
                     private _rounds = _loaded;
                     {_rounds = _rounds + (_x select 1)} forEach _spare;
-                    if (count _spare >= 2 && {_rounds >= 60} && {[_unit, _targetASL] call CBE_fnc_CortexLineOfFireClear}) then {
-                        _unit doSuppressiveFire _targetASL;
+                    if (count _spare >= 2 && {_rounds >= 60}) then {
+                        _geometryChecks=_geometryChecks+1;
+                        private _from=eyePos _unit;
+                        private _aimASL=+_targetASL;
+                        private _clear=!terrainIntersectASL [_from,_targetASL];
+                        if (_clear) then {
+                            private _hits=lineIntersectsSurfaces [_from,_targetASL,_unit,objNull,true,1,"FIRE","GEOM"];
+                            if (_hits isNotEqualTo []) then {
+                                private _hit=_hits select 0;
+                                private _surface=_hit select 0;
+                                // Suppress the near face of cover at the believed objective,
+                                // never an unrelated intervening wall or unclassified terrain.
+                                _clear=!isNull (_hit select 2) && {_surface vectorDistance _targetASL <= 3};
+                                if (_clear) then {
+                                    _aimASL=_surface vectorDiff ((_from vectorFromTo _surface) vectorMultiply 0.05);
+                                };
+                            };
+                        };
+                        if (_clear && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}) then {
+                        _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];
                         _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];
                         _group setVariable ["CBE_AIPass_NextSuppress",_now + 2.5 + random 1.5];
                         _issued = true;
                         _orders = _orders + 1;
+                        };
                     };
                 };
             };
         } forEach _ordered;
-        if (!_issued) then {_group setVariable ["CBE_AIPass_NextSuppress",_now + 1]};
+        if (!_issued) then {
+            // Rotate after a blocked batch so later viable suppressors are not starved.
+            _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor+(_geometryChecks max 1)) mod count _ranked];
+            _group setVariable ["CBE_AIPass_NextSuppress",_now + 1];
+        };
     };
 } else {
     _group setVariable ["CBE_AIPass_NextSuppress",nil];

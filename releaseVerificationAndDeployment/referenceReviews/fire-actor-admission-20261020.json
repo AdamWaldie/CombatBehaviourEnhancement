@@ -34,5 +34,62 @@
   ],
   "physicalAcceptance": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "suppressionGeometryAndMovement20261020": {
+    "reviewedSource": "b413109a",
+    "sources": {
+      "addons/core/functions/cortexFireControl.sqf": "1f47822dffc7994540cf4bbc771dd1eab66e247b419dfeff08a02da1f79eb5a6",
+      "addons/infantry/functions/cortexLineOfFireClear.sqf": "02993b3d46c0946df8abdd3881ce5bc5477a1da1bbe3ac2ce4c4e92e7f8beb26",
+      ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupSuppress.sqf": "8a4cf075f291c6c12d1c76fda655e1446404ef85c2a3bd9449e490e1a16f0417"
+    },
+    "findings": [
+      "CBE CortexLineOfFireClear is position-based friendly/civilian/captive cone veto only. It has no terrainIntersect or lineIntersectsSurfaces and must not be described as obstruction clearance.",
+      "CBEFireControl sends the believed objective converted ATL->ASL directly to doSuppressiveFire after ammunition and friendly cone qualification. There is no source-equivalent cover surface/proximity resolver in this inspected path.",
+      "LAMBS doSuppress terrain-checks, clamps distance, adjusts to first VIEW surface and optionally delegates shouldSuppressPosition model/geometry/proximity checks. These are distinct from friendly safety.",
+      "LAMBS doGroupSuppress shuffles target list, limits initial visibility attempts to3, applies suppression to eligible actors; on failure issues low-speed20m advance for infantry or50m vehicle move. CBE cannot copy those independent movement writes over its actor/group ownership."
+    ],
+    "disposition": [
+      "Implement a bounded suppression aimpoint/obstruction assessment separate from protected-actor cone safety; preserve useful near-target cover suppression while rejecting terrain or unrelated intervening obstacles.",
+      "Keep raw native-known target belief and assessed aimpoint separate, preserve vertical coordinate semantics and run protected cone checks against actual issued point. Never reveal a hidden object or infer clearance from bullet penetration.",
+      "Geometry failure should inform the existing finite tactical reposition/movement decision, not inject doMove from the firing helper. Any movement needs current mission/native/operation authority and original deadlines.",
+      "Source200m clamp and firstVIEWsurface rule are methods to assess, not universal desired constants: validate their effect for long-range MGs, windows, buildings and terrain before changing current range."
+    ],
+    "remaining": [
+      "Effective suppression requires real shots and enemy effects; successful doSuppressiveFire issue is not proof.",
+      "Model suppression blockers/reverse probe behaviour and group-to-vehicle suppression need further whole-source review.",
+      "Physical terrain/cover/window/vertical targets, friendly motion and performance unverified."
+    ],
+    "productChanged": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "suppressionAimpointImplementation20261020": {
+    "baseline": "b413109a",
+    "sourceSHA256": "156fb6d05ce5be125c2659aeb28b38604467c1d5340383f0042ae6c7744dd813",
+    "implementation": [
+      "Preserve raw ATL belief; assess one-metre elevated ASL proxy without reading exact hidden target position.",
+      "At most3 ammunition-qualified lanes/pass: terrain veto then one nearest FIRE/GEOM hit. A non-terrain surface within3m of objective supplies near-face point offset0.05m toward shooter; unrelated intervening obstacle rejects lane.",
+      "Protected-actor cone checks actual issued point. No movement, reveal, penetration or destruction command.",
+      "Blocked batch advances existing suppressor cursor; original stagger/cooldowns and actual-ammunition gates retained."
+    ],
+    "cost": "At most3 terrain tests and3 one-hit geometry rays per suppression pass, plus existing protected-cone queries only on qualifying aimpoints. Native/frame-time cost unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "initialFocused": ".qa/cbe-suppress-geometry-focused.log",
+      "retainedFailure": "Two existing exact-source contracts referred to original target and single-exit spelling; updated to assessed point and bounded exit without removing invariants.",
+      "full": ".qa/cbe-suppress-geometry-build.log",
+      "independent": ".qa/cbe-suppress-geometry-independent.log",
+      "candidate": ".qa/candidates/suppress-geometry-b413109a",
+      "fingerprint": "17494a2fadd6b5c0312e675dd113aabd7ffafd191c9897f5c562c2836b02c868"
+    },
+    "remaining": [
+      "Physical window/stair/terrain/modded proxy geometry, one-metre aim offset and3m near-cover rule require validation.",
+      "No model-cache penetration/proximity parity or reverse-probe implementation claimed.",
+      "Geometry failure does not yet feed tactical reposition, and effective suppression/fire support remains unproven."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
 }
