@@ -8,6 +8,8 @@
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
  * Protected native tasks, queued medical treatment and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
  * Temporary treatment does not remove living pair identity or mutate the medical queue.
+ * A matching current drill retains mover/cover partitions during pair repair, including role
+ * transfers with unchanged participant count. New pair metadata grants no movement authority.
  * Repeat/JIP: Idempotent for an unchanged generation and owner epoch. Only roster changes publish
  * operation state; unchanged callbacks do not retransmit it. Public state carries the roster after
  * migration; actors marked unavailable remain excluded.
@@ -62,7 +64,21 @@ isNil {
         || {_current findIf {!([_x] call _actorEligible)} >= 0}
         || {[_group] call CBE_fnc_CortexZeusHeld}
         || {[_group,false,_capable select 0] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
-if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
+private _rosterChanged=_current isNotEqualTo (_operation getOrDefault ["participants",[]]);
+private _pairElements=[];
+private _drill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+if ((_drill getOrDefault ["operationGeneration",-1]) == _generation
+    && {(_drill getOrDefault ["ownerEpoch",-1]) == _entryEpoch}) then {
+    private _teams=_drill getOrDefault ["teams",[]];
+    if (_teams isEqualType [] && {count _teams == 2}
+        && {_teams findIf {!(_x isEqualType [])} < 0}) then {
+        private _elements=_teams apply {_x select {_x in _current}};
+        private _partitioned=(_elements select 0)+(_elements select 1);
+        if (count (_partitioned arrayIntersect _partitioned) == count _partitioned
+            && {_current findIf {!(_x in _partitioned)} < 0}) then {_pairElements=_elements};
+    };
+};
+if (_rosterChanged) then {
     // Start measuring replacements at commitment, not at a later scheduler callback.
     // Recruitment itself is not physical progress and must not renew the operation timer.
     private _progress=(_operation getOrDefault ["participantProgress",[]]) select {(_x select 0) in _current};
@@ -78,7 +94,15 @@ if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
     })];
     _operation set ["participantProgress",_progress];
     _operation set ["participants",_current];
-    _operation set ["pairs",[_group,_current] call CBE_fnc_CombatPairs];
+};
+if (_rosterChanged || {_pairElements isNotEqualTo (_operation getOrDefault ["pairElements",[]])}) then {
+    private _pairs=[];
+    if (_pairElements isEqualTo []) then {_pairs=[_group,_current] call CBE_fnc_CombatPairs} else {
+        {_pairs append ([_group,_x,false] call CBE_fnc_CombatPairs)} forEach _pairElements;
+        [_group,_pairs] call CBE_fnc_CombatPairsPublish;
+    };
+    _operation set ["pairs",_pairs];
+    _operation set ["pairElements",_pairElements apply {+_x}];
     _group setVariable ["CBE_Operation",_operation,true];
 };
     _result=_current;

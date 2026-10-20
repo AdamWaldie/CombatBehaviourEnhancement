@@ -57,7 +57,7 @@
   ],
   "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
   "remainingRequiredWork": [
-    "Existing and first-operation element composition integrated. Independent pair-granular alternation and later replacement consistency remain incomplete; maintain specialist roles, minimum fire capacity and one movement owner.",
+    "Initial and lifecycle team-scoped pair metadata integrated. Independent pair-granular alternation remains incomplete. Confirm actual casualty replacement, capacity-driven splits, role transfer and migration physically before parity claims.",
     "Confirm physical role alternation, covering fire, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume.",
     "Verify binary startup/dependencies/licence before calling the whole source review complete."
   ],
@@ -100,5 +100,17 @@
     "fingerprint": "d70b238f5a7756fd3a263017fa4b63163df9769c7edddcafd7b5d76898da233d",
     "signed": false,
     "source": "d54dea15 plus intended pair composition/docs"
+  },
+  "pairLifecyclePartitions": {
+    "status": "INTEGRATED_PHYSICAL_PENDING",
+    "finding": "RebalanceRoles and drill owner resumption could rebuild orphan pairs across existing mover/cover team boundaries.",
+    "implementation": "OperationStart records pairElements. RebalanceRoles uses current matching drill generation/epoch and disjoint complete team partition for dry per-element pair repair, one combined publication. It reacts to partition changes even with unchanged participants and avoids unchanged publication. CortexDrillResume supplies its filtered team partition to normal OperationStart admission.",
+    "authority": "No new movement owner, native command, worker or deadline. Recruitment remains separate from physical progress; source/current generation/epoch and participant-task commit guards remain.",
+    "limits": "Minimum role/fire capacity may split pairs, independent per-pair leapfrogging incomplete. Malformed/incomplete resume partition is refused by shared operation admission. Runtime flow and performance unverified.",
+    "validation": "607 focused/full1477 existing tests, HEMTT/SQF/FSM/docs/package and independent verification passed.",
+    "candidate": ".qa\\candidates\\pair-lifecycle-partitions-845b8220",
+    "fingerprint": "3f357146a9b3eb2b65126f69a55e26aeeacba99e558e051480dd33b3316ad63a",
+    "signed": false,
+    "source": "845b8220 plus intended pair lifecycle/docs"
   }
 }

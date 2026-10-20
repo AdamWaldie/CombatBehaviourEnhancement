@@ -7,6 +7,7 @@
  * Full original authored waypoint metadata must still match before inspect or resume admission.
  * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
  * No source MOVE or acknowledgement grace is replayed; reserved/unavailable/service actors stay excluded.
+ * Resumed team partitions seed pair repair without mixing mover/cover identity or renewing time.
  * Hidden or simulation-disabled actors and medics with queued treatment stay in the living roster
  * but cannot be recruited into the resumed movement operation; treatment queues are never changed.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
@@ -123,7 +124,8 @@ private _capable=_living select {
 if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
 private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
-private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase] call CBE_fnc_OperationStart;
+private _pairElements=(_drill getOrDefault ["teams",[]]) apply {_x select {_x in _capable}};
+private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase,_pairElements] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];
 _operation set ["recoveryAttempts",createHashMapFromArray (_drill getOrDefault ["resumeAttempts",[]])];

@@ -9927,7 +9927,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"MANOEUVRE",[_element,_coverElement]',source('cortexAdvanceStart'))
         self.assertIn('"ASSAULT",[_assaultElement,_coverElement]',source('cortexAssaultStart'))
 
-        self.assertIn('["pairs",[_group,_current] call CBE_fnc_CombatPairs]',source('rebalanceRoles'))
+        rebalance=source('rebalanceRoles')
+        for proof in ('_pairs=[_group,_current] call CBE_fnc_CombatPairs',
+                      '[_group,_x,false] call CBE_fnc_CombatPairs',
+                      '[_group,_pairs] call CBE_fnc_CombatPairsPublish',
+                      '_pairElements isNotEqualTo (_operation getOrDefault ["pairElements",[]])',
+                      'getOrDefault ["operationGeneration",-1]) == _generation',
+                      'getOrDefault ["ownerEpoch",-1]) == _entryEpoch'):
+            self.assertIn(proof,rebalance)
+        self.assertIn('_operationPhase,_pairElements] call CBE_fnc_OperationStart',source('cortexDrillResume'))
         publisher=source('combatPairsPublish')
         for gate in ('count _active > 16','count _merged >= 16','_x in _seen',
                      '_merged isNotEqualTo _previous','remoteExecutedOwner != 2'):

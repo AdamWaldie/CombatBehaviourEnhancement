@@ -83,7 +83,7 @@ if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) the
 };
 private _operation=createHashMapFromArray [
     ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
-    ["pairs",_pairs], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
+    ["pairs",_pairs], ["pairElements",_pairElements apply {_x select {_x in _capable}}], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
     ["startedAt",time], ["lastProgressAt",time], ["lastProgressPosition",getPosATL _operationAnchor],
     ["participantProgress",_capable apply {[_x,getPosATL _x]}], ["lastProgressActor",objNull],
     ["participantPlatforms",createHashMapFromArray (_capable apply {[netId _x,vehicle _x]})],
