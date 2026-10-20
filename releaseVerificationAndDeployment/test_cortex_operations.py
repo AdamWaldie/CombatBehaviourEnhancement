@@ -7035,6 +7035,15 @@ class CortexOperations(unittest.TestCase):
 
     def test_ordinary_vehicle_unload_policy_is_exact_owned_and_restorable(self):
         policy=source('cortexVehicleUnloadPolicy')
+        convoy_policy=source('convoyUnloadPolicy')
+        convoy_tick=source('convoyTick')
+        for retention in (policy,convoy_policy):
+            disabled=retention.split('if (!canMove _vehicle) exitWith {',1)[1].split('// First acquisition alone',1)[0]
+            self.assertIn('if (count _lease == 5)',disabled)
+            self.assertIn('"RELEASE"',disabled)
+            self.assertNotIn('moveOut',disabled)
+        self.assertLess(convoy_tick.index('// Reconcile retention before mobility filtering'),
+                        convoy_tick.index('private _mobile ='))
         vehicles=source('cortexVehicles')
         release=source('cortexReleaseGroup')
         stop=source('cortexStop')

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Disabled registered carriers reconcile their unload policy before mobility filtering;
+ * restoration uses the exact existing lease and never forces passengers or crew out.
  * Gate approach: current forward gate/barrier geometry contributes to the existing safety cap;
  * it suppresses queue recovery; nearby opening requests are server-validated and never grant passage.
  * Drives mixed convoys along each predecessor trail, detects arrival and requests a persistent halt after pinned contact.
@@ -374,6 +376,13 @@ private _classifyStall = {
     };
     ["STALLED", "OBSTRUCTION"] select (_blocker >= 0)
 };
+// Reconcile retention before mobility filtering; disabled vehicles otherwise never
+// revisit their unload lease, including the all-immobile early return below.
+{
+    if (local _x && {!canMove _x}) then {
+        [_x,_group,"ACQUIRE",_revision] call CBE_fnc_ConvoyUnloadPolicy;
+    };
+} forEach _registered;
 // Eligibility and locality are separate questions. An incapacitated driver must
 // not count as a remotely owned capable vehicle and freeze every convoy step.
 private _mobile = _registered select {alive _x && {canMove _x}

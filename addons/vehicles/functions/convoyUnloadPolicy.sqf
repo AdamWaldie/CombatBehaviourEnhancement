@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Matching policy values never repeat the engine command on acquisition or restoration.
+ * Immobilisation retires an unchanged owned retention policy to its original value.
+ * No forced dismount or alteration of the engine immobile-crew policy is issued.
  * Initial acquisition defers for assigned incoming native GET IN or unknown remote intent;
  * at most64 returned seat rows are inspected before the first engine policy write. No boarding is issued.
  * Purpose: Acquires/adopts or releases the convoy's exact unload-in-combat policy lease.
@@ -50,6 +52,12 @@ if (count _lease == 5 && {getUnloadInCombat _vehicle isNotEqualTo (_lease select
     // A newer controller changed the policy. Revision churn must not take it back.
     _vehicle setVariable ["CBE_Convoy_UnloadPolicyLease",nil,true];
     _vehicle setVariable ["CBE_Convoy_UnloadPolicyBlocked",_group,true];
+    false
+};
+// A disabled carrier must not retain CBE's passenger/crew unload suppression.
+// Retire only our unchanged lease through normal restoration; never force dismount.
+if (!canMove _vehicle) exitWith {
+    if (count _lease == 5) then {[_vehicle,_group,"RELEASE",_revision,true] call CBE_fnc_ConvoyUnloadPolicy};
     false
 };
 // First acquisition alone can change engine boarding state. Refusal must leave
