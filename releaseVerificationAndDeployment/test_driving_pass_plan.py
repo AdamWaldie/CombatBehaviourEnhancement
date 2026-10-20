@@ -352,6 +352,7 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertNotIn(forbidden,code)
         for guard in ('!local _group','!local _driver','!local _operator','_driverCommand',
                       '_command','call CBE_fnc_DrivingRouteReceipt','CortexActorMoveReserved',
+                      'ace_medical_ai_healQueue',
                       'CortexZeusHeld','CBE_ExternalDrivingOwner','!_successor'):
             self.assertIn(guard,code)
         self.assertIn('if (_sameSeats && {!isNull _group}',code)

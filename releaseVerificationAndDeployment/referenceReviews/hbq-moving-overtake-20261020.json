@@ -62,7 +62,8 @@
       "addons/vehicles/functions/drivingPassFinish.sqf": "d9862d3f0d9fe2a56318e6210d7cb139e4a32e892d5c112f637d7ff70ba0b6cf",
       "addons/vehicles/functions/drivingPassCanConsent.sqf": "ff2de64d7921840d14b2f33533f6b81a05c96f12eba0827343aefea299a7e06b",
       "addons/vehicles/functions/drivingOperationStep.sqf": "731efa14ff21c24d2062213859ab1712553e5bcb6c3227e69d8f4af3e4c07a91",
-      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305",
+      "addons/vehicles/functions/drivingPassRetireInherited.sqf": "0d983a84b0ef7232b301fc0284e1a3e7b9e7103c6c283a24369d40a2bb2849b0"
     },
     "remainingEvidence": "Physical pass, drop-back, blocked return, STOP interruption, migration cleanup, native acknowledgement timing and performance are unverified. Current source exists; this review is not full semantic acceptance of all sixteen pass helpers."
   },
@@ -81,5 +82,19 @@
     "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
     "candidate": ".qa/candidates/pass-medical-handback-b45e7291",
     "fingerprint": "b426b3161055955cc21a9ea07bfdf4aa4f092ad41bd6784f9519310f84d39034"
+  },
+  "terminationReview": {
+    "engineReference": "https://community.bohemia.net/wiki/setDriveOnPath",
+    "documentedSemantics": "Other native movement commands or doStop stop a fixed path; unitReady alone is not path completion.",
+    "currentTrace": "Current pass Finish uses guarded doStop before optional unchanged-route handback, so no speculative fixed-path reset was added. Native interruption events preserve newer STOP and changed route metadata.",
+    "fixedGap": "DrivingPassRetireInherited lacked queued ACE care guard on either control seat. Added to _mayRetire actor qualification; exact stale metadata/watch/consent retirement remains outside movement qualification.",
+    "limits": [
+      "This does not prove that a refused cleanup has physically stopped a fixed path.",
+      "Treatment/controller takeover without observable native command change still needs in-engine observation.",
+      "No replay of old pass path or new deferred cleanup worker."
+    ],
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "candidate": ".qa/candidates/pass-inherited-medical-5f1ca7b6",
+    "fingerprint": "0dde6ce665cb3c78dfaaf95e00fad2fcc90ef416c61b4ebc4ff940bbf113d68c"
   }
 }

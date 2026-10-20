@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Successor-owner cleanup yields to queued ACE care on either control seat.
+ * Exact stale receipt retirement remains independent and grants no native return command.
  * Purpose: Retires a previous owner's exact issued pass leg; never resumes its pass work.
  * Locality/authority: Current vehicle and crew/group owner only. Matching native destinations,
  * authored route, seats and free actor/controller authority guard native route handback.
@@ -67,6 +69,7 @@ private _mayRetire={
         && {[_driver,_operator] findIf {isNull _x || {!local _x} || {group _x != _group}
             || {vehicle _x != _vehicle} || {!simulationEnabled _x} || {isObjectHidden _x} || {isPlayer _x} || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {[_x] call CBE_fnc_CortexActorMoveReserved}
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}
