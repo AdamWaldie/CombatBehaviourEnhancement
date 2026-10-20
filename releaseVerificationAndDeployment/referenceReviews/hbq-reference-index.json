@@ -335,7 +335,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-moving-overtake-20261020.json",
-      "sha256": "6b8bc7819b58ab2c550e3e3c4d726213d10b9d1aef23fa22b4ffc99db2fbb42d",
+      "sha256": "d14b6a9a22d24c52310d137d319098b9b1d074dbff2c252e958dcfca7b738245",
       "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

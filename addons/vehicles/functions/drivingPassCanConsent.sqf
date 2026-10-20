@@ -3,6 +3,7 @@
  * Purpose: Reads whether this owner may consent to one vehicle's proposed road-pass role.
  * Locality/authority: Current vehicle, driver, commander and group owner only. False for a
  * remote participant; observing its public receipt cannot substitute for its owner's consent.
+ * Queued ACE treatment on either control seat defers consent without altering that queue.
  * Repeat/JIP: No commands, state, claims, handlers or cached permission. Recheck at negotiation
  * and every future command boundary. True is eligibility only, not an acknowledgement or priority.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 protocol <STRING, PASS>, PASS or internal QUEUE.
@@ -55,6 +56,7 @@ if (isNull _group || {!local _group} || {group _operator != _group}
     || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 if ([_driver,_operator] findIf {!local _x || {isPlayer _x} || {!isNull remoteControlled _x}
     || {!simulationEnabled _x} || {isObjectHidden _x}
+    || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!([_x] call CBE_fnc_CortexCombatEffective)}
     || {[_x] call CBE_fnc_CortexActorMoveReserved}
     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}

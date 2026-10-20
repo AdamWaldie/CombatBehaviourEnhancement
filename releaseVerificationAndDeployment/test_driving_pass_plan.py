@@ -106,7 +106,7 @@ class DrivingPassPlanTests(unittest.TestCase):
     def test_local_consent_cannot_be_inferred_for_remote_participant(self):
         consent=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text()
         for guard in ('!local _vehicle','!local _group','!local _x','isPlayer _x',
-                      'remoteControlled _x','CBE_Convoy_Active','CBE_ExternalDrivingOwner',
+                      'remoteControlled _x','ace_medical_ai_healQueue','CBE_Convoy_Active','CBE_ExternalDrivingOwner',
                       'CBE_DrivingRecovery_Work','CBE_DrivingBypass_Work','CBE_DrivingCorridor_Work',
                       'call CBE_fnc_CortexActorMoveReserved','call CBE_fnc_DrivingGateIntent',
                       'waypointTimeout','synchronizedTriggers'):
@@ -366,6 +366,9 @@ class DrivingPassPlanTests(unittest.TestCase):
         step=(ROOT/'addons/vehicles/functions/drivingPassStep.sqf').read_text()
         self.assertLess(step.index('_vehicle setDriveOnPath _path'),step.index('"PASS_LEG_V1",clientOwner'))
         finish=(ROOT/'addons/vehicles/functions/drivingPassFinish.sqf').read_text()
+        actor_free=finish.split('private _actorFree=',1)[1].split('private _owned=',1)[0]
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',actor_free)
+        self.assertNotIn('setVariable',actor_free)
         for guard in ('(_leg select 1) == clientOwner','(_leg select 3) == (_work get "epoch")',
                       '(_leg select 4) == (_work get "generation")','(_leg select 5) == (_work get "token")'):
             self.assertIn(guard,finish)

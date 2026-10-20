@@ -40,23 +40,46 @@
   ],
   "currentCBE": {
     "implemented": [
-      "DrivingFollowingCap continuous follow/closing/crossing observations",
-      "DrivingBypassPlan bounded stationary-obstacle bypass and separately negotiated held-queue crossing"
+      "Opt-in DrivingPassAdmission consumes existing traffic observation, eight-second sustained follow, bounded geometry/traffic preparation, owner consent and fixed original expiry.",
+      "DrivingAssistStart calls DrivingPassStep under existing sole cap/path owner; excludes competing corridor/bypass/reverse work.",
+      "DrivingPassStep implements OUT, DROP_BACK, RETURN_SCAN, RETURN_READY and RETURN with whole-hull separation, bounded support/traffic observations and exact order/crew/epoch/token authority.",
+      "DrivingPassFinish retires matching command watch/consent/path journal, with unchanged native receipt required before recall.",
+      "DrivingOperationStep exposes PASS phase and existing constrained cadence."
     ],
-    "missing": "Moving-peer overtake admission, lateral pass executor, alongside abort/drop-back, exact native return and physical completion.",
     "evidence": [
-      "DrivingBypassObstacleAvailable rejects speed >0.5m/s and living crew/active vehicle",
-      "DrivingBypassPlan retains NOT_STATIC_BYPASS admission",
-      "DrivingFollowingCap explicitly plans no bypass route"
+      "DrivingAssistStart OBSERVE -> DrivingPassAdmission and DrivingPassStep -> sole cap application",
+      "DrivingPassBegin binds current brain and consent",
+      "DrivingPassStep phase branches and native issue/return boundaries",
+      "DrivingPassFinish exact current native receipts"
     ],
     "files": {
       "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf": "114b0c9f5c723cf9b766405fa018b2ef9d512966c6477165f87f8f81b4851a39",
       "addons/vehicles/functions/drivingBypassPlan.sqf": "8df680b72c4ca7114bae918957d6d401d94d9f90224bb874cf1db891d856c4f1",
-      "addons/vehicles/functions/drivingFollowingCap.sqf": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
-    }
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1",
+      "addons/vehicles/functions/drivingPassAdmission.sqf": "f125f167080e6b8fccdd6e42a1ee1c04b8db0f2db16f15371100944b27c1691d",
+      "addons/vehicles/functions/drivingPassBegin.sqf": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a",
+      "addons/vehicles/functions/drivingPassStep.sqf": "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146",
+      "addons/vehicles/functions/drivingPassFinish.sqf": "d9862d3f0d9fe2a56318e6210d7cb139e4a32e892d5c112f637d7ff70ba0b6cf",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "ff2de64d7921840d14b2f33533f6b81a05c96f12eba0827343aefea299a7e06b",
+      "addons/vehicles/functions/drivingOperationStep.sqf": "731efa14ff21c24d2062213859ab1712553e5bcb6c3227e69d8f4af3e4c07a91",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+    },
+    "remainingEvidence": "Physical pass, drop-back, blocked return, STOP interruption, migration cleanup, native acknowledgement timing and performance are unverified. Current source exists; this review is not full semantic acceptance of all sixteen pass helpers."
   },
-  "nextImplementation": "Add moving-pass phases inside the existing driving operation and sole cap/path writers; preserve static predicate. Feed existing following observation as a candidate, then require fresh bounded road/support/traffic observations at admission and each native issue. No new autonomous movement loop.",
+  "nextImplementation": "Use and validate the existing DrivingPass lifecycle. Do not build duplicate overtaking phases or relax stationary-bypass admission. Resolve specific traced gaps; physical validation remains paused.",
   "physicalEvidence": false,
   "performanceMeasured": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "correction": {
+    "date": "2026-10-20",
+    "reason": "Initial current-CBE comparison inspected only static bypass and following and incorrectly declared moving passes missing. Broader current callgraph has DrivingPassAdmission/Begin/Step/Finish with dedicated phases. Do not repeat the superseded gap claim.",
+    "baseline": "b45e7291"
+  },
+  "medicalHandoffFix": {
+    "finding": "Active driving yields to queued ACE care, but shared consent and final pass handback lacked the same queue guard.",
+    "implementation": "DrivingPassCanConsent refuses queued treatment on either seat (PASS and QUEUE); DrivingPassFinish actorFree requires empty treatment queue before native stop/follow/route handback. Exact metadata retirement independent.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "candidate": ".qa/candidates/pass-medical-handback-b45e7291",
+    "fingerprint": "b426b3161055955cc21a9ea07bfdf4aa4f092ad41bd6784f9519310f84d39034"
+  }
 }

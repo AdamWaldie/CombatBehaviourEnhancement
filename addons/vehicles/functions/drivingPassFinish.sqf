@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE care prevents native stop/follow/route handback, while exact pass
+ * metadata and consent retirement remain independent. No treatment queue mutation.
  * Purpose: Retires exact pass work and optionally hands its unchanged command to the native route.
  * Locality/authority: Vehicle/group owner. Current epoch, brain generation, both seats and
  * destinations, live simulation, external controller/Zeus state and the unchanged authored route
@@ -25,6 +27,7 @@ private _driver=_work get "driver";private _operator=_work get "operator";
 private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
 private _actorFree={params ["_actor"];local _actor && {!isPlayer _actor} && {isNull remoteControlled _actor}
     && {vehicle _actor == _vehicle} && {simulationEnabled _actor} && {!isObjectHidden _actor}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
     && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
     && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
     && {[_actor] call CBE_fnc_CortexCombatEffective} && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
