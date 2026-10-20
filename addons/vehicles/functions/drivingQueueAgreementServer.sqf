@@ -164,7 +164,17 @@ if (_mode == "CROSS_PLANNED") exitWith {
     if (_planSerial <= (_record getOrDefault ["crossingPlanReplied",0])) exitWith {true};
     _record set ["crossingPlanReplied",_planSerial];
     _record set ["crossingPlanObservation",[_result select 0,_result select 1,_planPhase,_planSerial,serverTime]];
-    if (!(_result select 0) && {_planSerial < 2}) then {[_record] call _requestCrossingPlan};
+    if (!(_result select 0)) exitWith {
+        if (_planSerial < 2) then {[_record] call _requestCrossingPlan} else {
+            // Both bounded sides refused. End the exact agreement now rather than hold
+            // the queue until expiry with no remaining planner or executable crossing.
+            // No completionBinding is published: owners use cancellation handback only.
+            _record set ["phase","RELEASED"];
+            [_record] call _send;
+            _registry deleteAt _token;
+        };
+        true
+    };
     if (_result select 0) then {
         if (count _result != 4) exitWith {};
         private _vehicles=_record get "vehicles";
@@ -182,7 +192,7 @@ if (_mode == "CROSS_PLANNED") exitWith {
             {["CROSS_ARM",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
         };
     };
-    // No native command follows; callback dispatch and coordinated handback remain unwired.
+    // The broker grants no native command here; owner callbacks consume the frozen path.
     true
 };
 if (_mode == "CROSS_PATH_READY") exitWith {

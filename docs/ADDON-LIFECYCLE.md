@@ -1271,3 +1271,13 @@ no extra rays, entity queries or workers. Existing support refusal reasons and r
 remain unchanged. This closes a support-policy mismatch between rear and forward observation;
 it does not prove continuous clearance or native reverse capability.
 Actual bridge, moving support, parked hull and repeated recovery cases remain unverified.
+
+Queue crossing keeps at most two side-plan attempts within its original agreement. If both
+return refusal, the server now releases that exact token immediately through the existing
+owner cancellation path. Previously it left all participants held until agreement expiry
+without another planning action. No completion binding or successful route-resume permission
+is published; existing native-command handback still requires its own receipts. The first
+refusal retains its one alternate-side attempt. No new retry, timer, movement writer or
+extended deadline is added. This improves failed-plan retirement; it does not supply missing
+turn room or establish successful all-participant recovery. Physical refusal/cleanup and
+subsequent mission travel remain unverified while audits are paused.

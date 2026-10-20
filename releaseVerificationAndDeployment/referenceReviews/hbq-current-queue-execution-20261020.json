@@ -152,5 +152,27 @@
         "sha256": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d"
       }
     ]
+  },
+  "crossingRefusalFollowup": {
+    "baseline": "51295693",
+    "finding": "After authenticated second CROSS_PLANNED refusal, no more side planner was eligible but record stayed AGREED and participants held until original expiry.",
+    "change": "First valid refusal requests existing alternate side. Second valid refusal immediately publishes RELEASED without completionBinding, then removes exact server token. Existing owner terminal path closes only matching consent/request, existing journal cleanup handles native handback. No success/route-resume authority fabricated.",
+    "scope": "Same phase/planserial/actual root owner/current context/original expiry validation precedes transition. No deadline renewal, worker, additional query or movement command. This retires failed planning, not adaptive room-making or successful crossing.",
+    "limits": "Actual engine cancellation/native STOP handback and repeated failed queue recovery remain unverified. Larger safe room planning remains open.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "4cc89907f29308067b619dd26d4c161d9ab30ea024f68699802178dc7d969919"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_driving_queue_proposal.py",
+        "sha256": "02411f098c2c2c70d590a30e1a9f55166ab996ecc8f5c606b291898e9bebd0ab"
+      }
+    ],
+    "validation": "9 focused queue-proposal tests/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/queue-plan-refusal-build.log. Unsignedcandidate .qa/candidates/queue-plan-refusal-51295693 independentfingerprintbdf0ea3e992f6f86b642930ce6cb13e36a049d316968b18380bce32860a2191f. No runtime/percentage claim."
   }
 }

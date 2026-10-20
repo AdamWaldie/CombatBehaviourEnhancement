@@ -202,7 +202,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-current-queue-execution-20261020.json",
-      "sha256": "3046083ddb1648813daaf7660d922a8a7b03488572cc940f62325292f002863c",
+      "sha256": "e8b3d53807e4693713420238afc902258cb67927eb8700c05b7dce5e6f32eea5",
       "scope": "Installed HBQ byte freshness and selected current CBE queue execution boundaries; not a full new source review or physical acceptance.",
       "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."

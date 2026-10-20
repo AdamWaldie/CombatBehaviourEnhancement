@@ -158,6 +158,15 @@ class QueueProposalTests(unittest.TestCase):
             self.assertIn(proof,crossing)
         for forbidden in ('setDriveOnPath','sendSimpleCommand','doMove','forceSpeed','waitAndExecute','set ["expires"'):
             self.assertNotIn(forbidden,crossing)
+        plan_reply=server.split('if (_mode == "CROSS_PLANNED") exitWith {',1)[1].split('if (_mode == "CROSS_PATH_READY")',1)[0]
+        refusal=plan_reply.split('if (!(_result select 0)) exitWith {',1)[1].split('if (_result select 0) then',1)[0]
+        self.assertIn('if (_planSerial < 2)',refusal)
+        self.assertIn('call _requestCrossingPlan',refusal)
+        self.assertIn('_record set ["phase","RELEASED"]',refusal)
+        self.assertLess(refusal.index('call _send'),refusal.index('_registry deleteAt _token'))
+        self.assertNotIn('set ["completionBinding"',refusal)
+        self.assertNotIn('call _scheduleExpiry',refusal)
+        self.assertNotIn('set ["expires"',refusal)
         planner=server.split('private _requestCrossingPlan={',1)[1].split('private _send=',1)[0]
         self.assertIn('_attempt >= 2',planner)
         self.assertIn('owner (_queueVehicles select 0)',planner)
