@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Eligible persistent buddies stay together where element capacity permits; depleted
+ * two/three-person elements retain their minimum mover/cover capacity over pair cohesion.
  * Initial role capacity excludes protected native tasks and live actor reservations through
  * the shared task-availability gate; later executor checks remain authoritative.
  * Main-muzzle ammunition is required at admission; a usable spare may reload natively.
@@ -104,7 +106,9 @@ private _minimumMovers=[2,1] select (count _onFoot == 2);
 private _minimumCover=[2,1] select _smallElement;
 private _assaultSize=(_desiredMovers min 5) min count _ranked;
 if (_assaultSize < _minimumMovers) exitWith {["NO_ASSAULT_ELEMENT",[count _riflemen]] call _refuse};
-private _assaultElement=(_ranked select [0,_assaultSize]) apply {_riflemen select (_x select 1)};
+private _rankedActors=(_ranked select [0,16]) apply {_riflemen select (_x select 1)};
+private _assaultElement=[_group,_rankedActors,_assaultSize,_minimumMovers] call CBE_fnc_CombatElementSelect;
+if (count _assaultElement < _minimumMovers) exitWith {["NO_ASSAULT_ELEMENT",[count _assaultElement]] call _refuse};
 private _coverElement=_onFoot-_assaultElement;
 if (count _coverElement < _minimumCover) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
 

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Eligible persistent buddies are selected together where element capacity permits;
+ * minimum mover/cover fire capacity and existing specialist-role preferences take priority.
  * Admission sizes the moving element from ammunition-qualified rifle capacity and retains
  * at least two such cover actors. Physical squad/cover membership stays separate.
  * Initial role capacity excludes protected native tasks and live actor reservations through
@@ -98,7 +100,9 @@ private _candidates = [];
 _candidates sort true;
 private _size = ((floor (count _armedFoot / 2)) min 5) min count _candidates;
 if (_size < 2) exitWith {[_state, "flank", 30] call CBE_fnc_CortexCooldown; ["NO_MANOEUVRE_ELEMENT",[count _riflemen]] call _refuse};
-private _element = (_candidates select [0, _size]) apply {_riflemen select (_x select 1)};
+private _rankedActors=(_candidates select [0,16]) apply {_riflemen select (_x select 1)};
+private _element=[_group,_rankedActors,_size,2] call CBE_fnc_CombatElementSelect;
+if (count _element < 2) exitWith {["NO_MANOEUVRE_ELEMENT",[count _element]] call _refuse};
 
 private _start = [0, 0, 0];
 {_start = _start vectorAdd getPosATL _x} forEach _element;

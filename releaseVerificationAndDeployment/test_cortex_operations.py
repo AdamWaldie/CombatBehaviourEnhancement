@@ -9905,6 +9905,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _actors > 16',pairs)
         self.assertIn('call CBE_fnc_CombatPairsPublish',pairs)
         self.assertNotIn('doMove',pairs)
+        element=source('combatElementSelect')
+        for guard in ('count _ranked > 16','_registry select [0,16]','count _selected+2 <= _maximum',
+                      'count _selected >= _minimum','_candidates-_selected'):
+            self.assertIn(guard,element)
+        for mutation in ('doMove','doSuppressiveFire','setVariable','enableAI','disableAI'):
+            self.assertNotIn(mutation,element)
+        for caller in ('cortexAdvanceStart','cortexFlankStart','cortexAssaultStart'):
+            self.assertIn('call CBE_fnc_CombatElementSelect',source(caller))
+            self.assertIn('select [0,16]) apply',source(caller))
+
         self.assertIn('call CBE_fnc_CombatPairs',source('cortexClearBuilding'))
         self.assertIn('["pairs",_pairs]',source('operationStart'))
         self.assertIn('["pairs",[_group,_current] call CBE_fnc_CombatPairs]',source('rebalanceRoles'))

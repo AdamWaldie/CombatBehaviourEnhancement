@@ -50,7 +50,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |
-| ADVANCE - Bounding advance | 3 | 0 | 5 | `runCombat.sqf` | 2 | implemented_partial |
+| ADVANCE - Bounding advance | 3 | 0 | 6 | `runCombat.sqf` | 2 | implemented_partial |
 | COORD - Coordinated assault | 2 | 0 | 14 | `runCoordinated.sqf` | 10 | implemented_partial |
 | STANCE - Cover stance | 1 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | AMMO - Magazine sharing | 2 | 0 | 3 | `runMechanics.sqf` | 0 | implemented_partial |

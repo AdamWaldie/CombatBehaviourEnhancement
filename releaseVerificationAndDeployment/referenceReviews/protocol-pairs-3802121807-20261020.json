@@ -57,7 +57,7 @@
   ],
   "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
   "remainingRequiredWork": [
-    "Compose persistent pairs with outdoor mover/cover element selection, preserving actual ammunition/weapon capabilities and casualty replacement. Pair identity alone must not grant movement authority.",
+    "Initial existing-pair composition integrated in outdoorPairComposition. Assess first-operation pairing and replacement consistency without breaking support-specialist roles or minimum fire capacity; independent pair-granular alternation remains incomplete.",
     "Confirm physical role alternation, covering fire, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume.",
     "Verify binary startup/dependencies/licence before calling the whole source review complete."
   ],
@@ -74,5 +74,20 @@
     "fingerprint": "4a2d14d492855298a0cb3fecf597fb13aaa1353f292a3a09cdc73d2039848936",
     "signed": false,
     "source": "738d65a8 plus intended replacement fix/docs"
+  },
+  "outdoorPairComposition": {
+    "status": "INTEGRATED_INITIAL_ELEMENT_SELECTION_PHYSICAL_PENDING",
+    "implementation": "Read-only CombatElementSelect shared by advance/flank/assault starts prefers intact persistent pairs in ranked eligible candidates, then orphans. Minimum mover strength may override cohesion. Existing specialist, ammunition, cover-capacity and order gates remain authoritative.",
+    "bounds": "Top16 ranked candidates,16 pair rows,max5movers; no world query/new worker/publication. Callers shortlist rather than rejecting larger groups.",
+    "limitations": [
+      "Only previously registered eligible pairs are preserved. First operation can create new pairs after team selection.",
+      "Independent per-pair leapfrogging is not implemented. Later casualty replacement can still split pairs when tactical capacity requires it.",
+      "Runtime flow, balance, actual covering fire and performance remain unmeasured."
+    ],
+    "validation": "607 focused/full1477 existing tests; HEMTT/SQF/FSM/docs/package and independent candidate verification passed. Initial coverage failure fixed by existing ADVANCE source registration/report regeneration; no acceptance scores changed.",
+    "candidate": ".qa\\candidates\\buddy-element-selection-4a732d96",
+    "fingerprint": "4cb1c9709757e71057b14e3fd3cc451ba9c860b9bb1b8da19ac6d11325b3add9",
+    "signed": false,
+    "source": "4a732d96 plus intended selector/callers/docs"
   }
 }
