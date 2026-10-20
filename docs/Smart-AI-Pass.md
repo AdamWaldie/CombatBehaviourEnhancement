@@ -2154,3 +2154,5 @@ Ground gunnery now selects the exact turret, weapon and muzzle found by its fres
 
 
 Grenade evasion admission and delayed formation recall now yield to dormant, hidden or queued-treatment actors. Its six-second callback also leaves formation control with a still-current clearance, defence, garrison, support response or operation that owns that actor. Exact evasion marker retirement remains independent, including when another task prevents recall. This prevents the interruption callback from competing with the task it interrupted; it does not yet guarantee automatic re-entry into a former CQB lane. Physical evasion, casualty/reserve replacement and repeated interruption flow remain unverified.
+
+During an acknowledged six-second grenade evasion, clearance retains the affected lane roster and unfinished claim without issuing room movement or renewing its deadline. Changed native destinations and unknown leases receive no retention exception. Safe native room-command handback after evasion remains incomplete and requires physical validation.

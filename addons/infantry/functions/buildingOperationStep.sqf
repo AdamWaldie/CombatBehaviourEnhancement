@@ -3,6 +3,8 @@
  * Room exhaustion requires failures from every currently capable lane; inactive lane
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
  * The original configured lane count still bounds retries after casualties.
+ * A live acknowledged grenade evasion retains lane identity/claims without movement or
+ * deadline renewal. Expiry alone does not restore the interrupted native room command.
  * Partner entry stall timing accepts actual motion on its unchanged owned native leg,
  * including detours around the building. A target change adopts a position baseline
  * without renewing progress, retry or operation deadlines; motion never credits entry.
@@ -230,9 +232,25 @@ private _delay=call {
             _lane,_key,_mover,+_intended,getPosASL _actor,expectedDestination _actor,
             currentCommand _actor,speed _actor,_entered,unitReady _actor]];
     };
-    private _actorAvailable={
+    private _acknowledgedEvasion={
         params ["_actor"];
+            private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+            private _native=(expectedDestination _actor) param [0,[]];
+            _lease isEqualType [] && {count _lease == 3}
+                && {(_lease select 0) isEqualTo "GRENADE_EVASION"}
+                && {(_lease select 1) isEqualType []} && {count (_lease select 1) == 3}
+                && {(_lease select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
+                && {time < (_lease select 2)} && {(_lease select 2)-time <= 6}
+                && {count _native == 3} && {_native vectorDistance (_lease select 1) <= 0.25}
+                && {currentCommand _actor in ["","MOVE"]}
+                && {simulationEnabled _actor} && {!isObjectHidden _actor}
+                && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []};
+    };
+    private _actorAvailable={
+        params ["_actor",["_retainEvasion",false]];
         private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
+        if (!_free && {_retainEvasion}) then {_free=[_actor] call _acknowledgedEvasion};
         [_actor] call CBE_fnc_CortexCombatEffective && {local _actor} && {!isPlayer _actor}
             && {group _actor == _group} && {isNull objectParent _actor} && {_free}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
@@ -2004,10 +2022,16 @@ private _delay=call {
             && {(eyePos _observer) vectorDistance _eye <= 0.25}
             && {abs (((getDir _observer-(_observer getDir _view)+540) mod 360)-180) <= 75}
     };
+    // Retention is bookkeeping only: ordinary availability still blocks all commands/visits.
+    private _evadingWorkers=(_job get "team") select {
+        !([_x] call _actorAvailable) && {[_x,true] call _actorAvailable}
+            && {!(_x in _unavailable)} && {!(_x in _rotatedOut)}
+    };
     private _pairRosterChanged=false;
     {
         private _pairIndex=_forEachIndex;
         private _pair=_x;
+        if (_pair findIf {_x in _evadingWorkers} >= 0) then {continue};
         private _state=_pairStates select _pairIndex;
         private _laneRosterChanged=false;
         private _laneReplacements=[];
@@ -2352,14 +2376,14 @@ private _delay=call {
     private _capablePairIds=[];
     {
         private _laneId=format ["PAIR_%1",_forEachIndex];
-        if (_x findIf {[_x] call _actorAvailable && {!(_x in _rotatedOut)}
+        if (_x findIf {[_x,true] call _actorAvailable && {!(_x in _rotatedOut)}
             && {!(_x in _unavailable)} && {!(netId _x in _earlyExits)}} >= 0) then {
             _capablePairIds pushBack _laneId;
         };
     } forEach (_job get "pairs");
     private _failureRosterChanged=_capablePairIds isNotEqualTo (_job getOrDefault ["failureLaneRoster",[]]);
     {
-        if (!([_x] call _actorAvailable) || {_x in _rotatedOut} || {_x in _unavailable}) then {
+        if (!([_x,true] call _actorAvailable) || {_x in _rotatedOut} || {_x in _unavailable}) then {
             _assigned set [_forEachIndex,[]];
         };
     } forEach (_job get "team");
@@ -2461,6 +2485,7 @@ private _delay=call {
     {
         private _pairIndex=_forEachIndex;
         private _laneRoster=+_x;
+        if (_laneRoster findIf {_x in _evadingWorkers} >= 0) then {continue};
         private _pair=_laneRoster select {[_x] call _actorAvailable && {!(_x in _unavailable)} && {!(netId _x in _earlyExits)}};
         if (_pair isEqualTo []) then {
             private _state=_pairStates select _pairIndex;
@@ -3895,7 +3920,7 @@ private _delay=call {
     };
     // Complete physical coverage and participation retire obsolete owned room legs.
     // Egress is the next generation-owned request; native planner BUSY is not extra clearance evidence.
-    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo []}) exitWith {
+    if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}} && {_evadingWorkers isEqualTo []}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo [] && {_evadingWorkers isEqualTo []}}) exitWith {
         // Room coverage does not prove that every active clearing actor entered.
         // A deadline may release the operation, but cannot convert missing participation to success.
         if (!(_job getOrDefault ["entryFailed",false]) && {!_allWorkersEntered || {!_allWorkersProgressed}}) then {

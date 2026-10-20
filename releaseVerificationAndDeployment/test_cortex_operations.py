@@ -2284,7 +2284,7 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_releases_casualty_and_transferred_member_reservations(self):
         text=source('cortexClearBuilding')+source('buildingOperationStep')
         release=text.split('// Release reservations before selection',1)[1].split('private _now',1)[0]
-        self.assertIn('!([_x] call _actorAvailable)',release)
+        self.assertIn('!([_x,true] call _actorAvailable)',release)
         helper=source('buildingOperationStep').split('private _actorAvailable=',1)[1].split('private _finish',1)[0]
         self.assertIn('call CBE_fnc_CortexCombatEffective',helper)
         self.assertIn('group _actor == _group',helper)
@@ -10051,6 +10051,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_replacement_updates_shared_pairs_without_restarting_routes(self):
         text=source('buildingOperationStep')
+        for proof in ('private _evadingWorkers=', '[_x,true] call _actorAvailable',
+                      'if (_pair findIf {_x in _evadingWorkers} >= 0) then {continue}',
+                      'if (_laneRoster findIf {_x in _evadingWorkers} >= 0) then {continue}',
+                      '_activeWorkers isEqualTo [] && {_evadingWorkers isEqualTo []}',
+                      '_native vectorDistance (_lease select 1) <= 0.25',
+                      '(_lease select 2)-time <= 6'):
+            self.assertIn(proof,text)
         update=text.split('if (_pairRosterChanged) then {',1)[1].split('// Release reservations before selection',1)[0]
         self.assertIn('[_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish',update)
         self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
