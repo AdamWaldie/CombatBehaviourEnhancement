@@ -6,7 +6,8 @@
  * Zeus, specialist, declared platform driving ownership, existing operation and movement ownership
  * before issuing a turn command. Platform takeover retires the turn receipt without replay.
  * Repeat/JIP: Acceptance and refusal are recorded by the caller for one danger generation. An
- * accepted response binds its original driver and uses the shared operation generation and movement
+ * accepted response binds its original driver and authored native order, and uses the shared
+ * operation generation and movement
  * lease. A replaced/protected driver retires without late turn commands; the normal group tick
  * proves alignment or timeout and releases only the matching command owner.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat position <ARRAY>;
@@ -53,10 +54,11 @@ if (count _operation == 0) exitWith {
     false
 };
 private _operationGeneration=_operation get "generation";
+private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt;
 _vehicle sendSimpleCommand (["LEFT","RIGHT"] select (_relative < 180));
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
 _vehicle setVariable ["CBE_Danger_VehicleOrient",[
-    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver
+    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder
 ],true];
 true

@@ -1209,3 +1209,17 @@ a seat change or protected task cancels it and suppresses late turn cleanup in t
 return-to-calm. Existing eight-second orientation and twenty-five-second jink budgets are unchanged.
 These checks preserve identifiable task authority; they do not stop or acknowledge queued native
 turning, nor establish physical medical/seat handback or external-controller interoperability.
+
+Tracked orientation also binds the full current authored native waypoint receipt. Changes to the
+current node, count, script, attachment or native movement policy cancel the old turn without a
+late STOPTURNING during normal or calm cleanup. The receipt helper reads authored metadata only;
+it does not run waypoint conditions or statements. This adds a current-node receipt comparison
+on the existing active turn callback, with no new worker or world scan. Direct script movement
+that changes neither the authored waypoint nor a protected actor marker remains indistinguishable;
+physical route replacement, engine turn quiescence and overhead remain unverified.
+
+The turn's stored generation must match both the vehicle state and current operation, with the
+original owner epoch and VEHICLE_ORIENT intent still live. Cancellation or replacement retires
+permission rather than inheriting another operation. Cleanup removes only its matching generation's
+marker; an old callback or calm snapshot preserves a newer turn marker. This establishes source
+ownership checks, not actual engine stop acknowledgement.

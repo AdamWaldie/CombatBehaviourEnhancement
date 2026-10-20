@@ -274,9 +274,11 @@ private _orientKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientTar
     str [_orientCrew apply {[_x knowsAbout _orientTarget,_x targetKnowledge _orientTarget]},
         getPosATL _orientVehicle,getPosATL _orientTarget]] call _check;
 private _orientOwned=[{
-    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 6
+    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 7
         && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [5,objNull,[objNull]]) == _orientOriginalDriver}
         && {driver _orientVehicle == _orientOriginalDriver}
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [6,[],[[]]])
+            isEqualTo ([_orientGroup] call CBE_fnc_NativeOrderReceipt)}
         && {private _state=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];
             (_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_ORIENT"}
 },25] call _wait;
