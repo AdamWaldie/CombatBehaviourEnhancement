@@ -92,5 +92,26 @@
       "Physical flow and performance remain unverified; audits paused."
     ],
     "validation": "Existing 32-case indoor suite and full 1477-test compilation/config/FSM/documentation/package pipeline passed (.qa/cbe-available-contact-build.log); preserved unsigned candidate .qa/candidates/available-contact-c3ec171e-de3a03f5 from c3ec171e plus intended dirty edits. No new cases or scores."
+  },
+  "capacityCleanupReview20261020": {
+    "sourceParent": "050d482e",
+    "hashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "c673b2d790a6a7f8c254bbc175af3bca5fe5dca8bfb56ce26592d9b324ee6785",
+      "addons/infantry/functions/indoorActorNativeContext.sqf": "9b88ceef5f96b5bd0a907c7d1ede981a14d78985eec2e06ffb7f08bf92e089ef",
+      "addons/core/functions/cortexDiscover.sqf": "0e17f230172264a14e2fc3a7ae82acac43cfa95a675640de95e2a398571b0377",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+    },
+    "findings": [
+      "START filters its maximum-two investigator registry to current group actors with nonempty unfinished brains before checking capacity. Finished rows do not occupy a new admission slot.",
+      "CortexDiscover checks at most two registered indoor actors and invokes REAP. A live FSM refuses reaping; an ended exact current actor/epoch uses FINISH without replay or deadline renewal.",
+      "FINISH restores movement only with current native route, operation, reservation, destination and actor authority. Missing or malformed journal proof must not be treated as permission to reset movement.",
+      "LAMBS doAssaultMemory filters positions by distance, preserves a BUSY approach, consumes near/viewed positions and ultimately recalls the group when memory empties. CBE uses finite individual tasks and exact individual handback rather than copying a whole-group recall."
+    ],
+    "remainingGap": "The dispatcher coarse available roster does not include every executor/native-context veto. A near contact supported only by an actor with protected native work may still win building selection and then fail START, while another known contact could be actionable. Previous available-contact change resolves distance/roster starvation only, not all executor refusals.",
+    "nextAction": "Evaluate a shared cheap actor/native preflight before roof selection without multiplying visibility/roof queries or replacing protected tasks. Keep contact-specific building geometry and executor revalidation authoritative.",
+    "productionChanged": false,
+    "validation": "Read-only call-path/source comparison. Existing latest full build remains .qa/cbe-available-contact-build.log for source preceding 050d482e; no redundant build performed. Physical cleanup, repeat admission, balance and performance remain unverified.",
+    "audits": "PAUSED"
   }
 }
