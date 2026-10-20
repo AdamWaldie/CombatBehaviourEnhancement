@@ -5,6 +5,8 @@
  * Repeat/JIP: Source generation is consumed once. JIP observes checkpoints without starting work.
  * Committed route, actor destinations and absolute deadline survive; local commands and FSM handles do not.
  * Full original authored waypoint metadata must still match before inspect or resume admission.
+ * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
+ * No source MOVE or acknowledgement grace is replayed; reserved/unavailable/service actors stay excluded.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
  * Return Value: BOOL - resumed or queued for bounded actor-locality settling; false when refused.
  * Current callers: CortexLocality and its finite shared-scheduler locality-settling callback.
@@ -78,11 +80,41 @@ if (_living findIf {!local _x} >= 0) exitWith {
         format ["DRILL_ADOPT:%1",netId _group]] call CBE_fnc_CortexQueueJob;
     true
 };
+// Old passive holds require current actual-owner proof; a checkpoint alone cannot
+// recruit a stopped actor. The source token/generation must match this exact intent.
+private _resumeCommands=createHashMap;
+private _holdRows=_drill getOrDefault ["resumeNativeHolds",[]];
+private _holdIssuer=_drill getOrDefault ["resumeHoldIssuer",[]];
+private _holdIssuerValid=_holdIssuer isEqualType [] && {count _holdIssuer == 4}
+    && {(_holdIssuer select 0) isEqualTo _sourceToken} && {_sourceToken != ""}
+    && {(_holdIssuer select 3) isEqualTo _sourceGeneration}
+    && {[1,2] findIf {private _n=_holdIssuer select _x;
+        !(_n isEqualType 0) || {!finite _n} || {_n != floor _n} || {_n < 0}} < 0}
+    && {(_holdIssuer select 1) > 0};
+if (_holdIssuerValid && {_holdRows isEqualType []} && {count _holdRows <= 64}) then {
+    {
+        if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType objNull}
+            && {(_x select 1) isEqualType []} && {count (_x select 1) == 3}
+            && {(_x select 2) isEqualType objNull}) then {
+            _x params ["_heldActor","_heldNative","_heldLeader"];
+            if (_heldActor in _living && {local _heldActor} && {currentCommand _heldActor == "STOP"}
+                && {(expectedDestination _heldActor) isEqualTo _heldNative}
+                && {formLeader _heldActor == _heldLeader}) then {
+                _resumeCommands set [netId _heldActor,[_heldActor,"HOLD",+_heldNative,_heldLeader,-1,[],[]]];
+            };
+        };
+    } forEach _holdRows;
+};
+private _resumeUnavailable=_drill getOrDefault ["resumeUnavailable",[]];
 private _capable=_living select {
     [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
         && {!isPlayer _x} && {isNull remoteControlled _x}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+        && {!(_x in _resumeUnavailable)} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {currentCommand _x != "STOP" || {netId _x in _resumeCommands}}
 };
 if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
@@ -106,6 +138,11 @@ _drill set ["token",_token];
 _drill set ["operationGeneration",_operation get "generation"];
 _drill set ["ownerEpoch",_operation get "ownerEpoch"];
 _drill set ["units",_capable];
+{if (!(((_resumeCommands get _x) select 0) in _capable)) then {_resumeCommands deleteAt _x}} forEach (keys _resumeCommands);
+_drill set ["nativeAdmissionChecked",true];
+_drill set ["nativeCommands",_resumeCommands];
+_drill deleteAt "resumeNativeHolds";
+_drill deleteAt "resumeHoldIssuer";
 _drill set ["disabled",[]];
 _drill set ["spots",[]];
 _drill set ["started",time];

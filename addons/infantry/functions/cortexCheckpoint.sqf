@@ -5,6 +5,7 @@
  * record; the checkpoint never changes observable phase state outside the common transition path.
  * Locality/authority: current group owner unless stated otherwise below.
  * Repeat/JIP: durable restoration data is public; local jobs are never replayed verbatim.
+ * Active native HOLD proof is bounded to64 matching stopped actors; MOVE/acknowledgement state is not replayed.
  * Arguments: 0: group <GROUP>, default grpNull.
  * Return Value: Nothing unless a value is explicitly returned below.
  * Current callers: scheduler and locality restoration.
@@ -64,6 +65,28 @@ if (count _drill > 0) then {
             };
         } forEach ["type","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
             "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundWaypoint","authoredOrder"];
+        // Carry passive HOLD provenance only. No MOVE replay, acknowledgement grace,
+        // local callback or FSM handle becomes portable command authority.
+        private _holdProof=[];
+        private _nativeCommands=_drill getOrDefault ["nativeCommands",createHashMap];
+        if (_nativeCommands isEqualType createHashMap && {count _nativeCommands <= 64}) then {
+            {
+                private _row=_nativeCommands get _x;
+                if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "HOLD"}) then {
+                    private _actor=_row select 0;
+                    if (_actor isEqualType objNull && {!isNull _actor} && {local _actor}
+                        && {group _actor == _group} && {_actor in (_drill get "units")}
+                        && {currentCommand _actor == "STOP"}
+                        && {(expectedDestination _actor) isEqualTo (_row select 2)}
+                        && {formLeader _actor == (_row select 3)}) then {
+                        _holdProof pushBack [_actor,+(_row select 2),_row select 3];
+                    };
+                };
+            } forEach (keys _nativeCommands);
+        };
+        _payload pushBack ["resumeNativeHolds",_holdProof];
+        _payload pushBack ["resumeHoldIssuer",[_drill getOrDefault ["token",""],clientOwner,
+            _drill getOrDefault ["ownerEpoch",-1],_generation]];
         _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
         private _movers=_drill getOrDefault ["movers",[]];
         private _resumeRetries=+(_drill getOrDefault ["resumeRetries",[]]);

@@ -157,6 +157,24 @@ class CortexOperations(unittest.TestCase):
         for field in ['points','index','teamTurn','boundDeadlineIdentity','resumeSpots','resumeRetries','resumeRecovery','resumeUnavailable','resumeAttempts']:
             self.assertIn('"'+field+'"',checkpoint)
         self.assertIn('migrationClocks',checkpoint)
+        hold_checkpoint=checkpoint.split('// Carry passive HOLD provenance only.',1)[1].split('_payload pushBack ["resumeSpots"',1)[0]
+        for proof in ('count _nativeCommands <= 64','(_row select 1) == "HOLD"',
+                      'currentCommand _actor == "STOP"','formLeader _actor == (_row select 3)',
+                      '"resumeNativeHolds"','"resumeHoldIssuer"'):
+            self.assertIn(proof,hold_checkpoint)
+        hold_resume=resume.split('private _resumeCommands=',1)[1].split('private _operationPhase=',1)[0]
+        for proof in ('(_holdIssuer select 0) isEqualTo _sourceToken',
+                      '(_holdIssuer select 3) isEqualTo _sourceGeneration','count _holdRows <= 64',
+                      '(expectedDestination _heldActor) isEqualTo _heldNative',
+                      'formLeader _heldActor == _heldLeader','_heldLeader,-1,[],[]',
+                      'currentCommand _x != "STOP" || {netId _x in _resumeCommands}',
+                      'CBE_fnc_CortexActorMoveReserved','!(_x in _resumeUnavailable)'):
+            self.assertIn(proof,hold_resume)
+        self.assertIn('_drill set ["nativeAdmissionChecked",true]',resume)
+        self.assertIn('_drill set ["nativeCommands",_resumeCommands]',resume)
+        for forbidden in ('doStop','doMove','doFollow','execFSM','serverTime+2'):
+            self.assertNotIn(forbidden,hold_resume)
+
         self.assertIn('"authoredOrder"',checkpoint)
         start=source('cortexDrillStart')
         self.assertIn('if (isNil {_drill get "authoredOrder"})',start)

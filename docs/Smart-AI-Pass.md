@@ -1893,4 +1893,11 @@ This uses the existing owner-local allocation transaction and finite tactical FS
 
 A tactical drill freezes the full current authored waypoint receipt when its executor first starts. Active execution and ownership resume compare that original receipt, including conditions, scripts, attachments and synchronisation. Editing those values at the same waypoint position retires or refuses the old drill. Checkpoints carry the original receipt without refreshing its baseline. Replacement cleanup preserves the new order.
 
-This adds one read-only authored-order comparison per active drill callback and resume check. It creates no movement controller or polling job. Runtime overhead, physical mission-order interruption and actual-provider ownership transfer remain unmeasured or unverified. Active individual STOP provenance across ownership transfer remains a separate open issue.
+This adds one read-only authored-order comparison per active drill callback and resume check. It creates no movement controller or polling job. Runtime overhead, physical mission-order interruption and actual-provider ownership transfer remain unmeasured or unverified. Standalone ownership resume also revalidates passive covering HOLD proof as described below.
+
+
+### Passive covering holds after ownership transfer
+
+Standalone drill checkpoints carry at most 64 passive HOLD receipts whose native STOP, destination and formation leader still match the actual issued hold. The source token, owner, epoch and operation generation identify the checkpoint. A new owner checks the original drill token and generation, unchanged authored order, actual actor locality, native hold, fitness, movement features and reservations before admitting stopped actors. Valid holds enter the new drill journal without movement or a fresh acknowledgement interval. Unknown STOPs remain excluded, including before the first resumed callback.
+
+MOVE commands, their acknowledgement windows and FSM handles are not replayed. This uses the existing checkpoint and finite locality-settling path, with no actor marker broadcasts or new worker. Snapshot matching cannot distinguish an identical replacement order. Coordinated support-hold migration, physical standalone continuation and measured checkpoint overhead remain open.

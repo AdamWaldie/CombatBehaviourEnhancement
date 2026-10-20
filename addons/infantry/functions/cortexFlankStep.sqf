@@ -185,7 +185,7 @@ if (!isNull _intentTarget && {captive _intentTarget
 // A queued drill can run after a new direct owner appears. Recheck only at actual command
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
 // These local receipts belong to this already-validated token/epoch/generation only.
-// They are deliberately absent from portable drill checkpoints: a new owner cannot replay them.
+// MOVE and acknowledgement state stay local. Checkpoints carry only separately validated passive HOLD proof.
 private _recordNativeCommand={
     params ["_actor","_kind",["_goal",[],[[]]]];
     private _commands=_drill getOrDefault ["nativeCommands",createHashMap];
@@ -210,7 +210,7 @@ private _nativeCommandAvailable={
     if !(_command in ["STOP","MOVE"]) exitWith {true};
     private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
     // Natural starts preflight STOP and may transfer only exact completed CBE holds.
-    // Separate coordinated-role and owner-resume admission retain their current policies.
+    // Coordinated and resumed starts transfer only their exact separately validated HOLD proof.
     if (_row isEqualTo []) exitWith {
         !(_drill getOrDefault ["nativeCommandsFull",false])
             && {_command != "STOP" || {!(_drill getOrDefault ["nativeAdmissionChecked",false])}}

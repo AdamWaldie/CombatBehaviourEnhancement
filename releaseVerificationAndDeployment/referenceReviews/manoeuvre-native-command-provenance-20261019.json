@@ -1,7 +1,7 @@
 {
   "baseline": "fedab7ef6abdeff4af94e77f3622efe3ba16e8fc",
   "scope": "Active manoeuvre native command provenance and buddy handoff",
-  "status": "Natural STOP admission, owner-local changed STOP/MOVE and cleanup guards implemented; coordinated/resume initial admission and portable/identical-order proof remain open",
+  "status": "Natural/coordinated STOP admission and passive standalone ownership-resume HOLD proof implemented; independent MOVE/identical-order attribution, coordinated hold migration and physical acceptance remain open",
   "source_sha256": {
     "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
     "addons/infantry/functions/cortexFlankStep.sqf": "c0f2c81ea4ad9d68031ecba533d928c8cb822f3ef83ab8ad533b42c919eecb39",
@@ -119,6 +119,33 @@
       "Independent native actor STOP/MOVE and identical-order provenance remain separate.",
       "If locality changes before the initial executor captures its receipt, missing receipt refuses resume.",
       "Normal and actual-provider HC interruption/performance remain unrun; audits paused."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "passiveHoldResumeFollowUp20261020": {
+    "baseline": "62226672",
+    "finding": "Checkpoint retained destinations/retries but omitted active nativeCommands. Resume admitted unknown STOP and did not mark admission checked, allowing the first resumed callback to replace it. Blanket STOP refusal would strand genuine CBE covering holds.",
+    "change": "Checkpoint exports at most64 exact current HOLD rows only, plus original issuer token/owner/epoch/generation. Actual resume validates original token/generation, unchanged authored receipt, local actor currentSTOP/destination/formLeader, fitness/features/reservations/unavailable state. Valid holds seed nativeCommands with ack=-1 and nativeAdmissionChecked=true. No MOVE/grace/FSM replay or public actor markers.",
+    "cost": "At most64 local command rows inspected per existing checkpoint and64 rows adopted per locality event, no new timer/ray/world query. Roster membership comparisons are bounded but overhead remains unmeasured.",
+    "sources": {
+      "addons/infantry/functions/cortexCheckpoint.sqf": "fca1820d7706e5ed4677d6867820619be4adae6ab57ae5c457831fe0a56fe47f",
+      "addons/infantry/functions/cortexDrillResume.sqf": "fbe4cf99bdcd4e45580c74e6a975a5cbd3c19078d73fd095216305a41981af68",
+      "addons/infantry/functions/cortexFlankStep.sqf": "0261dda285538299e54d5839ba3d3088826c440beb5e25e7ca5a875aef27a64e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-drill-passive-hold-resume-build.log",
+      "independent": ".qa/cbe-drill-passive-hold-resume-preserved-independent.log",
+      "candidate": ".qa/candidates/drill-hold-62226672-a603a86e",
+      "fingerprint": "a603a86e5bd02d067c0340ab8487ca8de2caebd53e100d3e8ebc89804aff6efc",
+      "source": "62226672 plus intended dirty passive-HOLD resume edits"
+    },
+    "remaining": [
+      "Coordinated support holds still use their separate current-owner receipt policy.",
+      "Identical replacement orders remain observationally indistinguishable; missing or changed proof excludes the actor.",
+      "Normal/providerHC physical cover-to-move continuation and 5%median/10%p95 overhead remain unverified."
     ],
     "physical": false,
     "scoresChanged": false
