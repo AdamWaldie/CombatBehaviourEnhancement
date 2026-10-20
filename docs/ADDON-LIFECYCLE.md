@@ -1110,3 +1110,10 @@ Magazine sharing uses the recipient's primary weapon main muzzle rather than eve
 Tactical assessment and close-assault admission count a rifle operator only when the primary main muzzle has loaded ammunition or a compatible nonempty reserve. Underbarrel grenades cannot supply this capacity. A carried reserve qualifies without forcing a reload; firing readiness and permission remain separate native/executor checks. Physical squad strength stays separate, and AT/AA capability still uses its existing live launcher classifier. The low-firepower reposition policy is unchanged, but now receives ammunition-qualified rifle counts.
 
 The shared read-only check reads the weapon's configured main muzzle and its loaded count. Only an empty main muzzle requires compatible-reserve enumeration. It adds no controller, cache, scan or weapon-selection command. Ammo exhaustion during an already-running drill still uses existing native firing and recovery rules; this change governs assessment/admission. Physical small-element behaviour and frame-time cost remain unverified while audits are paused.
+
+
+### Flank and advance retain usable covering firepower
+
+Flank and advance admission now size the selected rifle manoeuvre element from operators with primary main-muzzle ammunition. At least two ammunition-qualified actors must remain for cover. A squad with four usable rifles and four dry weapons can therefore form two rifle movers with two rifle cover actors, while retaining the existing physical squad and cover rosters. Dry weapons do not inflate the selected element or its covering-fire capacity. Existing role preference, minimum physical group size, casualty-strength, native-task and route checks remain.
+
+Each start computes ammunition-qualified membership once through the shared read-only predicate. Native firing/reloading and active-drill casualty/ammunition reassessment remain separate; no inventory or weapon selection is commanded. Physical bounding, mixed ammunition loads and performance remain unverified while audits are paused.

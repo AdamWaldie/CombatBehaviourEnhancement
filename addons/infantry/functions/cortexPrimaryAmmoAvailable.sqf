@@ -7,7 +7,7 @@
  * Arguments: 0 soldier <OBJECT, objNull>.
  * Return: BOOL, true for loaded main-muzzle rounds or a nonempty compatible reserve.
  * This is ammunition availability, not immediate firing readiness or permission.
- * Current callers: CortexTacticalAssess and CortexAssaultStart.
+ * Current callers: CortexTacticalAssess, CortexAssaultStart, CortexFlankStart and CortexAdvanceStart.
  * Example: private _armed=[soldier1] call CBE_fnc_CortexPrimaryAmmoAvailable;
  */
 params [["_unit",objNull,[objNull]]];

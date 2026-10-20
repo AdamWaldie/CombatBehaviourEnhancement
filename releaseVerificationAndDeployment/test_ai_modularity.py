@@ -74,7 +74,7 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('compatibleMagazines [_weapon,_mainMuzzle]',primary)
         self.assertIn('(_x select 1) > 0',primary)
         self.assertLess(primary.index('_unit ammo _loadedMuzzle > 0'),primary.index('magazinesAmmo _unit'))
-        for name in ('cortexTacticalAssess','cortexAssaultStart'):
+        for name in ('cortexTacticalAssess','cortexAssaultStart','cortexFlankStart','cortexAdvanceStart'):
             self.assertIn('CBE_fnc_CortexPrimaryAmmoAvailable',src(name))
         def primary_available(loaded,reserves,compatible):
             return loaded>0 or any(rounds>0 and name in compatible for name,rounds in reserves)
@@ -82,6 +82,21 @@ class AIModularityContracts(unittest.TestCase):
         self.assertTrue(primary_available(0,[('rifle',7)],{'rifle'}))
         self.assertFalse(primary_available(0,[('grenade',1)]*4,{'rifle'}))
         self.assertFalse(primary_available(0,[('rifle',0)],{'rifle'}))
+        for name in ('cortexFlankStart','cortexAdvanceStart'):
+            drill=src(name)
+            self.assertIn('private _armedFoot=_onFoot select',drill)
+            self.assertIn('private _riflemen = _armedFoot select',drill)
+            self.assertIn('floor (count _armedFoot / 2)',drill)
+            self.assertIn('private _coverRifles=_armedFoot-_element',drill)
+            self.assertIn('if (count _coverRifles < 2)',drill)
+        def split(total,armed,eligible):
+            movers=min(armed//2,5,eligible)
+            return movers,armed-movers,total-movers
+        self.assertEqual(split(8,4,4),(2,2,6))
+        self.assertEqual(split(8,3,3),(1,2,7))
+        self.assertEqual(split(8,0,0),(0,0,8))
+        self.assertEqual(split(8,8,6),(4,4,4))
+
 
         for name in ['cortexAntiArmour','cortexMorale','cortexSupportApply']:
             self.assertIn('CBE_fnc_CortexCapabilities',src(name))

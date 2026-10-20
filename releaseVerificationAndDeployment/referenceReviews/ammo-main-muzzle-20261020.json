@@ -61,5 +61,33 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "boundingAdmissionCapacity20261020": {
+    "baseline": "974f7a03",
+    "finding": "Flank/advance selected rifle roles and element sizes from physical headcount; dry primary weapons could fill manoeuvre and cover capacity.",
+    "implementation": [
+      "Compute ammunition-qualified armedFoot once through shared primary predicate. Choose rifle candidates and element size from that subset.",
+      "Require at least two ammunition-qualified actors outside the selected moving element.",
+      "Retain existing physical squad/base/cover rosters, role priorities, minimum group size, casualty-strength and route/native ownership checks.",
+      "No inventory, reload, weapon-selection or new controller commands."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexFlankStart.sqf": "8b289cd0b7bd2c95acd1b3a92c919fda7da048f16ba1a5626a54f91be77b8a4a",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "7d0d585827f148c2f2674fa0a76fc594d01bbd4c51b77025e287ef4caeca911a"
+    },
+    "validation": {
+      "focusedTests": 656,
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-bound-ammo-capacity-focused.log",
+      "full": ".qa/cbe-bound-ammo-capacity-build.log",
+      "independent": ".qa/cbe-bound-ammo-capacity-independent.log",
+      "candidate": ".qa/candidates/bound-ammo-capacity-974f7a03-f42163f9",
+      "fingerprint": "f42163f9f3f1e8a0fcdd93bd969135074e6988a1da42bb8486695ab7391fa2d2"
+    },
+    "remaining": "Admission only. Active-drill ammunition exhaustion/role transitions, physical mixed-load bounding and performance remain unverified.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
