@@ -6496,6 +6496,12 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(case,matrix)
 
     def test_infantry_explicit_fire_respects_group_and_unit_roe(self):
+        fire=source('cortexFireControl')
+        eligible=fire.split('private _eligible =',1)[1].split('private _reservedActors=',1)[0]
+        for guard in ('simulationEnabled _x','!isObjectHidden _x','_x checkAIFeature "FIREWEAPON"'):
+            self.assertIn(guard,eligible)
+        self.assertLess(fire.index('simulationEnabled _x'),fire.index('_unit doTarget'))
+        self.assertNotIn('enableAI "FIREWEAPON"',fire)
         for name in ['cortexFireControl','cortexAntiArmour']:
             text=source(name)
             self.assertIn('combatMode _group in ["YELLOW","RED"]',text)

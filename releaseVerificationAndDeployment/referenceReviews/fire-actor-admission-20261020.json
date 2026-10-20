@@ -1,0 +1,38 @@
+{
+  "reviewed": "2026-10-20",
+  "baseline": "9bbaefc6",
+  "scope": "Infantry fire actor admission and initial LAMBS suppression trace, not full fire parity",
+  "upstreamSources": {
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doSuppress.sqf": "3eeb2ab99ff564aab61ec691d9b3c93841a55a3e242a9f7c9357c056f682f9c7",
+    ".qa/lambs-2621-review/main/functions/fnc_shouldSuppressPosition.sqf": "e7e079849262c11b66a2eb430cd61981e8090d55dff8b94d6065b5f62140c824"
+  },
+  "sourceIntent": [
+    "LAMBS doSuppress rejects absent primary/current suppression/terrain blockage, clamps distant target to200m and adjusts to first VIEW surface; minimum distance and nearby-friendly checks precede doWatch/doSuppressiveFire.",
+    "shouldSuppressPosition adds up to two FIRE/GEOM probes and configured model suppression blocking/proximity logic, optionally reverse-checking."
+  ],
+  "CBEExecution": [
+    "Current fire control preserves moving actor tasks, individual/group ROE, objective priority, loaded primary bullet muzzle, reserve threshold, line-of-fire helper and staggered bursts. These are implemented paths, not shot/effect evidence.",
+    "Eligible roster previously allowed hidden/simulation-disabled/FIREWEAPON-disabled actors through targeting/distribution/suppression. Add three read-only live actor gates before scripted orders and reserve/geometry work."
+  ],
+  "engineReference": "https://community.bistudio.com/wiki/disableAI",
+  "engineFact": "FIREWEAPON disables firing; documented since2.18. No enableAI, simulation or visibility mutation added.",
+  "sourceSHA256": "1f47822dffc7994540cf4bbc771dd1eab66e247b419dfeff08a02da1f79eb5a6",
+  "cost": "Three cheap actor-state reads in existing roster pass, short-circuiting later work; runtime overhead unmeasured.",
+  "validation": {
+    "tests": 1477,
+    "newCases": 0,
+    "focused": ".qa/cbe-fire-actor-admission-focused.log",
+    "full": ".qa/cbe-fire-actor-admission-build.log",
+    "independent": ".qa/cbe-fire-actor-admission-independent.log",
+    "candidate": ".qa/candidates/fire-actor-admission-9bbaefc6",
+    "fingerprint": "51ab3117274d20dde45cc39af55f6ff481fbf4440a3c6fdc954429436c178ea0"
+  },
+  "remaining": [
+    "Full LAMBS suppression surface/model/proximity/distribution comparison remains incomplete.",
+    "Neither ammunition capacity nor doSuppressiveFire issue demonstrates effective suppression; physical firing/target effects require audit.",
+    "Mission-state interruption, HC and performance unverified."
+  ],
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Hidden, simulation-disabled or FIREWEAPON-disabled actors receive no scripted fire assignment.
+ * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
  * Native PLANNING and STEALTH actors defer all scripted fire-control orders; suppression additionally requires
@@ -100,6 +102,7 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
         && {getUnitState _x != "PLANNING"}
         && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}
