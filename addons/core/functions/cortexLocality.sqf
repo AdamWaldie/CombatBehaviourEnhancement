@@ -211,6 +211,12 @@ if ((_group getVariable ["CBE_Cortex_DrillRecovery",[]]) isNotEqualTo []) then {
     _group setVariable ["CBE_Cortex_DrillRecovery",["MIGRATED",[],-1],true];
 };
 private _restore = createHashMapFromArray (_group getVariable ["CBE_AIPass_Checkpoint", []]);
+// A retired lease token cannot regain authority through delayed delivery on the new owner.
+// This carries refusal metadata only; it grants no support task, cleanup or movement.
+private _revokedSupportToken=_restore getOrDefault ["supportAuthoredRevokedToken",""];
+if (_revokedSupportToken isEqualType "" && {_revokedSupportToken != ""}) then {
+    ([_group] call CBE_fnc_CortexGroupState) set ["supportAuthoredRevokedToken",_revokedSupportToken];
+};
 // A locality callback may arrive after Zeus or another controller has claimed the group.  The
 // old owner's checkpoint is then evidence only: never replay its follow, AI-feature or ROE cleanup
 // into the new owner's task.  Eligible CBE groups still recover only the values CBE recorded.
@@ -355,7 +361,9 @@ private _supportAdoptable=_withdrawalIntent isEqualTo [] && {_transitionIntent i
     && {!([_group] call CBE_fnc_CortexZeusHeld)};
 if (_supportAdoptable) then {
     [createHashMapFromArray [
-        ["group",_group],["lease",_supportLease],["waitUntil",serverTime],["adopt",true]
+        ["group",_group],["lease",_supportLease],["waitUntil",serverTime],["adopt",true],
+        ["authoredOrder",_restore getOrDefault ["supportAuthoredOrder",[]]],
+        ["authoredRevoked",_restore getOrDefault ["supportAuthoredRevoked",false]]
     ]] call CBE_fnc_CortexSupportApply;
 };
 if (([_group] call CBE_fnc_CortexGroupState) getOrDefault ["supportToken",""] != "") exitWith {

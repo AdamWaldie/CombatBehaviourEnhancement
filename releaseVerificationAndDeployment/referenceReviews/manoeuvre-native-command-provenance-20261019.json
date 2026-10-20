@@ -176,5 +176,35 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportParentOrderFollowUp20261020": {
+    "baseline": "02230168",
+    "finding": "Coordinated child drills had authored-order proof, but the parent support assignment and its owner-adoption path could continue or recapture a changed waypoint as baseline. Parent cleanup could then recall its old holds into the replacement order.",
+    "change": "SupportApply freezes supportAuthoredOrder for accepted attack parents; checkpoint and Locality job carry original receipt/revocation. Adopting coordinated assignments require unchanged nonempty original receipt before OperationStart. Maintain retires REPLACED before roles/commands and revokes native cleanup permanently for that assignment, including pending cleanup. Fresh accepted operation resets revocation; rally remains on its existing route lifecycle.",
+    "cost": "One current-order receipt per active coordinated parent callback, none after sticky revocation. Existing checkpoint/job transport only; no timer/ray/new controller. Overhead unmeasured.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "844536742b61b2d22d03b300eb61037a3dce2ea31ba1b604d5a2e44b95828f6b",
+      "addons/core/functions/nativeOrderReceipt.sqf": "17878101643a5f418aec5f9ebf2cb54188336e78d6d6b467940c2d649e6464e2",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "52e03ec8fc88d4db5933a906a66fdd17615d8bd5991460414eced7033bfb64a8",
+      "addons/support/functions/cortexSupportApply.sqf": "2c93d1e723b39674996e4250a3748d0a554d2da5b7a06a4c1f66bad44db39b3b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "b36b1b7de950b80b73fda0942a553ec387e72a06908f78bed9e639e0e4c095fe"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-parent-order-final-build.log",
+      "independent": ".qa/cbe-support-parent-order-independent.log",
+      "candidate": ".qa/candidates/support-order-02230168-0903b5d4",
+      "fingerprint": "0903b5d43fc293492c5d250fdaa9cb4c40bb27420399cb58b09faae1ac554230",
+      "source": "02230168 plus intended dirty parent-order/revocation edits",
+      "intermediateBuild": ".qa/cbe-support-parent-order-build.log passed before late-delivery refinement; not final evidence"
+    },
+    "remaining": [
+      "Coordinated passive support-hold adoption still requires implementation; this change establishes original-order continuity first.",
+      "Actual-provider HC ordering, replacement flow and performance remain unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false,
+    "lateDelivery": "Sticky exact revoked token survives local release and checkpoint adoption. A normal stale delivery of that same token refuses before OperationStart; declared adoption also requires the original matching public status. A newly accepted different token retires refusal metadata."
   }
 }

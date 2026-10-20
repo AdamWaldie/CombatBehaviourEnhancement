@@ -170,6 +170,27 @@ class SupportBoundCommitTests(unittest.TestCase):
         maintain=(ROOT/'addons/support/functions/cortexSupportMaintain.sqf').read_text()
         cover=maintain.split('private _coverIdentity=',1)[1]
         self.assertLess(cover.index('call CBE_fnc_CortexSupportStopOwned'),cover.index('doStop _x'))
+        apply=(ROOT/'addons/support/functions/cortexSupportApply.sqf').read_text()
+        self.assertIn('_adoptedOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',apply)
+        self.assertLess(apply.index('&& {_adoptOrderCurrent}'),apply.index('call CBE_fnc_OperationStart'))
+        self.assertIn('if (_adopting) then {+_adoptedOrder}',apply)
+        self.assertIn('_state set ["supportAuthoredRevoked",true]',maintain)
+        self.assertIn('_state set ["supportAuthoredRevokedToken",_revokedToken]',maintain)
+        self.assertIn('getOrDefault ["supportAuthoredRevokedToken",""]) != _token',apply)
+        self.assertIn('!(_job getOrDefault ["adopt",false]) || {_adopting}',apply)
+
+        self.assertIn('getOrDefault ["authoredRevoked",false]',apply)
+        self.assertIn('_state set ["supportAuthoredRevoked",false]',apply)
+
+        self.assertIn('private _mayRestoreGroup=!_externalTakeover && {!_authoredReplaced}',maintain)
+        self.assertLess(maintain.index('if (_authoredReplaced) exitWith'),maintain.index('private _role='))
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
+        self.assertIn('["authoredOrder",_restore getOrDefault ["supportAuthoredOrder",[]]]',locality)
+        self.assertIn('getOrDefault ["supportAuthoredRevokedToken",""]',locality)
+        self.assertLess(locality.index('set ["supportAuthoredRevokedToken",_revokedSupportToken]'),
+                        locality.index('call CBE_fnc_CortexSupportApply'))
+
+
         cleanup=maintain.split('private _releaseStopHolds={',1)[1].split('private _releaseSupport={',1)[0]
         for proof in ('isNil {','supportStopHolds','count _holds > 64','(_row select 1) == _token',
                       'CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalTakeover',

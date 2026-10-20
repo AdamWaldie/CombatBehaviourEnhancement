@@ -27,10 +27,11 @@
  * Rally movement also uses 10 m completion; readiness requires physical squad arrival in GroupTick.
  * Ownership adoption reuses a matching public lease/status pair rather than inventing a second
  * support lifecycle. It reconstructs only semantic state and lets SupportMaintain consume the
- * current public role on the new owner.
- * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>.
+ * current public role on the new owner. Coordinated adoption requires the original
+ * full authored-order receipt; a same-position waypoint edit cannot become its new baseline.
+ * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> for coordinated adoption.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
- * Current callers: SupportLocal through the existing scheduler.
+ * Current callers: SupportLocal through the existing scheduler and CortexLocality adoption.
  * Example: [_job] call CBE_fnc_CortexSupportApply;
  * Result: a valid reservation becomes one owner-local rally or coordinated-assault assignment.
  */
@@ -79,6 +80,12 @@ private _groupTransmitter = [_group] call CBE_fnc_CortexGroupTransmitter;
 private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
 private _attackAllowed = _attack isNotEqualTo [] && {_sharedCoordinated};
 private _directCoordinationPending = _attack isEqualTo [] && {_sharedCoordinated};
+private _adoptedOrder=_job getOrDefault ["authoredOrder",[]];
+private _adoptOrderCurrent=!(_adopting && {_attackAllowed}) || {
+    !(_job getOrDefault ["authoredRevoked",false]) && {_adoptedOrder isNotEqualTo []} && {
+        _adoptedOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+    }
+};
 // Revalidate on the actor owner: proximity to the requester does not imply a shared contact.
 // Keep an existing drill committed when its live target belongs to a different engagement.
 private _localDrill = _state getOrDefault ["drill",createHashMap];
@@ -116,7 +123,9 @@ private _okay = missionNamespace getVariable ["CBE_AIPass_Active",false] && {!([
     && {serverTime < _expiry} && {!isNull _requester} && {side _requester == side _group}
     && {!isNull _groupTransmitter} && {!isNull _requesterTransmitter}
     && {[_group] call CBE_fnc_CortexIsEligible} && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-    && {_supportEnabled} && {!_attackAllowed || {_committedAttack} || {_contactFresh}}
+    && {_supportEnabled} && {_adoptOrderCurrent}
+    && {!(_job getOrDefault ["adopt",false]) || {_adopting}}
+    && {(_state getOrDefault ["supportAuthoredRevokedToken",""]) != _token} && {!_attackAllowed || {_committedAttack} || {_contactFresh}}
     && {!_operatingCrew} && {count _footFit >= 3} && {!isNull _anchor} && {behaviour _anchor != "CARELESS"} && {!fleeing _anchor}
     && {_same || {getSuppression _anchor <= ([0.2,0.65] select _contactPeer)}}
     && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600])}
@@ -165,6 +174,13 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
         [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     };
     _state set ["supportOperationGeneration",_generation];
+    _state set ["supportAuthoredRevoked",false];
+    _state deleteAt "supportAuthoredRevokedToken";
+    if (_attackAllowed) then {
+        _state set ["supportAuthoredOrder",if (_adopting) then {+_adoptedOrder} else {
+            [_group] call CBE_fnc_NativeOrderReceipt
+        }];
+    } else {_state deleteAt "supportAuthoredOrder"};
     if (_attackAllowed) then {
         _state set ["movementLease",["COORDINATED_ASSAULT",time+(_expiry-serverTime)]];
     } else {

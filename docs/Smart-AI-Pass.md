@@ -1908,3 +1908,10 @@ MOVE commands, their acknowledgement windows and FSM handles are not replayed. T
 Completed support bounds keep their stopped main element in the parent support-hold journal. Stragglers retain the existing formation-return path. The next bound can consume those exact holds through normal admission. During a MOVE-to-COVER role handover, unchanged current-drill STOPs transfer passively to that same support journal before the child drill retires. The incoming cover role owns any subsequent command.
 
 These transitions require the current parent token, operation generation, owner epoch, original lease expiry and unchanged authored order. Unknown stops remain outside the transferred roster. Completion cleanup also checks the frozen authored-order receipt before issuing STOP or formation-return commands and records the original receipt for completed standalone holds. No timer, movement controller or renewed lease is added. Physical repeat flow and coordinated-hold migration remain unverified or incomplete.
+
+
+### Coordinated parent order replacement
+
+The coordinated support assignment freezes the current authored waypoint receipt when its parent operation is accepted. Checkpoints carry that receipt and its revocation state into ownership adoption. Adoption rejects a changed or missing original receipt. The ordinary reinforcement rally path keeps its existing route lifecycle.
+
+An observed waypoint edit retires coordinated support before another covering or bound command. It also revokes delayed native cleanup for that assignment. Returning the waypoint to its old values cannot reactivate the retired recall. Exact revoked-token refusal also survives local release and checkpoint adoption, preventing a delayed delivery from recapturing a baseline. A newly accepted different token establishes its own receipt. This adds one current-order comparison to an active coordinated support callback, with no additional worker or timer. Physical replacement, locality ordering and overhead remain unverified.

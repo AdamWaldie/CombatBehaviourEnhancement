@@ -6728,7 +6728,7 @@ class CortexOperations(unittest.TestCase):
     def test_expired_support_reservation_does_not_restore_attack_over_a_new_owner(self):
         maintain=source('cortexSupportMaintain')
         self.assertIn('private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;',maintain)
-        self.assertIn('private _mayRestoreGroup=!_externalTakeover;',maintain)
+        self.assertIn('private _mayRestoreGroup=!_externalTakeover && {!_authoredReplaced};',maintain)
         self.assertIn('if (_mayRestoreGroup && {_state getOrDefault ["attackChanged",false]})',maintain)
         self.assertLess(maintain.index('private _mayRestoreGroup='),maintain.index('private _restoreAttack='))
 

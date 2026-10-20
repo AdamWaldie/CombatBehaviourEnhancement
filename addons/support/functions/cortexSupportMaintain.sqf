@@ -5,6 +5,8 @@
  * retained locally. A missing/incapacitated formation leader defers release without consuming
  * its receipt; the existing finite retry window is unchanged. Pending cleanup uses the existing group callback, original lease expiry+30s
  * and at most64 single-actor attempts; migration grants no portable cleanup authority.
+ * Coordinated parent support keeps its original authored-order receipt. Edits retire the
+ * assignment before covering/bound writes and suppress native cleanup over the replacement.
  * Owner execution preserves unknown/malformed actor reservations through the shared strict predicate.
  * Releases only the current CBE support assignment when it expires, is revoked or loses every
  * feature gate capable of owning it. A mode must remain enabled at both ends of the reservation;
@@ -50,7 +52,20 @@ private _cleanupOnly=_mode == "PENDING";
 // shutdown still restores the support hold; only an actual replacement owner keeps
 // the saved combat permissions and follower commands out of its task.
 private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;
-private _mayRestoreGroup=!_externalTakeover;
+private _supportAuthored=_state getOrDefault ["supportAuthoredOrder",[]];
+private _authoredReplaced=(_state getOrDefault ["supportAuthoredRevoked",false]) || {
+    _supportAuthored isNotEqualTo [] && {
+        _supportAuthored isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+    }
+};
+// Seeing a replacement permanently revokes this assignment's delayed cleanup permission.
+// A later waypoint edit back to the old values cannot reactivate its pending recall.
+if (_authoredReplaced) then {
+    _state set ["supportAuthoredRevoked",true];
+    private _revokedToken=_state getOrDefault ["supportToken",""];
+    if (_revokedToken != "") then {_state set ["supportAuthoredRevokedToken",_revokedToken]};
+};
+private _mayRestoreGroup=!_externalTakeover && {!_authoredReplaced};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 private _movementLeaseActive = count _movementLease == 2 && {time < (_movementLease select 1)} && {
@@ -234,6 +249,9 @@ if (_mode == "RELEASE") exitWith {
 // restores CBE's former command over the new owner.
 if (_externalTakeover) exitWith {
     ["EXTERNAL"] call _releaseSupport;
+};
+if (_authoredReplaced) exitWith {
+    ["REPLACED"] call _releaseSupport;
 };
 private _abort = _group getVariable ["CBE_Cortex_SupportAbort",[]];
 if (count _abort == 4 && {(_abort select 0) == _token}) exitWith {
