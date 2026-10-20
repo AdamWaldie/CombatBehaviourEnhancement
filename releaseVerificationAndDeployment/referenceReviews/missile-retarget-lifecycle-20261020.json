@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-20",
+  "finding": "A still-live missile kept the original aircraft flare/break episode active even after positive native retargeting to a different physical actor/vehicle.",
+  "change": "CortexMissileDefenceStep samples missileTarget before countermeasures/flight correction. A live Air/LandVehicle/Ship/CAManBase homing target whose vehicle differs from defended aircraft ends this episode with RETARGETED via its exact lease. Crew aboard defended aircraft remains its threat. Null/proxy/unknown targets retain original12sample bound; no missile guidance is changed.",
+  "scope": "Aircraft evasion lifecycle only. Current routine vehicle gunnery is not an incoming-munition interception pipeline; ground-AA observation, station/shot capture and bounded swept-shot effect remain unimplemented.",
+  "validation": {
+    "focusedTests": 607,
+    "fullTests": 1477,
+    "compilerFsmDocsPackage": "PASS",
+    "independentVerification": "PASS",
+    "candidate": ".qa\\candidates\\missile-retarget-lifecycle-7993eace",
+    "fingerprint": "da6f9d016e16d06412c68e2b05149c0294e9d0161299177399ba33253cba3c19",
+    "source": "7993eace plus intended lifecycle/docs",
+    "signed": false
+  },
+  "remaining": "Physical seeker/target transitions, salvos, decoys/proxies, lease handover and performance unverified. Audits paused; no parity score change.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED"
+}

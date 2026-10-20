@@ -1692,6 +1692,15 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('spawn',defence)
         self.assertNotIn('sleep',defence)
         self.assertIn('class CortexMissileDefenceStep',functions)
+        retarget=defence.split('private _homing=',1)[1].split('private _pilot=',1)[0]
+        for proof in ('missileTarget _missile','!isNull _homing','alive _homing',
+                      '_homing isKindOf "Air"','_homing isKindOf "LandVehicle"',
+                      '_homing isKindOf "Ship"','_homing isKindOf "CAManBase"','vehicle _homing != _aircraft','"RETARGETED"','call _finish'):
+            self.assertIn(proof,retarget)
+        self.assertLess(defence.index('private _homing='),defence.index('call CBE_fnc_CortexFireCountermeasure'))
+        self.assertNotIn('setMissileTarget',defence)
+        self.assertIn('_state getOrDefault ["finishReason","THREAT_ENDED"]',defence)
+
     def test_cleanup_and_regroup_use_surviving_anchors_without_global_group_scans(self):
         """Cleanup and remnant recovery remain viable after leadership loss at large group counts."""
         calm=source('cortexRestoreCalm')

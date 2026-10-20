@@ -6,6 +6,9 @@
  * Locality / Authority: Must run where the aircraft is local. It changes only that locally owned
  * AI aircraft's countermeasures and, at most twice, its model-space velocity. It never creates a
  * waypoint, changes target selection, controls player aircraft or alters Dynamic AA.
+ * A live missile positively retargeted to another live vehicle/actor retires this response.
+ * Unknown/null or proxy homing targets retain the original bounded response; a crew target
+ * aboard this aircraft still counts as its own threat. No missile guidance is changed.
  * Repeat/JIP: The scheduler owns repetition. Locality loss, eligibility loss, shutdown and a newer
  * generation retire this callback without restoring or overwriting a later flight controller.
  * Arguments:
@@ -36,7 +39,7 @@ private _finish={
         _aircraft setVariable ["CBE_Cortex_MissileDefenceActive",nil];
     };
     if (!isNull _aircraft && {local _aircraft}) then {
-        [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,"THREAT_ENDED"] call CBE_fnc_FlightLeaseRelease;
+        [_aircraft,"MISSILE_DEFENCE",_flightLeaseToken,_state getOrDefault ["finishReason","THREAT_ENDED"]] call CBE_fnc_FlightLeaseRelease;
     };
     -1
 };
@@ -46,6 +49,18 @@ if (isNull _aircraft || {!local _aircraft}
 // A known projectile disappearing after the initial sample means the threat has ended. Engines and
 // addon weapons that do not expose the projectile retain the same bounded twelve-sample maximum.
 if (_projectileKnown && {isNull _missile || {!alive _missile}}) exitWith {call _finish};
+
+// Missile existence alone does not mean it still threatens this aircraft. Only a
+// positive live actor/vehicle target proves retargeting; null/laser/proxy targets
+// are ambiguous and retain the original maximum rather than fabricate safety.
+private _homing=if (_projectileKnown && {!isNull _missile}) then {missileTarget _missile} else {objNull};
+if (!isNull _homing && {alive _homing}
+    && {_homing isKindOf "Air" || {_homing isKindOf "LandVehicle"}
+        || {_homing isKindOf "Ship"} || {_homing isKindOf "CAManBase"}}
+    && {vehicle _homing != _aircraft}) exitWith {
+    _state set ["finishReason","RETARGETED"];
+    call _finish
+};
 
 private _pilot=driver _aircraft;
 private _wantFlares=!isNull _pilot && {[group _pilot,"CBE_AIPass_AircraftFlares_Enable",true] call CBE_fnc_CortexFeatureEnabled};
