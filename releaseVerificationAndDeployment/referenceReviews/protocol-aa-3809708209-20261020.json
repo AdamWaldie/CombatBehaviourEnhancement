@@ -1,0 +1,86 @@
+{
+  "workshopId": "3809708209",
+  "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209\\addons\\protocol_ai_anti_air.pbo",
+    "sha256": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 640,
+        "sha256": "ab87881539a0b119987b09a0c1410110e4a1bfd6804cd8f2e51f6a8357011df5"
+      },
+      {
+        "name": "functions\\fn_aa.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 26426,
+        "sha256": "2fdeb2d597f4589a4b35eac7107db1725f84f5ced9a715e2a9bceebfcb427788"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 1276,
+        "sha256": "3ef5f890312b937aef8c18081f40b50ee84f9e71da8c5e7ad1644a8957ee5b04"
+      }
+    ]
+  },
+  "scope": "All1380lines of fn_aa.sqf plus XEH_preInit.sqf fully read. Binary startup/dependencies/licence unverified. Original archive unchanged; no raw source copied.",
+  "contributions": [
+    {
+      "intent": "Prioritise incoming munitions, then aircraft.",
+      "source": "15km Missile/Rocket nearestObjects query, score from unnormalised velocity dot relative position; no firing-side/hostility/detection filter. Aircraft global8km snapshot with side inequality, class/distance priority.",
+      "cbe": "Aircraft IncomingMissile countermeasures/evasion exist. That is not ground AA interception. Native ground vehicle fire control exists but no bounded ground munition-interception executor was found.",
+      "gap": "Ground munition detection/admission, hostile origin/closest approach, actual weapon capability/aim/release and layered multi-AA coordination need implementation. Coordinate with AEGIS-M selected intent; do not invent projectile destruction."
+    },
+    {
+      "intent": "Use an appropriate AA weapon.",
+      "source": "assignedVehicleRole turret weapons or gunner weapons, configured magazine lock properties; no loaded/available ammunition proof and fallback doFire on any missile target.",
+      "cbe": "Cortex turret/station ammunition policy provides groundwork, not proof that native engine weapon can intercept projectiles.",
+      "gap": "Check exact current turret/muzzle, loaded ammunition, native intercept capability and actual shots/hits before claiming CIWS or missile defence."
+    },
+    {
+      "intent": "Shoot then conceal/relocate and restore search.",
+      "source": "WAITING->ENGAGING->RELOCATE->RELOCATING; at most202 random hide candidates with terrain/road/object queries, then findSafePos fallback. Loss of target initiates relocation; disables PATH at rest, forces radar/CARELESS/FULL, double native destination+doMove and velocity zero at arrival.",
+      "cbe": "Finite vehicle movement/leases and artillery-style session/expires offer integration groundwork; no source-equivalent ground-AA relocate lifecycle identified.",
+      "gap": "Implement ground-AA role/engagement/session-aware relocation through existing driving ownership, retain native radar/task authority, original deadline and safe persistent crew behaviour."
+    },
+    {
+      "intent": "Recover a stuck relocation.",
+      "source": "Retries after measured progress window, but AA_LAST_MOVE_TIME updated every moving callback can prevent that window opening.180s timeout rerolls position and resets start, so retries can continue indefinitely.",
+      "cbe": "Existing finite movement/recovery budgets are reusable; do not copy time renewal or forced PATH activation.",
+      "gap": "Needs AA-specific integration and runtime movement proof."
+    },
+    {
+      "intent": "Smoke before relocation.",
+      "source": "Creates three SmokeShellPurple objects without inventory or actual launcher.",
+      "cbe": "Real inventory/countermeasure firing is separate shared functionality.",
+      "departure": "Reject free smoke creation as an AI implementation shortcut."
+    }
+  ],
+  "configurationDefects": [
+    "Relocation CBA setting name ends in a space, while runtime reads unspaced name.",
+    "Disabling global feature exits the worker with PATH/radar/state overrides left behind; re-enable does not start that exited worker in this script."
+  ],
+  "authorityAndCost": [
+    "Every0.5s allGroups scan with no locality/Zeus/player/medical/ROE ownership contract.",
+    "Reveal target level4 and forced radar/target/fire writes over native knowledge; friendly missiles may be selected.",
+    "Heavy hide search and nested waits delay other groups; no per-asset coalesced generation or original bounded episode."
+  ],
+  "disposition": "READABLE_SOURCE_REVIEW_COMPLETE; ground AA anti-munition and relocate functionality remains a real product gap. Aircraft missile evasion is not parity.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}

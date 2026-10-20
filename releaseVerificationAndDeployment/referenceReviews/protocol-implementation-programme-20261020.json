@@ -30,9 +30,11 @@
       "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927",
       "metadataSHA256": "dbdb56d83277b38c0e3296ead7314260f1680bcb798fa03a3e2356178d2cccdc",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_PARTIAL_INTENT_PATHS",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-artillery-3801354927-20261020.json",
+      "remaining": "Pre-fire range relocation; binary startup/dependencies/licence; physical firing/scoot/counter-battery validation."
     },
     {
       "workshopId": "3802121807",
@@ -61,9 +63,11 @@
       "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209",
       "metadataSHA256": "6f8b7b24a8515ad74d09a6dd009efd92d210de542cb1f679decb74b51b952d0d",
-      "status": "QUEUED_FOR_FULL_AI_SCOPE_COMPARISON",
+      "status": "READABLE_SCRIPTS_REVIEWED_GROUND_AA_BEHAVIOUR_GAPS",
       "priority": "After foundations and FSM lifecycle",
-      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim."
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-aa-3809708209-20261020.json",
+      "remaining": "Ground AA anti-munition and role-scoped relocation integration; weapon capability/shot proof; binary startup/dependencies/licence; physical performance validation."
     },
     {
       "workshopId": "3813369033",

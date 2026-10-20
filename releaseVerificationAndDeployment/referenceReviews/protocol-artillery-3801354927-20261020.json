@@ -1,0 +1,78 @@
+{
+  "workshopId": "3801354927",
+  "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927\\addons\\prototcol_ai_artillery.pbo",
+    "sha256": "1cfb0a5cacd7d5156ed44692f3189faffb39349bc787b532fa7f7664a7a387bf",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 655,
+        "sha256": "23c70cecbc3ba3196eae4a8499b334ad15aa3a3b7afd604dccb8c948202ca1e3"
+      },
+      {
+        "name": "functions\\fn_artillery.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 4832,
+        "sha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 1281,
+        "sha256": "392fee21320fe3c931c041e517fd934a606c2c4761156716e6c8f5f06587c283"
+      }
+    ]
+  },
+  "scope": "Both readable SQFs fully read. Binary startup/dependencies/licence unverified; no raw source copied.",
+  "contributions": [
+    {
+      "intent": "Identify actual artillery and obtain a reachable ammunition solution.",
+      "source": "Land class shortlist then getArtilleryAmmo/ETA; chooses random ammunition after any reachable type is found.",
+      "cbe": "CortexArtilleryAmmo/Fire/Aim and owner fire request use registered role, magazine/range solution and finite mission.",
+      "gap": "Physical mixed-mod ammunition/range coverage remains pending; source random ammo is not a requirement."
+    },
+    {
+      "intent": "Move into range and displace after firing.",
+      "source": "Random target-centred2500..3500m move with unbounded waitUntil; post-request sleep20..35s then random400..1000m move.",
+      "cbe": "CortexArtilleryScoot uses current-owner token/session, original expiry, six candidate routes and operation generation. Mission firing acknowledgement remains distinct from request.",
+      "gap": "Automatic pre-fire relocation into range is not demonstrated by shoot-and-scoot; do not claim that parity. Static mortars cannot be made mobile by crew doMove."
+    },
+    {
+      "intent": "Counter-battery response.",
+      "source": "Scans every opposing artillery vehicle within7km and commands those enemy vehicles to fire at own artillery, without detection evidence.",
+      "cbe": "CortexCounterBattery consumes firing events and qualified side radar or owner observer fixes; own registered counter-battery assets execute their own mission.",
+      "departure": "Reject commanding the opposing faction or treating a global object query as detection.",
+      "gap": "Physical radar/observer and owner-transfer validation pending."
+    },
+    {
+      "intent": "Configurable round volume.",
+      "source": "Both branches declare private _rounds inside if/else; later doArtilleryFire reads outside those scopes. Random rounds are fractional.",
+      "cbe": "Finite mission round/burst state rather than a branch-local undefined variable.",
+      "gap": "Exact balance and ammunition consumption remain in-engine evidence."
+    }
+  ],
+  "costAndAuthority": [
+    "No outer delay on idle global allGroups loop, repeated friendly nearTargets2500 peractor and global enemy group scans.",
+    "No pergun/crew locality, Zeus/native task or newer-operation cancellation after sleeps/waits.",
+    "Simple side inequality includes non-hostile/neutral cases; shared nearTargets candidates are not filtered as hostile before random selection."
+  ],
+  "configuration": "Five CBA controls reviewed. Retain semantic CBE role/request/round/scoot controls; no duplicate source-branded task or settings module.",
+  "disposition": "INTENT_COMPARISON_COMPLETE_FOR_READABLE_SCRIPTS; existing paths mapped, prefire range relocation remains a real gap. Not full implementation/parity.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false
+}
