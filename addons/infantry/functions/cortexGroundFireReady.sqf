@@ -3,7 +3,10 @@
  * Purpose: Verify the selected ground gunner's actual station has a loaded damaging magazine
  * in a native station weapon/muzzle state. Reserve magazines or another turret cannot qualify it.
  * Work: at most16 station weapons,8 configured muzzles each and32 native weapon-state queries.
- * This checks loaded rounds, not completion of the native reload/firing cycle.
+ * Loaded target preferences may scan the full existing budget: armour AP/tandem HEAT,
+ * soft-vehicle explosives and infantry nonexplosive bullets. Ties retain station order;
+ * a merely suitable loaded fallback remains valid. This checks loaded rounds, not effects
+ * or completion of the native reload/firing cycle. Reserve-magazine loading remains native.
  * An optional target also requires configured ammunition intent for its actual platform class.
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
@@ -61,6 +64,7 @@ private _targetSuitable={
     };
     getNumber (_ammo >> "airLock") <= 0
 };
+private _bestScore=-1;
 private _evaluateState={
     params ["_state","_weapon","_muzzle"];
     private _magazine=_state param [3,"",[""]];
@@ -76,20 +80,39 @@ private _evaluateState={
                 && {finite _rounds} && {_rounds >= 20}
         }};
     private _reload=_state param [6,0,[0]];
-    if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
-        && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
-        _observation set ["reloadInProgress",true];
-    };
+    private _reloading=count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+        && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1};
+    if (_bestScore < 0 && {_reloading}) then {_observation set ["reloadInProgress",true]};
     private _usable=count _state >= 5 && {(_state select 0) == _weapon}
         && {(_state select 1) == _muzzle}
         && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable};
+    private _score=-1;
     if (_usable) then {
+        _score=2;
+        if (!_bulletSuppression && {_targetFlag in [64,128,512]}) then {
+            private _warhead=toUpperANSI getText (_ammo >> "warheadName");
+            _score=switch (_targetFlag) do {
+                case 512: {if (_warhead in ["AP","TANDEMHEAT"]) then {2} else {[0,1] select (_warhead == "HEAT")}};
+                case 128: {[0,2] select (_warhead in ["HE","HEAT","TANDEMHEAT"] || {getNumber (_ammo >> "indirectHit") > 0})};
+                default {
+                    if (toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
+                        && {getNumber (_ammo >> "indirectHit") <= 0} && {getNumber (_ammo >> "explosive") <= 0}) then {2} else {
+                        [0,1] select (_warhead == "HE" || {getNumber (_ammo >> "indirectHit") > 0})
+                    }
+                };
+            };
+        };
+    };
+    if (_score > _bestScore) then {
+        _bestScore=_score;
+        _observation set ["reloadInProgress",_reloading];
         _observation set ["loadedWeapon",_weapon];
         _observation set ["loadedMuzzle",_muzzle];
         _observation set ["loadedMagazine",_magazine];
         _observation set ["loadedTurret",+_station];
     };
-    _usable
+    // Continue only to improve a usable fallback. Ideal matches retain the early exit.
+    _usable && {_score >= 2}
 };
 private _cached=_observation getOrDefault ["stationSnapshot",[]];
 private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6}
@@ -102,13 +125,14 @@ private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6
             || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}
     } < 0};
 if (_reuse) exitWith {
-    (_cached select 5) findIf {[_x select 2,_x select 0,_x select 1] call _evaluateState} >= 0
+    private _preferred=(_cached select 5) findIf {[_x select 2,_x select 0,_x select 1] call _evaluateState} >= 0;
+    _preferred || {_bestScore >= 0}
 };
 _observation deleteAt "stationSnapshot";
 // Inventory membership does not prove a magazine is loaded. Query each native
 // station muzzle directly, including an unselected coaxial/secondary weapon.
 private _queries=0;private _rows=[];private _frame=diag_frameNo;
-private _ready=(_weapons select [0,16]) findIf {
+private _preferredFound=(_weapons select [0,16]) findIf {
     private _weapon=_x;
     private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
     if (_muzzles isEqualTo []) then {_muzzles=["this"]};
@@ -121,6 +145,7 @@ private _ready=(_weapons select [0,16]) findIf {
         [_state,_weapon,_muzzle] call _evaluateState
     } >= 0
 } >= 0;
+private _ready=_preferredFound || {_bestScore >= 0};
 // Success can short-circuit: only a completed failed scan contains every queried
 // muzzle in the supported budget. Never cache a partial successful station scan.
 if (_selectionPass && {!_ready} && {diag_frameNo == _frame}) then {

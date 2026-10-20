@@ -8865,6 +8865,11 @@ class CortexOperations(unittest.TestCase):
                       'getNumber (_ammo >> "indirectHit") <= 0','getNumber (_ammo >> "explosive") <= 0'):
             self.assertIn(proof,text)
 
+        for proof in ('_bestScore=-1','warheadName','["AP","TANDEMHEAT"]','case 128:',
+                      '_score > _bestScore','_preferredFound || {_bestScore >= 0}',
+                      '_preferred || {_bestScore >= 0}','_observation set ["reloadInProgress",_reloading]'):
+            self.assertIn(proof,text)
+        self.assertLess(text.index('_score > _bestScore'),text.index('set ["loadedWeapon"'))
         self.assertNotIn('selectWeapon',text)
         self.assertNotIn('loadMagazine',text)
 

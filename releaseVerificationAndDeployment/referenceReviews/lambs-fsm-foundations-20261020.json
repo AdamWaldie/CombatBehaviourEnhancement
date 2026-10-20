@@ -335,5 +335,18 @@
     "performanceMeasured": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "loadedGroundWarheadPreference": {
+    "sourceIntent": "Full readable brainVehicle plus doSelectWarhead reviewed: source selects AP/tandemHEAT for armour and HE/HEAT otherwise, includes reserve magazine loadMagazine and optional muzzle switch.",
+    "change": "CBE existing loaded-station checker now prefers AP/tandemHEAT for armour, explosives for soft vehicles, nonexplosive bullets for infantry after existing config intent restrictions. Suitable fallback retained; ties preserve station order. Selected reload evidence replaces unrelated muzzle reload state. Default no-target and bullet-suppression paths still early-exit. No fire/target/move/load command added; existing selector uses returned actual station receipt.",
+    "cost": "At most16 weapons/8muzzles each/32 native state queries unchanged. Nonideal first matches may increase actual work; cost unmeasured. Same-frame failed scan reuse retains target reevaluation.",
+    "remaining": "Reserve magazine switching is not implemented. No topdown mode selection, terminal-effect proof or whole vehicle-domain parity.",
+    "validation": "Full1480/HEMTT/SQF/FSM/docs/package and independent candidate passed; no new test cases.",
+    "candidate": ".qa/candidates/ground-loaded-preference-08d2e650",
+    "fingerprint": "1dbf543088bb51eb6058925939fcc88593313a42ad3a995eb2be6a1f35816caa",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
