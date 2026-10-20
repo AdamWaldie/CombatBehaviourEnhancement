@@ -9,6 +9,8 @@
  * because a group waypoint cannot exclude that actor; independent actor operations remain available. The shared gate prevents delayed callbacks from adding a CBE route after
  * Zeus, a player, or an external controller has taken ownership.
  * Queued ACE treatment blocks route adoption/replacement before native HEAL starts.
+ * Crewed ground platforms retain native BACK/direct-commander input and simple LEFT/RIGHT turns.
+ * Existing admission/commit scans inspect each distinct platform once per boundary.
  * Native policy edits relinquish route ownership, including scripts, forced behaviour and attachments.
  * Repeat/JIP: The public intent record survives locality transfer. The new owner can reuse a
  * still-valid waypoint instead of injecting a duplicate. A materially changed request replaces
@@ -43,16 +45,26 @@ if (isNull _group || {!local _group} || {!(count _position in [2,3])}
     || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {[grpNull, -1]};
 // A vehicle-specific driving controller need not own every actor in its crew group.
-// A group waypoint still affects that vehicle, so reject it without disabling other domains.
-private _externalDriving={
+// A group waypoint still affects that vehicle. Declared driving owners and native ground input
+// veto route adoption/insertion without disabling sensing, firing or independent actor domains.
+private _vehicleDrivingBusy={
     private _movementMembers=units _group;
+    private _seenVehicles=[];
     _movementMembers findIf {
         private _vehicle=objectParent _x;
-        !isNull _vehicle && {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
+        !isNull _vehicle && {!(_vehicle in _seenVehicles)}
             && {driver _vehicle in _movementMembers || {effectiveCommander _vehicle in _movementMembers}}
+            && {
+                _seenVehicles pushBack _vehicle;
+                if (!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}) exitWith {true};
+                if (!(_vehicle isKindOf "LandVehicle") || {_vehicle isKindOf "StaticWeapon"}) exitWith {false};
+                private _input=vehicleMoveInfo _vehicle;
+                toUpperANSI (_input param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"]
+                    || {toUpperANSI (_input param [1,"",[""]]) in ["LEFT","RIGHT"]}
+            }
     } >= 0
 };
-if (call _externalDriving) exitWith {[grpNull,-1]};
+if (call _vehicleDrivingBusy) exitWith {[grpNull,-1]};
 // Establish the owner epoch before committing an unscoped route on a newly spawned
 // group. Later periodic discovery must not treat this active route as pre-adoption work.
 if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {
@@ -165,7 +177,7 @@ if (_sameRequest) exitWith {
     private _adopted=[grpNull,-1];
     isNil {
     if (call _generationCurrent && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-        && {!(call _externalDriving)} && {!(call _nativeTaskBusy)}
+        && {!(call _vehicleDrivingBusy)} && {!(call _nativeTaskBusy)}
         && {call _routeUnchanged}) then {
     // A new operation may adopt the same committed route. Keep native movement uninterrupted,
     // but bind cleanup to its current generation; an unscoped old token otherwise survives cancel.
@@ -183,10 +195,10 @@ if (_sameRequest) exitWith {
 private _committed=[grpNull,-1];
 isNil {
 _committed=call {
-if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _vehicleDrivingBusy}
     || {call _nativeTaskBusy} || {!(call _routeUnchanged)}) exitWith {[grpNull, -1]};
 [_group] call CBE_fnc_CortexGroupMoveClear;
-if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _externalDriving}
+if (!(call _generationCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover} || {call _vehicleDrivingBusy}
     || {call _nativeTaskBusy}) exitWith {[grpNull, -1]};
 // Radius-zero placement may be adjusted by the engine. Explicit elevated destinations need
 // exact ASL placement; ordinary ground routes retain native safe placement.

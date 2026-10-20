@@ -18,6 +18,14 @@ class GroupMoveGeneration(unittest.TestCase):
         self.assertLess(commit.index('isNil {'),commit.index('addWaypoint'))
         self.assertLess(commit.index('call _generationCurrent'),commit.index('CBE_fnc_CortexGroupMoveClear'))
         self.assertEqual(commit.count('call _generationCurrent'),2)
+        vehicle=text.split('private _vehicleDrivingBusy={',1)[1].split('// Establish the owner epoch',1)[0]
+        for gate in ('_seenVehicles pushBack _vehicle','CBE_ExternalDrivingOwner',
+                     'vehicleMoveInfo _vehicle','["BACK","DIRECTBYCOMANDER"]','["LEFT","RIGHT"]',
+                     '_vehicle isKindOf "StaticWeapon"'):
+            self.assertIn(gate,vehicle)
+        self.assertIn('call _vehicleDrivingBusy',same)
+        self.assertEqual(commit.count('call _vehicleDrivingBusy'),2)
+        self.assertLess(text.index('call _vehicleDrivingBusy'),text.index('call CBE_fnc_CortexLocality'))
         busy=text.split('private _nativeTaskBusy=',1)[1].split('// Callers do not',1)[0]
         self.assertIn('alive _x',busy)
         self.assertIn('getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []',busy)
