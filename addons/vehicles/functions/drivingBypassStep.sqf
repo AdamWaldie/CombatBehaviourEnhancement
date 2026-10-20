@@ -376,8 +376,9 @@ if (_index >= count _points) exitWith {
     } forEach [_low select 2,_high select 2];} forEach [_low select 1,_high select 1];} forEach [_low select 0,_high select 0];
     if (_clear) then {
         if (_queue) then {
-            // The sole speed writer consumes zero cap. Keep the path/native journal
-            // until authenticated all-participant handback is implemented; no recall here.
+            // The sole speed writer consumes zero cap. Keep this path/native journal
+            // until the server independently accepts CROSS_CLEAR and the root owner
+            // records its exact completion binding. Cancellation grants no route resume.
             private _changed=false;private _reportClear=false;
             if (!(_work getOrDefault ["queueCrossed",false])) then {
                 _work set ["queueCrossed",true];_work set ["queueCrossedAt",serverTime];_changed=true;

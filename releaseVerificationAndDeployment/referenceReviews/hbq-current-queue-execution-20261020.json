@@ -54,7 +54,10 @@
     "addons/vehicles/functions/drivingQueueParentRoom.sqf": "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2",
     "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada",
     "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360",
-    "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+    "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "903c95be0954e958ed8e913e30c3b413dc21f244685d729805b74b4b9cbbcbc5",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "89b34055681777ce84c870af734c9da1e2200c54434bd95befa182d12d6e09ac",
+    "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
   },
   "conclusion": "The historical blanket no-executor claim is obsolete. Current queue source includes HOLD/READY, finite native reverse/stop, measured dependency advancement and crossing protocol. Do not build a duplicate controller. These source paths do not establish physical HBQ parity.",
   "remaining": [
@@ -71,5 +74,22 @@
     "physicalRun": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "crossingFollowup": {
+    "baseline": "9e2ed4e8",
+    "scope": "Selected pose revocation, root completion and cleanup branches; not entire queue implementation review.",
+    "evidence": [
+      "DrivingQueueReverseCurrent CROSSING held rows require position within0.25m and direction/up within1degree of frozen crossing poses. Native task, route, crew, owner, expiry and motion checks remain live.",
+      "DrivingBypassStep retains zero cap and matching native/path journal after its final path index and full-hull tail-plane clearance, reporting CROSS_CLEAR only after measured rest.",
+      "Server CROSS_CLEAR rechecks authenticated actual root owner/crew, token/binding, original expiry, current participant context, path completion, zero cap and one-second rest. It independently projects all eight root hull corners past the frozen path tail plane before publishing RELEASED with completionBinding.",
+      "Owner RESULT RELEASED accepts the tenth-field binding only against its current private consent and crossing work, queueCrossed and current context before closing the token. Cancellation or a stale result cannot create queueClearanceAccepted.",
+      "DrivingBypassRelease permits queue resume only for exact accepted clearance and permitted completion/release reasons, unchanged actual seat/native/route ownership and eligible native waypoint. Reverse participant cleanup uses its separate exact journal."
+    ],
+    "correction": "BypassStep comment claiming authenticated handback was unimplemented is stale. Corrected the comment to name existing CROSS_CLEAR/root acceptance; no executable behaviour changed.",
+    "remaining": [
+      "This protocol has no demonstrated all-participant physical authored-route resumption. Server RELEASED is not that proof.",
+      "Native BACK/STOP and handback capabilities across crew layouts/classes remain unaccepted.",
+      "Full crossing route planner, dynamic collision, support sampling, failures, repeated queues and performance still require broader review/physical evidence."
+    ]
   }
 }
