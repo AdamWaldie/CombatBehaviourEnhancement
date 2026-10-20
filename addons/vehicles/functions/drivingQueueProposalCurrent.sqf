@@ -104,10 +104,7 @@ private _first=_vehicles select 0;private _yield=_vehicles select 1;
 if (([[_first,_yield]] call CBE_fnc_DrivingQueueCrossingVehicle) != _first) exitWith {false};
 private _axis=vectorDir _yield;_axis set [2,0];_axis=vectorNormalized _axis;
 private _right=[_axis select 1,-(_axis select 0),0];
-private _front=(getPosASL _first) vectorDiff (getPosASL _yield);
-if (_first distance2D _yield > 30 || {(_front vectorDotProduct _axis) <= 0}
-    || {abs (_front vectorDotProduct _right) > 6} || {abs (_front select 2) > 2}
-    || {(vectorDir _first) vectorDotProduct _axis > -(cos 25)}) exitWith {false};
+if (([_first,_yield] call CBE_fnc_DrivingQueuePairGeometry) isEqualTo []) exitWith {false};
 private _origin=getPosWorld _yield;
 private _spans=_vehicles apply {[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval};
 if (_spans findIf {_x isEqualTo []} >= 0) exitWith {false};

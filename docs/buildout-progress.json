@@ -1609,11 +1609,11 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Bounded dependency discovery and actual-owner consent are wired. A default-off CBA opt-in now offers one automatic head-on proposal from persistent traffic within the original retry episode, defers competing replans and services at most two authenticated root COMMIT requests.",
-          "remaining_build_gap": "General crossing-angle and stopped-merge discovery/recovery choice remain unfinished. Unsupported native reverse crew arrangements still refuse; this is not general automatic traffic resolution.",
+          "remaining_build_gap": "Stationary crossing geometry between45and135degrees now has a bounded admission path. General stopped merges and unsupported crossing angles/recovery choices remain unfinished; unsupported native reverse crew arrangements refuse.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
-              "sha256": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
+              "sha256": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
@@ -1629,7 +1629,7 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
-              "sha256": "ece36c1209e5e7772cfcf30ed1674a6a1eda2fa96b8b8acd5c5462dc6d7e7736"
+              "sha256": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7"
             },
             {
               "path": "addons/vehicles/functions/drivingAssistStart.sqf",
@@ -1637,11 +1637,15 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
-              "sha256": "805ddf39f3751aecb0b4c9c47b188292a632a4cb2277b4b4166034d594e280f7"
+              "sha256": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b"
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
-              "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
+              "sha256": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+              "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
             }
           ]
         },
@@ -1650,7 +1654,7 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified. Default-off automatic initiation now reaches this same executor through its existing callback, without a new worker or renewed episode.",
-          "remaining_build_gap": "Recovery-choice policy beyond the supported head-on case, general stopped merges and unsupported native reverse roles remain unfinished. Physical natural admission, route continuation, delayed replication, normal/HC interruption and overhead remain unverified.",
+          "remaining_build_gap": "Head-on and qualifying stationary crossing pairs share finite native room-making and checked crossing execution. General stopped merges, other angles and unsupported native reverse roles remain unfinished. Physical natural admission, route continuation, delayed replication, normal/HC interruption and overhead remain unverified.",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
@@ -1678,7 +1682,11 @@
             },
             {
               "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
-              "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
+              "sha256": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+              "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
             }
           ]
         },

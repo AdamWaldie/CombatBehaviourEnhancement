@@ -34,6 +34,22 @@ class QueueProposalTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingQueueProposal.sqf').read_text(encoding='utf-8')
         body=s.split('params [["_vehicle"',1)[1]
         self.assertEqual(body.count('nearEntities'),1)
+        pair=(ROOT/'addons/vehicles/functions/drivingQueuePairGeometry.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingQueuePairGeometry',body)
+        self.assertIn('abs _alignment > cos 45',pair)
+        self.assertIn('_firstDistance < 0',pair)
+        self.assertIn('_yieldDistance < 0',pair)
+        self.assertIn('(_yieldSide select 0) > (_ownSide select 1)+1',pair)
+        for forbidden in ('nearEntities','doMove','forceSpeed','setVariable','remoteExec','spawn'):
+            self.assertNotIn(forbidden,pair)
+        # Independent line-intersection witnesses: the same course geometry must
+        # place the intersection ahead of both actors, not on their reverse rays.
+        def cross(a,b): return a[0]*b[1]-a[1]*b[0]
+        north=(0,1);east=(1,0)
+        for offset,expected in (((-2,8),(8,2)),((2,8),(8,-2)),((-2,-8),(-8,2))):
+            det=cross(north,east)
+            self.assertEqual((cross(offset,east)/det,cross(offset,north)/det),expected)
+
         for proof in ('120,120,0,false,120','count _candidates > 64','from 1 to 3',
                       'count _vehicles >= 4','DEPENDENCY_CYCLE','CHAIN_PARTICIPANT_BUDGET',
                       'OWNER_CONSENT_AND_NATIVE_EXECUTION_REQUIRED','(_at+2) min _until'):

@@ -1879,7 +1879,7 @@ Danger, investigation, building combat and assault must all be enabled. Stealth,
 No global enemy/corpse scan, new setting, recurring movement worker, automatic suppression or whole-squad waypoint is added. Existing owner-local discovery and JIP/HC cancellation rules apply to the admitted actors; old-owner clues are discarded rather than replayed. The native nearby-house query depends on local object density, and its runtime cost remains unmeasured. Physical search flow, modded building access, repeated encounters, normal/HC handover and feature interruption remain in-engine retest items while audits are paused.
 
 
-Automatic head-on jam recovery is separately opt-in through CBA **Experimental automatic head-on jam recovery** (`CBE_AIPass_DrivingAssist_Queue_Enable`, default **off**). It can initiate one authenticated queue attempt from sustained stationary ordinary traffic, within the existing recovery episode. It preserves participant refusal, native crew prerequisites, finite movement and exact handback. Disabling stops uncommitted initiation; an admitted operation retains its original cleanup. This is unverified experimental behaviour, not accepted general traffic resolution.
+Automatic traffic jam recovery is separately opt-in through CBA **Experimental automatic traffic jam recovery** (`CBE_AIPass_DrivingAssist_Queue_Enable`, default **off**). It can initiate one authenticated queue attempt from sustained stationary ordinary traffic, within the existing recovery episode. It preserves participant refusal, native crew prerequisites, finite movement and exact handback. Disabling stops uncommitted initiation; an admitted operation retains its original cleanup. This is unverified experimental behaviour, not accepted general traffic resolution.
 
 
 ### Coordinated cover-to-bound STOP admission
@@ -1973,3 +1973,9 @@ Starting a running child or establishing cover ends that pending episode. Later 
 ### Sweeping road bends
 
 Road observation considers both the change between connected road pieces and the bearing from the vehicle to the sampled point ahead. A substantial bend made from many small pieces can therefore lower the existing safety ceiling. Ordinary driving and convoy leaders share this observer. The existing eight-transition road walk, metadata limit, thresholds and sole speed writer are unchanged. Branch selection remains a heading heuristic; this does not establish native route choice or physical braking performance.
+
+### Stationary crossing conflicts
+
+Queue admission also recognises intersecting forward approaches between 45 and 135 degrees when the yielding body currently obstructs the crossing corridor. A future intersection alone does not qualify. Head-on geometry retains its previous corridor rules. Both proposal and owner/server revalidation use the same read-only geometry primitive. Same-height, stationary, native-crew, authored-order and whole-hull separation checks remain required.
+
+The existing reverse-capable role selection, rear-chain consent and measured room-making run before a separately checked crossing path. When all held hulls have cleared the full conservative forward corridor, the planner may propose a straight crossing through the same geometry and traffic checks. Missing rear room or forward steering space refuses the attempt. There is no physics push, collision change or wider angle fallback. Automatic initiation remains experimental and off by default. This adds bounded hull projection for crossing admission, with no new discovery or worker. Physical junction recovery, traffic priority quality and performance remain unverified.

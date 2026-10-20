@@ -416,6 +416,14 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
                       '_length*sqrt (1+_maxSlope^2)','count _guide+_segments > 24'):
             self.assertIn(guard,s)
         self.assertNotIn('private _anchors=',s)
+        self.assertIn('_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}}',s)
+        self.assertIn('if (_straightQueue) then {[[0,_after,0,0]]}',s)
+        self.assertIn('!_straightQueue && {_before < _rampTravel}',s)
+        # A body beyond either corridor edge can leave a straight passage; touching
+        # or straddling bodies cannot use that branch. All still require world checks.
+        for bounds,radius,clear in (((-12,-6),4,True),((6,12),4,True),((-12,-3),4,False),((-2,2),4,False)):
+            self.assertEqual(bounds[1] <= -(radius+1) or bounds[0] >= radius+1,clear)
+
         self.assertEqual(s.count('call CBE_fnc_DrivingPathGeometry'),1)
         for forbidden in ('setDriveOnPath','setVelocity','createVehicle','forceSpeed'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])

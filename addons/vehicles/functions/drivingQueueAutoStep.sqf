@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Offers one opt-in head-on queue negotiation from an existing persistent jam.
+ * Purpose: Offers one opt-in head-on/crossing queue negotiation from an existing persistent jam.
  * Locality/authority: Existing ordinary-driving callback on the actual vehicle/group owner.
  * This helper sends consent/commit requests only; the server and every owner still validate.
  * It never writes speed or movement and creates no worker, timer or route.

@@ -247,5 +247,83 @@
     "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
     "impact": "Do not infer current semantic review coverage or implementation parity from unresolved old references. Preserved controller text remains available for a fresh comparison.",
     "next": "Reconcile old review names with readable tracked follow-ups or re-read the preserved source; retain historical hashes instead of replacing evidence silently."
+  },
+  "movingPassAndCurveReconciliation20261020": {
+    "baseline": "f8fddfb2",
+    "source": "hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sourceSHA256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "sourceRanges": [
+      "1973-2101 overtaking cleanup/admission/speed difference/finite road and traffic checks",
+      "2472-2505 OUT/BACK/end handling and route refresh",
+      "384-454 curved ray helpers; existing current curved-observation review retains full disposition"
+    ],
+    "finding": "Historic private semantic summary still says moving-vehicle overtaking is incomplete without distinguishing built execution from physical proof. Current PassAdmission explicitly requires moving slower peer; Plan/Step/Traffic already provide finite passing execution. Do not misclassify it as absent or duplicate it. Whole parity is still unproven.",
+    "intentDisposition": {
+      "sourceRetained": [
+        "Sustained following qualification and useful speed differential",
+        "Finite predicted passing duration/travel; road/junction/bridge and opposing traffic restrictions",
+        "Hull clearance before return, abort/drop-back and route handback",
+        "Short bent obstacle observation followed by tangent; native path hints remain advisory"
+      ],
+      "cbeEvolution": [
+        "Separate current-owner consent and exact route/crew/native-command contexts",
+        "Fresh connector and traffic checks before fixed path writes",
+        "Independent whole-hull clearance and original finite lifetime; no fallback renewal of BACK deadline",
+        "No physics push or teleport supplied as recovery proof"
+      ],
+      "currentLimits": [
+        "Physical moving overtake/drop-back/return/handback and performance unverified",
+        "Native path hint retains first64nodes and5s freshness; no evidence justifies extending its lifetime blindly",
+        "Angled-junction room-making remains a distinct gap; head-on queue completion is not proof of that capability",
+        "Historical unresolved review paths remain unresolved; no whole-HBQ completion claim"
+      ]
+    },
+    "sources": {
+      "addons/vehicles/functions/drivingNativePathWatch.sqf": "c8803fb34381aaa064f81b43970b0bfb5bf224dd8cdecdbe92fa97b63f5c3ceb",
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "85d941289e34443aa0494cc1db923cb858331644f3cc1b21fbed0c61078f0fe6",
+      "addons/vehicles/functions/drivingPassAdmission.sqf": "f125f167080e6b8fccdd6e42a1ee1c04b8db0f2db16f15371100944b27c1691d",
+      "addons/vehicles/functions/drivingPassPlan.sqf": "1232e9457f452af780ec5ae7e1aa2c17fd8190fad49e47e6cda8f34b332edfb0",
+      "addons/vehicles/functions/drivingPassStep.sqf": "50337aa60b3484df8462eb0036a639430c3bddaa712b5bb01cc66125114b957e",
+      "addons/vehicles/functions/drivingPassTraffic.sqf": "82a4d9752c7befbb31b0fca91880c4f987ff138c5ef7d0410ff296a457eb4232",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
+    },
+    "runtimeChanged": false,
+    "testsRepeated": false,
+    "scoresChanged": false
+  },
+  "stationaryCrossingQueueFollowUp20261020": {
+    "baseline": "f8fddfb2",
+    "sourceRange": "fn_driveAssist.sqf1586-1615 shared yielding decision for standing crossing/T-junction deadlock; original preserved source hash above",
+    "sourceIntent": "Distinguish crossing deadlock from same-direction queues, choose one yielding participant, create rear room before the other proceeds.",
+    "retained": "Finite one-sided room-making intent, excluding same-direction queues. Existing CBE owner consent/whole-hull/native reverse and crossing protocol reused. No source physics pushes, traffic-ignore permission or renewable yield clocks imported.",
+    "change": "Shared read-only PairGeometry retains existing head-on rules and admits45..135degree forward-course intersections only with present crossing-corridor obstruction. Both proposal and authenticated current-state validation use it. Capability-aware role selection prefers an actually obstructed crossing direction before stableID tie-break. Existing rear chain, body separation, held states, fresh crossing geometry, tail clearance and handback remain mandatory. Automatic admission stays off by default; CBA label/help updated to traffic jams. A held queue with its complete hull union outside the full circumscribed forward corridor may propose a straight crossing, avoiding an unnecessary lateral ramp; same one PathGeometry call, later traffic/owner grants/tail clearance remain. Ordinary static bypass still requires its ramps.",
+    "sources": {
+      "addons/vehicles/functions/drivingQueuePairGeometry.sqf": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210",
+      "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "4d785006088ffd2884fac85d5c3c259c1c081935a93a9af2e987383ad8425996",
+      "addons/core/functions/cortexTuningSpec.sqf": "6016fbea9395c4086da9d00f53ad3d8771d1f1f09b76c94b084b752987a86bea"
+    },
+    "cost": "No new world discovery, rays, scheduler or speed writer. Crossing geometry uses four eight-corner hull projections; two-direction role selection can call it twice plus admission recheck. Fixed CPU/metadata work, overhead unmeasured.",
+    "validation": {
+      "focused": "251 existing driving cases pass, including extended independent crossing-line witnesses; HEMTT check passed before final selector/doc edits",
+      "newCases": 0,
+      "build": ".qa/cbe-crossing-queue-final-build.log",
+      "superseded": ".qa/cbe-crossing-queue-build.log passed before final clear-lane straight-path correction; superseded package not claimed current",
+      "tests": 1477,
+      "independent": ".qa/cbe-crossing-queue-independent.log",
+      "candidate": ".qa/candidates/crossing-queue-f8fddfb2-1a2deeda",
+      "fingerprint": "1a2deeda29b5bc4a0f2cddb4b663b56ea3967517ec06bf2873d3e37eb10c3565",
+      "source": "f8fddfb2 plus intended dirty crossing-queue edits"
+    },
+    "remaining": [
+      "Physical crossing recovery and native steering unverified; no general junction resolution claim.",
+      "General stopped merges, other angles and native reverse capability limits remain.",
+      "Frame budget, normal/providerHC ordering and actual traffic priority quality unverified."
+    ],
+    "scoresChanged": false,
+    "physical": false
   }
 }

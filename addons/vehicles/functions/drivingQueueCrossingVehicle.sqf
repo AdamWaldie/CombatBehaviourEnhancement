@@ -12,7 +12,7 @@
  * otherwise the lexically first network identity crosses. No fairness guarantee.
  * Native BACK prerequisites here are distinct driver/operator and NONE turn only;
  * full owner/route/task/FSM admission remains in DrivingQueueProposalCurrent.
- * Cost: Two crew/input/identity observations, no search, ray, state, timer or commands.
+ * Cost: Two crew/input/identity observations and at most two bounded pair-geometry checks; no search, ray, state, timer or commands.
  * Current callers: DrivingQueueProposal and DrivingQueueProposalCurrent.
  * Example: private _crossing=[[_first,_second]] call CBE_fnc_DrivingQueueCrossingVehicle;
  */
@@ -31,5 +31,12 @@ private _canReverse=_vehicles apply {
 if (!(_canReverse select 0) && {!(_canReverse select 1)}) exitWith {objNull};
 if !(_canReverse select 0) exitWith {_vehicles select 0};
 if !(_canReverse select 1) exitWith {_vehicles select 1};
+// A stable identifier must not nominate a crossing direction that is not actually
+// obstructed. Capability stays first; geometry disambiguates crossing roles only.
+private _firstGeometry=[_vehicles select 0,_vehicles select 1] call CBE_fnc_DrivingQueuePairGeometry;
+private _secondGeometry=[_vehicles select 1,_vehicles select 0] call CBE_fnc_DrivingQueuePairGeometry;
+if (_firstGeometry isEqualTo [] && {_secondGeometry isEqualTo []}) exitWith {objNull};
+if (_firstGeometry isEqualTo []) exitWith {_vehicles select 1};
+if (_secondGeometry isEqualTo []) exitWith {_vehicles select 0};
 private _ordered=+_ids;_ordered sort true;
 _vehicles select (_ids find (_ordered select 0))
