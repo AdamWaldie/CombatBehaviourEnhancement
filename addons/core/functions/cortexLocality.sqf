@@ -69,7 +69,8 @@ if (local _group) then {
                         [_x,if (_entry isEqualType []) then {+_entry} else {_entry}]},
                     if (_boundProgress isEqualType []) then {_boundProgress apply {
                         if (_x isEqualType []) then {_x apply {if (_x isEqualType []) then {+_x} else {_x}}} else {_x}
-                    }} else {_boundProgress}];
+                    }} else {_boundProgress},
+                    _previousOperation getOrDefault ["supportAdoptionUntil",-1]];
             };
             private _checkpoint=createHashMapFromArray (_group getVariable ["CBE_AIPass_Checkpoint",[]]);
             private _candidate=_checkpoint getOrDefault ["drillIntent",[]];

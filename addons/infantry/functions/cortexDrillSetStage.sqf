@@ -61,6 +61,14 @@ if (_next in ["START","MOVE","PAUSE","HOLD"] && {_generation >= 0}) then {
                 _group setVariable ["CBE_Operation",_operation,true];
             };
         };
+        // A real running child ends the pending-adoption episode. A later transfer
+        // captures fresh active work rather than extending an unresolved settling window.
+        if (_supportToken != "" && {_next == "MOVE"}
+            && {(_operation getOrDefault ["supportToken",""]) == _supportToken}
+            && {(_operation getOrDefault ["supportAdoptionUntil",-1]) != -1}) then {
+            _operation set ["supportAdoptionUntil",-1];
+            _group setVariable ["CBE_Operation",_operation,true];
+        };
         private _phase=switch (_next) do {
             case "PAUSE": {"SUPPORT"};
             case "HOLD": {"SECURITY"};

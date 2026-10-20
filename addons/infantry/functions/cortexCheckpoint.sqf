@@ -134,6 +134,37 @@ if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 
             };
         } forEach (keys _parentHolds);
     };
+    // A second transfer before child reconstruction forwards the original observations,
+    // not a new observation window. Local changed commands are discarded; nonlocal rows
+    // remain proposals that the receiving owner must validate before using them.
+    private _supportParent=_group getVariable ["CBE_Operation",createHashMap];
+    private _adoptionUntil=_supportParent getOrDefault ["supportAdoptionUntil",-1];
+    private _carryNative={
+        params ["_row"];
+        if (!(_row isEqualType []) || {!(count _row in [3,10])} || {!((_row select 0) isEqualType objNull)}) exitWith {};
+        private _actor=_row select 0;
+        if (isNull _actor || {group _actor != _group} || {!alive _actor}) exitWith {};
+        if (local _actor && {currentCommand _actor != (["STOP","MOVE"] select (count _row == 10))
+            || {(expectedDestination _actor) isNotEqualTo (_row select 1)} || {formLeader _actor != (_row select 2)}}) exitWith {};
+        if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) exitWith {_proofOverflow=true};
+        _proofRows set [netId _actor,_row apply {if (_x isEqualType []) then {+_x} else {_x}}];
+    };
+    if (_adoptionUntil isEqualType 0 && {finite _adoptionUntil} && {serverTime < _adoptionUntil}
+        && {(_supportParent getOrDefault ["generation",-1]) == _supportGeneration}
+        && {(_supportParent getOrDefault ["ownerEpoch",-1]) == _supportEpoch}
+        && {(_supportParent getOrDefault ["supportToken",""]) == _supportToken}
+        && {(_supportParent getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}) then {
+        private _pending=_state getOrDefault ["supportHoldAdoption",[]];
+        if (_pending isEqualType [] && {count _pending == 5}
+            && {(_pending select [0,4]) isEqualTo [_supportGeneration,_supportEpoch,_adoptionUntil,_supportLease select 2]}
+            && {(_pending select 4) isEqualType []} && {count (_pending select 4) <= 64}) then {
+            {[_x] call _carryNative} forEach (_pending select 4);
+        };
+        private _importedMoves=_state getOrDefault ["supportNativeMoves",createHashMap];
+        if (_importedMoves isEqualType createHashMap && {count _importedMoves <= 64}) then {
+            {[_importedMoves get _x] call _carryNative} forEach (keys _importedMoves);
+        };
+    };
     private _childHolds=_drill getOrDefault ["nativeCommands",createHashMap];
     if ((_drill getOrDefault ["supportToken",""]) == _supportToken
         && {(_drill getOrDefault ["operationGeneration",-1]) == _supportGeneration}

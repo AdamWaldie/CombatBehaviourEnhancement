@@ -1963,3 +1963,9 @@ Validated ownership adoption carries this bounded record with the original lease
 A coordinated checkpoint can retain a moving actor's exact native destination, formation leader, bound sequence, team turn and original progress clocks. Capture requires the engine to report the issued goal; the original command acknowledgement grace is not transferable. The existing five-second ownership-settling callback checks the actor's current native command, destination, locality, fitness and external reservations before importing the observation.
 
 A reconstructed pending team reuses those destinations and observes unchanged native legs without another movement command. Progress clocks, the server deadline and spent retry budget retain their original limits. Changed or missing MOVE observations exclude that actor from reconstruction. Fresh role admission keeps its existing policy. No extra worker is installed; capture and adoption each retain the existing 64-actor cap. This is implementation evidence only. Physical ordering, partial replication, repeated transfer and cost still need in-game validation.
+
+### Rapid transfer during native adoption
+
+The parent retains the original native-adoption deadline while observations are still waiting for a running child or an established cover role. Another owner receives the same absolute deadline. An expired window cannot grant more settling time. Checkpoints carry unresolved observations and imported MOVE records within the existing 64-actor limit, preserving their destination and progress samples. Local changed commands are dropped; nonlocal proposals still require validation by the receiving owner.
+
+Starting a running child or establishing cover ends that pending episode. Later active work supplies its own fresh checkpoint. This adds no callback or timer. Physical rapid-transfer ordering, missing snapshots and performance remain unverified.

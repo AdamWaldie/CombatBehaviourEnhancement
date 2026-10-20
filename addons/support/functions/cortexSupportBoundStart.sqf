@@ -72,6 +72,8 @@ if (_progress isNotEqualTo []) then {
 };
 if (_progress isNotEqualTo [] && {(_progress select 0) > _sequence} || {_completedTurns < 0}) exitWith {false};
 if (_completedTurns == 2) exitWith {
+    _operation set ["supportAdoptionUntil",-1];
+    _group setVariable ["CBE_Operation",_operation,true];
     _state set ["supportBoundSequence",_sequence];
     _group setVariable ["CBE_Cortex_SupportBoundResult",[_leaseToken,_sequence,"COMPLETE"],true];
     _accepted=true;

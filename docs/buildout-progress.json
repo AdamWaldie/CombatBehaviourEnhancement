@@ -112,7 +112,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "94d7977c7dd71fc83f6f75532724481f33c966f4f2cbbfdede92c80f72f19ec1"
+              "sha256": "9f67647c04b142146bc8166b594aeff7090a891b3ecbb31a34ae435b819ebf9c"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
@@ -2789,7 +2789,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportBoundStart.sqf",
-              "sha256": "134d9a43eafdcd1948cfd5d7bb8b6a9a5850705d0df0457d7ab4b3dc76d9ed0b"
+              "sha256": "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f"
             },
             {
               "path": "addons/support/functions/cortexSupportLocal.sqf",
@@ -3440,7 +3440,7 @@
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "94d7977c7dd71fc83f6f75532724481f33c966f4f2cbbfdede92c80f72f19ec1"
+              "sha256": "9f67647c04b142146bc8166b594aeff7090a891b3ecbb31a34ae435b819ebf9c"
             },
             {
               "path": "addons/core/functions/operationStep.sqf",
@@ -3495,7 +3495,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexCheckpoint.sqf",
-              "sha256": "2677b52bd225239eb87619dc0bc47eb85799dfbd814e58e0e8d6aa581859ddf3"
+              "sha256": "d3c8c92cecf1864db86d80a82fc2ca09f10487aed86d52502bd51fe0086f114e"
             },
             {
               "path": "addons/core/functions/aiHeadlessAdoptLocal.sqf",
@@ -3553,7 +3553,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a5240fd2fa701003a02a5d7653c698919446403b919d8e7326a02564c4da206c"
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
             }
           ]
         }
@@ -3610,7 +3610,7 @@
           "evidence": [
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a5240fd2fa701003a02a5d7653c698919446403b919d8e7326a02564c4da206c"
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
             },
             {
               "path": "addons/infantry/functions/recoveryStep.sqf",
@@ -3694,7 +3694,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexDrillSetStage.sqf",
-              "sha256": "965823d91b791d8f56a6fdaef5789a1a3f6d4f0cefaf59aca154eefcf3741e6c"
+              "sha256": "00cb7d93efe262861b8b4ec096916e92b3b8aabab99b07650016e20c5a4997c5"
             }
           ]
         },
@@ -4013,7 +4013,7 @@
             },
             {
               "path": "addons/support/functions/cortexSupportMaintain.sqf",
-              "sha256": "a5240fd2fa701003a02a5d7653c698919446403b919d8e7326a02564c4da206c"
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
             }
           ]
         },

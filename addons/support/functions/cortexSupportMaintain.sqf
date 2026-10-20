@@ -450,6 +450,7 @@ if (_coordinating) then {
                 || {(_coverOperation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
                 || {(_coverOperation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {};
             _coverOperation set ["phase","SUPPORT"];
+            _coverOperation set ["supportAdoptionUntil",-1];
             _group setVariable ["CBE_Operation",_coverOperation,true];
             private _stopHolds=_state getOrDefault ["supportStopHolds",createHashMap];
             if !(_stopHolds isEqualType createHashMap) then {_stopHolds=createHashMap};

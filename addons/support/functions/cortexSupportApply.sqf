@@ -212,7 +212,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     private _objective=if (_attackAllowed) then {+_attack} else {+_rally};
     private _sourceRecovery=_job getOrDefault ["recoveryProof",[]];
     private _recoveryValid=!(_adopting && {_attackAllowed}) || {
-        _sourceRecovery isEqualType [] && {count _sourceRecovery == 8}
+        _sourceRecovery isEqualType [] && {count _sourceRecovery == 9}
             && {(_sourceRecovery select 0) isEqualTo _token} && {(_sourceRecovery select 3) isEqualTo _expiry}
             && {(_sourceRecovery select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])}
             && {(_sourceRecovery select 2) isEqualType 0} && {finite (_sourceRecovery select 2)}
@@ -255,6 +255,13 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
             }
         };
     };
+    private _adoptionUntil=-1;
+    if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
+        _adoptionUntil=_sourceRecovery select 8;
+        _recoveryValid=_adoptionUntil isEqualType 0 && {finite _adoptionUntil}
+            && {_adoptionUntil == -1 || {_adoptionUntil >= 0 && {_adoptionUntil <= _expiry}}};
+        if (_recoveryValid && {_adoptionUntil == -1}) then {_adoptionUntil=(serverTime+5) min _expiry};
+    };
     private _sourceBoundAttempts=createHashMap;
     private _sourceAttempts=createHashMap;
     if (_recoveryValid && {_adopting} && {_attackAllowed}) then {
@@ -285,6 +292,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     _operation set ["supportToken",_token];
     _operation set ["supportOwner",clientOwner];
     _operation set ["supportExpiry",_expiry];
+    _operation set ["supportAdoptionUntil",_adoptionUntil];
     if (_adopting && {_attackAllowed}) then {
         _operation set ["unavailable",+(_sourceRecovery select 4)];
         _operation set ["recoveryAttempts",_sourceAttempts];
@@ -306,9 +314,9 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     _state set ["supportOperationGeneration",_generation];
     _state deleteAt "supportHoldAdoption";
     _state set ["supportNativeMoves",createHashMap];
-    if (_sourceHoldRows isNotEqualTo []) then {
+    if (_sourceHoldRows isNotEqualTo [] && {serverTime < _adoptionUntil}) then {
         _state set ["supportHoldAdoption",[_generation,_operation get "ownerEpoch",
-            (serverTime+5) min _expiry,_expiry,_sourceHoldRows]];
+            _adoptionUntil,_expiry,_sourceHoldRows]];
     };
     _state set ["supportAuthoredRevoked",false];
     _state deleteAt "supportAuthoredRevokedToken";

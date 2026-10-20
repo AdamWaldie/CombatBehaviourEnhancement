@@ -196,7 +196,7 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('if (!_proofOverflow)',checkpoint)
         self.assertIn('(_row select 1) == "HOLD"',checkpoint)
         self.assertIn('(_holdProof select 1) isEqualTo (_group getVariable ["CBE_OperationGeneration",-1])',apply)
-        self.assertIn('(serverTime+5) min _expiry,_expiry,_sourceHoldRows',apply)
+        self.assertIn('if (_recoveryValid && {_adoptionUntil == -1}) then {_adoptionUntil=(serverTime+5) min _expiry}',apply)
         duplicate=apply.split('// Repeated adoption delivery',1)[1].split('if (_okay && {_replaceLocalDrill})',1)[0]
         self.assertNotIn('OperationStart',duplicate)
         self.assertNotIn('serverTime+',duplicate)
@@ -225,6 +225,14 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('_operation set ["supportExpiry",_expiry]',apply)
         self.assertIn('_operation set ["boundRetryAttempts",_sourceBoundAttempts]',apply)
         self.assertIn('_operation set ["boundProgress",_sourceBoundProgress]',apply)
+        self.assertIn('_adoptionUntil=_sourceRecovery select 8',apply)
+        self.assertIn('_adoptionUntil,_expiry,_sourceHoldRows',apply)
+        carry=checkpoint.split('private _carryNative=',1)[1].split('private _childHolds=',1)[0]
+        self.assertIn('serverTime < _adoptionUntil',carry)
+        self.assertIn('_pending select [0,4]',carry)
+        self.assertNotIn('serverTime+',carry)
+        self.assertNotIn('doMove',carry)
+
         self.assertIn('["teamTurn",_completedTurns]',source)
         self.assertIn('(_progress select 0) > _sequence',source)
         self.assertIn('_second append _newcomers',source)
@@ -248,7 +256,7 @@ class SupportBoundCommitTests(unittest.TestCase):
         stages=(ROOT/'addons/infantry/functions/cortexDrillSetStage.sqf').read_text()
         self.assertIn('_reason in ["FIRE_TEAM_ARRIVED","BOUND_ARRIVED"]',stages)
         self.assertIn('(_progress select 3) max ((_drill get "teamTurn")+1)',stages)
-        self.assertIn('count _sourceRecovery == 8',apply)
+        self.assertIn('count _sourceRecovery == 9',apply)
         self.assertIn('count _sourceBoundAttempts == count (_sourceRecovery select 6)',apply)
         retry=active.split('private _supportRetryAvailable=',1)[1].split('private _nativeCommandAvailable=',1)[0]
         self.assertIn('count _budget > 64',retry)
