@@ -33,5 +33,32 @@
     "coherent exterior security/consolidation",
     "inaccessible modded points and complete source-intent integration"
   ],
-  "buildout": "CLEAR partial egress criterion retained; no score increase."
+  "buildout": "CLEAR partial egress criterion retained; no score increase.",
+  "completionFlowReview20261020": {
+    "sourceParent": "671d8dd8",
+    "scope": "Current source trace of entry/sweep participation, finite exit allocation, terminal holds and authored route continuation. Not physical acceptance or a new formation implementation.",
+    "verifiedPaths": [
+      "SWEEP requires physical coverage and participant entry/progress; deadline/unreachable/diverted workers retain INCOMPLETE evidence.",
+      "EGRESS transition publishes pending/early assignments and original45-second phase deadline. Shared planner ranks retained entrances and uses distinct reservations under bounded proposals; it is not one common rally destination.",
+      "EGRESS checks current physical outside/same-floor settlement, not historical arrived flags alone. Changed individual destinations are removed from CBE routing and retain failure evidence.",
+      "Terminal settled posts retain explicit actor/position receipts. Natural successful continueRoute requires unchanged original plain MOVE metadata/native receipt, current generation/epoch and eligible settled STOP leader before following actors. Standalone clearance need not create a new route.",
+      "Explicit NEW_ORDER handback and CortexClearRelease compare issued destinations/hold proof and actor authority; routine group reposition already yields actor reservations. No additional unconditional doFollow or wedge-suppression rule is justified by this trace."
+    ],
+    "remaining": [
+      "Physical slot spacing, doorway flow and stragglers on current candidate remain unverified.",
+      "Leader settlement/native acknowledgement may prevent natural route continuation; distinguish deliberate hold, invalid route and genuine stuck handback in later engine evidence.",
+      "Modded inaccessible interior/exit geometry and repeated casualty/owner changes remain incomplete acceptance.",
+      "LAMBS group memory remains only partially implemented; source inventory and present egress paths do not establish parity."
+    ],
+    "implementationHashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b",
+      "addons/infantry/functions/cortexClearRelease.sqf": "a962efa40ae65b7a96411a8c2a8c96c2a32dcd7009bcaae4dcebe95324f557dc",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767",
+      "addons/infantry/functions/groupBrainStep.sqf": "c87198a2ea54bff928d5eacb0ed394a555b54c18d70838dd9cac877fa763fccf"
+    },
+    "productChange": "NONE",
+    "validation": "Read current phase/finish/allocation/cleanup call paths. Latest complete1477 build and preserved candidate tactical-available-53072894-60b612b7 unchanged; no redundant full build.",
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
 }
