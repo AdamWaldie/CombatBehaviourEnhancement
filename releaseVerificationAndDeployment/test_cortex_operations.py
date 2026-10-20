@@ -3623,8 +3623,8 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_friendlyLeader knowsAbout _target > 0.5', start)
         for marker in ['_lateral < 30','_pointSide*_startSide < 0',
                        'forEach [0.25,0.5,0.75]',
-                       'terrainIntersectASL [_threatASL,_sampleASL]',
-                       'lineIntersectsSurfaces [_rayStart,_sampleASL,_threatObject,objNull']:
+                       '[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened',
+                       '[_threatASL,_sampleASL,objNull,"CONCEALMENT",_threatObject] call CBE_fnc_CortexCoverScreened']:
             self.assertIn(marker, selector)
         self.assertNotIn('selectRandom [',start)
         self.assertNotIn('private _routeProtection = {',start)
@@ -3702,12 +3702,12 @@ class CortexOperations(unittest.TestCase):
         retreat=source('cortexRetreat')
         self.assertIn('class CortexSelectAvenue',functions)
         for marker in ['(count _candidates) min 8','forEach [0.25,0.5,0.75]',
-                       'terrainIntersectASL [_threatASL,_sampleASL]',
+                       '[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened',
                        'private _surfaceUp=(surfaceNormal _sample) select 2',
                        'private _terrainASL=getTerrainHeightASL _sample',
                        'if (surfaceIsWater _sample || {_surfaceUp < _sampleMinimumUp} || {_sampleGrade > _sampleMaximumGrade})',
                        '+2*(_terrainPenalty/(_terrainSamples max 1))',
-                       '"FIRE","GEOM"','"VIEW","GEOM"','_lateral < 30',
+                       '"COVER",_threatObject]','"CONCEALMENT",_threatObject]','_lateral < 30',
                        '_pointSide*_startSide < 0','(ceil (_legLength/20)) max 3',
                        'min 24','private _sampleGrade=abs (_terrainASL-_previousTerrainASL)/_sampleDistance',
                        '-70*(_hardScreen/(_screenSamples max 1))',
@@ -4520,8 +4520,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_approachRadius,-90],[_outerRadius,-90],[_obliqueRadius,-135]',server)
         self.assertNotIn('private _approachProtection=',server)
         self.assertIn('forEach [0.25,0.5,0.75]',selector)
-        self.assertIn('terrainIntersectASL [_threatASL,_sampleASL]',selector)
-        self.assertIn('lineIntersectsSurfaces [_rayStart,_sampleASL',selector)
+        self.assertIn('[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened',selector)
+        self.assertEqual(selector.count('call CBE_fnc_CortexCoverScreened'),2)
+        self.assertNotIn('lineIntersectsSurfaces',selector)
+        screen=source('cortexCoverScreened')
+        self.assertIn('!(_object isKindOf "CAManBase")',screen)
+        self.assertIn('_actor,_source,true,4',screen)
 
     def test_coordinated_assault_waits_for_ack_before_requester_handover(self):
         tick=source('cortexGroupTick')

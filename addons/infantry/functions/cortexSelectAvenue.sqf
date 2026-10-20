@@ -13,6 +13,8 @@
  * normal. Infantry retains a wider traversable envelope but still rejects cliff-like steps. This
  * closes the gaps between the three more expensive
  * ballistic/visual screening rays, so a route that looked valid on a flat range cannot jump across
+ * Human bodies cannot supply screening credit; shared cover/concealment observation retains
+ * the supplied threat belief point and excludes the source object without reading its live pose.
  * a narrow ridge, ditch or water strip on a real terrain. Vehicle callers use a stricter slope limit
  * and receive a small road preference; the selector still chooses only endpoints and leaves actual
  * driving and local obstacle avoidance to the engine. Concealment receives a smaller benefit and is
@@ -174,13 +176,11 @@ private _bestScore=1e12;
                 ];
                 _screenSamples=_screenSamples+1;
                 private _sampleASL=(AGLToASL _sample) vectorAdd [0,0,1.0];
-                private _rayStart=_threatASL vectorAdd ((_threatASL vectorFromTo _sampleASL) vectorMultiply 2);
-                private _hard=terrainIntersectASL [_threatASL,_sampleASL]
-                    || {(lineIntersectsSurfaces [_rayStart,_sampleASL,_threatObject,objNull,true,1,"FIRE","GEOM"]) isNotEqualTo []};
+                private _hard=[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened;
                 if (_hard) then {
                     _hardScreen=_hardScreen+1;
                 } else {
-                    if ((lineIntersectsSurfaces [_rayStart,_sampleASL,_threatObject,objNull,true,1,"VIEW","GEOM"]) isNotEqualTo []) then {
+                    if ([_threatASL,_sampleASL,objNull,"CONCEALMENT",_threatObject] call CBE_fnc_CortexCoverScreened) then {
                         _concealed=_concealed+1;
                     };
                 };

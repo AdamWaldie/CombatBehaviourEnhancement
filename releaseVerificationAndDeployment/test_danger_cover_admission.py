@@ -15,7 +15,7 @@ class DangerCoverAdmission(unittest.TestCase):
         self.assertNotIn('objNull, objNull, true, 1',cover)
         self.assertIn('[_threatASL,_endASL,_actor,_mode] call CBE_fnc_CortexCoverScreened',cover)
         screen=(ROOT/'addons/infantry/functions/cortexCoverScreened.sqf').read_text(encoding='utf-8')
-        self.assertIn('[_rayStart,_end,_actor,objNull,true,4',screen)
+        self.assertIn('[_rayStart,_end,_actor,_source,true,4',screen)
         self.assertIn('!(_object isKindOf "CAManBase")',screen)
         self.assertIn('2 min (_length*0.5)',screen)
         self.assertIn('if (!finite _length || {_length <= 0.05}) exitWith {false}',screen)
