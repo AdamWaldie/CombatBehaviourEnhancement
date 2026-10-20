@@ -354,6 +354,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(guard,s)
         for forbidden in ('doMove','doFollow','getPosATL _contact','setVariable ["CBE_Operation"'):
             self.assertNotIn(forbidden,s)
+        # Availability must constrain contact choice before any roof queries, not only
+        # reject the selected contact afterward. Preserve the bounded shared selector.
+        self.assertLess(s.index('private _actors='),s.index('private _actionable='))
+        self.assertLess(s.index('private _actionable='),s.index('call CBE_fnc_BuildingContactSelect'))
+        self.assertIn('_enemies select [0,8]',s)
+        self.assertIn('_actors findIf',s)
+        self.assertIn('[_group,_actionable,_range]',s)
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         self.assertLess(tick.index('call CBE_fnc_CortexBuildingContact'),tick.index('call CBE_fnc_IndoorActorDispatch'))
         self.assertLess(tick.index('call CBE_fnc_IndoorActorDispatch'),tick.index('call CBE_fnc_CortexTacticalStart'))

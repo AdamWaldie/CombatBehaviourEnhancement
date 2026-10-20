@@ -79,5 +79,18 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "availableContactAdmission20261020": {
+    "sourceParent": "c3ec171e",
+    "finding": "IndoorActorDispatch selected a building before evaluating actor availability and range. The first valid roof could leave no eligible actor while another known belief was actionable.",
+    "implementation": "Filter up to eight native knowledge records against the existing sixteen available actors before the shared three-roof selector. Preserve nearest-record order, whole-group selector semantics, eight-second cadence, forty-metre actor bound and executor authority.",
+    "cost": "At most 128 short-circuit native knowledge/distance comparisons; no new spatial query, worker or timer.",
+    "sourceIntent": "Finite available individual investigation composes with existing native knowledge; this does not establish whole LAMBS memory parity.",
+    "limits": [
+      "Selection still has the existing three eligible roof-query bound.",
+      "Native path accessibility is not proved by range or containment.",
+      "Physical flow and performance remain unverified; audits paused."
+    ],
+    "validation": "Existing 32-case indoor suite and full 1477-test compilation/config/FSM/documentation/package pipeline passed (.qa/cbe-available-contact-build.log); preserved unsigned candidate .qa/candidates/available-contact-c3ec171e-de3a03f5 from c3ec171e plus intended dirty edits. No new cases or scores."
   }
 }
