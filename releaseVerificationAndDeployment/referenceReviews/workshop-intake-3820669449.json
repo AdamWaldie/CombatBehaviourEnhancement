@@ -1,0 +1,86 @@
+{
+  "workshopId": "3820669449",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3820669449",
+  "name": "FPVSCARE",
+  "author": "KRO",
+  "added": "2026-10-20",
+  "status": "SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+  "scope": "Evaluate AI reactions to FPV drone threats across relevant individual, squad and vehicle behaviour; merge useful intent with existing danger FSM, threat recognition and movement ownership. No implementation or parity claimed.",
+  "identityEvidence": {
+    "mod.cpp": "name = \"FPVSCARE\";\nauthor = \"KRO\";\ntooltip = \"FPVSCARE\";\noverview = \"KRO - AI FPV drone korkusu.\";\npicture = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogo = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogoOver = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogoSmall = \"\\fpvscare\\data\\ui\\fpvscare_icon_ca.paa\";\naction = \"https://discord.gg/ARTKCjjYHg\";\nactionName = \"Discord\";\n",
+    "meta.cpp": "protocol = 1;\npublishedid = 0;\nname = \"@FPVSCARE\";\ntimestamp = 5250963343592203660;\n",
+    "note": "Name/author from installed mod.cpp; meta.cpp has publishedid0. Workshop ID comes from supplied URL and installed content folder, not meta.cpp."
+  },
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3820669449",
+  "files": {
+    "mod.cpp": "42522afd1b2b7208ff339936a8655d12dee92f03ce212bf440babdb2d3b75bbd",
+    "meta.cpp": "86a1cbdc582db90ca3c010669762c90cac31bf7a99d79daa6fbc5cf3a5627b41",
+    "addons\\fpvscare.pbo": "4a03e124e20c6e4446c7208703008798d273e4613e2b2f5ccb9d1b704b296bd5"
+  },
+  "dependencies": "UNVERIFIED; inspect config/source. No dependency inferred from name or metadata.",
+  "licence": "UNVERIFIED; review before incorporating implementation.",
+  "evaluationTopics": [
+    "Drone identification and visibility/hearing assumptions; avoid omniscient world scans.",
+    "Fear/suppression response, cover and evasion intent, interruption and original task handback.",
+    "Locality, headless migration, repeated threats, cooldowns, cleanup and performance.",
+    "Interaction with existing UAV/air-threat and danger FSM paths; preserve source strengths without duplicate controllers."
+  ],
+  "sourceProtection": "Read installed originals without edits. Keep extracted sources/research private and outside published packages.",
+  "workshopPageAccess": "Web open unavailable and ID search returned no result; installed metadata used for identity only.",
+  "masterLedger": "LOCAL_IMPLEMENTATION_LEDGER.md absent in current CBE checkout and exact-name search of GitHub folders. Private addition preserved separately; do not overwrite or reconstruct historical master list.",
+  "acceptance": "Not evaluated or physically validated; audits remain PAUSED.",
+  "sourceReview": {
+    "readableFunctions": {
+      "functions\\fn_droneSide.sqf": "9a301285cba65f0fde735dec526ba1e64e8bc3987bebe5c988c3d530797cbec4",
+      "functions\\fn_flee.sqf": "fd3d7eb9b575b01ab21b60b66161d93b35d973b02a9e6903519d1ab2157e2f98",
+      "functions\\fn_fleePos.sqf": "d5bd238d64abbc06190d4ce7a3671f9bb622beae46d38760a3e74eb21fa6195f",
+      "functions\\fn_init.sqf": "ae3fc29c8a6496a6272f6d6546dce6bb0ee7a3e8694c1d6e5d252477a8311433",
+      "functions\\fn_isFPV.sqf": "889ff9fd9d978312d0da80b48f051f4961c1841ef89a8cc3122ecd8d2d530088",
+      "functions\\fn_panic.sqf": "893d9899bf399c2e6bfe1ab194b53ffa24ea07bae451d6f443d7a4cf43a60d49",
+      "functions\\fn_recover.sqf": "59343b1133062932cf58d6ea6aa12b04ce04b84783a83c4c3261d9db9acd66ae",
+      "functions\\fn_scream.sqf": "f9d947616ca090c571e019e4acd3ce350839f20a355688c1538926f6ccb8edfc",
+      "functions\\fn_shoot.sqf": "200b092aa75cae245700c6789948899980d445cf8efdd51f0cb2955ec4082951",
+      "functions\\fn_threat.sqf": "3f828c2d2a940b808ce8fa7921d51daf564b77dd72610f73c42fdac36db841bd"
+    },
+    "privateInventory": ".qa/fpvscare-3820669449-review/inventory.json",
+    "observedIntent": [
+      "Small piloted hostile air-UAV classifier plus explicit additional classes; size5, airborne>0.3m, moving/piloted checks by default.",
+      "Approach-speed/direction test (speed>4m/s, dot>0.8) with150m local actor search;35m hearing substitute or VIEW visibility>0.15;12m panic proximity.",
+      "Same-side nearby15m warning spread with short stagger, brief1..5-shot response then8..60s flee,6s calm and4s cooldown.",
+      "Flee chooses35..80m away, seeks nearby terrain cover, occasional close dive and audible warning."
+    ],
+    "methodsToAdapt": [
+      "Use current CBE native/observed threat and bounded owner-local danger FSM rather than permanent0.25s allUnitsUAV plus per-drone/per-actor work.",
+      "Approach prediction and threat urgency should use observed position/velocity with finite freshness, owner epoch and target allegiance. Do not reveal hidden drones globally.",
+      "Finite actor evasion should keep mission/specialist/native tasks authoritative, reserve movement, validate cover path, and restore only exact settings it changed.",
+      "Buddy warning may propagate an observation with uncertainty; do not recursively confer exact target knowledge or action authority."
+    ],
+    "methodsRejected": [
+      "Fired handler changes projectile direction and velocity to manufacture misses. Preserve native ballistics and natural AI accuracy instead.",
+      "forceWeaponFire, forced weapon selection and unconditional fire response can bypass mission fire policy; use existing native firearm/ROE and friendly-lane authority.",
+      "Blanket re-enable of AUTOCOMBAT/TARGET/AUTOTARGET/SUPPRESSION/COVER, saved behaviour/mode/stance restoration and forceSpeed-1 can overwrite later mission state.",
+      "Scheduled actor routines do not revalidate locality/task ownership at each delayed stage; busy/cool variables alone are insufficient ownership receipts.",
+      "Repeated free doMove/CARELESS/BLUE/UP overexisting tasks is not a CBE integration."
+    ],
+    "dependencies": "Still unverified: config.bin present, no textual config extracted; scripts do not establish requiredAddons.",
+    "licence": "No licence determination from readable functions/metadata; incorporation remains subject to review.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "productChanged": false
+  },
+  "masterLedgerSearch": {
+    "found": false,
+    "searched": [
+      "CBE checkout",
+      "C:/Users/AdamW/OneDrive/Documents/GitHub",
+      "C:/Users/AdamW/.codex/worktrees",
+      "C:/Users/AdamW/Documents",
+      "C:/Users/AdamW/AppData/Local/Temp"
+    ],
+    "method": "Exact LOCAL_IMPLEMENTATION_LEDGER.md filename lookup; no reconstruction or deletion.",
+    "stillAvailable": [
+      "Preserved HBQ inventory and controller/semantic review JSON",
+      "Private implementation-register-additions.json with this entry"
+    ]
+  }
+}
