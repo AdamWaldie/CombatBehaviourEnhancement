@@ -16,6 +16,8 @@
  * 2: final kind <STRING> - kind for the last point (optional, default: "FINAL")
  *
  * 3: group <GROUP> - optional group feature exclusions, default grpNull.
+ * 4: maximum ordinary bound <NUMBER>, default0 uses configured spacing; positive values clamp
+ *    spacing down to at least15m. Street crossings retain one continuous crossing.
  * Repeat/JIP: pure bounded calculation, no persistent state.
  * Return Value:
  * Array - [[positionATL, kind], ...] with kind BOUND, CROSS_NEAR, CROSS_FAR or the final kind
@@ -27,8 +29,9 @@
  * Current callers: CBE_fnc_CortexFlankStart and CBE_fnc_CortexAdvanceStart.
  */
 
-params [["_start", [], [[]]], ["_legs", [], [[]]], ["_finalKind", "FINAL", [""]], ["_group",grpNull,[grpNull]]];
+params [["_start", [], [[]]], ["_legs", [], [[]]], ["_finalKind", "FINAL", [""]], ["_group",grpNull,[grpNull]],["_maximumBound",0,[0]]];
 private _bound = (missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance", 55]) max 15;
+if (finite _maximumBound && {_maximumBound > 0}) then {_bound=_bound min (_maximumBound max 15)};
 private _streets = [_group,"CBE_AIPass_StreetCrossing_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 private _points = [];
 private _from = _start;

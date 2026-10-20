@@ -88,7 +88,7 @@ class AIModularityContracts(unittest.TestCase):
             self.assertIn('private _riflemen = _armedFoot select',drill)
             self.assertIn('floor (count _armedFoot / 2)',drill)
             self.assertIn('private _coverRifles=_armedFoot-_element',drill)
-            self.assertIn('if (count _coverRifles < 2)',drill)
+            self.assertIn('if (count _coverRifles < '+('_minimumElement' if name=='cortexAdvanceStart' else '2')+')',drill)
         def split(total,armed,eligible):
             movers=min(armed//2,5,eligible)
             return movers,armed-movers,total-movers

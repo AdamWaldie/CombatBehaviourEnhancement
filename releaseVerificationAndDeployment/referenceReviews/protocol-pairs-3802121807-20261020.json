@@ -112,5 +112,12 @@
     "fingerprint": "3f357146a9b3eb2b65126f69a55e26aeeacba99e558e051480dd33b3316ad63a",
     "signed": false,
     "source": "845b8220 plus intended pair lifecycle/docs"
+  },
+  "twoActorAdvanceAdmission": {
+    "baseline": "00a86dd2",
+    "implementation": "Exactly two available armed foot actors may start existing ADVANCE drill as 1+1. Persistent pairing spans mover/cover roles instead of singleton element partitions. Ordinary route bounds clamp to20m through actual shared route planner; road crossings remain continuous. Existing finite FSM, physical arrival, ammunition and current task/order checks retain role authority.",
+    "limits": "Successive buddy bounding only; independent pair-granular leapfrog within larger squads remains incomplete. No physical fire/arrival/balance/performance evidence; audits paused.",
+    "validation": "1478 existing tests/full HEMTT build passed; existing assertions extended, no new tests.",
+    "physicalAcceptance": false
   }
 }

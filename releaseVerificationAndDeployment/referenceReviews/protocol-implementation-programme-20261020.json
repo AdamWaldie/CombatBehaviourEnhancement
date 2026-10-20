@@ -36,7 +36,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Pre-fire range relocation; binary startup/dependencies/licence; physical firing/scoot/counter-battery validation."
+      "remaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified."
     },
     {
       "workshopId": "3802121807",
@@ -47,7 +47,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-pairs-3802121807-20261020.json",
-      "remaining": "Persistent pair composition with outdoor mover/cover elements, binary startup/dependencies/licence, physical validation."
+      "remaining": "Persistent team-scoped pairing and two-actor successive advance admission integrated. Independent pair-granular leapfrog within larger squads, binary startup/dependencies/licence and physical validation remain."
     },
     {
       "workshopId": "3803702313",
