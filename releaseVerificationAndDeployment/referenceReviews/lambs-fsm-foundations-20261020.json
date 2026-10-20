@@ -322,5 +322,18 @@
     "validation": "1480 existing tests, SQF/FSM/HEMTT/full build passed; audits paused.",
     "physicalAcceptance": false,
     "performanceMeasured": false
+  },
+  "searchMemoryStoreys": {
+    "finding": "Selector restricted every node to the belief height, preventing later-storey position-only investigation despite existing multi-node flow.",
+    "change": "Only exact current finite SEARCH memory matching belief/epoch/original observation/deadline permits all-storey candidates, lower whole-metre elevation first. Live contact/body clues retain belief-floor band. Search binding includes memory. Existing roof, bounding box, physical visit, body/reservation/failure exclusions and query/deadline budgets remain.",
+    "sourceIntent": "LAMBS doAssaultMemory ranks lower floors before distance and shares node memory; CBE retains bounded owner-local investigation rather than copying unleased speed/move writers.",
+    "limits": "No stair-connectivity/accessibility proof, complete building coverage, room safety or migration replay. Individual actor pacing remains native; no added forceSpeed lease.",
+    "validation": "Full1480/HEMTT/SQF/FSM/docs/package passed; independent preserved unsigned candidate verified.",
+    "candidate": ".qa/candidates/search-memory-storeys-d8b1354f",
+    "fingerprint": "8cacb0dcbe432d194e7d0e5583e6360b83843f86c9ee32923b4ee9055e98955d",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

@@ -177,6 +177,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '(units group _actor) select [0,16]'):
             self.assertIn(guard,bodies)
         self.assertLess(s.index('_bodies findIf'),s.index('_ranked pushBack'))
+        self.assertIn('_searchAllFloors || {abs (_height-_beliefHeight) <= 1.5}',s)
+        memory=s.split('private _searchAllFloors=false;',1)[1].split('private _positions=',1)[0]
+        for proof in ('isEqualTo _belief','(_searchMemory select 1)+120','searchDeadline','_searchAllFloors=true'):
+            self.assertIn(proof,memory)
+        self.assertIn('if (_searchAllFloors) then {floor _height} else {0}',s)
+        self.assertIn('_positions select (_x select 3)',s)
+        self.assertIn('_transform,+_belief,+_searchMemory',s)
         self.assertIn('_x distance2D _nodeASL < 1.5',s)
         self.assertIn('_reservedASL=_reserved apply {AGLToASL _x}',s)
         self.assertIn('_reservedASL findIf {_x vectorDistance _nodeASL < 1.5}',s)

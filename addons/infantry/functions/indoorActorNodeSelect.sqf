@@ -18,7 +18,8 @@
  * 4 original observation clue <ARRAY,[]> enables same-episode physical-visit preference.
  * 5 optional caller-owned search <HASHMAP,empty>; pending BOOL and probed ASL nodes are outputs.
  * 6 optional finite SEARCH memory <ARRAY,[]> shares confirmed same-episode visits within the
- * same sixteen-destination budget. It grants neither access nor room-clearance evidence.
+ * same sixteen-destination budget. Valid memory permits lower-floor-first multi-storey selection;
+ * live contact/body-clue selection retains its belief-floor band. Neither grants access or clearance.
  * Visit preferences share the sixteen-destination exclusion budget after live reservations;
  * they never affect known-contact work or add roof rays.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
@@ -43,7 +44,7 @@ private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
-private _binding=[_actor,_building,_transform,+_belief];
+private _binding=[_actor,_building,_transform,+_belief,+_searchMemory];
 private _previousBinding=_search getOrDefault ["binding",[]];
 if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};
 private _probed=_search getOrDefault ["probed",[]];
@@ -66,15 +67,23 @@ if (count _clue == 5 && {(_clue select 4) isEqualTo _epoch}
     } forEach ((_history select 1) select [0,16]);
 };
 // Search-memory visits share the same budget as live reservations and body-clue history.
+private _searchAllFloors=false;
 if (count _searchMemory == 4) then {
     private _memoryState=(group _actor) getVariable ["CBE_AIPass_State",createHashMap];
     private _memoryHistory=_memoryState getOrDefault ["searchBuildingVisits",[]];
     if ((_memoryState getOrDefault ["phase",""]) == "SEARCH"
         && {(_memoryState getOrDefault ["searchMemory",[]]) isEqualTo _searchMemory}
+        && {(_searchMemory select 0) call _positionValid}
+        && {(_searchMemory select 0) isEqualTo _belief}
+        && {[1,2,3] findIf {!((_searchMemory select _x) isEqualType 0) || {!finite (_searchMemory select _x)}} < 0}
         && {(_searchMemory select 3) isEqualTo _epoch}
-        && {(_searchMemory select 2) isEqualType 0} && {finite (_searchMemory select 2)}
-        && {serverTime < (_searchMemory select 2)}
-        && {_memoryHistory isEqualType []} && {count _memoryHistory == 2}
+        && {serverTime >= (_searchMemory select 1)} && {serverTime < (_searchMemory select 2)}
+        && {(_searchMemory select 2) > (_searchMemory select 1)}
+        && {(_searchMemory select 2) <= (_searchMemory select 1)+120}
+        && {(_searchMemory select 2) <= (_memoryState getOrDefault ["searchDeadline",-1])}) then {
+        _searchAllFloors=true;
+    };
+    if (_searchAllFloors && {_memoryHistory isEqualType []} && {count _memoryHistory == 2}
         && {(_memoryHistory select 0) isEqualTo _searchMemory} && {(_memoryHistory select 1) isEqualType []}) then {
         {
             if (count _reservedASL >= 16) exitWith {};
@@ -117,13 +126,16 @@ private _ranked=[];
             && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
         private _nodeASL=AGLToASL _node;
         private _height=_nodeASL select 2;
-        if (_inside && {abs (_height-_beliefHeight) <= 1.5}
+        if (_inside && {_searchAllFloors || {abs (_height-_beliefHeight) <= 1.5}}
             && {_probed findIf {_x vectorDistance _nodeASL < 0.1} < 0}
             && {_reservedASL findIf {_x vectorDistance _nodeASL < 1.5} < 0}
             && {_bodies findIf {_x distance2D _nodeASL < 1.5 && {abs ((_x select 2)-_height) <= 1}} < 0}
             && {_failedNodes findIf {_x vectorDistance _nodeASL < 1.5} < 0}) then {
-            // Belief proximity first; actor travel breaks ties without consulting enemy transforms.
-            _ranked pushBack [_node distance2D _belief,_node distance2D _origin,_forEachIndex];
+            // Position-only memory can continue upstairs after lower nodes were visited.
+            // Live contact selection still ranks by believed horizontal proximity on its floor.
+            // Whole-metre height is a preference, never a floor/accessibility classification.
+            private _heightRank=if (_searchAllFloors) then {floor _height} else {0};
+            _ranked pushBack [_heightRank,_node distance2D _belief,_node distance2D _origin,_forEachIndex];
         };
     };
 } forEach _positions;
@@ -132,7 +144,7 @@ private _selected=[];
 private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
 {
     if (_selected isNotEqualTo [] || {count _probed >= 12}) exitWith {};
-    private _node=_positions select (_x select 2);
+    private _node=_positions select (_x select 3);
     private _asl=AGLToASL _node;
     _probed pushBack +_asl;
     private _hits=if (_roofTop > (_asl select 2)+0.4) then {
