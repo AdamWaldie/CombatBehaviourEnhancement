@@ -383,5 +383,18 @@
     "performanceMeasured": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "multiMuzzleReserveReload": {
+    "baseline": "343dbb79",
+    "change": "Reserve request can plan multi-muzzle weapons only when positive actual station magazine class fits no distinct other muzzle of the named weapon. Complete <=8 muzzle/<=128 compatible class configuration required; oversized or ambiguous weapons refuse. Native exact muzzle/magazine acknowledgement remains required. Reload observation bound considers both weapon and muzzle magazineReloadTime without renewing existing request/role deadline.",
+    "bounds": "16 weapons,8 muzzles each,32 reserve native reads,4096 candidate inventory/compatibility matches; loaded preflight/final read yields65 total maximum. Existing15s discovery cadence and pending1read unchanged.",
+    "limits": "Shared-magazine ambiguous muzzle configs unsupported; no load-into-wrong-muzzle fallback, new worker, inventory fabrication or physics. Physical native loading and runtime overhead unverified.",
+    "validation": "Full1481/HEMTT/SQF/FSM/docs/package and independent candidate passed; existing asynchronous test extended, no added cases.",
+    "candidate": ".qa/candidates/multi-muzzle-reserve-343dbb79",
+    "fingerprint": "cbde7560aa0f1afb8a4254b4b8120f69df3f97b3cfbd858f1757a32c88762f86",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

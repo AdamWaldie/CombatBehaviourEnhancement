@@ -8883,7 +8883,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexGroundReload')
         for proof in ('magazinesAllTurrets [_asset,true]','count _inventory > 128',
                       '(_x select 1) isEqualTo _turret','(_x select 2) > 0',
-                      'count _muzzles == 1','_asset turretLocal _turret','_asset turretUnit _turret',
+                      'count _muzzles <= 8','_queries >= 32','_asset turretLocal _turret','_asset turretUnit _turret',
                       'CortexActorFireTaskAvailable','CBE_Cortex_CombinedRole','NativeOrderReceipt',
                       'CBE_GroundReloadAfter','serverTime+15','serverTime >= _until',
                       '(_native select 3) == _magazine','(_native select 4) > 0',
@@ -8894,6 +8894,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNil {',issue)
         self.assertLess(issue.index('call _available'),issue.index('loadMagazine'))
         self.assertLess(issue.index('CBE_GroundReloadPending'),issue.index('loadMagazine'))
+        self.assertIn('_magazines arrayIntersect _compatible',text)
+        self.assertIn('(_x select 0) != _muzzle && {_magazine in (_x select 1)}',text)
+        self.assertIn('count _compatible > 128',text)
+        self.assertLess(text.index('_configurationValid=true'),text.index('private _state=weaponState'))
+        self.assertIn('_weaponConfig >> _muzzle >> "magazineReloadTime"',text)
         for forbidden in (' doFire ', ' doTarget ', 'waitAndExecute','setVehicleAmmo','setAmmo ', 'doMove'):
             self.assertNotIn(forbidden,text)
         role=text.split('private _roleCurrent={',1)[1].split('private _available={',1)[0]

@@ -14,9 +14,10 @@
  * role replacement or expiry revokes it. No role or observation deadline is renewed.
  * Return: STRING REQUESTED/PENDING blocks this routine firing pass; READY/REFUSED does not.
  * READY means a requested magazine is actually loaded, not permission to fire.
- * Bounds: <=64 crew/128 inventory rows,16 weapons,128 compatible classes per weapon,
- * and at most49 native reads including loaded readiness and final validation. Pending
- * observation uses one read. Only unambiguous single-muzzle weapons can load.
+ * Bounds: <=64 crew/128 inventory rows,16 weapons/8 muzzles each,128 compatible classes
+ * per muzzle and at most65 native reads including readiness/final validation. Pending
+ * observation uses one read. A reserve magazine must identify one configured muzzle;
+ * shared-magazine ambiguity or oversized configuration refuses that weapon.
  * Current callers: CortexVehicles, CortexCombinedArmsLocal and CortexCombinedGroundStep,
  * before their own normal fresh firing/role admission.
  * Example: [_tank,gunner _tank,_enemy,serverTime] call CBE_fnc_CortexGroundReload;
@@ -118,40 +119,54 @@ if (count _inventory > 128) exitWith {"REFUSED"};
 private _magazines=[];
 {if ((_x select 1) isEqualTo _turret && {(_x select 2) > 0}) then {_magazines pushBackUnique (_x select 0)}} forEach _inventory;
 private _desired=if (_flag == 512) then {["AP","TANDEMHEAT","HEAT"]} else {["HE","HEAT"]};
-private _proposal=[];private _bestRank=-1;
+private _proposal=[];private _bestRank=-1;private _queries=0;
 {
     private _weapon=_x;
     private _config=configFile >> "CfgWeapons" >> _weapon;
     private _muzzles=getArray (_config >> "muzzles");
     if (_muzzles isEqualTo []) then {_muzzles=["this"]};
-    if (count _muzzles == 1) then {
-        private _muzzle=if ((_muzzles select 0) == "this") then {_weapon} else {_muzzles select 0};
-        private _compatible=compatibleMagazines [_weapon,_muzzles select 0];
-        if (count _compatible <= 128) then {
-            private _state=weaponState [_asset,_turret,_weapon,_muzzle];
-            if (count _state >= 5 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
-                && {(_state param [6,0]) <= 0}) then {
-                {
-                    private _magazine=_x;
-                    private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
-                    private _warhead=toUpperANSI getText (_ammo >> "warheadName");
-                    private _flags=getNumber (_ammo >> "aiAmmoUsageFlags");
-                    private _suitable=_flags <= 0 || {(floor (_flags/_flag) mod 2) == 1};
-                    if (_flag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")} && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) then {_suitable=false};
-                    if (_magazine in _compatible && {_magazine != (_state select 3)} && {_warhead in _desired}
-                        && {_suitable} && {getNumber (_ammo >> "airLock") <= 0} && {getNumber (_ammo >> "laserLock") <= 0}
-                        && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
-                        && {!isClass (_ammo >> "Components" >> "SensorsManagerComponent" >> "Components" >> "LaserSensorComponent")}) then {
-                        private _rank=(count _desired)-(_desired find _warhead);
-                        if (_rank > _bestRank) then {
-                            _bestRank=_rank;_proposal=[_weapon,_muzzle,_magazine,+_state];
+    if (count _muzzles <= 8) then {
+        private _muzzleRows=[];private _configurationValid=true;
+        {
+            private _compatible=compatibleMagazines [_weapon,_x];
+            if (count _compatible > 128) exitWith {_configurationValid=false};
+            _muzzleRows pushBack [[_x,_weapon] select (_x == "this"),_compatible];
+        } forEach _muzzles;
+        if (_configurationValid) then {
+            {
+                if (_queries >= 32) exitWith {};
+                _x params ["_muzzle","_compatible"];
+                _queries=_queries+1;
+                private _state=weaponState [_asset,_turret,_weapon,_muzzle];
+                if (count _state >= 5 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+                    && {(_state param [6,0]) <= 0}) then {
+                    {
+                        private _magazine=_x;
+                        private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+                        private _warhead=toUpperANSI getText (_ammo >> "warheadName");
+                        private _flags=getNumber (_ammo >> "aiAmmoUsageFlags");
+                        private _suitable=_flags <= 0 || {(floor (_flags/_flag) mod 2) == 1};
+                        if (_flag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")} && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) then {_suitable=false};
+                        if (_magazine != (_state select 3) && {_warhead in _desired}
+                            && {_suitable} && {getNumber (_ammo >> "airLock") <= 0} && {getNumber (_ammo >> "laserLock") <= 0}
+                            && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
+                            && {!isClass (_ammo >> "Components" >> "SensorsManagerComponent" >> "Components" >> "LaserSensorComponent")}) then {
+                            private _rank=(count _desired)-(_desired find _warhead);
+                            // loadMagazine names a weapon, not a muzzle. Accept only when no
+                            // different muzzle of that weapon can consume this magazine class.
+                            if (_rank > _bestRank && {_muzzleRows findIf {
+                                (_x select 0) != _muzzle && {_magazine in (_x select 1)}
+                            } < 0}) then {
+                                _bestRank=_rank;_proposal=[_weapon,_muzzle,_magazine,+_state];
+                            };
                         };
-                    };
-                } forEach _magazines;
-            };
+                    } forEach (_magazines arrayIntersect _compatible);
+                };
+                if (_bestRank == count _desired) exitWith {};
+            } forEach _muzzleRows;
         };
     };
-    if (_bestRank == count _desired) exitWith {};
+    if (_bestRank == count _desired || {_queries >= 32}) exitWith {};
 } forEach ((_asset weaponsTurret _turret) select [0,16]);
 if (_proposal isEqualTo []) exitWith {"REFUSED"};
 _proposal params ["_weapon","_muzzle","_magazine","_before"];
@@ -161,7 +176,10 @@ isNil {
         && {_route isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
         && {_asset turretLocal _turret} && {(_asset turretUnit _turret) == _gunner}
         && {(weaponState [_asset,_turret,_weapon,_muzzle]) isEqualTo _before}) then {
-        private _seconds=(getNumber (configFile >> "CfgWeapons" >> _weapon >> "magazineReloadTime")+3) max 5 min 60;
+        private _weaponConfig=configFile >> "CfgWeapons" >> _weapon;
+        private _reloadSeconds=(getNumber (_weaponConfig >> "magazineReloadTime")) max
+            (getNumber (_weaponConfig >> _muzzle >> "magazineReloadTime"));
+        private _seconds=(_reloadSeconds+3) max 5 min 60;
         private _until=serverTime+_seconds;
         if (_opportunity isNotEqualTo []) then {_until=_until min (_opportunity select 5)};
         _asset setVariable ["CBE_GroundReloadPending",[_group,_epoch,_gunner,_target,+_turret,_weapon,_muzzle,_magazine,
