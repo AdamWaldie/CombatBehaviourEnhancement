@@ -89,5 +89,37 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "ordinaryBoundTransition20261020": {
+    "baseline": "7a2004ae",
+    "implementation": [
+      "Existing _issue boundary checks surviving mover minimum and at least one ammunition-qualified cover actor before planning/issuing another ordinary bound.",
+      "Paired drills use actual other-team fit roster; independent flank uses eligible squad base outside movers.",
+      "AMMO_CAPACITY_LOST ends exact existing drill through normal cleanup/cancellation; no synthetic success, reload, inventory or next-bound command.",
+      "No checks on in-flight movement samples. CROSS_FAR and CONSOLIDATE may complete; coordinated roles retain separate parent readiness/cover protocol."
+    ],
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "59b5db3979f98050857ff3c96bdc6e5c95fad2e91dda91bd9c060cfb46c445f5",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "520aaefb65c5f58dc0872263d9b9f53d537f3733b499de150444ea9206a1189b"
+    },
+    "cost": "Main-muzzle checks only on new ordinary-bound commitment, not every scheduler movement sample; no worker/timer/cache/world scan. Runtime cost unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "focusedTests": 656,
+      "newCases": 0,
+      "focused": ".qa/cbe-bound-ammo-transition-focused-final.log",
+      "full": ".qa/cbe-bound-ammo-transition-build.log",
+      "independent": ".qa/cbe-bound-ammo-transition-independent.log",
+      "candidate": ".qa/candidates/bound-ammo-transition-7a2004ae-6ac69e6c",
+      "fingerprint": "6ac69e6cf3c0b629ed86c2b65aca98a170fa961f5b29e2cd0afb1648eea61533"
+    },
+    "remaining": [
+      "No automatic resupply/re-role algorithm added; existing group sharing cadence remains.",
+      "Coordinated parent ammunition readiness remains separate.",
+      "Physical interruption, authored-route continuation, road completion, HC and frame-time acceptance absent."
+    ],
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }

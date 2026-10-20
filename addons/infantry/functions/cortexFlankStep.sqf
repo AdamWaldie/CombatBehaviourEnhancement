@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary new-bound admission rechecks main-muzzle ammunition for the surviving mover
+ * minimum and at least one cover actor. Road-exit/consolidation and coordinated roles retain
+ * their existing policy. No per-movement-sample inventory poll or forced reload is added.
  * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
  * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
  * Coordinated route-refresh budgets remain in the parent, one per actor/server sequence, across reconstruction.
@@ -799,6 +802,16 @@ private _issue = {
     if (_teamDeferred) exitWith {_result=0.25};
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
+    // Check ammunition only at the next ordinary bound, not every movement sample.
+    // Finishing a road crossing or consolidating must not strand dry actors in place.
+    // Coordinated roles retain their parent cover/readiness protocol as a separate scope.
+    if (!_support && {!(_kind in ["CROSS_FAR","CONSOLIDATE"])}) then {
+        private _armedMovers={[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} count _units;
+        private _coverCandidates=if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units};
+        private _armedCover=_coverCandidates findIf {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} >= 0;
+        if (_armedMovers < _minimumMovers || {!_armedCover}) then {_viable=false};
+    };
+    if (!_viable) exitWith {_result="AMMO_CAPACITY_LOST" call _end};
     _point=+_point;
     private _issueEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _issuePhase=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];

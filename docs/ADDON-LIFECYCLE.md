@@ -1117,3 +1117,10 @@ The shared read-only check reads the weapon's configured main muzzle and its loa
 Flank and advance admission now size the selected rifle manoeuvre element from operators with primary main-muzzle ammunition. At least two ammunition-qualified actors must remain for cover. A squad with four usable rifles and four dry weapons can therefore form two rifle movers with two rifle cover actors, while retaining the existing physical squad and cover rosters. Dry weapons do not inflate the selected element or its covering-fire capacity. Existing role preference, minimum physical group size, casualty-strength, native-task and route checks remain.
 
 Each start computes ammunition-qualified membership once through the shared read-only predicate. Native firing/reloading and active-drill casualty/ammunition reassessment remain separate; no inventory or weapon selection is commanded. Physical bounding, mixed ammunition loads and performance remain unverified while audits are paused.
+
+
+### Ordinary bounds recheck ammunition at commitment
+
+Before issuing a new ordinary tactical bound, the existing drill callback requires the surviving mover minimum to have main-muzzle ammunition and at least one eligible squad cover actor to retain it. It checks at the issue boundary rather than every movement sample. Losing that capacity ends the tactical override with `AMMO_CAPACITY_LOST` through existing exact cleanup and operation cancellation; no next bound, forced reload or synthetic completion is issued. Physical participants are retained through cleanup.
+
+The check does not cancel an in-flight movement leg. It also permits the road-exit and consolidation legs to finish, so ammunition loss does not stop a soldier halfway across a road or prevent regrouping. Coordinated roles retain their existing parent protocol and require a separate ammunition/readiness review. Ammunition sharing remains on its existing group cadence. Physical interruption, authored-order continuation, resupply and performance remain unverified while audits are paused.

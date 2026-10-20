@@ -3992,6 +3992,24 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["desiredStrength",count _element]',source('cortexFlankStart'))
         self.assertIn('["teamSizes",[count _element,count _coverElement]]',source('cortexAdvanceStart'))
         self.assertIn('["teamSizes",[count _first,count _second]]',source('cortexSupportBoundStart'))
+        issue=step.split('private _issue = {',1)[1].split('private _issueEpoch=',1)[0]
+        for proof in ('!_support','["CROSS_FAR","CONSOLIDATE"]','_armedMovers < _minimumMovers',
+                      '_coverCandidates findIf','AMMO_CAPACITY_LOST'):
+            self.assertIn(proof,issue)
+        self.assertIn('if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units}',issue)
+        self.assertNotIn('CortexPrimaryAmmoAvailable',step.split('private _issue = {',1)[0])
+        self.assertIn('_result="AMMO_CAPACITY_LOST" call _end',issue)
+        self.assertNotIn('removeMagazine',issue)
+        self.assertNotIn('reload ',issue)
+        def may_bound(support,kind,movers,minimum,cover):
+            return support or kind in ('CROSS_FAR','CONSOLIDATE') or (movers>=minimum and cover)
+        self.assertTrue(may_bound(False,'BOUND',1,1,True))
+        self.assertFalse(may_bound(False,'BOUND',1,2,True))
+        self.assertFalse(may_bound(False,'ASSAULT',2,2,False))
+        self.assertTrue(may_bound(False,'CROSS_FAR',0,2,False))
+        self.assertTrue(may_bound(False,'CONSOLIDATE',0,2,False))
+        self.assertTrue(may_bound(True,'BOUND',0,2,False))
+
 
     def test_coordinated_bound_team_contract_matches_server_reservation(self):
         start=source('cortexSupportBoundStart')
