@@ -1081,3 +1081,8 @@ The server coalesces publication by the original exit token and removes its exac
 ### Individual investigation engagement orders
 
 Natural contact-led and body-clue building investigation excludes individual BLUE/GREEN actors before ranking candidates. Both the indoor actor and own-group casualty-point executors require group and individual YELLOW/RED/WHITE modes at admission and on active steps. A later individual hold/disengage order ends CBE investigation through its existing cleanup. Exact owned-movement restoration remains available; cleanup never changes the soldier's engagement mode. No scan, movement worker, setting or perception is added. Physical interruption and formation handback remain unverified while audits are paused.
+
+
+### Combat replacement preserves the commander's seat intent
+
+A mounted commander can replace a lost primary gunner only while still assigned to the actual commander turret they occupy. Recovery reads that vehicle's commander seat and compares its assigned occupant and turret path with the candidate's native assignment. Explicit unassignment, a different vehicle, or a newer driver/cargo/other-turret assignment refuses before assignment or internal seat action. No fixed commander turret path is assumed. The existing incoming-gunner, native task, owner, reservation and once-per-generation guards remain. This adds one filtered crew-seat observation per attempted combat recovery, with no scan or worker. Physical seat transitions and performance remain unverified while audits are paused.

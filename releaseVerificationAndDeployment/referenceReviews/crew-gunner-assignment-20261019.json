@@ -24,5 +24,29 @@
     "No measured runtime performance or normal/HC evidence."
   ],
   "physicalAcceptance": false,
-  "audits": "paused"
+  "audits": "paused",
+  "commanderSeatIntent20261020": {
+    "baseline": "e28713c1",
+    "finding": "Prior candidate gate admitted assignedVehicle objNull or same platform without proving the currently assigned role still matched actual commander occupancy. A newer same-vehicle driver/cargo/turret assignment could be overwritten.",
+    "implementation": "Before assignAsGunner/MoveToGunner, require assignedVehicle exact platform, actual commander seat occupied/assigned to candidate and native assigned turret path equal actual commander path. No fixed [0,0] assumption.",
+    "sourceIntent": "HBQ crew retention preserves assigned-vehicle intent; CBE extends protection to the candidate current seat before native casualty substitution. No forced seating or dismounted crew recall added.",
+    "nativeReferences": [
+      "https://community.bistudio.com/wiki/assignedVehicleRole?useskin=vector",
+      "https://community.bistudio.com/wiki/fullCrew?useskin=darkvector"
+    ],
+    "sourceSHA256": "eb115042e94d423734d2621c2c4adf024f87d8f5ec03d4fc8b0ce86549bc0c94",
+    "cost": "One additional filtered commander fullCrew observation per attempted combat recovery; no world scan, worker or timer. Frame cost unmeasured.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-commander-seat-intent-focused.log",
+      "full": ".qa/cbe-commander-seat-intent-build.log",
+      "independent": ".qa/cbe-commander-seat-intent-independent.log",
+      "candidate": ".qa/candidates/commander-seat-intent-e28713c1-cff15f68",
+      "fingerprint": "cff15f68eb95e4669bec678df6a61f749cb3aba8dc0ade01821d712e93d6b10e"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
 }

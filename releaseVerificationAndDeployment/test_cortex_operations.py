@@ -8582,6 +8582,22 @@ class CortexOperations(unittest.TestCase):
                       '_gunnerSeat param [5,objNull]','alive _assignedGunner','GUNNER_ASSIGNED']:
             self.assertIn(guard,text)
         self.assertLess(text.index('GUNNER_ASSIGNED'),text.index('_candidate assignAsGunner'))
+        for guard in ('fullCrew [_vehicle,"commander",false]','assignedVehicleRole _candidate',
+                      'assignedVehicle _candidate != _vehicle','(_commanderSeat select 5) != _candidate',
+                      '(_assignment select 1) isNotEqualTo (_commanderSeat select 3)',
+                      'COMMANDER_ASSIGNMENT_CHANGED'):
+            self.assertIn(guard,text)
+        self.assertLess(text.index('COMMANDER_ASSIGNMENT_CHANGED'),text.index('_candidate assignAsGunner'))
+        self.assertLess(text.index('COMMANDER_ASSIGNMENT_CHANGED'),text.index('_candidate action'))
+        def seat_intent(same_vehicle,assignment,actual_path,assigned_self):
+            return same_vehicle and assigned_self and assignment==['turret',actual_path]
+        self.assertTrue(seat_intent(True,['turret',[2,1]],[2,1],True))
+        self.assertFalse(seat_intent(False,[],[2,1],True))
+        self.assertFalse(seat_intent(True,['driver'],[2,1],True))
+        self.assertFalse(seat_intent(True,['cargo'],[2,1],True))
+        self.assertFalse(seat_intent(True,['turret',[0]],[2,1],True))
+        self.assertFalse(seat_intent(True,['turret',[2,1]],[2,1],False))
+
 
     def test_mounted_danger_recovers_a_lost_gunner_without_sacrificing_the_driver(self):
         registry=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')

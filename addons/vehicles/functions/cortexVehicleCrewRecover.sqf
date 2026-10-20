@@ -8,6 +8,8 @@
  * Repeat/JIP: Finite and generation-owned. The caller records every attempted generation, so a
  * Actor reservations, direct remote control and specialist ownership veto both seat commands.
  * Rejected or accepted recovery cannot churn assignments. A new owner evaluates only later danger.
+ * The candidate must still be assigned to the actual occupied commander turret; a newer
+ * same-vehicle role or explicit unassignment refuses before either seat command.
  * A living assigned incoming gunner retains the seat; explicit STOP, hidden/suspended crew
  * and disabled movement/pathfinding forbid reassignment. Seat vacancy alone is not authority.
  * Arguments: 0: group <GROUP>, grpNull; 1: vehicle <OBJECT>, objNull; 2: hostile <OBJECT>, objNull;
@@ -65,6 +67,18 @@ if (_command == "STOP" || {!simulationEnabled _vehicle} || {isObjectHidden _vehi
     || {!(_candidate checkAIFeature "MOVE")} || {!(_candidate checkAIFeature "PATH")}
     || {vehicle _candidate != _vehicle}
     || {!(assignedVehicle _candidate in [objNull,_vehicle])}) exitWith {["CREW_TASK_OR_SIMULATION"] call _reject};
+// Occupancy is not current seat intent. An assigned driver/cargo/other turret or an
+// explicit unassignment must not be converted into a gunner request merely because
+// the commander has not physically moved yet. Resolve the actual commander path;
+// do not assume a tank-specific [0,0] turret layout.
+private _commanderSeat=(fullCrew [_vehicle,"commander",false]) param [0,[]];
+private _assignment=assignedVehicleRole _candidate;
+if (assignedVehicle _candidate != _vehicle || {count _commanderSeat < 6}
+    || {(_commanderSeat select 0) != _candidate} || {(_commanderSeat select 5) != _candidate}
+    || {count _assignment != 2} || {toLowerANSI (_assignment select 0) != "turret"}
+    || {(_assignment select 1) isNotEqualTo (_commanderSeat select 3)}) exitWith {
+    ["COMMANDER_ASSIGNMENT_CHANGED"] call _reject
+};
 // Empty seats can still belong to a living crew member ordered back aboard.
 // Read only the primary gunner role; auxiliary turret assignments are independent.
 private _gunnerSeat=(fullCrew [_vehicle,"gunner",true]) param [0,[]];
