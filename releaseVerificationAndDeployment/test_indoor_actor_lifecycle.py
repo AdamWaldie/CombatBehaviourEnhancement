@@ -112,6 +112,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('serverTime >= (_brain getOrDefault',fsm)
         self.assertIn('""QUEUE""',fsm)
     def test_planner_has_distinct_native_positions_and_bounded_geometry(self):
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        history=operation.split('if (!_migration && {call _searchMemoryValid}',1)[1].split('_actor setVariable ["CBE_IndoorActor_Result"',1)[0]
+        for proof in ('== "VISITED"','== "OBSERVE"','vectorDistance (AGLToASL _target) <= 2',
+                      'isEqualTo _transform','count _visits < 16','searchBuildingVisits'):
+            self.assertIn(proof,history)
+        self.assertIn('_nodeSearch,_brain getOrDefault ["searchMemory",[]]',operation)
+
         s=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
         for guard in ('count _positions > 512','_reserved findIf',
                       'abs (_height-_beliefHeight) <= 1.5','_ranked select [0,3]',

@@ -17,6 +17,8 @@
  * 2 believed ATL position <ARRAY>, []; 3 reserved ATL destinations <ARRAY>, [];
  * 4 original observation clue <ARRAY,[]> enables same-episode physical-visit preference.
  * 5 optional caller-owned search <HASHMAP,empty>; pending BOOL and probed ASL nodes are outputs.
+ * 6 optional finite SEARCH memory <ARRAY,[]> shares confirmed same-episode visits within the
+ * same sixteen-destination budget. It grants neither access nor room-clearance evidence.
  * Visit preferences share the sixteen-destination exclusion budget after live reservations;
  * they never affect known-contact work or add roof rays.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
@@ -26,7 +28,7 @@
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]],
-    ["_search",createHashMap,[createHashMap]]];
+    ["_search",createHashMap,[createHashMap]],["_searchMemory",[],[[]]]];
 _search set ["pending",false];
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
@@ -62,6 +64,26 @@ if (count _clue == 5 && {(_clue select 4) isEqualTo _epoch}
             _reservedASL pushBack (_x select 2);
         };
     } forEach ((_history select 1) select [0,16]);
+};
+// Search-memory visits share the same budget as live reservations and body-clue history.
+if (count _searchMemory == 4) then {
+    private _memoryState=(group _actor) getVariable ["CBE_AIPass_State",createHashMap];
+    private _memoryHistory=_memoryState getOrDefault ["searchBuildingVisits",[]];
+    if ((_memoryState getOrDefault ["phase",""]) == "SEARCH"
+        && {(_memoryState getOrDefault ["searchMemory",[]]) isEqualTo _searchMemory}
+        && {(_searchMemory select 3) isEqualTo _epoch}
+        && {(_searchMemory select 2) isEqualType 0} && {finite (_searchMemory select 2)}
+        && {serverTime < (_searchMemory select 2)}
+        && {_memoryHistory isEqualType []} && {count _memoryHistory == 2}
+        && {(_memoryHistory select 0) isEqualTo _searchMemory} && {(_memoryHistory select 1) isEqualType []}) then {
+        {
+            if (count _reservedASL >= 16) exitWith {};
+            if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualTo _building}
+                && {(_x select 1) isEqualTo _transform} && {(_x select 2) call _positionValid}) then {
+                _reservedASL pushBackUnique (_x select 2);
+            };
+        } forEach ((_memoryHistory select 1) select [0,16]);
+    };
 };
 {
     if (_x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualTo _building}

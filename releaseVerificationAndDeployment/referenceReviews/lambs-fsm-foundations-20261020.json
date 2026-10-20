@@ -251,13 +251,24 @@
     "deliberateScope": [
       "Owner-local episode does not replay indoor memory across migration; ordinary search migration remains separately bounded.",
       "Each admitted actor observes one selected node; this is not whole-building clearance or complete LAMBS group-memory functionality.",
-      "Current live reservations/body spacing protect concurrent points. Shared completed-node history across search-memory actors is not yet integrated; body-clue history remains separate."
+      "Same-episode completed search-node history now integrated in searchMemoryVisitSharing; physical evidence remains absent."
     ],
     "validation": "607 operation and32 indoor focused cases; full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-building-memory-checkpoint-build.log. Existing source assertion banning any GroupTick indoor call updated to permit START but prohibit STEP/QUEUE; first failure log retained. No new test cases.",
     "candidate": ".qa\\candidates\\search-building-memory-d9bc9434",
     "fingerprint": "2a4084a9a6ae6da25edd14477037d2886d489fe351e640f75cdd6fef45da228c",
     "physicalAcceptance": false,
     "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "searchMemoryVisitSharing": {
+    "status": "INTEGRATED_PHYSICAL_ACCEPTANCE_PENDING",
+    "change": "IndoorActorOperation FINISH records at most16 search-memory physical visits only for VISITED from OBSERVE, same group/epoch/operation/native route, within2mASL and unchanged building transform. IndoorActorNodeSelect receives optional searchMemory and excludes matching same-episode visits inside its existing16-destination combined budget, without extra rays. Fresh search/final calm clears private history.",
+    "intent": "Cooperating investigators avoid redundant recently visited positions without claiming a safe room or changing native target knowledge. Failure/assignment do not create visits.",
+    "remaining": "One selected node per admitted actor/one nearby house attempt; no wholebuilding coverage or indoor memory replay across owner migration. Runtime flow and cost unmeasured.",
+    "validation": "32 focused indoor/full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-memory-visits-build.log; existing tests extended, no new cases.",
+    "candidate": ".qa\\candidates\\search-memory-visits-be73a20e",
+    "fingerprint": "ca51f4bf8d798334f46390d17408218aa64acdc591164c8a72b7de6eaba52d36",
     "audits": "PAUSED",
     "scoresChanged": false
   }

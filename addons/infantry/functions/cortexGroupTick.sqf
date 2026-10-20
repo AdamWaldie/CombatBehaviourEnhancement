@@ -1511,7 +1511,7 @@ switch (_state get "phase") do {
         };
         _state set ["searchTeam", _team];
         _state set ["searchDeadline",serverTime + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
-        {_state deleteAt _x} forEach ["searchMemory","searchIndoorJobs","searchIndoorAttempted","searchPointVisited"];
+        {_state deleteAt _x} forEach ["searchMemory","searchIndoorJobs","searchIndoorAttempted","searchPointVisited","searchBuildingVisits"];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
         _delay = 3;
     };

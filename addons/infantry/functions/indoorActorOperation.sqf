@@ -22,6 +22,7 @@
  * Optional searchMemory [ATL position, original server observation, fixed expiry, owner epoch] permits
  * older position-only admission only while identical to current SEARCH state and its deadline.
  * Ordinary beliefs retain five-second freshness; this grants no hostile identity or room-safety proof.
+ * Confirmed same-episode physical visits are shared within the existing sixteen-node preference budget.
  * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
  * Optional observationClue ARRAY binds shared visit preference to the exact original body clue;
  * only a physically reached OBSERVE result records a node, never admission/failure/clearance.
@@ -202,6 +203,25 @@ if (_mode == "FINISH") exitWith {
         private _row=[_house,_transform call _copyArray,AGLToASL _target];
         if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
         _group setVariable ["CBE_Danger_BuildingVisits",[_clue call _copyArray,_visits]];
+    };
+    if (!_migration && {call _searchMemoryValid}
+        && {(_brain getOrDefault ["reason",""]) == "VISITED"}
+        && {(_brain getOrDefault ["phase",""]) == "OBSERVE"}
+        && {_oldGroup == _group} && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_operation == (_group getVariable ["CBE_OperationGeneration",0])} && {call _releaseAvailable}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}
+        && {_target call _vectorValid} && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
+        && {!isNull _house} && {alive _house}
+        && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
+        private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
+        private _history=_memoryState getOrDefault ["searchBuildingVisits",[]];
+        private _visits=if (_history isEqualType [] && {count _history == 2}
+            && {(_history select 0) isEqualTo _searchMemory} && {(_history select 1) isEqualType []}) then {
+            (_history select 1) select [0,16]
+        } else {[]};
+        private _row=[_house,_transform call _copyArray,AGLToASL _target];
+        if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
+        _memoryState set ["searchBuildingVisits",[_searchMemory call _copyArray,_visits]];
     };
     _actor setVariable ["CBE_IndoorActor_Result",[_generation,
         _brain getOrDefault ["reason","RELEASED"],serverTime,+_target],true];
@@ -448,7 +468,7 @@ if (_phase == "SELECT") exitWith {
     private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
     _brain set ["nodeSearch",_nodeSearch];
     private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
-        _brain getOrDefault ["observationClue",[]],_nodeSearch] call CBE_fnc_IndoorActorNodeSelect;
+        _brain getOrDefault ["observationClue",[]],_nodeSearch,_brain getOrDefault ["searchMemory",[]]] call CBE_fnc_IndoorActorNodeSelect;
     if (_node isEqualTo []) exitWith {
         // A roof miss is not an inaccessible building. Continue the bounded search on
         // the existing FSM callback, under the unchanged original operation deadline.
