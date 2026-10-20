@@ -193,7 +193,10 @@ Return-to-calm uses the same carried-equipment retirement path. It checks each a
 clearing CBE markers; a newer operation participant, other movement reservation or protected
 native task receives no exit or follow command. Follow is limited to actors already on foot.
 Changed owner/epoch retires without native commands, and only the installing machine removes
-its equipment handler IDs. Identical replacement native orders and reused static-task markers remain ambiguous.
+its equipment handler IDs. Movement markers carry local receipts for the original group, owner/epoch, deployment sequence
+and exact applied value. Replaced markers are not cleared or adopted; packing cannot claim an
+assistant reserved by another task. Missing migration receipts do not authorize command replay.
+Identical native replacement orders without a changed marker remain indistinguishable.
 `CBE_AIPass_VehicleJink_Enable` is a next-operation control, default true. A slow, intact, crew-only
 armed ground vehicle may make one 25-second terrain-checked escape from a close hostile, hit or
 explosion generation. The response uses the shared operation and movement lease, covers 35-45 metres

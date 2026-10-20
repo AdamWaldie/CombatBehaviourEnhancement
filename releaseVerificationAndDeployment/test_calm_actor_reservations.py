@@ -27,7 +27,8 @@ class CalmActorReservationTests(unittest.TestCase):
         self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep',self.s)
         deploy=(ROOT/'addons/infantry/functions/cortexStaticDeployStep.sqf').read_text()
         clear=deploy.split('private _clearActor=',1)[1].split('private _canReleaseActor=',1)[0]
-        self.assertIn('(_move param [0,""]) in ["STATIC_DEPLOY","STATIC_PACK"]',clear)
+        self.assertIn('call _ownsActorMove',clear)
+        self.assertIn('(_receipt select 2) == (_record param [27,-1,[0]])',clear)
         self.assertIn('[_gunner] call _clearActor',deploy)
         self.assertIn('[_assistant] call _clearActor',deploy)
 

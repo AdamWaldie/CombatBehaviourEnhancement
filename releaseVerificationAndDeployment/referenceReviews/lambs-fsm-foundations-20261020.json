@@ -508,7 +508,6 @@
     ],
     "remaining": [
       "Native already-issued assembly/disassembly/boarding cannot be claimed cancelled or quiescent by receipt retirement.",
-      "Static actor marker cleanup currently matches tag, not a complete per-generation receipt; repeated/split-locality behaviour remains unverified.",
       "Retained physical assembly/firing/packing failures remain open; no audit ran."
     ],
     "validation": "Full existing1482 unit/static, HEMTT/SQF/config/FSM/docs/build pass; no new tests, acceptance or percentage credit.",
@@ -538,6 +537,13 @@
       "notCopied": "moveInGunner/moveOut and unguarded delayed terrain/stance/controller writes. Created empty holder is action-target infrastructure, not proof of native one-part assembly success or fabricated weapon; any future scoped holder must have lifecycle cleanup.",
       "CBEStatus": "NOT_IMPLEMENTED: current deployment requires a distinct assistant/base and two-bag recovery. Do not mark one-person parity.",
       "nextRequirement": "Compose native one-part assembly and one-bag recovery with finite owner-local receipts, original deadlines, real resulting weapon/bag evidence and physical validation. No new required source addon."
+    },
+    "generationReceiptFollowup": {
+      "baseline": "b3d195d0",
+      "change": "New deployment sequence in record27 is assigned before first movement. Every applied marker records local [group,ownerEpoch,sequence,exactMove]; cleanup clears marker only on exact receipt match, and deletes only its own receipt. Active participant gate refuses replaced nonempty markers. Callback receipts compare explicit current arrays; no lexical helper reliance. SECURITY pack entry checks assistant task availability before reclaiming them.",
+      "scope": "Nine existing marker writes including packing deadline update use the same recorder; no new worker, world scan, movement writer or remote replay. Receipts are machine-local, absent after migration cannot grant commands.",
+      "validation": "1482 existing unit/static cases plus HEMTT/SQF/config/FSM/docs/package pass; initial ordering assertion matched an earlier refresh branch, scoped to actual admission before final pass. No new tests or runtime result.",
+      "limits": "Identical native orders without changed marker remain indistinguishable; missing marker by itself does not establish native action completion. Native quiescence, split-locality handback, one-part deployment and retained assembly/fire/packing failures remain unresolved."
     }
   }
 }

@@ -9986,6 +9986,17 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(retirement.index('private _releaseActors='),retirement.index('[_gunner] call _clearActor'))
         self.assertIn('(_releaseActors select 0)',retirement)
         self.assertIn('(_releaseActors select _forEachIndex)',retirement)
+
+        ownership=text.split('private _ownsActorMove=',1)[1].split('private _rememberActorMove=',1)[0]
+        for proof in ['CBE_Danger_StaticMoveReceipt', '_record select 27', '_move',
+                      '_record param [19,[],[[]]]']:
+            self.assertIn(proof,ownership)
+        self.assertIn('!([_actor] call _ownsActorMove)',actor_gate)
+        admission=text.rsplit('private _deadline=time+18;',1)[1]
+        self.assertLess(admission.index('_record set [27,_sequence]'),admission.index('_x doMove _deployPos'))
+        marker_writes = re.findall(r'(?m)^\s*(_x|_gunner) setVariable \["CBE_Cortex_ActorMove",[^\n]+\];',text)
+        self.assertEqual(len(marker_writes), text.count('call _rememberActorMove;'))
+
         self.assertIn('(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]',retirement)
         self.assertIn('((_record param [19,[],[[]]]) param [0,-1,[0]]) == clientOwner',retirement)
         self.assertLess(retirement.index('_commandFree=_commandFree'),retirement.index('if (!_commandFree)'))
