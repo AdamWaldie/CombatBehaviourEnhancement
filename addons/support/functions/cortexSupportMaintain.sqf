@@ -238,7 +238,7 @@ private _releaseSupport={
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
     call _restoreAttack;
-    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption"];
+    {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves"];
 };
 // Engagement teardown requests release only; it must never consume a fresh role or start a bound.
 if (_mode == "RELEASE") exitWith {
@@ -290,7 +290,7 @@ if (_operationEndReason != "") exitWith {
     [_operationEndReason] call _releaseSupport;
 };
 
-// Consume passive holds through this existing callback as actor locality settles.
+// Consume passive holds and exact acknowledged MOVE observations through this existing callback as actor locality settles.
 // Local mismatches retire immediately; nonlocal actors get only the original five seconds.
 private _adoption=_state getOrDefault ["supportHoldAdoption",[]];
 if (_adoption isNotEqualTo []) then {
@@ -300,13 +300,29 @@ if (_adoption isNotEqualTo []) then {
         && {serverTime < (_adoption select 2)} && {(_adoption select 3) == (_lease select 2)}
         && {(_adoption select 4) isEqualType []} && {count (_adoption select 4) <= 64}) then {
         private _adoptedHolds=_state getOrDefault ["supportStopHolds",createHashMap];
+        private _adoptedMoves=_state getOrDefault ["supportNativeMoves",createHashMap];
         private _remainingHolds=[];
-        if (_adoptedHolds isEqualType createHashMap && {count _adoptedHolds <= 64}) then {
+        if (_adoptedHolds isEqualType createHashMap && {count _adoptedHolds <= 64}
+            && {_adoptedMoves isEqualType createHashMap} && {count _adoptedMoves <= 64}) then {
             {
-                if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType objNull}
+                if (_x isEqualType [] && {count _x in [3,10]} && {(_x select 0) isEqualType objNull}
                     && {(_x select 1) isEqualType []} && {(_x select 2) isEqualType objNull}) then {
+                    private _nativeProof=_x;
+                    private _isMove=count _nativeProof == 10;
+                    private _moveProofValid=!_isMove || {
+                        (_nativeProof select 3) isEqualType [] && {count (_nativeProof select 3) == 3}
+                            && {(_nativeProof select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {(_nativeProof select [4,4]) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {(_nativeProof select 4) >= 0} && {(_nativeProof select 4) == floor (_nativeProof select 4)}
+                            && {(_nativeProof select 5) in [0,1]}
+                            && {(_nativeProof select 6) <= serverTime} && {(_nativeProof select 7) <= serverTime}
+                            && {(_nativeProof select 8) isEqualType 0} && {finite (_nativeProof select 8)} && {(_nativeProof select 8) >= 0}
+                            && {(_nativeProof select 9) isEqualType []} && {count (_nativeProof select 9) == 3}
+                            && {(_nativeProof select 9) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {(_nativeProof select 1) param [0,[],[[]]] isEqualTo (_nativeProof select 3)}
+                    };
                     _x params ["_heldActor","_heldNative","_heldLeader"];
-                    if (!isNull _heldActor && {group _heldActor == _group} && {alive _heldActor}) then {
+                    if (_moveProofValid && {!isNull _heldActor} && {group _heldActor == _group} && {alive _heldActor}) then {
                         if (!local _heldActor) then {_remainingHolds pushBack _x} else {
                             if ([_heldActor] call CBE_fnc_CortexCombatEffective && {isNull objectParent _heldActor}
                                 && {simulationEnabled _heldActor} && {!isObjectHidden _heldActor}
@@ -315,17 +331,24 @@ if (_adoption isNotEqualTo []) then {
                                 && {!([_heldActor] call CBE_fnc_CompatibilityExternalControl)}
                                 && {!([_heldActor] call CBE_fnc_CortexActorMoveReserved)}
                                 && {_heldActor checkAIFeature "MOVE"} && {_heldActor checkAIFeature "PATH"}
-                                && {currentCommand _heldActor == "STOP"}
+                                && {currentCommand _heldActor == (["STOP","MOVE"] select _isMove)}
                                 && {(expectedDestination _heldActor) isEqualTo _heldNative} && {formLeader _heldActor == _heldLeader}
                                 && {count _adoptedHolds < 64 || {netId _heldActor in _adoptedHolds}}) then {
-                                _adoptedHolds set [netId _heldActor,[_heldActor,_token,_operationGeneration,
-                                    _adoption select 1,+_heldNative,_heldLeader,_adoption select 3]];
+                                if (_isMove) then {
+                                    if (count _adoptedMoves < 64 || {netId _heldActor in _adoptedMoves}) then {
+                                        _adoptedMoves set [netId _heldActor,+_nativeProof];
+                                    };
+                                } else {
+                                    _adoptedHolds set [netId _heldActor,[_heldActor,_token,_operationGeneration,
+                                        _adoption select 1,+_heldNative,_heldLeader,_adoption select 3]];
+                                };
                             };
                         };
                     };
                 };
             } forEach (_adoption select 4);
             _state set ["supportStopHolds",_adoptedHolds];
+            _state set ["supportNativeMoves",_adoptedMoves];
         };
         if (_remainingHolds isEqualTo []) then {_state deleteAt "supportHoldAdoption"} else {
             private _pendingHolds=+_adoption;_pendingHolds set [4,_remainingHolds];

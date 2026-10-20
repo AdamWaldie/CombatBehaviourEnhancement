@@ -4,6 +4,7 @@
  * Runs one reserved squad bound as two successive fire-team movements, retaining eligible
  * battle buddies together. Pair cohesion takes priority over equal team sizes; all fit actors remain enrolled.
  * Locality/authority: group owner consumes the current server role and matching lease.
+ * Reconstructed MOVE requires an exact imported native observation; the existing leg is observed without reissue.
  * Native STOP requires an exact existing support hold; matching holds transfer into the drill
  * without commands, new deadlines or an acknowledgement grace period.
  * Parent progress retains original teams and witnessed completed turns; a finished sequence only republishes its result.
@@ -77,6 +78,16 @@ if (_completedTurns == 2) exitWith {
 };
 private _final=_point distance2D (_lease select 5) < 2;
 private _unavailable=_operation getOrDefault ["unavailable",[]];
+private _reconstructing=_progress isNotEqualTo [] && {(_progress select 0) == _sequence};
+private _inheritedMoves=_state getOrDefault ["supportNativeMoves",createHashMap];
+private _moveOwned={
+    params ["_actor"];
+    if (!(_inheritedMoves isEqualType createHashMap) || {count _inheritedMoves > 64}) exitWith {false};
+    private _row=_inheritedMoves getOrDefault [netId _actor,[]];
+    count _row == 10 && {(_row select 0) == _actor} && {(_row select 4) == _sequence}
+        && {(_row select 5) == _completedTurns} && {currentCommand _actor == "MOVE"}
+        && {(expectedDestination _actor) isEqualTo (_row select 1)} && {formLeader _actor == (_row select 2)}
+};
 private _fit=(units _group) select {
     local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
         && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
@@ -84,6 +95,7 @@ private _fit=(units _group) select {
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {!_reconstructing || {currentCommand _x != "MOVE"} || {[_x] call _moveOwned}}
         && {toUpperANSI currentCommand _x != "STOP" || {
             [_group,_state,_x,_leaseToken,_generation,_lease select 2] call CBE_fnc_CortexSupportStopOwned
         }}
@@ -95,6 +107,16 @@ private _nativeCommands=createHashMap;
 {
     if (toUpperANSI currentCommand _x == "STOP") then {
         _nativeCommands set [netId _x,[_x,"HOLD",+(expectedDestination _x),formLeader _x,-1,[],[]]];
+    };
+} forEach _fit;
+private _resumeMoves=[]; private _resumeSpots=[]; private _resumeProgress=[];
+{
+    if ([_x] call _moveOwned) then {
+        private _row=_inheritedMoves get (netId _x);
+        _nativeCommands set [netId _x,[_x,"MOVE",+(_row select 1),_row select 2,-1,[],+(_row select 3)]];
+        _resumeMoves pushBack _x;
+        _resumeSpots pushBack [_x,+(_row select 3)];
+        _resumeProgress pushBack [_x,_row select 6,_row select 7,_row select 8,+(_row select 9)];
     };
 } forEach _fit;
 // Preserve established pairs before distributing orphans. Alternating individual roster
@@ -143,6 +165,7 @@ _state set ["drill",createHashMapFromArray [
     ["operationGeneration",_generation],["ownerEpoch",_ownerEpoch],
     ["supportDeadline",_deadlineReceipt select 2],["supportClock",+_deadlineReceipt],
     ["nativeAdmissionChecked",true],["nativeCommands",_nativeCommands],
+    ["resumeNativeMoves",_resumeMoves],["resumeSpots",_resumeSpots],["resumeProgress",_resumeProgress],
     ["type","ADVANCE"],["teams",[_first,_second]],["teamSizes",[count _first,count _second]],["teamTurn",_completedTurns],["units",_fit],["desiredStrength",count _fit],
     ["points",[[+_point,["SUPPORT_BOUND","FINAL"] select _final]]],["index",0],["stage",""],
     ["enemyPos",+_enemy],["disabled",[]],["spots",[]],["started",time],["lastStep",time],

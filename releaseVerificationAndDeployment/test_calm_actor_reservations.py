@@ -203,7 +203,7 @@ class SupportBoundCommitTests(unittest.TestCase):
         adoption=maintain.split('// Consume passive holds',1)[1].split('// Contact can begin',1)[0]
         for proof in ('count _adoption == 5','serverTime < (_adoption select 2)',
                       '(_adoption select 3) == (_lease select 2)','_remainingHolds pushBack _x',
-                      'currentCommand _heldActor == "STOP"','CortexActorMoveReserved',
+                      'currentCommand _heldActor == (["STOP","MOVE"] select _isMove)','CortexActorMoveReserved',
                       '(expectedDestination _heldActor) isEqualTo _heldNative',
                       'formLeader _heldActor == _heldLeader','_pendingHolds set [4,_remainingHolds]'):
             self.assertIn(proof,adoption)
@@ -228,6 +228,23 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('["teamTurn",_completedTurns]',source)
         self.assertIn('(_progress select 0) > _sequence',source)
         self.assertIn('_second append _newcomers',source)
+        self.assertIn('currentCommand _x != "MOVE"} || {[_x] call _moveOwned}',source)
+        self.assertIn('(_row select 4) == _sequence',source)
+        self.assertIn('(_row select 5) == _completedTurns',source)
+        self.assertIn('["resumeNativeMoves",_resumeMoves]',source)
+        inherited=active.split('if !(_unit in (_drill getOrDefault ["resumeNativeMoves",[]])) then {',1)[1].split('};',1)[0]
+        self.assertIn('_unit doMove _spot',inherited)
+        self.assertIn('_distanceClock=time+((_savedProgress select 0) select 1)-serverTime',active)
+        self.assertIn('_motionClock=time+((_savedProgress select 0) select 2)-serverTime',active)
+        self.assertIn('count _x in [3,10]',adoption)
+        self.assertIn('(_nativeProof select 5) in [0,1]',adoption)
+        self.assertIn('(_nativeProof select 6) <= serverTime',adoption)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
+        self.assertIn('if (!_coordinatedMove && {_inheritedDrill isEqualTo []}',locality)
+        self.assertIn('(_supportProof select 1) == (_inheritedSupportRecovery select 1)',locality)
+        self.assertIn('(expectedDestination _unit) isEqualTo (_x select 1)',locality)
+
+
         stages=(ROOT/'addons/infantry/functions/cortexDrillSetStage.sqf').read_text()
         self.assertIn('_reason in ["FIRE_TEAM_ARRIVED","BOUND_ARRIVED"]',stages)
         self.assertIn('(_progress select 3) max ((_drill get "teamTurn")+1)',stages)

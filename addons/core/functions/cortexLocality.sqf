@@ -297,7 +297,28 @@ if (_restoreEligible) then {
                 && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                 && {_destination vectorDistance _spot <= 0.25};
         };
-        if (_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible} && {_ownedMove} && {!isNull _restoreAnchor}
+        // Leave an exact current coordinated leg in the engine for the finite adoption
+        // path. Generic cleanup must not issue doFollow before that path can observe it.
+        private _coordinatedMove=false;
+        private _supportProof=_restore getOrDefault ["supportHoldProof",[]];
+        if (_inheritedSupportRecovery isNotEqualTo [] && {_supportProof isEqualType []} && {count _supportProof == 6}
+            && {(_supportProof select 0) == (_supportLease select 0)}
+            && {(_supportProof select 1) == (_inheritedSupportRecovery select 1)}
+            && {(_supportProof select 2) == (_inheritedSupportRecovery select 2)}
+            && {(_supportProof select 3) == (_supportLease select 2)} && {serverTime < (_supportLease select 2)}
+            && {(_supportProof select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+            && {(_supportProof select 5) isEqualType []} && {count (_supportProof select 5) <= 64}
+            && {_supportLease isEqualTo (_group getVariable ["CBE_AIPass_SupportLease",[]])}) then {
+            private _role=_group getVariable ["CBE_Cortex_SupportRole",[]];
+            if (count _role == 5 && {(_role select 0) == (_supportLease select 0)} && {(_role select 2) == "MOVE"}) then {
+                _coordinatedMove=(_supportProof select 5) findIf {
+                    _x isEqualType [] && {count _x == 10} && {(_x select 0) isEqualTo _unit}
+                        && {(_x select 4) isEqualTo (_role select 1)} && {currentCommand _unit == "MOVE"}
+                        && {(expectedDestination _unit) isEqualTo (_x select 1)} && {formLeader _unit == (_x select 2)}
+                } >= 0;
+            };
+        };
+        if (!_coordinatedMove && {_inheritedDrill isEqualTo []} && {[_x] call _restoreActorEligible} && {_ownedMove} && {!isNull _restoreAnchor}
             && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
             && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}) then {_x doFollow _restoreAnchor};
     } forEach (_restore getOrDefault ["restoreMovers", []]);

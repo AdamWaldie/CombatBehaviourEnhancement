@@ -230,7 +230,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('setPos',resume)
         self.assertNotIn('doFollow',resume)
         self.assertLess(locality.index('[_group,_candidate,-1,true]'),locality.index('call CBE_fnc_OperationCancel'))
-        self.assertIn('_inheritedDrill isEqualTo [] && {[_x] call _restoreActorEligible}',locality)
+        self.assertIn('_inheritedDrill isEqualTo []} && {[_x] call _restoreActorEligible}',locality)
         self.assertLess(locality.index('[_group,_inheritedDrill]'),locality.index('call CBE_fnc_CortexSupportApply'))
         step=source('cortexFlankStep')
         self.assertIn('(_resumeSpots select _resumeIndex) select 1',step)
@@ -6295,7 +6295,10 @@ class CortexOperations(unittest.TestCase):
     def test_bound_progress_uses_its_own_explicit_index(self):
         text=source('cortexFlankStep')
         self.assertNotIn('_units apply {[_x distance2D (_spots select _forEachIndex)',text)
-        self.assertIn('{_progress pushBack [(getPosASL _x) vectorDistance (ATLToASL (_spots select _forEachIndex)),_now,getPosASL _x,_now]} forEach _units',text)
+        progress=text.split('private _progress = [];',1)[1].split('_drill set ["progress",_progress]',1)[0]
+        self.assertIn('(getPosASL _actor) vectorDistance (ATLToASL (_spots select _forEachIndex))',progress)
+        self.assertIn('_progress pushBack [_distance,_distanceClock,_lastPose,_motionClock]',progress)
+        self.assertIn('} forEach _units',progress)
 
     def test_visual_audit_suites_are_staged_and_dispatched_by_the_standalone_pipeline(self):
         server = (ROOT / 'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')
@@ -9277,7 +9280,7 @@ class CortexOperations(unittest.TestCase):
         gate='if (!_localityPending || {serverTime >= (_settling select 1)}) then {'
         self.assertLess(boundary.index(gate),boundary.index('CBE_fnc_CortexSupportBoundStart'))
         self.assertLess(boundary.index(gate),boundary.index('_state set ["supportBoundSequence"'))
-        self.assertIn('"assaulting","supportBoundSettling","supportHoldAdoption"]',text)
+        self.assertIn('"assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves"]',text)
         self.assertGreaterEqual(text.count('deleteAt "supportBoundSettling"'),2)
 
     def test_cba_feedback_uses_separate_content_rows_for_title_and_body(self):

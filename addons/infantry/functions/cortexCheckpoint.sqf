@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Coordinated checkpoints retain exact acknowledged MOVE observations and original progress clocks, without replay authority.
  * Publishes restoration data and bounded post-contact movement intent after an unscheduled AI job.
  * A missing or stale public phase is repaired through CortexSetPhase with an explicit continuity
  * record; the checkpoint never changes observable phase state outside the common transition path.
@@ -104,7 +105,7 @@ if (count _drill > 0) then {
     };
 
 };
-// Coordinated holds use the authenticated parent lease, not standalone drill replay.
+// Coordinated native observations use the authenticated parent lease, not standalone drill replay.
 private _supportToken=_state getOrDefault ["supportToken",""];
 private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportGeneration=_state getOrDefault ["supportOperationGeneration",-1];
@@ -142,6 +143,26 @@ if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 
             if (_row isEqualType [] && {count _row == 7} && {(_row select 0) isEqualType objNull}
                 && {(_row select 1) == "HOLD"} && {(_row select 0) in (_drill getOrDefault ["units",[]])}) then {
                 [_row select 0,_row select 2,_row select 3] call _captureHold;
+            };
+            // An acknowledged, unchanged MOVE can be observed on the new owner without replaying it.
+            // Carry original progress clocks; the native acknowledgement grace never migrates.
+            if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "MOVE"}
+                && {(_drill getOrDefault ["stage",""]) == "MOVE"}) then {
+                private _actor=_row select 0;
+                private _slot=(_drill getOrDefault ["movers",[]]) find _actor;
+                private _samples=_drill getOrDefault ["progress",[]];
+                if (_slot >= 0 && {_slot < count _samples} && {!isNull _actor} && {local _actor}
+                    && {group _actor == _group} && {currentCommand _actor == "MOVE"}
+                    && {formLeader _actor == (_row select 3)} && {count (_row select 6) == 3}
+                    && {((expectedDestination _actor) param [0,[],[[]]]) isEqualTo (_row select 6)}) then {
+                    if (count _proofRows >= 64 && {!(netId _actor in _proofRows)}) then {_proofOverflow=true} else {
+                        private _sample=_samples select _slot;
+                        _proofRows set [netId _actor,[_actor,+(expectedDestination _actor),_row select 3,+(_row select 6),
+                            _drill get "supportSequence",_drill get "teamTurn",
+                            serverTime+(_sample select 1)-time,serverTime+(_sample select 3)-time,
+                            _sample select 0,+(_sample select 2)]];
+                    };
+                };
             };
         } forEach (keys _childHolds);
     };

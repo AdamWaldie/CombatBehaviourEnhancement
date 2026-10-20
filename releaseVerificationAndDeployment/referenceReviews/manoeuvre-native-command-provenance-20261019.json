@@ -405,5 +405,34 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "supportNativeMoveFollowUp20261020": {
+    "baseline": "457c8ac0",
+    "finding": "Reconstructed coordinated children had no imported native MOVE provenance and could reroll/reissue the pending leg.",
+    "change": "Existing bounded supportHoldProof now carries typed STOP or acknowledged MOVE rows. MOVE capture requires exact current goal and formation leader, current child identity and existing progress clocks. Existing finite owner-adoption callback validates current actor state and command; BoundStart requires matching sequence/turn on reconstruction and seeds exact destinations/native rows with no ACK grace. FlankStep observes imported legs without doMove/doWatch replay and converts original progress clocks to new local time. Original server clock and parent retry limits remain. Fresh admission policy unchanged; no new worker. Historical distance and ASL pose accompany clocks so travel during transfer remains observable instead of becoming a fresh baseline. Locality cleanup skips doFollow only for exact current MOVE proof matching source parent generation/epoch/token/expiry/authored order and live role; otherwise original cleanup remains.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "94d7977c7dd71fc83f6f75532724481f33c966f4f2cbbfdede92c80f72f19ec1",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "2677b52bd225239eb87619dc0bc47eb85799dfbd814e58e0e8d6aa581859ddf3",
+      "addons/infantry/functions/cortexFlankStep.sqf": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0",
+      "addons/support/functions/cortexSupportApply.sqf": "5a3192b3dc78ce7917bb45916d2b4a604ca4c68da8165f723ab32042e020d208",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "134d9a43eafdcd1948cfd5d7bb8b6a9a5850705d0df0457d7ab4b3dc76d9ed0b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "a5240fd2fa701003a02a5d7653c698919446403b919d8e7326a02564c4da206c"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-native-move-complete-build.log",
+      "independent": ".qa/cbe-support-native-move-independent.log",
+      "candidate": ".qa/candidates/support-native-457c8ac0-ca5c89d4",
+      "fingerprint": "ca5c89d445ae0190efaa1ad368920ef4c6d7ac161ff33dc77c5654c7834c92a4",
+      "source": "457c8ac0 plus intended dirty native-MOVE continuity edits",
+      "superseded": ".qa/cbe-support-native-move-final-build.log passed before additional locality cleanup correction; initial build log retains two source-contract failures subsequently fixed"
+    },
+    "remaining": [
+      "Snapshot availability/ordered replication and actual native command behaviour on transfer remain physically unverified.",
+      "Repeated transfer, casualty flow and measured overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

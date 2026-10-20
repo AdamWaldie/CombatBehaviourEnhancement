@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * The existing finite native-adoption window carries passive holds and exact MOVE observations, never an acknowledgement grace.
  * Coordinated adoption restores bounded recovery and route-refresh journals before acknowledgement.
  * Waits for the matching server reservation before issuing a support order on its current owner.
  * Locality/authority: queued only by authenticated SupportLocal; all execution gates are checked again.
@@ -304,6 +305,7 @@ if (_okay && {_adopting || {!_same} || {_attackAllowed && {!(_state getOrDefault
     };
     _state set ["supportOperationGeneration",_generation];
     _state deleteAt "supportHoldAdoption";
+    _state set ["supportNativeMoves",createHashMap];
     if (_sourceHoldRows isNotEqualTo []) then {
         _state set ["supportHoldAdoption",[_generation,_operation get "ownerEpoch",
             (serverTime+5) min _expiry,_expiry,_sourceHoldRows]];

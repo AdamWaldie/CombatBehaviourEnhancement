@@ -3,7 +3,7 @@
  * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
  * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
  * Coordinated route-refresh budgets remain in the parent, one per actor/server sequence, across reconstruction.
- * Local command receipts do not migrate. Initial admission and indistinguishable replacement
+ * Exact coordinated MOVE observations can migrate without command replay or acknowledgement grace. Initial admission and indistinguishable replacement
  * STOP over an unchanged owned hold remain limits; no native command-origin identity is available.
  * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
  * policy ends admission rather than allowing unowned autonomous attack delegation.
@@ -186,7 +186,7 @@ if (!isNull _intentTarget && {captive _intentTarget
 // A queued drill can run after a new direct owner appears. Recheck only at actual command
 // writes; route scoring and progress accounting remain bounded and do not issue movement.
 // These local receipts belong to this already-validated token/epoch/generation only.
-// MOVE and acknowledgement state stay local. Checkpoints carry only separately validated passive HOLD proof.
+// Checkpoints may carry acknowledged coordinated MOVE observations. No acknowledgement grace migrates.
 private _recordNativeCommand={
     params ["_actor","_kind",["_goal",[],[[]]]];
     private _commands=_drill getOrDefault ["nativeCommands",createHashMap];
@@ -924,9 +924,13 @@ private _issue = {
             };
             _unit setVariable ["CBE_Cortex_FireTarget",nil];
             if ([_unit] call _mayIssueMovement) then {
-                _unit doWatch _enemyPos;
-                _unit doMove _spot;
-                [_unit,"MOVE",_spot] call _recordNativeCommand;
+                // A transferred exact native leg continues in the engine. Observing it grants
+                // neither another doMove nor a fresh command-acknowledgement interval.
+                if !(_unit in (_drill getOrDefault ["resumeNativeMoves",[]])) then {
+                    _unit doWatch _enemyPos;
+                    _unit doMove _spot;
+                    [_unit,"MOVE",_spot] call _recordNativeCommand;
+                };
             };
             // Keep a bounded pre-command record; native aiming remains untouched.
             private _handoffs=_drill getOrDefault ["movementHandoffs",[]];
@@ -949,7 +953,20 @@ private _issue = {
     _drill set ["movers", +_units];
     _drill set ["arrivedUnits",[]];
     private _progress = [];
-    {_progress pushBack [(getPosASL _x) vectorDistance (ATLToASL (_spots select _forEachIndex)),_now,getPosASL _x,_now]} forEach _units;
+    {
+        private _actor=_x;
+        private _savedProgress=(_drill getOrDefault ["resumeProgress",[]]) select {(_x select 0) == _actor};
+        private _distanceClock=_now; private _motionClock=_now;
+        private _distance=(getPosASL _actor) vectorDistance (ATLToASL (_spots select _forEachIndex));
+        private _lastPose=getPosASL _actor;
+        if (_savedProgress isNotEqualTo []) then {
+            _distanceClock=time+((_savedProgress select 0) select 1)-serverTime;
+            _motionClock=time+((_savedProgress select 0) select 2)-serverTime;
+            _distance=(_savedProgress select 0) select 3;
+            _lastPose=+((_savedProgress select 0) select 4);
+        };
+        _progress pushBack [_distance,_distanceClock,_lastPose,_motionClock];
+    } forEach _units;
     _drill set ["progress",_progress];
     _drill set ["progressCoordinates","ASL3D"];
     private _resumeRetries=_drill getOrDefault ["resumeRetries",[]];
@@ -968,6 +985,8 @@ private _issue = {
         };
         [_count,_now]
     }];
+    _drill deleteAt "resumeNativeMoves";
+    _drill deleteAt "resumeProgress";
     _drill deleteAt "resumeSpots";
     _drill deleteAt "resumeRetries";
     _drill set ["disabled", _disabled];
