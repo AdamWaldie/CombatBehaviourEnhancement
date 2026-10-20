@@ -16,6 +16,8 @@
  * Room movement requires a current shared actor-settings lease; changed settings are not rebased.
  * Egress allocation retains up to three scene-query batches per actor, one due actor per callback.
  * Original deadlines and retry counts survive owner adoption; no retry grants arrival or task authority.
+ * Casualty promotion ranks its bounded candidate window before spending the shared VIEW ray,
+ * so roster order cannot consume cover proof ahead of a nearer reserve.
  * Casualty promotion retains callback-local candidate/cover proof and atomically rechecks it
  * before retiring an exterior leg and updating the lane/common participant roster together.
  * Reserve staging records attempts only after its initial hold is admitted; refused holds
@@ -2089,14 +2091,17 @@ private _delay=call {
                 private _reinforceAnchor=if (_buddy != _member && {[_buddy] call _actorAvailable}
                     && {!(_buddy in _unavailable)}) then {_buddy} else {_building};
                 private _replacementIndex=-1;
-                private _replacementDistance=1e12;
+                // Rank before calling the promotion gate: that gate can consume the sole
+                // callback VIEW ray. Stable window indexes resolve equal-distance ties.
+                private _replacementRanks=[];
+                {_replacementRanks pushBack [_x distance2D _reinforceAnchor,_forEachIndex,_x]} forEach _promotionCandidates;
+                _replacementRanks sort true;
                 {
-                    private _distance=_x distance2D _reinforceAnchor;
-                    if (_distance < _replacementDistance && {[_x] call _mayPromoteReserve}) then {
-                        _replacementIndex=_reserves find _x;
-                        _replacementDistance=_distance;
+                    private _candidate=_x select 2;
+                    if ([_candidate] call _mayPromoteReserve) exitWith {
+                        _replacementIndex=_reserves find _candidate;
                     };
-                } forEach _promotionCandidates;
+                } forEach _replacementRanks;
                 // Keep the casualty slot pending if the only replacements hold sole exit cover.
                 // Neither this wait nor budget deferral renews the finite clearance deadline.
                 if (_replacementIndex < 0) then {

@@ -19,7 +19,14 @@ class ClearPromotionCoverageTests(unittest.TestCase):
     def test_no_candidate_never_falls_through_to_last_reserve(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _replacementIndex=-1',s)
-        self.assertIn('[_x] call _mayPromoteReserve',s)
+        selection=s.split('private _replacementIndex=-1;',1)[1].split('// Keep the casualty slot pending',1)[0]
+        self.assertLess(selection.index('_replacementRanks sort true'),selection.index('call _mayPromoteReserve'))
+        self.assertIn('if ([_candidate] call _mayPromoteReserve) exitWith',selection)
+        self.assertIn('_forEachIndex,_x',selection)
+        # A scarce cover probe must go to the nearest candidate, independent of roster order.
+        candidates=[(30,0,'far'),(4,1,'near'),(4,2,'tie')]
+        self.assertEqual([row[2] for row in sorted(candidates)],['near','tie','far'])
+        self.assertIn('[_candidate] call _mayPromoteReserve',s)
         guard=s.index('if (_replacementIndex < 0) then {')
         refusal=s[guard:s.index('private _replacement=_reserves select _replacementIndex')]
         self.assertIn('call _requestExitRelief',refusal)
@@ -44,7 +51,7 @@ class ClearPromotionCoverageTests(unittest.TestCase):
                 seen.update(batch)
             self.assertEqual(seen,set(range(count)))
 
-        self.assertIn('_replacementIndex=_reserves find _x',s)
+        self.assertIn('_replacementIndex=_reserves find _candidate',s)
     def test_two_simultaneous_losses_cannot_spend_both_duplicate_observers(self):
         reserves=['a','b'];posts={'a':'exit','b':'exit'}
         def can_promote(candidate):
