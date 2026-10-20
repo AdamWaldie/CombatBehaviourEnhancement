@@ -41,5 +41,32 @@
     "Native reaction/travel under repeated fire, delay and casualty outcome unverified.",
     "Implicit native formation/follow motion without MOVE or path-planning state is not newly classified.",
     "Other complete reference FSM/cover/dodge behaviour and performance remain incomplete."
-  ]
+  ],
+  "smallElementNaturalSelection20261020": {
+    "baseline": "794c2d59",
+    "sourceIntent": "LAMBS brainEngage selects close known dismounted infantry assault without a four-person squad threshold, while native planning, suppression/hold-fire and stealth constrain choices.",
+    "finding": "CortexAssaultStart supports two/three available armed actors, but CortexTacticalAssess required four armed foot soldiers before selecting fresh close infantry ASSAULT. Below60m, normal fresh manoeuvre fallback cannot select it. Executor support was therefore not connected to this normal assessment path.",
+    "change": "Selector proposes ASSAULT at two armed actors. Existing low-firepower single-survivor branch and all feature/contact age/distance/type gates remain. Executor still checks actual eligible roles/native tasks/orders/morale/avenue. No extra scheduler, movement writer or perception. AssaultStart now counts only primary-weapon-armed capable foot actors; unarmed members cannot inflate element size or fill attack/cover roles.",
+    "sources": {
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "fa43bd3349b2f14fee61f7667a0dff94dfed788c7b8f6c47b93b8a8ac4dfbe2d",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      "addons/infantry/functions/cortexAssaultStart.sqf": "059c44f339c1a4b5a5d9b9b094e8fde63f403b7b70c5b5e105f08df68a3026f1"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-small-element-selector-final-build.log",
+      "independent": ".qa/cbe-small-element-selector-independent.log",
+      "candidate": ".qa/candidates/small-element-794c2d59-db311ab9",
+      "fingerprint": "db311ab95b634d83c8f7cd1fc5e24a7ea857287e4f9f2a0fdd28ad0345137f0b",
+      "source": "794c2d59 plus intended dirty small-element assessment/executor edits",
+      "superseded": ".qa/cbe-small-element-selector-build.log passed before armed executor-roster correction"
+    },
+    "remaining": [
+      "Physical small-element cover/move timing, safe route, casualty continuation, source-relative balance and performance unverified.",
+      "Mixed operating crew/foot group manoeuvre remains a separate vehicle-domain composition limitation; no implicit subgroup split added."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  }
 }

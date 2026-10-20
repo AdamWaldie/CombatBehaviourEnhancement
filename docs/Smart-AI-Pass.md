@@ -2019,3 +2019,6 @@ When a finite group hide posture ends while a protected task prevents restoratio
 ### Pair identity across operation subsets
 
 Shared pair publication prioritises the current operation rows and retains untouched outside-roster partners, up to sixteen pair rows. Normal pairing and clearance casualty replacement use the same publication path. Active operation pairs remain separate from this shared metadata. A partner record does not make a dormant, incapacitated, mounted or externally controlled soldier eligible for movement or a role. Changed active assignments take precedence; dead or departed group members and duplicate references cannot accumulate. Unchanged metadata is not retransmitted. Physical entry cohesion and casualty flow remain unverified.
+
+
+Natural tactical assessment can propose a close assault for two or three armed infantry, matching the existing finite executor. It still requires a fresh dismounted infantry contact in the configured close range. Executor admission counts rifle-armed capable participants for element size and cover/mover capacity, then rechecks availability, native tasks, morale, authored orders and a safe avenue. Unarmed members remain outside this assault roster. A single survivor retains the existing native-contact policy. This connects small-element selection to execution; physical flow and balance remain unverified.

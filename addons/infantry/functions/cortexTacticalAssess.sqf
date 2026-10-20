@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Select one bounded group-level combat intent from existing native knowledge, force capability, terrain and mission orders.
  * Locality / Authority: Read-only on the current group owner. It never reveals targets, issues commands or acquires movement ownership.
+ * Close infantry assessment includes the executor's two/three-person element support;
+ * actual actor/role/native-task admission remains with CortexAssaultStart.
  * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
  * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
  * Elevation uses the supplied native believed position; no live hostile height is queried.
@@ -144,7 +146,9 @@ private _freshPosition=_manoeuvre findIf {
     private _record=_enemies select _x;
     (_record param [3,0,[0]]) >= 60 && {(_record param [2,1e9,[0]]) <= 10}
 };
-if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 4}) then {
+// Match the finite assault executor: two/three available actors are supported elements.
+// Assessment proposes only; the executor still validates actual roles, native tasks and avenue.
+if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
     _selected=_manoeuvre select _closePosition;
     _intent="ASSAULT";
     _reason="FRESH_CLOSE_INFANTRY";

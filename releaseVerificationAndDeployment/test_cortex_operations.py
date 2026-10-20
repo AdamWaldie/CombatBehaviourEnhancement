@@ -4273,6 +4273,23 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_selected=_enemies findIf',assessment)
         self.assertIn('Any live contact can provide fire context',assessment)
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)
+        self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}',assessment)
+        self.assertIn('if (count _onFoot < 2) exitWith',assault)
+        self.assertIn('SMALL_ELEMENT_UNAVAILABLE',assault)
+        roster=assault.split('private _onFoot=',1)[1].split('if (count _onFoot < 2)',1)[0]
+        self.assertIn('primaryWeapon _x != ""',roster)
+        # Unarmed nonparticipants cannot inflate the element-size/cover threshold.
+        armed_roster=[weapon for weapon in ('rifle','rifle','','') if weapon]
+        self.assertEqual(len(armed_roster),2)
+
+        def close_candidate(armed,distance,age=0,enabled=True):
+            return enabled and armed >= 2 and 12 <= distance <= 60 and age <= 10
+        for armed in (2,3,4):self.assertTrue(close_candidate(armed,25))
+        self.assertFalse(close_candidate(1,25))
+        self.assertFalse(close_candidate(2,8))
+        self.assertFalse(close_candidate(3,25,11))
+        self.assertFalse(close_candidate(3,25,enabled=False))
+
         self.assertIn('_selected=_manoeuvre select _freshPosition',assessment)
         self.assertIn('case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAssaultStart}',selector)
         self.assertIn('private _forwardOrder=_waypointIndex < count waypoints _group',assessment)

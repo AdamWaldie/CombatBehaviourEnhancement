@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Only rifle-armed capable foot soldiers count toward assault and cover capacity;
+ * unarmed members remain outside this operation roster.
  * Depleted admission: two armed available actors alternate one mover/one cover; three use
  * two movers/one cover through the existing finite executor. Native planning/tasks defer admission.
  * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
@@ -74,6 +76,7 @@ if (_waypointIndex < count waypoints _group && {
 
 private _onFoot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+        && {primaryWeapon _x != ""}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}

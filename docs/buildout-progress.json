@@ -2653,7 +2653,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexAssaultStart.sqf",
-              "sha256": "0009dbca8ce9688359f79149575954095753ba09c3cc327efd5cb954bd5fc4fe"
+              "sha256": "059c44f339c1a4b5a5d9b9b094e8fde63f403b7b70c5b5e105f08df68a3026f1"
             }
           ]
         },
@@ -2714,7 +2714,7 @@
             },
             {
               "path": "addons/infantry/functions/cortexTacticalAssess.sqf",
-              "sha256": "2f95153aa99d11275af56f7dc3b91be01a37311565c37853e0a6f20bb772b57d"
+              "sha256": "fa43bd3349b2f14fee61f7667a0dff94dfed788c7b8f6c47b93b8a8ac4dfbe2d"
             }
           ]
         },
