@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-20",
+  "baseline": "dd6f4a05",
+  "scope": "CQB exterior proposal diagnostic fast-path use",
+  "finding": "Reserve cover/uncovered candidates always passed diagnostics=true, disabling existing bounds/reservation early rejection and constructing detail arrays/logs during normal gameplay. Egress proposal logs were unconditional too.",
+  "change": "Use existing Debug or group ClearCaptureEntry to choose detailed mode. Normal mode consumes boolean validity and existing early-outs; detailed mode retains measurements/proposal logs. Egress proposal log also opt-in. Failure/terminal evidence retained.",
+  "semantics": "No candidate acceptance, query upperbound, attempt limit, movement or deadline changed. Actual number of skipped queries depends on rejected input; no runtime performance result.",
+  "validation": "Focused609/full1482 existing tests, HEMTT/SQF/config/FSM/docs/package pass .qa/cqb-proposal-diagnostics-build.log. Unsignedcandidate .qa/candidates/cqb-proposal-diagnostics-dd6f4a05 independentlyverified fingerprint6028c83348621e670a5009cc248e5c80e22654ccc7d93e7e0c5248918d80c213. No engine performance/acceptance claim.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "d5fcb6c94984e0d1f4f14339d0eb6d80eea693df078cbace5173dbdef965f5b7"
+    },
+    {
+      "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+      "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+      "sha256": "9e0c297909919d98f8a5c57d0b8551f1812937a730d0f0e0a7d02d3ee7b1ab05"
+    }
+  ]
+}

@@ -218,6 +218,7 @@ private _delay=call {
     if ((_group getVariable ["CBE_AIPass_ClearGeneration", -1]) != (_job get "generation")) exitWith {-1};
     // Opt-in audit evidence only. No geometry query, public replay or permanent observer.
     private _captureEntryEnabled=_group getVariable ["CBE_Cortex_ClearCaptureEntry",false];
+    private _proposalDiagnostics=_captureEntryEnabled || {missionNamespace getVariable ["CBE_AIPass_Debug",false]};
     private _captureEntry={
         params ["_actor","_lane","_mover","_intended","_entered"];
         private _count=_job getOrDefault ["entryCaptureCount",0];
@@ -1121,7 +1122,7 @@ private _delay=call {
                 _tried pushBackUnique +_candidate;
                 if (_valid) then {_exitPoint=+_candidate; _selectedEntry=+_entry; _selectedWatch=+_watch};
             };
-            diag_log format ["CBE CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];
+            if (_proposalDiagnostics) then {diag_log format ["CBE CLEAR EGRESS PROPOSAL: %1",[_job get "generation",netId _unit,_proposalIndex,+_entry,+_candidate,_valid]];};
         };
         if (_selectedEntry isNotEqualTo []) then {
             private _exitKey=str _selectedEntry;
@@ -1622,22 +1623,23 @@ private _delay=call {
                 private _tried=+(_stageTriedTargets getOrDefault [_key,[]]);
                 if (_covered) then {_tried pushBackUnique +_target};
                 private _assessment=[_reserve,_building,_target,_entry,_watch,
-                    _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,true] call CBE_fnc_BuildingExteriorCandidate;
-                private _valid=_assessment select 0;
-                diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,["SEARCH","COVER"] select _covered,+_target,+_entry,_valid,_assessment select 1]];
+                    _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,_proposalDiagnostics] call CBE_fnc_BuildingExteriorCandidate;
+                private _valid=if (_proposalDiagnostics) then {_assessment select 0} else {_assessment};
+                if (_proposalDiagnostics) then {diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,["SEARCH","COVER"] select _covered,+_target,+_entry,_valid,_assessment select 1]];};
                 if (!_valid) then {
                     private _empty=[_reserve,_search,_entry,_taken,_observerLanes] call CBE_fnc_BuildingExteriorProposal;
                     if (count _empty == 3) then {
                         _empty set [2,0];
                         _tried pushBackUnique +_empty;
                         private _emptyAssessment=[_reserve,_building,_empty,_entry,_watch,
-                            _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,true] call CBE_fnc_BuildingExteriorCandidate;
-                        diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"UNCOVERED",+_empty,+_entry,_emptyAssessment select 0,_emptyAssessment select 1]];
-                        if (_emptyAssessment select 0) then {
+                            _job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]],_taken,_observerLanes,_proposalDiagnostics] call CBE_fnc_BuildingExteriorCandidate;
+                        if (_proposalDiagnostics) then {diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"UNCOVERED",+_empty,+_entry,_emptyAssessment select 0,_emptyAssessment select 1]];};
+                        private _emptyValid=if (_proposalDiagnostics) then {_emptyAssessment select 0} else {_emptyAssessment};
+                        if (_emptyValid) then {
                             _target=+_empty; _valid=true; _covered=false;
                         };
                     } else {
-                        diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"NO_NATIVE_PROPOSAL",[],+_entry,false,[]]];
+                        if (_proposalDiagnostics) then {diag_log format ["CBE CLEAR RESERVE PROPOSAL: %1",[_job get "generation",_key,_searchCount+1,"NO_NATIVE_PROPOSAL",[],+_entry,false,[]]];};
                     };
                 };
                 // Two proposals per search, three searches; migration must not renew history.

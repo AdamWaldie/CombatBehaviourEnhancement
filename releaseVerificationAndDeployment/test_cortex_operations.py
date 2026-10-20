@@ -10651,6 +10651,15 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(proof,reject)
         self.assertLess(geometry.index('exitWith {false}',geometry.index('private _exitDistance=')),geometry.index('nearEntities'))
         self.assertIn('if (!_diagnostics && {_laneBlocked || {!_separated}}) exitWith {false}',geometry)
+        step=source('buildingOperationStep')
+        self.assertIn('_captureEntryEnabled || {missionNamespace getVariable ["CBE_AIPass_Debug",false]}',step)
+        reserve=step.split('private _assessment=[_reserve',1)[1].split('// Two proposals per search',1)[0]
+        self.assertEqual(reserve.count('_taken,_observerLanes,_proposalDiagnostics]'),2)
+        self.assertIn('private _valid=if (_proposalDiagnostics) then {_assessment select 0} else {_assessment}',reserve)
+        self.assertIn('private _emptyValid=if (_proposalDiagnostics) then {_emptyAssessment select 0} else {_emptyAssessment}',reserve)
+        for line in reserve.splitlines():
+            if 'diag_log format' in line:
+                self.assertIn('if (_proposalDiagnostics) then',line)
         self.assertLess(geometry.index('private _separated='),geometry.index('private _observationClear='))
 
 

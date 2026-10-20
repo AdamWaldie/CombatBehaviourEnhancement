@@ -1306,3 +1306,12 @@ is retained. Passive movement receipts remain available for diagnostics and clea
 Room retry exhaustion still cannot create a physical visit or successful clearance. No
 new retry, timer, scan or deadline is introduced. Real treatment-to-movement transitions
 and post-clear flow remain unverified.
+
+Clearance proposal diagnostics are opt-in through the existing addon Debug setting or
+the per-group entry-capture flag. Ordinary reserve selection now uses the validator's
+boolean fast path, so invalid bounds/reservations can reject before unnecessary visibility
+rays and occupancy work. Detailed cover/uncovered proposal arrays and proposal logs remain
+available when requested; egress proposal logging uses the same gate. Terminal failure and
+retry-exhaustion evidence remain available. Acceptance predicates, actor/geometry budgets,
+movement authority and deadlines are unchanged. This removes avoidable work by inspection;
+no measured frame-time or 5% median/10% p95 budget claim is made.
