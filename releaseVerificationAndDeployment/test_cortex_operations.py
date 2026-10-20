@@ -9826,6 +9826,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_animation find "ims_" == 0',text)
         self.assertNotIn('configOf',text)
         self.assertNotIn('units ',text)
+        gate=source('dangerEngineCanContinue')
+        self.assertIn('private _parent=objectParent _actor;',gate)
+        self.assertIn('!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}',gate)
+        self.assertLess(gate.index('[_parent] call CBE_fnc_CompatibilityExternalControl'),
+                        gate.index('private _response='))
 
     def test_reverse_cleanup_sends_no_stop_into_external_control(self):
         text=source('cortexVehicleReverseStep')

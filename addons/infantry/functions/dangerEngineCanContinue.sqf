@@ -4,7 +4,7 @@
  * This gate intentionally avoids squad scans, terrain work and config inspection because the engine
  * may evaluate it repeatedly during the response's sub-two-second observation window.
  * Locality / Authority: Runs where the affected AI soldier is local and reads only live gates and
- * explicit actor/group ownership markers. It issues no command and changes no state.
+ * explicit actor/group and occupied-platform ownership markers. It issues no command and changes no state.
  * Repeat/JIP: Stateless and repeat-safe. A new locality starts a fresh engine danger FSM.
  * Arguments: 0: affected soldier <OBJECT>, objNull; 1: initial observation <BOOL>, false.
  * Initial observation permits native task classification only; waiting responses still yield immediately.
@@ -32,6 +32,12 @@ if ("ALL" in _disabled || {"CBE_AIPass_Danger_Enable" in _disabled}
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {!isNull (remoteControlled _actor)}
     || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}) exitWith {false};
+
+// A mounted provider can claim the platform without marking each occupant. Recheck
+// only this actor's current parent so an already waiting crew response drains immediately.
+// The neutral marker helper reads live declarations/runtime state; no crew/config scan.
+private _parent=objectParent _actor;
+if (!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 
 // Native task ownership can change after the event was classified and while this finite response
 // is waiting. Recheck only the affected actor here so a fresh boarding, action, treatment, rearm,

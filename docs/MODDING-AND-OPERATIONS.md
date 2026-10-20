@@ -507,3 +507,8 @@ The existing executor owns holds, native reverse, crossing and handback. This se
 ### Suppression points at cover
 
 Infantry and routine ground-vehicle bullet suppression share one read-only geometry observation. A nearest object face within three metres of the believed point can replace that point, shifted five centimetres towards the shooter. Terrain or unrelated intervening cover rejects the request. Both the belief and resolved point must retain the caller minimum range (20 metres infantry, 50 metres vehicle); the firing corridor is checked after resolution. Routine vehicle selection examines at most three such surface candidates per callback, after loaded bullet-station admission. This does not select hidden occupants, authorize explosive building fire or establish physical suppression effectiveness. Existing danger-reaction suppression is unchanged. Runtime effectiveness and query cost remain unmeasured while audits are paused.
+
+
+### Occupied-platform takeover during danger response
+
+The engine danger wait rechecks the affected actor and their current occupied platform through the read-only external-control marker boundary. A live or malformed platform declaration interrupts the existing response even when individual crew markers remain unset. The check adds no crew search, configuration scan, timer or movement command. It prevents continuing the old finite danger response; it does not establish provider quiescence or implement a full external-controller handover. Physical takeover timing remains unverified while audits are paused.
