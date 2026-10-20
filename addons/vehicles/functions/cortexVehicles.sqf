@@ -770,6 +770,9 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                                 _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",0,0],true];
                                 _group setVariable ["CBE_Cortex_WithdrawalIntent",["VEHICLE",_origin,_away,_enemyPos,
                                     serverTime-((time-(_operation get "startedAt")) max 0),0,0],true];
+                                _group setVariable ["CBE_Cortex_WithdrawalOrder",[
+                                    (_group getVariable ["CBE_Cortex_WithdrawalIntent",[]]) select 4,
+                                    [_group] call CBE_fnc_NativeOrderReceipt],true];
                                 _movementOwned = true;
                                 [_group,_state,"RETREAT","VEHICLE_DISABLED",time] call CBE_fnc_CortexSetPhase;
                                 _withdrawStarted=true;

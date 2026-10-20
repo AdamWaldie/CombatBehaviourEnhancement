@@ -1252,3 +1252,14 @@ actions are not replayed. The separate HC migration fixture now requires a match
 operation/route generation and owner epoch before its existing physical-continuation checks.
 It remains prepared, not run; split crew/vehicle ownership, actual repeated transfers and
 performance still need in-engine verification. No new loop, worker or reference addon is added.
+
+Vehicle withdrawal migration also requires the original episode's native-order receipt. It is
+captured after accepted initial movement, refreshed after an accepted owned replan, and compared
+on the locality edge before old-operation cancellation removes the temporary route. A new owner
+cannot revive the retreat from durable intent alone after a mission changes the current native
+order. Unknown/legacy receipts conservatively refuse vehicle resumption; infantry withdrawal is
+unchanged. Accepted adoption records its own route receipt with the same original episode start.
+CALM/completion clear the proof. NativeOrderReceipt covers current-node metadata and waypoint
+count; future-node edits without a changed current receipt and same-value native commands remain
+indistinguishable. This adds no recurring world scan or extra movement controller. Actual repeated
+HC transfer, mission replacement and overhead remain unverified while audits are paused.

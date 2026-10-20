@@ -266,6 +266,7 @@ if (!_allowRemount) then {
 ];
 _group setVariable ["CBE_Cortex_Withdrawal",nil,true];
 _group setVariable ["CBE_Cortex_WithdrawalIntent",nil,true];
+_group setVariable ["CBE_Cortex_WithdrawalOrder",nil,true];
 _group setVariable ["CBE_Cortex_TransitionIntent",nil,true];
 _group setVariable ["CBE_AIPass_Checkpoint", [], true];
 // Explicit terminal handovers remain observable even when the tactical phase was already CALM.

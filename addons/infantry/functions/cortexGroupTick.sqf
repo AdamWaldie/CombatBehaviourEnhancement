@@ -1820,6 +1820,13 @@ switch (_state get "phase") do {
                 private _waypoint=[_group,_candidate,30] call CBE_fnc_CortexGroupMove;
                 if (!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0}) then {
                     _state set ["retreatTarget",_candidate];
+                    if (_withdrawKind == "VEHICLE_WITHDRAW") then {
+                        private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+                        if (count _episode == 7) then {
+                            _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,
+                                [_group] call CBE_fnc_NativeOrderReceipt],true];
+                        };
+                    };
                     _bestTravel = _travel;
                     _moving = true;
                 };
@@ -1845,6 +1852,7 @@ switch (_state get "phase") do {
             [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
             [_group] call CBE_fnc_CortexGroupMoveClear;
             _group setVariable ["CBE_Cortex_WithdrawalIntent",nil,true];
+            _group setVariable ["CBE_Cortex_WithdrawalOrder",nil,true];
             [_group,_state,"REGROUP",["WITHDRAWAL_COMPLETE","WITHDRAWAL_TIMEOUT"] select _timedOut,_now] call CBE_fnc_CortexSetPhase;
         };
     };

@@ -47,6 +47,12 @@ if (_gained && {local _group} && {_priorDrivingStatus isEqualType []} && {count 
 };
 private _firstAdoption=_gained && {local _group} && {(_group getVariable ["CBE_AIPass_Epoch",0]) == 0};
 private _withdrawalIntent = _group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+// Compare before old-operation cancellation removes its exact temporary route. Intent alone
+// cannot authorize resumption after a mission script replaces the native order during transfer.
+private _withdrawalOrder=_group getVariable ["CBE_Cortex_WithdrawalOrder",[]];
+private _vehicleWithdrawalOrderCurrent=count _withdrawalIntent == 7 && {count _withdrawalOrder == 2}
+    && {(_withdrawalOrder select 0) isEqualTo (_withdrawalIntent select 4)}
+    && {(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _transitionIntent = _group getVariable ["CBE_Cortex_TransitionIntent",[]];
 private _remountIntent = _group getVariable ["CBE_Cortex_Remount",[]];
 private _supportLease = _group getVariable ["CBE_AIPass_SupportLease",[]];
@@ -391,6 +397,7 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
     && {count (_withdrawalIntent select 2) >= 2}
     && {count (_withdrawalIntent select 3) >= 2}
     && {serverTime-(_withdrawalIntent select 4) < 120}
+    && {(_withdrawalIntent select 0) != "VEHICLE" || {_vehicleWithdrawalOrderCurrent}}
     && {[_group] call CBE_fnc_CortexIsEligible}
     && {_withdrawalGateOpen}
     && {!([_group] call CBE_fnc_CortexZeusHeld)};
@@ -573,6 +580,8 @@ if (_withdrawalResumeEligible) then {
         _adopted set ["retreatProgress",[time,_withdrawalIntent select 6,_withdrawalIntent select 5]];
         [_group,_adopted,"RETREAT","VEHICLE_OWNERSHIP_RESUME",time-_elapsed,true] call CBE_fnc_CortexSetPhase;
         _group setVariable ["CBE_Cortex_WithdrawalIntent",_withdrawalIntent,true];
+        _group setVariable ["CBE_Cortex_WithdrawalOrder",[_startedAt,
+            [_group] call CBE_fnc_NativeOrderReceipt],true];
     };
 };
 // A pending shoot-and-scoot request is durable, but its queued callback belonged to the old owner.

@@ -5823,6 +5823,11 @@ class CortexOperations(unittest.TestCase):
         for terrain_marker in ['private _selectVehicleEscape = {','forEach [0,-25,25,-45,45]',
                                'CBE_fnc_CortexSelectAvenue','_threatObject,"VEHICLE"']:
             self.assertIn(terrain_marker,vehicles)
+        adoption_guard=locality.split('private _withdrawalOrder=',1)[1].split('private _transitionIntent',1)[0]
+        self.assertIn('(_withdrawalOrder select 0) isEqualTo (_withdrawalIntent select 4)',adoption_guard)
+        self.assertIn('(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',adoption_guard)
+        self.assertLess(locality.index('private _vehicleWithdrawalOrderCurrent='),locality.index('"OWNERSHIP_LOST"] call CBE_fnc_OperationCancel'))
+        self.assertIn('(_withdrawalIntent select 0) != "VEHICLE" || {_vehicleWithdrawalOrderCurrent}',locality)
         vehicle_resume=locality.split('== "VEHICLE"',1)[1]
         self.assertIn('CortexGroupMove',vehicle_resume)
         self.assertIn('["VEHICLE_WITHDRAW",time+_remaining]',vehicle_resume)

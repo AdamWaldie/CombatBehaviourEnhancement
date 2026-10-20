@@ -673,6 +673,14 @@
       "fixture": "Existing separate HC withdrawal migration prerequisite additionally requires public VEHICLE_WITHDRAW operation/current epoch and route generation. Physical continuation checks retained. Not run.",
       "limits": "Actual migration, splitlocality retry, native execution and performance unverified. No physical acceptance, source parity or percentage credit.",
       "validation": "Focused609/full1482 existing unit/static, HEMTT/SQF/config/FSM/docs/package passed .qa/vehicle-withdraw-adoption-build.log. Unsigned candidate .qa/candidates/vehicle-withdraw-adoption-0b74fa1f independently verified fingerprint2451a64365c28deb61700f1af68120832f3f12f73affa6268a3e961a793d18f7. No engine claim."
+    },
+    "withdrawalOrderFollowup": {
+      "baseline": "a450a539",
+      "finding": "Vehicle withdrawal semantic intent could reconstruct movement after a mission script changed its current native order during locality transfer. Eligibility alone does not establish unchanged mission intent.",
+      "change": "Separate public WithdrawalOrder binds original episode start to existing NativeOrderReceipt after initial accepted movement, accepted owned replan and accepted adoption. Locality captures and compares before cancelling old operation. Vehicle resume requires exact episode and current receipt; missinglegacy proof refuses. Infantry unaffected. CALM/completion clear proof.",
+      "cost": "NativeOrderReceipt reads current metadata/waypoint handles on accepted command or transfer only; no new recurring scan/worker.",
+      "limits": "Future node edits with unchanged currentreceipt/count and same-value unmarked native commands remain ambiguous; old native command quiescence/actual HC migration/performance unproven. No physical or parity credit.",
+      "validation": "Focused609/full1482 existing tests, HEMTT/SQF/config/FSM/docs/package passed .qa/withdraw-native-order-build.log. Unsigned candidate .qa/candidates/withdraw-native-order-a450a539 independently verified fingerprint1e286c6755afe7638b9313371bf6ed55c79f998ba3aa88a72b11fe8e94ffce68. No runtime claim."
     }
   }
 }
