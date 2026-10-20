@@ -76,6 +76,31 @@ if (_observe) then {
         && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
 };
 if (_observe) exitWith {["OBSERVE","COMBAT_APPROACH",+_destination,_engaging]};
+// A completed CBE search point can hand its exact native MOVE to the existing indoor FSM.
+// Memory authorizes a position-only investigation, never a fresh hostile or arbitrary MOVE.
+private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
+private _nativeSearchMemory=_memoryState getOrDefault ["searchMemory",[]];
+private _searchTransfer=[];
+if (isNull _contact && {_command == "MOVE"} && {!isNull _building}
+    && {_destination isNotEqualTo []} && {(_memoryState getOrDefault ["phase",""]) == "SEARCH"}
+    && {_nativeSearchMemory isEqualType []} && {count _nativeSearchMemory == 4}
+    && {(_nativeSearchMemory select 0) isEqualTo _belief}
+    && {(_nativeSearchMemory select 3) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_nativeSearchMemory select 2) isEqualType 0} && {finite (_nativeSearchMemory select 2)}
+    && {serverTime < (_nativeSearchMemory select 2)}
+    && {(_nativeSearchMemory select 2) <= (_memoryState getOrDefault ["searchDeadline",-1])}
+    && {_actor distance2D _destination <= 2}
+    && {abs (((getPosATL _actor) select 2)-(_destination select 2)) <= 1.5}) then {
+    private _searchRows=_memoryState getOrDefault ["searchMoveReceipts",[]];
+    private _searchRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+    if (_searchRows isEqualType [] && {(_searchRows select [0,16]) findIf {
+        _x isEqualType [] && {count _x in [3,4]} && {(_x select 0) == _actor}
+            && {(_x select 1) isEqualType []} && {count (_x select 1) == 3}
+            && {(_x select 1) vectorDistance _destination <= 0.25}
+            && {(_x select 2) isEqualTo _searchRoute}
+    } >= 0}) then {_searchTransfer=["ISSUE","SEARCH_MEMORY",+_destination,objNull]};
+};
+if (_searchTransfer isNotEqualTo []) exitWith {_searchTransfer};
 if (_unitState == "BUSY") exitWith {[]};
 private _mayIssue=_command == "" || {_command in ["ATTACK","FIRE"] && {_contactValid} && {_engaging == _contact}}
     || {_command == "MOVE" && {_authored} && {_destination isNotEqualTo []}

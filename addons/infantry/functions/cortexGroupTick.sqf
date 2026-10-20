@@ -7,6 +7,9 @@
  * its independent finite deadlines and newer mission/Zeus orders retain authority.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Group-wide contact posture yields to native boarding, actions, treatment, rearming and joining.
+ * Post-contact point arrival may admit one finite position-only house investigation through the
+ * existing indoor actor FSM. Original observation, epoch and search deadline remain authoritative;
+ * a visited navigation point is not room clearance, and failures remain distinct.
  * Pending remounts yield to a replacement vehicle assignment; cleanup only cancels the original seat order.
  * Runs one Cortex step for one locally owned group: reads the situation, moves it along the
  * group state ladder and calls each enabled behaviour. A targetless hit, explosion or suppression
@@ -709,6 +712,12 @@ if (_nativeCombatResponsive) then {
 private _navalOwnsMovement=[_group,_state,_enemies] call CBE_fnc_CortexNavalAssault;
 _groupMovementOwned=_groupMovementOwned || {_navalOwnsMovement};
 private _visible = _enemies select {(_x select 2) <= 10};
+if (_visible isNotEqualTo []) then {
+    private _observedContact=_visible select 0;
+    // Native age supplies the observation time; polling never makes remembered contact fresh.
+    _state set ["lastContactObservation",[+(_observedContact select 1),serverTime-(_observedContact select 2),
+        _group getVariable ["CBE_AIPass_Epoch",0]]];
+};
 // Danger geometry is deliberately approximate and carries no hostile identity. It may drive the
 // immediate finite response and local safety layers, but it is never sufficient authority for a
 // route, support request, artillery request or target-specific weapon order.
@@ -1502,6 +1511,7 @@ switch (_state get "phase") do {
         };
         _state set ["searchTeam", _team];
         _state set ["searchDeadline",serverTime + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
+        {_state deleteAt _x} forEach ["searchMemory","searchIndoorJobs","searchIndoorAttempted","searchPointVisited"];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
         _delay = 3;
     };
@@ -1527,8 +1537,57 @@ switch (_state get "phase") do {
         private _searchDeadline=_state getOrDefault ["searchDeadline",serverTime-(_now-(_state get "phaseStart")) + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
         _state set ["searchDeadline",_searchDeadline];
         private _searchTimedOut=serverTime > _searchDeadline;
+        if (_allSearchArrived) then {_state set ["searchPointVisited",true]};
+        if (_allSearchArrived && {_visible isEqualTo []} && {!_searchTimedOut}
+            && {!_ordered} && {!_holdFire}
+            && {!(_state getOrDefault ["searchIndoorAttempted",false])}) then {
+            _state set ["searchIndoorAttempted",true];
+            private _observation=_state getOrDefault ["lastContactObservation",[]];
+            if (_observation isEqualType [] && {count _observation == 3}
+                && {(_observation select 0) isEqualType []} && {count (_observation select 0) == 3}
+                && {(_observation select 1) isEqualType 0} && {finite (_observation select 1)}
+                && {(_observation select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {serverTime >= (_observation select 1)} && {serverTime < (_observation select 1)+120}) then {
+                private _memory=[+(_observation select 0),_observation select 1,
+                    _searchDeadline min ((_observation select 1)+120),_observation select 2];
+                _state set ["searchMemory",_memory];
+                private _houses=nearestObjects [_memory select 0,["House"],15,true];
+                private _house=objNull;
+                {
+                    private _nodes=_x buildingPos -1;
+                    if (alive _x && {count _nodes > 0} && {count _nodes <= 512}) exitWith {_house=_x};
+                } forEach (_houses select [0,4]);
+                private _jobs=[];
+                if (!isNull _house) then {
+                    {
+                        if (["START",_x,createHashMapFromArray [["building",_house],
+                            ["belief",[+(_memory select 0),_memory select 1]],
+                            ["searchMemory",+_memory],["observationOnly",true],["deadline",_memory select 2]]]
+                            call CBE_fnc_IndoorActorOperation) then {
+                            _jobs pushBack [_x,(_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) get "generation"];
+                        };
+                    } forEach (_team select [0,2]);
+                };
+                _state set ["searchIndoorJobs",_jobs];
+                if (_jobs isEqualTo []) then {_state deleteAt "searchMemory"};
+            };
+        };
+        private _indoorPending=false;private _indoorVisited=true;
+        private _indoorJobs=_state getOrDefault ["searchIndoorJobs",[]];
+        {
+            _x params ["_searchActor","_searchGeneration"];
+            private _actorBrain=_searchActor getVariable ["CBE_IndoorActor_Brain",createHashMap];
+            if ((_actorBrain getOrDefault ["generation",-1]) == _searchGeneration
+                && {!(_actorBrain getOrDefault ["finished",false])}) then {_indoorPending=true} else {
+                private _result=_searchActor getVariable ["CBE_IndoorActor_Result",[]];
+                if (count _result < 2 || {(_result select 0) != _searchGeneration}
+                    || {(_result select 1) != "VISITED"}) then {_indoorVisited=false};
+            };
+        } forEach (_indoorJobs select [0,2]);
+        private _searchVisitDone=(_state getOrDefault ["searchPointVisited",false]) && {!_indoorPending};
+
         private _done = _visible isNotEqualTo [] || {_team isEqualTo []}
-            || {_allSearchArrived} || {_searchTimedOut};
+            || {_searchVisitDone} || {_searchTimedOut};
         if (_done) then {
             if ([] call _mayIssueMovement) then {
                 {isNil {if ((_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state
@@ -1539,9 +1598,14 @@ switch (_state get "phase") do {
     _state set ["searchTeam", []];
     _state deleteAt "searchMoveReceipts";
             if (_visible isNotEqualTo []) then {call _beginContact} else {
-                private _searchEndReason=if (_allSearchArrived) then {"SEARCH_COMPLETE"} else {
-                    ["NO_SEARCH_ACTORS","SEARCH_TIMEOUT"] select _searchTimedOut
+                private _searchEndReason=if (_searchTimedOut) then {"SEARCH_TIMEOUT"} else {
+                    if (_searchVisitDone) then {
+                        if (_indoorJobs isEqualTo []) then {"SEARCH_COMPLETE"} else {
+                            ["SEARCH_BUILDING_INCOMPLETE","SEARCH_BUILDING_VISITED"] select _indoorVisited
+                        }
+                    } else {"NO_SEARCH_ACTORS"}
                 };
+                _state deleteAt "searchMemory";
                 [_group,_state,"REGROUP",_searchEndReason,_now] call CBE_fnc_CortexSetPhase;
                 _delay = 3;
             };

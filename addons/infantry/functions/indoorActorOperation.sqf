@@ -19,6 +19,9 @@
  * Arguments: 0 mode <STRING>, START; 1 actor <OBJECT>, objNull; 2 context <HASHMAP>, empty.
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
  * Optional deadline NUMBER only shortens the original maximum; position-only clues cannot renew it.
+ * Optional searchMemory [ATL position, original server observation, fixed expiry, owner epoch] permits
+ * older position-only admission only while identical to current SEARCH state and its deadline.
+ * Ordinary beliefs retain five-second freshness; this grants no hostile identity or room-safety proof.
  * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
  * Optional observationClue ARRAY binds shared visit preference to the exact original body clue;
  * only a physically reached OBSERVE result records a node, never admission/failure/clearance.
@@ -30,7 +33,7 @@
  * TRANSFER is locality cleanup only: an absent machine-local lease may use the public journal;
  * a different live actor reservation still forbids command cleanup.
  * Return: BOOL for START/QUEUE/FINISH/TRANSFER/REAP; NUMBER -1 for STEP (one shared-scheduler invocation).
- * Current callers: IndoorActorDispatch, indoorActor FSM, CortexDiscover ended-worker cleanup,
+ * Current callers: IndoorActorDispatch, CortexGroupTick post-contact search, indoorActor FSM, CortexDiscover ended-worker cleanup,
  * focused fixtures and locality/release cleanup.
  * Example: ["START",soldier1,createHashMapFromArray [["building",house1],
  * ["belief",[[100,100,2],serverTime]]]] call CBE_fnc_IndoorActorOperation;
@@ -39,6 +42,8 @@ params [["_mode","START",[""]],["_actor",objNull,[objNull]],
     ["_brain",createHashMap,[createHashMap]]];
 _mode=toUpperANSI _mode;
 private _observationOnly=_brain getOrDefault ["observationOnly",false];
+private _searchMemory=_brain getOrDefault ["searchMemory",[]];
+if !(_searchMemory isEqualType []) exitWith {false};
 if !(_observationOnly isEqualType true) exitWith {false};
 private _migration=_mode == "TRANSFER";
 if (_migration) then {_mode="FINISH"};
@@ -52,6 +57,20 @@ private _copyArray={_this apply {if (_x isEqualType []) then {_x call _copyArray
 private _vectorValid={
     _this isEqualType [] && {count _this == 3}
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+};
+// Older belief may only use an immutable episode already owned by the current SEARCH state.
+private _searchMemoryValid={
+    private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    _observationOnly && {count _searchMemory == 4}
+        && {(_searchMemory select 0) call _vectorValid}
+        && {[1,2,3] findIf {!((_searchMemory select _x) isEqualType 0) || {!finite (_searchMemory select _x)}} < 0}
+        && {(_memoryState getOrDefault ["phase",""]) == "SEARCH"}
+        && {(_memoryState getOrDefault ["searchMemory",[]]) isEqualTo _searchMemory}
+        && {(_searchMemory select 3) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {serverTime >= (_searchMemory select 1)} && {serverTime < (_searchMemory select 2)}
+        && {(_searchMemory select 2) > (_searchMemory select 1)}
+        && {(_searchMemory select 2) <= (_searchMemory select 1)+120}
+        && {(_searchMemory select 2) <= (_memoryState getOrDefault ["searchDeadline",-1])}
 };
 private _releaseAvailable={
     local _actor && {local _group} && {!isPlayer _actor} && {isNull remoteControlled _actor}
@@ -87,6 +106,7 @@ private _available={
         && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
         && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
     && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+    && {_searchMemory isEqualTo [] || {call _searchMemoryValid}}
 };
 if (_mode == "FINISH") exitWith {
     if (count _brain > 0) then {
@@ -202,6 +222,11 @@ if (_mode == "START") exitWith {
     private _belief=_brain getOrDefault ["belief",[]];
     private _contact=_brain getOrDefault ["contact",objNull];
     private _clue=_brain getOrDefault ["observationClue",[]];
+    if (_searchMemory isNotEqualTo [] && {!(call _searchMemoryValid)
+        || {!isNull _contact} || {_clue isNotEqualTo []}
+        || {!(_belief isEqualType [])} || {count _belief != 2}
+        || {(_belief select 0) isNotEqualTo (_searchMemory select 0)}
+        || {(_belief select 1) isNotEqualTo (_searchMemory select 1)}}) exitWith {false};
     if (!(_clue isEqualType []) || {!((count _clue) in [0,5])}) exitWith {false};
     if (_clue isNotEqualTo [] && {!_observationOnly
         || {(_group getVariable ["CBE_Danger_BuildingClue",[]]) isNotEqualTo _clue}
@@ -214,7 +239,7 @@ if (_mode == "START") exitWith {
         || {!alive _building} || {!(_belief isEqualType [])} || {count _belief != 2}
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
         || {!finite (_belief select 1)} || {serverTime-(_belief select 1) < 0}
-        || {serverTime-(_belief select 1) > 5}) exitWith {false};
+        || {serverTime-(_belief select 1) > 5 && {!(call _searchMemoryValid)}}) exitWith {false};
     if !(call _available) exitWith {false};
     // Fresh scripted/Zeus-created groups may precede periodic discovery. Establish the
     // owner epoch before publishing an actor journal, never adopt over that new journal later.
@@ -223,7 +248,7 @@ if (_mode == "START") exitWith {
     };
     if (!(call _available) || {!(_group getVariable ["CBE_AIPass_Adopted",false])}
         || {(_group getVariable ["CBE_AIPass_Epoch",0]) <= 0}
-        || {serverTime-(_belief select 1) > 5}) exitWith {false};
+        || {serverTime-(_belief select 1) > 5 && {!(call _searchMemoryValid)}}) exitWith {false};
     private _admission=[_actor,_contact,_belief select 0,_building] call CBE_fnc_IndoorActorNativeContext;
     if (_admission isEqualTo [] || {serverTime < (_actor getVariable ["CBE_IndoorActor_Cooldown",-1])}
         || {[_actor] call CBE_fnc_CortexActorMoveReserved}
@@ -246,7 +271,9 @@ if (_mode == "START") exitWith {
         || {_actor in (_state getOrDefault ["supportHeld",[]])}) exitWith {false};
     private _generation=(_actor getVariable ["CBE_IndoorActor_Generation",0])+1;
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
-    private _deadline=(serverTime+45) min ((_belief select 1)+30);
+    private _deadline=if (call _searchMemoryValid) then {
+        (serverTime+45) min (_searchMemory select 2)
+    } else {(serverTime+45) min ((_belief select 1)+30)};
     // Position-only observations may shorten the task to their original clue expiry.
     // This parameter can never extend the ordinary indoor deadline.
     private _requestedDeadline=_brain getOrDefault ["deadline",_deadline];
@@ -269,7 +296,7 @@ if (_mode == "START") exitWith {
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
-        ["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
+        ["searchMemory",_searchMemory call _copyArray],["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
     // Release only this actor's owned danger posture before publishing the incoming task.

@@ -37,6 +37,29 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertFalse(relevant(*values))
 
     def test_start_cannot_replace_existing_actor_or_group_owners(self):
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text(encoding='utf-8')
+        search=tick.split('case "SEARCH": {',1)[1].split('case "REGROUP": {',1)[0]
+        for proof in ('searchIndoorAttempted','searchPointVisited','lastContactObservation',
+                      '(_houses select [0,4])','(_team select [0,2])','CBE_fnc_IndoorActorOperation',
+                      '["observationOnly",true]','SEARCH_BUILDING_INCOMPLETE','SEARCH_BUILDING_VISITED'):
+            self.assertIn(proof,search)
+        self.assertIn('serverTime-(_observedContact select 2)',tick)
+        context=(ROOT/'addons/infantry/functions/indoorActorNativeContext.sqf').read_text(encoding='utf-8')
+        for proof in ('SEARCH_MEMORY','_actor distance2D _destination <= 2',
+                      '(_x select 2) isEqualTo _searchRoute','_searchTransfer isNotEqualTo []'):
+            self.assertIn(proof,context)
+
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text(encoding='utf-8')
+        memory=operation.split('private _searchMemoryValid=',1)[1].split('private _releaseAvailable=',1)[0]
+        for proof in ('count _searchMemory == 4','"phase",""]) == "SEARCH"',
+                      'getOrDefault ["searchMemory",[]]) isEqualTo _searchMemory',
+                      '(_searchMemory select 3) == (_group getVariable ["CBE_AIPass_Epoch",0])',
+                      'serverTime < (_searchMemory select 2)','(_searchMemory select 1)+120',
+                      'getOrDefault ["searchDeadline",-1]'):
+            self.assertIn(proof,memory)
+        self.assertIn('|| {!isNull _contact} || {_clue isNotEqualTo []}',operation)
+        self.assertIn('(_belief select 1) isNotEqualTo (_searchMemory select 1)',operation)
+
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         start=s.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
         for guard in ('CBE_Cortex_ActorMove','CBE_IndoorActor_Order','CBE_IndoorActor_Brain',
@@ -81,7 +104,10 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertLessEqual(math.dist((0,0,11),(1,0,11)),1.5)
 
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
-        self.assertNotIn('CBE_fnc_IndoorActorOperation',tick)
+        search=tick.split('case "SEARCH": {',1)[1].split('case "REGROUP": {',1)[0]
+        self.assertIn('["START",_x,createHashMapFromArray',search)
+        self.assertNotIn('["STEP",',tick)
+        self.assertNotIn('["QUEUE",',tick)
         fsm=(ROOT/'addons/main/fsm/indoorActor.fsm').read_text()
         self.assertIn('serverTime >= (_brain getOrDefault',fsm)
         self.assertIn('""QUEUE""',fsm)

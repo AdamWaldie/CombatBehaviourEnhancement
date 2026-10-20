@@ -231,5 +231,34 @@
     "validation": "Final full1477/HEMTT/SQF/FSM/docs/package gates passed .qa/search-migration-checkpoint-build.log. Still physically unrun. Exact new candidate preserved because nine PBO hashes differed from earlier build; do not equate package fingerprints.",
     "candidate": ".qa\\candidates\\search-migration-checkpoint-4ed39017",
     "fingerprint": "fa2b3f8ced701fe59981e06f819c15d25916a304e7d618bbcca8ebcbdecb921e"
+  },
+  "searchMemoryExecutorStage": {
+    "status": "INTEGRATED_WITH_POSTCONTACT_SEARCH_PHYSICAL_ACCEPTANCE_PENDING",
+    "change": "IndoorActorOperation accepts optional position/original-observation/fixed-expiry/epoch searchMemory only when identical to current SEARCH state, bounded by original searchDeadline and at most120s original observation age. Requires observationOnly, no contact/body clue and exact belief identity. Normal beliefs keep5s freshness. Actor step revalidates context; new contact/phase/epoch invalidates it.",
+    "validation": "607 existing operation cases plus32 indoor lifecycle cases pass. Existing admission case extended; no new test cases. Full checkpoint pending after caller integration.",
+    "limits": "No production caller currently supplies searchMemory. This is a building block, not a working new search feature or parity gain. No physical claim; audits PAUSED.",
+    "nextAction": "Wire original native observation capture and one-shot post-contact search building dispatch; reuse exact owned search movement admission and same actor/episode limits. No fabricated fresh belief timestamp."
+  },
+  "searchMemoryIntegrated": {
+    "execution": [
+      "CortexGroupTick retains native belief position/original server observation timestamp and owner epoch from recent native records; polling subtracts native age rather than inventing freshness.",
+      "After all search actors reach their exact owned point goals, one attempt selects one of at most4 nearby eligible houses and admits at most2 of the same actors through existing IndoorActorOperation START. Authored orders and hold-fire forbid dispatch.",
+      "IndoorActorNativeContext transfers only actual same-floor-arrived CBE search MOVE with matching native destination/route. Executor keeps original memory identity/epoch/phase/deadline and no hostile/body-clue identity.",
+      "Existing actor FSM selects a bounded roofed node, uses native movement/door handling, checks physical arrival and reports VISITED or failure. Parent retains original search deadline and waits for matching actor generations.",
+      "Parent reports SEARCH_BUILDING_VISITED/INCOMPLETE or SEARCH_TIMEOUT, never room/building clearance. New contact/phase/epoch invalidates old memory."
+    ],
+    "bounds": "Original search deadline and at most120s from native observation; actor deadline also capped45s. No additional worker/global scan. One house attempt, same2actor indoor limit. Native nearestObjects snapshot cost and runtime overhead unmeasured.",
+    "deliberateScope": [
+      "Owner-local episode does not replay indoor memory across migration; ordinary search migration remains separately bounded.",
+      "Each admitted actor observes one selected node; this is not whole-building clearance or complete LAMBS group-memory functionality.",
+      "Current live reservations/body spacing protect concurrent points. Shared completed-node history across search-memory actors is not yet integrated; body-clue history remains separate."
+    ],
+    "validation": "607 operation and32 indoor focused cases; full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-building-memory-checkpoint-build.log. Existing source assertion banning any GroupTick indoor call updated to permit START but prohibit STEP/QUEUE; first failure log retained. No new test cases.",
+    "candidate": ".qa\\candidates\\search-building-memory-d9bc9434",
+    "fingerprint": "2a4084a9a6ae6da25edd14477037d2886d489fe351e640f75cdd6fef45da228c",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
