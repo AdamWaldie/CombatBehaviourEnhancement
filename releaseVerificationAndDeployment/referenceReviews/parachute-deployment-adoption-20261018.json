@@ -71,5 +71,35 @@
     "performanceConstraint": "Do not poll every unit or install permanent movement workers. A future recovery observer must be scoped to known active exit episodes and retain their original deadline.",
     "authorityConstraint": "Any wake or replay is observation only. It must validate the current local actor and exact live receipt before release/deployment; no replay of dismount, actor position or exit velocity.",
     "physicalAcceptance": false
+  },
+  "finiteReceiptWake20261020": {
+    "baseline": "0c25af94",
+    "sources": {
+      "addons/infantry/functions/cortexParachuteObserve.sqf": "4d71c65f91c2cd6eb24b7c5e9f15583436b55f934a075ccf1cdf22f94c8519e0",
+      "addons/infantry/functions/cortexParachuteJump.sqf": "1939c40672aa583104149873a130f970c03ecf1ac354b4ca2559486c2efc5bf1",
+      "addons/main/XEH_preInit.sqf": "3cd55bb3257a8306baa8d07011479cf7aa9ceeac8e37a732dc408058864d3b7a",
+      "addons/main/XEH_postInit.sqf": "cf673bcde5eb84d51d673da5e678785082b8970767b0860c93e5164be5d55972"
+    },
+    "implementation": [
+      "One CBA global wake per acquired exit including failed dismount; cached proposal is observation only.",
+      "Native init/Local reuses the cached proposal; actual owner polls receipt equality every0.1s only while original deadline+1 remains.",
+      "Exact queue serial prevents stale callback ABA after locality loss/gain.",
+      "Original deployment deadline and exact mutation gates remain; extra cleanup second cannot extend deployment/protection.",
+      "One expiry callback per connected peer; no world scans, permanent movement worker or remote mutation endpoint."
+    ],
+    "limits": [
+      "Non-JIP wake cannot recover late receipts on peers that joined after the wake.",
+      "Receipt arrival after finite window, engine ownership timing, same-value external protection and runtime overhead remain unverified."
+    ],
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "log": ".qa/cbe-parachute-observe-build.log",
+      "independentLog": ".qa/cbe-parachute-observe-independent.log",
+      "candidate": ".qa/candidates/parachute-observe-0c25af94-ed7ab5d0",
+      "fingerprint": "ed7ab5d012f5811cd13e9d6b11b9a35c3b02a7b09b6281859b88031d51b24f44",
+      "physical": false
+    },
+    "reference": "https://cbateam.github.io/CBA_A3/docs/files/events/fnc_globalEvent-sqf.html"
   }
 }

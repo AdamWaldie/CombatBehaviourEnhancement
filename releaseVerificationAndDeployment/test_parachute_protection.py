@@ -93,6 +93,30 @@ class ParachuteProtectionTests(unittest.TestCase):
         self.assertEqual(consume('old','old',True,1,0.8,3.8,True),(None,False))
 
     def test_malformed_public_receipts_refuse_before_array_parsing(self):
+        observe=source('cortexParachuteObserve')
+        jump=source('cortexParachuteJump')
+        self.assertIn('call CBA_fnc_globalEvent',jump)
+        self.assertIn('CBE_fnc_CortexParachuteObserve',(ROOT/'addons/main/XEH_preInit.sqf').read_text())
+        self.assertIn('_stopAt=_until+1',observe)
+        self.assertIn('_until > serverTime+4',observe)
+        self.assertIn('0.1] call CBA_fnc_waitAndExecute',observe)
+        self.assertIn('CBE_ParachuteObservationSerial',observe)
+        self.assertIn('isNotEqualTo _queueToken',observe)
+        callback=observe.split('params ["_actor","_proposal","_stopAt","_queueToken"];',1)[1]
+        self.assertLess(callback.index('!local _actor'),callback.index('call CBE_fnc_CortexParachuteDeploy'))
+        self.assertLess(callback.index('isEqualTo _deploy'),callback.index('call CBE_fnc_CortexParachuteDeploy'))
+        for forbidden in ('allUnits','moveOut','setPosATL','allowDamage','createVehicle'):
+            self.assertNotIn(forbidden,observe)
+        # An old callback cannot consume a new queue after loss/gain on the same episode.
+        old=('exit',1); new=('exit',2)
+        self.assertNotEqual(old,new)
+        def observation(local,now,deadline,live,expected):
+            return local and now<deadline+1 and live==expected
+        self.assertFalse(observation(True,0.2,3.8,None,'exit'))
+        self.assertTrue(observation(True,0.3,3.8,'exit','exit'))
+        self.assertFalse(observation(False,0.3,3.8,'exit','exit'))
+        self.assertFalse(observation(True,4.8,3.8,'exit','exit'))
+        self.assertFalse(observation(True,0.3,3.8,'new','exit'))
         for name in ('cortexParachuteDeploy','cortexParachuteProtectionRelease'):
             text=source(name)
             self.assertLess(text.index('!(_receipt isEqualType [])'),text.index('_receipt params'))

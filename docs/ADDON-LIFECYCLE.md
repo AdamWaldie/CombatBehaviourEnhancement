@@ -1067,3 +1067,12 @@ Knowledge summary first ranks native candidates by group belief, then evaluates 
 
 
 Native ignored targets are removed from the bounded danger-event contact cache and excluded from the detailed tactical knowledge summary using the engine's ignored-target flag. The addon does not clear or rewrite that flag. This summary filter does not yet establish cancellation for every already-running aircraft, support or indoor operation; those execution paths require separate acceptance.
+
+
+### Finite late parachute-receipt observation
+
+An accepted exit emits one CBA wake carrying its protection and optional deployment receipt. Connected peers cache that proposal until the original protection deadline plus one second. Only the actual actor owner observes pending replication at 0.1-second intervals; unrelated actors are not polled. Native init/locality callbacks can resume the cached proposal. Exact local queue serials prevent an old callback from consuming a replacement observer after locality changes.
+
+The wake supplies no exit, damage or boarding authority. Existing readers still require the matching live replicated receipt, actor locality and their original mutation guards. Observing after the deployment deadline cannot create a chute; the extra second permits protection cleanup only. No deadline, dismount, position or actor exit velocity is replayed. Duplicate wakes do not extend the observation window. One expiry callback per connected peer removes the cached proposal.
+
+This addresses late receipt observation for peers that received the wake. The wake is not a JIP queue: a newly joined peer still relies on native receipt adoption, and receipt delivery later than the finite window remains unsupported. Same-value external damage ownership, physical migration/boarding and runtime overhead remain unverified. Audits remain paused.

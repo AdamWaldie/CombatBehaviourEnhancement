@@ -25,12 +25,14 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
             _this call CBE_fnc_DrivingRecoveryCrewAdopt;
             [_this select 0] call CBE_fnc_CortexParachuteProtectionRelease;
             [_this select 0] call CBE_fnc_CortexParachuteDeploy;
+            [_this select 0] call CBE_fnc_CortexParachuteObserve;
         }]];
     };
     [_actor,local _actor] call CBE_fnc_CortexAirPilotFeatureAdopt;
     [_actor,local _actor] call CBE_fnc_DrivingRecoveryCrewAdopt;
     [_actor] call CBE_fnc_CortexParachuteProtectionRelease;
     [_actor] call CBE_fnc_CortexParachuteDeploy;
+    [_actor] call CBE_fnc_CortexParachuteObserve;
 },true,[],true] call CBA_fnc_addClassEventHandler;
 
 // Driving cleanup adoption stays available with tactical scheduling disabled.

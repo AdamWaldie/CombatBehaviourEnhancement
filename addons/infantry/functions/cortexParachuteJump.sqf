@@ -19,7 +19,8 @@
  * releases. Failed dismount never applies position/velocity or queues chute deployment.
  * Chute boarding rechecks current actor authority without suspension.
  * Native Local/init adoption resumes only the finite chute phase; it never replays exit motion.
- * Late receipt arrival and same-value external protection remain unresolved.
+ * Connected peers retain a finite wake proposal for late receipts; late JIP receipt arrival
+ * and same-value external protection remain unresolved.
  *
  * Arguments:
  * 0: soldier <OBJECT>
@@ -60,6 +61,7 @@ private _velocity = velocity _aircraft;
 // Just behind and below the airframe, clear of rotors and tail ramp.
 private _exit = _aircraft modelToWorld [0, ((((boundingBoxReal _aircraft) select 0) select 1) min -6) - 2, -3];
 private _receipt=[];
+private _deployReceipt=[];
 private _exited=false;
 isNil {
     if (call _mayExit) then {
@@ -78,6 +80,7 @@ isNil {
             _unit setVariable ["CBE_ParachuteDeploy",[
                 1,_unit,_receipt select 3,group _unit,_chuteClass,+_velocity,serverTime+0.8,_receipt select 5
             ],true];
+            _deployReceipt=_unit getVariable ["CBE_ParachuteDeploy",[]];
             _exited=true;
         };
     };
@@ -85,6 +88,7 @@ isNil {
 // Even a failed dismount must retire the protection we already acquired.
 if (_receipt isNotEqualTo []) then {
     [_unit,_receipt] call CBE_fnc_CortexParachuteProtectionRelease;
+    ["CBE_ParachuteObservation",[_unit,[+_receipt,+_deployReceipt]]] call CBA_fnc_globalEvent;
 };
 if (!_exited) exitWith {false};
 [_unit] call CBE_fnc_CortexParachuteDeploy;
