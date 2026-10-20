@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Cover STOP and native recalls yield to queued care and dormant actors. Exact hold
+ * bookkeeping/restoration stays separate; treatment queues and original deadlines never change.
  * Current COVER capacity is sampled owner-locally at most every two seconds (or role change)
  * through the existing acknowledgement endpoint, with six-second maximum freshness.
  * This reports eligible main-ammunition capacity, not position/arrival or actual covering fire.
@@ -176,6 +178,7 @@ private _releaseStopHolds={
                 && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
                 && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
                 && {simulationEnabled _actor} && {!isObjectHidden _actor}
+                && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {toUpperANSI currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
                 && {(expectedDestination _actor) isEqualTo _native} && {formLeader _actor == _formationLeader}) then {
                 _actor doFollow _returnLeader;
@@ -400,7 +403,9 @@ if (_newMove || {!_coordinating}) then {
             // is not a valid ownership check. Preserve commands which cannot be a
             // combat-side effect of the hold. A new bound supplies its own target.
             private _command=toUpperANSI currentCommand _x;
-            if (_mayRestoreGroup && {!_coordinating} && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}) then {
+            if (_mayRestoreGroup && {!_coordinating} && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
+                && {simulationEnabled _x} && {!isObjectHidden _x}
+                && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}) then {
                 _x doFollow leader _group;
             };
         };
@@ -465,6 +470,8 @@ if (_coordinating) then {
             } forEach (keys _stopHolds);
             {
                 if (local _x && {group _x == _group} && {isNull objectParent _x}
+                    && {simulationEnabled _x} && {!isObjectHidden _x}
+                    && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                     && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x}
                     && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}

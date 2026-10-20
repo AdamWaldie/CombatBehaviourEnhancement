@@ -7371,9 +7371,13 @@ class CortexOperations(unittest.TestCase):
         start=source('cortexSupportBoundStart')
         fit=start.split('private _fit=',1)[1].split('if (count _fit < 3)',1)[0]
         self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',fit)
+        self.assertIn('ace_medical_ai_healQueue',fit)
         maintain=source('cortexSupportMaintain')
         cover=maintain.split('private _coverIdentity=',1)[1]
         self.assertLess(cover.index('!([_x] call CBE_fnc_CortexActorMoveReserved)'),cover.index('doStop _x'))
+        for guard in ('simulationEnabled _x','!isObjectHidden _x','ace_medical_ai_healQueue'):
+            self.assertLess(cover.index(guard),cover.index('doStop _x'))
+        self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',maintain)
         for code in [start,cover]:
             self.assertNotIn('count _actorMove != 3',code)
             self.assertIn('CBE_fnc_CompatibilityExternalControl',code)
