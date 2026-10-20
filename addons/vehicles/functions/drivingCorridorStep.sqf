@@ -13,6 +13,8 @@
  * ATTACK and unowned CBE remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
  * Individual actor reservations on either seat veto acquisition and every later command.
+ * Native BACK/direct-commander/turn input vetoes steering; incompatible CROSS crew tasks
+ * retire metadata without recalling the actors. Identical repeated STOP remains indistinguishable.
  * CROSS compares actual height with the interpolated approved ASL support profile through
  * the area, rejecting a different floor before entry/completion credit; no fresh rays are added.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
@@ -98,6 +100,11 @@ private _controllerCurrent={
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {vehicle leader _group isEqualTo _vehicle}
 };
+private _nativeSteeringFree={
+    private _input=vehicleMoveInfo _vehicle;
+    !(toUpperANSI (_input param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+        && {!(toUpperANSI (_input param [1,""]) in ["LEFT","RIGHT"])}
+};
 private _mayWrite={
     !isNull _group && {local _group} && {!isNull _vehicle} && {local _vehicle}
         && {count _brain > 0} && {!(_brain getOrDefault ["cancelled",false])}
@@ -110,7 +117,7 @@ private _mayWrite={
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {call _crewReady}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
-        && {isAISteeringComponentEnabled _vehicle}
+        && {isAISteeringComponentEnabled _vehicle} && {call _nativeSteeringFree}
 };
 if (!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}) exitWith {_inactive};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
@@ -143,6 +150,10 @@ if (count _work > 0) exitWith {
         || {(_work getOrDefault ["phase",""]) == "CROSS" && {
             (expectedDestination _driver) isNotEqualTo (_work getOrDefault ["driverCommand",[]])
         }}) then {_reason="COMMAND_CHANGED"};
+    if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "CROSS"}
+        && {[_driver,_operator] findIf {!(toUpperANSI currentCommand _x in ["","MOVE","WAIT","STOP"])} >= 0}) then {
+        _reason="COMMAND_CHANGED";
+    };
     if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "APPROACH"}
         && {!(call _approachTasksReady)}) then {_reason="COMMAND_CHANGED"};
     if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {

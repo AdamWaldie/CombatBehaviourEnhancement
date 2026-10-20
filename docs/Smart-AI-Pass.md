@@ -2008,3 +2008,6 @@ Late delivery beyond the finite lookup window remains unsupported. After the mas
 ### Navigation-area route selection
 
 When several registered driving areas qualify, selection compares the full approach, crossing and onward distance. A nearby entrance alone does not make an area the best route. The existing 400-metre approach limit and shortcut threshold remain in force. Selection reads metadata for at most 32 areas, then requests one bounded geometry proposal. It does not acquire extra movement authority or establish physical passability.
+
+
+Navigation-area steering yields to native BACK, direct-commander input or LEFT/RIGHT turn input. Crossing also retires its metadata for incompatible crew tasks, including FOLLOW and ATTACK. Cleanup applies the same native-input veto before any STOP or route handback, preserving changed control even when destinations match. Identical repeated STOP orders remain observationally indistinguishable. Physical interruption and continuation require later in-game verification.

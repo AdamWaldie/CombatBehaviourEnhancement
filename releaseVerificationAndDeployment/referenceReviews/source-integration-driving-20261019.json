@@ -584,5 +584,28 @@
     ],
     "physical": false,
     "scoresChanged": false
+  },
+  "corridorNativeInputFollowUp20261020": {
+    "baseline": "9111201c",
+    "finding": "Corridor CROSS checked destinations but admitted incompatible crew command types. Unlike bypass release, corridor execution and cleanup lacked native BACK/direct-commander/turn input veto.",
+    "change": "Use existing native vehicleMoveInfo semantics at corridor mayWrite and cleanup ownership guard. Incompatible CROSS crew tasks retire metadata with COMMAND_CHANGED and no route recall. Preserve native MOVE/WAIT/STOP/idle transitions; no new command journal, timer, controller or spatial query.",
+    "sources": {
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "55edf8c4b7555bfb301a5eafde651d0d62b7086b9c1c51a8685c1cc216c95a28",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "add3e916eb6e910868666b16aa415af7f9e3600d156f083121ae054761c8afa6"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-corridor-native-input-build.log",
+      "independent": ".qa/cbe-corridor-native-input-independent.log",
+      "candidate": ".qa/candidates/corridor-input-9111201c-0f1f5fec",
+      "fingerprint": "0f1f5fec69a532b4e8443187c0e9520ca73414940b62b88db45f932d3be35225",
+      "source": "9111201c plus intended dirty corridor-native-input edits"
+    },
+    "remaining": [
+      "Identical repeated native STOP remains indistinguishable. Native transition/interrupt ordering and actual normal/providerHC passage/handback/performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
   }
 }

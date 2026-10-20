@@ -6,6 +6,7 @@
  * Crossing ownership includes both seat receipts. A separate same-vehicle driver rejoins only
  * its unchanged owned commander before native-route wakeup; other actors/features are untouched.
  * New individual reservations prevent movement cleanup; actor leases remain untouched.
+ * Native BACK/direct-commander/turn input also revokes path cleanup, even with unchanged destinations.
  * Current work observation, native handback, cooldown/result and exact episode deletion share
  * one unscheduled transaction. APPROACH rejects STOP; CROSS retains its own stop admission.
  * No geometry/query or suspended work occurs inside the bounded retirement transaction.
@@ -42,7 +43,10 @@ private _successor=_convoy && {_convoyConfiguration isNotEqualTo []}
 // Only the validated current executor's explicit transition may retire the previous revision.
 // Generic old cleanup cannot stop a retained successor's path; exact native receipts still apply.
 private _transition=_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"];
-private _owned=!isNull _driver && {!isNull _operator} && {local _driver} && {local _operator}
+private _pathInput=vehicleMoveInfo _vehicle;
+private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+    && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
+private _owned=_nativePathFree && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
     && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}
     && {group _driver == _group} && {group _operator == _group}
     && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}

@@ -303,6 +303,14 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('vehicle _operator == _vehicle', release)
         self.assertLess(release.index('_driver doFollow _operator'), release.index('_operator doMove waypointPosition'))
 
+        for text in (source,release):
+            self.assertIn('vehicleMoveInfo _vehicle',text)
+            self.assertIn('["BACK","DIRECTBYCOMANDER"]',text)
+            self.assertIn('["LEFT","RIGHT"]',text)
+        self.assertIn('call _nativeSteeringFree',source)
+        self.assertIn('_owned=_nativePathFree',release)
+        self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT","STOP"]',source)
+
     def test_initial_corridor_commit_uses_defined_symmetric_native_receipts(self):
         source=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _admissionNative=[_driver,_operator] apply',source)
