@@ -62,7 +62,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _units >= _minimumMovers && {count (_roster select 1) >= 1}',issue)
         self.assertIn('private _minimumMovers=[count _units] call _movingMinimum',step)
         self.assertLess(issue.index('_minimumMovers=[count _fit] call _movingMinimum'),issue.index('call _ensureMovingTeam'))
-        for guard in ('_support && {_total == 3}', 'count _teams == 2',
+        for guard in ('_singletonFollow=_total == 3', 'count _teams == 2',
                       'count (_teams select 0) == 2', 'count (_teams select 1) == 1'):
             self.assertIn(guard,step)
         def minimum(support,total,turn,teams):
@@ -10041,10 +10041,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"MANOEUVRE",_pairElements]',advance)
         self.assertIn('if (_buddyPair) then {[]} else {[_element,_coverElement]}',advance)
         self.assertIn('count _onFoot == 2 && {count _armedFoot == 2}',advance)
-        self.assertIn('if (_buddyPair) then {_bound=_bound min 20}',advance)
-        self.assertIn('_group,[0,20] select _buddyPair] call CBE_fnc_CortexPlanRoute',advance)
+        self.assertIn('if (_smallElement) then {_bound=_bound min 20}',advance)
+        self.assertIn('_group,[0,20] select _smallElement] call CBE_fnc_CortexPlanRoute',advance)
         self.assertIn('_bound=_bound min (_maximumBound max 15)',source('cortexPlanRoute'))
-        self.assertIn('if (count _coverRifles < _minimumElement)',advance)
+        self.assertIn('if (count _coverRifles < _minimumCover)',advance)
+        self.assertIn('count _onFoot in [2,3] && {count _armedFoot == count _onFoot}',advance)
+        self.assertIn('if (_smallElement && {!_buddyPair}) then {_size=2 min count _candidates}',advance)
+        self.assertIn('if (_type == "ADVANCE" && {count _capable == 2}) then {_pairElements=[]}',source('cortexDrillResume'))
         self.assertIn('"ASSAULT",[_assaultElement,_coverElement]',source('cortexAssaultStart'))
 
         rebalance=source('rebalanceRoles')

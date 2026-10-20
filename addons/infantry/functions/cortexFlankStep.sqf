@@ -543,12 +543,12 @@ private _helperCurrent={
 // Reserved multi-squad roles retain their existing three-person admission contract.
 private _minimumStrength=[2,3] select _support;
 if (count _units < _minimumStrength) exitWith {"LOSSES" call _end};
-// A three-person coordinated responder admits a 2+1 partition. Once the first
+// A three-person advance or coordinated responder can use a 2+1 partition. Once the first
 // element has arrived, the singleton follows under its two-person cover. Do not
 // steal a soldier back out of that arrived pair merely to make the follow team two.
 private _movingMinimum={
     params ["_total"];
-    private _singletonFollow=_support && {_total == 3}
+    private _singletonFollow=_total == 3
         && {(_drill getOrDefault ["teamTurn",0]) == 1}
         && {count _teams == 2} && {count (_teams select 0) == 2} && {count (_teams select 1) == 1};
     [2,1] select ((!_support && {_total == 2}) || {_singletonFollow})

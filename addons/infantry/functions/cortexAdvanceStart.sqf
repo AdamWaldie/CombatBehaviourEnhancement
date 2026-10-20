@@ -5,7 +5,8 @@
  * Admission sizes the moving element from ammunition-qualified rifle capacity and retains
  * at least two such cover actors. Exactly two available armed actors may use 1+1
  * successive bounds, preserving their pair identity and limiting each bound to20m.
- * Physical squad/cover membership stays separate.
+ * Three available armed actors may start a2+1 advance; the arrived pair covers its
+ * singleton follower. Physical squad/cover membership stays separate.
  * Initial role capacity excludes protected native tasks and live actor reservations through
  * the shared task-availability gate; later executor checks remain authoritative.
  * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
@@ -106,24 +107,27 @@ private _onFoot = (units _group) select {
 private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
     && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
 private _buddyPair=count _onFoot == 2 && {count _armedFoot == 2};
+private _smallElement=count _onFoot in [2,3] && {count _armedFoot == count _onFoot};
 private _minimumElement=[2,1] select _buddyPair;
+private _minimumCover=[2,1] select _smallElement;
 private _riflemen = _armedFoot select {_x != _leader && {_buddyPair || {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}}};
 private _candidates = [];
 {_candidates pushBack [_x distance2D _objective, _forEachIndex]} forEach _riflemen;
 _candidates sort true;
 private _size = ((floor (count _armedFoot / 2)) min 5) min count _candidates;
+if (_smallElement && {!_buddyPair}) then {_size=2 min count _candidates};
 if (_size < _minimumElement) exitWith {[_state, "advance", 30] call CBE_fnc_CortexCooldown; ["NO_MANOEUVRE_ELEMENT",[count _onFoot,count _riflemen]] call _refuse};
 private _rankedActors=(_candidates select [0,16]) apply {_riflemen select (_x select 1)};
 private _element=[_group,_rankedActors,_size,_minimumElement] call CBE_fnc_CombatElementSelect;
 if (count _element < _minimumElement) exitWith {["NO_MANOEUVRE_ELEMENT",[count _element]] call _refuse};
 private _coverElement = _onFoot - _element;
 private _coverRifles=_armedFoot-_element;
-if (count _coverRifles < _minimumElement) exitWith {["NO_COVER_ELEMENT",[count _coverElement,count _coverRifles]] call _refuse};
+if (count _coverRifles < _minimumCover) exitWith {["NO_COVER_ELEMENT",[count _coverElement,count _coverRifles]] call _refuse};
 private _start = [0, 0, 0];
 {_start = _start vectorAdd getPosATL _x} forEach _element;
 _start = _start vectorMultiply (1 / count _element);
 private _bound = (missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance", 55]) max 15;
-if (_buddyPair) then {_bound=_bound min 20};
+if (_smallElement) then {_bound=_bound min 20};
 private _goal = _start getPos [((_start distance2D _objective) - 20) min (_bound * 3), _start getDir _objective];
 private _routeDistance=_start distance2D _goal;
 private _axis=_start getDir _goal;
@@ -137,7 +141,7 @@ private _candidateRoutes=[[_goal]];
 private _legs=[_start,_candidateRoutes,(_enemies select 0) select 1,[],(_enemies select 0) select 0]
     call CBE_fnc_CortexSelectAvenue;
 if (_legs isEqualTo []) exitWith {[_state, "advance", 30] call CBE_fnc_CortexCooldown; ["NO_SAFE_AVENUE",[_start,_objective]] call _refuse};
-private _points = [_start, _legs, "FINAL", _group,[0,20] select _buddyPair] call CBE_fnc_CortexPlanRoute;
+private _points = [_start, _legs, "FINAL", _group,[0,20] select _smallElement] call CBE_fnc_CortexPlanRoute;
 // Do not suppress the whole squad's attack assignment. CortexFlankStep protects only
 // the current moving element while the paired element continues native engagement.
 private _serial = (missionNamespace getVariable ["CBE_Cortex_DrillSerial",0]) + 1;

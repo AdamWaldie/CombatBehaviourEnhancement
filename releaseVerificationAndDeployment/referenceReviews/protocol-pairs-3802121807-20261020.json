@@ -119,5 +119,11 @@
     "limits": "Successive buddy bounding only; independent pair-granular leapfrog within larger squads remains incomplete. No physical fire/arrival/balance/performance evidence; audits paused.",
     "validation": "1478 existing tests/full HEMTT build passed; existing assertions extended, no new tests.",
     "physicalAcceptance": false
+  },
+  "smallElementFlow": {
+    "baseline": "28635c56",
+    "implementation": "Three available armed actors with two suitable movers may start2+1 ADVANCE; ordinary bounds capped20m. Existing movingMinimum recognises arrived2+singleton-follow for ordinary and coordinated drills, avoiding a needless relief transfer. Two-capable-actor ADVANCE resume preserves one buddy identity across singleton roles.",
+    "limits": "Initial specialist-role suitability remains authoritative. No per-pair leapfrog executor for larger squads. Physical flow, casualties, migration, cover fire and overhead unverified; audits paused.",
+    "validation": "1478 existing tests, HEMTT/full build passed; existing assertions extended."
   }
 }

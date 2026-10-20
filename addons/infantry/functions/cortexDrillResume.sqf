@@ -125,6 +125,8 @@ if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
 private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
 private _pairElements=(_drill getOrDefault ["teams",[]]) apply {_x select {_x in _capable}};
+// Two advance actors retain one buddy identity across the singleton movement roles.
+if (_type == "ADVANCE" && {count _capable == 2}) then {_pairElements=[]};
 private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase,_pairElements] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];
