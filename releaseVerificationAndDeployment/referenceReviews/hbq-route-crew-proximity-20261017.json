@@ -74,5 +74,55 @@
     "Audits remain paused."
   ],
   "physicalAcceptance": false,
-  "rawSourcesModified": false
+  "rawSourcesModified": false,
+  "currentRouteBoundary20261020": {
+    "commit": "95769f02",
+    "scope": "Revalidated complete routeWaiting and refreshRoute helper intent against current ordinary recovery/route receipt and fixed-path release; existing semantic review retained, no whole-mod parity inference.",
+    "files": [
+      {
+        "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+        "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de"
+      },
+      {
+        "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf",
+        "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRouteReceipt.sqf",
+        "sha256": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+      },
+      {
+        "path": "addons/core/functions/authoredRouteReceipt.sqf",
+        "sha256": "6ebe94a78601255e8526ee2ec50192e92eb83896011187af9973ee56b643b251"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "sha256": "6d966f70ed7a080e235f384576e4fdd30b47c8eedcab0e877bf66d1ad838f990"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingCorridorRelease.sqf",
+        "sha256": "77f92975bfc00322cc1f421eaaeb5d39edfcdefd2dd153ea9941767b9943d0fd"
+      }
+    ],
+    "findings": [
+      "Source routeWaiting preserves nearby HOLD, inactive trigger, timeout and nontrue condition without executing the condition. CBE retains this intent and strips all ordinary whitespace from the condition.",
+      "Current CBE recoveryOrderFree additionally requires plain MOVE, empty action/script, no attachment, no timeout and no waypoint/trigger synchronisation regardless of distance. Intentional distant gates are not treated as permission to rewrite their route.",
+      "Source refreshRoute may delete/recreate waypoints, re-enable MOVE/PATH, reset fixed steering and recall crew. CBE retains exact authored metadata and native intent; it does not import those blanket authority-changing shortcuts.",
+      "Current fixed-path release uses exact-owned doStop before guarded authored handback. Bohemia documents doStop or another movement command as cancelling setDriveOnPath; a tiny replacement path is not required by the documented command contract.",
+      "Bohemia also documents unitReady returning true during setDriveOnPath. It cannot supply path completion or physical arrival; existing ordered checkpoint, motion and hull-clearance observations remain necessary."
+    ],
+    "officialCommandReference": "https://community.bistudio.com/wiki/setDriveOnPath",
+    "remaining": [
+      "Physical interruption/cancellation/route continuation and exact native same-value command ambiguity remain unverified.",
+      "Native steering-component support is vehicle-config dependent; no universal modded-vehicle path claim.",
+      "Current-route receipt handle lookup still scales with route length; actual runtime cost requires measurement."
+    ],
+    "runtimeChangeRequired": false,
+    "physicalAcceptance": false,
+    "audits": "paused"
+  }
 }

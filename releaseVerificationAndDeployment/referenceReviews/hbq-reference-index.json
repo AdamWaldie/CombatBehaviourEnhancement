@@ -353,7 +353,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
-      "sha256": "b9f1684cba97f660b3d3fc99768d14ddd2fce24cf8339ba76d3420c5e586bb20",
+      "sha256": "0d885703d87c5b5094d581a961e222e9ab608e171794195f05ccae2085c31ec7",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",
       "sourceFileMentions": [
         "functions/fn_crewHold.sqf",
