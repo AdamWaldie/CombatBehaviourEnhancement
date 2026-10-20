@@ -751,5 +751,23 @@
       "Physical native passage/abort/transfer and performance unverified while audits paused."
     ],
     "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-parent-build.log; candidate .qa/candidates/bypass-parent-99bb344c-fab7bbd4 fingerprint fab7bbd487385da650d8725049ef90fb0f99bb637e67195cc76d41985ec9443d actual99bb344c+intendeddirtysource. No test-count/score increase."
+  },
+  "bypassParentNativeContinuation20261020": {
+    "sourceParent": "45324a97",
+    "finding": "Ordinary recovery ownership compares its previous destination/cap before invoking the bypass child. The child fixed-path command would invalidate that parent on the next callback despite being its admitted work.",
+    "implementation": [
+      "DrivingRecoveryCommandState classifies exact live ordinary FOLLOW child as BYPASS using matching parent binding, original finite deadline, route/seats and both child native task/destination receipts.",
+      "DrivingAssistStart retains parent only with exact current private applied speed lease. BYPASS is explicitly excluded from ordinary parent movement admission. Zero owned cap may retain this exact child without fabricated obstacle evidence.",
+      "Owned native child cleanup records the route request in the parent under min(now+2s,originalhard), retains spent/stage/baseline, and preserves a distinct driver pre-commander-write destination. Ordinary acknowledgement clears the return marker. Exact pending owned STOP may wait only inside that request proof."
+    ],
+    "cost": "Bounded metadata/native receipt reads and existing publications; no new geometry query, timer, worker or speed writer.",
+    "limits": [
+      "Unknown or changed private cap/route/seats/native task still yields.",
+      "Distinct driver asynchronous destination changes remain conservative refusal, not inferred acknowledgement.",
+      "Split-locality parent/child adoption and actual native handback not physically validated.",
+      "One-sided corner diagnosis and lateral native release still incomplete."
+    ],
+    "validation": "251 focused existing driving cases, HEMTTcheck and full1477/config/FSM/compilation/docs/package gates passed .qa/cbe-bypass-child-build.log; candidate .qa/candidates/bypass-child-45324a97-0b1a9814 fingerprint 0b1a98140e8ac3b8b8662c58c5e745982a1b10b0ffed792a251e5f681fdeb5a6 actual45324a97+intendeddirtysource. Initial4 source-contract mismatches retained .qa/cbe-bypass-child-focused-initial.log; original route veto prefix preserved and cap classification case extended for exact child. No new tests/scores.",
+    "audits": "PAUSED"
   }
 }

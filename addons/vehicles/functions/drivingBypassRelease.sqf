@@ -12,7 +12,9 @@
  * unscheduled section. Identity repeats after native commands before metadata deletion; a
  * replacement episode survives. No geometry or world query runs in this section.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
- * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
+ * PLAN owns no movement and cannot stop native actors. Exact ordinary-parent child cleanup
+ * may journal its newly issued native route request within two seconds/original parent expiry;
+ * this carries the spent budget without renewing the episode or copying the fixed path. Local handles/code are never published.
  * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
  * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
  * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
@@ -110,7 +112,35 @@ isNil {
             && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
             if (_driver != _operator) then {_driver doFollow _operator};
-            _operator doMove waypointPosition [_group,_index];
+            private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+                currentCommand _operator,+(expectedDestination _operator)];
+            private _returnGoal=waypointPosition [_group,_index];
+            _operator doMove _returnGoal;
+            private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _parentBinding=_work getOrDefault ["recoveryParent",[]];
+            private _hard=_parent getOrDefault ["hardDeadline",-1];
+            private _cap=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [0,-1,[0]];
+            if (!_convoy && {!_queue} && {_parentBinding isNotEqualTo []}
+                && {_hard isEqualType 0} && {finite _hard} && {serverTime < _hard}
+                && {_parentBinding isEqualTo [_group,_route,_hard,_parent getOrDefault ["progressAnchor",[]]]}
+                && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo true}
+                && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+                && {(_parent getOrDefault ["driver",objNull]) == _driver}
+                && {(_parent getOrDefault ["operator",objNull]) == _operator}
+                && {!(_parent getOrDefault ["releasePending",false])}
+                && {finite _cap} && {_cap >= 0} && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+                && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}) then {
+                private _returned=createHashMapFromArray ((keys _parent) apply {[_x,_parent get _x]});
+                // A distinct driver retains its pre-commander-write receipt. An unrelated
+                // driver order cannot become ours just because the commander acknowledged.
+                _returned set ["driverCommand",if (_driver == _operator) then {+(expectedDestination _driver)} else {+(_returnBefore select 1)}];
+                _returned set ["command",+(expectedDestination _operator)];
+                _returned set ["cap",_cap];
+                _returned set ["request",[+_returnGoal,(serverTime+2) min _hard,_returnBefore]];
+                _returned set ["bypassReturn",_work get "context"];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_returned,true];
+            };
         };
     };
     // A synchronous native event may have published successor work during command handling.

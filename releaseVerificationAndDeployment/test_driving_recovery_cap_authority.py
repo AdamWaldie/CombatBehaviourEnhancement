@@ -23,13 +23,17 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         owned=text.split('private _recoveryOwned=',1)[1].split('private _release=',1)[0]
         self.assertIn('abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1',owned)
         self.assertIn('!_recoveryOwned',owned)
+        self.assertIn('if (_recoveryCommandState == "BYPASS")',owned)
+        self.assertIn('abs ((getForcedSpeed _vehicle)-_recoveryChildCap) <= 0.1',owned)
+        self.assertIn('_recoveryCommandState != "BYPASS"',text)
+
         self.assertIn('setVariable ["CBE_DrivingRecovery_Yield",_routeIdentity,true]',owned)
         self.assertIn('"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease',owned)
         self.assertLess(text.index('private _recoveryOwned='),text.index('private _mayIssueDriving ='))
         # Vehicle-level BACK is independent of unchanged unit destinations.
         mode='param [0,"",[""]]) != "BACK"'
         self.assertIn(mode,text)
-        self.assertIn('count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING"]} && {call _destinationControlFree}',text)
+        self.assertIn('count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING","BYPASS"]} && {call _destinationControlFree}',text)
         gate=text.split('if (!_enabled ||',1)[1].split('private _mayIssueDriving',1)[0]
         self.assertIn('"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled',gate)
         self.assertIn('!(call _destinationControlFree)',gate)

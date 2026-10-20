@@ -105,6 +105,9 @@
  * 0: group <GROUP> - local AI group commanding the vehicle.
  * 1: operation brain <HASHMAP, empty> - internal current-owner executor receipt.
  * Return Value: Nothing.
+ * Exact active bypass-child commands retain only their parent budget; ordinary parent
+ * route recovery stays blocked until the child retires. Native return has one finite
+ * acknowledgement window capped by the unchanged parent hard deadline.
  * Current callers: CBE_fnc_CortexGroupTick (admission), DrivingOperationStep (execution).
  * Example: [group driver truck1] call CBE_fnc_DrivingAssistStart;
  */
@@ -236,6 +239,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 _recoveryWork set ["driverCommand",+(expectedDestination _driver)];
                 _recoveryWork set ["command",+(expectedDestination _movementOperator)];
                 _recoveryWork deleteAt "request";
+                _recoveryWork deleteAt "bypassReturn";
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_recoveryWork,true];
             };
         };
@@ -247,17 +251,26 @@ _brain set ["geometryTracks",_geometryTracks];
         continue;
     };
     private _recoveryRequestPending=_recoveryCommandState == "PENDING";
-    private _recoveryOwned=count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING"]} && {call _destinationControlFree}
+    private _recoveryChildCap=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [0,-1,[0]];
+    private _recoveryOwned=count _recoveryWork > 0 && {_recoveryCommandState in ["OWNED","PENDING","BYPASS"]} && {call _destinationControlFree}
         && {(_recoveryWork get "group") == _group}
         && {(_recoveryWork get "route") isEqualTo _routeIdentity}
         && {(_recoveryWork get "driver") == _driver} && {(_recoveryWork get "operator") == _movementOperator}
-        && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}
-        && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
-        && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")}
-        && {currentCommand _movementOperator != "STOP"}
-        && {[_driver,_movementOperator] findIf {
-            !(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])
-        } < 0};
+        && {if (_recoveryCommandState == "BYPASS") then {
+            finite _recoveryChildCap && {_recoveryChildCap >= 0}
+                && {abs ((getForcedSpeed _vehicle)-_recoveryChildCap) <= 0.1}
+        } else {
+            _recoveryCommandState in ["OWNED","PENDING"]
+                && {abs ((getForcedSpeed _vehicle)-(_recoveryWork get "cap")) <= 0.1}
+                && {(expectedDestination _driver) isEqualTo (_recoveryWork get "driverCommand")}
+                && {(expectedDestination _movementOperator) isEqualTo (_recoveryWork get "command")}
+                && {currentCommand _movementOperator != "STOP"
+                    || {_recoveryRequestPending && {"bypassReturn" in _recoveryWork}}}
+                && {[_driver,_movementOperator] findIf {
+                    !(toUpperANSI currentCommand _x in ["","MOVE","WAIT"])
+                        && {!(_recoveryRequestPending && {"bypassReturn" in _recoveryWork} && {currentCommand _x == "STOP"})}
+                } < 0}
+        }};
     if (count _recoveryWork > 0 && {(_recoveryWork get "group") == _group} && {!_recoveryOwned}) then {
         if ((_recoveryWork get "route") isEqualTo _routeIdentity) then {
             _group setVariable ["CBE_DrivingRecovery_Yield",_routeIdentity,true];
@@ -282,7 +295,9 @@ _brain set ["geometryTracks",_geometryTracks];
         || {!([_movementOperator] call _nativeTaskFree)}
         || {getForcedSpeed _vehicle == 0 && {
             private _heldState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
-            !((_recoveryOwned && {(_recoveryWork get "cap") == 0}) || {(_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
+            !((_recoveryOwned && {(_recoveryWork get "cap") == 0})
+                || {_recoveryOwned && {_recoveryCommandState == "BYPASS"} && {_recoveryChildCap == 0}}
+                || {(_heldState param [0,-1]) == 0 && {(_heldState param [3,grpNull]) == _group}
                 && {!isNull ((_vehicle getVariable ["CBE_DrivingAssist_Traffic",[]]) param [1,objNull])}})
         }}
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
@@ -374,6 +389,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {[_liveQueue,true] call CBE_fnc_DrivingQueueReverseCurrent}
         };
         private _mayRecoverOrdinaryRoute={!_queueCrossing && {!_queueNativeActive} && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}
+            && {_recoveryCommandState != "BYPASS"}
             // A queue-bound native leg belongs to its finite queue phase, never the
             // ordinary REFRESH/FINAL route retry. Cleanup retains separate exact proof.
             && {!("queueBinding" in (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]))}

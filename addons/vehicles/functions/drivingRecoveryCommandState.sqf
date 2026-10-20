@@ -7,7 +7,8 @@
  * renewal or physical progress inference. SIMPLE_BACK retains its separate input/turn contract.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 journal <HASHMAP, empty>.
  * Return: STRING - OWNED (exact receipt/issued goal), PENDING (original unchanged state),
- * EXPIRED (same state after original wait), LOST (changed/unknown identity).
+ * EXPIRED (same state after original wait), LOST (changed/unknown identity), or BYPASS
+ * (exact active child command; retention only, never parent movement permission).
  * Distinct native drivers retain their original destination proof; intermediate changes are
  * not inferred to be ours merely because the commander's target was acknowledged.
  * Current callers: DrivingAssistStart and DrivingRecoveryRelease.
@@ -25,6 +26,30 @@ if (isNull _group || {isNull _driver} || {isNull _operator}
     || {_operator != (_work getOrDefault ["operator",objNull])}) exitWith {"LOST"};
 private _driverNative=expectedDestination _driver;
 private _operatorNative=expectedDestination _operator;
+// A finite bypass child intentionally changes the destination. Its exact live receipt
+// can retain the parent's budget; it cannot authorise ordinary parent recovery moves.
+private _child=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+private _hard=_work getOrDefault ["hardDeadline",-1];
+private _childDeadline=_child getOrDefault ["deadline",-1];
+if ((_work getOrDefault ["bypassSpent",false]) isEqualTo true
+    && {(_work getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+    && {!(_work getOrDefault ["releasePending",false])}
+    && {_hard isEqualType 0} && {finite _hard} && {serverTime < _hard}
+    && {_childDeadline isEqualType 0} && {finite _childDeadline}
+    && {serverTime < _childDeadline} && {_childDeadline <= _hard}
+    && {(_child getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
+    && {(_child getOrDefault ["phase",""]) == "FOLLOW"}
+    && {(_child getOrDefault ["group",grpNull]) == _group}
+    && {(_child getOrDefault ["driver",objNull]) == _driver}
+    && {(_child getOrDefault ["operator",objNull]) == _operator}
+    && {(_child getOrDefault ["route",[]]) isEqualTo (_work getOrDefault ["route",[]])}
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work getOrDefault ["route",[]])}
+    && {(_child getOrDefault ["recoveryParent",[]]) isEqualTo
+        [_group,_work getOrDefault ["route",[]],_hard,_work getOrDefault ["progressAnchor",[]]]}
+    && {_driverNative isEqualTo (_child getOrDefault ["driverCommand",[]])}
+    && {_operatorNative isEqualTo (_child getOrDefault ["command",[]])}
+    && {toUpperANSI currentCommand _driver == (_child getOrDefault ["driverTask","__MISSING__"])}
+    && {toUpperANSI currentCommand _operator == (_child getOrDefault ["operatorTask","__MISSING__"])}) exitWith {"BYPASS"};
 private _request=_work getOrDefault ["request",[]];
 if (_request isEqualTo []) exitWith {
     if (_driverNative isEqualTo (_work getOrDefault ["driverCommand",[]])

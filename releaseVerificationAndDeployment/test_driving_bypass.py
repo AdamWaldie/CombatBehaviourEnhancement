@@ -122,6 +122,20 @@ class DrivingBypassTests(unittest.TestCase):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('_sameEpisode && {"bypassSpent" in _old}',assist)
         self.assertIn('!((_old get "bypassSpent") isEqualTo false)',assist)
+        classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
+        for guard in ('_childDeadline <= _hard','["ORDINARY",-1]','== "FOLLOW"',
+                      'recoveryParent','_driverNative isEqualTo (_child',
+                      '_operatorNative isEqualTo (_child','driverTask','operatorTask',
+                      'exitWith {"BYPASS"}'):
+            self.assertIn(guard,classify)
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
+        self.assertIn('(serverTime+2) min _hard',release)
+        self.assertIn('else {+(_returnBefore select 1)}',release)
+
+        self.assertIn('_returned set ["bypassReturn",_work get "context"]',release)
+        self.assertIn('_work getOrDefault ["recoveryParent",[]]',release)
+        self.assertNotIn('_returned set ["hardDeadline"',release)
+
         self.assertIn('serverTime >= (_work get "deadline")',s)
         self.assertIn('_work set ["side",-1]',s)
         self.assertIn('for "_i" from 1 to 4',s)
