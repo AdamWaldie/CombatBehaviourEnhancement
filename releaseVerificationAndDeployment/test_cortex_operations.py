@@ -5914,6 +5914,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('case "VEHICLE_ORIENT": {true}',dispatch)
         self.assertNotIn('CBE_Danger_VehicleOrient',dispatch)
         self.assertNotIn('count _marker == 5',dispatch)
+        retirement=tick.split('if (!_groupMovementOwned',1)[1].split('private _now = time',1)[0]
+        self.assertNotIn('VEHICLE_ORIENT',retirement)
+        self.assertNotIn('CBE_Danger_VehicleJink',retirement)
+        self.assertNotIn('STOPTURNING',retirement)
         self.assertLess(tick.index('[_group,_state,[],true] call CBE_fnc_CortexVehicles'),tick.index('private _movementLease ='))
         self.assertLess(vehicles.index('if (_lifecycleOnly) exitWith'),vehicles.index('private _vehicles = []'))
         self.assertIn('if (!_groupMovementOwned && {_movementLease isNotEqualTo []})',tick)
@@ -8648,6 +8652,12 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ['setPos','setVelocity','moveIn','allowDamage','disableCollisionWith','while {']:
             self.assertNotIn(forbidden,jink)
         self.assertIn('vehicleDangerJink',vehicles)
+        self.assertIn('serverTime+25,_generation],true]',jink)
+        cleanup=vehicles.split('if (_finishedOwner == "VEHICLE_JINK")',1)[1].split('if (_finishedOwner == "VEHICLE_ORIENT")',1)[0]
+        self.assertIn('(_marker param [4,-1,[0]]) == _generation',cleanup)
+        calm=source('cortexRestoreCalm')
+        jink_cleanup=calm.split('private _vehicleJink=',1)[1].split('private _vehicleOrient=',1)[0]
+        self.assertIn('(_jinkMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])',jink_cleanup)
         self.assertIn('_dangerCause in ["HIT","EXPLOSION"] || {_knownCloseThreat}',vehicles)
         self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')

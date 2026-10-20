@@ -193,7 +193,9 @@ private _jinkOrigin=getPosATL _jinkVehicle;
 private _jinkBlast=[_jinkVehicle modelToWorld [7,0,0]] call _spawnRealGrenade;
 private _jinkOwned=[{
     private _state=_jinkGroup getVariable ["CBE_AIPass_State",createHashMap];
-    count (_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]]) == 4
+    private _marker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
+    count _marker == 5
+        && {(_marker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}
         && {(_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_JINK"}
 },25] call _wait;
 private _jinkMoved=[{

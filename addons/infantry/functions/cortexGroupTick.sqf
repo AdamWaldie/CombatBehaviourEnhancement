@@ -527,10 +527,6 @@ private _groupMovementOwned = count _movementLease == 2 && {time < (_movementLea
 };
 if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
     private _operationKey = switch (_movementOwner) do {
-        case "VEHICLE_WITHDRAW": {"vehicleOperationGeneration"};
-        case "VEHICLE_STANDOFF": {"vehicleOperationGeneration"};
-        case "VEHICLE_JINK": {"vehicleOperationGeneration"};
-        case "VEHICLE_ORIENT": {"vehicleOperationGeneration"};
         case "ARTILLERY_SCOOT": {"artilleryScootOperationGeneration"};
         case "ARTILLERY_POSITION": {"artilleryPositionOperationGeneration"};
         case "SUPPORT_RALLY": {"supportOperationGeneration"};
@@ -541,16 +537,7 @@ if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
         private _generation=_state getOrDefault [_operationKey,-1];
         private _movementResult="COMPLETE";
         private _movementReason=_movementOwner+"_FINISHED";
-        if (_movementOwner == "VEHICLE_ORIENT") then {
-            private _vehicle=(_state getOrDefault ["vehicleDangerOrient",[]]) param [1,objNull,[objNull]];
-            private _marker=if (isNull _vehicle) then {[]} else {_vehicle getVariable ["CBE_Danger_VehicleOrient",[]]};
-            private _target=_marker param [2,[],[[]]];
-            private _aligned=!isNull _vehicle && {alive _vehicle} && {count _target >= 2}
-                && {private _relative=_vehicle getRelDir _target; _relative <= 20 || {_relative >= 340}};
-            _movementResult=["INCOMPLETE","COMPLETE"] select _aligned;
-            _movementReason=["VEHICLE_ORIENT_TIMEOUT","VEHICLE_ORIENT_ALIGNED"] select _aligned;
-        };
-        if (_movementOwner in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","ARTILLERY_SCOOT"]) then {
+        if (_movementOwner == "ARTILLERY_SCOOT") then {
             private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
             private _position=_intent getOrDefault ["position",[]];
             private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
@@ -591,30 +578,6 @@ if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
             };
         };
         _state deleteAt _operationKey;
-    };
-    if (_movementOwner == "VEHICLE_JINK") then {
-        private _jinkState=_state getOrDefault ["vehicleDangerJink",[]];
-        private _jinkVehicle=_jinkState param [1,objNull,[objNull]];
-        if (!isNull _jinkVehicle && {local _jinkVehicle}) then {
-            private _marker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
-            if (_marker param [1,grpNull,[grpNull]] == _group) then {
-                _jinkVehicle setVariable ["CBE_Danger_VehicleJink",nil,true];
-            };
-        };
-    };
-    if (_movementOwner == "VEHICLE_ORIENT") then {
-        private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
-        private _orientVehicle=_orientState param [1,objNull,[objNull]];
-        if (!isNull _orientVehicle && {local _orientVehicle}) then {
-            private _marker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
-            if (_marker param [1,grpNull,[grpNull]] == _group) then {
-                if !([_group] call CBE_fnc_CortexExternalTakeover) then {
-                    _orientVehicle sendSimpleCommand "STOPTURNING";
-                };
-                _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
-            };
-        };
-        _state deleteAt "vehicleDangerOrient";
     };
     if (_movementOwner != "") then {[_group,_movementOwner,false] call CBE_fnc_CortexOwnershipLease};
     _state deleteAt "movementLease";

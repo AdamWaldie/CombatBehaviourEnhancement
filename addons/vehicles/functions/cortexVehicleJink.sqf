@@ -6,7 +6,8 @@
  * Zeus, specialist, existing operation and foot-element ownership before issuing movement.
  * Repeat/JIP: The caller records both acceptance and refusal for the danger generation. Accepted
  * movement uses the shared operation generation, movement lease and waypoint cleanup, so locality
- * adoption and cancellation follow the same rules as other vehicle movement.
+ * adoption and cancellation follow the same rules as other vehicle movement. The public marker
+ * includes the operation generation so retiring an old jink cannot erase a successor marker.
  * Arguments: 0 group <GROUP>; 1 state <HASHMAP>; 2 vehicle <OBJECT>; 3 threat position <ARRAY>;
  * 4 threat object <OBJECT, default objNull>; 5 danger generation <NUMBER, default -1>.
  * Return Value: BOOL - true only when the physical jink operation was started.
@@ -83,6 +84,6 @@ if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0
 _state deleteAt "vehicleJinkRefusal";
 _state set ["movementLease",["VEHICLE_JINK",time+25]];
 _state set ["vehicleOperationGeneration",_operation get "generation"];
-_vehicle setVariable ["CBE_Danger_VehicleJink",[_dangerGeneration,_group,_destination,serverTime+25],true];
+_vehicle setVariable ["CBE_Danger_VehicleJink",[_dangerGeneration,_group,_destination,serverTime+25,_generation],true];
 true
 

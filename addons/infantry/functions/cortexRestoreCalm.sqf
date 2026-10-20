@@ -200,7 +200,9 @@ private _vehicleJink=_state getOrDefault ["vehicleDangerJink",[]];
 private _jinkVehicle=_vehicleJink param [1,objNull,[objNull]];
 if (!isNull _jinkVehicle && {local _jinkVehicle}) then {
     private _jinkMarker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
-    if (_jinkMarker param [1,grpNull,[grpNull]] == _group) then {
+    if (_jinkMarker param [1,grpNull,[grpNull]] == _group
+        && {(_state getOrDefault ["vehicleOperationGeneration",-1]) >= 0}
+        && {(_jinkMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}) then {
         _jinkVehicle setVariable ["CBE_Danger_VehicleJink",nil,true];
     };
 };
@@ -211,7 +213,9 @@ if (!isNull _orientVehicle && {local _orientVehicle}) then {
     if (_orientMarker param [1,grpNull,[grpNull]] == _group
         && {(_orientMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}) then {
         private _turnDriver=_orientMarker param [5,objNull,[objNull]];
-        if (!_yieldToExternal && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
+        if (!_yieldToExternal
+            && {(_group getVariable ["CBE_OperationGeneration",-1]) == (_orientMarker param [4,-2,[0]])}
+            && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
             && {!([_orientVehicle] call CBE_fnc_CompatibilityExternalControl)}
             && {!isNull _turnDriver} && {driver _orientVehicle == _turnDriver}
             && {local _turnDriver} && {group _turnDriver == _group} && {!isPlayer _turnDriver}

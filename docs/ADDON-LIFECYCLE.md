@@ -1234,3 +1234,10 @@ lifecycles, including expiry, to CortexVehicles; it no longer rejects current tu
 the obsolete five-field schema. No new worker or deadline renewal is introduced. The route check
 reads one node's native metadata; actual engine handover and performance remain unverified while
 audits are paused.
+
+Vehicle retirement has one normal group-tick executor: the old generic turn/jink teardown is
+removed. Jink markers now carry their operation generation, and ordinary/CALM cleanup removes
+only a matching marker. A legacy marker without that proof cannot grant cleanup authority.
+CALM turn-stop also requires that no newer operation generation has started, even if native
+waypoint content is unchanged. The existing vehicle drill checks the new jink receipt before
+its unchanged real-travel and crew-retention checks; that drill remains prepared, not run.

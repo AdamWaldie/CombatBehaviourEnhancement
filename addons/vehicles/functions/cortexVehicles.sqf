@@ -230,7 +230,8 @@ if (_vehicleMove isNotEqualTo []) then {
                 private _jinkVehicle=_jinkState param [1,objNull,[objNull]];
                 if (!isNull _jinkVehicle && {local _jinkVehicle}) then {
                     private _marker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
-                    if (_marker param [1,grpNull,[grpNull]] == _group) then {
+                    if (_marker param [1,grpNull,[grpNull]] == _group
+                        && {_generation >= 0} && {(_marker param [4,-1,[0]]) == _generation}) then {
                         _jinkVehicle setVariable ["CBE_Danger_VehicleJink",nil,true];
                     };
                 };

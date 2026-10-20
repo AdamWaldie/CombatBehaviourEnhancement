@@ -658,6 +658,13 @@
       "cost": "No worker/world scan/deadline renewal. One-node native receipt comparison reads waypoint handles and metadata; repeated active contact evaluation remains bounded by existing callback but overhead unmeasured.",
       "validation": "Full1482 static/unit, HEMTT/SQF/config/FSM/docs/package gates pass in .qa/vehicle-route-lifecycle-final-build.log. No Arma launch, parity percentage or physical acceptance.",
       "limits": "Engine order replacement, native turn quiescence, provider handover, reverse fallback and performance remain unverified. Same-value native control without changed receipts remains ambiguous."
+    },
+    "retirementFollowup": {
+      "baseline": "bf3aa364",
+      "change": "Removed obsolete generic GroupTick vehicle release/STOPTURNING/marker teardown after early lifecycle dispatch. Jink marker5fields carries operationgeneration; CortexVehicles and CALM remove only samegeneration marker. CALM STOPTURNING additionally requires monotonic group operationgeneration still original, protecting replacement operation with unchanged waypoint metadata.",
+      "fixture": "Existing runVehicleDrills jink ownership prerequisite checks5field marker and exact state operationgeneration. Physical travel/crew checks unchanged. Not run.",
+      "limits": "Missing old receipts intentionally cannot authorize cleanup. Native command quiescence, actual route and provider handover/performance remain unverified. No source-parity or build-score increase.",
+      "validation": "Focused609 and full1482 existing tests, HEMTT/SQF/config/FSM/docs/package gates pass .qa/vehicle-retirement-build.log. Candidate .qa/candidates/vehicle-retirement-bf3aa364 independently verified unsigned fingerprint7bb847098621214703c3d781e6d6ce37e0c39ac1bfe3a943aa27ce16e2e6a1d1. No runtime claim."
     }
   }
 }
