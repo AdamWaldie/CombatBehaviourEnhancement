@@ -4423,7 +4423,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)
         self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}',assessment)
         capacity=assessment.split('private _availableFoot=',1)[1].split('private _houses=',1)[0]
-        self.assertIn('_foot select {[_x] call CBE_fnc_CortexActorFireTaskAvailable}',capacity)
+        self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',capacity)
+        self.assertIn('simulationEnabled _x',capacity)
+        self.assertIn('_x checkAIFeature "FIREWEAPON"',capacity)
         self.assertIn('if (_availableFoot isEqualTo []) exitWith',capacity)
         self.assertIn('"ACTOR_TASKS_BUSY"',capacity)
         self.assertIn('private _armedFoot=_availableFoot select',capacity)
@@ -6496,6 +6498,13 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(case,matrix)
 
     def test_infantry_explicit_fire_respects_group_and_unit_roe(self):
+        assessment=source('cortexTacticalAssess')
+        available=assessment.split('private _availableFoot=',1)[1].split('if (_availableFoot isEqualTo [])',1)[0]
+        for guard in ('simulationEnabled _x','!isObjectHidden _x','_x checkAIFeature "FIREWEAPON"',
+                      'CortexActorFireTaskAvailable'):
+            self.assertIn(guard,available)
+        physical=assessment.split('private _foot=',1)[1].split('private _availableFoot=',1)[0]
+        self.assertNotIn('FIREWEAPON',physical)
         suppression=source('cortexFireControl').split('// Disciplined suppression',1)[1]
         for marker in ('_geometryChecks >= 3','!terrainIntersectASL',
                        'true,1,"FIRE","GEOM"','_surface vectorDistance _targetASL <= 3',

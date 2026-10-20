@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Hidden, simulation-disabled and FIREWEAPON-disabled actors do not supply tactical fire capacity.
+ * Physical _foot strength stays separate; an unavailable roster yields existing task handoff.
  * Current rifle capacity also requires loaded or spare main-muzzle ammunition;
  * an underbarrel reserve cannot substitute for an empty primary rifle.
  * Current rifle/AT/AA capacity uses the shared protected-task/reservation predicate;
@@ -72,7 +74,10 @@ private _foot=(units _group) select {
 };
 // Current tactical capacity excludes protected tasks and independently leased actors.
 // Physical squad strength remains separate in _foot for diagnostics and other layers.
-private _availableFoot=_foot select {[_x] call CBE_fnc_CortexActorFireTaskAvailable};
+private _availableFoot=_foot select {
+    simulationEnabled _x && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+};
 if (_availableFoot isEqualTo []) exitWith {
     _result set ["reason","ACTOR_TASKS_BUSY"];
     _result set ["evidence",[count _foot,0]];

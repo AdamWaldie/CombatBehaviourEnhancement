@@ -110,5 +110,24 @@
     "physicalAcceptance": false,
     "audits": "PAUSED",
     "scoresChanged": false
+  },
+  "tacticalCapacityAlignment20261020": {
+    "baseline": "a062855f",
+    "finding": "Fire control excludes hidden/simulation/FIREWEAPON-disabled actors but assessment still counted them toward rifle/launcher capacity; all-unavailable actors could request low-firepower fallback.",
+    "implementation": "AvailableFoot filters same3 live physical/fire gates plus existing protected-task predicate. Physical foot roster remains unchanged; empty available roster uses ACTOR_TASKS_BUSY -> ACTOR_TASK_HANDOFF without group fallback.",
+    "sourceSHA256": "bd2c762228d2ca1e0f133538adf2509edec7cb84abed31ebc2003c6ba6159bb6",
+    "movementTrace": "FireControl precedes TacticalStart in group CONTACT tick. TacticalStart delegates REPOSITION/fallback to current owner CortexTacticalReposition with native/planning/reservation guards. Three suppression geometry samples cannot justify whole-group movement; no detector or competing doMove added.",
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "full": ".qa/cbe-tactical-fire-capacity-build.log",
+      "initialFocused": ".qa/cbe-tactical-fire-capacity-focused.log existing exact-spelling contract updated to expanded eligibility while retaining task predicate.",
+      "independent": ".qa/cbe-tactical-fire-capacity-independent.log",
+      "candidate": ".qa/candidates/tactical-fire-capacity-a062855f",
+      "fingerprint": "2eb137a9b996a6cb209299de5b5a536ff95d2ae07852d124901bb2ac49b17952"
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
   }
 }
