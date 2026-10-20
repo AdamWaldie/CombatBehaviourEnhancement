@@ -512,3 +512,8 @@ Infantry and routine ground-vehicle bullet suppression share one read-only geome
 ### Occupied-platform takeover during danger response
 
 The engine danger wait rechecks the affected actor and their current occupied platform through the read-only external-control marker boundary. A live or malformed platform declaration interrupts the existing response even when individual crew markers remain unset. The check adds no crew search, configuration scan, timer or movement command. It prevents continuing the old finite danger response; it does not establish provider quiescence or implement a full external-controller handover. Physical takeover timing remains unverified while audits are paused.
+
+
+### Danger reactions during native path preparation
+
+Native INIT, PLANNING and REPLAN states retain mobile danger posture. New danger-cover movement yields at admission and immediately before its command; group hiding excludes these states before selecting new posture actors. INIT means the endpoint exists and operative planning should start; REPLAN retains an existing plan while searching for another. These protections do not cancel an existing CBE-owned cover leg, add waits or renew deadlines. Ordinary idle reactions remain eligible. The group-hide filter adds one native state read for each otherwise qualifying candidate in its existing 64-member bound, without world queries or workers. Physical path continuity and cost remain unmeasured. Reference: https://community.bistudio.com/wiki/getUnitState

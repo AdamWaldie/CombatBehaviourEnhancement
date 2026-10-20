@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * New posture admission preserves native INIT/PLANNING/REPLAN movement preparation.
  * Purpose: Apply or release one finite squad-level low-profile response after immediate incoming danger without taking movement, target or firing ownership.
  * Locality / Authority: Runs only on the owner of the local AI group from the existing group-brain step. It changes weak stance only for local, idle, ordinary on-foot actors not reserved by another CBE operation.
  * Selection inspects at most 64 group members and applies posture to at most four actors.
@@ -168,6 +169,7 @@ private _candidates=_members select {
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _x in ["","ATTACK","FIRE","SUPPRESS"]}
         && {abs (speed _x) <= 0.5}
+        && {!(getUnitState _x in ["INIT","PLANNING","REPLAN"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
         && {(_x getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
 };

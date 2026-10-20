@@ -6,7 +6,7 @@
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
  * one finite move. Admission ignores only valid expired actor reservations; live or malformed leases block.
- * Native path planning also defers new cover admission without cancelling its destination.
+ * Native INIT/PLANNING/REPLAN states also defer new cover admission without cancelling its destination.
  * Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
  * Changed orders and legacy leases retire metadata without return-to-formation commands.
@@ -172,7 +172,7 @@ if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
-    || {getUnitState _actor == "PLANNING"}
+    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
@@ -245,7 +245,7 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
-    || {getUnitState _actor == "PLANNING"}
+    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
