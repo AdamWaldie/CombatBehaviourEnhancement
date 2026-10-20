@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Dormant/hidden actors and queued medical healers retain assignment identity but yield
+ * approach and event/delayed duck commands. No queue is cleared or deadline renewed.
  * Delayed movement retries require idle/STOP or the exact owned MOVE; native combat, waiting
  * and follow tasks retain authority even if their destination did not change.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
@@ -133,6 +135,8 @@ private _mayIssueMovement = {
     _commandOwned && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
@@ -214,7 +218,9 @@ private _buildingAnchor = {
             _unit setVariable ["CBE_AIPass_GarrisonHandlers", true];
             private _duck = {
                 params ["_unit"];
-                if (!local _unit || {isPlayer _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo []}
+                if (!local _unit || {isPlayer _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit}
+                    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+                    || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo []}
                     || {!([group _unit] call CBE_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}) exitWith {};
                 // A stale garrison marker grants no posture authority over another task.
                 if (!isNull objectParent _unit || {!isNull remoteControlled _unit}
@@ -239,7 +245,10 @@ private _buildingAnchor = {
                 _unit setUnitPos _duckStance;
                 [{
                     params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
-                    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit} && {(_unit getVariable ["CBE_AIPass_DuckUntil", -1]) == _until}
+                    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
+                        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+                        && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                        && {(_unit getVariable ["CBE_AIPass_DuckUntil", -1]) == _until}
                         && {group _unit == _duckGroup} && {local _duckGroup}
                         && {(_duckGroup getVariable ["CBE_AIPass_GarrisonGeneration",-2]) == _duckGeneration}
                         && {(_duckGroup getVariable ["CBE_AIPass_Epoch",0]) == _duckEpoch}
@@ -338,6 +347,8 @@ private _buildingAnchor = {
         !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
             && {_commandOwned} && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
             && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}

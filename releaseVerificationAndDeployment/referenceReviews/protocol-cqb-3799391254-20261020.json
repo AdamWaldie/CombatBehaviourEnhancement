@@ -1,0 +1,105 @@
+{
+  "workshopId": "3799391254",
+  "name": "PROTOCOL AI CQB",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3799391254\\addons\\prototcol_ai_cqb.pbo",
+    "sha256": "d6f58e23fa013530a0bdde294df9309b1e85fd97887f37d0ebfb372732452630",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 613,
+        "sha256": "213b04b1235b67183893389bf1fee227bba7d6acd74f5644fc0c48ed5da0b53b"
+      },
+      {
+        "name": "functions\\fn_cqb.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 8269,
+        "sha256": "90c4d574254a267f7a22257d7cdf227a081e5470844ded566bb5544ffb4cd536"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 1477,
+        "sha256": "b3f6669116d81e962e9485c95ad2603764ceb72af59f306b056731fcef150676"
+      }
+    ]
+  },
+  "scope": "Both readable SQF files fully reviewed: fn_cqb.sqf and XEH_preInit.sqf. Binary config/startup binding, exact dependencies and licence remain unverified. No raw source copied into product.",
+  "behaviourDispositions": [
+    {
+      "source": "Nearby building discovery/automatic occupation",
+      "intent": "Use nearby interior positions during urban contact.",
+      "cbe": "BuildingContactSelect/IndoorActorDispatch use known contact/position clues; explicit CortexGarrison and CortexClearBuilding remain distinct behaviour tasks.",
+      "departure": "No allUnits enemy-presence oracle or automatic capture of every building near leader. Source clears first building with positions, which can differ from enemy-trigger building. CBE keeps target identity/transform.",
+      "state": "EXISTING_INTENT_PATHS_PHYSICAL_QUALITY_UNVERIFIED"
+    },
+    {
+      "source": "Select nearest buildingExit and door trigger, open/close door",
+      "intent": "Reach a real entrance and interact with nearby doors.",
+      "cbe": "CortexBuildingDoor and building FSM entry routing, actual actor proximity, locked-door/ownership guards.",
+      "departure": "Source arrival wait is commented out; door interaction can occur remotely before entry. Do not copy fixed20door/51exit loops or prematurely close a door on followers.",
+      "state": "EXISTING_SCOPED_EXECUTION_NOT_PARITY_PROOF"
+    },
+    {
+      "source": "Grenade before entry",
+      "intent": "Prepare a hostile interior before exposing assaulters.",
+      "cbe": "Existing finite tactical fragmentation has inventory/projectile/ROE/ownership safety; room geometry-specific door grenade execution is not established by that general feature.",
+      "departure": "Reject adding HandGrenade to inventory, forced fire without a safety solution and immediate retreat with no verified projectile.",
+      "state": "DOOR_SPECIFIC_SAFE_DELIVERY_UNPROVEN_NO_BLIND_PORT"
+    },
+    {
+      "source": "Sequential building positions and whole-group doMove",
+      "intent": "Continue through the interior rather than occupy a single point.",
+      "cbe": "BuildingOperationStep finite pair routes and confirmed visits, bounded unreachable-node handling; IndoorActorOperation search-memory visits up to4nodes under original deadline.",
+      "departure": "Source sends every alive member to same room point, advances after15s timeout and sprays suppression nearby. CBE does not count timeout as arrival/room safety.",
+      "state": "EXISTING_LAYERED_EXECUTORS_PHYSICAL_FLOW_PENDING"
+    },
+    {
+      "source": "Distribute units by building position modulo count",
+      "intent": "Use building cover and observation positions.",
+      "cbe": "Explicit Garrison assignments, source-aware native paths, optional operator teleport and scoped post/duck handling.",
+      "departure": "Reject second random offset doMove overriding the first interior destination, permanent NoVoice and unleased speed/stance resets.",
+      "state": "EXISTING_GARRISON_PATH_WITH_LIFECYCLE_FIX"
+    },
+    {
+      "source": "CBA enable/radius/stance/grenade/speed/voice settings",
+      "intent": "Configurable behaviour.",
+      "cbe": "CBA owns configuration, Zeus/ZEN owns tasks. Existing behaviour-specific gates and task parameters are retained.",
+      "departure": "No duplicate source-branded settings. Source radius setting gates activation while internal query/distance still hardcodes30m. Cosmetic voice suppression is not a tactical requirement.",
+      "state": "RECONCILED_INTENT_NOT_SETTING_PARITY"
+    }
+  ],
+  "costAndOwnershipDefects": [
+    "Endless allGroups loop without delay, perbuilding allUnits scan and nested spawned room workers.",
+    "No group/actor locality, Zeus/native/specialist ownership or newer-order cancellation contract.",
+    "CQBClearing can remain set on early target-building failure; DefendCQB and Location markers persist without lifecycle cleanup."
+  ],
+  "concreteCbeFix": "Garrison initial and recurring approach guards plus event/delayed duck handlers now yield to simulation dormancy, hidden actors and queued treatment. Assignment identity/timing retained; no medical queue mutation; release PATH cleanup left intact.",
+  "remaining": "Physical entry/flow/repeated use, actual safe fragmentation at a doorway, garrison handback and performance remain unverified. No broad source parity or acceptance claim.",
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "validation": {
+    "focusedTests": 607,
+    "fullTests": 1477,
+    "compilerFsmDocsPackage": "PASS",
+    "independentVerification": "PASS",
+    "candidate": ".qa\\candidates\\garrison-dormancy-medical-75497fa4",
+    "fingerprint": "5c2c6685bf9568b5a3d913499f6dd07900521be5af461880715d7792652b697e",
+    "signed": false,
+    "source": "75497fa4 plus intended garrison availability/docs"
+  }
+}
