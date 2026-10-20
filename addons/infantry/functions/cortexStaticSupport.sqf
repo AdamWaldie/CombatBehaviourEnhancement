@@ -12,12 +12,14 @@
  * discards engine commands and lets the new owner reassess. Cleanup cancels only CBE's exact still-
  * matching assignment; Zeus, player, specialist, medical, equipment and newer actor movement ownership are never overwritten.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>.
+ * 3 release only <BOOL>, false; 4 yield during release <BOOL>, false. Release-only never discovers
+ * or advances a weapon/deployment; it retires just this emplacement assignment.
  * Return Value: STRING - DISABLED, IDLE, MOVING, ACTIVE, FAILED or YIELDED.
- * Current callers: CBE_fnc_CortexGroupTick while a group is in confirmed CONTACT.
+ * Current callers: CBE_fnc_CortexGroupTick during CONTACT; CortexRestoreCalm for release-only cleanup.
  * Example: [group player, [group player] call CBE_fnc_CortexGroupState, []] call CBE_fnc_CortexStaticSupport;
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
 private _lease=_group getVariable ["CBE_Danger_StaticSupport",[]];
 private _clearActorMove={
@@ -56,6 +58,13 @@ private _release={
         };
     };
     _group setVariable ["CBE_Danger_StaticSupport",nil,true];
+};
+
+// Both contact and CALM teardown share the same actor-task and assignment protections.
+// Release-only is evaluated before feature gates, deployment and opportunity discovery.
+if (_releaseOnly) exitWith {
+    [_releaseExternal || {count _lease >= 7 && {[_group] call CBE_fnc_CortexExternalTakeover}}] call _release;
+    "IDLE"
 };
 
 private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]

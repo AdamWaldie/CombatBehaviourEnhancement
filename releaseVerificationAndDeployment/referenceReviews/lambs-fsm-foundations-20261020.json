@@ -463,10 +463,17 @@
     ],
     "limits": [
       "Previously issued native boarding is not proven cancelled or quiescent when yielding.",
-      "Generic CALM static teardown still needs full actor task and successor ownership review.",
       "Deploy/pack semantic comparison remains incomplete.",
       "Physical boarding, firing, repeated contact, locality and overhead remain unverified."
     ],
-    "validation": "Full 1482 existing unit/static cases, HEMTT compilation and build gates pass. No live audit; scores unchanged."
+    "validation": "Full 1482 existing unit/static cases, HEMTT compilation and build gates pass. No live audit; scores unchanged.",
+    "sharedReleaseFollowup": {
+      "baseline": "ca9ca258",
+      "change": "CortexRestoreCalm delegates emplacement teardown to CortexStaticSupport release-only mode. The mode exits before feature gates/discovery/deployment and uses the same protected command, active successor reservation, combat-effective actor, player/locality/group, external owner and exact assigned weapon checks as CONTACT cleanup. Current external takeover is checked when a lease exists.",
+      "reason": "Independent CALM path previously checked only local/alive actor, queued care and matching assignment; it could issue unassign/GetOut into a protected native task or newer movement reservation.",
+      "cost": "One helper call per CALM cleanup; external-owner evaluation only when a static-support lease exists. No new worker, world query or deployment.",
+      "limits": "Identical external assignment/order values remain indistinguishable; existing native boarding quiescence and split-locality handback are unverified. Carried deploy/pack teardown is separate and remains under review.",
+      "validation": "Existing static regression cases extended; full1482 unit/static, HEMTT/config/FSM/docs/package pass. Audits paused."
+    }
   }
 }

@@ -164,7 +164,11 @@ simulation-enabled, empty friendly static weapon. One uncommitted nonleader rece
 assignment and a twenty-second physical boarding window. The group does not wait: its remaining
 actors retain fire, manoeuvre, casualty replacement and withdrawal. Failure is recorded without a
 retry during that contact. CONTACT cleanup cancels only the exact CBE assignment; Zeus or another
-external owner causes a command-free handover. CBE never teleports an actor into the seat.
+external owner causes a command-free handover. CONTACT and return-to-calm use one release path:
+newer actor reservations, protected native tasks, pending medical treatment and changed assignments
+prevent native unassignment or exit commands. A release-only call cannot discover or deploy another
+weapon. Hidden emplacements are excluded. Already-issued native boarding may still be pending when
+CBE yields; cancellation and physical handback remain unverified. CBE never teleports an actor into the seat.
 CBE_AIPass_StaticDeploy_Enable is a separate next-operation control, default true. If no
 usable emplacement exists, the same finite support opportunity may select one compatible primary
 weapon bag and base bag from uncommitted local AI. The pair physically moves to one of two bounded,

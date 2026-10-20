@@ -1373,8 +1373,9 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('allowDamage',support)
         self.assertIn('call CBE_fnc_CortexStaticSupport',group_tick)
         self.assertLess(group_tick.index('call CBE_fnc_CortexStaticSupport'),group_tick.index('call CBE_fnc_CortexTacticalStart'))
-        for marker in ['CBE_Danger_StaticSupport','orderGetIn false','unassignVehicle','_yieldToExternal']:
-            self.assertIn(marker,restore)
+        self.assertIn('[_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport', restore)
+        for marker in ['CBE_Danger_StaticSupport','orderGetIn false','unassignVehicle']:
+            self.assertIn(marker,support)
         audit=(Path(__file__).parent/'cortexQA/runContact.sqf').read_text(encoding='utf-8')
         for marker in [
             'DANGER-static-support-disabled','DANGER-static-support-physical-seat',

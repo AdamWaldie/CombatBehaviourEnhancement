@@ -190,19 +190,8 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
         if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]};
     };
 } forEach units _group;
-private _staticSupport=_group getVariable ["CBE_Danger_StaticSupport",[]];
-if (count _staticSupport >= 7) then {
-    private _staticActor=_staticSupport param [1,objNull,[objNull]];
-    private _staticWeapon=_staticSupport param [2,objNull,[objNull]];
-    if (!_yieldToExternal && {!isNull _staticActor} && {alive _staticActor} && {local _staticActor}
-        && {(_staticActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-        && {!isNull _staticWeapon} && {assignedVehicle _staticActor == _staticWeapon}) then {
-        [_staticActor] orderGetIn false;
-        unassignVehicle _staticActor;
-        if (vehicle _staticActor == _staticWeapon) then {_staticActor action ["GetOut",_staticWeapon]};
-    };
-};
-_group setVariable ["CBE_Danger_StaticSupport",nil,true];
+// Use the same exact-assignment release as CONTACT; never start a deployment during CALM.
+[_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport;
 _group setVariable ["CBE_Danger_StaticAttempt",nil,true];
 private _staticDeployment=_group getVariable ["CBE_Danger_StaticDeployment",[]];
 if (count _staticDeployment >= 10) then {

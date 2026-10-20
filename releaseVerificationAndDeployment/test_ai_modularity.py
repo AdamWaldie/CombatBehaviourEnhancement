@@ -576,8 +576,13 @@ class SemanticComponentContracts(unittest.TestCase):
         active = source.split('if (count _lease >= 7) exitWith', 1)[1]
         self.assertLess(active.index('ace_medical_ai_healQueue'), active.index('"ACTIVE"'))
         calm = (ROOT/'addons/infantry/functions/cortexRestoreCalm.sqf').read_text()
-        static = calm.split('private _staticSupport=', 1)[1].split('private _staticDeployment=', 1)[0]
-        self.assertLess(static.index('ace_medical_ai_healQueue'), static.index('orderGetIn false'))
+        self.assertIn('[_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport', calm)
+        self.assertNotIn('private _staticSupport=', calm)
+        release_only = source.split('if (_releaseOnly) exitWith', 1)[1].split('private _enabled=', 1)[0]
+        self.assertIn('call _release', release_only)
+        self.assertNotIn('CortexStaticDeployStep', release_only)
+        self.assertNotIn('orderGetIn true', release_only)
+        self.assertLess(source.index('if (_releaseOnly) exitWith'), source.index('nearestObjects'))
 
     def test_danger_posture_restore_is_generation_and_owner_bound(self):
         source = (ROOT/'addons/infantry/functions/dangerReact.sqf').read_text()
