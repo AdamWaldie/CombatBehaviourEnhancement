@@ -8,11 +8,16 @@ class FireCorridorTests(unittest.TestCase):
         source=(ROOT/'addons/infantry/functions/cortexLineOfFireClear.sqf').read_text(encoding='utf-8')
         code=source.split('params [[',1)[1]
         for marker in ('count _target != 3','!(finite _x)','_length > 6000','_length < 0.1',
-                       '_from vectorAdd _target','_horizontalLength*0.5+_coneWidth+10',
+                       '_from vectorAdd _target','_horizontalLength*0.5+_queryWidth+10',
                        '_angle,true,-1','nearEntities [["CAManBase","LandVehicle"],false,true,true]',
                        'count _candidates > 64','vehicle _other == _platform'):
             self.assertIn(marker,code)
         self.assertEqual(code.count('nearEntities'),1)
+        for proof in ('_coneWidth max _safetyRadius','indirectHitRange','12 max (4*_range)',
+                      '_safetyRadius > 250','_position vectorDistance _target <= _safetyRadius',
+                      '_blastUnsafe || {!_ownPlatform'):
+            self.assertIn(proof,code)
+        self.assertLess(code.index('_safetyRadius > 250'),code.index('nearEntities'))
         self.assertNotIn('min 600',code)
         self.assertLess(code.index('count _candidates > 64'),code.index('_candidates findIf'))
         for forbidden in ('doFire','doSuppressiveFire','setVariable','spawn','waitUntil'):

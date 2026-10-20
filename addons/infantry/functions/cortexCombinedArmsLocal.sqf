@@ -238,7 +238,7 @@ if (_role == "GROUND_FIRE") exitWith {
     };
     if (_fireRefusal in ["NO_STATION_AMMO","NO_TARGET_AMMO","NO_FIRE_PLATFORM"]
         && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {[_gunner] call _waitForReload};
-    if (_fireRefusal == "" && {!([_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear)}) then {
+    if (_fireRefusal == "" && {!([_gunner,_firePoint,_ammoObservation getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear)}) then {
         _fireRefusal="BLOCKED_FIRE_LANE";
     };
     if (_fireRefusal != "") exitWith {

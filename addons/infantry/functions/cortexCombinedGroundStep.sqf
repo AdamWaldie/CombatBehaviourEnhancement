@@ -231,7 +231,7 @@ if (_arrivalDistance <= 70) exitWith {
         && {_ammoObservation getOrDefault ["reloadInProgress",false]}) exitWith {1};
     if (_fireAllowed) then {
         _fireDecision="BLOCKED_FIRE_LANE";
-        private _laneClear=[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear;
+        private _laneClear=[_gunner,_firePoint,_ammoObservation getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear;
         if !(call _routeCurrent) then {_fireDecision="NATIVE_ORDER_CHANGED"} else {
             if (_laneClear && {call _roleCurrent}) then {
                 if ([_asset,_gunner,_ammoObservation] call CBE_fnc_CortexGroundSelectMuzzle) then {

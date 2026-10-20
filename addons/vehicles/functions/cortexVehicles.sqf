@@ -804,7 +804,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             // an unusable first contact must not starve the next safe, compatible target.
             // Each candidate gets at most one station/lane observation; stop on first success.
             private _target=objNull;
-            private _suppressionPoint=[];
+            private _suppressionPoint=[];private _targetLanePoint=[];
             {
                 private _contactRow=_gunneryContacts select (_x select 2);
                 private _candidate=_contactRow select 0;
@@ -828,8 +828,8 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     !(_vehicle isKindOf "LandVehicle")
                         || {[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady}
                 };
-                if (_stationReady && {[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear}) exitWith {
-                    _target=_candidate;
+                if (_stationReady && {[_gunner,_reportedASL,_stationSelection getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear}) exitWith {
+                    _target=_candidate;_targetLanePoint=+_reportedASL;
                     if (_suppressOnly) then {_suppressionPoint=+_reportedASL};
                 };
             } forEach (_ranked select [0,8]);
@@ -839,7 +839,13 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 private _fireObservation=createHashMap;
                 private _freshStationReady=!(_vehicle isKindOf "LandVehicle")
                     || {[_vehicle,_gunner,_target,_fireObservation,false,_suppressionPoint isNotEqualTo []] call CBE_fnc_CortexGroundFireReady};
-                if (_freshStationReady && {[] call _mayIssueVehicle}) then {
+                // If native loading changed the selected magazine, its blast envelope
+                // cannot borrow the earlier candidate's cone/point observation.
+                private _freshLaneSafe=_freshStationReady && {
+                    (_fireObservation getOrDefault ["loadedMagazine",""]) == (_stationSelection getOrDefault ["loadedMagazine",""])
+                        || {[_gunner,_targetLanePoint,_fireObservation getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear}
+                };
+                if (_freshLaneSafe && {[] call _mayIssueVehicle}) then {
                     private _muzzleSelected=!(_vehicle isKindOf "LandVehicle")
                         || {[_vehicle,_gunner,_fireObservation] call CBE_fnc_CortexGroundSelectMuzzle};
                     // Exact native turret acknowledgement, not selection request, grants fire.

@@ -5084,7 +5084,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexLineOfFireClear',arrival)
         for text in (arrival,source('cortexCombinedArmsLocal')):
             self.assertIn('_gunner getHideFrom _target',text)
-            self.assertIn('[_gunner,_firePoint] call CBE_fnc_CortexLineOfFireClear',text)
+            self.assertIn('[_gunner,_firePoint,_ammoObservation getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear',text)
             self.assertNotIn('aimPos _target',text)
             self.assertIn('_believed isNotEqualTo [0,0,0]',text)
         self.assertIn('_believed=+_position',source('cortexCombinedArmsLocal'))
@@ -5927,11 +5927,13 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(knowledge.index('_domain == "ALL"'),knowledge.index('if (count _candidates > 8)'))
 
         self.assertIn('[_vehicle,_gunner,_candidate,_stationSelection,true,_suppressOnly] call CBE_fnc_CortexGroundFireReady',selection)
-        self.assertIn('[_gunner,_reportedASL] call CBE_fnc_CortexLineOfFireClear',selection)
-        self.assertIn('exitWith {\n                    _target=_candidate;',selection)
+        self.assertIn('[_gunner,_reportedASL,_stationSelection getOrDefault ["loadedMagazine",""]] call CBE_fnc_CortexLineOfFireClear',selection)
+        self.assertIn('exitWith {\n                    _target=_candidate;_targetLanePoint=+_reportedASL;',selection)
         self.assertLess(selection.index('if (!isNull _target)'),selection.index('_gunner doTarget _target'))
         self.assertNotIn('nearEntities',selection)
         self.assertNotIn('aimPos _candidate',selection)
+        self.assertIn('private _freshLaneSafe=',selection)
+        self.assertIn('[_gunner,_targetLanePoint,_fireObservation getOrDefault ["loadedMagazine",""]]',selection)
         for proof in ('(_contactRow select 2) > 3','_vehicle distance2D _reported >= 50',
                       'abs speed _vehicle < 30','currentCommand _gunner != "SUPPRESS"',
                       'isNull _engaging || {_engaging == _candidate}',
@@ -8825,7 +8827,8 @@ class CortexOperations(unittest.TestCase):
         for output in ('loadedWeapon','loadedMuzzle','loadedMagazine','loadedTurret'):
             self.assertIn(f'_observation set ["{output}"',ready)
         self.assertLess(fire.index('private _freshStationReady='),fire.index('_gunner doTarget'))
-        self.assertIn('if (_freshStationReady && {[] call _mayIssueVehicle}) then {',fire)
+        self.assertIn('private _freshLaneSafe=_freshStationReady && {',fire)
+        self.assertIn('if (_freshLaneSafe && {[] call _mayIssueVehicle}) then {',fire)
 
     def test_ground_reload_admission_reuses_tick_and_preserves_route_and_report_age(self):
         local=source('cortexCombinedArmsLocal')
