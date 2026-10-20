@@ -7798,6 +7798,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('burstExpires',text)
         self.assertIn('burstNext',text)
         self.assertIn('if ([_aircraft] call CBE_fnc_CortexFireCountermeasure)',text)
+        for proof in ('_x knowsAbout _candidate >= 1','_x getHideFrom _candidate',
+                      '_targetOwners select [0,16]','(crew _aircraft) select [0,12]',
+                      '["targetPoint",+_point]','_point vectorDiff (getPosASL _aircraft)',
+                      'captive _candidate','ace_captives_isSurrendering','ace_captives_isHandcuffed'):
+            self.assertIn(proof,text)
+        self.assertNotIn('getPosASL _target',text)
+        self.assertNotIn('distance _target',text)
+        self.assertIn('if ("target" in _job && {!([_target] call _targetValid)',text)
+        self.assertIn('if (_belief call _vectorValid && {_belief isNotEqualTo [0,0,0]}) exitWith',text)
+
+        takeover=text.split('if !((_aircraft getVariable',1)[1].split('if (isTouchingGround',1)[0]
+        self.assertIn('_job deleteAt "burst"',takeover)
+
         spec=source('cortexTuningSpec')
         settings=source('aiConfig')
         discover=source('cortexDiscover')

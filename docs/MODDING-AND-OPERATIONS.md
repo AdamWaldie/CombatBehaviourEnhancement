@@ -532,3 +532,8 @@ The convoy FSM takes its spacing-pair count from the current tick and task revis
 ### Pending treatment during driving handover
 
 Driving crew replacement now treats a living crew member with queued ACE care as task-owned before HEAL appears. Its existing availability check runs before candidate admission and both seat actions. Native boarding cooperation similarly ends for a queued healer, preserving its original terminal seat receipt instead of prolonging a speed hold. Ordinary driver/operator admission and reverse handback also refuse queued treatment. CBE only reads the queue; it does not clear treatment, manufacture seat occupancy, issue a late recall, or extend recovery deadlines. A native action or rear move issued before takeover is not proven quiescent by this refusal. Runtime medical/seat sequencing and performance remain unverified while audits are paused.
+
+
+### Attack-run countermeasure timing from native belief
+
+The fallback aircraft countermeasure sampler requires an assigned hostile that a current crew witness knows and a finite nonzero native believed position. At most sixteen crew witnesses are inspected; no target transform is read. Approach and departure use the fixed ASL estimate for the original ninety-second episode, which ends on target invalidation or expiry. The adaptive attack controller taking ownership discards fallback episode/burst state. The three-request/eight-second burst bound and thirty-second cooldown remain; helper return values count requests, not observed releases. This changes fallback countermeasure timing only, without flight paths, target revelation or weapon attacks. Native release, tactical effectiveness and runtime cost remain unverified while audits are paused.
