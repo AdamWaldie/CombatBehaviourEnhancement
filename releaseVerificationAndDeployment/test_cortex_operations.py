@@ -4020,12 +4020,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["teamSizes",[count _element,count _coverElement]]',source('cortexAdvanceStart'))
         self.assertIn('["teamSizes",[count _first,count _second]]',source('cortexSupportBoundStart'))
         issue=step.split('private _issue = {',1)[1].split('private _issueEpoch=',1)[0]
-        for proof in ('!_support','["CROSS_FAR","CONSOLIDATE"]','_armedMovers < _minimumMovers',
+        for proof in ('["CROSS_FAR","CONSOLIDATE"]','_armedMovers < _minimumMovers',
                       '_coverCandidates findIf','AMMO_CAPACITY_LOST'):
             self.assertIn(proof,issue)
         self.assertIn('if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units}',issue)
         self.assertNotIn('CortexPrimaryAmmoAvailable',step.split('private _issue = {',1)[0])
         self.assertIn('_result="AMMO_CAPACITY_LOST" call _end',issue)
+        self.assertNotIn('if (!_support &&',issue)
+        support=source('cortexSupportBoundStart')
+        self.assertIn('simulationEnabled _x',support)
+        self.assertIn('!isObjectHidden _x',support)
         self.assertNotIn('removeMagazine',issue)
         self.assertNotIn('reload ',issue)
         def may_bound(support,kind,movers,minimum,cover):

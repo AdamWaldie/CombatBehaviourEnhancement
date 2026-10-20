@@ -92,6 +92,7 @@ private _moveOwned={
 };
 private _fit=(units _group) select {
     local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
+        && {simulationEnabled _x} && {!isObjectHidden _x}
         && {!(_x in _unavailable)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}

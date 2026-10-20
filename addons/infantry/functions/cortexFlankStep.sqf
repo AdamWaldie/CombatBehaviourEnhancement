@@ -802,10 +802,10 @@ private _issue = {
     if (_teamDeferred) exitWith {_result=0.25};
     if (!_viable) exitWith {_result="RECOVERY_FAILED" call _end};
     (_points select (_drill get "index")) params ["_point", "_kind"];
-    // Check ammunition only at the next ordinary bound, not every movement sample.
+    // Check ammunition only at the next bound, not every movement sample.
     // Finishing a road crossing or consolidating must not strand dry actors in place.
-    // Coordinated roles retain their parent cover/readiness protocol as a separate scope.
-    if (!_support && {!(_kind in ["CROSS_FAR","CONSOLIDATE"])}) then {
+    // Coordinated dispatch capacity cannot replace this current local team check.
+    if (!(_kind in ["CROSS_FAR","CONSOLIDATE"])) then {
         private _armedMovers={[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} count _units;
         private _coverCandidates=if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units};
         private _armedCover=_coverCandidates findIf {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable} >= 0;
