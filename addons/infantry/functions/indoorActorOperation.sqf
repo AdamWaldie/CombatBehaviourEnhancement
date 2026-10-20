@@ -23,6 +23,8 @@
  * older position-only admission only while identical to current SEARCH state and its deadline.
  * Ordinary beliefs retain five-second freshness; this grants no hostile identity or room-safety proof.
  * Confirmed same-episode physical visits are shared within the existing sixteen-node preference budget.
+ * Search-memory investigation may visit up to four nodes per actor under the same original deadline
+ * and twelve-probe search. Further legs require the exact unchanged, physically reached owned move.
  * observationOnly BOOL false keeps position-only tasks bound to investigation enable/stealth policy.
  * Optional observationClue ARRAY binds shared visit preference to the exact original body clue;
  * only a physically reached OBSERVE result records a node, never admission/failure/clearance.
@@ -108,6 +110,33 @@ private _available={
         && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
     && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
     && {_searchMemory isEqualTo [] || {call _searchMemoryValid}}
+};
+// Only STEP after a confirmed OBSERVE can add shared memory; terminal cleanup cannot
+// turn an assignment, timeout or changed route into a visit.
+private _recordSearchVisit={
+    private _visitTarget=_brain getOrDefault ["target",[]];
+    private _visitHouse=_brain getOrDefault ["building",objNull];
+    private _visitTransform=_brain getOrDefault ["transform",[]];
+    if (!(call _searchMemoryValid) || {!(call _releaseAvailable)}
+        || {(_brain getOrDefault ["phase",""]) != "OBSERVE"}
+        || {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isNotEqualTo _brain}
+        || {(_brain getOrDefault ["group",grpNull]) != _group}
+        || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {(_brain getOrDefault ["operationGeneration",-1]) != (_group getVariable ["CBE_OperationGeneration",0])}
+        || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain getOrDefault ["route",[]])}
+        || {!(_visitTarget call _vectorValid)} || {(getPosASL _actor) vectorDistance (AGLToASL _visitTarget) > 2}
+        || {isNull _visitHouse} || {!alive _visitHouse}
+        || {[getPosWorld _visitHouse,vectorDir _visitHouse,vectorUp _visitHouse] isNotEqualTo _visitTransform}) exitWith {false};
+    private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
+    private _history=_memoryState getOrDefault ["searchBuildingVisits",[]];
+    private _visits=if (_history isEqualType [] && {count _history == 2}
+        && {(_history select 0) isEqualTo _searchMemory} && {(_history select 1) isEqualType []}) then {
+        (_history select 1) select [0,16]
+    } else {[]};
+    private _row=[_visitHouse,_visitTransform call _copyArray,AGLToASL _visitTarget];
+    if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
+    _memoryState set ["searchBuildingVisits",[_searchMemory call _copyArray,_visits]];
+    true
 };
 if (_mode == "FINISH") exitWith {
     if (count _brain > 0) then {
@@ -203,25 +232,6 @@ if (_mode == "FINISH") exitWith {
         private _row=[_house,_transform call _copyArray,AGLToASL _target];
         if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
         _group setVariable ["CBE_Danger_BuildingVisits",[_clue call _copyArray,_visits]];
-    };
-    if (!_migration && {call _searchMemoryValid}
-        && {(_brain getOrDefault ["reason",""]) == "VISITED"}
-        && {(_brain getOrDefault ["phase",""]) == "OBSERVE"}
-        && {_oldGroup == _group} && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
-        && {_operation == (_group getVariable ["CBE_OperationGeneration",0])} && {call _releaseAvailable}
-        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}
-        && {_target call _vectorValid} && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
-        && {!isNull _house} && {alive _house}
-        && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
-        private _memoryState=_group getVariable ["CBE_AIPass_State",createHashMap];
-        private _history=_memoryState getOrDefault ["searchBuildingVisits",[]];
-        private _visits=if (_history isEqualType [] && {count _history == 2}
-            && {(_history select 0) isEqualTo _searchMemory} && {(_history select 1) isEqualType []}) then {
-            (_history select 1) select [0,16]
-        } else {[]};
-        private _row=[_house,_transform call _copyArray,AGLToASL _target];
-        if (!(_row in _visits) && {count _visits < 16}) then {_visits pushBack _row};
-        _memoryState set ["searchBuildingVisits",[_searchMemory call _copyArray,_visits]];
     };
     _actor setVariable ["CBE_IndoorActor_Result",[_generation,
         _brain getOrDefault ["reason","RELEASED"],serverTime,+_target],true];
@@ -424,7 +434,24 @@ if (!isNull _contact && {(_actor targetKnowledge _contact) param [7,false,[true]
 };
 private _phase=_brain get "phase";
 if (_phase == "SELECT") exitWith {
-    private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
+    private _continuingSearch=_brain getOrDefault ["searchContinuing",false];
+    // A further investigation leg consumes the same episode and owned native destination.
+    // A fresh native task cannot borrow the original admission or acknowledgement window.
+    private _searchLegOwned={
+        private _priorTarget=_brain getOrDefault ["target",[]];
+        private _native=(expectedDestination _actor) param [0,[],[[]]];
+        private _request=_brain getOrDefault ["requestBefore",[]];
+        call _searchMemoryValid && {_brain getOrDefault ["issued",false]}
+            && {currentCommand _actor in ["","MOVE"]}
+            && {_priorTarget call _vectorValid} && {_native call _vectorValid}
+            && {_native vectorDistance _priorTarget <= 0.25}
+            && {(getPosASL _actor) vectorDistance (AGLToASL _priorTarget) <= 2}
+            && {count _request == 3} && {formLeader _actor == (_request select 2)}
+    };
+    if (_continuingSearch && {!(call _searchLegOwned)}) exitWith {["NATIVE_TASK"] call _finish};
+    private _admission=if (_continuingSearch) then {(_brain get "admission") call _copyArray} else {
+        [_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext
+    };
     if (_admission isEqualTo []) exitWith {["NATIVE_TASK"] call _finish};
     private _previous=_brain get "admission";
     // Native AI may start the same-contact path after START. Adopt that newer leg
@@ -472,11 +499,16 @@ if (_phase == "SELECT") exitWith {
     if (_node isEqualTo []) exitWith {
         // A roof miss is not an inaccessible building. Continue the bounded search on
         // the existing FSM callback, under the unchanged original operation deadline.
-        if (_nodeSearch getOrDefault ["pending",false]) then {-1} else {["NO_CANDIDATE"] call _finish}
+        if (_nodeSearch getOrDefault ["pending",false]) then {-1} else {
+            // VISITED records limited historical work, never exhaustive room coverage.
+            [if (_continuingSearch) then {"VISITED"} else {"NO_CANDIDATE"}] call _finish
+        }
     };
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)
-        || {([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission}
+        || {if (_continuingSearch) then {!(call _searchLegOwned)} else {
+            ([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission
+        }}
         || {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isNotEqualTo _brain}
         || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}
         || {[getPosWorld _building,vectorDir _building,vectorUp _building] isNotEqualTo (_brain get "transform")}
@@ -567,6 +599,17 @@ if (_phase == "APPROACH") exitWith {
 };
 if (_phase == "OBSERVE" && {serverTime >= (_brain get "observeUntil")}) exitWith {
     // This is a visit/investigation result, never a cleared-room or killed-enemy assertion.
+    if (_searchMemory isNotEqualTo []) then {
+        if !(call _recordSearchVisit) exitWith {_brain set ["reason","VISIT_UNCONFIRMED"]};
+        private _visited=(_brain getOrDefault ["searchVisitCount",0])+1;
+        _brain set ["searchVisitCount",_visited];
+        if (_visited < 4 && {_brain getOrDefault ["issued",false]}) then {
+            _brain set ["searchContinuing",true];
+            _brain set ["phase","SELECT"];
+        };
+    };
+    if ((_brain getOrDefault ["reason",""]) == "VISIT_UNCONFIRMED") exitWith {["VISIT_UNCONFIRMED"] call _finish};
+    if ((_brain get "phase") == "SELECT") exitWith {-1};
     ["VISITED"] call _finish
 };
 -1

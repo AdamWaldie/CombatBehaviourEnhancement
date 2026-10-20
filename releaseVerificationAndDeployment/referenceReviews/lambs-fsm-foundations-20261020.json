@@ -250,8 +250,8 @@
     "bounds": "Original search deadline and at most120s from native observation; actor deadline also capped45s. No additional worker/global scan. One house attempt, same2actor indoor limit. Native nearestObjects snapshot cost and runtime overhead unmeasured.",
     "deliberateScope": [
       "Owner-local episode does not replay indoor memory across migration; ordinary search migration remains separately bounded.",
-      "Each admitted actor observes one selected node; this is not whole-building clearance or complete LAMBS group-memory functionality.",
-      "Same-episode completed search-node history now integrated in searchMemoryVisitSharing; physical evidence remains absent."
+      "Original single-node limit superseded by searchMemoryFlow; up to4 physical visits per actor is still not whole-building clearance or complete source group-memory parity.",
+      "Same-episode completed-node history is shared; physical evidence remains absent."
     ],
     "validation": "607 operation and32 indoor focused cases; full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-building-memory-checkpoint-build.log. Existing source assertion banning any GroupTick indoor call updated to permit START but prohibit STEP/QUEUE; first failure log retained. No new test cases.",
     "candidate": ".qa\\candidates\\search-building-memory-d9bc9434",
@@ -265,7 +265,7 @@
     "status": "INTEGRATED_PHYSICAL_ACCEPTANCE_PENDING",
     "change": "IndoorActorOperation FINISH records at most16 search-memory physical visits only for VISITED from OBSERVE, same group/epoch/operation/native route, within2mASL and unchanged building transform. IndoorActorNodeSelect receives optional searchMemory and excludes matching same-episode visits inside its existing16-destination combined budget, without extra rays. Fresh search/final calm clears private history.",
     "intent": "Cooperating investigators avoid redundant recently visited positions without claiming a safe room or changing native target knowledge. Failure/assignment do not create visits.",
-    "remaining": "One selected node per admitted actor/one nearby house attempt; no wholebuilding coverage or indoor memory replay across owner migration. Runtime flow and cost unmeasured.",
+    "remaining": "Multi-node flow now integrated in searchMemoryFlow; one house/up to4visits per actor. No exhaustive coverage or indoor owner-migration replay. Runtime cost unmeasured.",
     "validation": "32 focused indoor/full1477/HEMTT/SQF/FSM/docs/package passed .qa/search-memory-visits-build.log; existing tests extended, no new cases.",
     "candidate": ".qa\\candidates\\search-memory-visits-be73a20e",
     "fingerprint": "ca51f4bf8d798334f46390d17408218aa64acdc591164c8a72b7de6eaba52d36",
@@ -298,6 +298,19 @@
     "fingerprint": "cee75213cfba1b273028be7a6964b2cada4d8f9831c51a5d5395a7d4151386c1",
     "physicalAcceptance": false,
     "performanceMeasured": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "searchMemoryFlow": {
+    "status": "INTEGRATED_PHYSICAL_ACCEPTANCE_PENDING",
+    "gap": "Previous post-contact investigators ended after one node rather than continuing finite shared building memory.",
+    "change": "At most2 actors may each observe up to4 nodes in the same house, original episode/45s actor cap/search deadline and12-probe budget. OBSERVE records confirmed visits before SELECT; further legs require exact previous native destination within0.25m, physical arrival within2mASL, unchanged formation leader and current lease/route/epoch/operation.",
+    "authority": "Contact, native command/destination change, moved building, task/medical takeover, phase/epoch/deadline change still preempt. No new worker, actor generation or deadline renewal. Ordinary contact/body investigations remain one-leg.",
+    "result": "VISITED after limited visits or no remaining candidate is historical investigation only, not exhaustive coverage or room safety. Subsequent deadline/stall remains failure even after partial visits.",
+    "limits": "One nearby house, up to4 visits per actor; same-floor node selection; inaccessible points can remain. No indoor memory replay after owner migration. Runtime pathfinding and performance unmeasured.",
+    "validation": "32 focused/full1477 existing tests; HEMTT/SQF/FSM/docs/package and independent candidate verification passed. No new cases.",
+    "candidate": ".qa/candidates/search-memory-flow-2f458bf2",
+    "fingerprint": "f3c50f3302a2c688fcb4a9c809df6e7e76d1ff7cdb527773dd401b2780433416",
     "audits": "PAUSED",
     "scoresChanged": false
   }

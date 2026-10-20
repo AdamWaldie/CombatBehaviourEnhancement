@@ -113,11 +113,21 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('""QUEUE""',fsm)
     def test_planner_has_distinct_native_positions_and_bounded_geometry(self):
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
-        history=operation.split('if (!_migration && {call _searchMemoryValid}',1)[1].split('_actor setVariable ["CBE_IndoorActor_Result"',1)[0]
-        for proof in ('== "VISITED"','== "OBSERVE"','vectorDistance (AGLToASL _target) <= 2',
-                      'isEqualTo _transform','count _visits < 16','searchBuildingVisits'):
+        history=operation.split('private _recordSearchVisit=',1)[1].split('if (_mode == "FINISH")',1)[0]
+        for proof in ('!= "OBSERVE"','vectorDistance (AGLToASL _visitTarget) > 2',
+                      'isNotEqualTo _visitTransform','count _visits < 16','searchBuildingVisits'):
             self.assertIn(proof,history)
         self.assertIn('_nodeSearch,_brain getOrDefault ["searchMemory",[]]',operation)
+        observe=operation.split('if (_phase == "OBSERVE" &&',1)[1]
+        for proof in ('call _recordSearchVisit','_visited < 4','["phase","SELECT"]','VISIT_UNCONFIRMED'):
+            self.assertIn(proof,observe)
+        self.assertNotIn('["deadline",',observe)
+        self.assertNotIn('createHashMap',observe)
+        continuation=operation.split('private _searchLegOwned=',1)[1].split('private _previous=',1)[0]
+        for proof in ('call _searchMemoryValid','_native vectorDistance _priorTarget <= 0.25',
+                      'vectorDistance (AGLToASL _priorTarget) <= 2','formLeader _actor == (_request select 2)'):
+            self.assertIn(proof,continuation)
+
 
         s=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text()
         for guard in ('count _positions > 512','_reserved findIf',
