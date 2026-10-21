@@ -1969,9 +1969,10 @@ class CortexOperations(unittest.TestCase):
         """A rifle squad without usable AT must leave close armour to the finite withdrawal owner."""
         morale=source('cortexMorale')
         retreat=source('cortexRetreat')
-        for marker in ['private _armourIndex = _enemies findIf {',
-                       '((_enemies select _armourIndex) select 2) <= 10',
-                       '((_enemies select _armourIndex) select 3) <= 120',
+        for marker in ['private _overmatchIndex=-1;',
+                       '(_x select 2) <= 10',
+                       '(_x select 3) <= 120',
+                       'private _overmatched=!_hasAT && {_overmatchIndex >= 0}',
                        'waypointType [_group,_waypointIndex] in ["HOLD","SENTRY"]',
                        '_state set ["withdrawReason","HEAVY_ARMOUR_NO_AT"]',
                        '"RETREAT"']:
@@ -1979,6 +1980,23 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(morale.index('_state set ["withdrawReason","HEAVY_ARMOUR_NO_AT"]'),
                         morale.index('private _pressure ='))
         self.assertIn('_state getOrDefault ["withdrawReason","MORALE_WITHDRAWAL"]',retreat)
+        scan=morale.split('private _armourIndex=-1;',1)[1].split('private _armour =',1)[0]
+        self.assertEqual(scan.count('forEach _enemies'),1)
+        self.assertIn('_overmatchIndex=_forEachIndex',scan)
+        self.assertNotIn('_enemies select _armourIndex',scan)
+        # Stale nearest armour must not mask a fresh second contact; pressure still
+        # remembers old armour. Usable AT and authored holds keep their own veto.
+        def decision(contacts, has_at=False, hold=False):
+            pressure=any(armour and age <= 30 and distance <= 400 for armour,age,distance in contacts)
+            immediate=any(armour and age <= 10 and distance <= 120 for armour,age,distance in contacts)
+            return pressure, immediate and not has_at and not hold
+        mixed=[(True,20,40),(False,0,50),(True,2,90)]
+        self.assertEqual(decision(mixed),(True,True))
+        self.assertEqual(decision(list(reversed(mixed))),(True,True))
+        self.assertEqual(decision([(True,20,40)]),(True,False))
+        self.assertEqual(decision(mixed,has_at=True),(True,False))
+        self.assertEqual(decision(mixed,hold=True),(True,False))
+
         self.assertIn('[_group,_state,"RETREAT",_withdrawReason',retreat)
 
     def test_authored_hold_and_sentry_block_autonomous_movement_but_not_combat(self):

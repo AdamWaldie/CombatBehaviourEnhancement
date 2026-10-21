@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-22",
+  "baseline": "807e3977",
+  "finding": "Morale selected first armour within400m/30s, then tested only that record against120m/10s immediate overmatch. A stale nearest contact masked a fresh later tank even though knowledge output was correctly sorted by believed distance.",
+  "example": "Known tanks at40m/20s and90m/2s: before no immediate withdrawal; after fresh second contact qualifies. Stale-only contact remains pressure, not immediate overmatch.",
+  "implementation": "One pass over existing bounded knowledge contacts independently retains remembered armour pressure and finds immediate overmatch. No live hostile geometry, new query/sort/worker or capability policy change. Usable AT and authored HOLD/SENTRY still veto overmatch.",
+  "validation": {
+    "focusedTests": 609,
+    "tests": 1489,
+    "compiledSQF": 401,
+    "buildLog": ".qa/morale-mixed-armour-build.log",
+    "independentLog": ".qa/morale-mixed-armour-independent-verify.log",
+    "candidate": ".qa/candidates/morale-mixed-armour-807e3977",
+    "fingerprint": "62f791ebc01fdb68f9b3204b9c86a7d91ce3c256495d3331859f81450254ba36",
+    "provenance": "Unsigned development build of baseline+intended edits+retained unrelated dirty state.",
+    "testScope": "Existing source contract extended plus decision examples: stale then fresh, reversed ordering, stale only, usable AT and authored hold. Python decision model is not execution of SQF or physical behaviour."
+  },
+  "limits": [
+    "Physical retreat, mixed-contact balance and runtime performance remain unverified.",
+    "No whole-source parity or percentage change.",
+    "Audits PAUSED; no push/merge/publication."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexMorale.sqf": "a55dd9012d4194049287a989f675b6372b23d30e408282c65d306d1673af1a89",
+    "addons/infantry/functions/cortexKnowledge.sqf": "5629fe66884bb3ea953244956143a75b34f41b2ff2cbf18b127dbda8d3eb8c33",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "ee925f23681edbc8bfdd5885f6fa383bc73481d87043a32577b3900ad8fb653a"
+  }
+}

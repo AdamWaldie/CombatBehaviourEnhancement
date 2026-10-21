@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Updates a squad's morale during a fight and says whether it should retreat or surrender.
+ * Fresh close armour is assessed independently of older pressure contacts, so contact ordering
+ * cannot hide immediate overmatch. Only existing native-belief contacts are consumed.
  *
  * Weighted pressure: casualties against peak strength (45%), average
  * suppression (20%), losing the leader it started the fight with (10%), being outnumbered by enemies
@@ -66,10 +68,20 @@ private _leaderLost = [0, 1] select (!alive _contactLeader && {leader _group != 
 private _recent = {(_x select 2) <= 30} count _enemies;
 private _outnumbered = (((_recent / _count) - 1) max 0) min 2;
 private _hasAT = _alive findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
-private _armourIndex = _enemies findIf {
-    private _enemy = vehicle (_x select 0);
-    (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}) && {(_x select 3) <= 400} && {(_x select 2) <= 30}
-};
+// General pressure may retain a30s armour memory. Immediate overmatch needs its own
+// fresh contact: the first stale tank must not mask a later freshly observed one.
+// One pass over the existing bounded knowledge list, no additional sensing or sort.
+private _armourIndex=-1;
+private _overmatchIndex=-1;
+{
+    private _enemy=vehicle (_x select 0);
+    if ((_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"})
+        && {(_x select 3) <= 400} && {(_x select 2) <= 30}) then {
+        if (_armourIndex < 0) then {_armourIndex=_forEachIndex};
+        if ((_x select 2) <= 10 && {(_x select 3) <= 120}) exitWith {_overmatchIndex=_forEachIndex};
+    };
+    if (_overmatchIndex >= 0) exitWith {};
+} forEach _enemies;
 private _armour = [0, 1] select (!_hasAT && {_armourIndex >= 0});
 // Heavy armour at assault distance is tactical overmatch, not a slow morale adjustment. Without
 // a capable launcher, continuing into the ordinary manoeuvre selector makes riflemen charge a
@@ -78,10 +90,7 @@ private _armour = [0, 1] select (!_hasAT && {_armourIndex >= 0});
 private _waypointIndex=currentWaypoint _group;
 private _explicitHold=_waypointIndex < count waypoints _group
     && {waypointType [_group,_waypointIndex] in ["HOLD","SENTRY"]};
-private _overmatched=!_hasAT && {_armourIndex >= 0}
-    && {((_enemies select _armourIndex) select 2) <= 10}
-    && {((_enemies select _armourIndex) select 3) <= 120}
-    && {!_explicitHold};
+private _overmatched=!_hasAT && {_overmatchIndex >= 0} && {!_explicitHold};
 _state set ["armourOvermatched",_overmatched];
 if (_overmatched && {(_state getOrDefault ["phase",""]) == "CONTACT"}) exitWith {
     _state set ["withdrawReason","HEAVY_ARMOUR_NO_AT"];
