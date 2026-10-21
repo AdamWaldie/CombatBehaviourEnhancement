@@ -111,5 +111,16 @@
     ],
     "physicalAcceptance": false,
     "performanceMeasured": false
+  },
+  "customCategoryAirGunnery": {
+    "baseline": "88ed40f4",
+    "finding": "Only editorSubcategory EdSubcat_AAs reached the aircraft-specific native contact pass. Modded air-capable ground stations could miss fresh aircraft crowded out of normal ground contacts.",
+    "implementation": "Two rotating vehicle-roster slots per callback admit custom-category LandVehicle stations through existing gunner/ROE/task/feature/hold gates, shared bounded AIR knowledge and actual GroundFireReady qualification. No persistent weapon-capability cache. Dedicated native AA retains aircraft priority; other platforms keep AT infantry/armour first and do not acquire AA relocation roles.",
+    "costAndBalance": "<=2 additional unlabelled platform attempts per group callback; deterministic rotating slots cover every unchanged roster in ceil(n/2) callbacks, including wasted ineligible slots. At most one shared AIR native knowledge pass per group callback. Existing32-query station cap, same-frame failed scan reuse and final fresh readiness remain. No global scan, new worker, movement command, target reveal or radar override. Extra cost unmeasured.",
+    "limits": "Air-capable ammunition/config is not native lock, firing/hit or interception proof. No ground anti-munition/layered allocation or dedicated custom-AA movement implementation. Physical normal/HC performance pending; audits paused.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/custom-air-gunnery-88ed40f4 fingerprinte450cf566cf6bf1ecd933ae5cd6612cf285d537b0866691fe3a289ac0753ab48. Logs .qa/custom-air-gunnery-build.log and .qa/custom-air-gunnery-independent.log. Existing regression includes deterministic1..64-platform rotation model; no new test case count or runtime audit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

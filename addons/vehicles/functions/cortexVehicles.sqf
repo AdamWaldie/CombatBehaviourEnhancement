@@ -53,6 +53,8 @@
  * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
  * Native AA editor-role platforms prefer fresh aircraft out to the configured engagement range.
  * Loaded air-suitable station ammunition must qualify this preference before aircraft rows merge.
+ * Two rotating vehicle-roster slots also admit custom-category air-capable ground stations.
+ * They retain AT/armour priority and acquire no AA relocation role; native AA keeps air priority.
  * One additional aircraft-only knowledge pass per group callback avoids nearby ground-contact
  * crowding; at most sixteen rows merge and eight receive station/lane checks. Other vehicles
  * retain the ordinary policy. This is native gunnery, not anti-munition interception.
@@ -696,8 +698,13 @@ if (_dangerDismount isNotEqualTo []) then {
     };
 };
 if (_enemies isEqualTo []) exitWith {_movementOwned};
-// One additional bounded native-knowledge pass shared by every eligible AA platform.
+// One additional bounded native-knowledge pass shared by eligible platforms. Probe two
+// rotating roster slots for custom-category air-capable stations; native AA retains its role.
 private _airContacts=[];private _airContactsRead=false;
+private _airProbeCount=(count _vehicles) max 1;
+private _airProbeStart=(_state getOrDefault ["airGunneryProbeCursor",0]) mod _airProbeCount;
+private _airProbeSlots=[_airProbeStart,(_airProbeStart+1) mod _airProbeCount];
+_state set ["airGunneryProbeCursor",(_airProbeStart+2) mod _airProbeCount];
 private _airRange=missionNamespace getVariable ["CBE_AIPass_EngageRange",800];
 private _enemyPos = (_enemies select 0) select 1;
 private _selectVehicleEscape = {
@@ -715,6 +722,7 @@ private _selectVehicleEscape = {
 private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
 {
     private _vehicle = _x;
+    private _vehicleIndex=_forEachIndex;
     private _distance = _vehicle distance2D _enemyPos;
     private _commandsVehicle = effectiveCommander _vehicle in units _group;
     // Onboard reports carry no target object or reveal. Only the actual vehicle authority
@@ -834,14 +842,16 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
         private _gunner = gunner _vehicle;
         // Native editor role is a preference, never ammunition or engagement permission.
-        // Custom categories keep ordinary policy; no classname list or revealing scan.
+        // Custom air-capable stations can join known-air gunnery without changing their
+        // tactical role, ground-threat priority or movement ownership.
         private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
+        private _airCandidate=_airDefence || {_vehicle isKindOf "LandVehicle" && {_vehicleIndex in _airProbeSlots}};
         private _airPreference=false;
         private _stationSelection=createHashMap;
         private _gunneryContacts=+(_enemies select [0,8]);
         // Do not spend native knowledge or station queries while routine targeting
         // cannot act. The final live checks below remain the firing boundary.
-        if (_airDefence && {[_vehicle,_gunner] call _gunnerAvailable}
+        if (_airCandidate && {[_vehicle,_gunner] call _gunnerAvailable}
             && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
             && {canFire _vehicle}
             && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
@@ -878,7 +888,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _enemy) < 0.6}) then {
                 private _priority = switch (true) do {
-                    case (_freshAir): {-1};
+                    case (_freshAir && {_airDefence}): {-1};
                     case (_enemy isKindOf "CAManBase" && {"AT" in ([_enemy] call CBE_fnc_CortexCapabilities)}): {0};
                     case (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}): {1};
                     default {2};

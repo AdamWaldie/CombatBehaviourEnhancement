@@ -6198,14 +6198,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _airContacts=[];private _airContactsRead=false;',text)
         self.assertIn('if (!_airContactsRead) then {',text)
         self.assertEqual(text.count('[_group,-1,"AIR"] call CBE_fnc_CortexKnowledge'),1)
-        query_gate=text.split('if (_airDefence &&',1)[1].split('if (!_airContactsRead)',1)[0]
+        query_gate=text.split('if (_airCandidate &&',1)[1].split('if (!_airContactsRead)',1)[0]
         for proof in ('!_combinedGroundFireOwned','canFire _vehicle','combatMode _group',
                       'unitCombatMode _gunner','CBE_AIPass_TargetHold'):
             self.assertIn(proof,query_gate)
 
         self.assertIn('== "edsubcat_aas"',text)
-        self.assertIn('case (_freshAir): {-1}',text)
+        self.assertIn('case (_freshAir && {_airDefence}): {-1}',text)
         self.assertIn('private _freshAir=_airPreference &&',text)
+        self.assertIn('_vehicleIndex in _airProbeSlots',text)
+        self.assertIn('(_airProbeStart+2) mod _airProbeCount',text)
+        # The finite roster window cannot starve later custom platforms or grow with the roster.
+        for count in range(1,65):
+            cursor=0;seen=set()
+            for _ in range((count+1)//2):
+                slots={cursor,(cursor+1)%count}
+                self.assertLessEqual(len(slots),2)
+                seen.update(slots);cursor=(cursor+2)%count
+            self.assertEqual(seen,set(range(count)))
+        self.assertLess(text.index('case (_freshAir && {_airDefence})'),text.index('case (_enemy isKindOf "CAManBase"'))
+
         preflight=text.split('private _freshAircraft=',1)[1].split('private _ranked =',1)[0]
         self.assertIn('(_freshAircraft select 0) select 0,_stationSelection,true]',preflight)
         self.assertLess(preflight.index('call CBE_fnc_CortexGroundFireReady'),preflight.index('if (_airPreference) then'))
