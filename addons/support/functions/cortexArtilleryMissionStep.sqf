@@ -28,7 +28,7 @@ private _retirePosition={
             _battery setVariable ["CBE_ArtilleryPosition_Attempt",nil,true];
         };
         private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
-        if (count _issued == 7 && {(_issued select 0) == (_mission get "token")} && {(_issued select 1) isEqualTo _session}) then {
+        if (count _issued == 8 && {(_issued select 0) == (_mission get "token")} && {(_issued select 1) isEqualTo _session}) then {
             _battery setVariable ["CBE_ArtilleryPosition_Issued",nil,true];
         };
         [_battery,_mission get "token",_session,true] remoteExecCall ["CBE_fnc_CortexArtilleryPosition",owner _battery];
@@ -92,10 +92,13 @@ if ((_mission getOrDefault ["positionSession",[]]) isNotEqualTo [] && {(_mission
     private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
-    _positionLost=count _issued != 7;
+    private _seats=[driver _battery,effectiveCommander _battery];
+    if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
+    _positionLost=count _issued != 8;
     if (!_positionLost) then {
         _positionLost=(_issued select 0) != (_mission get "token") || {(_issued select 1) isNotEqualTo _session}
             || {(_issued select 6) != owner _battery}
+            || {(_issued select 7) isNotEqualTo _seats}
             || {(_issued select 4) != (_group getVariable ["CBE_AIPass_Epoch",-1])}
             || {(_operation getOrDefault ["generation",-2]) != (_issued select 3)}
             || {(_operation getOrDefault ["intent",""]) != "ARTILLERY_POSITION"}

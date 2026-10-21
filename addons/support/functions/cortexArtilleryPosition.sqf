@@ -5,6 +5,7 @@
  * only physical arrival and fresh native range permit READY. No firing occurs here.
  * Repeat/JIP: Exact original session/deadline and public attempt prevent duplicate movement.
  * Owner migration refuses replay; existing locality cleanup retires the old group operation.
+ * Original driver/effective-commander pair binds movement, READY and subsequent positioned shots.
  * No new scheduler, teleport, repair, inventory change or fixed path is installed.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 session ARRAY,[];
  * [magazine,targetATL,serverDeadline,group,nativeOrder,fireGeneration,purpose,mode,smokeGeneration,holdUntil].
@@ -91,6 +92,9 @@ private _current={
             || {!(currentCommand _x in ["","MOVE","WAIT"])}} < 0}
 };
 
+if (_ours && {(_work getOrDefault ["crew",[]]) isNotEqualTo [_driver,_operator]}) exitWith {
+    ["CREW_CHANGED"] call _finish
+};
 if (!(call _current)) exitWith {["AUTHORITY_OR_DEADLINE"] call _finish};
 if (_ours) exitWith {
     private _status=_work getOrDefault ["status","MOVING"];
@@ -157,7 +161,7 @@ isNil {
         if (count _operation > 0) then {
             private _generation=_operation get "generation";
             _work=createHashMapFromArray [["token",_token],["session",+_session],["generation",_generation],
-                ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],["spot",+_spot],["status","MOVING"]];
+                ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],["spot",+_spot],["status","MOVING"],["crew",[_driver,_operator]]];
             _battery setVariable ["CBE_ArtilleryPosition_Work",_work];_ours=true;
             private _waypoint=[_group,_spot,5,"HOLD",_generation] call CBE_fnc_CortexGroupMove;
             if (!isNull (_waypoint param [0,grpNull]) && {(_waypoint param [1,-1]) >= 0}) then {
@@ -168,7 +172,7 @@ isNil {
                 _state set ["movementLease",["ARTILLERY_POSITION",time+((_holdUntil-serverTime) max 0)]];
                 _state set ["artilleryPositionOperationGeneration",_generation];
                 _battery setVariable ["CBE_ArtilleryPosition_Issued",[_token,+_session,_group,
-                    _generation,_work get "epoch",+_spot,clientOwner],true];
+                    _generation,_work get "epoch",+_spot,clientOwner,[_driver,_operator]],true];
                 _started=true;
             } else {["MOVEMENT_REFUSED"] call _finish};
         } else {[_group,"ARTILLERY_POSITION",false] call CBE_fnc_CortexOwnershipLease};

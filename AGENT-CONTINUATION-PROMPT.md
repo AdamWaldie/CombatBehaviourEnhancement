@@ -1,3 +1,8 @@
+# Latest checkpoint - artillery prefire exact crew binding
+
+## 2026-10-21 - Artillery prefire exact crew binding
+Baselinec1deb309. Protocol artillery register stale: actual prefire positioning already implemented, detailed artillery-range-selection-20261020.json prefirImplementation and Protocol programme current. Reconciled scoped current path, preserved old disposition historical; mixed groups/static/refused geometry and physical validation remain limits. Actual defect: owner continuation reread driver/commander without originalpair, permitting replacement to inherit positioning. Captured normalized original driver/effectivecommander in localwork and public8fieldissuedreceipt. Owner move cancels CREW_CHANGED; authenticatedREADY, held mission and both queued-shot position gates compare originalpair. Native nullcommander fallbacktodriver retained. Exact existing operation/route cleanup; no new move/retry/deadline/setting/scheduler. Ordinary in-range requests unchanged.4focused/all1484+HEMTT/FSM/docs/package pass .qa/artillery-position-crew-build.log; independent .qa/artillery-position-crew-independent.log. Candidate .qa/candidates/artillery-position-crew-c1deb309 fingerprintfbd3e38a8453647e72d6ea0dc37b062c26d0c89dde4d2874992d47997b71b9f4. Protocol artillery review recordscurrenthashes/protectedupstreamsourcehash/sourceintent/limits; no parity/percentage/runtimecredit. Physical range/travel/actualshots/crewchange/HC/Zeus/handback/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - interrupted garrison duck recovery
 
 ## 2026-10-21 - Interrupted garrison duck recovery

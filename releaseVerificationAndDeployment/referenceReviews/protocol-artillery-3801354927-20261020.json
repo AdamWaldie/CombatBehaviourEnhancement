@@ -47,8 +47,8 @@
     {
       "intent": "Move into range and displace after firing.",
       "source": "Random target-centred2500..3500m move with unbounded waitUntil; post-request sleep20..35s then random400..1000m move.",
-      "cbe": "CortexArtilleryScoot uses current-owner token/session, original expiry, six candidate routes and operation generation. Mission firing acknowledgement remains distinct from request.",
-      "gap": "Automatic pre-fire relocation into range is not demonstrated by shoot-and-scoot; do not claim that parity. Static mortars cannot be made mobile by crew doMove."
+      "cbe": "CortexArtilleryFire -> existing mission FSM POSITIONING -> current-owner CortexArtilleryPosition -> authenticated PositionReport READY -> WAIT/queued Shot. Twelve native ETA probes rank at most six supported proposals; original fix deadline, exact operation/HOLD, physical arrival/rest and fresh native range remain mandatory. Postfire scoot is separate.",
+      "gap": "Mixed vehicle/foot groups and static weapons do not reposition. Finite proposal exhaustion is not universal unreachable proof. Physical travel, ammo/range, crew replacement, return to authored route, HC and performance remain unverified."
     },
     {
       "intent": "Counter-battery response.",
@@ -70,9 +70,26 @@
     "Simple side inequality includes non-hostile/neutral cases; shared nearTargets candidates are not filtered as hostile before random selection."
   ],
   "configuration": "Five CBA controls reviewed. Retain semantic CBE role/request/round/scoot controls; no duplicate source-branded task or settings module.",
-  "disposition": "INTENT_COMPARISON_COMPLETE_FOR_READABLE_SCRIPTS; existing paths mapped, prefire range relocation remains a real gap. Not full implementation/parity.",
+  "disposition": "READABLE_INTENT_COMPARISON_WITH_SCOPED_PREFIRE_IMPLEMENTATION; independent mobile positioning exists, mixed-group positioning and physical firing/scoot/counter-battery remain unverified. No full parity claim.",
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "historicalDisposition20261020": "INTENT_COMPARISON_COMPLETE_FOR_READABLE_SCRIPTS; existing paths mapped, prefire range relocation remains a real gap. Not full implementation/parity.",
+  "prefireCrewBinding20261021": {
+    "baseline": "c1deb309",
+    "sourceHash": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "finding": "Current source already implements prefire positioning; this register was stale relative to artillery-range-selection-20261020.json and Protocol programme. Actual remaining defect: repeated owner callbacks rebound driver/operator to current seats, letting a replacement inherit the move.",
+    "change": "Capture original normalized driver/effective-commander pair in local work and public8field issued receipt. Compare in movement continuation, server READY, held mission and both native-shot checks. Changed/missing pair refuses/retire exact operation; no replacement movement, extra retry or deadline renewal. Driver fallback when effective commander is absent retained. Ordinary already-in-range missions unchanged.",
+    "validation": "4 focused existing artillery session tests and all1484 plus SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package passed .qa/artillery-position-crew-build.log; independent .qa/artillery-position-crew-independent.log passed. No new tests/counter credit.",
+    "sourceHashes": {
+      "addons/support/functions/cortexArtilleryPosition.sqf": "f63eb203d1b8611b7f8fea70180ad72e1c74ddc1b5511f10bc5f3eb09b231821",
+      "addons/support/functions/cortexArtilleryPositionReport.sqf": "62de8e0d2340b55ca9f93ddce85503829724d615de9e94a239fc602ac1de4150",
+      "addons/support/functions/cortexArtilleryMissionStep.sqf": "543d93cce04086fb671735de5fa80e6d45273c3357aebe46b6627c36a1e97c65",
+      "addons/support/functions/cortexArtilleryShot.sqf": "60a360376af675f1f1da2dd40f53977e59d0317270de14e5cec857938639b725"
+    },
+    "limits": "No new upstream parity, runtime licence proof, physical travel/rounds/crew handover or performance claim. Audits paused.",
+    "candidate": ".qa/candidates/artillery-position-crew-c1deb309",
+    "fingerprint": "fbd3e38a8453647e72d6ea0dc37b062c26d0c89dde4d2874992d47997b71b9f4"
+  }
 }

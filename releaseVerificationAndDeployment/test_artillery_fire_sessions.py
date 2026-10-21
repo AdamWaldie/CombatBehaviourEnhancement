@@ -77,5 +77,18 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('CBE_ArtilleryPosition_Attempt',owner)
         self.assertNotIn('_session set',owner)
         self.assertIn('CBE_Artillery_SmokeFireGeneration',owner)
+        self.assertIn('["crew",[_driver,_operator]]',owner)
+        self.assertLess(owner.index('["CREW_CHANGED"] call _finish'),owner.index('if (_ours) exitWith'))
+        self.assertIn('clientOwner,[_driver,_operator]',owner)
+        self.assertIn('count _issued == 8',report)
+        self.assertIn('(_issued select 7) isEqualTo _seats',report)
+        self.assertIn('(_issued select 7) isNotEqualTo _seats',step)
+        shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
+        gate=shot.split('private _positionCurrent={',1)[1].split('private _operatorAvailable=',1)[0]
+        self.assertIn('(_work getOrDefault ["crew",[]]) isEqualTo _seats',gate)
+        self.assertEqual(shot.count('call _positionCurrent'),2)
+        for text in (report,step,gate):
+            self.assertIn('if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]}',text)
+
 
 if __name__=='__main__': unittest.main()

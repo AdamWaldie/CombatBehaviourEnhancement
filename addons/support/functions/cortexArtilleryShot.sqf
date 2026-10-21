@@ -77,7 +77,10 @@ private _positionCurrent={
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
     private _generation=_work get "generation";
+    private _seats=[driver _battery,effectiveCommander _battery];
+    if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
     local _group && {group gunner _battery == _group}
+        && {(_work getOrDefault ["crew",[]]) isEqualTo _seats}
         && {serverTime < (_session select 9)}
         && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
         && {(_operation getOrDefault ["generation",-2]) == _generation}
