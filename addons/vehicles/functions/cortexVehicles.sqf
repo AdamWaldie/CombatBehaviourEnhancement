@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Danger-derived hostile actions retain the original identity expiry/witness; close-range
+ * crew safety uses native believed geometry, never the hidden enemy object position.
  * Ground gunnery selects the freshly qualified loaded station muzzle before requesting fire.
  * Native selection must be observed; no magazine loading, ammunition creation or forced shot.
  * Ground contact ranking may reuse a completed failed station scan within the same frame;
@@ -514,20 +516,29 @@ private _dismountAtThreat = {
 } forEach _vehicles;
 private _dangerDismount=_state getOrDefault ["dangerDismount",[]];
 if (_dangerDismount isNotEqualTo []) then {
-    if (count _dangerDismount == 7) then {
+    if (count _dangerDismount == 9) then {
         _dangerDismount params ["_dangerPosition","_dangerExpiry","_dangerProfile","_dangerCause",
-            "_dangerVehicle","_dangerSource","_dangerGeneration"];
+            "_dangerVehicle","_dangerSource","_dangerGeneration","_dangerSourceUntil","_dangerWitness"];
         // The current danger producer always carries the exact occupied platform. Never recover a
         // stale or malformed record by widening it to every vehicle in the group: one engine event
         // must not stop, unload, abandon or turn unrelated platforms in a mixed vehicle element.
         if (time < _dangerExpiry && {!isNull _dangerVehicle} && {_dangerVehicle in _vehicles}) then {
             private _affectedVehicles=[_dangerVehicle];
-            private _dangerHostile=!isNull _dangerSource && {alive _dangerSource}
+            private _dangerHostile=_dangerSourceUntil isEqualType 0 && {finite _dangerSourceUntil}
+                && {time < _dangerSourceUntil} && {!isNull _dangerSource} && {alive _dangerSource}
                 && {!captive _dangerSource}
                 && {!(_dangerSource getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_dangerSource getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _dangerSource) < 0.6}
-                && {(units _group) findIf {_x knowsAbout _dangerSource > 0} >= 0};
+                && {[_dangerWitness] call CBE_fnc_CortexCombatEffective}
+                && {local _dangerWitness} && {group _dangerWitness == _group}
+                && {_dangerWitness knowsAbout _dangerSource > 0}
+                && {!((_dangerWitness targetKnowledge _dangerSource) param [7,false,[true]])};
+            // A safety alert can outlive source identity, but never renew that identity or
+            // obtain hidden exact range from the enemy object after the native handoff.
+            private _dangerBelief=if (_dangerHostile) then {_dangerWitness getHideFrom _dangerSource} else {[]};
+            private _dangerBeliefValid=count _dangerBelief == 3 && {_dangerBelief isNotEqualTo [0,0,0]}
+                && {_dangerBelief findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
             // Targetless damage and incoming rounds justify passenger safety. Other vehicle danger
             // causes may unload only when they retain a real hostile already known by this group.
             // Merely classifying a mounted callback never fabricates a contact or empties a carrier.
@@ -538,7 +549,7 @@ if (_dangerDismount isNotEqualTo []) then {
             {
                 private _vehicle=_x;
                 private _knownCloseThreat=_dangerHostile
-                    && {_vehicle distance2D _dangerSource < 25};
+                    && {_dangerBeliefValid} && {_vehicle distance2D _dangerBelief < 25};
                 private _emplacementUnsafe=_dangerProfile in ["STATIC","ARTILLERY"]
                     && {!someAmmo _vehicle || {_knownCloseThreat}}
                     && {!(_vehicle isKindOf "Tank" && {count (allTurrets [_vehicle,false]) > 1})};

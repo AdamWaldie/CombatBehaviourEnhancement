@@ -1111,7 +1111,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(witness_gate,action)
         self.assertLess(action.index('_sourceObserver knowsAbout _source <= 0'),action.index('exitWith {"MAINTAIN"}'))
         self.assertIn('private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};',assessment)
-        self.assertIn('_generation,_vehicleSource],true]',assessment)
+        self.assertIn('_generation,_vehicleSource,_sourceUntil,_sourceObserver],true]',assessment)
         self.assertIn('if (_action != "FORCED" && {_sourceKnown})',assessment)
         # An approximate event remains usable, but a substitute observer cannot renew identity.
         def source_authority(witness_alive,witness_local,same_group,knowledge):
@@ -8819,8 +8819,8 @@ class CortexOperations(unittest.TestCase):
         tick=source('cortexGroupTick')
         vehicles=source('cortexVehicles')
         restore=source('cortexRestoreCalm')
-        self.assertIn('_state set ["dangerDismount",[+_dangerPosition,time+30,_vehicleProfile,_dangerCause,_dangerVehicle,_dangerSource,_dangerGeneration]];',tick)
-        self.assertIn('if (count _dangerDismount == 7) then {',vehicles)
+        self.assertIn('_state set ["dangerDismount",[+_dangerPosition,time+30,_vehicleProfile,_dangerCause,_dangerVehicle,_dangerSource,_dangerGeneration,_dangerSourceUntil,_dangerWitness]];',tick)
+        self.assertIn('if (count _dangerDismount == 9) then {',vehicles)
         self.assertIn('private _affectedVehicles=[_dangerVehicle];',vehicles)
         self.assertIn('{_dangerVehicle in _vehicles}',vehicles)
         self.assertNotIn('else {_vehicles}',vehicles)
@@ -8830,6 +8830,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Danger_VehicleContext',tick)
         self.assertLess(vehicles.index('private _dangerDismount='),vehicles.index('if (_enemies isEqualTo []) exitWith'))
         danger_segment=vehicles.split('private _dangerDismount=',1)[1].split('if (_enemies isEqualTo []) exitWith',1)[0]
+        self.assertIn('time < _dangerSourceUntil',danger_segment)
+        self.assertIn('_dangerWitness knowsAbout _dangerSource > 0',danger_segment)
+        self.assertIn('_dangerWitness targetKnowledge _dangerSource',danger_segment)
+        self.assertIn('_dangerWitness getHideFrom _dangerSource',danger_segment)
+        self.assertNotIn('_vehicle distance2D _dangerSource',danger_segment)
+        self.assertIn('_vehicle distance2D _dangerBelief < 25',danger_segment)
+        self.assertNotIn('(units _group) findIf {_x knowsAbout _dangerSource',danger_segment)
         for token in ['_knownCloseThreat','_emplacementUnsafe','_disabledUnsafe','CBE_Danger_AbandonReason']:
             self.assertIn(token,danger_segment)
         self.assertIn('call _dismountAtThreat',danger_segment)

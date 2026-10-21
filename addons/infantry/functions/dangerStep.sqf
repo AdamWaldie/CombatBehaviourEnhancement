@@ -255,7 +255,7 @@ if (_replace) then {
         // Dedicated vehicle consumers can therefore distinguish a close threat at an emplacement
         // from approximate targetless damage without scanning for or manufacturing an enemy.
         private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};
-        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_vehicleSource],true];
+        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_vehicleSource,_sourceUntil,_sourceObserver],true];
     } else {
         _group setVariable ["CBE_Danger_VehicleContext",nil,true];
     };

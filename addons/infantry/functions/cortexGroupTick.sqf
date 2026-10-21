@@ -262,7 +262,7 @@ if (count _dangerResponse == 5) then {
         // shooter. Preserve that distinction: this lease permits only the existing stop-and-exit
         // handshake. Target selection, withdrawal and manoeuvre still require native knowledge.
         private _vehicleContext=_group getVariable ["CBE_Danger_VehicleContext",[]];
-        private _vehicleProfile=if (count _vehicleContext in [7,8]
+        private _vehicleProfile=if (count _vehicleContext in [7,8,10]
             && {(_vehicleContext select 6) == _dangerGeneration}
             && {time < (_vehicleContext select 5)}) then {_vehicleContext select 0} else {""};
         _state set ["dangerVehicleProfile",_vehicleProfile];
@@ -272,7 +272,9 @@ if (count _dangerResponse == 5) then {
         if (_vehicleProfile != "") then {
             private _dangerVehicle=_vehicleContext param [1,objNull,[objNull]];
             private _dangerSource=_vehicleContext param [7,objNull,[objNull]];
-            _state set ["dangerDismount",[+_dangerPosition,time+30,_vehicleProfile,_dangerCause,_dangerVehicle,_dangerSource,_dangerGeneration]];
+            private _dangerSourceUntil=_vehicleContext param [8,-1,[0]];
+            private _dangerWitness=_vehicleContext param [9,objNull,[objNull]];
+            _state set ["dangerDismount",[+_dangerPosition,time+30,_vehicleProfile,_dangerCause,_dangerVehicle,_dangerSource,_dangerGeneration,_dangerSourceUntil,_dangerWitness]];
         };
     } else {
         _state deleteAt "dangerResponse";

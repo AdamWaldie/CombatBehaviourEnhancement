@@ -1,3 +1,8 @@
+# Latest checkpoint - vehicle danger knowledge handoff
+
+## 2026-10-21 - Vehicle danger witness and believed-range handoff
+Traced cbae0732 identity expiry into vehicles: the old context dropped witness/expiry, extended hostile identity into30s passenger-safety state, accepted any squad member knowledge and used actual enemy position for25m crew abandonment. DangerStep now publishes10field vehicle context including original identity expiry/witness; GroupTick carries9field dangerDismount. CortexVehicles identity-dependent actions require finite live original expiry and capable/local/current-group original witness with native knowledge and nonignored target. Close threat uses that witness's finite/nonzero getHideFrom belief, not hidden actual distance. Targetless physical hazard safety remains independent. Legacy contexts lack identity authority. No new controller/worker. Existing vehicle regression extended; all1482/full offline HEMTT/FSM/config/docs/package pass. Independent candidate .qa/candidates/vehicle-danger-witness-cbae0732 fingerprint e790a005bfd4f236436030cab5def18d2e1b2080666049920849e5a70f8d919e. Logs .qa/vehicle-danger-witness-build.log and independent counterpart. Physical crew safety/gunnery/normal-HC/performance unverified. Audits PAUSED/no launch. Full goal active/incomplete; no score claim. Unrelated dirt/protected inputs unchanged; local commit/no push.
+
 # Latest checkpoint - finite inherited danger identity
 
 ## 2026-10-21 - Separate danger identity lifetime from hazard freshness
