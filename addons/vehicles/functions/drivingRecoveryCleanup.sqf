@@ -75,7 +75,7 @@ isNil {
     };
     if (!isNull _vehicle && {local _vehicle}) then {
         private _cap=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
-        if (_cap isEqualType [] && {count _cap == 7}
+        if (_cap isEqualType [] && {count _cap == 9}
             && {(_cap select 4) isEqualType 0} && {finite (_cap select 4)} && {serverTime < (_cap select 4)}) then {
             private _existing=_vehicle getVariable ["CBE_DrivingCapRelease_CleanupTicket",""];
             private _record=_registry getOrDefault [_existing,[]];
@@ -104,7 +104,7 @@ isNil {
                     _matching=!isNull _target && {local _target}
                         && {(_target getVariable [_ticketVariable,""]) == _id}
                         && {(_target getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _proof}
-                        && {count _proof == 7} && {serverTime < (_proof select 4)};
+                        && {count _proof == 9} && {serverTime < (_proof select 4)};
                     if (_matching) then {
                         localNamespace setVariable ["CBE_DrivingRecovery_Cleanup",_registry];
                         [_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease;

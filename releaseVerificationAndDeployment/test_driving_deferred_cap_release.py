@@ -38,6 +38,30 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('[_vehicle,_proof,"ABORT"]',cleanup)
         self.assertIn('CBE_DrivingAbort_CleanupTicket',cleanup)
         self.assertIn('[_vehicle,+_cap,"CAP"]',cleanup)
+        # Complete pending facts travel together; custody changes cannot replace origin.
+        adopter=(ROOT/'addons/vehicles/functions/drivingCapReleaseAdopt.sqf').read_text()
+        for guard in ('remoteExecutedOwner > 0','count _fact != 9','serverTime >= (_edge select 2)',
+                      'serverTime >= _originalDeadline','_originalDeadline > (_edge select 1)+30',
+                      '_issuingEpoch != (_issuer select 1)','driver _vehicle != _originalDriver',
+                      'effectiveCommander _vehicle != _originalCommander','!local _originalGroup',
+                      'groupOwner _originalGroup != clientOwner','_privateState isNotEqualTo _originalState',
+                      '_privateRestore isNotEqualTo _originalRestore','CBE_DrivingPass_Work',
+                      'CortexZeusHeld','CortexExternalTakeover','CompatibilityExternalControl'):
+            self.assertIn(guard,adopter)
+        for command in (' forceSpeed ', ' doMove ', 'CBE_fnc_CortexLocality',
+                        'CBE_fnc_DrivingOperationStart','CBE_fnc_CortexGroupMove', 'waitAndExecute'):
+            self.assertNotIn(command,adopter)
+        self.assertIn('_adopted set [8,_currentIdentity]',adopter)
+        self.assertNotIn('_adopted set [4,',adopter)
+        self.assertIn('setVariable ["CBE_DrivingCapRelease_Work",_adopted,true]',adopter)
+        self.assertIn('setVariable ["CBE_DrivingCapRelease_Work",_pendingCap,true]',text)
+        self.assertIn('setVariable ["CBE_DrivingCapRelease_Work",nil,true]',text)
+        self.assertIn('(_offered select 8) isNotEqualTo [clientOwner',text)
+        locality=(ROOT/'addons/vehicles/functions/drivingRecoveryAdopt.sqf').read_text()
+        native_edge=locality.split('if (_nativeEdge) then {',1)[1].split('if (_epoch ==',1)[0]
+        self.assertIn('"CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]',native_edge)
+        self.assertEqual(locality.count('"CBE_DrivingCap_LocalEdge",['),1)
+        self.assertIn('call CBE_fnc_DrivingCapReleaseAdopt',locality)
         self.assertIn('CBE_DrivingCapRelease_CleanupTicket',cleanup)
         self.assertIn('[_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease',cleanup)
         self.assertIn('serverTime < (_cap select 4)',cleanup)

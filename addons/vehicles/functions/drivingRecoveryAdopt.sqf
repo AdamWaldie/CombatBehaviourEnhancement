@@ -14,7 +14,7 @@
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 gained locality <BOOL, false>;
  * 2 lookup attempt <NUMBER, 0>; 3 local epoch <NUMBER, -1>;
  * 4 actual native vehicle-locality edge <BOOL, false>, internal XEH callback only.
- * Return Value: BOOL - true only when a pending reverse receipt was offered, not physical success.
+ * Return Value: BOOL - pending reverse offered or cap metadata adopted, not physical success.
  * Current callers: XEH_postInit LandVehicle init/Local, CortexLocality, DrivingRecoveryCrewAdopt and bounded delayed lookup.
  * Crew locality/entry/seat changes start a fresh observation window, never a fresh movement or recovery lifetime.
  * Example: [truck1,local truck1] call CBE_fnc_DrivingRecoveryAdopt;
@@ -31,6 +31,10 @@ isNil {
         _vehicle setVariable ["CBE_DrivingRecovery_LocalEpoch",_epoch];
         if (_nativeEdge) then {
             _vehicle setVariable ["CBE_DrivingAbort_LocalEdge",nil];
+            _vehicle setVariable ["CBE_DrivingCap_LocalEdge",nil];
+            if (_gained && {local _vehicle}) then {
+                _vehicle setVariable ["CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]];
+            };
             if (_gained && {local _vehicle} && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}) then {
                 private _edgeGroup=group driver _vehicle;
                 private _status=_edgeGroup getVariable ["CBE_Driving_State",[]];
@@ -46,6 +50,10 @@ isNil {
     };
     if (_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])
         && {_gained} && {local _vehicle} && {alive _vehicle}) then {
+        if ([_vehicle] call CBE_fnc_DrivingCapReleaseAdopt) then {
+            [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+            _accepted=true;
+        };
         private _abort=_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
         if (_abort isEqualType createHashMap && {"releasedCap" in _abort}) then {
             private _abortGroup=_abort getOrDefault ["group",grpNull];

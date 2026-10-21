@@ -45,7 +45,7 @@ private _phase="HANDBACK";private _owned=0;private _recovery=false;private _wait
     private _pass=_x getVariable ["CBE_DrivingPass_Work",createHashMap];
     _passing=_passing || {count _pass > 0 && {(_pass get "group") == _group}};
     private _capRelease=_x getVariable ["CBE_DrivingCapRelease_Work",[]];
-    if (_capRelease isEqualType [] && {count _capRelease == 7} && {(_capRelease select 2) isEqualTo _group}) then {
+    if (_capRelease isEqualType [] && {count _capRelease == 9} && {(_capRelease select 2) isEqualTo _group}) then {
         _capReleasePending=true;
         _capReleaseUnresolved=_capReleaseUnresolved || {
             ((_x getVariable ["CBE_DrivingCapRelease_Result",[]]) param [0,""])

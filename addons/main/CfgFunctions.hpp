@@ -114,6 +114,7 @@ class CfgFunctions {
             class DrivingOperationStep {file = "\z\cbe\addons\vehicles\functions\drivingOperationStep.sqf";};
             class DrivingOperationFinish {file = "\z\cbe\addons\vehicles\functions\drivingOperationFinish.sqf";};
             class DrivingRecoveryCrewAdopt {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryCrewAdopt.sqf";};
+            class DrivingCapReleaseAdopt {file = "\z\cbe\addons\vehicles\functions\drivingCapReleaseAdopt.sqf";};
             class DrivingRecoveryAdopt {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryAdopt.sqf";};
             class DrivingRecoveryCleanup {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryCleanup.sqf";};
             class DrivingRecoveryCommandState {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryCommandState.sqf";};

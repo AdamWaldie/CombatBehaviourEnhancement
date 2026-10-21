@@ -844,7 +844,8 @@
         "addons/vehicles/functions/drivingQueueParentRoom.sqf",
         "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
         "addons/vehicles/functions/drivingQueueAutoStep.sqf",
-        "addons/vehicles/functions/drivingGateCloseServer.sqf"
+        "addons/vehicles/functions/drivingGateCloseServer.sqf",
+        "addons/vehicles/functions/drivingCapReleaseAdopt.sqf"
       ]
     },
     {

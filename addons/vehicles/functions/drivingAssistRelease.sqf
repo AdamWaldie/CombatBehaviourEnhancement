@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Internal arguments: 2 cap-only BOOL false; 3 offered ARRAY [] of
- * [state,baseline,group,epoch,original server deadline,driver,commander].
+ * [state,baseline,group,issuing epoch,original server deadline,driver,commander,issuer,custodian].
  * Unconfirmed ordinary cap restoration retains exact state/baseline and a finite cap-only
  * cleanup receipt. Retries never rerun child controllers or renew the original 30-second window.
  * Queue crossing paths also retire through exact BypassRelease ownership before cap restoration; convoy work remains separately owned.
@@ -15,7 +15,8 @@
  * selection, collision, damage, fuel, simulation or any external driving controller.
  * Final restoration/deletion checks the exact entry cap/state and owner epoch atomically after helper cleanup.
  * Repeat/JIP: Safe when called repeatedly or after ownership changes; only a locally stored CBE
- * restore record can be applied. Player, remote-controlled or specialist effective commanders
+ * restore record can be applied. A complete public pending fact may be adopted only on a real
+ * vehicle Local edge through DrivingCapReleaseAdopt. Player, remote-controlled or specialist effective commanders
  * preserve their newer cap even when an ordinary AI driver belongs to another group.
  * A newer finite CBE movement lease also prevents restoration over its tactical speed policy.
  * Exact deferred reverse handback retains its original cap/restoration receipt rather than
@@ -33,15 +34,19 @@ params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]],
     ["_capOnly",false,[true]],["_offered",[],[[]]]];
 // Internal retry proof: state, baseline, original group/epoch/deadline and original seats.
 // Unknown or superseded proof cannot borrow the current ordinary controller's receipts.
-if (_capOnly && {count _offered != 7 || {!((_offered select 0) isEqualType [])}
+if (_capOnly && {count _offered != 9 || {!((_offered select 0) isEqualType [])}
     || {!((_offered select 1) isEqualType [])} || {!((_offered select 2) isEqualType grpNull)}
     || {!((_offered select 3) isEqualType 0)} || {!finite (_offered select 3)}
     || {!((_offered select 4) isEqualType 0)} || {!finite (_offered select 4)}
-    || {!((_offered select 5) isEqualType objNull)} || {!((_offered select 6) isEqualType objNull)}}) exitWith {};
+    || {!((_offered select 5) isEqualType objNull)} || {!((_offered select 6) isEqualType objNull)}
+    || {[7,8] findIf {private _identity=_offered select _x;
+        !(_identity isEqualType []) || {count _identity != 3}
+            || {_identity findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} >= 0}} >= 0}}) exitWith {};
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
 if (_capOnly && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo _offered
     || {(_offered select 2) != _expectedGroup} || {isNull _expectedGroup} || {!local _expectedGroup}
-    || {(_offered select 3) != (_expectedGroup getVariable ["CBE_AIPass_Epoch",0])}
+    || {(_offered select 8) isNotEqualTo [clientOwner,_expectedGroup getVariable ["CBE_AIPass_Epoch",0],
+        _expectedGroup getVariable ["CBE_Driving_Generation",0]]}
     || {driver _vehicle != (_offered select 5)} || {effectiveCommander _vehicle != (_offered select 6)}
     || {group (driver _vehicle) != _expectedGroup} || {!local (driver _vehicle)}
     || {!isNull effectiveCommander _vehicle && {group (effectiveCommander _vehicle) != _expectedGroup
@@ -70,7 +75,7 @@ isNil {
     if (!isNull _releaseEpochGroup) then {_releaseEpoch=_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0]};
     if (_capOnly) then {
         _releaseState=+(_offered select 0);_releaseRestore=+(_offered select 1);
-        _releaseEpochGroup=_offered select 2;_releaseEpoch=_offered select 3;
+        _releaseEpochGroup=_offered select 2;_releaseEpoch=(_offered select 8) select 1;
     };
 };
 if (!_capOnly) then {
@@ -127,7 +132,7 @@ if (!local _vehicle
     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _releaseRestore}
     || {!isNull _releaseEpochGroup && {_releaseEpoch != (_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {
     if (_capOnly && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _offered}) then {
-        _vehicle setVariable ["CBE_DrivingCapRelease_Work",nil];
+        _vehicle setVariable ["CBE_DrivingCapRelease_Work",nil,true];
         _vehicle setVariable ["CBE_DrivingCapRelease_Result",["SUPERSEDED",serverTime]];
     };
     false
@@ -175,10 +180,12 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
         private _pendingCap=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
         if (_pendingCap isEqualTo []) then {
             _pendingCap=[+_releaseState,+_releaseRestore,_ownerGroup,_releaseEpoch,
-                serverTime+30,_driver,_commander];
-            _vehicle setVariable ["CBE_DrivingCapRelease_Work",_pendingCap];
+                serverTime+30,_driver,_commander,
+                [clientOwner,_releaseEpoch,_ownerGroup getVariable ["CBE_Driving_Generation",0]],
+                [clientOwner,_releaseEpoch,_ownerGroup getVariable ["CBE_Driving_Generation",0]]];
+            _vehicle setVariable ["CBE_DrivingCapRelease_Work",_pendingCap,true];
         };
-        private _capStatus=if (_pendingCap isEqualType [] && {count _pendingCap == 7}
+        private _capStatus=if (_pendingCap isEqualType [] && {count _pendingCap == 9}
             && {(_pendingCap select 4) isEqualType 0} && {finite (_pendingCap select 4)}
             && {serverTime >= (_pendingCap select 4)}) then {"UNRESOLVED_DEADLINE"} else {"PENDING"};
         _vehicle setVariable ["CBE_DrivingCapRelease_Result",[_capStatus,serverTime]];
@@ -199,7 +206,7 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
 
 };
 if (_capPending) exitWith {};
-_vehicle setVariable ["CBE_DrivingCapRelease_Work",nil];
+_vehicle setVariable ["CBE_DrivingCapRelease_Work",nil,true];
 _vehicle setVariable ["CBE_DrivingCapRelease_Result",["RETIRED",serverTime]];
 _vehicle setVariable ["CBE_DrivingAssist_Restore",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Next",nil];
