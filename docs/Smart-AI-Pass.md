@@ -2236,3 +2236,6 @@ Anti-armour targeting and backblast relocation share the typed actor-movement re
 
 
 Artillery fix generation observes existing native knowledge and line of sight without changing the observer's weapon, watch target or movement. Assigned observers still need binocular equipment, sufficient recent native knowledge, visibility and the existing transmission/eligibility gates. Observation and impact correction validation and return format are unchanged. Routine group updates no longer switch unmarked binocular users back to rifles: there was no CBE-owned selection receipt to justify that override. Native and mission-selected weapons remain under their existing controller. Physical observation and artillery effectiveness remain unverified.
+
+
+Contact summarisation reuses one leader-to-belief distance sample for coarse range admission and ranking. It retains native candidate sorting, stable tie indices, the eight-contact shortlist and eight-member personal-observer refinement. Different observers still supply their own native belief positions; no distance is cached across calls or used as a live hostile transform. This removes a duplicate native distance read for each admitted coarse contact without introducing a scripted heap, additional scan or worker. Native target-list cost and the overall performance budget remain unmeasured.

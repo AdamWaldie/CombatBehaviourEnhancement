@@ -99,9 +99,14 @@ private _candidates = [];
             // Coarse shortlist only. Personal observer choice happens in the existing
             // bounded targetKnowledge pass, not through a group-level knowsAbout test.
             private _position=_leader getHideFrom _enemy;
-            if (_position isNotEqualTo [0,0,0] && {_leader distance2D _position <= _range}) then {
-                // The unique index breaks ties so sort never has to compare objects.
-                _candidates pushBack [_leader distance2D _position,count _candidates,_enemy,_position,_confidence];
+            if (_position isNotEqualTo [0,0,0]) then {
+                // Range admission and coarse ranking consume the same belief-distance sample.
+                // Keep the native sort instead of adding a scripted per-candidate heap.
+                private _distance=_leader distance2D _position;
+                if (_distance <= _range) then {
+                    // The unique index breaks ties so sort never has to compare objects.
+                    _candidates pushBack [_distance,count _candidates,_enemy,_position,_confidence];
+                };
             };
         };
     };
