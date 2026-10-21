@@ -29,5 +29,15 @@
     "Ordinary receipts are owner-local. This does not implement cross-HC adoption or actual external-provider quiescence.",
     "Changed seats/epoch/child ownership may end retries unresolved. New mission route is not replayed; cap-only restore removes only the still-owned setting.",
     "Retained proof does not guarantee eventual handback after the finite window or controller shutdown."
-  ]
+  ],
+  "followupExternalRefusal": {
+    "baseline": "8f24e033",
+    "finding": "Cap-only retry skipped restoration under current external authority but then retired unchanged pending cap and original baseline. Refusal was incorrectly treated as handback.",
+    "resolution": "Exact pending cap under current external/convoy/movement-owner authority exits final transaction UNRESOLVED_HANDOVER before native write or receipt deletion. Changed native cap follows existing retirement. No quiescence acknowledgement or deadline renewal.",
+    "validation": ".qa/cap-release-takeover-build.log; .qa/cap-release-takeover-independent.log",
+    "candidate": ".qa/candidates/cap-release-takeover-8f24e033",
+    "fingerprint": "621eec066e0bf4e1c7e8992ffc065b63bf740153f3db1b826d3015fae71c0248",
+    "sourceHash": "199daf0e7787266797da3f4d9138ec4d29808d3da192c083db3a9fddba99768a",
+    "limits": "Source/offline evidence only. Cross-owner pending-cap adoption remains unimplemented; no physical provider takeover or restoration evidence. Audits paused."
+  }
 }

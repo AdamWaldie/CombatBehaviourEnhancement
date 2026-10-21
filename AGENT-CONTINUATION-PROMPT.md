@@ -1,3 +1,9 @@
+# Latest checkpoint - pending cap external refusal
+
+
+## 2026-10-21 - Pending cap external refusal retains baseline
+Baseline 8f24e033. Review before incoming-owner work found that cap-only retry skipped forceSpeed under external authority but then erased unchanged cap/baseline/work receipts. Final transaction now exits UNRESOLVED_HANDOVER for cap-only + external authority + exact unchanged native cap before write/deletion. Changed native cap still retires old proof without write. Existing external/convoy/movement-owner guards retained, no deadline renewal/new worker/provider acknowledgement. Existing regression extended (3 focused cases); full offline build passed, independent package verified. Logs .qa/cap-release-takeover-build.log and .qa/cap-release-takeover-independent.log. Candidate .qa/candidates/cap-release-takeover-8f24e033 fingerprint 621eec066e0bf4e1c7e8992ffc065b63bf740153f3db1b826d3015fae71c0248. Source review followupExternalRefusal records exact hash. No Arma processes/launches; AUDITS PAUSED. No push/merge/publication. Full goal active/incomplete. Unrelated dirt and protected sources unchanged. Incoming-owner public pending-cap receipt/native Local-edge adoption is NOT implemented; prior .qa/ordinary-cap-incoming-owner-trace-20261021.json remains next scoped work, not physical proof. Ordinary cruising-cap provenance is separate. Preserve full goal and prior source/register/archive pointers below.
+
 # Latest checkpoint - ordinary cap-only handback
 
 

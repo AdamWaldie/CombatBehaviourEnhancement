@@ -24,7 +24,8 @@
  * 0: vehicle <OBJECT> - ground vehicle to release.
  * 1: expected group <GROUP, grpNull> - group-scoped cleanup; grpNull permits subsystem shutdown.
  * Return Value: Nothing.
- * Current callers: CBE_fnc_DrivingAssistStart and CBE_fnc_CortexStop.
+ * Current callers: CBE_fnc_DrivingAssistStart, CBE_fnc_CortexStop and
+ * CBE_fnc_DrivingRecoveryCleanup (internal cap-only retry).
  * Example: [truck1] call CBE_fnc_DrivingAssistRelease;
  */
 
@@ -150,6 +151,14 @@ private _externalControl=(!isNull _ownerGroup && {[_ownerGroup] call CBE_fnc_Cor
     || {_commanderTaken}
     || {!isNull _ownerGroup && {!([_ownerGroup] call CBE_fnc_DrivingMovementAvailable)}}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]};
+// A pending cap receipt is not retired merely because restoration is currently forbidden.
+// Preserve the exact baseline while an unchanged cap is held by external authority. The
+// observer stops this ticket as unresolved; this neither acknowledges provider quiescence
+// nor grants another native write. Changed native caps still follow ordinary retirement.
+if (_capOnly && {_externalControl || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}}
+    && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) exitWith {
+    _vehicle setVariable ["CBE_DrivingCapRelease_Result",["UNRESOLVED_HANDOVER",serverTime]];
+};
 // Restore only the cap that this driving lease still owns. If another controller changed it,
 // clear our state and leave that newer value untouched.
 if (_restore isNotEqualTo [] && {_ownedCap >= 0}

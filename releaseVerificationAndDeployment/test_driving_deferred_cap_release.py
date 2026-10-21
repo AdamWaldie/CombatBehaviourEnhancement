@@ -9,6 +9,16 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('_abort set ["releasedCap",_baseline]',commit)
         self.assertLess(commit.index('_vehicle forceSpeed'),commit.index('_abort set ["releasedCap",_baseline]'))
         self.assertIn('abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1',commit)
+        # External ownership is a refusal, not confirmation of baseline restoration.
+        refusal=commit.split('// A pending cap receipt',1)[1].split('// Restore only the cap',1)[0]
+        for guard in ('_capOnly', '_externalControl', 'CBE_ExternalDrivingOwner',
+                      'abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1', 'exitWith',
+                      '["UNRESOLVED_HANDOVER",serverTime]'):
+            self.assertIn(guard,refusal)
+        for mutation in ('forceSpeed', 'doMove', 'setVariable ["CBE_DrivingAssist_Restore",nil]',
+                         'setVariable ["CBE_DrivingCapRelease_Work",nil]', 'serverTime+30'):
+            self.assertNotIn(mutation,refusal)
+        self.assertLess(commit.index('// A pending cap receipt'),commit.index('_vehicle forceSpeed'))
         self.assertIn('if (_capPending) exitWith {}',commit)
         self.assertLess(commit.index('if (_capPending) exitWith {}'),commit.index('setVariable ["CBE_DrivingAssist_Restore",nil]'))
         self.assertIn('abs ((getForcedSpeed _vehicle)-_restoreValue) > 0.1',commit)
