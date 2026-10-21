@@ -4348,6 +4348,12 @@ class CortexOperations(unittest.TestCase):
                       '(_x select 3) > _assaultRange',
                       '(_x select 3) <= 500',
                       'CBE_Danger_ResponseEvent',
+                      'count _dangerEvent in [6,7,8]',
+                      'finite _eventUntil', '_now < _eventUntil',
+                      '[_eventWitness] call CBE_fnc_CortexCombatEffective',
+                      'local _eventWitness', 'group _eventWitness == _group',
+                      '_eventWitness knowsAbout _eventTarget > 0',
+                      '(_eventWitness targetKnowledge _eventTarget) param [7,false,[true]]',
                       '(_dangerEvent select 2) == (_dangerResponse select 2)',
                       '(_dangerEvent select 1) isEqualTo (_dangerResponse select 1)',
                       '(_x select 0) isEqualTo _eventTarget',
@@ -4359,6 +4365,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_unit doSuppressiveFire _aimASL',suppression)
         self.assertNotIn('doTarget',suppression)
         self.assertNotIn('spawn',suppression)
+        fsm=(ROOT/'addons/main/fsm/dangerAssessment.fsm').read_text(encoding='utf-8')
+        finished=fsm.split('class Finished {',1)[1]
+        self.assertIn('CBE_Danger_ResponseEvent"",nil',finished)
+        self.assertIn('_generation == (_group getVariable',finished)
 
     def test_non_infantry_sources_keep_identity_at_observation_boundaries(self):
         for name, expected, rejected in [

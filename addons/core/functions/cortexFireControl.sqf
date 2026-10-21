@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Fleeing actors receive no injected target/fire/suppression; the shared task gate repeats at issue.
+ * Native CANFIRE accepts current eight-field observations only while their original identity
+ * witness and source expiry remain valid; legacy six/seven-field records use their event expiry.
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
@@ -232,12 +234,19 @@ if (_suppressPos isEqualTo []) then {
     // A firing opportunity belongs to the contact that produced it, not whichever
     // unrelated enemy happens to sort first. Use only that contact's current native belief.
     private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
-    private _eventMatches=_canFireWindow && {count _dangerEvent in [6,7]}
+    private _eventWitness=_dangerEvent param [6,_dangerEvent param [5,objNull,[objNull]],[objNull]];
+    private _eventUntil=_dangerEvent param [7,_dangerEvent param [3,-1,[0]],[0]];
+    private _eventMatches=_canFireWindow && {count _dangerEvent in [6,7,8]}
+        && {finite _eventUntil} && {_now < _eventUntil}
+        && {[_eventWitness] call CBE_fnc_CortexCombatEffective}
+        && {local _eventWitness} && {group _eventWitness == _group}
         && {(_dangerEvent select 0) == (_dangerResponse select 0)}
         && {(_dangerEvent select 1) isEqualTo (_dangerResponse select 1)}
         && {(_dangerEvent select 2) == (_dangerResponse select 2)};
     private _eventTarget=if (_eventMatches) then {_dangerEvent param [4,objNull,[objNull]]} else {objNull};
     if (!isNull _eventTarget && {alive _eventTarget} && {!captive _eventTarget}
+        && {_eventWitness knowsAbout _eventTarget > 0}
+        && {!((_eventWitness targetKnowledge _eventTarget) param [7,false,[true]])}
         && {!(_eventTarget getVariable ["ace_captives_isSurrendering",false])}
         && {!(_eventTarget getVariable ["ace_captives_isHandcuffed",false])}
         && {(side _group) getFriend (side _eventTarget) < 0.6}) then {

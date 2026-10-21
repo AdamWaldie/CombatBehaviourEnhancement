@@ -1,0 +1,36 @@
+{
+  "baseline": "49806fb5",
+  "scope": "Repair current native CANFIRE observation consumption and matching finite FSM cleanup",
+  "source_intent": {
+    "reference": ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf",
+    "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    "branch": "brainEngage distant stationary unitReady DANGER_CANFIRE -> getHideFrom belief -> doSuppress; STEALTH/BLUE/GREEN/unknown targets defer.",
+    "disposition": "Preserve the existing CBE bounded ammunition/friendly-fire/movement-safe suppression path, with current native group belief and original contact identity. No forced target reveal, new controller or upstream dependency."
+  },
+  "findings": [
+    "DangerStep saves the selected current eight-field observation in ResponseEvent; fire-control count in [6,7] rejected that format before contact selection.",
+    "Danger FSM Finished cleared the response but omitted its saved ResponseEvent; other release paths already cleared both. Existing consumers gate on response, so omission alone is stale retained evidence, not proof of an independently firing stale order."
+  ],
+  "implementation": [
+    "Accept current8 and legacy6/7 with original source/event expiry, combat-effective local same-group original identity witness, current knowsAbout and native ignoreTarget veto.",
+    "Retain exact response cause/position/time association, current known hostile belief, existing assault/range/ammo/line-of-fire/protected actor and motion safeguards.",
+    "Matching owner epoch/generation FSM finish clears saved ResponseEvent alongside response."
+  ],
+  "validation": {
+    "focused": ".qa/canfire-record-tests.log:609 existing cortex tests passed before final current-knowledge veto; existing regression extended, no extra test count.",
+    "full": ".qa/canfire-record-build.log:complete offline gates passed,1489 tests/401 SQF.",
+    "candidate": ".qa/candidates/canfire-record-49806fb5",
+    "fingerprint": "94e74b1b4709b0785a4aa69afe657c4399a92045f44f25b64ddd03efd4f2bbea",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate: baseline plus intended changes and preserved unrelated dirt."
+  },
+  "limits": [
+    "Physical firing/burst selection and runtime performance unverified; audits PAUSED.",
+    "This fixes a concrete source integration mismatch, not whole LAMBS parity or production acceptance."
+  ],
+  "source_sha256": {
+    "addons/core/functions/cortexFireControl.sqf": "18e8e0d5172c26919a2ecb981e995a147fe05dcf1c6febabfd8bdc9f4c12c1bc",
+    "addons/main/fsm/dangerAssessment.fsm": "d47c4bc0712702617714d4c9032f5cf91db7608b2296dbe6000b3466f6a86a6d",
+    "addons/infantry/functions/dangerStep.sqf": "ea99366d9107e6c639537ab996246c4eb14795062c2ae6d2b88f6183afbff9e1"
+  }
+}
