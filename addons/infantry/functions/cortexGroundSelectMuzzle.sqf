@@ -13,15 +13,16 @@
  * Return: BOOL, exact weapon and muzzle are now selected; false is refusal/pending,
  * never proof of firing. Callers retain their original finite retry deadline.
  * Bounds: <=64 crew rows, <=16 station weapons and at most three native state reads.
- * Current callers: CortexVehicles, CortexCombinedArmsLocal and CortexCombinedGroundStep.
+ * Current callers: CortexVehicles, CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexAAIntercept.
  * Example: private _selected=[_tank,gunner _tank,_observation] call CBE_fnc_CortexGroundSelectMuzzle;
+ * Optional argument3: finite fire-owner token STRING, empty; only matching owner may select.
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],
-    ["_observation",createHashMap,[createHashMap]]];
+    ["_observation",createHashMap,[createHashMap]],["_fireOwner","",[""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _asset} || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")} || {gunner _asset != _gunner}
     || {vehicle _gunner != _asset} || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
-    || {!([_gunner] call CBE_fnc_CortexActorFireTaskAvailable)}
+    || {!([_gunner,_fireOwner] call CBE_fnc_CortexActorFireTaskAvailable)}
     || {!([_gunner] call CBE_fnc_CortexCombatEffective)}
     || {!("loadedTurret" in _observation)}) exitWith {false};
 private _weapon=_observation getOrDefault ["loadedWeapon",""];

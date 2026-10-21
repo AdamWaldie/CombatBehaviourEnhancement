@@ -215,6 +215,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_Stance_Enable` | `true` | BOOL: stance chosen from the height of the cover in front. |
 | `CBE_AIPass_AmmoShare_Enable` | `true` | BOOL: soldiers low on magazines get one from a squad-mate. |
 | `CBE_AIPass_AmmoShare_Distance` | `10` | METRES: how close the squad-mate must be. |
+| `CBE_AIPass_AAIntercept_Enable` | `false` | Experimental finite main-turret point-defence aim/shot observation; intercept effects incomplete. |
 | `CBE_AIPass_VehicleGunnery_Enable` | `true` | BOOL: gunners prioritise AT soldiers; armour keeps away from them. |
 | `CBE_AIPass_Vehicles_StandoffDistance` | `250` | METRES: distance armour keeps from known AT soldiers. |
 | `CBE_AIPass_ArtillerySmoke_Enable` | `true` | BOOL: a retreating squad gets an artillery smoke screen (needs Artillery). |

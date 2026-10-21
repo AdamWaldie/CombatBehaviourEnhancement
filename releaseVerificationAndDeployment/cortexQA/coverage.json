@@ -1345,18 +1345,20 @@
       "setup": "Present an armed vehicle with known AT infantry and other enemies at different ranges under each fire rule.",
       "expected": "Real shots/targets follow permitted priority and standoff movement without dismounting operating crew.",
       "settings": [
-        "CBE_AIPass_VehicleGunnery_Enable"
+        "CBE_AIPass_VehicleGunnery_Enable",
+        "CBE_AIPass_AAIntercept_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "runtime-20260927-040456: server suite zero findings; natural detection, actual AT-directed shots, hold-fire, disabled stationary control, physical +60 m standoff and crew retention passed. Client completion missing, broader owner/disable variants unverified."
       ],
-      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding.",
+      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry.",
       "executable_sources": [
         "runGunnery.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexGroundReload.sqf"
+        "addons/infantry/functions/cortexGroundReload.sqf",
+        "addons/vehicles/functions/cortexAAIntercept.sqf"
       ]
     },
     {

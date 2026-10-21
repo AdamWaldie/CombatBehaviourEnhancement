@@ -86,6 +86,44 @@ class AAObservation(unittest.TestCase):
         self.assertIn('_aaEngagements deleteAt _oldAllocation',reservation)
         self.assertLess(gunnery.index('_gunner doFire _target;'),gunnery.index('private _oldAllocation='))
 
+        intercept=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
+        for bound in ('count _registry >= 4','count _rounds >= 8','time+8','>= 160',
+                      '< 16','_dt > 0.2','CBE_AIPass_AAIntercept_Enable',
+                      'CortexActorFireTaskAvailable','CortexExternalOwner','CAMERA_REPLACED'):
+            self.assertIn(bound,intercept)
+        for forbidden in ('triggerAmmo','deleteVehicle','setDamage','setVelocity','setGroupOwner',
+                          'addMagazine','reveal','addPerFrameHandler','nearestObjects'):
+            self.assertNotIn(forbidden,intercept)
+        self.assertIn('_vehicle selectionNames "Memory"',intercept)
+        self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
+        self.assertIn('_lock isEqualTo _applied',intercept)
+        permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
+        self.assertIn('finite (_aaLease select 1)',permission)
+        self.assertIn('time < (_aaLease select 1)',permission)
+        self.assertIn('_job getOrDefault ["token",""]',intercept)
+        self.assertIn('_observation get "loadedTurret"',intercept)
+        self.assertIn('_operator != (_state get "gunner")',intercept)
+        self.assertIn('_muzzle != (_state get "muzzle")',intercept)
+        fire_handler=source.split('private _handler=',1)[1].split('private _warningHandler=',1)[0]
+        self.assertLess(fire_handler.index('"SHOT",_this'),fire_handler.index('CBE_AA_ObserveDue'))
+        self.assertIn('"RELEASE"] call CBE_fnc_CortexAAIntercept',source)
+        # Analytical geometry fixtures: an observed relative segment crosses zero at
+        # its midpoint; temporal gaps must be rejected by the production boundary.
+        relative_start=(-10.0,1.0,0.0);relative_end=(10.0,1.0,0.0)
+        delta=tuple(b-a for a,b in zip(relative_start,relative_end))
+        fraction=-sum(a*b for a,b in zip(relative_start,delta))/sum(a*a for a in delta)
+        miss=sum((a+fraction*b)**2 for a,b in zip(relative_start,delta))**0.5
+        self.assertAlmostEqual(fraction,0.5);self.assertAlmostEqual(miss,1.0)
+        # A transverse target at 300m moving100m/s has a positive lead time1s
+        # for a sqrt(100000)m/s projectile; a faster receding target has no future root.
+        import math
+        speed=math.sqrt(100000)
+        self.assertAlmostEqual(math.sqrt(300**2+(100*1)**2),speed*1)
+        receding_roots=(-3.0,-1.0)
+        for t in receding_roots:
+            self.assertAlmostEqual((300+200*t)**2,(100*t)**2)
+        self.assertTrue(all(t < 0 for t in receding_roots))
+
         stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
         self.assertLess(stop.index('[_x,true] call CBE_fnc_CortexAAObserve'),
                         stop.index('if (hasInterface && {!isServer}) exitWith'))

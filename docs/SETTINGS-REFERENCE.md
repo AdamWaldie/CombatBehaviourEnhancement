@@ -185,6 +185,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
 | `CBE_AIPass_Vehicles_Enable` | Enable Cortex vehicle tactics | CHECKBOX | true | [] | NEXT_OPERATION | Parent control for Cortex passenger dismount, remount and damaged-vehicle withdrawal. Convoy route control remains independent. |
+| `CBE_AIPass_AAIntercept_Enable` | Experimental AA point-defence fire | CHECKBOX | false | [] | NEXT_OPERATION | Native warned missiles can receive a finite main-turret bullet response. Real-shot observation only; intercept effects and physical validation remain incomplete. Off by default. |
 | `CBE_AIPass_VehicleGunnery_Enable` | Vehicle gunnery | CHECKBOX | true | [] | NEXT_OPERATION | Armed crews make one safe immediate suppression response to a known danger source, then engage AT soldiers first, armour second and preserve distance from AT teams. |
 | `CBE_AIPass_VehicleWithdraw_Enable` | Damage: withdraw mobile vehicle | CHECKBOX | true | [] | NEXT_OPERATION | Under Enable Cortex vehicle tactics, allows a damaged mobile vehicle to withdraw and use existing smoke. |
 | `CBE_AIPass_VehicleReverse_Enable` | Withdrawal: tracked reverse leg | CHECKBOX | true | [] | LIVE | Under damaged vehicle withdrawal, tracked armour attempts a short threat-facing reverse before native escape. Disabling releases the reverse command and retains the escape route. Wheeled vehicles retain forward escape. |

@@ -208,5 +208,24 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "finiteAimShotImplementation20261021": {
+    "baseline": "47bdd54f",
+    "scope": "Original CBE finite native-warning main-turret aim and actual-shot observation building block. Experimental default-off CBA setting CBE_AIPass_AAIntercept_Enable. This is not completed interception or whole-source parity.",
+    "implementation": "CortexAAObserve starts from its current native warning receipt and passes Fired payloads before the relocation1s throttle. CortexAAIntercept uses a keyed existing scheduler adapter with explicit token/gunner/deadline and no scheduler group key, allowing its own locality/epoch cleanup to run. Current group, actor task/external owner/ROE/FIREWEAPON, authored route and native target/command receipts remain required. A typed original-expiry gunner fire-owner lease excludes other CBE firing; GroundSelectMuzzle permits only exact matching owner. No motion/radar/skill/ammo creation changes.",
+    "aim": "Stationary<=3kmh main turret[0], editor-AA role, native hostile warning missile, loaded nonexplosive bullets>=20 and recognised barrel/optic Memory points. Positive constant-velocity quadratic solution within2s plus approximate gravity term; no drag/calibration. Native temporary point lock, fresh barrel alignment<=0.5deg and protected-actor/terrain/object lane checks precede fireAtTarget objNull for selected muzzle. New different/absent lock ends an applied episode, not automatic reacquisition. Exact unchanged applied point alone can be unlocked at cleanup.",
+    "actualShotObservation": "Native matching weapon/muzzle/magazine/operator Fired projectile inside dispatch window; up to8 live local rounds. Same-time relative swept segments measure closest pass only when both projectiles remain available and dt<=0.2s. Disappearance, dispatch or min distance never earns a hit. Result is captured shots and measured closest pass, not total shots fired, munition destruction or interception.",
+    "bounds": "At most4 local platforms,8s original episode,160steps,16native requests,8simultaneously observed rounds; requested0.05s existing scheduler cadence may defer/double under slow-mode. Per-step loaded-station query remains32cap; lane queries only at firing attempt. Extra runtime cost unmeasured. Existing active warning cannot renew deadline. Four-record expiry reap; deleted-platform job carries exact gunner/token/expiry for private cleanup; typed fire lease expires even after discarded cleanup. No per-round PFH/global scan/network effect command.",
+    "remaining": "Actual armed fuse/effect policy, authenticated shared detection and group/layered munition allocation, learned correction and other turret/ammo types remain incomplete. Native lock readback/automatic release, actual aim/fire, repeated episodes, successor orders, locality/HC and performance need runtime validation. Same-value successor locks are observationally indistinguishable. No physical success/score increase.",
+    "primaryLinks": [
+      "https://community.bistudio.com/wiki/lockCameraTo",
+      "https://community.bistudio.com/wiki/lockedCameraTo",
+      "https://community.bistudio.com/wiki/fireAtTarget",
+      "https://community.bistudio.com/wiki/selectionNames"
+    ],
+    "validation": "All1482 existing tests/full offline HEMTT/SQF/config/FSM/docs/coverage/package passed; independent copied-package verify passed. Unsigned .qa/candidates/aa-aim-shot-47bdd54f fingerprint c9ab121e6af97139b328cbc8b14f90a0d0c60e51cd0736c78cf28d469c7e0c2b. Logs .qa/aa-aim-shot-build.log and .qa/aa-aim-shot-independent.log.152 settings/380 mapped production sources are bookkeeping, not acceptance. Initial missing shipped/published setting defaults corrected; HEMTT invalid unary Memory-selectionNames warning fixed to documented binary syntax. Existing AA regression extended, no new case count. No Arma launch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
