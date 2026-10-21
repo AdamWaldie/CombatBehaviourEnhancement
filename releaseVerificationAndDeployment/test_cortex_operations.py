@@ -10410,11 +10410,13 @@ class CortexOperations(unittest.TestCase):
         release=source('cortexReleaseGroup')
         self.assertIn('_dangerCoverLease select 1,true] call CBE_fnc_DangerCoverStep',release)
         self.assertIn('if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4}',cover)
-        self.assertIn('if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)} && {alive _leasedActor}',cover)
+        self.assertIn('if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}',cover)
         self.assertLess(cover.index('if (_releaseOnly) exitWith'),cover.index('call CBE_fnc_CortexFindCover'))
-        recovery=cover.split('if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)} && {alive _leasedActor}',1)[1].split('_leasedActor doFollow',1)[0]
+        recovery=cover.split('if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}',1)[1].split('_leasedActor doFollow',1)[0]
         self.assertIn('_leasedActor checkAIFeature "MOVE"',recovery)
         self.assertIn('_leasedActor checkAIFeature "PATH"',recovery)
+        self.assertIn('[_leasedActor] call CBE_fnc_CortexCombatEffective',recovery)
+        self.assertIn('!fleeing _leasedActor',recovery)
 
     def test_nearby_valid_cover_is_not_misclassified_as_failed_screening(self):
         text=source('dangerCoverStep')

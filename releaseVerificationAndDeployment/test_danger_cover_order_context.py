@@ -15,6 +15,9 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertLess(final.index('exitWith'),final.index('_actor doMove _spot'))
         cleanup=source.split('if (count _lease >= 4) then {',1)[1].split('if (_orderChanged) exitWith',1)[0]
         self.assertIn('_entryContext isEqualTo (call _readOrderContext)',cleanup)
+        self.assertIn('[_leasedActor] call CBE_fnc_CortexCombatEffective',cleanup)
+        self.assertIn('!fleeing _leasedActor',cleanup)
+        self.assertLess(cleanup.index('!fleeing _leasedActor'),cleanup.index('_leasedActor doFollow'))
         self.assertNotIn('addWaypoint',source)
         self.assertNotIn('setCurrentWaypoint',source)
 if __name__=='__main__': unittest.main()

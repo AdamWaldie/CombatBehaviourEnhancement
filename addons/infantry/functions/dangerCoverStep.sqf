@@ -3,6 +3,8 @@
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
  * Native fleeing retires matching metadata without a native recall command.
+ * Cross-observer cleanup checks the leased soldier itself for combat effectiveness and
+ * flight; the incoming observer cannot grant recall authority over the previous actor.
  * It runs on the actor and group owner and yields
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
@@ -144,7 +146,8 @@ if (count _lease >= 4) then {
             && {(_actorMove select 1) distance2D _leasedSpot <= 1}
             && {(_actorMove select 2) == _expires}) then {
             _leasedActor setVariable ["CBE_Cortex_ActorMove",nil];
-            if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)} && {alive _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
+            if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}
+                && {[_leasedActor] call CBE_fnc_CortexCombatEffective} && {!fleeing _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
                 && {([_leasedActor] call CBE_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
                 && {isNull objectParent _leasedActor} && {_leasedActor != leader _group}
                 // Successful arrival is useful cover, not a reason to run back across exposure.
