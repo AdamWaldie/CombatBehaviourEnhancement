@@ -18,6 +18,8 @@
  * PREPARE binds all this owner's settled participants to original token/expiry and their brains.
  * PREPARED acknowledges only those verified applied holds; the server waits for every owner.
  * It adds no timer, native command, cached clearance or execution permission.
+ * Positive consent ACK includes the exact derived rear requirements; the server rejects
+ * any different per-vehicle plan under the same context/token. Negative ACK needs no plan.
  * ARM acknowledges phase installation on every owner before leaf-only EXECUTE may grant
  * future issue admission. Neither path issues a native command; actual issue must revalidate.
  * Duplicate installed phases/grants do not rewind a running native leg.
@@ -107,7 +109,7 @@ private _rearRequirements=if (_mode == "VERIFY") then {
     [_vehicles,_context] call CBE_fnc_DrivingQueueRearRequirements
 } else {((_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["rearRequirements",[]]};
 if (count _rearRequirements != count _vehicles) exitWith {
-    if (_mode == "VERIFY") then {["ACK",[_token,false]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    if (_mode == "VERIFY") then {["ACK",[_token,false,[]]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     false
 };
 private _motionLimit=selectMax (_rearRequirements apply {_x select 0});
@@ -442,7 +444,7 @@ if (_duplicate) exitWith {
         ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
         false
     };
-    if (_mode == "VERIFY") then {["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    if (_mode == "VERIFY") then {["ACK",[_token,true,_rearRequirements]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
     true
 };
 if (_mode == "VERIFY") exitWith {
@@ -464,7 +466,7 @@ if (_mode == "VERIFY") exitWith {
             };
         } forEach _owned;
     };
-    ["ACK",[_token,_accepted]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];true
+    ["ACK",[_token,_accepted,_rearRequirements]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];true
 };
 {
     private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];

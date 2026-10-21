@@ -274,5 +274,30 @@
         "sha256": "56d4658c9b256e9227074bdf6c899ccc48a51fefdb6098f75f75ec92beb39921"
       }
     ]
+  },
+  "exactOwnerPlanAcknowledgement20261021": {
+    "baseline": "30c9ad57",
+    "finding": "Owner ACK previously carried only boolean consent. Server and owners derive rear requirements independently, so matching context and maximum bound alone did not prove agreement to every vehicle envelope.",
+    "change": "Private ACK now [token,BOOL,rearRequirements]. Every positive owner reply echoes its complete cached/derived array. Before counting the owner or replying to an agreed duplicate, broker requires exact equality to its own admitted array. A negative or different-plan ACK refuses PENDING or releases AGREED via existing exact-token send/removal. Sender authentication, canonical current-context checks and original expiry remain. Malformed/wrong-size messages grant nothing; first-release private API has no legacy boolean-only adapter.",
+    "validation": {
+      "fullBuild": ".qa/queue-plan-ack-final-build.log",
+      "tests": 1482,
+      "independent": ".qa/queue-plan-ack-independent.log",
+      "candidate": ".qa/candidates/queue-plan-ack-30c9ad57",
+      "fingerprint": "3c05300cd497d926eb7ca072bb7ab10f21219b8426975990a349930e2e0ee2b0",
+      "notes": "Existing broker and expiry cases extended; includes different per-vehicle plans with the same largest envelope, late refusal before duplicate response, no timer renewal. Initial build stopped on two old ACK source-contract assertions; updated those contracts without removing their invariants, final full pipeline passed."
+    },
+    "cost": "At most4envelope rows per ACK; no timer, world query, worker or motion grant added.",
+    "remaining": "No fresh physical/multiplayer/performance evidence; audits paused. Unsigned development package on baseline plus intended product changes, no percentages or parity claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "f24f809bd2f16e0dfef54fda8dcdde3f05983b78113e0927ed40933e344e9c4b"
+      }
+    ]
   }
 }

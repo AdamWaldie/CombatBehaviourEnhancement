@@ -7,13 +7,14 @@
  * Repeat/JIP: Private32episode registry, fixed2s handshake/90s maximum consent; idempotent replies and exact-token release.
  * A private64-entry vehicle admission journal allows one accepted BEGIN per90seconds,
  * bounding retired timer accumulation as well as the32live episodes.
- * A negative ACK from an expected owner withdraws an existing agreement immediately.
+ * A negative or different-plan ACK from an expected owner withdraws an existing agreement
+ * immediately. Positive ACKs must echo the exact server-derived per-vehicle envelopes.
  * One timer per admitted phase retires exact-token/phase/deadline state without waiting for
  * another request. Late callbacks preserve newer phases. No recurring scan or JIP command.
- * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED/CROSS_ARMED/CROSS_CLEAR/CROSS_PATH_READY;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason,optional pathASL,optional poses]]; CROSS_ARMED=[token,phaseSerial,planSerial]; CROSS_CLEAR=[token,root,crossingBinding]; CROSS_PATH_READY=[token,crossingBinding].
+ * Arguments: 0 mode STRING empty BEGIN/ACK/RELEASE/COMMIT/READY/PREPARED/ARMED/HELD/ROOM/CROSS_PLANNED/CROSS_ARMED/CROSS_CLEAR/CROSS_PATH_READY;1 payload ARRAY []. BEGIN=[serial,vehicles,roles,dependencies,context,deadline,expires]; ACK=[token,BOOL,rearRequirements]; RELEASE/COMMIT=[token]; READY=[token,vehicle]; PREPARED=[token]; ARMED=[token,phaseSerial]; HELD=[token,mover]; ROOM=[token,parent,dependency,phaseSerial,requestSerial,observation]; CROSS_PLANNED=[token,root,phaseSerial,requestSerial,[valid,reason,optional pathASL,optional poses]]; CROSS_ARMED=[token,phaseSerial,planSerial]; CROSS_CLEAR=[token,root,crossingBinding]; CROSS_PATH_READY=[token,crossingBinding].
  * Return: BOOL processed, never native execution or queue success.
  * Current callers: DrivingQueueAgreementRequest and actual-owner DrivingQueueAgreementOwner replies.
- * Example: ["ACK",[_token,true]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
+ * Example: ["ACK",[_token,true,_rearRequirements]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2];
  */
 params [["_mode","",[""]],["_payload",[],[[]]]];
 if (!isServer || {remoteExecutedOwner <= 0} || {!(_mode in ["BEGIN","ACK","RELEASE","COMMIT","READY","PREPARED","ARMED","HELD","ROOM","CROSS_PLANNED","CROSS_ARMED","CROSS_CLEAR","CROSS_PATH_READY"])}) exitWith {false};
@@ -114,7 +115,7 @@ if (_mode == "BEGIN") exitWith {
     {["VERIFY",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _owners;
     true
 };
-private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {if (_mode in ["CROSS_ARMED","CROSS_CLEAR"]) then {3} else {[1,2] select (_mode in ["ACK","READY","HELD","ARMED","CROSS_PATH_READY"])}}};
+private _payloadCount=if (_mode == "ROOM") then {6} else {if (_mode == "CROSS_PLANNED") then {5} else {if (_mode in ["ACK","CROSS_ARMED","CROSS_CLEAR"]) then {3} else {[1,2] select (_mode in ["READY","HELD","ARMED","CROSS_PATH_READY"])}}};
 if (count _payload != _payloadCount || {!((_payload select 0) isEqualType "")}) exitWith {false};
 private _token=_payload select 0;private _record=_registry getOrDefault [_token,createHashMap];
 if (count _record == 0 || {!(_sender in (_record get "owners"))}) exitWith {false};
@@ -431,17 +432,22 @@ if (_mode in ["COMMIT","READY"]) exitWith {
     true
 };
 if (!((_payload select 1) isEqualType true)) exitWith {false};
+// Context identity alone is insufficient when owners derive geometric demands independently.
+// A differing positive reply is a refusal, including a duplicate after agreement.
+private _acceptsPlan=(_payload select 1) && {(_payload select 2) isEqualType []}
+    && {count (_payload select 2) == count (_record get "rearRequirements")}
+    && {(_payload select 2) isEqualTo (_record get "rearRequirements")};
 private _until=[_record get "deadline",_record get "expires"] select ((_record get "phase") == "AGREED");
 if (serverTime >= _until || {!([_record] call _current)}) exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;false
 };
 // An expected owner can withdraw agreement after its native context changes.
 // A late refusal is terminal; duplicate positive ACKs retain the original expiry.
-if ((_record get "phase") == "AGREED" && {!(_payload select 1)}) exitWith {
+if ((_record get "phase") == "AGREED" && {!_acceptsPlan}) exitWith {
     _record set ["phase","RELEASED"];[_record] call _send;_registry deleteAt _token;true
 };
 if ((_record get "phase") != "PENDING") exitWith {[_record] call _send;true};
-if !(_payload select 1) then {_record set ["phase","REFUSED"]} else {
+if !_acceptsPlan then {_record set ["phase","REFUSED"]} else {
     private _acks=_record get "acks";_acks pushBackUnique _sender;
     if (count _acks == count (_record get "owners")) then {_record set ["phase","AGREED"]};
 };

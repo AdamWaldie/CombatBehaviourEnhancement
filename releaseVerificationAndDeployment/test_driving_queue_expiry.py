@@ -23,26 +23,28 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertIn('if (_retired) then',timer)
         duplicate=s.split('if (_duplicate) exitWith {',1)[1].split('if (_mode == "VERIFY") exitWith {',1)[0]
         self.assertIn('if (_mode == "VERIFY") then',duplicate)
-        self.assertIn('"ACK",[_token,true]',duplicate)
+        self.assertIn('"ACK",[_token,true,_rearRequirements]',duplicate)
         self.assertLess(s.index('private _accepted='),s.index('if (_duplicate) exitWith {'))
         self.assertLess(s.index('count _request != 4'),s.index('if (_duplicate) exitWith {'))
-        self.assertLess(duplicate.index('if (!_accepted) exitWith'),duplicate.index('"ACK",[_token,true]'))
+        self.assertLess(duplicate.index('if (!_accepted) exitWith'),duplicate.index('"ACK",[_token,true,_rearRequirements]'))
         refusal=duplicate.split('if (!_accepted) exitWith',1)[1].split('if (_mode == "VERIFY") then',1)[0]
         self.assertIn('(_old getOrDefault ["token",""]) == _token',refusal)
         self.assertIn('"RELEASE",[_token]',refusal)
         self.assertIn('"CBE_DrivingQueue_Consent",nil',refusal)
-        self.assertNotIn('"ACK",[_token,true]',refusal)
+        self.assertNotIn('"ACK",[_token,true,_rearRequirements]',refusal)
         self.assertNotIn('call _scheduleExpiry',duplicate)
         self.assertIn('if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry}',s)
         self.assertIn('"deadline","expires","phase"',s)
     def test_late_owner_refusal_releases_agreement_before_duplicate_reply(self):
         s=source('drivingQueueAgreementServer')
-        begin=s.index('if ((_record get "phase") == "AGREED" && {!(_payload select 1)}) exitWith')
+        begin=s.index('if ((_record get "phase") == "AGREED" && {!_acceptsPlan}) exitWith')
         end=s.index('if ((_record get "phase") != "PENDING") exitWith',begin)
         refusal=s[begin:end]
         self.assertIn('_record set ["phase","RELEASED"]',refusal)
         self.assertLess(refusal.index('[_record] call _send'),refusal.index('_registry deleteAt _token'))
         self.assertLess(s.index('_sender in (_record get "owners")'),begin)
+        self.assertLess(s.index('private _acceptsPlan=(_payload select 1)'),begin)
+        self.assertLess(s.index('(_payload select 2) isEqualTo (_record get "rearRequirements")'),begin)
         self.assertNotIn('call _scheduleExpiry',refusal)
         self.assertNotIn('set ["expires"',refusal)
         for command in ('doMove','doStop','setDriveOnPath','forceSpeed'):
@@ -63,7 +65,7 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',motion_duplicate)
         self.assertNotIn('set ["expires"',motion_duplicate)
         self.assertNotIn('call _scheduleExpiry',motion_duplicate)
-        verify=owner.split('if (_mode == "VERIFY") exitWith {',1)[1].split('["ACK",[_token,_accepted]]',1)[0]
+        verify=owner.split('if (_mode == "VERIFY") exitWith {',1)[1].split('["ACK",[_token,_accepted,_rearRequirements]]',1)[0]
         self.assertIn('} else {',verify)
         self.assertIn('call CBE_fnc_DrivingQueueTokenClosed',verify)
         self.assertIn('(_old getOrDefault ["token",""]) == _token',verify)

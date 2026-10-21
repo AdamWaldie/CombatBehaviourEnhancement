@@ -144,6 +144,26 @@ class QueueProposalTests(unittest.TestCase):
                       '_expires > serverTime+90','_deadline > serverTime+2'):
             self.assertIn(proof,server)
         self.assertIn('remoteExecutedOwner != 2',owner)
+        self.assertIn('["ACK",[_token,_accepted,_rearRequirements]]',owner)
+        self.assertIn('["ACK",[_token,true,_rearRequirements]]',owner)
+        self.assertIn('(_payload select 2) isEqualTo (_record get "rearRequirements")',server)
+        self.assertLess(server.index('private _acceptsPlan='),server.index('_acks pushBackUnique _sender'))
+        self.assertIn('if !_acceptsPlan then {_record set ["phase","REFUSED"]}',server)
+        self.assertIn('== "AGREED" && {!_acceptsPlan}',server)
+        # All booleans being true cannot admit different per-vehicle room plans,
+        # even when they have the same largest motion bound.
+        expected=[[0,0],[26,24],[8,6]]
+        different=[[0,0],[26,24],[9,7]]
+        replies=[(2,True,expected),(10,True,different)]
+        acks=set(); refused=False
+        for sender,accepted,plan in replies:
+            if not accepted or plan != expected:
+                refused=True; break
+            acks.add(sender)
+        self.assertTrue(refused)
+        self.assertNotEqual(acks,{2,10})
+        self.assertEqual(max(row[0] for row in expected),max(row[0] for row in different))
+
         room=(ROOT/'addons/vehicles/functions/drivingQueueParentRoom.sqf').read_text()
         for proof in ('count _vehicles < 3','!local _parent','_parentIndex < 1',
                       '"queuePhase",""','queueStopAcknowledged','NO_MEASURED_REAR_ROOM',
