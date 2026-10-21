@@ -59,6 +59,33 @@ class AAObservation(unittest.TestCase):
         self.assertIn('[_group,_state,_ordered,_enemies] call CBE_fnc_CortexAARelocate',tick)
 
 
+        # Allocation model: distribute equal-tier contacts, preserve urgent threats,
+        # ignore own incumbent and allow an already covered target if alternatives fail.
+        def order(gunner, contacts, engagements):
+            return sorted(contacts, key=lambda row: (
+                row[1], sum(owner != gunner and target == row[0]
+                            for owner, target in engagements), row[2]))
+        contacts=[('near',-1,100),('far',-1,200)]
+        assignments=[]
+        chosen=order('one',contacts,assignments)[0][0]
+        assignments.append(('one',chosen))
+        self.assertEqual(order('two',contacts,assignments)[0][0],'far')
+        self.assertEqual(order('one',contacts,assignments)[0][0],'near')
+        self.assertEqual(order('two',[('near',-2,100),('far',-1,200)],assignments)[0][0],'near')
+        eligible=[row for row in order('two',contacts,assignments) if row[0] != 'far']
+        self.assertEqual(eligible[0][0],'near')
+        assignments=[('one','far')]  # replacement retires the old near reservation
+        self.assertEqual(order('two',contacts,assignments)[0][0],'near')
+        allocation=gunnery.split('private _aaAllocationVehicles=',1)[1].split('private _airProbeCount=',1)[0]
+        self.assertIn('_vehicles select [0,16]',allocation)
+        self.assertIn('getAttackTarget _aaGunner',gunnery)
+        self.assertIn('_ranked pushBack [_priority, _airLoad, _distance, _forEachIndex]',gunnery)
+        self.assertIn('((_ranked select 0) select 3)',gunnery)
+        self.assertIn('_gunneryContacts select (_x select 3)',gunnery)
+        reservation=gunnery.split('private _oldAllocation=',1)[1].split('CBE_AIPass_TargetHold',1)[0]
+        self.assertIn('_aaEngagements deleteAt _oldAllocation',reservation)
+        self.assertLess(gunnery.index('_gunner doFire _target;'),gunnery.index('private _oldAllocation='))
+
         stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
         self.assertLess(stop.index('[_x,true] call CBE_fnc_CortexAAObserve'),
                         stop.index('if (hasInterface && {!isServer}) exitWith'))

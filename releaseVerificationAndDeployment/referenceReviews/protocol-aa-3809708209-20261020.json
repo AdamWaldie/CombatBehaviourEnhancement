@@ -134,5 +134,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "nativeAircraftAllocation": {
+    "baseline": "a7d45daa",
+    "implementation": "Within existing owner-local vehicle gunnery, up to sixteen roster platforms supply native-AA engagement hints once per callback. Other-station count precedes distance inside the same threat tier; own incumbent excluded. After admitted native dispatch replace the station hint for subsequent vehicles. No persistent reservations or separate controller.",
+    "sourceIntent": "Improve selected multi-piece coordination intent without Protocol global detection, radar overrides or scripted projectile destruction. Native known aircraft only; not anti-munition interception.",
+    "authority": "Existing target hold, actor task/local ownership, ROE, current loaded station/muzzle and protected-lane checks remain. Covered target is fallback, not prohibited. Warning threat tier retains priority. Authored tasks are not seeded or replaced.",
+    "cost": "First sixteen vehicle-roster entries only, native-AA category filtered. At most sixteen native engagement reads and bounded metadata comparisons. Other platforms retain previous ranking. No extra native knowledge pass, network or persistent timer. Performance unmeasured.",
+    "limits": "Allocation is advisory. A native target is not effective fire; callback-local dispatched reservation is not native acknowledgement. No cross-group allocator, munition interception or complete layered defence. Physical distribution, stability, normal/HC migration and performance unverified.",
+    "validation": "All1482/full offline build passed; independent verify passed. Unsigned .qa/candidates/aa-allocation-a7d45daa fingerprint a3d80d3aaf9b76928fbfca01c2bcee3f29464e0f5815cfe961e4bee5a4d8ec05. Logs .qa/aa-allocation-build.log and .qa/aa-allocation-independent.log. Existing AA case models allocation, urgent tier, own incumbent exclusion and unusable-alternative fallback. Existing ranked-contact source contract updated for four-field record.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

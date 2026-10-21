@@ -6224,7 +6224,7 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(text.count('private _stationSelection=createHashMap;'),1)
 
         self.assertIn('private _contactRange=[600,_airRange] select _freshAir;',text)
-        self.assertIn('_gunneryContacts select (_x select 2)',selection)
+        self.assertIn('_gunneryContacts select (_x select 3)',selection)
         knowledge=source('cortexKnowledge')
         self.assertIn('_domain == "ALL" || {_enemy isKindOf "Air"}',knowledge)
         self.assertLess(knowledge.index('_domain == "ALL"'),knowledge.index('if (count _candidates > 8)'))

@@ -47,6 +47,10 @@
  * terrain-checked jink away from a close hostile or severe impact. A stopped tracked fighting vehicle
  * may instead make one generation-owned chassis turn toward a real known hostile. Convoy, passengers
  * and any existing movement owner remain authoritative.
+ * Native-AA aircraft ranking shares transient native engagement hints across at most sixteen
+ * roster platforms; other-station load breaks ties inside a threat tier, before distance.
+ * One native target read/platform plus bounded metadata comparisons, no extra knowledge scan.
+ * Held engagements remain hints; fresh dispatched intents reserve only this callback, not shots.
  * During sustained contact the AI gunner is pointed at the most dangerous
  * enemy seen in the last 15 s within 600 m: anti-tank infantry first, then armour, then anything
  * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
@@ -703,6 +707,13 @@ if (_enemies isEqualTo []) exitWith {_movementOwned};
 // One additional bounded native-knowledge pass shared by eligible platforms. Probe two
 // rotating roster slots for custom-category air-capable stations; native AA retains its role.
 private _airContacts=[];private _airContactsRead=false;
+// Transient allocation hints only: sixteen native-AA platforms, one native engagement
+// observation each. Include held native engagements; never treat an old CBE intent as fire.
+// No persistent reservation survives this callback or a locality/operation change.
+private _aaAllocationVehicles=(_vehicles select [0,16]) select {
+    toLower getText (configOf _x >> "editorSubcategory") == "edsubcat_aas"
+};
+private _aaEngagements=[];
 private _airProbeCount=(count _vehicles) max 1;
 private _airProbeStart=(_state getOrDefault ["airGunneryProbeCursor",0]) mod _airProbeCount;
 private _airProbeSlots=[_airProbeStart,(_airProbeStart+1) mod _airProbeCount];
@@ -872,6 +883,17 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             if (!_airContactsRead) then {
                 _airContacts=([_group,-1,"AIR"] call CBE_fnc_CortexKnowledge) select 0;
                 _airContactsRead=true;
+                {
+                    private _aaGunner=gunner _x;
+                    if ([_x,_aaGunner] call _gunnerAvailable && {canFire _x}
+                        && {combatMode _group in ["YELLOW","RED"]}
+                        && {unitCombatMode _aaGunner in ["YELLOW","RED"]}) then {
+                        private _nativeTarget=getAttackTarget _aaGunner;
+                        if (!isNull _nativeTarget && {_nativeTarget isKindOf "Air"}) then {
+                            _aaEngagements pushBack [_aaGunner,_nativeTarget];
+                        };
+                    };
+                } forEach _aaAllocationVehicles;
             };
             private _freshAircraft=_airContacts select {(_x select 2) <= 3};
             // Metadata cannot spend all eight target slots on aircraft when this actual
@@ -915,7 +937,13 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     case (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}): {1};
                     default {2};
                 };
-                _ranked pushBack [_priority, _distance, _forEachIndex];
+                // Count other stations, not this gunner's incumbent. Allocation is only
+                // a tie-break within the threat tier, never permission to fire or a veto.
+                private _airLoad=0;
+                if (_freshAir && {_vehicle in _aaAllocationVehicles}) then {
+                    _airLoad={(_x select 0) != _gunner && {(_x select 1) == _enemy}} count _aaEngagements;
+                };
+                _ranked pushBack [_priority, _airLoad, _distance, _forEachIndex];
             };
         } forEach _gunneryContacts;
         _ranked sort true;
@@ -924,7 +952,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _reloadStatus="REFUSED";
         if (_ranked isNotEqualTo [] && {_vehicle isKindOf "LandVehicle"}
             && {!_combinedGroundFireOwned} && {[_vehicle,_gunner] call _gunnerAvailable}) then {
-            private _reloadContact=_gunneryContacts select ((_ranked select 0) select 2);
+            private _reloadContact=_gunneryContacts select ((_ranked select 0) select 3);
             if ((_reloadContact select 2) <= 3) then {
                 _reloadStatus=[_vehicle,_gunner,_reloadContact select 0,serverTime-(_reloadContact select 2)]
                     call CBE_fnc_CortexGroundReload;
@@ -944,7 +972,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             private _suppressionPoint=[];private _targetLanePoint=[];
             private _suppressionGeometryChecks=0;
             {
-                private _contactRow=_gunneryContacts select (_x select 2);
+                private _contactRow=_gunneryContacts select (_x select 3);
                 private _candidate=_contactRow select 0;
                 private _reported=+(_contactRow select 1);
                 private _suppressOnly=(_contactRow select 2) > 3;
@@ -999,6 +1027,15 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                         } else {
                             _gunner doWatch (ASLToAGL _suppressionPoint);
                             _gunner doSuppressiveFire _suppressionPoint;
+                        };
+                        if (_vehicle in _aaAllocationVehicles) then {
+                            // Replace this station's hint only after native dispatch. The
+                            // reservation is provisional, not acknowledgement/shot evidence.
+                            private _oldAllocation=_aaEngagements findIf {(_x select 0) == _gunner};
+                            if (_oldAllocation >= 0) then {_aaEngagements deleteAt _oldAllocation};
+                            if (_suppressionPoint isEqualTo [] && {_target isKindOf "Air"}) then {
+                                _aaEngagements pushBack [_gunner,_target];
+                            };
                         };
                         _gunner setVariable ["CBE_AIPass_TargetHold", time + 8];
                         _gunner setVariable ["CBE_AIPass_VehicleTarget", _target, true];
