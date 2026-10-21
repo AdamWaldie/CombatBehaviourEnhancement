@@ -110,7 +110,7 @@ private _available={
         && {[_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
         && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-        && {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {_defensive || {[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
         && {!_observationOnly || {!(behaviour _actor in ["STEALTH","CARELESS"])
             && {[_group,"CBE_AIPass_Investigate_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
         && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}

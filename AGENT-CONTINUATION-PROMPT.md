@@ -1,5 +1,8 @@
 
 
+Checkpoint: defensive feature policy (2026-10-21). Baselinee95b4661 plus scoped edits. Defensive indoor reposition now follows BuildingCombat independently of Assault; enemy-building investigation still requires Assault. Dispatcher and active actor availability corrected; no new settings/workers/cost. Existing32 focused and full1484/394SQF offline gates passed, independently verified .qa/candidates/defensive-policy-e95b4661 fingerprint2d1fa1c9ad7472fdcae6cecbe241ea89afa71cd7d972008925f328b126bcc7ca. Review referenceReviews/defensive-policy-20261021.json. Audits paused; physical toggling/behaviour/performance unverified. No remote mutation.
+
+
 Checkpoint: convoy cap confirmation (2026-10-21). Baseline20a3f8be plus scoped edits. Three ConvoyTick forceSpeed sites now require native readback before speed history/owned receipt publication. Lead failure defers tick, follower/trail failure skips dependent work for that vehicle. No formula/worker/deadline change. Existing ownership regression updated rather than extra case. Final .qa/convoy-cap-confirm-build-final.log passed1484/394SQF/full offline gates; independently verified .qa/candidates/convoy-cap-confirm-20a3f8be fingerprintceb693dab74cf86c17ed484d458477ce2c95f95d5a6ff1807345c1eef23f17e6. Initial stale assertion failure retained in initial log; review referenceReviews/convoy-cap-confirm-20261021.json. Audits paused, command timing/actual stop/throughput/HC/performance unverified. Failed cap does not stop vehicle. No remote mutation.
 
 

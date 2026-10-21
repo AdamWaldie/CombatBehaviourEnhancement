@@ -83,6 +83,9 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'serverTime < (_searchMemory select 2)','(_searchMemory select 1)+120',
                       'getOrDefault ["searchDeadline",-1]'):
             self.assertIn(proof,memory)
+        self.assertIn('private _selection=if (_assaultEnabled) then {',dispatch)
+        self.assertIn('_defensive || {[_group,"CBE_AIPass_Assault_Enable",true]',operation)
+        self.assertIn('CBE_AIPass_BuildingCombat_Enable',operation)
         self.assertIn('ASLToAGL _defensiveOrigin',selector)
         self.assertIn('_defensiveOrigin call _positionValid',selector)
         self.assertIn('_positionASL vectorDistance (_brain get "defensiveOrigin") >= 1',operation)

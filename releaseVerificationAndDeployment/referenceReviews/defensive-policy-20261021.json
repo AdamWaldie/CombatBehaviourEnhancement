@@ -1,0 +1,21 @@
+{
+  "baseline": "e95b4661",
+  "scope": "Independent defensive indoor feature policy",
+  "finding": "Defensive reposition inherited Assault_Enable at dispatcher and shared active availability, incorrectly coupling defensive behaviour to offensive enablement.",
+  "implementation": [
+    "Dispatcher always requires BuildingCombat, but only resolves enemy-building assault selection when Assault is enabled. Otherwise existing defensive fallback may run.",
+    "Shared actor admission/continuation requires Assault for ordinary investigation, while defensive intent instead retains mandatory BuildingCombat and all existing authority/native/context gates.",
+    "No new setting, module, callback, scan or command. Existing actor capacity/cooldowns unchanged."
+  ],
+  "validation": {
+    "focused": "32 existing indoor lifecycle tests passed",
+    "full": ".qa/defensive-policy-build.log all1484/394SQF/full offline gates passed",
+    "independent": ".qa/defensive-policy-independent.log",
+    "candidate": ".qa/candidates/defensive-policy-e95b4661",
+    "fingerprint": "2d1fa1c9ad7472fdcae6cecbe241ea89afa71cd7d972008925f328b126bcc7ca"
+  },
+  "limits": [
+    "Audits paused; physical toggling, interruptions, native task composition and performance remain unverified.",
+    "Existing garrison/defend owners still excluded; no whole defensive-building or LAMBS parity claim."
+  ]
+}

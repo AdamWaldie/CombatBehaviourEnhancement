@@ -22,7 +22,6 @@
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
 if (isNull _group || {!local _group} || {_enemies isEqualTo []}
     || {!([_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
-    || {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {[_state,"indoorActors"] call CBE_fnc_CortexCooldown}) exitWith {0};
 private _range=missionNamespace getVariable ["CBE_AIPass_BuildingCombat_Range",100];
 if (!(_range isEqualType 0) || {!finite _range} || {_range <= 0}) exitWith {0};
@@ -56,7 +55,11 @@ private _actionable=(_enemies select [0,8]) select {
     _actors findIf {_x knowsAbout _target >= 1 && {_x distance2D _position <= (_range min 40)}
         && {([_x,_target,_position,objNull,true] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo []}} >= 0
 };
-private _selection=[_group,_actionable,_range] call CBE_fnc_BuildingContactSelect;
+private _assaultEnabled=[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled;
+// Defensive indoor reposition is building combat, not permission to assault another house.
+private _selection=if (_assaultEnabled) then {
+    [_group,_actionable,_range] call CBE_fnc_BuildingContactSelect
+} else {[]};
 if (_selection isEqualTo []) exitWith {
     // A defender's useful building is its own, not necessarily the enemy's house.
     // Reuse the finite actor owner; at most three current-roof probes per dispatch.
