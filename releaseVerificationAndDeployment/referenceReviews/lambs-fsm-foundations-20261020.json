@@ -729,5 +729,16 @@
     "validation": "Existing609 checks passed; fixture prerequisite updated9fields/direction but unrun. Full build result in handover.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "recycleBeliefAndFiniteBoundary": {
+    "baseline": "35321aac",
+    "finding": "EngineRecycle emitted believed geometry but used actual source-object range for the ENGAGE35m continuation decision. Hidden source movement could therefore alter response lifetime while the observer belief remained unchanged. Numeric cause/cycle defaults did not reject non-finite, fractional or negative cycle values.",
+    "implementation": "Preserve cheap knowledge/commander/mode/cycle gates, then sample getHideFrom once. Validate finite coordinates and use that same belief for the ENGAGE radius and follow-up record. Reject invalid integral cause/cycle inputs before continuation. Existing2 infantry/3 commander cycles remain.",
+    "sourceIntent": "Retain useful danger contact between native callbacks, with CBE finite owner-local handoff and information discipline. No raw source copied, target reveal, extra movement controller or fresh enemy position fallback.",
+    "cost": "Existing belief query retained. An eligible infantry response whose true range exceeded35m may now sample belief before refusing; this is necessary to remove hidden range dependence. No world scan, new worker or increased cycle budget; runtime cost unmeasured.",
+    "validation": "Existing recycle and FSM contracts updated, hidden actual-range independence checked for fixed belief and knowledge. All1482/full build and independent verification passed. Candidate .qa/candidates/danger-recycle-belief-35321aac fingerprint616ce9d47bb3b5e88d74273d2a92016993ba209136bf7fc660a5e64893835390.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

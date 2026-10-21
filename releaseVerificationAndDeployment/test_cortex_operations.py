@@ -1231,7 +1231,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('effectiveCommander (vehicle _actor) == _actor',engine_recycle)
         self.assertIn("['lastRecycleActor',_actor]",engine_recycle)
         self.assertIn("['vehicleRecycleActors',_actors]",engine_recycle)
-        self.assertIn('_actor distance2D _source < 35',engine_recycle)
+        self.assertIn('_actor distance2D _position >= 35',engine_recycle)
         self.assertIn('(side _group) getFriend (side _source) >= 0.6',engine_recycle)
         self.assertIn('[_cause,+_position,time+1.5,_source,_cycle+1]',engine_recycle)
         self.assertNotIn('[0,+_position,time+1.5,_source',engine_recycle)
@@ -4163,6 +4163,19 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_position=getPosATL _source',recycle)
         self.assertIn('getPosATL _actor',recycle)
         self.assertIn('private _cycle=_record param [4,0,[0]]',recycle)
+        self.assertNotIn('distance2D _source',recycle)
+        self.assertLess(recycle.index('if (!_follow) exitWith'),recycle.index('private _position=_actor getHideFrom _source'))
+        self.assertLess(recycle.index('private _position=_actor getHideFrom _source'),recycle.index('_actor distance2D _position >= 35'))
+        for invalid in ('!finite _cause','_cause != floor _cause','!finite _cycle',
+                        '_cycle != floor _cycle','_cycle < 0','!finite _x'):
+            self.assertIn(invalid,recycle)
+        # Hidden movement must not change continuation while the same belief remains.
+        def follows(believed_distance,actual_distance,knowledge=True):
+            return believed_distance<35 and knowledge
+        for belief,expected in ((20,True),(34.9,True),(35,False),(80,False)):
+            self.assertEqual(follows(belief,5),expected)
+            self.assertEqual(follows(belief,500),expected)
+        self.assertFalse(follows(20,5,False))
         self.assertIn('if (_cycle >= _maxCycles) exitWith',recycle)
         self.assertIn('[_cause,+_position,time+1.5,_source,_cycle+1]',recycle)
 
