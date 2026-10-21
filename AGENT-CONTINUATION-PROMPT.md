@@ -1,3 +1,9 @@
+# Latest source trace - ground interception execution
+
+Executable remains2686824a; last full/independent unsigned candidate .qa/candidates/aa-allocation-a7d45daa unchanged. Read newest AEGIS mechanism review aimAndFireTrace20261021 and handover: six extracts hashverified against original inventory,3PBOs unchanged. Source controls turret-local point lock, actual station fire and shot capture, then scripted armed closest-pass effects. Server locality theft/infiniteammo not selected; altitude-only ballistic time-to-impact is not a valid impact threat. Required next implementation is finite current-owner aim authority/shot capture/coalesced projectile observer/effect policy with exact successor-lock cleanup. Do not relabel ordinary Air targeting/warnings as interception or add global scans/per-bullet workers. assignEngagements/engagementLoop not fully reviewed.
+
+Audits PAUSED, no Arma launch/publication. Full production-readiness objective active/incomplete. Keep original goal and protected sources/archive/signing, unrelated dirt and CBE checkout boundary. See underlying implementation checkpoint for product evidence; review-only work earns no buildout/parity/acceptance increase.
+
 # Latest checkpoint - native AA aircraft allocation
 
 Baseline a7d45daa plus owner-local callback-only native-AA target allocation within existing gunnery. First16 vehicle roster entries, filtered AA category; <=16 native engagement reads. Other-station load before distance inside same threat tier, own incumbent excluded, warning tier retained. Held native engagements count; new dispatch only provisional reservation for rest of callback. Existing ROE/task/ownership/hold/station/muzzle/lane checks retained. Covered target fallback allowed. No controller/network/persistent reservation/reveal/munition effects. Not cross-group layered defence or interception. Runtime cost, actual firing/distribution/stability unverified.

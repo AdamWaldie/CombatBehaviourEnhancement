@@ -114,5 +114,99 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "aimAndFireTrace20261021": {
+    "baseline": "2686824a",
+    "files": [
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_timeToImpact.sqf",
+        "sha256": "0229f78bd5ff5b5d1ba246ca8f0b45e50f89547d7856859e44baf7738e36d458",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_launchSolution.sqf",
+        "sha256": "3fab07a7297c2656edb2213843b61aac0de77f17d08c041b14eeafb1aa7e2e54",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_lockTurret.sqf",
+        "sha256": "5d863c65af5dbe2a92eae8df4b3062df51de89f4e0aed7569d8552d3c8d855ec",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_aimWeapon.sqf",
+        "sha256": "8aae07859709f693f8cfbb1edd4d28837862e408b3848384bff4f531320b9cb5",
+        "readScope": "aim and lock application branches"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_fireWeapon.sqf",
+        "sha256": "5af3f373aaeeac03bcd10318e8028dbb8aaba5fd8e0d4237f46d87fb0bec04d6",
+        "readScope": "admission, authority, shot capture and fire dispatch branches"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_ciwsBurst.sqf",
+        "sha256": "99ceda64434419bba4fc193023a8d6d7b35520607f127358d684213855f44dba",
+        "readScope": "burst admission, stop, readiness, UseMagazine dispatch and sample summary branches"
+      }
+    ],
+    "scope": "Focused additional aim/fire and urgency trace. assignEngagements and engagementLoop located/searched only, not fully reviewed. This does not complete the whole AEGIS review.",
+    "evidence": [
+      "AimWeapon applies class-scoped decayed lead/elevation correction to a predicted ASL aim point. It offsets the optic camera relative to barrel origin, requests lockTurret, then observes barrel angular error and feasibility before ciwsGate. Launcher branches account for slew/off-bore cone and cache launch path clearance for0.5s.",
+      "LockTurret invokes lockCameraTo on turret locality or remoteExecCall to turretOwner. It is deliberate turret point control, not an ordinary native AI doTarget request. A copied persistent false temporary argument would require exact baseline/owned-lock cleanup and newer player/Zeus-lock protection.",
+      "FireWeapon may setGroupOwner to server for remote AI groups and optionally replenish ammunition. Those source authority/ammo methods are not selected for CBE. Source reliability is a random skipped cycle, not preservation of mission-authored skill or proven human-like reaction.",
+      "FireWeapon binds a short-lived capture to actual turret and weapon before BIS_fnc_fire or CIWS burst. The delayed missing-shot check retires capture/round bookkeeping; dispatch return1 is not proof of a projectile. OnSystemFired and downstream observers provide separate evidence.",
+      "CIWSBurst uses a zero-interval PFH per burst, current turret aim proof no older than0.5s, barrel minimum elevation and loaded weaponState before native UseMagazine action. Superseded burst, ammo depletion, expired duration, target/platform loss or stale engagement heartbeat stop the PFH. It later summarises consumed ammo and measured round misses, not an independent physical hit proof.",
+      "TimeToImpact ballistic branch solves time to protected position altitude using vertical velocity and gravity; it does not test horizontal intercept/impact proximity. Nonballistic branch projects velocity toward nearest protected point. Neither alone proves an impact threat. Do not copy altitude-only urgency into layered defence."
+    ],
+    "primarySemantics": [
+      {
+        "url": "https://community.bistudio.com/wiki/lockCameraTo",
+        "fact": "Command is local to turret gunner. Alternative syntax controls non-stabilised turrets; temporary true releases after target/limit reached. A point lock needs its own finite authority and exact handback."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/lockedCameraTo",
+        "fact": "Readback can be no value, object or ASL position. Do not assume an array-only or object-only lock baseline."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/triggerAmmo",
+        "fact": "Local command triggers ammunition as if hit and can release submunitions. A shot-derived fuse/effect policy must deliberately handle that; unconditional use cannot supply safe interception."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#IncomingMissile",
+        "fact": "Native event includes target, ammo, firing vehicle, instigator and missile. Warning receipt is sensing evidence, not a native shot/intercept result."
+      }
+    ],
+    "urgencyCounterexample": {
+      "munitionASL": [
+        10000,
+        0,
+        100
+      ],
+      "velocity": [
+        200,
+        0,
+        -50
+      ],
+      "protectedASL": [
+        0,
+        0,
+        0
+      ],
+      "timeToProtectedAltitudeSeconds": 1.712428635206943,
+      "horizontalImpactDistanceMetres": 10342.485727041389,
+      "conclusion": "Source reports imminent altitude crossing while the ballistic trajectory is more than10km away and moving farther away; altitude crossing alone must not promote immediate impact priority."
+    },
+    "implementationDecision": "Do not extend current aircraft gunnery by treating a projectile as an ordinary Air target or warning as an interception. Required execution chain is finite current-turret aim ownership -> actual station shot capture -> bounded coalesced projectile closest-pass observation -> armed qualifying effect policy -> exact cleanup. Detection and allocation remain separate inputs. No code copied, no new controller or executable change in this review.",
+    "nextConcreteWork": "Implement that shot/aim lifecycle on the existing current-owner scheduler and fire-task boundary, including authenticated sensing, projectile and turret caps, original deadlines and protected successor locks. Do not begin with global nearestObjects scans or a worker per bullet. Full allocation/capability source trace remains incomplete.",
+    "validation": "All three original PBO archives and six named extracted files hash-match protected inventory. Review JSON parsing and existing reference-boundary tests. Existing executable candidate remains aa-allocation-a7d45daa; no unchanged rebuild or Arma launch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  }
 }
