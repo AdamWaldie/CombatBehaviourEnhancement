@@ -103,6 +103,14 @@ if (_mode == "RESULT" && {_phase in ["REFUSED","RELEASED"]}) exitWith {
     true
 };
 if (_owned isEqualTo []) exitWith {false};
+private _rearRequirements=if (_mode == "VERIFY") then {
+    [_vehicles,_context] call CBE_fnc_DrivingQueueRearRequirements
+} else {((_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["rearRequirements",[]]};
+if (count _rearRequirements != count _vehicles) exitWith {
+    if (_mode == "VERIFY") then {["ACK",[_token,false]] remoteExecCall ["CBE_fnc_DrivingQueueAgreementServer",2]};
+    false
+};
+private _motionLimit=selectMax (_rearRequirements apply {_x select 0});
 private _tokenClosed=[_token] call CBE_fnc_DrivingQueueTokenClosed;
 private _currentPhase=((_owned select 0) getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["phaseSerial",0];
 private _phaseMeta=[0,count _vehicles-1,[]];
@@ -123,6 +131,7 @@ private _duplicate=_owned findIf {
         || {(_old getOrDefault ["context",[]]) isNotEqualTo _context}
         || {(_old getOrDefault ["roles",[]]) isNotEqualTo _roles}
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
+        || {(_old getOrDefault ["rearRequirements",[]]) isNotEqualTo _rearRequirements}
         || {(_old getOrDefault ["expires",-1]) != _expires} || {serverTime >= _expires}
 } < 0;
 private _crossingInstalled=_duplicate && {_owned findIf {
@@ -188,7 +197,7 @@ if (_mode in ["CROSS_ARM","CROSS_EXECUTE","CROSS_MOVE"]) exitWith {
                 || {(_consent getOrDefault ["crossingPlanReceipt",[]]) isNotEqualTo [_descriptor select 1,_currentPhase,true,_proposal select 1]}) then {_allowed=false};
         };
         private _next=createHashMapFromArray (keys _consent apply {[_x,_consent get _x]});
-        _next set ["motionBinding",[_root,_token,_expires,8]];_next set ["motionStage","CROSSING"];
+        _next set ["motionBinding",[_root,_token,_expires,_motionLimit]];_next set ["motionStage","CROSSING"];
         _next set ["movingIndex",0];_next set ["heldIndices",[1,2,3] select {_x < count _vehicles}];
         _next set ["crossingBinding",_crossBinding];_next set ["crossingPath",_path];_next set ["crossingPoses",_poses];
         if (_mode == "CROSS_ARM") then {
@@ -276,7 +285,7 @@ if (_mode == "CHECK_ROOM") exitWith {
 // Repeated authenticated ARM/EXECUTE never reapply phase metadata or rewind a
 // running leg. Returning the prior acknowledgement is not new movement authority.
 if (!_tokenClosed && {_duplicate} && {_mode in ["ARM","EXECUTE"]}) then {
-    private _motion=[_vehicles select _selectedIndex,_token,_expires,8];
+    private _motion=[_vehicles select _selectedIndex,_token,_expires,_motionLimit];
     private _already=_owned isNotEqualTo [] && {_owned findIf {
         private _old=_x getVariable ["CBE_DrivingQueue_Consent",createHashMap];
         (_old getOrDefault ["phaseSerial",0]) != _requestedPhase
@@ -308,6 +317,7 @@ private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_
         || {(_old getOrDefault ["context",[]]) isNotEqualTo _context}
         || {(_old getOrDefault ["roles",[]]) isNotEqualTo _roles}
         || {(_old getOrDefault ["dependencies",[]]) isNotEqualTo _dependencies}
+        || {(_old getOrDefault ["rearRequirements",[]]) isNotEqualTo _rearRequirements}
         || {(_old getOrDefault ["deadline",-1]) != _deadline}
         || {(_old getOrDefault ["expires",-1]) != _expires}
     }) then {_accepted=false};
@@ -320,7 +330,7 @@ private _accepted=!_tokenClosed && {serverTime < ([_deadline,_expires] select (_
 if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
     private _leaf=_vehicles select (count _vehicles-1);
     if (_leaf in _owned) then {
-        private _leafPlan=[_leaf] call CBE_fnc_DrivingRearPlan;
+        private _leafPlan=[_leaf,[],24,_rearRequirements select (count _vehicles-1)] call CBE_fnc_DrivingRearPlan;
         private _leafObservation=_leafPlan select 0;
         _accepted=(_leafObservation select 0) && {count (_leafObservation param [4,[]]) == 3}
             && {serverTime < ([_deadline,_expires] select (_mode == "COMMIT" || {_duplicate}))}
@@ -329,7 +339,7 @@ if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
 };
 if (_mode in ["ARM","EXECUTE"]) exitWith {
     private _leaf=_vehicles select _selectedIndex;
-    private _motion=[_leaf,_token,_expires,8];private _rows=[];
+    private _motion=[_leaf,_token,_expires,_motionLimit];private _rows=[];
     private _allowed=_duplicate && {_accepted} && {_owned isNotEqualTo []}
         && {_mode != "EXECUTE" || {_leaf in _owned}};
     {
@@ -443,7 +453,7 @@ if (_mode == "VERIFY") exitWith {
         } < 0;
         {_x setVariable ["CBE_DrivingQueue_Consent",createHashMapFromArray [["token",_token],
             ["serial",_serial],["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],
-            ["context",_context],["deadline",_deadline],["expires",_expires],["phase","PENDING"]]]} forEach _owned;
+            ["context",_context],["rearRequirements",_rearRequirements],["deadline",_deadline],["expires",_expires],["phase","PENDING"]]]} forEach _owned;
         if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry};
     } else {
         [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;

@@ -49,7 +49,7 @@ if (_token == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {server
     || {!(_movingIndex isEqualType 0)} || {_movingIndex != floor _movingIndex}
     || {_movingIndex < 1} || {_movingIndex >= count _vehicles}
     || {(_vehicles select _movingIndex) != _vehicle}
-    || {(_consent getOrDefault ["motionBinding",[]]) isNotEqualTo [_vehicle,_token,_expires,8]}) exitWith {false};
+    || {((_consent getOrDefault ["motionBinding",[]]) select [0,3]) isNotEqualTo [_vehicle,_token,_expires]}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _driver || {isNull _operator} || {_driver == _operator}
     || {!alive _vehicle} || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
@@ -94,7 +94,8 @@ if (_mode == "ISSUE") exitWith {
         private _room=[_vehicle,_consent] call CBE_fnc_DrivingQueueParentRoom;
         _rearReady=_room select 0;_envelope=+(_room select 4);
     } else {
-        private _plan=[_vehicle] call CBE_fnc_DrivingRearPlan;
+        private _required=(_consent get "rearRequirements") select _movingIndex;
+        private _plan=[_vehicle,[],24,_required] call CBE_fnc_DrivingRearPlan;
         private _observation=_plan select 0;_envelope=+(_plan select 1);
         _rearReady=(_observation select 0) && {count (_observation param [4,[]]) == 3};
     };

@@ -150,6 +150,33 @@ class QueueProposalTests(unittest.TestCase):
             self.assertNotIn(forbidden,room)
         self.assertIn('_roomSerial <= (_record getOrDefault ["parentRoomReply",0])',server)
         self.assertIn('_reports >= 2',server)
+        requirements=(ROOT/'addons/vehicles/functions/drivingQueueRearRequirements.sqf').read_text()
+        self.assertIn('call CBE_fnc_DrivingQueueRearRequirements',server)
+        self.assertIn('call CBE_fnc_DrivingQueueRearRequirements',owner)
+        self.assertIn('["rearRequirements",_rearRequirements]',server)
+        self.assertIn('["rearRequirements",_rearRequirements]',owner)
+        self.assertIn('_travel > 24',requirements)
+        self.assertIn('_parallel < cos 25',requirements)
+        for forbidden in ('nearEntities','nearObjects','sendSimpleCommand','setDriveOnPath','setVariable'):
+            self.assertNotIn(forbidden,requirements)
+        # Required room must propagate through a dependency, never be silently capped.
+        import math
+        root_required=22.564442111244887
+        travel=max(6,math.ceil(root_required+1))
+        self.assertEqual(travel,24)
+        self.assertEqual(max(6,math.ceil(travel+2-3+1)),24)
+        self.assertGreater(max(6,math.ceil(travel+2-2+1)),24)
+        self.assertGreater(math.ceil((root_required+1)/math.cos(math.radians(25))),24)
+        # Historical corner rotation/translation leaves the same initial projected hull.
+        origin=(100.,200.)
+        local=[(-2.,-6.),(2.,-6.),(-2.,6.),(2.,6.)]
+        for angle in (0,5,25,180):
+            a=math.radians(angle); right=(math.cos(a),-math.sin(a)); forward=(math.sin(a),math.cos(a))
+            points=[(origin[0]+right[0]*x+forward[0]*y,origin[1]+right[1]*x+forward[1]*y) for x,y in local]
+            recovered=[((x-origin[0])*right[0]+(y-origin[1])*right[1],(x-origin[0])*forward[0]+(y-origin[1])*forward[1]) for x,y in points]
+            for actual,expected in zip(recovered,local):
+                self.assertAlmostEqual(actual[0],expected[0]); self.assertAlmostEqual(actual[1],expected[1])
+
         self.assertIn('["CHECK_ROOM",_message]',server)
         crossing=owner.split('if (_mode == "CROSS_PLAN") exitWith {',1)[1].split('if (_mode == "CHECK_ROOM")',1)[0]
         for proof in ('_root in _owned','_planPhase != _currentPhase','_currentPhase != count _vehicles-2',
@@ -239,7 +266,7 @@ class QueueProposalTests(unittest.TestCase):
 
         motion=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
         for proof in ('count _vehicles > 4','count _vehicles-1','serverTime >= _expires',
-                      '_actor isNotEqualTo _original','_rear < -0.25','(_binding select 3)+0.5',
+                      '_actor isNotEqualTo _original','_rear < -0.25','((_rearRequirements select _forEachIndex) select 0)+0.5',
                       '"queueBinding",[]','simpleAcknowledged','completedFSM','CortexActorMoveReserved'):
             self.assertIn(proof,motion)
         for proof in ('"CROSSING"','"crossingBinding",[]','"crossingPath",[]',

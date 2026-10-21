@@ -43,7 +43,9 @@ if ((_work getOrDefault ["queueBinding",[]]) isNotEqualTo _identity
 private _origin=_work getOrDefault ["rearOriginASL",[]];
 private _direction=_work getOrDefault ["rearDirection",[]];
 private _envelope=_work getOrDefault ["rearEnvelope",[]];
-if (!(_envelope in [[8,6],[3.5,2]])
+private _requirements=_agreement get "rearRequirements";
+private _leafRequired=_requirements select (_parentIndex+1);
+if (!(_envelope isEqualTo _leafRequired || {_leafRequired isEqualTo [8,6] && {_envelope isEqualTo [3.5,2]}})
     || {[_origin,_direction] findIf {!(_x isEqualType []) || {count _x != 3}
         || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} >= 0}
     || {abs ((vectorMagnitude _direction)-1) > 0.01}) exitWith {["DEPENDENCY_RECEIPT"] call _no};
@@ -55,7 +57,7 @@ private _leafHull=[_leaf,_parentOrigin,_axis] call CBE_fnc_DrivingHullInterval;
 if (_parentHull isEqualTo [] || {_leafHull isEqualTo []}) exitWith {["UNKNOWN_HULL"] call _no};
 private _gap=(_parentHull select 0)-(_leafHull select 1);
 if (_gap < 3.5) exitWith {[false,"INSUFFICIENT_BODY_GAP",_travel,_gap,[]]};
-private _plan=[_parent] call CBE_fnc_DrivingRearPlan;
+private _plan=[_parent,[],24,_requirements select _parentIndex] call CBE_fnc_DrivingRearPlan;
 private _clear=_plan select 0;private _parentEnvelope=_plan select 1;
 if (!(_clear select 0) || {count (_clear param [4,[]]) != 3} || {_gap < (_parentEnvelope select 0)}) exitWith {
     [false,"PARENT_REAR_BLOCKED",_travel,_gap,+_parentEnvelope]

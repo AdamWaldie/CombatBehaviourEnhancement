@@ -573,7 +573,14 @@ _brain set ["geometryTracks",_geometryTracks];
                     && {(_rearEnvelope select 1) > 6} && {(_rearEnvelope select 1) <= 24}
                     && {(_rearEnvelope select 1) == floor (_rearEnvelope select 1)}
                     && {(_rearEnvelope select 0) == (_rearEnvelope select 1)+2}
-                    && {!("queueBinding" in _rearWork)};
+                    && {!("queueBinding" in _rearWork) || {
+                        private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+                        private _index=(_consent getOrDefault ["vehicles",[]]) find _vehicle;
+                        _index >= 1 && {_rearEnvelope isEqualTo ((_consent getOrDefault ["rearRequirements",[]]) param [_index,[]])}
+                            && {(_rearWork get "queueBinding") select [0,2] isEqualTo [
+                                _consent getOrDefault ["token",""],_consent getOrDefault ["expires",-1]]}
+                            && {serverTime < (_consent getOrDefault ["expires",-1])} && {_recoveryOwned}
+                    }};
                 private _proofValid=(_rearEnvelope in [[8,6],[3.5,2]] || {_extendedEnvelope}) && {_rearDamage isEqualType 0} && {finite _rearDamage} && {_rearDamage >= 0}
                     && {count _rearHitpoints == 3} && {count _liveHitpoints == 3} && {count _minimumHitpoints == 3}
                     && {_minimumDamage isEqualType 0} && {finite _minimumDamage}

@@ -82,6 +82,8 @@ if (_mode == "BEGIN") exitWith {
     private _admissionKey=netId _vehicle;
     if (_admissionKey == "" || {serverTime < (_admissions getOrDefault [_admissionKey,-1])}) exitWith {false};
     if (!([_vehicles,_roles,_dependencies,_context,false] call CBE_fnc_DrivingQueueProposalCurrent)) exitWith {false};
+    private _rearRequirements=[_vehicles,_context] call CBE_fnc_DrivingQueueRearRequirements;
+    if (_rearRequirements isEqualTo []) exitWith {false};
     {if (serverTime >= (_admissions get _x)) then {_admissions deleteAt _x}} forEach keys _admissions;
     if (count _admissions >= 64) exitWith {false};
     // Only authenticated BEGIN performs the bounded registry sweep.
@@ -102,7 +104,7 @@ if (_mode == "BEGIN") exitWith {
     localNamespace setVariable ["CBE_DrivingQueue_Sequence",_sequence];
     private _token=format ["QUEUE:%1:%2:%3",_sender,netId _vehicle,_sequence];
     private _record=createHashMapFromArray [["token",_token],["serial",_serial],["vehicles",_vehicles],
-        ["roles",_roles],["dependencies",_dependencies],["context",_context],["deadline",_deadline],
+        ["roles",_roles],["dependencies",_dependencies],["context",_context],["rearRequirements",_rearRequirements],["deadline",_deadline],
         ["expires",_expires],["owners",_owners],["acks",[]],["phase","PENDING"]];
     _registry set [_token,_record];
     _admissions set [_admissionKey,serverTime+90];
@@ -180,7 +182,7 @@ if (_mode == "CROSS_PLANNED") exitWith {
         private _vehicles=_record get "vehicles";
         private _next=createHashMapFromArray (keys _record apply {[_x,_record get _x]});
         private _binding=[_token,_record get "expires",_planPhase,_planSerial];
-        _next set ["motionBinding",[_root,_token,_record get "expires",8]];_next set ["motionStage","CROSSING"];
+        _next set ["motionBinding",[_root,_token,_record get "expires",selectMax ((_record get "rearRequirements") apply {_x select 0})]];_next set ["motionStage","CROSSING"];
         _next set ["movingIndex",0];_next set ["heldIndices",[1,2,3] select {_x < count _vehicles}];
         _next set ["crossingBinding",_binding];_next set ["crossingPath",_result select 2];_next set ["crossingPoses",_result select 3];
         _next set ["crossingIssueUntil",(serverTime+2) min (_record get "expires")];
@@ -295,7 +297,8 @@ if (_mode == "ROOM") exitWith {
         private _origin=getPosWorld _parent;private _axis=vectorDir _parent;
         private _parentHull=[_parent,_origin,_axis] call CBE_fnc_DrivingHullInterval;
         private _leafHull=[_leaf,_origin,_axis] call CBE_fnc_DrivingHullInterval;
-        _verified=_envelope in [[8,6],[3.5,2]] && {_parentHull isNotEqualTo []} && {_leafHull isNotEqualTo []};
+        private _required=(_record get "rearRequirements") select (_movingIndex-1);
+        _verified=(_envelope isEqualTo _required || {_required isEqualTo [8,6] && {_envelope isEqualTo [3.5,2]}}) && {_parentHull isNotEqualTo []} && {_leafHull isNotEqualTo []};
         _verified=_verified && {toUpperANSI ((vehicleMoveInfo _leaf) param [0,""]) == "STOP"}
             && {[_parent,_leaf] findIf {
                 private _linear=vectorMagnitude velocity _x;private _angular=vectorMagnitude angularVelocity _x;
@@ -311,7 +314,7 @@ if (_mode == "ROOM") exitWith {
         private _held=[1,2,3] select {_x > _nextIndex && {_x < count _vehicles}};
         private _next=createHashMapFromArray ((keys _record) apply {[_x,_record get _x]});
         _next set ["movingIndex",_nextIndex];_next set ["phaseSerial",_nextPhase];_next set ["heldIndices",_held];
-        _next set ["motionBinding",[_parent,_token,_record get "expires",8]];
+        _next set ["motionBinding",[_parent,_token,_record get "expires",selectMax ((_record get "rearRequirements") apply {_x select 0})]];
         if ([_next,false] call CBE_fnc_DrivingQueueReverseCurrent) then {
             _record set ["movingIndex",_nextIndex];_record set ["phaseSerial",_nextPhase];_record set ["heldIndices",_held];
             _record set ["motionBinding",_next get "motionBinding"];
@@ -351,7 +354,7 @@ if (_mode == "PREPARED") exitWith {
     _record set ["executionReady",count _prepared == count (_record get "owners")];
     if (_record get "executionReady" && {!(_record getOrDefault ["armSent",false])}) then {
         private _vehicles=_record get "vehicles";
-        _record set ["motionBinding",[_vehicles select (count _vehicles-1),_token,_record get "expires",8]];
+        _record set ["motionBinding",[_vehicles select (count _vehicles-1),_token,_record get "expires",selectMax ((_record get "rearRequirements") apply {_x select 0})]];
         _record set ["phaseSerial",0];_record set ["movingIndex",count _vehicles-1];_record set ["heldIndices",[]];
         _record set ["motionStage","ARMED"];_record set ["armSent",true];
         private _message=[_token,_record get "serial",_vehicles,_record get "roles",

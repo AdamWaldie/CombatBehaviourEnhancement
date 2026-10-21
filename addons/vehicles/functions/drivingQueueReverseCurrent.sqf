@@ -18,6 +18,7 @@
 params [["_agreement",createHashMap,[createHashMap]],["_localRows",false,[true]]];
 private _vehicles=_agreement getOrDefault ["vehicles",[]];
 private _context=_agreement getOrDefault ["context",[]];
+private _rearRequirements=_agreement getOrDefault ["rearRequirements",[]];
 private _binding=_agreement getOrDefault ["motionBinding",[]];
 private _token=_agreement getOrDefault ["token",""];
 private _expires=_agreement getOrDefault ["expires",-1];
@@ -35,13 +36,19 @@ private _rootWork=if (_vehicles isEqualType [] && {count _vehicles > 0} && {(_ve
 if (!(_vehicles isEqualType []) || {!(_context isEqualType [])} || {!(_token isEqualType "")}
     || {!(_expires isEqualType 0)} || {!finite _expires}
     || {count _vehicles < 2} || {count _vehicles > 4} || {count _roles != count _vehicles} || {count _dependencies != count _vehicles}
+    || {!(_rearRequirements isEqualType [])} || {count _rearRequirements != count _vehicles}
+    || {_rearRequirements findIf {!(_x isEqualType []) || {count _x != 2}
+        || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} >= 0}
+    || {(_rearRequirements select 0) isNotEqualTo [0,0]}
+    || {(_rearRequirements select [1]) findIf {(_x select 1) < 6 || {(_x select 1) > 24}
+        || {(_x select 1) != floor (_x select 1)} || {(_x select 0) != (_x select 1)+2}} >= 0}
     || {(_dependencies select (count _vehicles-1)) != -1} || {count _context != count _vehicles}
     || {!(_binding isEqualType [])} || {count _binding != 4}
     || {!((_binding select 0) isEqualType objNull)} || {!((_binding select 1) isEqualType "")}
     || {!((_binding select 2) isEqualType 0)} || {!finite (_binding select 2)}
     || {!((_binding select 3) isEqualType 0)} || {!finite (_binding select 3)}
     || {_token == ""} || {(_binding select 1) != _token} || {(_binding select 2) != _expires}
-    || {serverTime >= _expires} || {(_binding select 3) <= 0} || {(_binding select 3) > 8}
+    || {serverTime >= _expires} || {(_binding select 3) <= 0} || {(_binding select 3) != selectMax (_rearRequirements apply {_x select 0})}
     || {!(_movingIndex isEqualType 0)} || {_movingIndex != floor _movingIndex}
     || {_movingIndex < ([1,0] select _crossing)} || {_movingIndex >= count _vehicles}
     || {!(_heldIndices isEqualType [])}
@@ -182,7 +189,7 @@ private _valid=true;private _localCount=0;
         private _pendingInput=!_held && {(_row select 5) isEqualTo (_old select 5)};
         if (!(_moveInput in ["BACK","STOP"]) && {!_pendingInput}
             || {toUpperANSI ((_row select 5) param [1,""]) != "NONE"}
-            || {_rear < -0.25} || {_rear > (_binding select 3)+0.5}
+            || {_rear < -0.25} || {_rear > ((_rearRequirements select _forEachIndex) select 0)+0.5}
             || {abs (_delta vectorDotProduct _right) > 1}
             || {abs (_delta vectorDotProduct _up) > 1.5}
             || {_linear > (10/3.6)} || {_angular > 0.05}
@@ -239,6 +246,9 @@ private _valid=true;private _localCount=0;
                 || {(_work getOrDefault ["driver",objNull]) != driver _vehicle}
                 || {(_work getOrDefault ["operator",objNull]) != effectiveCommander _vehicle}
                 || {(_work getOrDefault ["route",[]]) isNotEqualTo ((_row select 2) select 10)}
+                || {private _required=_rearRequirements select _forEachIndex;
+                    private _issued=_work getOrDefault ["rearEnvelope",[]];
+                    !(_issued isEqualTo _required || {_required isEqualTo [8,6] && {_issued isEqualTo [3.5,2]}})}
                 || {(_work getOrDefault ["cap",-1]) < 0} || {(_work getOrDefault ["cap",-1]) > (10/3.6)}
                 || {[driver _vehicle,effectiveCommander _vehicle] findIf {
                     !simulationEnabled _x || {isObjectHidden _x} || {!(_x checkAIFeature "MOVE")}

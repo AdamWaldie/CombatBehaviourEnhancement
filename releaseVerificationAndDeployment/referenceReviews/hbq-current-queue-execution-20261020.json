@@ -187,5 +187,62 @@
     "nextImplementationRequirement": "Derive requested longitudinal room from the actual queue crossing hull/ramp proposal, bind a bounded per-dependency travel requirement into the existing authenticated agreement, validate it at every owner and native issue boundary, and prove measured parent room before advancing. Retain original expiry, fresh rear support/body/pedestrian checks, exact native task receipts and sole movement writer. Do not feed moving traffic into the STATIC-only obstacle extension or merely widen the parent whitelist.",
     "validation": "Read-only call-path examination. No product change, no build credit, no runtime evidence. Previous 0673b16d candidate remains the latest full validated product source.",
     "cqbRecheck": "Current exit proposal/candidate paths already reserve posts >=3m apart, check current occupancy and physical endpoint arrival; completed cleanup uses one-shot holds instead of leader wedge recall. No distance tuning justified without fresh authorised physical evidence. Historical crowding remains unverified, not declared fixed."
+  },
+  "adaptiveQueueRoomImplementation20261021": {
+    "baseline": "831a87d5",
+    "supersedes": "Fixed2/6m queue limit described in plannerScopeFollowup and queueRoomPropagationFollowup20261021 for supported head-on geometry only.",
+    "implementation": "Server BEGIN and owner VERIFY derive integral6..24m travel plus2m clearance per dependency from agreed initial whole-hull poses. Native corners re-expressed in the agreed basis preserve model offset/scaling without moving objects. Existing crossing-ramp arithmetic determines head-on room; crossing-angle conflicts retain ordinary8/6 demand. Rear dependency demand propagates parent clearance minus initial full-body gap, with a1m arithmetic margin and actual heading projection; >24m or unsupported union refuses.",
+    "authority": "Requirements retained in existing server/owner agreement; existing all-owner ACK, phase metadata, motion grant, current native tasks, expiry and sole sendSimpleCommand writer remain. Global motion binding reflects largest agreed envelope; each held/moving vehicle has its own bound. Parent ROOM server check and actual-owner native issue use agreed requirement, measured dependency travel and full-hull body gap. Native issue and monitoring resample existing rear safety. Exact issued envelope checked against current consent; short fallback permitted only for ordinary6m demand, never extended demand.",
+    "cost": "At most16 native corner transforms per admission/VERIFY call, no extra world-discovery query or worker. Native monitor uses cached demand and existing rear query; extended area can increase candidates/geometry work inside existing caps. Runtime budget unmeasured.",
+    "limits": [
+      "Automatic queue initiation remains experimental/default-off.",
+      "No deadline extension or fallback to insufficient extended travel. Original expiry may cancel a slow or long chain.",
+      "Projected union >30m or other unsupported ramp geometry can refuse; this is not arbitrary-length queue resolution.",
+      "Actual backing, collision avoidance, repeated queues, owner migration, authored-route resumption and performance have no fresh physical evidence; audits paused."
+    ],
+    "validation": {
+      "fullBuild": ".qa/queue-room-build.log",
+      "tests": 1482,
+      "productionSQF": 378,
+      "PBOs": 9,
+      "independent": ".qa/queue-room-independent.log",
+      "candidate": ".qa/candidates/queue-room-831a87d5",
+      "fingerprint": "4e7a360b5a73bd84d5141c8a9dcfec4f23c46b3934d0d4d4837eefa09dffc060",
+      "provenance": "Unsigned development build from831a87d5 plus intended product changes; later review/handover metadata not executable changes. No parity/physical/percentage claim."
+    },
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
+        "sha256": "a2d7211427daab497257b6f3a0cb60511979837e739a5ab0424c8f2eaadcf17d"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "554fcf50ea8ea518d3199df2b1bde21a75085cd795a425ce01c986e11a62b10a"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "91c841a01f56207f897fc416a5a20dfd9ff9b75b84ac6f267ede84b472181ec7"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "sha256": "3296fc556b621f3e9116b05770a7a2d38cf534a73fc5091ca22e55b6bd0ade80"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "sha256": "2f2374c1791c8d854e4f68224edba818564ffc8b882d041a397bb47b11f94078"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "sha256": "c3fd6129d0be963ebe02b1bd41899ebf024a2c8802dc4bb422d6cbece66feece"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+        "sha256": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b"
+      }
+    ]
   }
 }

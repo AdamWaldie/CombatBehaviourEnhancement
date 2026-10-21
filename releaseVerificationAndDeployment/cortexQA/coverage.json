@@ -837,6 +837,7 @@
         "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
         "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
         "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
         "addons/vehicles/functions/drivingQueueAutoStep.sqf"
       ]
     },
