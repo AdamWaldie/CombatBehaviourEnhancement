@@ -3,7 +3,8 @@
  * Purpose: Quiesces an acknowledged reverse after driver death, then returns its surviving
  * commander to the admitted native goal before the existing crew executor changes seats.
  * Locality/authority: Existing driving FSM, exact local group/vehicle/commander and cap issuer.
- * Never reads a dead driver's native command as proof. Pending reverse/return requests and
+ * Never reads a dead driver's native command as proof. A pending destination request uses
+ * only its original reply deadline and surviving commander receipt, without replay. Return requests and
  * competing child controllers refuse admission. A changed mission command or cap wins.
  * Repeat/JIP: One stop and one goal command, each observed within two seconds and the
  * original recovery hard deadline. No new worker, renewed recovery budget or forced seats.
@@ -30,7 +31,8 @@ isNil {
         private _vehicle=_route select 2;
         if (isNull _vehicle || {!local _vehicle}) exitWith {false};
         private _entry=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-        if (count _entry == 0 || {(_entry getOrDefault ["kind",""]) != "REVERSE"}
+        if (count _entry == 0 || {!((_entry getOrDefault ["kind",""]) in ["REFRESH","FINAL","REVERSE"])}
+            || {(_entry getOrDefault ["kind",""]) != "REVERSE" && {!("request" in _entry)}}
             || {_entry getOrDefault ["crewHandbackFailed",false]}) exitWith {false};
         private _journal=+_entry;
         private _fail={
@@ -67,7 +69,7 @@ isNil {
             || {(_entry getOrDefault ["operator",objNull]) != _operator}
             || {!(_mode in ["DESTINATION","SIMPLE_BACK"])}
             || {(_entry getOrDefault ["releasePending",false])}
-            || {["request","nativeReturn","bypassReturn","queueBinding"] findIf {_x in _entry} >= 0}
+            || {["nativeReturn","bypassReturn","queueBinding"] findIf {_x in _entry} >= 0}
             || {!(_hard isEqualType 0)} || {!finite _hard} || {serverTime >= _hard}
             || {!(_cap isEqualType 0)} || {!finite _cap} || {abs (getForcedSpeed _vehicle-_cap) > 0.1}
             || {count _baseline != 1} || {!((_baseline select 0) isEqualType 0)}
@@ -114,6 +116,39 @@ isNil {
         private _info=vehicleMoveInfo _vehicle;
         private _rest=finite (vectorMagnitude velocity _vehicle) && {finite (vectorMagnitude angularVelocity _vehicle)}
             && {vectorMagnitude velocity _vehicle < (1/3.6)} && {vectorMagnitude angularVelocity _vehicle < 0.01};
+        // An issued destination may still be replying when the driver dies. Observe
+        // only the original commander and original deadline; never reissue that request.
+        if ("request" in _entry) exitWith {
+            private _request=_entry get "request";
+            if (_mode != "DESTINATION" || {_handback isNotEqualTo []}
+                || {!(_request isEqualType [])} || {count _request != 3}) exitWith {call _fail};
+            _request params ["_requestGoal","_requestUntil","_requestBefore"];
+            if (!(_requestGoal isEqualType []) || {count _requestGoal != 3}
+                || {_requestGoal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                || {!(_requestUntil isEqualType 0)} || {!finite _requestUntil}
+                || {serverTime >= _requestUntil} || {_requestUntil > _hard}
+                || {!(_requestBefore isEqualType [])} || {count _requestBefore != 4}
+                || {!((_requestBefore select 2) isEqualType "")}
+                || {!((_requestBefore select 3) isEqualType [])}
+                || {toUpperANSI (_info param [0,""]) == "BACK"}) exitWith {call _fail};
+            private _requestTarget=_native param [0,[],[[]]];
+            private _requestAck=_task == "MOVE" && {count _requestTarget == 3}
+                && {_requestTarget findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {_requestTarget vectorDistance _requestGoal <= 0.25};
+            if (!_requestAck && {!(_task in [_requestBefore select 2,"MOVE"])
+                || {_native isNotEqualTo (_requestBefore select 3)}}) exitWith {call _fail};
+            // Constrain our existing exact cap while the old driver cannot execute.
+            // Confirm the property before recording custody; no native MOVE is issued.
+            if (_cap != 0) then {_vehicle forceSpeed 0};
+            if (abs (getForcedSpeed _vehicle) > 0.1) exitWith {call _fail};
+            _journal set ["cap",0];_assist set [0,0];
+            if (_requestAck) then {
+                _journal set ["command",+_native];_journal deleteAt "request";
+            };
+            _vehicle setVariable ["CBE_DrivingRecovery_Work",_journal,true];
+            _vehicle setVariable ["CBE_DrivingAssist_State",_assist];
+            true
+        };
         if (_handback isEqualTo []) exitWith {
             private _exact=_native isEqualTo (_entry getOrDefault ["command",[]]) && {_task in ["","MOVE","WAIT"]};
             if (_mode == "SIMPLE_BACK") then {

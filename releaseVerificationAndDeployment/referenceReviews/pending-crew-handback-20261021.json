@@ -1,0 +1,28 @@
+{
+  "baseline": "11f1fc2c",
+  "scope": "Pending forward/reverse destination acknowledgement after driver death",
+  "implementation": [
+    "Existing handback recognises REFRESH/FINAL pending requests as well as reverse. No added worker or repeated request.",
+    "Original live local commander, exact cap issuer/baseline/route/crew guards remain required. Pending request validates original goal, original reply deadline within original recovery hard deadline and original commander pre-request frame. Expiry is checked before ACK.",
+    "Only unchanged pre-request commander state or observed MOVE to the recorded goal can wait. Existing cap is confirmed at zero; successful ACK updates commander receipt and removes only request metadata. No hard deadline, anchor, baseline or spent flag changes.",
+    "Existing acknowledged reverse stop/rest/goal path or forward crew path then continues on a later existing FSM callback. Changed/expired pending request is terminal rather than replayed."
+  ],
+  "validation": {
+    "focused": ".qa/pending-crew-tests.log:258 driving checks passed; existing regression extended, no extra test count.",
+    "full": ".qa/pending-crew-build.log:1489 tests/401 SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/pending-crew-11f1fc2c",
+    "fingerprint": "55e91e25ba42c84111700c2fa7f900d40b8ea3762c25688f05b44bdba338c8cd",
+    "independent": "Preserved candidate verify passed.",
+    "provenance": "Unsigned development candidate: baseline plus intended edits and preserved unrelated dirty files."
+  },
+  "limits": [
+    "No physical stop/travel/seat or runtime performance acceptance; audits PAUSED.",
+    "Native return requests, lost original commander and crew episode locality transfer remain unfinished.",
+    "Snapshot identity cannot distinguish identical new native orders.",
+    "Replies after original request expiry remain unsupported even if native engine later changes destination."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingRecoveryCrewHandback.sqf": "1431ac8c82b65dd25f396bbdc628cd1a7afc2a3544b3198c83dae855c05e1f51",
+    "releaseVerificationAndDeployment/test_driving_crew.py": "72d10166fc77ddb4c90f40c14747c9f5593a6844c8bcc2dff5dca59f3c74a6d1"
+  }
+}

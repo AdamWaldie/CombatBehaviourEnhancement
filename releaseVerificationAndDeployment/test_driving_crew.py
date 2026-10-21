@@ -356,7 +356,7 @@ class DrivingCrewTests(unittest.TestCase):
         step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertLess(step.index('call CBE_fnc_DrivingRecoveryCrewHandback'),step.index('call CBE_fnc_DrivingCrewStep'))
         for proof in ('isNil {','serverTime >= _hard','crewHandbackFailed','CBE_DrivingCap_Issuer',
-                      '"request","nativeReturn","bypassReturn","queueBinding"','CortexExternalTakeover',
+                      '"nativeReturn","bypassReturn","queueBinding"','CortexExternalTakeover',
                       'CortexZeusHeld','CortexActorMoveReserved','simpleAcknowledged','vectorMagnitude angularVelocity'):
             self.assertIn(proof,source)
         self.assertLess(source.index('_vehicle forceSpeed 0'),source.index('doStop _operator'))
@@ -367,6 +367,13 @@ class DrivingCrewTests(unittest.TestCase):
         final=source.split('_journal set ["kind","FINAL"]',1)[1]
         for forbidden in ('set ["hardDeadline"','set ["progressAnchor"','set ["baseline"','moveInDriver','setPos','setVelocity'):
             self.assertNotIn(forbidden,final)
+        request=source.split('if ("request" in _entry) exitWith {',1)[1].split('if (_handback isEqualTo [])',1)[0]
+        self.assertLess(request.index('serverTime >= _requestUntil'),request.index('private _requestAck='))
+        self.assertIn('_native isNotEqualTo (_requestBefore select 3)',request)
+        self.assertIn('_journal deleteAt "request"',request)
+        self.assertNotIn('doMove',request)
+        self.assertNotIn('set ["hardDeadline"',request)
+        self.assertNotIn('serverTime+',request)
         self.assertNotIn('expectedDestination _driver',source)
         self.assertNotIn('waitAndExecute',source)
         self.assertNotIn('addPerFrameHandler',source)
