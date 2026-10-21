@@ -1,5 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
+ * Internal arguments: 2 cap-only BOOL false; 3 offered ARRAY [] of
+ * [state,baseline,group,epoch,original server deadline,driver,commander].
+ * Unconfirmed ordinary cap restoration retains exact state/baseline and a finite cap-only
+ * cleanup receipt. Retries never rerun child controllers or renew the original 30-second window.
  * Queue crossing paths also retire through exact BypassRelease ownership before cap restoration; convoy work remains separately owned.
  * Unknown recovery command modes retain their cap/baseline and journal. Destination and
  * SIMPLE_BACK cleanup use their own exact native ownership proof before cap restoration.
@@ -24,8 +28,29 @@
  * Example: [truck1] call CBE_fnc_DrivingAssistRelease;
  */
 
-params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]]];
+params [["_vehicle",objNull,[objNull]],["_expectedGroup",grpNull,[grpNull]],
+    ["_capOnly",false,[true]],["_offered",[],[[]]]];
+// Internal retry proof: state, baseline, original group/epoch/deadline and original seats.
+// Unknown or superseded proof cannot borrow the current ordinary controller's receipts.
+if (_capOnly && {count _offered != 7 || {!((_offered select 0) isEqualType [])}
+    || {!((_offered select 1) isEqualType [])} || {!((_offered select 2) isEqualType grpNull)}
+    || {!((_offered select 3) isEqualType 0)} || {!finite (_offered select 3)}
+    || {!((_offered select 4) isEqualType 0)} || {!finite (_offered select 4)}
+    || {!((_offered select 5) isEqualType objNull)} || {!((_offered select 6) isEqualType objNull)}}) exitWith {};
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+if (_capOnly && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo _offered
+    || {(_offered select 2) != _expectedGroup} || {isNull _expectedGroup} || {!local _expectedGroup}
+    || {(_offered select 3) != (_expectedGroup getVariable ["CBE_AIPass_Epoch",0])}
+    || {driver _vehicle != (_offered select 5)} || {effectiveCommander _vehicle != (_offered select 6)}
+    || {group (driver _vehicle) != _expectedGroup} || {!local (driver _vehicle)}
+    || {!isNull effectiveCommander _vehicle && {group (effectiveCommander _vehicle) != _expectedGroup
+        || {!local (effectiveCommander _vehicle)}}}
+    || {["CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingCorridor_Work","CBE_DrivingBypass_Work"]
+        findIf {count (_vehicle getVariable [_x,createHashMap]) > 0} >= 0}}) exitWith {
+    if ((_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _offered) then {
+        _vehicle setVariable ["CBE_DrivingCapRelease_Result",["UNRESOLVED_HANDOVER",serverTime]];
+    };
+};
 private _destinationReleaseAvailable={
     private _modeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     count _modeWork == 0 || {(_modeWork getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"]}
@@ -42,7 +67,12 @@ isNil {
         _releaseEpochGroup=(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) getOrDefault ["group",grpNull];
     };
     if (!isNull _releaseEpochGroup) then {_releaseEpoch=_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0]};
+    if (_capOnly) then {
+        _releaseState=+(_offered select 0);_releaseRestore=+(_offered select 1);
+        _releaseEpochGroup=_offered select 2;_releaseEpoch=_offered select 3;
+    };
 };
+if (!_capOnly) then {
 ["CANCEL",_expectedGroup,_vehicle] call CBE_fnc_DrivingPassAdmission;
 [_vehicle,_expectedGroup] call CBE_fnc_DrivingPassRetireInherited;
 private _pass=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
@@ -85,6 +115,8 @@ if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypass
     && {((_bypass getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) in ["ORDINARY","QUEUE"]}) then {
     [_vehicle,_bypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
 };
+};
+private _capPending=false;
 // Final cap restoration and receipt retirement are one transaction. Earlier helpers do not
 // authorise deletion of a successor's state, even when its group and native cap are identical.
 isNil {
@@ -92,7 +124,13 @@ if !(call _destinationReleaseAvailable) exitWith {false};
 if (!local _vehicle
     || {(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo _releaseState}
     || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo _releaseRestore}
-    || {!isNull _releaseEpochGroup && {_releaseEpoch != (_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
+    || {!isNull _releaseEpochGroup && {_releaseEpoch != (_releaseEpochGroup getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {
+    if (_capOnly && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _offered}) then {
+        _vehicle setVariable ["CBE_DrivingCapRelease_Work",nil];
+        _vehicle setVariable ["CBE_DrivingCapRelease_Result",["SUPERSEDED",serverTime]];
+    };
+    false
+};
 private _restore=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
 private _state=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
 if (!isNull _expectedGroup && {(_state param [3,grpNull]) != _expectedGroup}) exitWith {};
@@ -118,7 +156,24 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
     && {!_externalControl}
     && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) then {
-    _vehicle forceSpeed (_restore param [0,-1]);
+    private _restoreValue=_restore param [0,-1,[0]];
+    if (!finite _restoreValue || {_restoreValue < 0 && {_restoreValue != -1}}) exitWith {_capPending=true};
+    if (!_capOnly || {serverTime < (_offered select 4)}) then {
+        _vehicle forceSpeed (_restore param [0,-1]);
+    };
+    if (abs ((getForcedSpeed _vehicle)-_restoreValue) > 0.1) then {
+        _capPending=true;
+        private _pendingCap=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
+        if (_pendingCap isEqualTo []) then {
+            _pendingCap=[+_releaseState,+_releaseRestore,_ownerGroup,_releaseEpoch,
+                serverTime+30,_driver,_commander];
+            _vehicle setVariable ["CBE_DrivingCapRelease_Work",_pendingCap];
+        };
+        private _capStatus=if (_pendingCap isEqualType [] && {count _pendingCap == 7}
+            && {(_pendingCap select 4) isEqualType 0} && {finite (_pendingCap select 4)}
+            && {serverTime >= (_pendingCap select 4)}) then {"UNRESOLVED_DEADLINE"} else {"PENDING"};
+        _vehicle setVariable ["CBE_DrivingCapRelease_Result",[_capStatus,serverTime]];
+    };
     // Release cleanup can observe an abort STOP only after this exact baseline was
     // actually restored. This receipt never authorizes another speed write.
     private _abort=_vehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
@@ -134,6 +189,9 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
     };
 
 };
+if (_capPending) exitWith {};
+_vehicle setVariable ["CBE_DrivingCapRelease_Work",nil];
+_vehicle setVariable ["CBE_DrivingCapRelease_Result",["RETIRED",serverTime]];
 _vehicle setVariable ["CBE_DrivingAssist_Restore",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Next",nil];
 _vehicle setVariable ["CBE_DrivingTrafficSeen",nil];

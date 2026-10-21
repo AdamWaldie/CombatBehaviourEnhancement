@@ -9,10 +9,44 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('_abort set ["releasedCap",_baseline]',commit)
         self.assertLess(commit.index('_vehicle forceSpeed'),commit.index('_abort set ["releasedCap",_baseline]'))
         self.assertIn('abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1',commit)
+        self.assertIn('if (_capPending) exitWith {}',commit)
+        self.assertLess(commit.index('if (_capPending) exitWith {}'),commit.index('setVariable ["CBE_DrivingAssist_Restore",nil]'))
+        self.assertIn('abs ((getForcedSpeed _vehicle)-_restoreValue) > 0.1',commit)
+        self.assertIn('serverTime < (_offered select 4)',commit)
+        self.assertIn('if (_pendingCap isEqualTo []) then',commit)
+        self.assertEqual(commit.count('serverTime+30'),1)
+        child_cleanup=text.split('if (!_capOnly) then {',1)[1].split('// Final cap restoration',1)[0]
+        for child in ('DrivingPassFinish','DrivingRecoveryRelease','DrivingCorridorRelease','DrivingBypassRelease'):
+            self.assertIn(child,child_cleanup)
+        admission=text.split('if (_capOnly && {(_vehicle getVariable',1)[1].split('private _destinationReleaseAvailable',1)[0]
+        for guard in ('driver _vehicle != (_offered select 5)','effectiveCommander _vehicle != (_offered select 6)',
+                      'group (driver _vehicle) != _expectedGroup','!local (driver _vehicle)',
+                      'CBE_DrivingRecovery_Work','CBE_DrivingPass_Work','CBE_DrivingCorridor_Work','CBE_DrivingBypass_Work'):
+            self.assertIn(guard,admission)
         cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text()
         self.assertIn('(_head+4) min count _queue',cleanup)
         self.assertIn('[_vehicle,_proof,"ABORT"]',cleanup)
         self.assertIn('CBE_DrivingAbort_CleanupTicket',cleanup)
+        self.assertIn('[_vehicle,+_cap,"CAP"]',cleanup)
+        self.assertIn('CBE_DrivingCapRelease_CleanupTicket',cleanup)
+        self.assertIn('[_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease',cleanup)
+        self.assertIn('serverTime < (_cap select 4)',cleanup)
+        self.assertIn('UNRESOLVED_DEADLINE',cleanup)
+        driving=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('|| {_capReleaseWork isNotEqualTo []}',driving)
+        self.assertIn('[_vehicle,_group,true,_capReleaseWork]',driving)
+        self.assertLess(driving.index('private _pendingCapRelease='),driving.index('call CBE_fnc_DrivingPassRetireInherited'))
+        pending_branch=driving.split('if (_pendingCapRelease isNotEqualTo []) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('[_vehicle,_group,true,_pendingCapRelease]',pending_branch)
+        self.assertNotIn('RecoveryRelease',pending_branch)
+        status=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text()
+        self.assertIn('"CAP_RELEASE_PENDING","CAP_RELEASE_UNRESOLVED"',status)
+        fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
+        self.assertIn('class CapRelease {name="CapRelease";init="[_brain] call CBE_fnc_DrivingOperationQueue',fsm)
+        import re
+        cap_priority=float(re.search(r'class CapRelease \{priority=([0-9.]+)',fsm).group(1))
+        delay_priority=float(re.search(r'class Delay \{priority=([0-9.]+)',fsm).group(1))
+        self.assertLess(cap_priority,delay_priority)
         self.assertGreaterEqual(cleanup.count('serverTime < _abortUntil'),2)
         self.assertGreaterEqual(cleanup.count('!isNull _abortGroup && {local _abortGroup}'),2)
 

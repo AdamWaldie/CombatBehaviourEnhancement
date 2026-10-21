@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending ordinary cap handback takes the cap-only path before child-controller work;
+ * it never captures an unconfirmed old cap as a fresh baseline or restarts recovery.
  * Queued ACE care owns driver/operator task admission before the native HEAL transition.
  * Exact spent bypass parents survive traffic pauses without renewing their deadline or attempt.
  * Exact queue-abort STOP handback uses current safety observations in this existing callback; no failed crossing is marked complete.
@@ -160,6 +162,10 @@ private _geometryTracks=createHashMap;
 _brain set ["geometryTracks",_geometryTracks];
 {
     private _vehicle=_x;
+    private _pendingCapRelease=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
+    if (_pendingCapRelease isNotEqualTo []) then {
+        [_vehicle,_group,true,_pendingCapRelease] call CBE_fnc_DrivingAssistRelease;
+    } else {
     [_vehicle] call CBE_fnc_DrivingPassRetireInherited;
     private _driver=driver _vehicle;
     private _movementOperator=effectiveCommander _vehicle;
@@ -283,8 +289,10 @@ _brain set ["geometryTracks",_geometryTracks];
         [_vehicle,_group,"ORDER_OR_SEATS_CHANGED",false] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=createHashMap;
     };
+    private _capReleaseWork=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
     private _release=(_group getVariable ["CBE_DrivingRecovery_Yield",[]]) isEqualTo _routeIdentity
-        || {_recoveryWork getOrDefault ["releaseUnresolved",false]};
+        || {_recoveryWork getOrDefault ["releaseUnresolved",false]}
+        || {_capReleaseWork isNotEqualTo []};
 
     // Driving must make the same ownership decision as every other delayed controller. A group
     // member becoming player-controlled or specialist-owned is enough to retire the sparse speed
@@ -309,7 +317,11 @@ _brain set ["geometryTracks",_geometryTracks];
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
         || {_routeIdentity isEqualTo []}) then {_release=true};
-    if (_release) then {[_vehicle,_group] call CBE_fnc_DrivingAssistRelease} else {
+    if (_release) then {
+        if (_capReleaseWork isEqualTo []) then {[_vehicle,_group] call CBE_fnc_DrivingAssistRelease} else {
+            [_vehicle,_group,true,_capReleaseWork] call CBE_fnc_DrivingAssistRelease;
+        };
+    } else {
         // Terrain sampling is deliberately sparse but may still overlap a newer Zeus or specialist
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
@@ -1317,5 +1329,6 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             };
         };
+    };
     };
 } forEach _vehicles;

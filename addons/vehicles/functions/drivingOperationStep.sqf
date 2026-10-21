@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending/unresolved ordinary cap handback has its own semantic phase and existing queue
+ * state; retained speed proof is not reported as cruise or completed physical handback.
  * Purpose: Executes one route-owned driving sample and derives its next FSM phase from actual vehicle state.
  * Locality / Authority: Owner-local group only; no ownership transfer or second scheduler.
  * Exhausted route retries retain the existing safety executor rather than ending the group FSM.
@@ -37,10 +39,19 @@ if (([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route"
 private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep;
 [_group,_brain] call CBE_fnc_DrivingAssistStart;
 private _bypass="";private _obstacle=false;private _corridor="";private _passing=false;private _watchTraffic=false;
+private _capReleasePending=false;private _capReleaseUnresolved=false;
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;private _traffic=false;private _rearLeg=false;
 {
     private _pass=_x getVariable ["CBE_DrivingPass_Work",createHashMap];
     _passing=_passing || {count _pass > 0 && {(_pass get "group") == _group}};
+    private _capRelease=_x getVariable ["CBE_DrivingCapRelease_Work",[]];
+    if (_capRelease isEqualType [] && {count _capRelease == 7} && {(_capRelease select 2) isEqualTo _group}) then {
+        _capReleasePending=true;
+        _capReleaseUnresolved=_capReleaseUnresolved || {
+            ((_x getVariable ["CBE_DrivingCapRelease_Result",[]]) param [0,""])
+                in ["UNRESOLVED_HANDOVER","UNRESOLVED_DEADLINE"]
+        };
+    };
     private _state=_x getVariable ["CBE_DrivingAssist_State",[]];
     if ((_state param [3,grpNull]) == _group) then {
         _owned=_owned+1;
@@ -64,6 +75,7 @@ if (_owned == 0 && {!_crewPending}) then {_brain set ["cancelReason","NO_ELIGIBL
 _brain set ["recoveryExhausted",_exhausted];
 if (_passing) then {_phase="PASS"};
 if (_crewPending) then {_phase="CREW_HANDOVER"};
+if (_capReleasePending) then {_phase=["CAP_RELEASE_PENDING","CAP_RELEASE_UNRESOLVED"] select _capReleaseUnresolved};
 _brain set ["phase",_phase];_brain set ["nextAt",time+([4,1] select (_crewPending || {_traffic} || {_watchTraffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""} || {_passing}))];_brain set ["pending",false];_brain set ["completed",true];
 // Publish transitions immediately, plus a sparse heartbeat at existing callback cadence.
 // The local brain owns this receipt: a new owner/brain publishes its first sample even if

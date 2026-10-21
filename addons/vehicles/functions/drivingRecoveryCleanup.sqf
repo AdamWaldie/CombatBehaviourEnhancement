@@ -1,9 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ordinary unconfirmed cap release shares the four-ticket budget and its original deadline;
+ * its cap-only callback never replays reverse, route, corridor, pass or bypass cleanup.
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
- * Purpose: Observes exact pending reverse release and released-cap queue-abort receipts after tactical workers stop.
- * Abort safety observations are throttled per receipt; both ticket types share the four-ticket service bound.
+ * Purpose: Observes exact pending reverse, ordinary-cap and released-cap queue-abort receipts after tactical workers stop.
+ * Abort safety observations are throttled per receipt; all ticket types share the four-ticket service bound.
  * Locality / Authority: Local calls only, on the current vehicle owner. Existing release
  * guards alone authorize native handback and cap restoration; this service issues no rear leg.
  * Repeat/JIP: Deduplicated local tickets. Deleted, migrated, replaced or unresolved receipts retire tickets.
@@ -71,6 +73,22 @@ isNil {
             };
         };
     };
+    if (!isNull _vehicle && {local _vehicle}) then {
+        private _cap=_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]];
+        if (_cap isEqualType [] && {count _cap == 7}
+            && {(_cap select 4) isEqualType 0} && {finite (_cap select 4)} && {serverTime < (_cap select 4)}) then {
+            private _existing=_vehicle getVariable ["CBE_DrivingCapRelease_CleanupTicket",""];
+            private _record=_registry getOrDefault [_existing,[]];
+            if (_record isEqualTo [] || {(_record select 1) isNotEqualTo _cap}) then {
+                private _serial=1+(localNamespace getVariable ["CBE_DrivingRecovery_CleanupSerial",0]);
+                localNamespace setVariable ["CBE_DrivingRecovery_CleanupSerial",_serial];
+                private _id=str _serial;
+                _registry set [_id,[_vehicle,+_cap,"CAP"]];
+                _vehicle setVariable ["CBE_DrivingCapRelease_CleanupTicket",_id];
+                _queue pushBack _id;
+            };
+        };
+    };
     // Registration never consumes work. One service callback handles at most four tickets.
     if (isNull _vehicle) then {
         private _end=(_head+4) min count _queue;
@@ -80,7 +98,27 @@ isNil {
             if (_record isNotEqualTo []) then {
                 _record params ["_target","_proof",["_kind","REVERSE"]];
                 private _ticketVariable=["CBE_DrivingRecovery_CleanupTicket","CBE_DrivingAbort_CleanupTicket"] select (_kind == "ABORT");
+                if (_kind == "CAP") then {_ticketVariable="CBE_DrivingCapRelease_CleanupTicket"};
                 private _matching=false;
+                if (_kind == "CAP") then {
+                    _matching=!isNull _target && {local _target}
+                        && {(_target getVariable [_ticketVariable,""]) == _id}
+                        && {(_target getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _proof}
+                        && {count _proof == 7} && {serverTime < (_proof select 4)};
+                    if (_matching) then {
+                        localNamespace setVariable ["CBE_DrivingRecovery_Cleanup",_registry];
+                        [_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease;
+                        _matching=(_target getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _proof
+                            && {serverTime < (_proof select 4)}
+                            && {((_target getVariable ["CBE_DrivingCapRelease_Result",[]]) param [0,""])
+                                != "UNRESOLVED_HANDOVER"};
+                    };
+                    if (!_matching && {!isNull _target}
+                        && {(_target getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo _proof}
+                        && {serverTime >= (_proof select 4)}) then {
+                        _target setVariable ["CBE_DrivingCapRelease_Result",["UNRESOLVED_DEADLINE",serverTime]];
+                    };
+                } else {
                 if (_kind == "ABORT") then {
                     private _hold=_target getVariable ["CBE_DrivingAbort_Hold",createHashMap];
                     _matching=!isNull _target && {local _target}
@@ -112,6 +150,7 @@ isNil {
                             && {!(_current getOrDefault ["releaseUnresolved",false])}
                             && {([_current] call _signature) isEqualTo _proof};
                     };
+                };
                 };
                 if (_matching) then {_queue pushBack _id} else {
                     _registry deleteAt _id;
