@@ -10302,6 +10302,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_retire) then',release)
         self.assertNotIn('["ACTOR_RESERVATION",true]',release)
         self.assertNotIn('["NATIVE_TASK_OR_MEDICAL",true]',release)
+        native=release.split('if ((_actor getVariable ["ace_medical_ai_healQueue",[]])',1)[1].split('private _prior=',1)[0]
+        self.assertIn('fleeing _actor',native)
+        act=source('dangerEngineAct')
+        action_guard=act.split('// Recheck actor-level authority',1)[1].split('private _baseDelay=',1)[0]
+        self.assertIn('_mode != "FORCED" && {fleeing _actor}',action_guard)
+        self.assertLess(act.index('fleeing _actor'),act.index('playActionNow'))
+        self.assertLess(act.index('fleeing _actor'),act.index('setUnitPosWeak'))
         self.assertIn('["STANCE_CHANGED",true]',release)
         self.assertIn('["RESTORED",true]',release)
         self.assertIn('!= _prior) exitWith {["RESTORE_PENDING"]',release)

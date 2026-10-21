@@ -891,5 +891,25 @@
       "fingerprint": "d87e051abe9b9833783f3ffc0a8249c353caf960a69e7e523184729d2aab4e14"
     },
     "limits": "Destination preference among current lane workers only; not all-world collision, path access or coherent entry proof. When every candidate is occupied, existing bounded fallback remains. Physical CQB/HC/performance unverified. No percentages changed."
+  },
+  "dangerFlightBoundary20261021": {
+    "sourceScope": "Preserved isForced and isForcedExit read in full. Source fleeing/forced task priority retained as intent; stationary defenders deliberately retain CBE sensing/posture without movement, unlike unconditional source MOVE exit. No raw code copied.",
+    "finding": "danger.fsm Init classifies then separate action states call DangerEngineAct. A new native fleeing state between those engine states lacked a command-boundary veto; stance release also omitted fleeing despite deferring other native tasks. This is not an invented suspension inside the unscheduled shared scheduler.",
+    "implementation": "Non-FORCED action refuses newly fleeing actor. FORCED observation retains its existing finite path. Stance release classifies fleeing as NATIVE_TASK_OR_MEDICAL and retains original proof/deadline via existing pending list. No new timer, stance baseline, courage or allowFleeing mutation.",
+    "hashes": {
+      "addons/infantry/functions/dangerEngineAct.sqf": "f82fcdab131ab46ea1643539b4338be51b2ed2486c2268ed8d856fd15117d516",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "abeefb7711fc891d4926a76cd85eedda8cfb7e2671a97ecb405d87bfcbb0597e",
+      ".qa/lambs-2621-review/danger/functions/fnc_isForced.sqf": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+      ".qa/lambs-2621-review/danger/functions/fnc_isForcedExit.sqf": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6"
+    },
+    "validation": {
+      "tests": 1484,
+      "pipeline": ".qa/danger-flight-boundary-final-build.log",
+      "independent": ".qa/danger-flight-boundary-independent.log",
+      "candidate": ".qa/candidates/danger-flight-boundary-dad80dc1",
+      "fingerprint": "125eb6baa852870213ea147efafc45e092383ab90ee8137adf26771a41751dcc",
+      "initialFailure": ".qa/danger-flight-boundary-build.log retained; new regression variable shadowed existing integer guard and changed native-task literal failed old assertion. Renamed test variable and added independent fleeing clause, preserving original native-task predicate/assertion; focused cases then full pipeline passed."
+    },
+    "limits": "FSM/static lifecycle evidence only; physical fleeing interruption and stance restoration not tested. Audits paused. No whole parity or score change."
   }
 }

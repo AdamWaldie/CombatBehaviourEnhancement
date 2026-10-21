@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing defers restoration through the original bounded pending-stance path.
  * Purpose: Release CBE's finite weak danger stance without overwriting a newer owner.
  * Locality / Authority: Runs where the AI soldier is local when the engine danger FSM finishes.
  * Repeat/JIP: Repeat-safe and machine-local. Always clears the completed response marker. Restores
@@ -54,7 +55,7 @@ if ([_actor] call CBE_fnc_CortexActorMoveReserved) exitWith {
     ["ACTOR_RESERVATION"] call _evidence
 };
 if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
-    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+    || {fleeing _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {["NATIVE_TASK_OR_MEDICAL"] call _evidence};
 
 private _prior=toUpperANSI (_lease param [0,"",[""]]);

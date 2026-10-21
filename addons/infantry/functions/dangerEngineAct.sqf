@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing which begins after FSM classification vetoes non-forced action mutation.
  * Purpose: Apply one bounded, low-priority danger stance without taking movement, target or firing ownership or arresting a committed operation.
  * Locality / Authority: Runs only for the local AI soldier after ownership and order classification.
  * Repeat/JIP: Uses one machine-local, expiring weak-stance lease. A repeated danger response retains
@@ -33,6 +34,7 @@ if (isNull _group || {!local _group}
 // ACE queues treatment before the native command becomes HEAL; pending care owns this actor.
 if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+    || {_mode != "FORCED" && {fleeing _actor}}
     || {_mode != "FORCED" && {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}) exitWith {0};
 // Eligibility already checked player, curator and external ownership in this unscheduled call.
 // Use fixed branch values instead of allocating a lookup map for every actor reaction.

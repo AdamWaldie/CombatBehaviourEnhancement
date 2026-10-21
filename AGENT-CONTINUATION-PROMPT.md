@@ -1,3 +1,8 @@
+# Latest checkpoint - danger FSM native-flight action boundary
+
+## 2026-10-21 - Danger action and stance cleanup native-flight boundary
+Baselinedad80dc1. Preserved LAMBS isForced/isForcedExit read in full. Actual engine danger.fsm classifies in Init then acts in separate states; DangerEngineAct had no new-fleeing veto at that action boundary. Added non-FORCED fleeing refusal, preserving FORCED observation path. DangerEngineRelease now defers exact stance restore during fleeing under existing NATIVE_TASK_OR_MEDICAL proof/pending list/original expiry+30s. No new worker/timer or courage/fleeing setting changes. Not an unscheduled scheduler suspension claim. Existing regression extended; initial log .qa/danger-flight-boundary-build.log retains test variable collision and changed native-task literal failure; fixed local variable and kept original native-task predicate/assertion. Focused cases and final1484+HEMTT/SQF/config/FSM/docs/package pass .qa/danger-flight-boundary-final-build.log. Independent .qa/danger-flight-boundary-independent.log, unsigned candidate .qa/candidates/danger-flight-boundary-dad80dc1 fingerprint125eb6baa852870213ea147efafc45e092383ab90ee8137adf26771a41751dcc. Review has hashes. Physical interruption/restoration/HC/performance unverified. Audits PAUSED/no launches; full goal active/incomplete. Local only/no push/merge/publish. Preserve unrelated dirt/protected sources/signing.
+
 # Latest checkpoint - body occupancy and native task priority
 
 ## 2026-10-21 - Physical occupancy survives loss of movement permission
