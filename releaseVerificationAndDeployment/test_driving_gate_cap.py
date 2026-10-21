@@ -119,13 +119,19 @@ class DrivingGateIntentTests(unittest.TestCase):
         owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
         self.assertLess(owner.index('call CBE_fnc_DrivingGateIntent'),owner.index('CBE_DrivingGate_Pending'))
-        self.assertEqual(server.count('call CBE_fnc_DrivingGateIntent'),2)
+        self.assertEqual(server.count('call _gateIntentCurrent'),2)
+        self.assertIn('call CBE_fnc_DrivingGateOwnerCheck',server)
         mutation=server.split('// Final mutation boundary:',1)[1]
-        self.assertLess(mutation.index('call CBE_fnc_DrivingGateIntent'),mutation.index('animateSource'))
+        self.assertLess(mutation.index('call _gateIntentCurrent'),mutation.index('animateSource'))
         self.assertIn('_revision < 0',mutation)
 
     def test_plain_and_owned_alternate_intent_have_distinct_stop_contracts(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateIntent.sqf').read_text()
+        native_reads=s.index('if (isNull _driver')
+        for guard in ('!local _group','!local _vehicle','!local _driver','!local _operator'):
+            self.assertIn(guard,s[native_reads:s.index('private _destination=')])
+        self.assertLess(s.index('!local _operator'),s.index('(expectedDestination _driver)'))
+
         for marker in ('call CBE_fnc_DrivingRouteGoal',
                        'CBE_DrivingBypass_Work","FOLLOW"','CBE_DrivingCorridor_Work","CROSS"',
                        'expectedDestination _driver','expectedDestination _operator',
@@ -159,6 +165,42 @@ class DrivingGateMutationTests(unittest.TestCase):
         self.assertIn('"SHARED_OPENING",_currentOpening select 2',body)
         self.assertNotIn('lineIntersects',body)
         self.assertNotIn('nearestObjects',body)
+class DrivingGateOwnerEvidenceTests(unittest.TestCase):
+    def test_owner_evidence_is_local_authenticated_single_use_and_bounded(self):
+        broker=(ROOT/'addons/vehicles/functions/drivingGateOwnerEvidence.sqf').read_text()
+        check=(ROOT/'addons/vehicles/functions/drivingGateOwnerCheck.sqf').read_text()
+        opening=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        close=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text()
+        self.assertIn('remoteExecutedOwner != 2',broker)
+        self.assertIn('["CBE_Convoy_LocalRegistry","CBE_Convoy_Registry"] select isServer',check)
+        self.assertIn('remoteExecutedOwner != (_evidenceContext get "owner")',broker)
+        self.assertIn('count _evidenceRegistry >= 16',broker)
+        self.assertIn('_evidenceRegistry deleteAt _evidenceToken',broker)
+        self.assertLess(broker.index('_evidenceRegistry deleteAt _evidenceToken'),broker.index('CBE_DrivingGate_OpenWitness'))
+        self.assertIn('serverTime >= (_evidenceContext get "until")',broker)
+        self.assertIn('(_context get "payload") isEqualTo _payload',opening)
+        self.assertIn('_vehicle setVariable ["CBE_DrivingGate_OpenWitness",nil]',opening)
+        self.assertIn('(serverTime+3) min (_job get "until")',close)
+        self.assertIn('OWNER_INTENT_UNCONFIRMED',close)
+        for source in (opening,close):
+            self.assertNotIn('+(expectedDestination',source)
+        self.assertLess(check.index('!local _gateDriver') if '!local _gateDriver' in check else check.index('!local _x'),check.index('expectedDestination _gateDriver'))
+        for forbidden in ('animateSource','doMove','forceSpeed','waitUntil','spawn'):
+            self.assertNotIn(forbidden,broker.split('params [[',1)[1])
+        # A recorded ticket is consumed by its owner once, only before the original expiry.
+        tickets={'one':(7,10)}
+        def reply(token,owner,now):
+            row=tickets.get(token)
+            if row is None or row[0]!=owner:return False
+            del tickets[token]
+            return now<row[1]
+        self.assertFalse(reply('one',8,9))
+        self.assertTrue(reply('one',7,9))
+        self.assertFalse(reply('one',7,9))
+        tickets['late']=(7,10)
+        self.assertFalse(reply('late',7,10))
+        self.assertNotIn('late',tickets)
+
 class DrivingGateClosureTests(unittest.TestCase):
     def test_finite_closure_retains_authority_and_never_infers_passage_from_time(self):
         close=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text()

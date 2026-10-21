@@ -42,6 +42,8 @@ class CfgFunctions {
             class DrivingAssistStart {file = "\z\cbe\addons\vehicles\functions\drivingAssistStart.sqf";};
             class DrivingMovementAvailable {file = "\z\cbe\addons\vehicles\functions\drivingMovementAvailable.sqf";};
             class DrivingRoadCap {file = "\z\cbe\addons\vehicles\functions\drivingRoadCap.sqf";};
+            class DrivingGateOwnerEvidence {file = "\z\cbe\addons\vehicles\functions\drivingGateOwnerEvidence.sqf";};
+            class DrivingGateOwnerCheck {file = "\z\cbe\addons\vehicles\functions\drivingGateOwnerCheck.sqf";};
             class DrivingGateIntent {file = "\z\cbe\addons\vehicles\functions\drivingGateIntent.sqf";};
             class DrivingGateRequest {file = "\z\cbe\addons\vehicles\functions\drivingGateRequest.sqf";};
             class DrivingGateCloseServer {file = "\z\cbe\addons\vehicles\functions\drivingGateCloseServer.sqf";};

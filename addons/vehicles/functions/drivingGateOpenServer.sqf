@@ -23,10 +23,11 @@
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Exact indexed Door/Gate_N_sound_source or Door/Gate_N_source metadata, N=1..8.
  * At most64 definitions and8 initial native phase reads; one preferred source per leaf, sound before plain.
- * Current callers: DrivingGateRequest on the server or current headless vehicle/group owner.
+ * Current callers: DrivingGateRequest; DrivingGateOwnerEvidence authenticates one remote-owner reply.
+ * Optional argument1 is an internal single-use server witness token, never caller authority.
  * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
-params [["_payload",[],[[]]]];
+params [["_payload",[],[[]]],["_ownerToken","",[""]]];
 if (!isServer || {count _payload != 10} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
 private _values=createHashMapFromArray _payload;
 private _group=_values getOrDefault ["group",grpNull];
@@ -66,8 +67,38 @@ if (isNull _driver || {_driver != _requestedDriver} || {_commander != _requested
     || {_route isEqualTo []} || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
     || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
     || {abs speed _vehicle > 8}) exitWith {false};
-if ([_driver,_commander] findIf {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]
-    || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} >= 0) exitWith {false};
+// Native destination evidence is sampled only on the operating owner. A server-local
+// private witness is consumed once; caller-supplied tokens alone grant no permission.
+private _gateFrame=[];
+if (_ownerToken != "") then {
+    private _witness=_vehicle getVariable ["CBE_DrivingGate_OpenWitness",[]];
+    if (count _witness == 3 && {(_witness select 0) == _ownerToken}) then {
+        _vehicle setVariable ["CBE_DrivingGate_OpenWitness",nil];
+        private _context=_witness select 1;
+        if ((_context get "payload") isEqualTo _payload && {serverTime < (_context get "until")}
+            && {(_context get "owner") == _sender}
+            && {[_driver,_commander] isEqualTo (_context get "seats")}) then {_gateFrame=+(_witness select 2)};
+    };
+};
+if (_ownerToken != "" && {_gateFrame isEqualTo []}) exitWith {false};
+if (_ownerToken == "" && {!local _group || {!local _vehicle} || {!local _driver} || {!local _commander}}) exitWith {
+    if (_sender != groupOwner _group || {_sender != owner _vehicle} || {_sender != owner _driver}
+        || {_sender != owner _commander}) exitWith {false};
+    private _context=createHashMapFromArray [["action","OPEN"],["group",_group],["vehicle",_vehicle],
+        ["gate",_gate],["route",+_route],["revision",_revision],["until",_expires],["payload",+_payload]];
+    // Leave the remote call context before the server creates its private challenge.
+    [{params ["_gateContext"];["REQUEST",[_gateContext]] call CBE_fnc_DrivingGateOwnerEvidence},[_context]] call CBA_fnc_execNextFrame;
+    true
+};
+if (_gateFrame isEqualTo []) then {_gateFrame=[_group,_vehicle,_route,_revision] call CBE_fnc_DrivingGateOwnerCheck};
+if (count _gateFrame != 2) exitWith {false};
+private _gateIntentCurrent={
+    if (local _group && {local _vehicle} && {local _driver} && {local _commander}) then {
+        [_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent
+    } else {_ownerToken != "" && {serverTime < _expires}}
+};
+if ((_gateFrame select 1) findIf {_x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]
+    } >= 0) exitWith {false};
 if (_revision >= 0) then {
     private _registry=missionNamespace getVariable ["CBE_Convoy_Registry",[]];
     private _index=_registry findIf {(_x select 0) == _group};
@@ -82,7 +113,7 @@ if (_revision >= 0) then {
         || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
         || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) then {_revision=-2};
 };
-if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
+if (_revision == -2 || {_revision < 0 && {!(call _gateIntentCurrent)}}) exitWith {false};
 // Check the server-local attempt history before geometry/config work. A delivery retry
 // receives the original outcome; it never becomes another animation or geometry scan.
 private _stopSerial=missionNamespace getVariable ["CBE_DrivingGate_StopSerial",0];
@@ -218,7 +249,7 @@ isNil {
     if (isNull _liveCommander) then {_liveCommander=driver _vehicle};
     if (!_convoyCurrent || {serverTime >= _expires}
         || {_revision < 0 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
-            || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}
+            || {!(call _gateIntentCurrent)}
             || {!([_group,true] call CBE_fnc_DrivingMovementAvailable)}
             || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}}}
         || {call _locked} || {!alive _gate} || {!alive _vehicle} || {!canMove _vehicle}
@@ -228,7 +259,7 @@ isNil {
             || {!isNull remoteControlled _x} || {!simulationEnabled _x} || {isObjectHidden _x}
             || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
-            || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}} >= 0}
+            || {local _x && {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}} >= 0}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group
             || {_sender != owner _vehicle} || {_sender != owner _driver} || {_sender != owner _liveCommander}}}
@@ -283,8 +314,8 @@ isNil {
                     private _job=createHashMapFromArray [["gate",_gate],["vehicle",_vehicle],["taskGroup",_group],
                         ["driver",_driver],["commander",_requestedCommander],["groupOwner",groupOwner _group],
                         ["vehicleOwner",owner _vehicle],["driverOwner",owner _driver],["commanderOwner",owner _requestedCommander],
-                        ["native",[+(expectedDestination _driver),+(expectedDestination _requestedCommander)]],
-                        ["nativeTasks",[currentCommand _driver,currentCommand _requestedCommander]],
+                        ["native",+(_gateFrame select 0)],
+                        ["nativeTasks",+(_gateFrame select 1)],
                         ["route",+_route],["revision",_revision],
                         ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
                         ["operation",_group getVariable ["CBE_OperationGeneration",0]],

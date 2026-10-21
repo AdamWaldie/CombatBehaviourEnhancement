@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Checks ordinary driving command intent before a gate-opening request or mutation.
- * Locality / Authority: Read-only current owner or trusted server recheck. Callers authenticate
+ * Locality / Authority: Read-only current crew owner only. Callers authenticate
  * sender, route, seats, capability and locks separately; this helper grants no movement authority.
  * Repeat/JIP: Fresh native commands and public finite journals only; no cache, writes or replay.
  * Plain route matching compares full PositionAGL destinations, including height.
@@ -18,7 +18,10 @@ if (isNull _group || {isNull _vehicle} || {_route isEqualTo []}
 if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
-if (isNull _driver || {isNull _operator}) exitWith {false};
+// expectedDestination requires local arguments. Server-side route metadata alone
+// cannot establish the native intent of client/HC-owned crew.
+if (isNull _driver || {isNull _operator} || {!local _group} || {!local _vehicle}
+    || {!local _driver} || {!local _operator}) exitWith {false};
 private _destination=[_group] call CBE_fnc_DrivingRouteGoal;
 if (_destination isEqualTo []) exitWith {false};
 private _alternate=false;

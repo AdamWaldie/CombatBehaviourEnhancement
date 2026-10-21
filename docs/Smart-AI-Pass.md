@@ -2455,3 +2455,10 @@ A requested return keeps its original journal while the engine acknowledges the 
 Native mode currently requires all operating actors and vehicle on the group owner. It does not adopt a temporary leg across locality changes. It refuses authored navigation corridors, fixed-path bypass, passing, gate-opening and queue negotiation until their native-route contracts are integrated. Driver casualty replacement still requires its authored-route path. These remaining cases are not implied by native-MOVE admission. Identical same-value replacement orders remain observationally indistinguishable.
 
 No extra scheduler, world scan or movement worker is added. Receipt reads observe only current seats, native destinations and existing local journals; repeated read cost and native timing are unmeasured. Direct MOVE recovery, actual reverse direction, return travel, cancellation, mixed crew and frame-time performance still require physical validation. Audits remain paused.
+
+
+### Gate intent across AI owners
+
+Gate opening and optional post-passage closure keep animation authority on the server. Native crew destination checks run on the crew owner: the server issues one authenticated, single-use challenge bound to the original request, route, operating seats and current owner. Opening retains the original five-second request expiry. Closure requests fresh intent only after observed passage and sampled traffic clearance, with at most three seconds for a reply within the original closure lifetime. Missing, changed-owner or late evidence cannot authorise an animation.
+
+At most sixteen evidence tickets can be pending across the server. Matching requests deduplicate; tickets do not replay for joining clients. Geometry caps still determine whether vehicles can proceed, and a reply is neither clearance nor proof of travel. Server lock, gate transform, feature, crew, route and external-control checks remain in force. Native script-only MOVE gate support remains unavailable. This owner exchange has offline validation only; network timing, normal-client and headless-client behaviour and performance require later in-game verification.

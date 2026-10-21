@@ -83,28 +83,9 @@ private _enabled=if (_revision < 0) then {
     }
 };
 if (!_enabled) exitWith {["DRIVING_ENDED"] call _retire};
-private _native=[+(expectedDestination _driver),+(expectedDestination _commander)];
-private _tasks=[currentCommand _driver,currentCommand _commander];
-private _nativeCurrent=_native isEqualTo (_job get "native");
-if (_revision >= 0 && {!_nativeCurrent}) then {
-    private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
-    if (count _receipt == 8 && {(_receipt select 0) == _taskGroup} && {(_receipt select 1) == _revision}
-        && {(_receipt select 2) == _driver} && {(_receipt select 3) == _commander}
-        && {(_receipt select 6) isEqualTo []} && {(_receipt select 4) isEqualTo (_native select 1)}) then {
-        private _driverProof=_receipt select 7;
-        _nativeCurrent=count _driverProof == 2
-            && {_driver == _commander || {(_driverProof select 1) isEqualTo (_native select 0)}};
-    };
-};
-if (_revision < 0) then {_nativeCurrent=[_taskGroup,_vehicle,_job get "route"] call CBE_fnc_DrivingGateIntent};
-private _taskConflict=false;
-{
-    if (!(_x in ["","MOVE","FOLLOW","WAIT","STOP"])
-        || {_x == "STOP" && {((_job get "nativeTasks") select _forEachIndex) != "STOP"}}) exitWith {_taskConflict=true};
-} forEach _tasks;
-if (!_nativeCurrent || {_taskConflict}
-    || {_revision >= 0 && {((_taskGroup getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-2]) == _revision}}) exitWith {["NATIVE_ORDER_CHANGED"] call _retire};
-_job set ["native",_native];_job set ["nativeTasks",_tasks];
+// Remote intent is checked once passage geometry is ready, using a fresh owner reply.
+// Do not sample expectedDestination for nonlocal crew during server passage observation.
+if (_revision >= 0 && {((_taskGroup getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-2]) == _revision}) exitWith {["NATIVE_ORDER_CHANGED"] call _retire};
 
 if ((_job get "otherLeaves") findIf {abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02} >= 0) exitWith {["OTHER_LEAF_CHANGED"] call _retire};
 private _leaves=_job get "leaves";
@@ -161,6 +142,29 @@ private _clear=true;private _aperture=_job get "aperture";private _gateSpan=_job
     };
 } forEach _near;
 if (!_clear) exitWith {2};
+private _closeFrame=[];
+if (local _taskGroup && {local _vehicle} && {local _driver} && {local _commander}) then {
+    _closeFrame=[_taskGroup,_vehicle,_job get "route",_revision,_job get "native",_job get "nativeTasks"] call CBE_fnc_DrivingGateOwnerCheck;
+} else {
+    private _reply=_job getOrDefault ["ownerReply",[]];
+    if (count _reply == 2 && {serverTime < (_reply select 0)}) then {_closeFrame=+(_reply select 1)};
+};
+if (_closeFrame isEqualTo [] && {!local _vehicle || {!local _taskGroup} || {!local _driver} || {!local _commander}}) exitWith {
+    private _asked=_job getOrDefault ["ownerAskedUntil",-1];
+    if (_asked >= 0) exitWith {
+        if (serverTime >= _asked) then {["OWNER_INTENT_UNCONFIRMED"] call _retire} else {1}
+    };
+    private _until=(serverTime+3) min (_job get "until");
+    _job set ["ownerAskedUntil",_until];
+    private _context=createHashMapFromArray [["action","CLOSE"],["group",_taskGroup],["vehicle",_vehicle],
+        ["gate",_gate],["route",+(_job get "route")],["revision",_revision],["until",_until],
+        ["native",+(_job get "native")],["tasks",+(_job get "nativeTasks")],["job",_job]];
+    ["REQUEST",[_context]] call CBE_fnc_DrivingGateOwnerEvidence;
+    1
+};
+if (count _closeFrame != 2) exitWith {["NATIVE_ORDER_CHANGED"] call _retire};
+_job deleteAt "ownerReply";
+_job set ["native",+(_closeFrame select 0)];_job set ["nativeTasks",+(_closeFrame select 1)];
 // This callback is unscheduled. No wait separates the exact phase/ownership checks,
 // the sampled clearance above and this single native closure request.
 {_gate animateSource [_x select 1,_x select 2]} forEach _leaves;

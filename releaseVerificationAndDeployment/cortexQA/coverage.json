@@ -849,7 +849,9 @@
         "addons/vehicles/functions/drivingCapReleaseAdopt.sqf",
         "addons/vehicles/functions/drivingCapReleaseOffer.sqf",
         "addons/vehicles/functions/drivingRouteGoal.sqf",
-        "addons/vehicles/functions/drivingNativeRouteReceipt.sqf"
+        "addons/vehicles/functions/drivingNativeRouteReceipt.sqf",
+        "addons/vehicles/functions/drivingGateOwnerCheck.sqf",
+        "addons/vehicles/functions/drivingGateOwnerEvidence.sqf"
       ]
     },
     {
