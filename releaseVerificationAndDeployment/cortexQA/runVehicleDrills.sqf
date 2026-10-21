@@ -1263,7 +1263,7 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
         _queueVehicles pushBack _v;_queueGroups pushBack _g;_queueGoals pushBack _goal;
     } forEach [[[7188,7000,0],90,[7330,7000,0]],[[7212,7000,0],270,[7070,7000,0]]];
     missionNamespace setVariable ["CBE_CortexQA_Actors",_queueVehicles + (_queueVehicles apply {driver _x}),true];
-    ["Natural head-on queue recovery","Two ordinary authored routes oppose each other. Observe natural stationary dwell, one agreed recovery, real reverse travel and whole-hull passage, then onward travel. If native driving avoids the jam or negotiation never starts, this case fails readiness; the fixture supplies no queue requests or movement assistance.",[7200,7000,0]] call _phase;
+    ["Natural head-on queue recovery","Two ordinary authored routes oppose each other. Observe natural stationary dwell, one agreed recovery requiring more than six metres, the exact issued envelope, physical reverse to that stop distance and whole-hull passage, then onward travel. If native driving avoids the jam or negotiation never starts, this case fails readiness; the fixture supplies no queue requests or movement assistance.",[7200,7000,0]] call _phase;
     private _queueReady=_queueVehicles findIf {isNull driver _x || {driver _x == effectiveCommander _x}
         || {!local _x} || {!local group driver _x}} < 0;
     private _queueReadAuthoredRoute={
@@ -1282,6 +1282,9 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
     private _queueAxis=[];private _queueReverse=false;private _queueCommitted=false;
     private _queueCleared=false;private _queueAccepted=false;private _queueContinued=false;
     private _queueBinding=[];
+    private _queueYieldAxis=[];private _queueRequestedEnvelope=[];
+    private _queueRequirementStable=true;private _queueIssuedEnvelope=false;
+    private _queueMeasuredRear=0;private _queueFullReverse=false;
     // Independent QA hull projection uses all eight model corners, not the production helper.
     private _queueSpan={
         params ["_object","_axis"];
@@ -1313,7 +1316,8 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
                     _queueDwellProved=_queueDwell >= 0 && {serverTime-_queueDwell >= 19.5};
                     _queueRoot=(_candidate get "vehicles") select 0;
                     _queueYield=(_candidate get "vehicles") select 1;
-                    _queueYieldOrigin=getPosWorld _queueYield;
+                    private _yieldPose=((_candidate get "context") select 1) select 4;
+                    _queueYieldOrigin=+(_yieldPose select 0);_queueYieldAxis=+(_yieldPose select 1);
                     _queueAxis=vectorDir _queueRoot;_queueAxis set [2,0];_queueAxis=vectorNormalized _queueAxis;
                 };
             } forEach _queueVehicles;
@@ -1328,9 +1332,33 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
                     _queueBinding isNotEqualTo [] && {_queueBinding isNotEqualTo _observedBinding}
                 }) then {_queueLifetimeStable=false};
                 if (_queueBinding isEqualTo []) then {_queueBinding=_observedBinding};
+                private _required=(_consent getOrDefault ["rearRequirements",[]]) param [1,[]];
+                if (count _required == 2 && {_required findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {(_required select 1) > 6} && {(_required select 1) <= 24}
+                    && {(_required select 0) == (_required select 1)+2}) then {
+                    if (_queueRequestedEnvelope isEqualTo []) then {_queueRequestedEnvelope=+_required};
+                    if (_queueRequestedEnvelope isNotEqualTo _required) then {_queueRequirementStable=false};
+                } else {_queueRequirementStable=false};
             };
             if (((getPosWorld _queueYield) vectorDiff _queueYieldOrigin) vectorDotProduct _queueAxis > 1
                 && {(velocity _queueYield) vectorDotProduct (vectorDir _queueYield) < -0.1}) then {_queueReverse=true};
+            // Independent world displacement proves the accepted travel; the journal alone
+            // cannot turn a short native leg into a successful extended reverse.
+            private _rearTravel=-(((getPosWorld _queueYield) vectorDiff _queueYieldOrigin) vectorDotProduct _queueYieldAxis);
+            _queueMeasuredRear=_queueMeasuredRear max _rearTravel;
+            private _reverseWork=_queueYield getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _reverseBinding=_reverseWork getOrDefault ["queueBinding",[]];
+            if (_queueBinding isNotEqualTo [] && {count _reverseBinding == 4}
+                && {(_reverseBinding select [0,2]) isEqualTo _queueBinding}) then {
+                private _issued=_reverseWork getOrDefault ["rearEnvelope",[]];
+                if (_queueRequestedEnvelope isNotEqualTo [] && {_issued isEqualTo _queueRequestedEnvelope}) then {
+                    _queueIssuedEnvelope=true;
+                    if (_rearTravel >= (_queueRequestedEnvelope select 1)-0.25
+                        && {toUpperANSI ((vehicleMoveInfo _queueYield) param [0,""]) == "STOP"}
+                        && {vectorMagnitude velocity _queueYield < 0.1}
+                        && {vectorMagnitude angularVelocity _queueYield < 0.01}) then {_queueFullReverse=true};
+                } else {_queueRequirementStable=false};
+            };
             private _rootSpan=[_queueRoot,_queueAxis] call _queueSpan;
             private _yieldSpan=[_queueYield,_queueAxis] call _queueSpan;
             if ((_rootSpan select 0) > (_yieldSpan select 1)+1) then {_queueCleared=true};
@@ -1349,6 +1377,11 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
     ["QUEUE-natural-continuous-dwell",_queueDwellProved] call _check;
     ["QUEUE-natural-owner-commit",_queueCommitted] call _check;
     ["QUEUE-natural-physical-reverse",_queueReverse] call _check;
+    ["QUEUE-natural-extended-demand",_queueRequestedEnvelope isNotEqualTo [] && {_queueRequirementStable}] call _check;
+    ["QUEUE-natural-exact-issued-envelope",_queueIssuedEnvelope && {_queueRequirementStable}] call _check;
+    ["QUEUE-natural-full-requested-reverse",_queueReverse && {_queueFullReverse}
+        && {_queueMeasuredRear <= (_queueRequestedEnvelope param [0,0])+0.5}] call _check;
+    diag_log format ["CBE QUEUE EXTENDED REVERSE EVIDENCE: %1",[_queueBinding,_queueRequestedEnvelope,_queueMeasuredRear,_queueIssuedEnvelope,_queueFullReverse,_queueRequirementStable]];
     ["QUEUE-natural-whole-hull-passage",_queueCleared] call _check;
     ["QUEUE-natural-accepted-completion",_queueAccepted] call _check;
     ["QUEUE-natural-authored-continuation",_queueContinued] call _check;

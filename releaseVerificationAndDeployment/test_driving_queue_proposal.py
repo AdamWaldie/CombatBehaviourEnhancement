@@ -127,7 +127,10 @@ class QueueProposalTests(unittest.TestCase):
                       'QUEUE-natural-whole-hull-passage','QUEUE-natural-authored-continuation',
                       'boundingBoxReal','modelToWorldWorld','_queueRestore',
                       'QUEUE-natural-authored-route-retained','QUEUE-natural-original-lifetime',
-                      'waypointStatements','waypointAttachedObject','_queueOriginalUntil'):
+                      'waypointStatements','waypointAttachedObject','_queueOriginalUntil',
+                      'QUEUE-natural-extended-demand','QUEUE-natural-exact-issued-envelope',
+                      'QUEUE-natural-full-requested-reverse','vectorDotProduct _queueYieldAxis',
+                      '(_queueRequestedEnvelope select 1)-0.25','_queueMeasuredRear max _rearTravel'):
             self.assertIn(proof,natural)
 
         self.assertIn('_jam set ["attempts",(_jam get "attempts")+1]',s)
