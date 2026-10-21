@@ -57,8 +57,42 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertLess(s.index('_driver action ["Eject"'),s.index('_work set ["vacateIssuedAt",serverTime]'))
         self.assertEqual(s.count('_work set ["vacateIssuedAt",serverTime]'),1)
         self.assertIn('_work set ["phase","SWITCHING"]',s)
-        for command in ('moveInDriver','moveOut','setPos','setVelocity','setHitPointDamage','allowDamage','enableAI','doMove','setDriveOnPath','spawn','sleep'):
+        for command in ('moveInDriver','moveOut','setPos','setVelocity','setHitPointDamage','allowDamage','enableAI','setDriveOnPath','spawn','sleep'):
             self.assertNotIn(command,s)
+    def test_native_casualty_requires_observed_seat_and_original_goal_acknowledgement(self):
+        s=self.source()
+        receipt=(ROOT/'addons/vehicles/functions/drivingNativeRouteReceipt.sqf').read_text(encoding='utf-8')
+        step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('!alive (_crewRoute select 3)',receipt)
+        self.assertNotIn('!isNull (_crewRoute select 3)',receipt)  # original driver may be deleted after death
+        self.assertIn('private _crewVacancy=isNull _nativeDriver',receipt)
+        self.assertIn('(_crewRoute select 8) isEqualTo clientOwner',receipt)
+        self.assertIn('(_nativeBrain getOrDefault ["ownerEpoch",-1]) isEqualTo (_crewRoute select 7)',receipt)
+        self.assertIn('if (_crewIntent) exitWith {+_crewRoute}',receipt)
+        self.assertEqual(s.count(' doMove '),1)
+        self.assertIn('driver _vehicle == _candidate',s)
+        self.assertIn('call _nativeMissionCurrent',s)
+        self.assertIn('call _nativeSeatTarget',s)
+        self.assertNotIn('getPosATL _vehicle',s)
+        self.assertIn('_brain set ["route",_newRoute]',s)
+        self.assertIn('_work set ["originalRoute",+_route]',s)
+        self.assertIn('(serverTime+2) min (_work get "deadline")',s)
+        self.assertIn('NATIVE_RECOVERY_UNRESOLVED',s)
+        self.assertIn('((_work get "phase") == "COMPLETE" && {isNull _driver})',s)
+        self.assertIn('CBE_DrivingCapRelease_Work',s)
+        returning=s.split('if (_nativeCrew && {_phase == "RETURNING"}) exitWith {',1)[1].split('// Confirmation is observation',1)[0]
+        self.assertNotIn(' doMove ',returning)
+        self.assertLess(returning.index('serverTime >= (_resume select 1)'),returning.index('call _nativeComplete'))
+        self.assertIn('if (!_crewPending ||',step)
+        self.assertIn('OWNER_CHANGED_AFTER_CREW',step)
+        self.assertLess(step.index('ORDER_CHANGED_AFTER_CREW'),step.index('call CBE_fnc_DrivingAssistStart'))
+        # Seat confirmation and original-goal command acknowledgement are distinct.
+        def phase(now,until,seat,goal):
+            return 'EXPIRED' if now>=until else ('COMPLETE' if seat and goal else 'RETURNING')
+        self.assertEqual(phase(1,2,True,False),'RETURNING')
+        self.assertEqual(phase(1,2,True,True),'COMPLETE')
+        self.assertEqual(phase(2,2,True,True),'EXPIRED')
+
     def test_authority_and_original_orders_bind_late_writes(self):
         s=self.source()
         goal=(ROOT/'addons/vehicles/functions/drivingRouteGoal.sqf').read_text(encoding='utf-8')
@@ -79,7 +113,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertEqual(s.count('fullCrew [_vehicle,"",false]'),1)
         self.assertIn('_previousVehicle != vehicle leader _group',s)
         self.assertIn('toLowerANSI (_x select 1) == "cargo"',s)
-        self.assertEqual(s.count('call _available'),4)
+        self.assertEqual(s.count('call _available'),6)  # two native goal-phase checks; healthy-driver path unchanged
     def test_native_command_changes_guard_admission_and_both_actions(self):
         s=self.source()
         self.assertIn('currentCommand leader _group != "STOP"',s)
@@ -92,7 +126,7 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertEqual(s.count('call _commandsOwned'),2)
         transition=s.split('private _commandOwned={',1)[1].split('private _crew=',1)[0]
         self.assertIn('_actor == _candidate',transition)
-        self.assertIn('_phase == "SWITCHING"',transition)
+        self.assertIn('_phase in ["SWITCHING","RETURNING"]',transition)
         self.assertIn('currentCommand _actor == "ACTION"',transition)
         self.assertNotIn('"STOP"',transition)
         self.assertLess(transition.index('MISSING_RECEIPT'),transition.index('currentCommand _actor == _receipt'))
@@ -219,7 +253,9 @@ class DrivingCrewTests(unittest.TestCase):
 
     def test_seat_actions_do_not_require_remote_vehicle_movement_authority(self):
         s=self.source().split('params [[',1)[1]
-        self.assertNotIn('local _vehicle',s)
+        self.assertNotIn('local _vehicle',s.split('private _available={',1)[1].split('private _finish=',1)[0])
+        self.assertNotIn('local _vehicle',s.split('// Seat vacancy and native order proof',1)[1])
+        self.assertIn('if (!local _vehicle',s)  # native forward-goal resumption only
         for proof in ('!local _group','local _actor','!local _candidate','local _driver','call _commandsOwned'):
             self.assertIn(proof,s)
         start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text(encoding='utf-8')

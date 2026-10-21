@@ -6,7 +6,10 @@
  * Repeat/JIP: No state, worker or replay. Receipt binds current owner epoch/client and exact
  * seats. Existing recovery may retain its original receipt only through exact native command
  * classification without renewing parent lifetime. Cap authority remains with the caller.
- * No locality adoption is inferred.
+ * A current brain may retain its already admitted vehicle goal through driver death
+ * for the finite crew executor. Historical seat fields during this transition grant no
+ * movement permission; confirmed replacement seats and original-goal ACK rebind them.
+ * No crew locality adoption is inferred.
  * Arguments: 0 group GROUP grpNull.
  * Return: ARRAY [NATIVE_MOVE,group,vehicle,driver,operator,native frame,goal,epoch,clientOwner],
  * or[] when native intent/temporary leg is unknown. Same-value mission orders are indistinguishable.
@@ -22,6 +25,34 @@ if (isNull _nativeVehicle || {_nativeVehicle == leader _nativeGroup}
 private _nativeDriver=driver _nativeVehicle;
 private _nativeOperator=effectiveCommander _nativeVehicle;
 if (isNull _nativeOperator) then {_nativeOperator=_nativeDriver};
+// A current admitted vehicle intent can outlive its driver. This is route provenance
+// for the finite crew executor, never permission for a new seat to drive. Native action
+// and forward-goal acknowledgement remain in DrivingCrewStep.
+private _nativeBrain=_nativeGroup getVariable ["CBE_Driving_Brain",createHashMap];
+if !(_nativeBrain isEqualType createHashMap) exitWith {[]};
+private _crewRoute=_nativeBrain getOrDefault ["route",[]];
+private _crewWork=_nativeVehicle getVariable ["CBE_DrivingCrew_Work",createHashMap];
+private _crewIntent=_crewRoute isEqualType [] && {count _crewRoute == 9}
+    && {(_crewRoute param [0,"",[""]]) == "NATIVE_MOVE"}
+    && {(_crewRoute select 1) isEqualTo _nativeGroup} && {(_crewRoute select 2) isEqualTo _nativeVehicle}
+    && {(_crewRoute select 7) isEqualTo (_nativeGroup getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_crewRoute select 8) isEqualTo clientOwner}
+    && {(_crewRoute select 6) isEqualType []} && {count (_crewRoute select 6) == 3}
+    && {(_crewRoute select 6) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+    && {(_nativeBrain getOrDefault ["ownerEpoch",-1]) isEqualTo (_crewRoute select 7)}
+    && {!(_nativeBrain getOrDefault ["cancelled",true])} && {!(_nativeBrain getOrDefault ["finished",true])}
+    && {(_crewRoute select 3) isEqualType objNull}
+    && {!alive (_crewRoute select 3)};
+if (_crewIntent) then {
+    private _crewVacancy=isNull _nativeDriver || {_nativeDriver isEqualTo (_crewRoute select 3)};
+    private _crewSwitch=_crewWork isEqualType createHashMap
+        && {(_crewWork getOrDefault ["route",[]]) isEqualTo _crewRoute}
+        && {(_crewWork getOrDefault ["group",grpNull]) isEqualTo _nativeGroup}
+        && {(_crewWork getOrDefault ["phase",""]) in ["SWITCHING","RETURNING"]}
+        && {_nativeDriver isEqualTo (_crewWork getOrDefault ["candidate",objNull])};
+    _crewIntent=_crewVacancy || {_crewSwitch};
+};
+if (_crewIntent) exitWith {+_crewRoute};
 if ([_nativeDriver,_nativeOperator] findIf {isNull _x || {!local _x}
     || {group _x != _nativeGroup} || {!alive _x}} >= 0) exitWith {[]};
 private _nativeFrame=[currentCommand _nativeDriver,+(expectedDestination _nativeDriver),
@@ -75,8 +106,6 @@ if (!(_nativeGoal call _nativeVector) || {!(_nativeDriverGoal call _nativeVector
     || {_nativeDriverGoal vectorDistance _nativeGoal > 3}) exitWith {[]};
 // Native planning flags may change while the same goal remains in force. Keep the admitted
 // original identity, including after observed handback, rather than renewing its recovery budget.
-private _nativeBrain=_nativeGroup getVariable ["CBE_Driving_Brain",createHashMap];
-if !(_nativeBrain isEqualType createHashMap) exitWith {[]};
 private _admitted=_nativeBrain getOrDefault ["route",[]];
 if !(_admitted isEqualType []) exitWith {[]};
 if (count _admitted == 9 && {(_admitted param [0,"",[""]]) == "NATIVE_MOVE"}

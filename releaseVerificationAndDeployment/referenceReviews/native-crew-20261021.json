@@ -1,0 +1,33 @@
+{
+  "baseline": "2816ce77",
+  "scope": "Finite same-owner native vehicle casualty intent, replacement seat and original-goal acknowledgement",
+  "implementation": [
+    "Current owner brain may retain its already admitted native vehicle goal through driver death/removal. Route provenance alone grants no speed or recovery authority. Unknown live replacement seats invalidate the old transition; exact pending candidate is recognised.",
+    "Existing bounded native Eject/MoveToDriver crew path handles the vacancy with its original25-second journal, assignment/role/task/Zeus/provider/care/physical-rest guards and at most20 crew. Exact prior cap cleanup must settle before native seat actions. Active recovery work refuses this path.",
+    "A confirmed replacement seat either already has the original MOVE goal or receives that goal once on its current local operating owner. RETURNING observes both operating actors; at most2 seconds within original crew deadline, no replay. New leader/operator MOVE or STOP wins.",
+    "Exact current brain/journal/seat/goal acknowledgement atomically rebinds the native operating receipt. Ordinary driving assistance waits while native crew work is pending. Existing route-scoped jam/geometry context detects the changed operating receipt.",
+    "A vacancy after COMPLETE is a distinct episode, including removed driver objects. CANCELLED/EXPIRED vacancy attempts do not restart on each callback. Healthy-driver cheap path and authored remote-vehicle seat action policy retained.",
+    "After crew callouts, current brain/owner identity is checked again before assistance or diagnostics. Native casualty transitions also recheck the possibly rebound route, preventing a cancelled/superseded seat episode from driving under an old generation."
+  ],
+  "validation": {
+    "focused": ".qa/native-crew-tests.log:257 driving tests passed; existing source contracts updated for native-only local forward goal and added availability checks. One distinct native casualty seat/goal test added.",
+    "full": ".qa/native-crew-build-callback.log:1488 tests/400 SQF and complete offline gates passed.",
+    "review_repairs": "Initial builds passed; review tightened goal reply expiry/atomic role rebinding, supported removal of a dead driver reference, and fixed confirmed-then-vacant terminal handling. Final candidate rebuilt after those material corrections. Final review removed nearby-vehicle target inference in favour of recorded seat-action target proof. One build command used an incorrect Python path and did not run gates; corrected runtime path and final full build passed. Added post-crew owner/native-route validation after identifying actual route mutation from the new crew callout; final callback-boundary source rebuilt and independently verified.",
+    "candidate": ".qa/candidates/native-crew-callback-2816ce77",
+    "fingerprint": "983ca307044a6e52a99dbee7aa492804582f8995467dbdd00060a7431c9490d6",
+    "independent": "Preserved candidate verify exit0.",
+    "provenance": "Baseline plus intended batch and retained unrelated dirty files; unsigned development candidate."
+  },
+  "limits": [
+    "No actual native seat-switch/goal travel or runtime performance proof. Audits remain paused. Goal acknowledgement is not physical travel.",
+    "Casualty while driving recovery work exists remains unsupported; old temporary-command ownership needs an explicit dead-actor handback contract.",
+    "Native crew episode locality transfer remains unsupported. Dead corpses still requiring remote Eject and modded seat actions may expire rather than force insertion.",
+    "Same-value commands/seat changes and three-metre native goal matching have observational ambiguity; do not claim atomic cross-machine mission authority from snapshots.",
+    "Native corridor/bypass/pass/queue integration and full production acceptance remain unfinished."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "e4f0148b6283efd621260a206487b788dee4b86379a8ff4f8af69194b84f3d17",
+    "addons/vehicles/functions/drivingCrewStep.sqf": "fefc2261fd1e56aa2693b34d723e240a3aa657b95ea2ea54d7094ce3feb34239",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "e4066f3c1ff2cc8a9ccc3d1bdf82576c2d6dedbb41b31e7eb2b1a90ab0109490"
+  }
+}

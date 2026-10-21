@@ -36,8 +36,23 @@ if ([_group] call CBE_fnc_CortexZeusHeld || {[_group] call CBE_fnc_CortexExterna
 if (!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)) exitWith {["DISABLED"] call _reject};
 if (!([_group] call CBE_fnc_DrivingMovementAvailable)) exitWith {["TACTICAL_OWNER"] call _reject};
 if (([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")) exitWith {["ORDER_CHANGED"] call _reject};
+private _crewEntryRoute=_brain get "route";
+private _nativeCrewTransition=(_crewEntryRoute param [0,"",[""]]) == "NATIVE_MOVE"
+    && {count _crewEntryRoute == 9} && {!alive (_crewEntryRoute select 3)};
 private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep;
-[_group,_brain] call CBE_fnc_DrivingAssistStart;
+// Native crew actions/confirmation can change the operating receipt. Retire an old
+// callback before assistance or diagnostics can borrow a superseding owner's intent.
+if (!local _group || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
+    || {_brain getOrDefault ["cancelled",false]}
+    || {(_brain get "ownerEpoch") != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {["OWNER_CHANGED_AFTER_CREW"] call _reject};
+if (_nativeCrewTransition && {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route")}) exitWith {
+    ["ORDER_CHANGED_AFTER_CREW"] call _reject
+};
+// A replacement seat has no native driving authority until its crew phase confirms
+// original-goal resumption. CrewStep releases exact old caps before its seat actions.
+if (!_crewPending || {((_brain get "route") param [0,"",[""]]) != "NATIVE_MOVE"}) then {
+    [_group,_brain] call CBE_fnc_DrivingAssistStart;
+};
 private _bypass="";private _obstacle=false;private _corridor="";private _passing=false;private _watchTraffic=false;
 private _capReleasePending=false;private _capReleaseUnresolved=false;
 private _phase="HANDBACK";private _owned=0;private _recovery=false;private _waiting=false;private _exhausted=false;private _traffic=false;private _rearLeg=false;

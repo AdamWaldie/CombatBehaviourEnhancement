@@ -11,9 +11,12 @@
  * Living incapacitated drivers are never displaced. New candidate priority is eligible cargo,
  * commander, other crew, then primary gunner as last resort. An admitted attempt keeps its candidate.
  * Locality / Authority: Internal current group/crew owner only, exact driving brain and
- * unit-local native actions. Vehicle may still belong to another owner; no vehicle command is issued.
+ * unit-local native actions. Authored seat actions may use a remote vehicle; native goal
+ * resumption requires local vehicle and actual operating owner.
  * An authored plain MOVE uses the shared DrivingRouteGoal policy, including a finite goal.
- * Native casualty-seat rebinding remains unsupported. Player, Zeus, specialist, convoy,
+ * Native casualty retains only an already admitted vehicle goal. Actual replacement-seat
+ * occupancy and one finite original-goal acknowledgement rebind its operating receipt.
+ * Active recovery-command casualties remain unsupported. Player, Zeus, specialist, convoy,
  * service and newer orders win.
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,
@@ -67,6 +70,8 @@ private _publish={
     };
 };
 private _route=if (_release) then {[]} else {[_group] call CBE_fnc_DrivingRouteReceipt};
+private _nativeCrew=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+private _nativeGoal=if (_nativeCrew) then {_route param [6,[],[[]]]} else {[]};
 if (_release) exitWith {
     if (count _work > 0 && {(_work get "group") == _group}
         && {(_work get "route") isEqualTo (_brain getOrDefault ["route",[]])}
@@ -83,7 +88,8 @@ if (count _work > 0 && {(_work get "route") isNotEqualTo _route}) then {
 };
 private _terminal=count _work > 0 && {(_work get "phase") in ["COMPLETE","CANCELLED","EXPIRED"]};
 // A later casualty is a distinct episode; a failed vacancy cannot restart every callback.
-if (_terminal && {!isNull _driver} && {_driver != (_work get "driver")} && {!alive _driver}) then {
+if (_terminal && {((_work get "phase") == "COMPLETE" && {isNull _driver})
+    || {!isNull _driver && {_driver != (_work get "driver")} && {!alive _driver}}}) then {
     _work=createHashMap;_terminal=false;_changed=true;
 };
 if (_terminal || {count _work == 0 && {!isNull _driver} && {alive _driver}}) exitWith {call _publish;false};
@@ -95,13 +101,40 @@ private _commandOwned={
     params ["_actor","_receipt"];
     if (_receipt == "MISSING_RECEIPT") exitWith {false};
     currentCommand _actor == _receipt
-        || {_actor == _candidate && {_phase == "SWITCHING"} && {currentCommand _actor == "ACTION"}}
+        || {_actor == _candidate && {_phase in ["SWITCHING","RETURNING"]} && {currentCommand _actor == "ACTION"}}
 };
 // The availability check supplies the crew snapshot used for candidate selection.
 // Refresh again at each native seat action; do not enumerate an unused entry snapshot.
 private _crew=[];
 private _tasks=["GET IN","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+private _nativeSeatTarget={
+    params ["_seatActor","_seatTarget"];
+    if (_seatActor != _candidate || {!(_phase in ["SWITCHING","RETURNING"])}) exitWith {false};
+    private _recordedSeatTarget=(_work getOrDefault ["command",[]]) param [0,[],[[]]];
+    count _recordedSeatTarget == 3
+        && {_recordedSeatTarget findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_seatTarget vectorDistance _recordedSeatTarget <= 3}
+};
+private _nativeMissionCurrent={
+    if (!_nativeCrew) exitWith {true};
+    private _intentOperator=effectiveCommander _vehicle;
+    if (isNull _intentOperator || {!alive _intentOperator}) then {_intentOperator=leader _group};
+    [leader _group,_intentOperator] findIf {
+        private _intentActor=_x;
+        isNull _intentActor || {!local _intentActor} || {!alive _intentActor}
+            || {private _intentTask=currentCommand _intentActor;
+                !(_intentTask in ["","MOVE","WAIT","FOLLOW"]
+                    || {_intentActor == _candidate && {_phase in ["SWITCHING","RETURNING"]} && {_intentTask == "ACTION"}})
+                || {_intentTask == "MOVE" && {
+                    private _intentTarget=(expectedDestination _intentActor) param [0,[],[[]]];
+                    count _intentTarget != 3 || {_intentTarget findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                        || {_intentTarget vectorDistance _nativeGoal > 3
+                        && {!([_intentActor,_intentTarget] call _nativeSeatTarget)}}
+                }}
+            }
+    } < 0
+};
 private _available={
     _crew=fullCrew [_vehicle,"",false];
     params [["_requireStopped",true,[true]]];
@@ -116,6 +149,7 @@ private _available={
     private _driverSeat=(fullCrew [_vehicle,"driver",true]) param [0,[]];
     private _assignedDriver=_driverSeat param [5,objNull];
     local _group && {alive _vehicle} && {canMove _vehicle} && {_motionSafe}
+        && {call _nativeMissionCurrent}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
         && {currentCommand leader _group != "STOP"}
@@ -141,7 +175,7 @@ private _available={
                 || {alive _actor && {group _actor != _group || {!local _actor} || {fleeing _actor}
                     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                     || {currentCommand _actor in _tasks}
-                    || {currentCommand _actor == "ACTION" && {!(_actor == _candidate && {_phase == "SWITCHING"})}}}}
+                    || {currentCommand _actor == "ACTION" && {!(_actor == _candidate && {_phase in ["SWITCHING","RETURNING"]})}}}}
         } < 0}
 };
 private _finish={
@@ -161,17 +195,106 @@ if (count _work > 0) then {
 };
 if (_phase == "INVALID_DEADLINE") exitWith {["CANCELLED"] call _finish};
 if (_phase == "EXPIRED_DEADLINE") exitWith {["EXPIRED"] call _finish};
-// Confirmation is observation, not permission to issue another action. A successful native
-// switch may already be driving by the next sample; retain all other owner/task/route guards.
+private _nativeAtGoal={
+    params ["_actor"];
+    private _target=(expectedDestination _actor) param [0,[],[[]]];
+    currentCommand _actor == "MOVE" && {count _target == 3}
+        && {_target findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_target vectorDistance _nativeGoal <= 3}
+};
+private _nativeComplete={
+    isNil {
+        private _newDriver=driver _vehicle;private _newOperator=effectiveCommander _vehicle;
+        if (isNull _newOperator) then {_newOperator=_newDriver};
+        if ((_group getVariable ["CBE_Driving_Brain",createHashMap]) isEqualTo _brain
+            && {(_brain get "route") isEqualTo _route}
+            && {(_vehicle getVariable ["CBE_DrivingCrew_Work",createHashMap]) isEqualTo _entryWork}
+            && {serverTime < (_work get "deadline")} && {_newDriver == _candidate}
+            && {local _group} && {local _newDriver} && {local _newOperator}
+            && {[_newDriver] call CBE_fnc_CortexCombatEffective}
+            && {[_newOperator] call CBE_fnc_CortexCombatEffective}
+            && {[_newDriver] call _nativeAtGoal}
+            && {[_newOperator] call _nativeAtGoal}) then {
+            private _newRoute=["NATIVE_MOVE",_group,_vehicle,_newDriver,_newOperator,
+                [currentCommand _newDriver,+(expectedDestination _newDriver),currentCommand _newOperator,+(expectedDestination _newOperator)],
+                +_nativeGoal,_brain get "ownerEpoch",clientOwner];
+            _work set ["originalRoute",+_route];_work set ["route",_newRoute];
+            _brain set ["route",_newRoute];
+            ["COMPLETE"] call _finish;
+        };
+    };
+    false
+};
+if (_nativeCrew && {_phase == "RETURNING"}) exitWith {
+    private _resume=_work getOrDefault ["nativeResume",[]];
+    private _newOperator=effectiveCommander _vehicle;
+    if (isNull _newOperator) then {_newOperator=driver _vehicle};
+    if (!(_resume isEqualType []) || {count _resume != 3} || {driver _vehicle != _candidate}
+        || {_newOperator != (_work getOrDefault ["resumeOperator",objNull])}
+        || {isNull _newOperator} || {!local _newOperator}
+        || {!([_candidate] call CBE_fnc_CortexCombatEffective)}
+        || {!([_newOperator] call CBE_fnc_CortexCombatEffective)}
+        || {!([false] call _available)}) exitWith {["CANCELLED"] call _finish};
+    if (!((_resume select 0) isEqualTo _nativeGoal) || {!((_resume select 1) isEqualType 0)}
+        || {!finite (_resume select 1)} || {(_resume select 1) > (_work get "deadline")}
+        || {!((_resume select 2) isEqualType [])} || {count (_resume select 2) != 4}) exitWith {["CANCELLED"] call _finish};
+    if (serverTime >= (_resume select 1)) exitWith {["EXPIRED"] call _finish};
+    if ([_candidate] call _nativeAtGoal && {[_newOperator] call _nativeAtGoal}) exitWith {call _nativeComplete};
+    private _before=_resume select 2;
+    private _pending=[0,1] findIf {
+        private _slot=_x*2;
+        private _resumeActor=[_candidate,_newOperator] select _x;
+        !((expectedDestination _resumeActor) isEqualTo (_before select (_slot+1)))
+            && {!([_resumeActor] call _nativeAtGoal)}
+            || {!(currentCommand _resumeActor in [_before select _slot,"MOVE"])}
+    } < 0;
+    if (!_pending) exitWith {["CANCELLED"] call _finish};
+    true
+};
+// Confirmation is observation, not permission to issue another seat action.
 if (_phase == "SWITCHING" && {!isNull _candidate} && {driver _vehicle == _candidate}
     && {[_candidate] call CBE_fnc_CortexCombatEffective}) exitWith {
-    [["CANCELLED","COMPLETE"] select ([false] call _available)] call _finish
+    if (!([false] call _available)) exitWith {["CANCELLED"] call _finish};
+    if (!_nativeCrew) exitWith {["COMPLETE"] call _finish};
+    private _newOperator=effectiveCommander _vehicle;
+    if (isNull _newOperator) then {_newOperator=_candidate};
+    if (!local _vehicle || {isNull _newOperator} || {!local _newOperator}
+        || {!([_newOperator] call CBE_fnc_CortexCombatEffective)}) exitWith {["CANCELLED"] call _finish};
+    if ([_candidate] call _nativeAtGoal && {[_newOperator] call _nativeAtGoal}) exitWith {call _nativeComplete};
+    // A newer MOVE/STOP must not be overwritten after seat confirmation. A native
+    // seat action may still expose the target recorded by its own seat action.
+    private _resumeFree={[_candidate,_newOperator] findIf {
+        private _cmd=currentCommand _x;
+        private _target=(expectedDestination _x) param [0,[],[[]]];
+        !(_cmd in ["","MOVE","WAIT"] || {_x == _candidate && {_cmd == "ACTION"}})
+            || {_cmd == "MOVE" && {count _target != 3
+                || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                || {_target vectorDistance _nativeGoal > 3 && {!([_x,_target] call _nativeSeatTarget)}}}}
+    } < 0};
+    if (!(call _resumeFree)) exitWith {["CANCELLED"] call _finish};
+    isNil {
+        if ([false] call _available && {(_vehicle getVariable ["CBE_DrivingCrew_Work",createHashMap]) isEqualTo _entryWork}
+            && {serverTime < (_work get "deadline")} && {driver _vehicle == _candidate}
+            && {_newOperator == (if (isNull effectiveCommander _vehicle) then {_candidate} else {effectiveCommander _vehicle})}
+            && {call _resumeFree}) then {
+            private _before=[currentCommand _candidate,+(expectedDestination _candidate),
+                currentCommand _newOperator,+(expectedDestination _newOperator)];
+            _newOperator doMove _nativeGoal;
+            _work set ["nativeResume",[+_nativeGoal,(serverTime+2) min (_work get "deadline"),_before]];
+            _work set ["resumeOperator",_newOperator];_work set ["phase","RETURNING"];
+            _changed=true;call _publish;
+        };
+    };
+    true
 };
 if !([true] call _available) exitWith {["CANCELLED"] call _finish};
-// Seat recovery consumes the same protected plain-MOVE policy as driving recovery.
-// Native casualty intent/seat rebinding is a separate contract, not gate eligibility.
-if ((_route param [0,"",[""]]) == "NATIVE_MOVE"
-    || {([_group] call CBE_fnc_DrivingRouteGoal) isEqualTo []}) exitWith {["CANCELLED"] call _finish};
+if (([_group] call CBE_fnc_DrivingRouteGoal) isEqualTo []) exitWith {["CANCELLED"] call _finish};
+if (_nativeCrew) then {
+    private _leaderTarget=(expectedDestination leader _group) param [0,[],[[]]];
+    if (currentCommand leader _group == "MOVE" && {count _leaderTarget != 3
+        || {_leaderTarget vectorDistance _nativeGoal > 3}}) then {_nativeGoal=[]};
+};
+if (_nativeCrew && {_nativeGoal isEqualTo []}) exitWith {["CANCELLED"] call _finish};
 if (count _work == 0) then {
     if (!isNull _driver && {alive _driver}) exitWith {};
     private _choices=_crew select {
@@ -221,6 +344,15 @@ if (isNull _candidate || {!local _candidate} || {fleeing _candidate} || {vehicle
     || {(expectedDestination _candidate) isNotEqualTo (_work get "command")}
     || {assignedVehicleRole _candidate isNotEqualTo (_work get "assignment")}) exitWith {["CANCELLED"] call _finish};
 if (!isNull _driver && {_driver != (_work get "driver") || {alive _driver}}) exitWith {["CANCELLED"] call _finish};
+// Settle exact prior cap ownership before native casualty actions. Recovery-command
+// handback with a dead driver is not inferred by this seat executor.
+if (_nativeCrew) then {
+    if (count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) > 0) exitWith {_phase="NATIVE_RECOVERY_UNRESOLVED"};
+    [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
+};
+if (_phase == "NATIVE_RECOVERY_UNRESOLVED") exitWith {["CANCELLED"] call _finish};
+if (_nativeCrew && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo []
+    || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo []}}) exitWith {call _publish;true};
 // Seat vacancy and native order proof are checked atomically with each action.
 private _commandsOwned={
     (_vehicle getVariable ["CBE_DrivingCrew_Work",createHashMap]) isEqualTo _entryWork
