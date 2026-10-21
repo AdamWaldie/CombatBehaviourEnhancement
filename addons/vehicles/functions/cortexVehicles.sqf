@@ -52,6 +52,8 @@
  * else, nearest first, held for 8 s. Scripted fire requires an available current group gunner,
  * a safe firing lane and (for ground platforms) target-suitable loaded station ammunition.
  * Native AA editor-role platforms prefer fresh aircraft out to the configured engagement range.
+ * A recent owner/epoch-matched native missile warning raises its firer above other aircraft
+ * only while that same aircraft is independently present in fresh personal native knowledge.
  * Loaded air-suitable station ammunition must qualify this preference before aircraft rows merge.
  * Two rotating vehicle-roster slots also admit custom-category air-capable ground stations.
  * They retain AT/armour priority and acquire no AA relocation role; native AA keeps air priority.
@@ -846,6 +848,17 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         // tactical role, ground-threat priority or movement ownership.
         private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
         private _airCandidate=_airDefence || {_vehicle isKindOf "LandVehicle" && {_vehicleIndex in _airProbeSlots}};
+        private _warnedBy=objNull;
+        if (_airDefence) then {
+            private _warning=_vehicle getVariable ["CBE_AA_MissileWarning",[]];
+            if (_warning isEqualType [] && {count _warning == 6}
+                && {(_warning param [0,-1,[0]]) == clientOwner}
+                && {(_warning param [1,grpNull,[grpNull]]) == _group}
+                && {(_warning param [2,-1,[0]]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {private _until=_warning param [3,-1,[0]]; finite _until && {serverTime < _until}}) then {
+                _warnedBy=_warning param [5,objNull,[objNull]];
+            };
+        };
         private _airPreference=false;
         private _stationSelection=createHashMap;
         private _gunneryContacts=+(_enemies select [0,8]);
@@ -887,7 +900,16 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
                 && {(side _group) getFriend (side _enemy) < 0.6}) then {
+                private _warningPriority=false;
+                if (_freshAir && {_airDefence} && {_enemy == _warnedBy}) then {
+                    private _warningKnowledge=_gunner targetKnowledge _enemy;
+                    private _warningAge=time-(_warningKnowledge param [2,-1,[0]]);
+                    _warningPriority=(_warningKnowledge param [1,false,[true]])
+                        && {!(_warningKnowledge param [7,false,[true]])}
+                        && {_warningAge >= 0} && {_warningAge <= 3};
+                };
                 private _priority = switch (true) do {
+                    case (_warningPriority): {-2};
                     case (_freshAir && {_airDefence}): {-1};
                     case (_enemy isKindOf "CAManBase" && {"AT" in ([_enemy] call CBE_fnc_CortexCapabilities)}): {0};
                     case (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}): {1};

@@ -122,5 +122,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "nativeWarningThreatPriority": {
+    "baseline": "c7cd1e16",
+    "implementation": "Extend existing native-AA observer with IncomingMissile event and version2 local [version,owner,FiredID,warningID] receipt. Warning payload [owner,group,epoch,serverExpiry15s,missile,firerPlatform] coalesces last observed event; exact current handler ID and current feature/locality/group gates apply. Discovery/stop removes both handlers, old version1 Fired-only records and warning metadata.",
+    "behaviour": "Existing gunnery can rank warning firer above other aircraft only when owner/group/epoch/finite expiry match and the actual gunner independently has a fresh<=3s personally known nonignored hostile aircraft row. No warning-only contact insertion, hidden source geometry, target reveal, radar/ROE/movement changes or new fire controller. Existing target hold and fresh loaded station/muzzle/lane gates remain.",
+    "sourceIntent": "Select useful incoming-threat priority from Protocol/AEGIS intent. This is recent-attacker prioritisation through native gunnery, not a substitute or completion claim for ground anti-munition interception/layered defence.",
+    "cost": "One constant local receipt per native warning, no scan/worker/timer; one receipt validation per active native-AA platform and at most one matching-gunner knowledge query in ranking. Runtime cost unmeasured.",
+    "limits": "Native event warning/source payload and physical target choice need verification. Fifteen-second history is not proof missile remains inbound. Unknown firer supplies no priority; stale/friendly/unseen/ignored source cannot obtain warning boost. No shot/hit/damage/interception proof.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/aa-warning-priority-c7cd1e16 fingerprint74bea0657c3aa981a6650d23d65c9ebc348dd6b1daab35bce457f0e3b0e452f8. Logs .qa/aa-warning-priority-build.log and .qa/aa-warning-priority-independent.log. Existing native AA lifecycle test extended for old/new observer cleanup, handler/epoch/expiry receipts and actual-gunner fresh nonignored knowledge. No new test cases or runtime audit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

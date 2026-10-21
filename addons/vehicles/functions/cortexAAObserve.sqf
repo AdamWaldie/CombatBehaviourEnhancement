@@ -1,13 +1,16 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Reconcile a native AA firing observer and retain one coalesced real-shot receipt.
+ * Purpose: Reconcile native AA firing/warning observers and retain bounded local receipts.
  * Locality/authority: Handler and receipt are machine-local; only the current vehicle and AI
  * gunner owner records. No target discovery, movement, firing, radar or crew policy is changed.
  * Only shots with a recent personally known assigned hostile air contact create relocation
  * receipts; other qualified fire updates the quiet-time clock without erasing that episode.
- * Repeat/JIP: One versioned local handler per eligible native AA vehicle. Discovery removes it
+ * IncomingMissile retains its native firer identity for15s; only fresh personal contact may
+ * use it for gunnery priority. No target position or fire permission is added.
+ * Repeat/JIP: One versioned local handler pair per eligible native AA vehicle. Discovery removes it
  * after locality/feature loss; shutdown removes tracked handlers. New owners start without a
- * previous owner's receipt. At most one full observation per second, no timer or new world scan.
+ * previous owner's receipt. At most one full shot observation per second; warning receipts
+ * coalesce per native event. No timer or new world scan.
  * Arguments: 0 vehicle OBJECT,objNull; 1 release BOOL,false, remove this machine's observer.
  * Return: BOOL,true while an eligible observer is installed; never relocation or hit proof.
  * Current callers: CortexDiscover's existing sixteen-vehicle slice and CortexStop.
@@ -29,19 +32,22 @@ if (_eligible) then {
         && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 };
-private _current=count _record == 3 && {(_record select 0) == 1}
+private _current=count _record == 4 && {(_record select 0) == 2}
     && {(_record select 1) == clientOwner};
 if (_eligible && {_current}) exitWith {true};
 // Most vehicles never participate. Do not rewrite nils or the tracked registry for that slice.
 if (!_eligible && {_record isEqualTo []}
     && {isNil {_vehicle getVariable "CBE_AA_LastShot"}}
     && {isNil {_vehicle getVariable "CBE_AA_LastFireAt"}}
-    && {isNil {_vehicle getVariable "CBE_AA_ObserveDue"}}) exitWith {false};
-if (count _record == 3) then {_vehicle removeEventHandler ["Fired",_record select 2]};
+    && {isNil {_vehicle getVariable "CBE_AA_ObserveDue"}}
+    && {isNil {_vehicle getVariable "CBE_AA_MissileWarning"}}) exitWith {false};
+if (count _record in [3,4]) then {_vehicle removeEventHandler ["Fired",_record select 2]};
+if (count _record == 4) then {_vehicle removeEventHandler ["IncomingMissile",_record select 3]};
 _vehicle setVariable ["CBE_AA_Observer",nil];
 _vehicle setVariable ["CBE_AA_LastShot",nil];
 _vehicle setVariable ["CBE_AA_LastFireAt",nil];
 _vehicle setVariable ["CBE_AA_ObserveDue",nil];
+_vehicle setVariable ["CBE_AA_MissileWarning",nil];
 private _tracked=missionNamespace getVariable ["CBE_AA_ObservedVehicles",[]];
 _tracked=_tracked-[_vehicle,objNull];
 missionNamespace setVariable ["CBE_AA_ObservedVehicles",_tracked];
@@ -80,7 +86,24 @@ private _handler=_vehicle addEventHandler ["Fired",{
         _group getVariable ["CBE_AIPass_Epoch",0],serverTime,_weapon,_muzzle,_ammo,_magazine,getPosATL _vehicle,
         [_group] call CBE_fnc_NativeOrderReceipt,_contact]];
 }];
-_vehicle setVariable ["CBE_AA_Observer",[1,clientOwner,_handler]];
+private _warningHandler=_vehicle addEventHandler ["IncomingMissile",{
+    params ["_vehicle","",["_shooter",objNull,[objNull]],"",["_missile",objNull,[objNull]]];
+    private _observer=_vehicle getVariable ["CBE_AA_Observer",[]];
+    if (!local _vehicle || {!alive _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
+        || {count _observer != 4} || {(_observer select 0) != 2}
+        || {(_observer select 1) != clientOwner} || {(_observer select 3) != _thisEventHandler}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
+    private _gunner=gunner _vehicle;private _group=group _gunner;
+    if (isNull _gunner || {!local _gunner} || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
+        || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}
+        || {!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {};
+    private _source=if (isNull _shooter) then {objNull} else {vehicle _shooter};
+    _vehicle setVariable ["CBE_AA_MissileWarning",[clientOwner,_group,
+        _group getVariable ["CBE_AIPass_Epoch",0],serverTime+15,_missile,_source]];
+}];
+_vehicle setVariable ["CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]];
 _tracked pushBackUnique _vehicle;
 missionNamespace setVariable ["CBE_AA_ObservedVehicles",_tracked];
 true

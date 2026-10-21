@@ -32,6 +32,28 @@ class AAObservation(unittest.TestCase):
         self.assertIn('if (!_eligible && {_record isEqualTo []}',source)
         self.assertIn('(_knowledge select 1)',source)
         self.assertIn('if (_contact isEqualTo []) exitWith {}',source)
+        self.assertIn('private _current=count _record == 4 && {(_record select 0) == 2}',source)
+        self.assertIn('count _record in [3,4]',source)
+        self.assertIn('removeEventHandler ["IncomingMissile",_record select 3]',source)
+        warning=source.split('private _warningHandler=',1)[1].split('_tracked pushBackUnique',1)[0]
+        for proof in ('addEventHandler ["IncomingMissile"','_thisEventHandler','!local _group',
+                      'CBE_AIPass_VehicleGunnery_Enable','serverTime+15',
+                      '"CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]'):
+            self.assertIn(proof,warning)
+        self.assertIn('"CBE_AA_MissileWarning",nil',source)
+        gunnery=(ROOT/'addons/vehicles/functions/cortexVehicles.sqf').read_text()
+        receipt=gunnery.split('private _warnedBy=',1)[1].split('private _airPreference=',1)[0]
+        for proof in ('_warning isEqualType []','count _warning == 6','== clientOwner',
+                      '== _group','CBE_AIPass_Epoch','finite _until','serverTime < _until'):
+            self.assertIn(proof,receipt)
+        priority=gunnery.split('private _warningPriority=',1)[1].split('_ranked pushBack',1)[0]
+        for proof in ('_enemy == _warnedBy','_gunner targetKnowledge _enemy',
+                      '_warningKnowledge param [7,false,[true]]','_warningAge >= 0','_warningAge <= 3'):
+            self.assertIn(proof,priority)
+        self.assertLess(priority.index('case (_warningPriority)'),priority.index('case (_freshAir'))
+        for forbidden in ('getPos','reveal','setMissileTarget','triggerAmmo','doMove'):
+            self.assertNotIn(forbidden,priority+receipt+warning)
+
 
         self.assertIn('"AA_RELOCATE",time+((_until-serverTime) max 0)',relocate)
         self.assertIn('[_group,_state,_ordered,_enemies] call CBE_fnc_CortexAARelocate',tick)

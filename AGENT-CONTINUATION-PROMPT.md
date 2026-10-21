@@ -1,3 +1,11 @@
+# Latest implementation checkpoint - native AA warning priority
+
+Baselinec7cd1e16 plus AA observer version2 Fired+IncomingMissile handlers and owner/group/epoch-bound15s local warning history. Existing gunnery ranks recent firer above other aircraft only with independent fresh hostile AIR contact and actual-gunner<=3s personal nonignored knowledge. No warning-only contact insertion, hidden source geometry, reveal, radar, movement, new fire controller or projectile effects. Existing target holds/loaded muzzle/fire policy/lane boundaries retained. Cleanup removes both handlers, legacy version1 Fired-only registrations and warning state. This is recent-attacker priority, NOT live-inbound/interception proof.
+
+Full1482/offline HEMTT/SQF/config/FSM/docs/package+independent verify pass. Unsigned .qa/candidates/aa-warning-priority-c7cd1e16 fingerprint74bea0657c3aa981a6650d23d65c9ebc348dd6b1daab35bce457f0e3b0e452f8; logs .qa/aa-warning-priority-build.log and .qa/aa-warning-priority-independent.log. Existing AA test extended, total unchanged. Final source header distinguishes1/s full shot observations from constant per-event warning receipts. No live build/tool handle remains.
+
+Audits PAUSED; no Arma launch/publication. Full production-readiness goal unchanged, physical/performance/parity unproven, no score increase. CBE checkout only; preserve unrelated dirt/protected references/archive/signing. Verify live root/remote/branch/PR17 before Git mutation. Actual ground munition interception/layered allocation, hull-safe firing relocation and real provider handovers remain incomplete; do not present this priority piece as their replacement.
+
 # Latest implementation checkpoint - synchronised buddy bounds
 
 Baselinef939c42e plus new CombatPairElements and integrated qualifying4..16actor fully armed ADVANCE opposite buddy roles, <=25m bounds, through existing binary FSM. Preserve established opposite assignments; balance orphans2+1. Next-bound issue reconciles current available shared pair rows; RebalanceRoles/global OperationStart pairing avoids role-local re-pairing, including ordinary2actor ADVANCE. Checkpoint/DrillResume retain mode/global identity and original spots/clocks/deadlines. No second worker or arbitrary teamTurn indices. This is synchronised role bounds, NOT independently timed pair waves or physical cover proof.
