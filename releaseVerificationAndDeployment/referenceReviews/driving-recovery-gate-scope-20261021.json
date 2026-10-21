@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-21",
+  "scope": "Recovery lifecycle and remaining gate passage/closure scope",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "readThisPass": "RoadAhead, SetCap, GateWanted, CloseGates around830..985; targeted recovery lookup only. Not another whole-source review."
+  },
+  "implementationHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "5e3b5eef421e03dc373a74886f52b60e105512790885c760f2a4b04e1305edce",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "87392e5b280aa51cae3036ec72146318fd2889e461a8a2e139c9dfe7cd645f1e",
+    "addons/vehicles/functions/drivingGateRequest.sqf": "ed907587999ec7c344258c5b9a74b2394121528a2f3c117ec423f6adaa7f5e74",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987"
+  },
+  "confirmedExistingContracts": [
+    "Ordinary recovery excludes waypoint zero and requires current plain MOVE without script/condition/timeout/synchronisation/attachment gates.",
+    "Recovery journal preserves original96s hard lifetime across stages and spent bypass budget.",
+    "Progress reset requires forward reduction beyond original stalled anchor; reverse displacement alone is insufficient.",
+    "Original native acknowledgement expiry survives pending observation; expiry grants no command replay.",
+    "Gate opening is server authenticated and bounded; original request/window/route/crew/pose/lock authority is rechecked."
+  ],
+  "materialRemainingGap": {
+    "gateClosure": "Source records opened gates and attempts closure after passage, checking nearby people/traffic and abandoning after600s. CBE opening explicitly implements no closure. Existing four-field ServerOpening is an opening-coalescing receipt, not proof that an identified vehicle or its tail passed the gate.",
+    "requiredImplementation": "A finite passage/closure executor must capture the opening vehicle and changed animation sources, confirm actual hull passage and other traffic clearance, preserve newer gate/mission/Zeus state and locks, and stop on its original deadline. Do not infer passage from opening or use request timeout as clearance.",
+    "scope": "Known HBQ feature gap; not resolved by current opening, convoy spacing, or static gates."
+  },
+  "decisions": [
+    "No further retry timing edits: this inspection establishes no new retry-budget defect.",
+    "Do not copy HBQ unconditional closure timer as authority or add a permanent gate worker.",
+    "Keep source-specific comparison in engineering records, not player documentation."
+  ],
+  "validation": {
+    "productChange": false,
+    "fullPipelineRepeated": false,
+    "reason": "Source review only; prior dc2af4ec product candidate remains unchanged.",
+    "physical": "Unrun; audits paused. No source parity or performance credit."
+  }
+}

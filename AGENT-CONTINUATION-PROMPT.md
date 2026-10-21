@@ -1,3 +1,8 @@
+# Next implementation - finite gate passage and closure
+
+## 2026-10-21 - Recovery trace and next concrete HBQ gap
+Reviewed current DrivingAssistStart recovery admission/record/progress/stage paths, CommandState and Release. No new retry-budget fault established: waypoint0/gated order refusal, original96s lifetime and spent bypass retention, original-anchor progress and native pending expiry already exist. No speculative timing change made. Verified protected HBQ controller SHA2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931 and read830..985 RoadAhead/SetCap/GateWanted/CloseGates. Source has passage-aware closure, CBE GateOpenServer explicitly has no closure. Existing4field ServerOpening is coalescing only, no vehicle/tail passage authority. Next concrete implementation: bounded passage/closure executor with exact opening actor/platform/source/pose/lock receipts, physical whole-hull and independent traffic clearance, newer-owner yielding and original deadline. Do not close on a timer or infer passage from OPEN_REQUESTED. Source/current-file hashes and disposition in referenceReviews/driving-recovery-gate-scope-20261021.json. Review JSON roundtrip/hash checked; product unchanged, no full rebuild repeated. Last product dc2af4ec candidate remains valid only for its recorded source. Audits PAUSED/no launch; whole goal active/incomplete. Local documentation checkpoint only, no percentage/parity claim/push.
+
 # Latest checkpoint - convoy facing-hull spacing
 
 ## 2026-10-21 - Convoy facing hull extents
