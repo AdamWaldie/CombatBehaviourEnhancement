@@ -9287,6 +9287,11 @@ class CortexOperations(unittest.TestCase):
                       '_weapons select [0,16]','_muzzles select [0,8]','_queries >= 32']:
             self.assertIn(proof,text)
         self.assertIn('[_ammo] call _targetSuitable',text)
+        policy=text.split('private _targetSuitable={',1)[1].split('private _bestScore=',1)[0]
+        self.assertIn('_targetFlag != 256 && {_airLock == 2}',policy)
+        self.assertLess(policy.index('_airLock == 2'),policy.index('private _flags='))
+        self.assertNotIn('getNumber (_ammo >> "airLock") <= 0',policy)
+
         for proof in ('_bulletSuppression','"shotbullet"','_rounds >= 20',
                       'getNumber (_ammo >> "indirectHit") <= 0','getNumber (_ammo >> "explosive") <= 0'):
             self.assertIn(proof,text)
@@ -9319,6 +9324,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_reloadPhase == 0',acknowledgement)
         self.assertNotIn('setWeaponReloadingTime',text)
         self.assertIn('_magazines arrayIntersect _compatible',text)
+        self.assertIn('getNumber (_ammo >> "airLock") != 2',text)
+        self.assertIn('getNumber (_ammo >> "laserLock") <= 0',text)
+
         self.assertIn('(_x select 0) != _muzzle && {_magazine in (_x select 1)}',text)
         self.assertIn('count _compatible > 128',text)
         self.assertLess(text.index('_configurationValid=true'),text.index('private _state=weaponState'))

@@ -1,3 +1,9 @@
+# Latest checkpoint - ground ammunition domain policy
+
+Baseline ee1472f1 plus current correction: airLock1 supports air AND ground,2 air-only. GroundFireReady and GroundReload now use that native distinction, with existing target/warhead/loaded-station checks and reserve laser exclusions retained. Full1482/offline build and independent verify pass. Unsigned .qa/candidates/ground-dual-role-ee1472f1 fingerprintb019cd896f667787c65505ec528c76bcd98910686ae0b07f7842ea754b3a88d3; logs .qa/ground-dual-role-build.log and .qa/ground-dual-role-independent.log. See newest handover and workshop-intake-3822504009.json for primary evidence, limits and next step. No physical lock/fire/guidance/performance proof or percentage change.
+
+Audits remain PAUSED, explicitly reaffirmed. No Arma launch or publication. Full production-readiness goal unchanged. Use CBE checkout, never chat WMP. Verify root/remote/branch/livePR17 before mutations; preserve unrelated dirt, source archives and signing keys. Next armour comparison must establish an actual missing method before adding code; independent pair waves and required external handovers remain incomplete.
+
 # Current source checkpoint - mounted readiness and prepared solo fixture
 
 Baseline before current batch c5f18a4a. GroundFireReady now excludes in-progress/unknown magazine reload before warhead ranking, allowing ready loaded alternative within existing32query cap; no deadline renewal or movement writes. Full1482/HEMTT/package pass .qa/ground-ready-reload-build.log; unsigned candidate .qa/candidates/ground-ready-reload-c5f18a4a. Physical switching/fire/wait and overhead remain unmeasured.

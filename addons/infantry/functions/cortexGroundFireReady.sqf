@@ -52,17 +52,21 @@ private _targetSuitable={
     // Explicit infantry exclusion is authoritative even for older unflagged ammo.
     if (_targetFlag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")}
         && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) exitWith {false};
+    // Native airLock is an enum: 1 supports both domains, 2 is air-only.
+    // Target preference flags cannot turn an air-only round into ground ammunition.
+    private _airLock=getNumber (_ammo >> "airLock");
+    if (_targetFlag != 256 && {_airLock == 2}) exitWith {false};
     private _flags=getNumber (_ammo >> "aiAmmoUsageFlags");
     if (_flags > 0) exitWith {(floor (_flags/_targetFlag) mod 2) == 1};
     // Preserve legacy ordinary rounds against soft targets. Armour requires a
     // heavy shell/rocket/missile, consistent with the existing launcher fallback;
     // air needs an explicit air-lock capability. Config intent is not effect proof.
-    if (_targetFlag == 256) exitWith {getNumber (_ammo >> "airLock") > 0};
+    if (_targetFlag == 256) exitWith {_airLock > 0};
     if (_targetFlag == 512) exitWith {
         toLowerANSI getText (_ammo >> "simulation") in ["shotshell","shotrocket","shotmissile"]
-            && {getNumber (_ammo >> "hit") >= 100} && {getNumber (_ammo >> "airLock") <= 0}
+            && {getNumber (_ammo >> "hit") >= 100}
     };
-    getNumber (_ammo >> "airLock") <= 0
+    true
 };
 private _bestScore=-1;
 private _evaluateState={

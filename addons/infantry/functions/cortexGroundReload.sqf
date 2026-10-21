@@ -152,7 +152,7 @@ private _proposal=[];private _bestRank=-1;private _queries=0;
                         private _suitable=_flags <= 0 || {(floor (_flags/_flag) mod 2) == 1};
                         if (_flag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")} && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) then {_suitable=false};
                         if (_magazine != (_state select 3) && {_warhead in _desired}
-                            && {_suitable} && {getNumber (_ammo >> "airLock") <= 0} && {getNumber (_ammo >> "laserLock") <= 0}
+                            && {_suitable} && {getNumber (_ammo >> "airLock") != 2} && {getNumber (_ammo >> "laserLock") <= 0}
                             && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
                             && {!isClass (_ammo >> "Components" >> "SensorsManagerComponent" >> "Components" >> "LaserSensorComponent")}) then {
                             private _rank=(count _desired)-(_desired find _warhead);

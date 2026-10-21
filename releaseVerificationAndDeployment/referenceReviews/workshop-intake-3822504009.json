@@ -83,6 +83,18 @@
       "physicalAcceptance": false,
       "performanceMeasured": false,
       "scoresChanged": false
+    },
+    "dualRoleAmmunitionComparison": {
+      "baseline": "ee1472f1",
+      "primarySemantics": "https://community.bistudio.com/wiki/A3_Targeting_config_reference : airLock0 cannot target air,1 supports air and ground,2 air-only. Official search-index content retrieved2026-10-21; direct page fetch403.",
+      "finding": "Loaded legacy ground suitability rejected airLock1 as if air-only; reserve selection rejected it even with explicit ground target-use flags. Loaded explicit flags also bypassed air-only category rejection.",
+      "implementation": "GroundFireReady rejects airLock2 for known ground targets before preference flags, admits dual-role1 through existing damaging-ammo/target/warhead and exact loaded-muzzle checks. GroundReload excludes2 rather than every positive value, preserving its existing laserLock/LaserSensorComponent exclusions and unambiguous exact-turret reserve policy.",
+      "limits": "No general ATGM guidance implementation or native lock claim. No synthetic reveal/lock, projectile steering, new ammunition or firing worker. Range, guidance, physical switching/fire/effect and runtime cost remain unverified. Existing ammo preference heuristics remain.",
+      "cost": "One scalar native config read reused per loaded-state target evaluation; no new state query, world scan, worker or cadence. Reserve scan bounds unchanged.",
+      "validation": "609 existing operation cases and full1482 regression/HEMTT/SQF/config/FSM/docs/package pipeline passed; independent package verify passed. Unsigned candidate .qa/candidates/ground-dual-role-ee1472f1 fingerprintb019cd896f667787c65505ec528c76bcd98910686ae0b07f7842ea754b3a88d3. No in-game audit.",
+      "physicalAcceptance": false,
+      "performanceMeasured": false,
+      "scoresChanged": false
     }
   }
 }
