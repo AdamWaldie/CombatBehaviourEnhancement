@@ -4211,7 +4211,12 @@ class CortexOperations(unittest.TestCase):
                       '_coverCandidates findIf','FIRE_CAPACITY_LOST'):
             self.assertIn(proof,issue)
         self.assertIn('if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units}',issue)
-        self.assertNotIn('CortexPrimaryAmmoAvailable',step.split('private _issue = {',1)[0])
+        pre_issue=step.split('private _issue = {',1)[0]
+        pre_relief,relief_tail=pre_issue.split('private _selectRelief={',1)
+        relief,post_relief=relief_tail.split('private _rankCandidates=',1)
+        self.assertNotIn('CortexPrimaryAmmoAvailable',pre_relief+post_relief)
+        self.assertEqual(relief.count('CortexPrimaryAmmoAvailable'),1)
+        self.assertLess(relief.index('count _donors <= _keep'),relief.index('CortexPrimaryAmmoAvailable'))
         self.assertIn('_result="FIRE_CAPACITY_LOST" call _end',issue)
         self.assertNotIn('if (!_support &&',issue)
         support=source('cortexSupportBoundStart')

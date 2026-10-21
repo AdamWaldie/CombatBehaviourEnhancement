@@ -30,7 +30,8 @@
  * together where vacancies permit, preferring eligible buddies of existing team members.
  * A single required vacancy may still split an unrelated reserve pair.
  * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
- * strength permits. Minimum surviving movement and cover capacity may require splitting a pair.
+ * strength permits. Relief must bring rifle fire capacity while leaving at least one qualified
+ * rifle in the donor; headcount alone cannot preserve cover. Minimum capacity may split a pair.
  * Bounds: each member gets his own spot, spread across a shallow line facing the last known enemy position. A slot on
  * water or a cliff-like side slope contracts towards the bound centre rather than stranding that soldier. Ordinary
  * bounds, the final position and the assault position are snapped to cover facing the enemy
@@ -379,6 +380,17 @@ _buddyPairs=_buddyPairs select [0,16];
 private _selectRelief={
     params ["_donors","_keep"];
     if (count _donors <= _keep) exitWith {[]};
+    // Roster members already passed current actor-task/fitness gates. Apply the same rifle
+    // ammunition/ROE permission policy as next-bound admission before splitting their roles.
+    private _leg=(_drill getOrDefault ["points",[]]) param [_drill getOrDefault ["index",0],[]];
+    private _exitLeg=(_leg param [1,"",[""]]) in ["CROSS_FAR","CONSOLIDATE"];
+    // Preserve the existing dry-actor road-exit/consolidation exemption: leaving danger
+    // is movement accounting, not admission of a fresh fire-and-manoeuvre bound.
+    private _fireReady=if (_exitLeg) then {+_donors} else {
+        _donors select {unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}}
+    };
+    if (count _fireReady < 2) exitWith {[]};
     private _intact=[];
     private _paired=[];
     {
@@ -389,10 +401,16 @@ private _selectRelief={
             _paired append _x;
         };
     } forEach _buddyPairs;
-    private _orphan=_donors findIf {!(_x in _paired)};
+    private _orphan=_donors findIf {!(_x in _paired) && {_x in _fireReady}};
     if (_orphan >= 0) exitWith {[_donors select _orphan]};
-    if (count _donors-_keep >= 2 && {_intact isNotEqualTo []}) exitWith {+(_intact select 0)};
-    [_donors select ((count _donors)-1)]
+    if (count _donors-_keep >= 2) then {
+        // A whole pair may consume every useful rifle even while dry actors satisfy headcount.
+        _intact=_intact select {(_x arrayIntersect _fireReady) isNotEqualTo []
+            && {(_fireReady-_x) isNotEqualTo []}};
+    } else {_intact=[]};
+    if (_intact isNotEqualTo []) exitWith {+(_intact select 0)};
+    // Preserve one rifle in the donor even when cohesion has to yield to minimum capacity.
+    [_fireReady select ((count _fireReady)-1)]
 };
 private _rankCandidates={
     params ["_candidates"];
@@ -717,6 +735,8 @@ private _ensureMovingTeam={
     };
     while {count _movingAvailable < _minimumMovers && {count _coverAvailable > 1}} do {
         private _relief=[_coverAvailable,1] call _selectRelief;
+        // No fire-safe transfer is a finite refusal, never a non-progressing recovery loop.
+        if (_relief isEqualTo []) exitWith {};
         {
             _coverAvailable deleteAt (_coverAvailable find _x);
             (_teams select _otherTurn) deleteAt ((_teams select _otherTurn) find _x);

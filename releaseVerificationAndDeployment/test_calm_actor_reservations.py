@@ -133,6 +133,20 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
         self.assertIn('(_x select 0) != (_x select 1)',helper)
         self.assertLess(helper.index('if (_orphan >= 0)'),helper.index('count _donors-_keep >= 2'))
         self.assertIn('+(_intact select 0)',helper)
+        for gate in ('count _fireReady < 2','CBE_fnc_CortexPrimaryAmmoAvailable',
+                     'unitCombatMode _x in ["YELLOW","RED"]','checkAIFeature "FIREWEAPON"',
+                     '(_fireReady-_x) isNotEqualTo []','_x in _fireReady'):
+            self.assertIn(gate,helper)
+        # Dry headcount cannot replace the donor's last rifle, nor reinforce a mover.
+        donors={'a','b','dry1','dry2'};armed={'a','b'}
+        def feasible(relief):
+            return len(donors-set(relief))>=2 and bool(armed&set(relief)) and bool(armed-set(relief))
+        self.assertIn('in ["CROSS_FAR","CONSOLIDATE"]',helper)
+        self.assertIn('if (_exitLeg) then {+_donors} else',helper)
+        self.assertFalse(feasible({'a','b'}))
+        self.assertFalse(feasible({'dry1'}))
+        self.assertTrue(feasible({'a','dry1'}))
+        self.assertTrue(feasible({'b'}))
         for forbidden in ['doMove','doFollow','setVariable','nearEntities']:
             self.assertNotIn(forbidden,helper)
         candidates=source.split('private _rankCandidates={',1)[1].split('private _units=[];',1)[0]
@@ -147,6 +161,9 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
         self.assertIn('forEach ([_second,2] call _selectRelief)',source)
         self.assertIn('forEach ([_first,2] call _selectRelief)',source)
         self.assertIn('private _relief=[_coverAvailable,1] call _selectRelief;',source)
+        transfer=source.split('private _relief=[_coverAvailable,1] call _selectRelief;',1)[1]
+        self.assertLess(transfer.index('if (_relief isEqualTo []) exitWith {}'),
+                        transfer.index('_coverAvailable deleteAt'))
         self.assertIn('_relief apply {[format ["TEAM_%1_RECOVERY",_turn+1],netId _x]}',source)
         self.assertIn('"RECOVERY_REINFORCEMENT"',source)
 

@@ -156,5 +156,17 @@
     "validation": "Existing source-contract checks extended; full build result in handover.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "reliefFireCapacity": {
+    "baseline": "fdc84147",
+    "finding": "Buddy-aware donor relief retained headcount but could transfer every ammunition-qualified rifle in an intact pair, leaving dry or hold-fire actors as nominal cover. A dry orphan could also be preferred despite not repairing mover fire capacity.",
+    "implementation": "When actual relief is requested and donor headcount permits, qualify current YELLOW/RED, FIREWEAPON and primary main-muzzle ammo/reserve availability. Prefer armed orphan, then intact pair only if a qualified rifle remains, then one qualified rifle. Require at least two qualified donor rifles before transfer. Recovery loop exits immediately on no feasible transfer; existing finite failure path remains.",
+    "authority": "Read-only selection; existing fit/task/native/owner/epoch roster commit and next-bound fire checks remain. No fire command, reload, inventory mutation, worker or deadline.",
+    "cost": "New bounded current donor ammunition checks only for depleted-role relief, loaded main-muzzle fast path. No routine every-movement-sample poll; runtime unmeasured.",
+    "limits": "Ammo/permission is not immediate readiness, covering-fire effect or balanced independent pair-level execution. Dry actors remain physical participants; insufficient global firepower may still end the drill. Physical casualty/recovery flow unverified.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed in .qa/relief-fire-capacity-final-build.log. Initial overly broad pre-issue ammo assertion narrowed to reject routine polling outside relief helper; finite empty-relief refusal checked. Independent candidate fingerprint fb908ccaf51695adc33a628bf77e19a6656dd4d69e8f4c156f7ffbe272916bd4.",
+    "physicalAcceptance": false,
+    "scoresChanged": false,
+    "exitExemption": "CROSS_FAR/CONSOLIDATE retain donor headcount/pair selection without ammo/ROE qualification, matching existing next-bound exemption so dry actors can leave danger."
   }
 }
