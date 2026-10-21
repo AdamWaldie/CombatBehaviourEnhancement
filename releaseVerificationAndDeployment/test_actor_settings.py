@@ -18,10 +18,15 @@ class ActorSettingsTests(unittest.TestCase):
         s=core();apply=s.split('private _nextOwned=',1)[1]
         for required in ('isNil {','!local _actor','!local _group','group _actor != _group',
                          'CBE_AIPass_Epoch','CortexActorMoveReserved','CortexExternalTakeover',
-                         'CBE_OperationGeneration','"ownerEpoch"','== "CANCELLED"','serverTime >= _deadline'):
+                         'CBE_OperationGeneration','"ownerEpoch"','!= "CANCELLED"','serverTime < _deadline'):
             self.assertLess(s.index(required),s.index('private _nextOwned='))
         self.assertLess(s.index('count units _group > 64'),s.index('call CBE_fnc_CortexExternalTakeover'))
         self.assertIn('call _write',apply)
+        garrison=s.split('if (_scope == "GARRISON") then {',1)[1].split('} else {',1)[0]
+        for proof in ('_deadline == 0','CBE_Cortex_GarrisonSettingIssuer','CBE_AIPass_GarrisonGeneration','CBE_AIPass_GarrisonPos','CBE_AIPass_Garrison'):
+            self.assertIn(proof,garrison)
+        self.assertIn('if (_scope == "OPERATION")',s)
+        self.assertIn('if (!_taskOwned) exitWith',s)
         task_gate=s.split('if (_releaseAt > 0',1)[1].split('private _operation=',1)[0]
         self.assertIn('fleeing _actor',task_gate)
         self.assertIn('ace_medical_ai_healQueue',task_gate)

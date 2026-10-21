@@ -248,6 +248,7 @@ class CfgFunctions {
             class CortexArtilleryShot {file = "\z\cbe\addons\support\functions\cortexArtilleryShot.sqf";};
             class CortexArtilleryScoot {file = "\z\cbe\addons\support\functions\cortexArtilleryScoot.sqf";};
             class CortexClearSettingsRelease {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsRelease.sqf";};
+            class CortexGarrisonSettings {file = "\z\cbe\addons\infantry\functions\cortexGarrisonSettings.sqf";};
             class CortexClearSettingsApply {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsApply.sqf";};
             class CortexClearRelease {file = "\z\cbe\addons\infantry\functions\cortexClearRelease.sqf";};
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};

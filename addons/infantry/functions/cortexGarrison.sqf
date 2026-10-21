@@ -183,6 +183,9 @@ if (_teleport) then {
 _group setVariable ["CBE_Cortex_GarrisonPlacement",if (_inPlace) then {"IN_PLACE"} else {["WALK","INSTANT"] select _teleport},true];
 _group setVariable ["CBE_Cortex_GarrisonRoster",+_units,true];
 _group setVariable ["CBE_Cortex_GarrisonResult",nil,true];
+private _settingSerial=(_group getVariable ["CBE_Cortex_GarrisonSettingSerial",0])+1;
+_group setVariable ["CBE_Cortex_GarrisonSettingSerial",_settingSerial,true];
+_group setVariable ["CBE_Cortex_GarrisonSettingIssuer",format ["GARRISON:%1:%2",netId _group,_settingSerial],true];
 _group setVariable ["CBE_Cortex_GarrisonDeadline",serverTime+240,true];
 _group setVariable ["CBE_AIPass_Garrison", [_centre, _radius, count _units], true];
 _group setVariable ["CBE_AIPass_GarrisonApplied", false];

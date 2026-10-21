@@ -93,6 +93,24 @@ if (_pendingPosture isEqualType [] && {count _pendingPosture <= 64} && {_pending
     };
 };
 
+// Retire one original garrison settings receipt per existing callback. Expiry stops
+// attempts but retains actor proof; another release of the same issuer cannot renew it.
+private _garrisonSettings=_group getVariable ["CBE_Cortex_GarrisonSettingsPending",[]];
+if (_garrisonSettings isEqualType [] && {count _garrisonSettings > 0} && {count _garrisonSettings <= 64}) then {
+    private _settingsActor=_garrisonSettings deleteAt 0;
+    if (_settingsActor isEqualType objNull && {!isNull _settingsActor} && {group _settingsActor == _group}) then {
+        private _window=_settingsActor getVariable ["CBE_Cortex_GarrisonSettingRetireUntil",[]];
+        if (_window isEqualType [] && {count _window == 2}
+            && {(_window select 0) isEqualTo (_settingsActor getVariable ["CBE_Cortex_GarrisonSettingToken",""])}
+            && {(_window select 1) isEqualType 0} && {finite (_window select 1)}
+            && {serverTime < (_window select 1)}) then {
+            private _status=[_settingsActor,_group,"RELEASE",createHashMap,false] call CBE_fnc_CortexGarrisonSettings;
+            if (!(_status in ["RELEASED","ABSENT"])) then {_garrisonSettings pushBack _settingsActor};
+        };
+    };
+    _group setVariable ["CBE_Cortex_GarrisonSettingsPending",_garrisonSettings,true];
+};
+
 // Finite post-clear settings retirement uses this existing callback, never a new worker.
 private _clearSettings=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
 if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {

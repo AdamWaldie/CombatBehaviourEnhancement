@@ -4133,10 +4133,10 @@ class CortexOperations(unittest.TestCase):
         event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
         self.assertIn('_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]',event)
         self.assertIn('isNull _duckBuilding',event)
-        self.assertLess(event.index('private _duckTransform='),event.index('_unit setUnitPos _duckStance;'))
+        self.assertLess(event.index('private _duckTransform='),event.index('call CBE_fnc_CortexGarrisonSettings'))
         self.assertIn('_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',delayed)
         self.assertIn('!isNull _building',delayed)
-        self.assertLess(delayed.index('private _transform='),delayed.index('_unit setUnitPos _priorStance;'))
+        self.assertLess(delayed.index('private _transform='),delayed.index('call CBE_fnc_CortexGarrisonSettings'))
 
     def test_garrison_duck_yields_to_reserved_and_native_tasks_at_both_boundaries(self):
         duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('CBE_AIPass_GarrisonHandlerIds',1)[0]
@@ -4163,11 +4163,11 @@ class CortexOperations(unittest.TestCase):
         duck=apply.split('private _duck = {',1)[1].split('CBE_AIPass_GarrisonHandlerIds',1)[0]
         for proof in ['private _priorStance=unitPos _unit;', 'group _unit == _duckGroup',
                       'local _duckGroup', '== _duckGeneration', '== _duckEpoch',
-                      'isEqualTo _duckAssignment', '_unit setUnitPos _priorStance;',
+                      'isEqualTo _duckAssignment', '[["STANCE",_priorStance]]',
                       '[_unit,_until,_priorStance,_duckGroup,_duckGeneration,_duckEpoch,_duckAssignment]']:
             self.assertIn(proof,duck)
-        self.assertLess(duck.index('private _priorStance=unitPos _unit;'),duck.index('_unit setUnitPos _duckStance;'))
-        self.assertLess(duck.index('if (toUpperANSI _priorStance == "DOWN") exitWith {};'),duck.index('_unit setUnitPos _duckStance;'))
+        self.assertLess(duck.index('private _priorStance=unitPos _unit;'),duck.index('call CBE_fnc_CortexGarrisonSettings'))
+        self.assertLess(duck.index('if (toUpperANSI _priorStance == "DOWN") exitWith {};'),duck.index('call CBE_fnc_CortexGarrisonSettings'))
         self.assertNotIn('_unit setUnitPos (_unit getVariable ["CBE_AIPass_GarrisonStance"',duck)
 
     def test_suppression_reserve_rejection_has_live_positive_peers(self):
@@ -5802,12 +5802,13 @@ class CortexOperations(unittest.TestCase):
         apply=source('cortexGarrisonApplyLocal')
         release=source('cortexGarrisonRelease')
         self.assertIn('if (unitPos _unit == (_unit getVariable ["CBE_Cortex_GarrisonDuckStance", ""]))', apply)
-        self.assertIn('if (unitPos _x == (_x getVariable ["CBE_Cortex_GarrisonDuckStance", ""]))', release)
+        self.assertIn('call CBE_fnc_CortexGarrisonSettings',release)
+        self.assertIn('[_key,_native,_pair select 1] call _same',source('actorSettings'))
         self.assertIn('!([group _unit] call CBE_fnc_CortexIsEligible)', apply)
         delayed=apply.split('params ["_unit", "_until", "_priorStance",')[1].split('}, [_unit,_until,_priorStance,')[0]
         self.assertIn('&& {[group _unit] call CBE_fnc_CortexIsEligible}', delayed)
-        for text in [apply, release]:
-            self.assertIn('setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true]', text)
+        self.assertIn('setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true]',apply)
+        self.assertIn('forEach _mirrors',source('cortexGarrisonSettings'))
 
     def test_surrender_releases_orders_before_captive_handover(self):
         text=source('cortexSurrender')
@@ -6023,12 +6024,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_remaining set [_key,_pair]',release)
         self.assertLess(actor_settings.index('call CBE_fnc_CortexExternalTakeover'),actor_settings.index('if (_mode == "RELEASE")'))
         self.assertNotIn('doFollow',clear_settings.split('params [[',1)[1])
-        self.assertIn('if (unitPos _x == (_x getVariable ["CBE_Cortex_GarrisonDuckStance", ""])) then {',garrison_release)
+        self.assertIn('call CBE_fnc_CortexGarrisonSettings',garrison_release)
         self.assertIn('if (!_externalTakeover) then {',garrison_release)
         self.assertIn('&& {_reservationFree} && {!_nativeTask} && {isNull objectParent _unit}',garrison_release)
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',garrison_release)
         self.assertIn('currentCommand _unit in [',garrison_release)
-        self.assertIn('if (!_externalTakeover && {getForcedSpeed _x ==',garrison_release)
+        self.assertNotIn('forceSpeed',garrison_release)
         # The garrison job must release its own PATH lock at loss of eligibility and recheck
         # ownership before its arrival hold or first individual move can mutate a unit.
         self.assertIn('[_group,false] call CBE_fnc_CortexGarrisonRelease;',garrison_apply)
@@ -6143,20 +6144,36 @@ class CortexOperations(unittest.TestCase):
                 self.assertNotIn(f'"{external}"',restore_condition)
 
     def test_garrison_restores_only_the_speed_lease_it_applied(self):
-        apply=source('cortexGarrisonApplyLocal')
-        release=source('cortexGarrisonRelease')
-        self.assertIn('setVariable ["CBE_Cortex_GarrisonAppliedSpeed",_cap,true]',apply)
+        apply=source('cortexGarrisonApplyLocal');release=source('cortexGarrisonRelease')
+        adapter=source('cortexGarrisonSettings');core=source('actorSettings')
         cap=apply.split('private _applyApproachSpeed = {',1)[1].split('private _rememberMove = {',1)[0]
         self.assertIn('if (_baseline < 0) then {4} else {_baseline min 4}',cap)
-        self.assertLess(cap.index('getForcedSpeed _actor)-_applied'),cap.index('_actor forceSpeed _cap'))
-        self.assertIn('if (_cap != _applied)',cap)
+        self.assertIn('[["SPEED",_cap]]',cap)
         self.assertIn('[_unit] call _applyApproachSpeed',apply)
         self.assertIn('[_actor] call _applyApproachSpeed',apply)
         self.assertIn('["applyApproachSpeed",_applyApproachSpeed]',apply)
-        self.assertIn('getForcedSpeed _x == (_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",-2])',release)
-        self.assertIn('setVariable ["CBE_Cortex_GarrisonAppliedSpeed",nil,true]',release)
-        self.assertIn('setVariable ["CBE_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true]',apply)
-        self.assertIn('setVariable ["CBE_Cortex_GarrisonForcedSpeed",nil,true]',release)
+        self.assertNotIn('forceSpeed',apply);self.assertNotIn('setUnitPos',apply)
+        self.assertNotIn('forceSpeed',release);self.assertNotIn('setUnitPos',release)
+        self.assertIn('call CBE_fnc_ActorSettings',adapter)
+        self.assertIn('(_owned get "SPEED") select 0',adapter)
+        self.assertIn('(_owned get "SPEED") select 1',adapter)
+        self.assertIn('[_key,_native,_pair select 1] call _same',core)
+        self.assertLess(adapter.index('_status == "RELEASED"'),adapter.index('forEach _mirrors'))
+        self.assertIn('serverTime+30',adapter)
+        self.assertIn('_actorIssuer != _issuer || {_retiring}',adapter)
+        order=source('cortexGarrison')
+        self.assertIn('CBE_Cortex_GarrisonSettingSerial",0])+1',order)
+        self.assertIn('netId _group,_settingSerial',order)
+        self.assertEqual(apply.count('"CHECK"] call CBE_fnc_CortexGarrisonSettings'),2)
+        self.assertLess(adapter.index('_actorIssuer != _issuer || {_retiring}'),adapter.index('_status=[_mode,_actor'))
+        self.assertIn('_window isEqualTo [] ||',adapter)
+        self.assertIn('if (!_ready) exitWith {};',adapter)
+        self.assertIn('(_window select 0) isNotEqualTo _actorIssuer',adapter)
+        self.assertNotIn('CBA_fnc_waitAndExecute',adapter)
+        brain=source('groupBrainStep')
+        self.assertIn('_garrisonSettings deleteAt 0',brain)
+        self.assertIn('serverTime < (_window select 1)',brain)
+        self.assertNotIn('setVariable ["CBE_Cortex_GarrisonForcedSpeed",nil',release)
 
     def test_vehicle_movement_owns_its_waypoint_until_physical_completion(self):
         vehicles=source('cortexVehicles')
@@ -6937,7 +6954,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _nextEntry=if (_approach || {_crossing}) then {_entryIndex+1} else {count _entries}',text)
         self.assertIn('private _target = if (_approach) then {_entries select 0} else {_destination}',text)
         self.assertIn('[_unit] call _applyApproachSpeed',text)
-        self.assertIn('_unit setUnitPos "UP"',text)
+        self.assertIn('[["STANCE","UP"]]',text)
         self.assertIn('_entries resize ((count _entries) min 4)',text)
         self.assertIn('private _replacementEntries=',text)
         self.assertNotIn('_job set ["deadline",(_job get "deadline") max (time+60)]',text)

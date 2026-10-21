@@ -987,5 +987,36 @@
     "validation": "609 existing operation tests passed .qa/garrison-native-flight-focused-final.log. Initial test-edit assertion failed because a text needle matched another case; product edit was present and old609 tests passed; extended only intended existing case afterward. Full build pending. Final all1484+HEMTT/FSM/docs/package passed .qa/garrison-native-flight-build.log; independent .qa/garrison-native-flight-independent.log passed.",
     "candidate": ".qa/candidates/garrison-native-flight-9e2b6e4b",
     "fingerprint": "f8423a96b735f27ed6433b82f214ffef351f3e16f4ce9287acb33e621aa06315"
+  },
+  "garrisonSettingsMigration20261021": {
+    "baseline": "969702fd",
+    "finding": "Legacy garrison deleted applied/original stance and speed mirrors after refused release; approach, ducking and reassignment bypassed canonical settings ownership. Persistent post holding differs from finite CLEAR route authority.",
+    "implementation": [
+      "ActorSettings retains default finite OPERATION scope and adds GARRISON scope requiring live explicit issuer, current garrison generation, live order and actor assignment; context deadline0 denotes persistent post holding, not a renewable approach window.",
+      "Each explicit order gets monotonic public serial/issuer. GarrisonSettings captures through canonical ActorSettings before writes and publishes mirrors only from its exact pairs; no legacy/partial mirror import.",
+      "Both movement gates check settings ownership. Initial and exterior approach require APPLIED stance and speed before movement; all stance/speed writers including duck recovery and approach-cap retirement route through the adapter.",
+      "Release restores exact unchanged settings independently of native task labels; reservations/dormancy/external authority retain proof. Watch/recall retain their existing native-task guards and owned PATH handback remains.",
+      "One actor per existing GroupBrainStep services a <=64-actor queue, within original per-issuer30second window. Repeated refusal and malformed window do not renew. Expiry drops attempts, keeps actor proof; explicit later handback can still attempt cleanup.",
+      "A retiring same-order receipt must release before reacquisition, preventing stale pending retirement from consuming a newly reused assignment. Metadata-only ADOPT preserves baselines across current actual owner/generation change."
+    ],
+    "remaining": [
+      "Physical repeated orders, partial release/refill, care/flight/dormancy, actual native settings acknowledgement, garrison-to-clearance handback and real owner transfer remain unverified.",
+      "Existing delayed duck callback cancels on generation/owner/assignment replacement; canonical proof survives but automatic immediate-stance recovery after an interrupted callback still needs a dedicated execution trace and potentially implementation.",
+      "Persistent garrison PATH policy during individual native flight and final actual handback require further trace/runtime evidence.",
+      "No measured5%median/10%p95 result; new receipt checks and publication require runtime measurement."
+    ],
+    "validation": "Existing settings/operation contracts updated to canonical path without adding cases. Initial stale source assertions and wrong generated report destination were repaired without bypass. Full1484/SQF/config/docs/wiki/parity/static performance/HEMTT/FSM/package passed .qa/garrison-settings-build-sealed.log. Final comment-only caller header fix passed documentation checker and HEMTT/FSM/repack using SkipStaticChecks, .qa/garrison-settings-header-repack.log; not a new full test run. Independent final verification passed .qa/garrison-settings-independent-final.log.",
+    "candidate": ".qa/candidates/garrison-settings-969702fd-final",
+    "fingerprint": "8c8def70525ed80008969c73b95f2a0ff7e5aaf50cec65ee3e79cf17ee5c3cc9",
+    "sourceHashes": {
+      "addons/core/functions/actorSettings.sqf": "64999035cb14e153a8695d58e32de1ef12ddc52879562ba0c61fb848a71f1771",
+      "addons/infantry/functions/cortexGarrison.sqf": "2a67ae830f3b4e6d0487bfebe1fafa4f35f72f7e511f9cfcb353a58dfcd1479e",
+      "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "75567664af67628fe88fab22ef28eabbf0dfb29655a290af02d77c46684962af",
+      "addons/infantry/functions/cortexGarrisonRelease.sqf": "51f7900151f18bb96d81404271cf03bd40c8a4af5bc588a2cb7beac2239e58db",
+      "addons/infantry/functions/cortexGarrisonSettings.sqf": "fcc74e554d19f519b39522ba71d7a9aee08b44456d2bf6571d1823a1d56bd47d",
+      "addons/infantry/functions/groupBrainStep.sqf": "79b09dbf62fdbce2d9800a36ef8365e0e4f1804e64036281c968a8c113ba49d9"
+    },
+    "acceptance": false,
+    "audits": "PAUSED; no launches, remote CI, push, merge or publication."
   }
 }

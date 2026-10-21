@@ -137,6 +137,7 @@ private _mayIssueMovement = {
     _commandOwned && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
+        && {([_actor,group _actor,"CHECK"] call CBE_fnc_CortexGarrisonSettings) in ["OWNED","ABSENT"]}
         && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
@@ -147,17 +148,12 @@ private _mayIssueMovement = {
 // rebases over a changed native cap, including a stricter mission-script speed command.
 private _applyApproachSpeed = {
     params ["_actor"];
-    private _baseline=_actor getVariable ["CBE_Cortex_GarrisonForcedSpeed",[]];
-    private _applied=_actor getVariable ["CBE_Cortex_GarrisonAppliedSpeed",_baseline];
-    if (!(_baseline isEqualType 0) || {!finite _baseline}
-        || {!(_applied isEqualType 0)} || {!finite _applied}
-        || {abs ((getForcedSpeed _actor)-_applied) > 0.1}) exitWith {false};
+    private _baseline=_actor getVariable ["CBE_Cortex_GarrisonForcedSpeed",getForcedSpeed _actor];
+    if (!(_baseline isEqualType 0) || {!finite _baseline}) exitWith {false};
     private _cap=if (_baseline < 0) then {4} else {_baseline min 4};
-    if (_cap != _applied) then {_actor forceSpeed _cap};
-    if (isNil {_actor getVariable "CBE_Cortex_GarrisonAppliedSpeed"} || {_cap != _applied}) then {
-        _actor setVariable ["CBE_Cortex_GarrisonAppliedSpeed",_cap,true];
-    };
-    true
+    [_actor,group _actor,"APPLY",createHashMapFromArray [["SPEED",_cap]]]
+        call CBE_fnc_CortexGarrisonSettings == "APPLIED"
+
 };
 private _rememberMove = {
     params ["_actor","_target"];
@@ -215,7 +211,7 @@ private _buildingAnchor = {
         if ([_unit] call _mayIssueMovement
             && {!isNil {_unit getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
             && {abs ((getForcedSpeed _unit)-(_unit getVariable ["CBE_Cortex_GarrisonAppliedSpeed",-2])) <= 0.1}) then {
-            _unit forceSpeed (_unit getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
+            [_unit,group _unit,"APPLY",createHashMapFromArray [["SPEED",_unit getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
         };
         _unit setVariable ["CBE_AIPass_GarrisonFailed",true,true];
     };
@@ -223,10 +219,6 @@ private _buildingAnchor = {
         && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}
         && {_assignment isNotEqualTo []} && {!(_unit getVariable ["CBE_AIPass_GarrisonFailed",false])}
         && {[_unit] call _mayIssueMovement}) then {
-        if (isNil {_unit getVariable "CBE_AIPass_GarrisonStance"}) then {_unit setVariable ["CBE_AIPass_GarrisonStance", unitPos _unit, true]};
-        if (isNil {_unit getVariable "CBE_Cortex_GarrisonForcedSpeed"}) then {
-            _unit setVariable ["CBE_Cortex_GarrisonForcedSpeed",getForcedSpeed _unit,true];
-        };
         private _heldInPlace=(_unit getVariable ["CBE_AIPass_GarrisonDisabledPath",false])
             && {!(_unit checkAIFeature "PATH")}
             && {!(currentCommand _unit in ["MOVE","FOLLOW"])}
@@ -259,8 +251,9 @@ private _buildingAnchor = {
                 private _until = time + 4 + random 4;
                 _unit setVariable ["CBE_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
+                if (([_unit,group _unit,"APPLY",createHashMapFromArray [["STANCE",_duckStance]]]
+                    call CBE_fnc_CortexGarrisonSettings) != "APPLIED") exitWith {};
                 _unit setVariable ["CBE_Cortex_GarrisonDuckStance",_duckStance,true];
-                _unit setUnitPos _duckStance;
                 [{
                     params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
                     if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
@@ -283,7 +276,8 @@ private _buildingAnchor = {
                         && {[group _unit] call CBE_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
                         if (unitPos _unit == (_unit getVariable ["CBE_Cortex_GarrisonDuckStance", ""])) then {
-                            _unit setUnitPos _priorStance;
+                            [_unit,group _unit,"APPLY",createHashMapFromArray [["STANCE",_priorStance]]]
+                                call CBE_fnc_CortexGarrisonSettings;
                         };
                         _unit setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true];
                     };
@@ -317,10 +311,10 @@ private _buildingAnchor = {
             [_unit,_holdReceiptTarget] call _rememberMove;
         };
         if (!_atPost && {[_unit] call _mayIssueMovement}) then {
-            _unit setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
-            _unit setUnitPos "UP";
-            [_unit] call _applyApproachSpeed;
-            _unit doMove _target; [_unit,_target] call _rememberMove;
+            if (([_unit,group _unit,"APPLY",createHashMapFromArray [["STANCE","UP"]]] call CBE_fnc_CortexGarrisonSettings) == "APPLIED"
+                && {[_unit] call _applyApproachSpeed}) then {
+                _unit doMove _target; [_unit,_target] call _rememberMove;
+            };
         };
     };
 } forEach units _group;
@@ -363,6 +357,7 @@ private _buildingAnchor = {
         !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
             && {_commandOwned} && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
+        && {([_actor,group _actor,"CHECK"] call CBE_fnc_CortexGarrisonSettings) in ["OWNED","ABSENT"]}
         && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
@@ -462,10 +457,10 @@ private _buildingAnchor = {
                                 [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_covered];
                             _actor setVariable ["CBE_AIPass_GarrisonPos",_assignment,true];
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
-                            _actor setVariable ["CBE_Cortex_GarrisonAppliedStance","UP",true];
-                            _actor setUnitPos "UP";
-                            [_actor] call _applyApproachSpeed;
-                            _actor doMove _target; [_actor,_target] call _rememberMove;
+                            if (([_actor,group _actor,"APPLY",createHashMapFromArray [["STANCE","UP"]]] call CBE_fnc_CortexGarrisonSettings) == "APPLIED"
+                                && {[_actor] call _applyApproachSpeed}) then {
+                                _actor doMove _target; [_actor,_target] call _rememberMove;
+                            };
                         };
                     };
                 };
@@ -507,7 +502,7 @@ private _buildingAnchor = {
                     doStop _x;
                     if (!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}
                         && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
+                        [_x,group _x,"APPLY",createHashMapFromArray [["SPEED",_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
                     };
                     _x setVariable ["CBE_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
@@ -519,7 +514,7 @@ private _buildingAnchor = {
                     if ([_x] call _mayIssueMovement
                         && {!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
                         && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
+                        [_x,group _x,"APPLY",createHashMapFromArray [["SPEED",_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
                     if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
@@ -608,7 +603,7 @@ private _buildingAnchor = {
                                         if ([_x] call _mayIssueMovement
                         && {!isNil {_x getVariable "CBE_Cortex_GarrisonForcedSpeed"}}
                         && {abs ((getForcedSpeed _x)-(_x getVariable ["CBE_Cortex_GarrisonAppliedSpeed",4])) <= 0.1}) then {
-                        _x forceSpeed (_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]);
+                        [_x,group _x,"APPLY",createHashMapFromArray [["SPEED",_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
                     if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
