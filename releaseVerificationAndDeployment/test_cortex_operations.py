@@ -4111,9 +4111,9 @@ class CortexOperations(unittest.TestCase):
     def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")
         roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
-        self.assertIn('getUnitState _x != "PLANNING"',roster)
+        self.assertIn('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])',roster)
         self.assertIn('behaviour _x != "STEALTH"',roster)
-        self.assertLess(fire.index('getUnitState _x != "PLANNING"'),fire.index('_unit doTarget'))
+        self.assertLess(fire.index('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])'),fire.index('_unit doTarget'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('magazinesAmmoFull _unit'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('_unit doSuppressiveFire'))
         suppression = fire.split('// Disciplined suppression', 1)[1]
@@ -4314,6 +4314,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('getVariable ["CBE_Cortex_ActorMove",[]]',text)
         self.assertIn('_now >= (_actorMove select 2)',text)
         self.assertIn('CBE_fnc_CortexCombatEffective', text)
+        available=text.split('private _actorAvailable={',1)[1].split('private _now =',1)[0]
+        for guard in ('_actor checkAIFeature "FIREWEAPON"','ace_medical_ai_healQueue',
+                      'getUnitState _actor in ["INIT","PLANNING","REPLAN"]'):
+            self.assertIn(guard,available)
+        self.assertGreaterEqual(text.count('[_gunner] call _actorAvailable'),3)
+        rear=text.split('private _rearActors=',1)[1].split('// Holding/clearing owns the destination',1)[0]
+        for proof in ('count _rearActors > 64','_otherSide == civilian','getFriend _otherSide >= 0.6',
+                      'captive _x','ace_captives_isSurrendering','ace_captives_isHandcuffed'):
+            self.assertIn(proof,rear)
+        self.assertEqual(text.count('nearEntities ["CAManBase",6]'),1)
+        # Protect allies across sides and captives, while retaining the rear-half-plane veto.
+        def blocked(actor,friendship,civilian,captive,alive,along):
+            return not actor and alive and (friendship>=0.6 or civilian or captive) and along<0
+        for args,expected in [((False,1,False,False,True,-2),True),
+                              ((False,0,True,False,True,-2),True),
+                              ((False,0,False,True,True,-2),True),
+                              ((False,0,False,False,True,-2),False),
+                              ((False,1,False,False,True,2),False),
+                              ((True,1,False,False,True,-2),False)]:
+            self.assertEqual(blocked(*args),expected)
         blocked = text.split('// Holding/clearing owns the destination')[1]
         for guard in ['checkAIFeature "PATH"', 'checkAIFeature "MOVE"',
                       '_gunner in (_drill getOrDefault ["units",[]])',

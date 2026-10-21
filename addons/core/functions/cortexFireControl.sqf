@@ -8,7 +8,7 @@
  * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
- * Native PLANNING, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
+ * Native INIT/PLANNING/REPLAN, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
  * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
@@ -110,7 +110,7 @@ private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-        && {getUnitState _x != "PLANNING"}
+        && {!(getUnitState _x in ["INIT","PLANNING","REPLAN"])}
         && {abs (speed _x) < 0.5}
         && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}

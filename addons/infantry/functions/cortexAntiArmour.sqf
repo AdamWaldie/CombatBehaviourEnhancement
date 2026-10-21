@@ -11,6 +11,10 @@
  * morale (CBE_fnc_CortexMorale), which can make it withdraw.
  * Locality and authority: call where the group is local. Actor-local player/remote/external
  * ownership and native service actions refuse selection and are rechecked before writes.
+ * FIREWEAPON-disabled actors, queued ACE treatment and native INIT/PLANNING/REPLAN defer
+ * selection and new writes. This does not change native permissions or the medical queue.
+ * Backblast uses the shared firing-safety allegiance policy: allied sides, civilians and
+ * protected captives behind the gunner refuse. The existing6m actor query caps at64 candidates.
  * Native FOLLOW/CBE/STOP or non-route tasks also refuse opportunistic relocation. A MOVE
  * must address the current plain authored waypoint; individual destination replacements refuse.
  *
@@ -48,6 +52,9 @@ private _actorAvailable={
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {_actor checkAIFeature "FIREWEAPON"}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
@@ -108,11 +115,20 @@ private _gunner = _gunners select ((_ranked select 0) select 1);
 
 private _eye = eyePos _gunner;
 private _behind = _eye vectorAdd ((_eye vectorFromTo (ATLToASL _enemyPos)) vectorMultiply -4);
-private _blocked = (lineIntersectsSurfaces [_eye, _behind, _gunner, objNull, true, 1]) isNotEqualTo []
-    || {((_gunner nearEntities ["CAManBase", 6]) select {_x != _gunner && {side group _x == side _group}}) findIf {
-        private _offset = (getPosASL _x) vectorDiff (getPosASL _gunner);
-        (_offset vectorDotProduct ((ATLToASL _enemyPos) vectorDiff (getPosASL _gunner))) < 0
+private _blocked=(lineIntersectsSurfaces [_eye,_behind,_gunner,objNull,true,1]) isNotEqualTo [];
+if (!_blocked) then {
+    private _rearActors=_gunner nearEntities ["CAManBase",6];
+    private _gunnerOrigin=getPosASL _gunner;
+    private _threatAxis=(ATLToASL _enemyPos) vectorDiff _gunnerOrigin;
+    _blocked=count _rearActors > 64 || {_rearActors findIf {
+        private _otherSide=side group _x;
+        private _protected=captive _x || {_x getVariable ["ace_captives_isSurrendering",false]}
+            || {_x getVariable ["ace_captives_isHandcuffed",false]};
+        _x != _gunner && {alive _x}
+            && {_protected || {_otherSide == civilian} || {(side _group) getFriend _otherSide >= 0.6}}
+            && {((getPosASL _x) vectorDiff _gunnerOrigin) vectorDotProduct _threatAxis < 0}
     } >= 0};
+};
 // Holding/clearing owns the destination even when the gunner may fire from it.
 private _mayRelocate={
     if (!([_gunner] call _actorAvailable)) exitWith {false};
