@@ -910,15 +910,20 @@ _leadLimit=_leadLimit min ((_leadTraffic select 0)*3.6);
 if (_captureControl) then {(_leadControl select 4) pushBack ["trafficGeometry",_leadLimit]};
 _leadLimit = [_lead,_leadLimit,_group] call CBE_fnc_CortexInfantrySpeed;
 if (_captureControl) then {(_leadControl select 4) pushBack ["infantry",_leadLimit]};
+private _leadCapConfirmed=false;
 isNil {if ([_lead] call _mayIssueDriving) then {
     private _ownedSpeed=_leadLimit/3.6;
     _lead forceSpeed _ownedSpeed;
+    if (abs (getForcedSpeed _lead-_ownedSpeed) > 0.001) exitWith {};
+    _leadCapConfirmed=true;
     _state set ["leadSpeedLimit",[_leadLimit,time]];
     if (_captureControl) then {_leadControl set [5,true]};
     if (_leadGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_lead,_leadGate,_revision] call CBE_fnc_DrivingGateRequest};
     _lead setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
 }};;
 if (_captureControl) then {_state set ["leadControlSample",_leadControl]};
+// Do not advance route recovery on a speed command the native engine did not confirm.
+if (!_leadCapConfirmed) exitWith {};
 // Speed limits cannot restart an engine movement order that stopped short. Retry only
 // after ten seconds without progress, while a real route destination remains active.
 // Forward-axis speed alone labels a turning/sliding vehicle as stopped. Native retry and
@@ -1150,14 +1155,18 @@ for "_i" from 1 to (count _vehicles - 1) do {
             ["beforeInfantry",_preInfantryLimit],["afterInfantry",_limit]];
         _controlSamples set [_key,_controlSample];
     };
+    private _paceCapConfirmed=false;
     isNil {if ([_vehicle] call _mayIssueDriving) then {
         private _ownedSpeed=_limit/3.6;
         _vehicle forceSpeed _ownedSpeed;
+        if (abs (getForcedSpeed _vehicle-_ownedSpeed) > 0.001) exitWith {};
+        _paceCapConfirmed=true;
         _speedLimits set [_key,[_limit,time]];
         if (_captureControl) then {(_controlSample select 7) pushBack ["PACE",_limit];_controlSample set [8,true]};
         if (_vehicleGate isNotEqualTo [] && {[] call _mayIssueDriving}) then {[_group,_vehicle,_vehicleGate,_revision] call CBE_fnc_DrivingGateRequest};
         _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
     }};;
+    if (!_paceCapConfirmed) then {continue};
     // Keep the committed native and steering-path destinations when progress is made. Rebuilding
     // this record as the former four-field array erased both commitments every few metres, so the
     // next one-second trail sample looked like a new order and restarted engine planning.
@@ -1318,13 +1327,17 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 if (_captureControl) then {(_controlSample select 6) pushBack ["freshPath",_pathCap]};
                 _progress set [8,_pathCap];
                 _limit=_limit min _pathCap;
+                private _trailCapConfirmed=false;
                 isNil {if ([_vehicle] call _mayIssueDriving) then {
                     private _ownedSpeed=_limit/3.6;
                     _vehicle forceSpeed _ownedSpeed;
+                    if (abs (getForcedSpeed _vehicle-_ownedSpeed) > 0.001) exitWith {};
+                    _trailCapConfirmed=true;
                     _speedLimits set [_key,[_limit,time]];
                     if (_captureControl) then {(_controlSample select 7) pushBack ["TRAIL",_limit];_controlSample set [8,true]};
                     _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,_ownedSpeed]];
                 }};;
+                if (!_trailCapConfirmed) then {continue};
             };
             if (_native && {_path isNotEqualTo []}) then {
                 // Vehicles without steering support retain native pathfinding.

@@ -826,9 +826,17 @@ class ConvoyCapCommitIdentityTests(unittest.TestCase):
                       'param [_tickRegistryIndex,[]]'):
             self.assertIn(guard,helper)
         self.assertNotIn('findIf',helper.split('if (isNull _taskVehicle)',1)[0])
-        self.assertIn('_lead forceSpeed _ownedSpeed;\n    _state set ["leadSpeedLimit",[_leadLimit,time]];',source)
+        self.assertEqual(source.count('forceSpeed _ownedSpeed;'),3)
         self.assertEqual(source.count('_speedLimits set [_key,[_limit,time]];'),2)
-        self.assertEqual(len(re.findall(r'_vehicle forceSpeed _ownedSpeed;\s*_speedLimits set',source)),2)
+        for actor,flag in (('_lead','lead'),('_vehicle','pace'),('_vehicle','trail')):
+            block=source.split('private _'+flag+'CapConfirmed=false;',1)[1]
+            confirmation=block.index('abs (getForcedSpeed '+actor+'-_ownedSpeed) > 0.001')
+            self.assertLess(confirmation,block.index('CBE_Convoy_OwnedSpeed'))
+            self.assertLess(confirmation,block.index('_'+flag+'CapConfirmed=true'))
+        self.assertIn('if (!_leadCapConfirmed) exitWith {};',source)
+        self.assertIn('if (!_paceCapConfirmed) then {continue};',source)
+        self.assertIn('if (!_trailCapConfirmed) then {continue};',source)
+
 
 
 class ConvoySemanticPublicationTests(unittest.TestCase):
