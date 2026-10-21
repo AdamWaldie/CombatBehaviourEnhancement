@@ -159,5 +159,28 @@
       "retainedAttempts": "vehicle-jink-crew-build.log failed missing coverage registration and two existing literal contracts; vehicle-jink-crew-final-build.log then failed stale generated status page. Both resolved; existing reverse/route assertions preserved. vehicle-jink-crew-validated-build.log passed before final strict missing-binding refusal. Final sealed log supersedes it."
     },
     "limits": "No physical escape, interruption latency, seat migration/HC, return to mission route or measured performance proof. Missing portable binding cancels, never reconstructs/replays permission. No new source parity or percentages."
+  },
+  "jinkLocalityTrace20261021": {
+    "baseline": "43d171f9",
+    "uncertainty": "Does new exact seat proof need extra public transmission or seat reconstruction for jink migration?",
+    "executionTrace": [
+      "OperationStart establishes owner epoch before publishing new operation, avoiding first-adoption cancellation of its own new start.",
+      "CortexLocality cancels old common operation as OWNERSHIP_LOST before epoch-bound state/durable intent reconstruction. Real transfer clears old local tactical state; original jink is not a durable resumption branch.",
+      "CortexCheckpoint whitelist does not serialize movementLease/vehicleDangerJink. Dedicated withdrawal has a separate authored-order/deadline resumption contract; it does not imply jink replay.",
+      "Normal CortexGroupTick services existing vehicle lifecycle before general movement processing; seat/task cancellation does not depend on later active contact admission."
+    ],
+    "decision": "No product change. Do not broadcast a new replay token, reconstruct old jink permission from current seats, or add a second handover controller. Current exact seat binding is local continuation authority; owner change retires transient work.",
+    "hashes": {
+      "addons/core/functions/cortexLocality.sqf": "e918291ab7b4b6ff100f1b89cd74bf45170d4badb2d092eecd451cfe6f7aea47",
+      "addons/core/functions/operationStart.sqf": "8c78173ce145046e89bd8062106b1eda0a8e9f04717b6d191e58aca7ddc006ac",
+      "addons/core/functions/operationCancel.sqf": "d692ec21f4a554e965c755ae5ab2b6dc855451fe044b701a535702c1d06cdb07",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "90d4bc59a0d5a4a5331876a59554a2c3da4822d919437915284a5c6c517ed812",
+      "addons/infantry/functions/cortexGroupTick.sqf": "3f7440cffdffe8d68fced152f8144c3766f796837e09a4407d3136d82139cb46"
+    },
+    "validation": "Three existing focused locality/jink regressions passed. No unchanged full build repeated; existing sealed candidate unchanged.",
+    "limits": "Source/static ordering only. Vehicle/group split-locality, timing, mission-route continuation and HC transfer physically unverified; no completed handover claim.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "productChanged": false
   }
 }

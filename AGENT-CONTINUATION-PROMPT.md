@@ -1,3 +1,8 @@
+# Latest checkpoint - jink locality trace
+
+## 2026-10-21 - Jink locality boundary trace
+Baseline43d171f9; no product change. Resolved uncertainty about transmitting/reconstructing new jink seat proof. OperationStart establishes epoch before publication; CortexLocality cancels inherited operation OWNERSHIP_LOST before semantic resume/real-transfer state reset. Checkpoint whitelist excludes movementLease/vehicleDangerJink; jink has no durable resume branch. Do not infer jink replay from separately validated withdrawal resumption. GroupTick services active vehicle lifecycle before general movement processing. No new broadcast/controller or seat reconstruction justified. workshop-intake-3822504009.json has exact code hashes/trace.3 existing locality/jink regression cases pass; no unchanged full build repeated. Product remains sealed candidate .qa/candidates/vehicle-jink-crew-13b4ff07 fingerprint55bbec43b54bdb706c58804298c6379adf1d08799ed94adaadb5549bf5a926ae. Physical split-locality/HC/handback/performance unverified. Audits PAUSED/no launches; goal active/incomplete. Local only/no push/merge/publish; unrelated dirt/protected references/signing preserved.
+
 # Latest checkpoint - Protocol implementation register reconciled
 
 ## 2026-10-21 - Protocol programme status reconciled
