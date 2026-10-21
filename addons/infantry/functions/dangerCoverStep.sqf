@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
+ * Native fleeing retires matching metadata without a native recall command.
  * It runs on the actor and group owner and yields
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
@@ -52,7 +53,7 @@ private _clearLease={
     false
 };
 if (isNull _group || {isNull _actor} || {!local _group} || {!local _actor}
-    || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor} || {!isNull remoteControlled _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {fleeing _actor} || {isPlayer _actor} || {!isNull remoteControlled _actor}
     || {([_actor] call CBE_fnc_CortexExternalOwner) != ""} || {group _actor != _group}) exitWith {[] call _clearLease};
 // A delayed old observation cannot retire the lease belonging to the current danger generation.
 if (_generation >= 0 && {_generation != (_group getVariable ["CBE_Danger_Generation",0])}) exitWith {[] call _clearLease};

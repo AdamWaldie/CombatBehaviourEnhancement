@@ -1,5 +1,8 @@
 
 
+Checkpoint: finite stealth cover (2026-10-21). Baseline0c5a0286 plus scoped changes. Validated ENGAGE detection/proximity/canfire witness with STEALTH/individual BLUE/GREEN can request existing bounded cover owner, no group hide/ROE/fire change/newworker. Weak posture uses individual policy; shared cover now yields immediately to native fleeing with metadata-only retirement. Source brainEngage/doHide read complete; review referenceReviews/stealth-cover-20261021.json. Final .qa/stealth-cover-build-final.log passed1484/394SQF/offline gates; independent .qa/candidates/stealth-cover-0c5a0286 fingerprinta9d01637adc5cdf22e389092192de76dbad629f2b6af333bed37ecdc1a0c7ebe. Earlier focused stale-policy assertion corrected, first full superseded after flee correction. Audits paused; physical concealment/HC/performance unverified. No whole parity or remote mutation.
+
+
 Checkpoint: defensive feature policy (2026-10-21). Baselinee95b4661 plus scoped edits. Defensive indoor reposition now follows BuildingCombat independently of Assault; enemy-building investigation still requires Assault. Dispatcher and active actor availability corrected; no new settings/workers/cost. Existing32 focused and full1484/394SQF offline gates passed, independently verified .qa/candidates/defensive-policy-e95b4661 fingerprint2d1fa1c9ad7472fdcae6cecbe241ea89afa71cd7d972008925f328b126bcc7ca. Review referenceReviews/defensive-policy-20261021.json. Audits paused; physical toggling/behaviour/performance unverified. No remote mutation.
 
 

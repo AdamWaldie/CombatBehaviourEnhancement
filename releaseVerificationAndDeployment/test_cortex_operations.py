@@ -1000,6 +1000,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_cause in [1,2,4,9]',engine_act)
         self.assertIn('private _dangerAlert=_dangerActive',tick)
         self.assertIn('in ["CASUALTY","BODY_FOUND","SCREAM"]',tick)
+        self.assertIn('private _stealthCover=_dangerActionName == "ENGAGE"',tick)
+        self.assertIn('unitCombatMode _dangerCoverActor in ["BLUE","GREEN"]',tick)
+        self.assertIn('(_dangerActionName == "HIDE" && {_physicalCoverCause}) || {_stealthCover}',tick)
+        stealth=tick.split('if (_stealthCover) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('[_group,-1,false,""] call CBE_fnc_DangerGroupHideStep',stealth)
+        self.assertIn('|| {fleeing _actor}',source('dangerCoverStep'))
+        reflex=source('dangerEngineAct')
+        self.assertIn('unitCombatMode _actor in ["BLUE","GREEN"]',reflex)
+
         self.assertIn('private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};',tick)
         self.assertIn('private _dangerContact=_group getVariable ["CBE_Danger_Contact",[]];',tick)
         self.assertIn('private _dangerVehicleContact=_dangerVehicleSafety && {_dangerConfirmed}',tick)
@@ -1422,7 +1431,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_disciplineGroup setBehaviourStrong "STEALTH"',contact_audit)
         self.assertIn('(_lease select 1) == "DOWN"',contact_audit)
         self.assertIn('behaviour _actor == "STEALTH"',engine_act)
-        self.assertIn('combatMode _group in ["BLUE","GREEN"]',engine_act)
+        self.assertIn('unitCombatMode _actor in ["BLUE","GREEN"]',engine_act)
         self.assertIn('!_committedMover',engine_act)
         group_tick=source('cortexGroupTick')
         observer_selection=group_tick.split('private _dangerAction=',1)[1].split('private _dangerActionName=',1)[0]

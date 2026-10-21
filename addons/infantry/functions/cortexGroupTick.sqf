@@ -342,9 +342,20 @@ private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};
 // their reported position as a physical threat sent soldiers away from bodies or voices and made
 // harmless evidence look like suppression. Only immediate hazards may own this cover reflex.
 private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"];
-if (_dangerActive && {_dangerActionName == "HIDE"} && {_physicalCoverCause}) then {
+// A native-known detection can justify concealment without authorising engagement.
+// The existing cover owner still refuses STOP, native travel/planning, reservations and newer tasks.
+private _stealthCover=_dangerActionName == "ENGAGE"
+    && {behaviour _dangerCoverActor == "STEALTH"}
+    && {unitCombatMode _dangerCoverActor in ["BLUE","GREEN"]}
+    && {(_dangerResponse param [0,"",[""]]) in ["DETECTED","PROXIMITY","CANFIRE"]};
+if (_dangerActive && {(_dangerActionName == "HIDE" && {_physicalCoverCause}) || {_stealthCover}}) then {
     [_group,_dangerCoverActor,_dangerResponse select 1,_dangerResponse select 4] call CBE_fnc_DangerCoverStep;
-    [_group,_dangerResponse select 4,true,_dangerResponse select 0,_dangerCoverActor] call CBE_fnc_DangerGroupHideStep;
+    if (_stealthCover) then {
+        // A single stealth witness cannot impose a squad-wide reaction posture.
+        [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
+    } else {
+        [_group,_dangerResponse select 4,true,_dangerResponse select 0,_dangerCoverActor] call CBE_fnc_DangerGroupHideStep;
+    };
 } else {
     private _coverLease=_group getVariable ["CBE_Danger_CoverLease",[]];
     if (count _coverLease >= 2) then {

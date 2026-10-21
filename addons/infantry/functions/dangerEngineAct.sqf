@@ -154,7 +154,7 @@ if (_mode == "ENGAGE") then {
     // hostile instead of CBE converting awareness into fire or movement authority. This remains a
     // weak, expiring stance and is never applied to a committed mover.
     private _stealthHold=behaviour _actor == "STEALTH"
-        && {combatMode _group in ["BLUE","GREEN"]}
+        && {unitCombatMode _actor in ["BLUE","GREEN"]}
         && {_actorSpeed < 1}
         && {!_committedMover};
     if (_stealthHold) then {
