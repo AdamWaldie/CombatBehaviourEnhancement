@@ -1,0 +1,28 @@
+{
+  "baseline": "c4eda7bc",
+  "scope": "Finite crew-seat confirmation before native casualty integration",
+  "finding": "Existing SWITCHING actual-seat confirmation preceded the original attempt deadline check. A delayed callback could report COMPLETE after expiry, when attribution to the old action was unproven.",
+  "implementation": [
+    "Validate existing deadline type/finite value and expiry before the early SWITCHING observation branch. Invalid clocks cancel; observation at or after the original deadline expires.",
+    "Original25-second clock, native actions, seat priorities, owner guards and existing FSM scheduler unchanged. No extra test count/worker or forced seat undo."
+  ],
+  "validation": {
+    "full": ".qa/crew-confirmation-deadline-build.log:complete offline1487/400SQF passed. Existing crew deadline test extended with early-boundary and late-observation model assertions.",
+    "candidate": ".qa/candidates/crew-confirmation-deadline-c4eda7bc",
+    "fingerprint": "81816f69404c5a826351c24a1ae3e57ddd8b75c5bd32bc2fbe452a683becb9e9",
+    "independent": "Preserved candidate verifier exit0.",
+    "provenance": "Baseline plus intended correction and retained unrelated dirt; unsigned development candidate."
+  },
+  "native_casualty_remaining": [
+    "Route continuity fails before crew execution because NativeRouteReceipt rejects the dead driver. Durable admitted original intent needs a finite casualty context before OperationStep route rejection.",
+    "Seat confirmation must rebind exact confirmed replacement driver/operator and acknowledge one original-goal resumption. Existing seat eligibility is not forward-movement authority.",
+    "DrivingAssistStart vetoes ineffective driver and releases prior caps. Native extension must preserve/refund exact cap/recovery ownership before allowing a newly confirmed driver to acquire assistance; do not bypass this boundary or copy HBQ forced-seat recall.",
+    "No native casualty implementation completion claimed by this correction."
+  ],
+  "limits": [
+    "Physical native seat timing, normal/HC behaviour and performance unverified. Audits paused. Full production goal incomplete."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingCrewStep.sqf": "26f5f849416e280d44b02d9743fccf72e2f1f99e47ca6a0078ce55fb034bd34f"
+  }
+}

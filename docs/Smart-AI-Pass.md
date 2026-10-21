@@ -2471,3 +2471,6 @@ If crew locality settles before the group adoption callback, an unchanged native
 
 
 Ordinary driver-seat recovery now uses the same plain-MOVE goal policy as driving recovery and gate intent. A nonfinite destination or protected waypoint condition, statement, script, timeout, attachment or synchronization refuses the seat operation. Healthy-driver admission retains its existing cheap path. This does not enable native script-only MOVE casualty replacement: route continuity through driver death and confirmation of a new operating seat still need their own intent contract.
+
+
+Driver-seat confirmation checks the existing attempt's finite deadline before accepting a new occupant. Occupancy first observed at or after expiry records an expired attempt. Invalid clocks cancel the journal. The original twenty-five-second window is unchanged, and this observation path issues no seat action or replacement clock.

@@ -6,7 +6,8 @@
  * two seconds the same dead AI occupant also permits one native internal seat-swap attempt.
  * This is not forced seating or successful recovery: only actual driver occupancy confirms it.
  * Seat actions require finite total linear speed below1km/h and angular speed below0.01rad/s.
- * Read-only SWITCHING completion may observe a moving new driver; all other admission guards remain.
+ * Read-only SWITCHING completion may observe a moving new driver within the original
+ * deadline; expired/invalid clocks retire before success. All other admission guards remain.
  * Living incapacitated drivers are never displaced. New candidate priority is eligible cargo,
  * commander, other crew, then primary gunner as last resort. An admitted attempt keeps its candidate.
  * Locality / Authority: Internal current group/crew owner only, exact driving brain and
@@ -148,6 +149,18 @@ private _finish={
     if (count _work > 0) then {_work set ["phase",_result];_work set ["ended",serverTime];_changed=true};
     call _publish;false
 };
+// An observed new occupant after the original deadline cannot be attributed to this
+// finite attempt. Validate existing clocks before the early SWITCHING success path.
+if (count _work > 0) then {
+    private _crewExistingDeadline=_work getOrDefault ["deadline",[]];
+    if (!(_crewExistingDeadline isEqualType 0) || {!finite _crewExistingDeadline}) then {
+        _phase="INVALID_DEADLINE";
+    } else {
+        if (serverTime >= _crewExistingDeadline) then {_phase="EXPIRED_DEADLINE"};
+    };
+};
+if (_phase == "INVALID_DEADLINE") exitWith {["CANCELLED"] call _finish};
+if (_phase == "EXPIRED_DEADLINE") exitWith {["EXPIRED"] call _finish};
 // Confirmation is observation, not permission to issue another action. A successful native
 // switch may already be driving by the next sample; retain all other owner/task/route guards.
 if (_phase == "SWITCHING" && {!isNull _candidate} && {driver _vehicle == _candidate}

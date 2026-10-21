@@ -110,6 +110,19 @@ class DrivingCrewTests(unittest.TestCase):
         s=self.source()
         self.assertEqual(s.count('serverTime+25'),1)
         self.assertIn('serverTime >= (_work get "deadline")',s)
+        early=s.split('// An observed new occupant after the original deadline',1)[1].split('// Confirmation is observation',1)[0]
+        self.assertIn('finite _crewExistingDeadline',early)
+        self.assertIn('serverTime >= _crewExistingDeadline',early)
+        self.assertIn('["EXPIRED"] call _finish',early)
+        self.assertIn('["CANCELLED"] call _finish',early)
+        self.assertNotIn(' action [',early)
+        self.assertNotIn('serverTime+',early)
+        def observe(now,until,occupant):
+            return 'EXPIRED' if now>=until else ('COMPLETE' if occupant else 'SWITCHING')
+        self.assertEqual(observe(24,25,True),'COMPLETE')
+        self.assertEqual(observe(25,25,True),'EXPIRED')
+        self.assertEqual(observe(26,25,False),'EXPIRED')
+
         confirmation=s.split('// Confirmation is observation',1)[1].split('if !([true] call _available)',1)[0]
         self.assertIn('driver _vehicle == _candidate',confirmation)
         self.assertIn('[_candidate] call CBE_fnc_CortexCombatEffective',confirmation)
