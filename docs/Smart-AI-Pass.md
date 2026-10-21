@@ -2468,3 +2468,6 @@ During staggered vehicle/group/crew locality transfer, recovery cleanup does not
 
 
 If crew locality settles before the group adoption callback, an unchanged native recovery receipt is retained within its original deadline instead of being discarded for its old issuer. Native command checks run only after all operating actors and the group are local. Changed command, seats or cap retire the obsolete journal without a movement command. This closes an ordering gap between cleanup and adoption; it does not turn an expired or late transfer into successful handback.
+
+
+Ordinary driver-seat recovery now uses the same plain-MOVE goal policy as driving recovery and gate intent. A nonfinite destination or protected waypoint condition, statement, script, timeout, attachment or synchronization refuses the seat operation. Healthy-driver admission retains its existing cheap path. This does not enable native script-only MOVE casualty replacement: route continuity through driver death and confirmation of a new operating seat still need their own intent contract.

@@ -61,11 +61,16 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertNotIn(command,s)
     def test_authority_and_original_orders_bind_late_writes(self):
         s=self.source()
+        goal=(ROOT/'addons/vehicles/functions/drivingRouteGoal.sqf').read_text(encoding='utf-8')
+        for guard in ('waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers','finite _x'):
+            self.assertIn(guard,goal)
+        self.assertNotIn('private _index=currentWaypoint',s)
+
         for guard in ('remoteExecutedOwner > 0','CBE_Driving_Brain','CBE_AIPass_Epoch','CortexZeusHeld',
                       'CortexExternalTakeover','CBE_Convoy_Active','CBE_ExternalDrivingOwner','DrivingMovementAvailable',
                       'count _crew <= 20','_linearMotion < (1/3.6)','_angularMotion < 0.01','!lockedDriver _vehicle',
                       'isPlayer _actor','group _actor != _group','currentCommand _actor in _tasks',
-                      'waypointStatements','waypointScript','waypointTimeout','synchronizedTriggers',
+                      'call CBE_fnc_DrivingRouteGoal','"NATIVE_MOVE"',
                       'expectedDestination _candidate','expectedDestination leader _group','assignedVehicleRole _candidate',
                       'simulationEnabled _candidate','_candidate checkAIFeature "PATH"'):
             self.assertIn(guard,s)

@@ -11,7 +11,9 @@
  * commander, other crew, then primary gunner as last resort. An admitted attempt keeps its candidate.
  * Locality / Authority: Internal current group/crew owner only, exact driving brain and
  * unit-local native actions. Vehicle may still belong to another owner; no vehicle command is issued.
- * An authored plain MOVE is required. Player, Zeus, specialist, convoy, service and newer orders win.
+ * An authored plain MOVE uses the shared DrivingRouteGoal policy, including a finite goal.
+ * Native casualty-seat rebinding remains unsupported. Player, Zeus, specialist, convoy,
+ * service and newer orders win.
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,
  * physics movement, repair, AI-feature reset, waypoint rewrite or second scheduler is used.
@@ -153,13 +155,10 @@ if (_phase == "SWITCHING" && {!isNull _candidate} && {driver _vehicle == _candid
     [["CANCELLED","COMPLETE"] select ([false] call _available)] call _finish
 };
 if !([true] call _available) exitWith {["CANCELLED"] call _finish};
-private _index=currentWaypoint _group;private _wp=[_group,_index];private _statements=waypointStatements _wp;
-private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-if (_index <= 0 || {_index >= count waypoints _group} || {waypointType _wp != "MOVE"} || {_condition != "true"}
-    || {((_statements param [1,""]) splitString (toString [32,9,13,10])) isNotEqualTo []}
-    || {waypointScript _wp != ""} || {(waypointTimeout _wp param [2,0]) > 0}
-    || {!isNull waypointAttachedVehicle _wp} || {!isNull waypointAttachedObject _wp}
-    || {(synchronizedWaypoints _wp) isNotEqualTo []} || {(synchronizedTriggers _wp) isNotEqualTo []}) exitWith {["CANCELLED"] call _finish};
+// Seat recovery consumes the same protected plain-MOVE policy as driving recovery.
+// Native casualty intent/seat rebinding is a separate contract, not gate eligibility.
+if ((_route param [0,"",[""]]) == "NATIVE_MOVE"
+    || {([_group] call CBE_fnc_DrivingRouteGoal) isEqualTo []}) exitWith {["CANCELLED"] call _finish};
 if (count _work == 0) then {
     if (!isNull _driver && {alive _driver}) exitWith {};
     private _choices=_crew select {

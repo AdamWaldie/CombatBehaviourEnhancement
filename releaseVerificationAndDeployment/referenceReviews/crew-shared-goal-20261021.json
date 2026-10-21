@@ -1,0 +1,31 @@
+{
+  "baseline": "c57e0704",
+  "scope": "Shared crew-seat plain-MOVE policy and native casualty continuity trace",
+  "implementation": [
+    "DrivingCrewStep now consumes shared DrivingRouteGoal instead of duplicating waypoint statement/script/timing/attachment/sync checks. A nonfinite original goal now refuses crew admission. Healthy-driver fast path unchanged.",
+    "Native route marker is explicitly refused by seat recovery until durable casualty intent and replacement-seat confirmation are integrated; native gate support does not imply crew recovery."
+  ],
+  "source_trace": [
+    "DrivingNativeRouteReceipt rejects a dead driver. DrivingOperationStep rejects a changed/empty route before DrivingCrewStep. CrewStep additionally required a positive plain authored waypoint. Removing one gate does not establish original intent through death or bind the new seat.",
+    "Existing crew action path uses bounded READY/VACATING/SWITCHING and observed driver-seat confirmation, retaining candidate, leader, assignment and native task snapshots. Native extension must retain original goal and finite episode through death, then rebind confirmed seat without renewing unrelated recovery budgets.",
+    "HBQ crewHold is dismount prevention and assignment-based delayed recall, not this casualty route contract. Its moveIn seat shortcuts are not copied; assignment alone cannot prove a mission GET OUT was revoked."
+  ],
+  "validation": {
+    "full": ".qa/crew-shared-goal-build.log:complete offline build1487/400SQF passed. Existing crew authority test now traces shared goal policy; no new test count.",
+    "candidate": ".qa/candidates/crew-shared-goal-c57e0704",
+    "fingerprint": "534660ac09031ca6213b1899c30667d7ed3e17106604f84bccb96935463dfd5d",
+    "independent": "Preserved candidate verifier exit0.",
+    "provenance": "Baseline plus intended batch and retained unrelated dirt; unsigned development candidate."
+  },
+  "remaining": [
+    "Native driver casualty continuation/replacement remains unimplemented. No feature/parity completion claim from this refactor.",
+    "No physical crew movement, live normal/HC transfer or performance result. Audits paused. Full goal incomplete."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingCrewStep.sqf": "3bc36b81539b9a712726903fafc9ab15281b021e932398a7d606b5b779edb729",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "dc6f83e0ce61bce0b7383a1d61886c21538b2eeeb500ab08017ade74d5b8b510",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "aa96aedab1a440dde8dbdf6b50d93084753f63ff2ea76491ebb8be98822d7c94",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076"
+  }
+}
