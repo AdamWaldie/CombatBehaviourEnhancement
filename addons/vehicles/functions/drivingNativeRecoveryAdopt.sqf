@@ -3,7 +3,8 @@
  * Purpose: Rebind one exact native driving recovery episode at a real locality edge.
  * Locality/authority: Internal current group/vehicle/crew owner only. Metadata adoption
  * requires an original five-second group/vehicle edge proposal, exact cap/seats/native leg,
- * active feature authority and unexpired original recovery clocks. No native movement writes.
+ * unexpired original recovery clocks. Active driving resumes its existing FSM; disabled
+ * driving invokes only the existing guarded release path, never tactical startup.
  * Repeat/JIP: Init/seat retries cannot create edge proof or renew any deadline. Rebinds only
  * issuer epoch/owner; original goal, stage, baseline, progress anchor and spent budget survive.
  * Arguments: 0 vehicle OBJECT objNull.
@@ -14,6 +15,7 @@
 params [["_adoptVehicle",objNull,[objNull]]];
 if (remoteExecutedOwner > 0 || {isNull _adoptVehicle} || {!local _adoptVehicle}) exitWith {false};
 private _adoptAccepted=false;
+private _adoptResume=false;
 private _adoptGroup=grpNull;
 isNil {
     private _adoptWork=_adoptVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
@@ -29,7 +31,7 @@ isNil {
         } >= 0}) exitWith {};
     private _adoptDriver=driver _adoptVehicle;private _adoptOperator=effectiveCommander _adoptVehicle;
     if (isNull _adoptOperator) then {_adoptOperator=_adoptDriver};
-    if (isNull _adoptGroup || {!local _adoptGroup} || {!(_adoptGroup getVariable ["CBE_AIPass_Adopted",false])}
+    if (isNull _adoptGroup || {!local _adoptGroup}
         || {count waypoints _adoptGroup > 1} || {vehicle leader _adoptGroup != _adoptVehicle}
         || {(_adoptRoute select 1) isNotEqualTo _adoptGroup} || {(_adoptRoute select 2) isNotEqualTo _adoptVehicle}
         || {(_adoptRoute select 3) isNotEqualTo _adoptDriver} || {(_adoptRoute select 4) isNotEqualTo _adoptOperator}
@@ -56,8 +58,9 @@ isNil {
         && {serverTime < (_adoptEdge select 3)}) then {
         _adoptSource=[_adoptEdge select 1,_adoptEdge select 2,_adoptEpoch,_adoptEdge select 3];
     };
-    if (_adoptSource isEqualTo [] || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
-        || {!([_adoptGroup,"CBE_AIPass_DrivingAssist_Enable",true,_adoptVehicle] call CBE_fnc_CortexFeatureEnabled)}
+    _adoptResume=(missionNamespace getVariable ["CBE_AIPass_Active",false])
+        && {[_adoptGroup,"CBE_AIPass_DrivingAssist_Enable",true,_adoptVehicle] call CBE_fnc_CortexFeatureEnabled};
+    if (_adoptSource isEqualTo [] || {_adoptResume && {!(_adoptGroup getVariable ["CBE_AIPass_Adopted",false])}}
         || {[_adoptGroup] call CBE_fnc_CortexZeusHeld} || {[_adoptGroup] call CBE_fnc_CortexExternalTakeover}
         || {!([_adoptGroup] call CBE_fnc_DrivingMovementAvailable)}
         || {_adoptVehicle getVariable ["CBE_Convoy_Active",false]}
@@ -117,11 +120,13 @@ isNil {
             || {(_adoptState select 9) isNotEqualTo _adoptRoute}}}) exitWith {};
     private _adoptKind=_adoptWork getOrDefault ["kind",""];
     if !(_adoptKind in ["REFRESH","REVERSE","FINAL","EXHAUSTED"]) exitWith {};
+    if (_adoptMode == "SIMPLE_BACK" && {_adoptKind != "REVERSE"}) exitWith {};
     private _adoptStage=switch (_adoptKind) do {case "REFRESH":{1};case "REVERSE":{2};case "FINAL":{3};default {4}};
     private _adoptNextRoute=+_adoptRoute;
     _adoptNextRoute set [7,_adoptEpoch];_adoptNextRoute set [8,clientOwner];
     private _adoptNext=createHashMapFromArray (keys _adoptWork apply {[_x,_adoptWork get _x]});
     _adoptNext set ["route",_adoptNextRoute];_adoptNext set ["nativeAdoptedFrom",[+_adoptRoute,+_adoptSource]];
+    if (!_adoptResume) then {_adoptNext set ["releasePending",true]};
     private _adoptNextState=[_adoptWork get "cap",0,time,_adoptGroup,+(_adoptWork get "origin"),
         time-(serverTime-(_adoptWork get "started")),_adoptStage,time+((_adoptWork get "deadline")-serverTime),
         "ADOPTED_NATIVE_RECOVERY",_adoptNextRoute,_adoptKind == "REVERSE"];
@@ -131,7 +136,13 @@ isNil {
     _adoptAccepted=true;
 };
 if (_adoptAccepted) then {
-    // Existing startup retains failed-start terminal receipts; it does not reset this journal.
-    [_adoptGroup] call CBE_fnc_DrivingOperationStart;
+    if (_adoptResume) then {
+        // Existing startup retains failed-start terminal receipts; it does not reset this journal.
+        [_adoptGroup] call CBE_fnc_DrivingOperationStart;
+    } else {
+        // Cleanup-only custody never enables tactics or installs an owner/group handler.
+        // Existing release rechecks command/cap/route ownership and observes pending handback.
+        [_adoptVehicle,_adoptGroup] call CBE_fnc_DrivingAssistRelease;
+    };
 };
 _adoptAccepted

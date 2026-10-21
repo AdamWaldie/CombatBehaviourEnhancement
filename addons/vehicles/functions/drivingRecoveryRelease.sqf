@@ -60,12 +60,44 @@ if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
 // Do not run a native command classifier against a remote crew member.
 private _splitDriver=driver _vehicle;private _splitOperator=effectiveCommander _vehicle;
 if (isNull _splitOperator) then {_splitOperator=_splitDriver};
-if (!local _group || {isNull _splitDriver} || {isNull _splitOperator}
-    || {!local _splitDriver} || {!local _splitOperator}) exitWith {
+private _splitOwner=!local _group || {isNull _splitDriver} || {isNull _splitOperator}
+    || {!local _splitDriver} || {!local _splitOperator};
+private _splitRoute=_work getOrDefault ["route",[]];
+private _nativeIssuerWaiting=_splitRoute isEqualType [] && {count _splitRoute == 9}
+    && {(_splitRoute param [0,"",[""]]) == "NATIVE_MOVE"}
+    && {(_splitRoute select 8) isNotEqualTo clientOwner
+        || {(_splitRoute select 7) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}};
+private _splitNativeCurrent=true;
+if (!_splitOwner && {_nativeIssuerWaiting}) then {
+    // A local crew may precede its group adoption callback. Classify on this owner
+    // before deciding whether the inherited receipt was superseded; never erase an
+    // unchanged native recovery merely because its issuer has not yet rebound.
+    private _splitMode=_work getOrDefault ["commandMode","DESTINATION"];
+    _splitNativeCurrent=false;
+    if (_splitMode == "DESTINATION" || {"nativeReturn" in _work}) then {
+        _splitNativeCurrent=([_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED"];
+    } else {
+        if (_splitMode == "SIMPLE_BACK" && {_splitDriver != _splitOperator}) then {
+            private _splitInfo=vehicleMoveInfo _vehicle;
+            _splitNativeCurrent=(_splitInfo param [1,""]) == ((_work getOrDefault ["simpleBefore",[]]) param [1,"MISSING"])
+                && {toUpperANSI (_splitInfo param [0,""]) == "BACK"
+                    || {_work getOrDefault ["simpleStopIssued",false] && {toUpperANSI (_splitInfo param [0,""]) == "STOP"}}
+                    || {!(_work getOrDefault ["simpleAcknowledged",false])
+                        && {_splitInfo isEqualTo (_work getOrDefault ["simpleBefore",[]])}}}
+                && {(expectedDestination _splitDriver) isEqualTo (_work getOrDefault ["driverCommand",[]])}
+                && {(expectedDestination _splitOperator) isEqualTo (_work getOrDefault ["command",[]])};
+        };
+    };
+    _splitNativeCurrent=_splitNativeCurrent && {count waypoints _group <= 1}
+        && {[_splitDriver,_splitOperator] findIf {!(currentCommand _x in ["","MOVE","WAIT"])
+            && {!(currentCommand _x == "STOP" && {_work getOrDefault ["simpleStopIssued",false]})}} < 0};
+};
+if (_splitOwner || {_nativeIssuerWaiting}) exitWith {
     private _splitCap=_work getOrDefault ["cap",-1e9];
     private _splitExact=((_work getOrDefault ["kind",""]) == "REVERSE"
-        || {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []})
+        || {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []} || {_nativeIssuerWaiting})
         && {!isNull _splitDriver} && {!isNull _splitOperator}
+        && {_splitNativeCurrent}
         && {_splitDriver isEqualTo (_work getOrDefault ["driver",objNull])}
         && {_splitOperator isEqualTo (_work getOrDefault ["operator",objNull])}
         && {group _splitDriver == _group} && {group _splitOperator == _group}

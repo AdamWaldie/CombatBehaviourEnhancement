@@ -59,11 +59,19 @@ class NativeAdmissionTests(unittest.TestCase):
                       '_adoptWork getOrDefault ["baseline",[]]','_adoptNextRoute set [7,_adoptEpoch]',
                       '"ADOPTED_NATIVE_RECOVERY"','CBE_fnc_DrivingOperationStart'):
             self.assertIn(proof,adopt)
+        dispatch=adopt.split('if (_adoptAccepted) then {',1)[1]
+        self.assertLess(dispatch.index('if (_adoptResume) then'),dispatch.index('CBE_fnc_DrivingOperationStart'))
+        cleanup=dispatch.split('} else {',1)[1]
+        self.assertIn('CBE_fnc_DrivingAssistRelease',cleanup)
+        self.assertNotIn('DrivingOperationStart',cleanup)
+        self.assertIn('if (!_adoptResume) then {_adoptNext set ["releasePending",true]}',adopt)
         for forbidden in ('doMove','doStop','doFollow','forceSpeed','sendSimpleCommand',
                           'set ["hardDeadline"','set ["deadline"','serverTime+','waitAndExecute','execFSM'):
             self.assertNotIn(forbidden,adopt.split('params [[',1)[1])
         native_edge=edge.split('if (_nativeEdge) then {',1)[1].split('if (_epoch ==',1)[0]
         self.assertIn('CBE_DrivingNative_LocalEdge',native_edge)
+        self.assertIn('if (isNull _nativeEdgeGroup) then',native_edge)
+        self.assertIn('(_nativeEdgeRoute select 2) isEqualTo _vehicle',native_edge)
         self.assertIn('serverTime+5',native_edge)
         self.assertIn('CBE_DrivingNative_Transfer',locality)
         self.assertLess(locality.index('private _abortSource=[]'),locality.index('CBE_fnc_DrivingOperationFinish'))

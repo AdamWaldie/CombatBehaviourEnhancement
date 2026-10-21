@@ -42,6 +42,19 @@ isNil {
             if (_gained && {local _vehicle}) then {
                 _vehicle setVariable ["CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]];
                 private _nativeEdgeGroup=group driver _vehicle;
+                // Vehicle ownership may arrive before its driver slot. An existing exact
+                // native journal can identify the source group at this real edge only.
+                if (isNull _nativeEdgeGroup) then {
+                    private _nativeEdgeWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+                    if (_nativeEdgeWork isEqualType createHashMap) then {
+                        private _nativeEdgeRoute=_nativeEdgeWork getOrDefault ["route",[]];
+                        private _nativeEdgeCandidate=_nativeEdgeWork getOrDefault ["group",grpNull];
+                        if (_nativeEdgeCandidate isEqualType grpNull && {_nativeEdgeRoute isEqualType []}
+                            && {count _nativeEdgeRoute == 9} && {(_nativeEdgeRoute select 0) isEqualTo "NATIVE_MOVE"}
+                            && {(_nativeEdgeRoute select 1) isEqualTo _nativeEdgeCandidate}
+                            && {(_nativeEdgeRoute select 2) isEqualTo _vehicle}) then {_nativeEdgeGroup=_nativeEdgeCandidate};
+                    };
+                };
                 private _nativeEdgeStatus=_nativeEdgeGroup getVariable ["CBE_Driving_State",[]];
                 if (_nativeEdgeStatus isEqualType [] && {count _nativeEdgeStatus == 6}
                     && {[4,5] findIf {private _value=_nativeEdgeStatus select _x;

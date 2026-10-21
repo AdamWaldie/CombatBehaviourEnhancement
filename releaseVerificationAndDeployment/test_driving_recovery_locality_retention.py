@@ -19,8 +19,8 @@ class RecoveryLocalityRetentionTests(unittest.TestCase):
         self.assertNotIn('serverTime+',gate)
     def test_split_owner_path_retains_original_journal_without_native_write_or_clock_renewal(self):
         text=source()
-        branch=text.split('// expectedDestination is local-argument.',1)[1].split('// A native-route return',1)[0]
-        for proof in ('!local _group','!local _splitDriver','!local _splitOperator','releasePending',
+        branch=text.split('if (_splitOwner || {_nativeIssuerWaiting}) exitWith {',1)[1].split('// A native-route return',1)[0]
+        for proof in ('_splitNativeCurrent','releasePending',
                       '"DEFERRED_LOCALITY"','"UNRESOLVED_LOCALITY"','"LOCALITY_PROOF_LOST"',
                       'getOrDefault ["hardDeadline",-1]','serverTime >= _splitUntil','false'):
             self.assertIn(proof,branch)
@@ -30,6 +30,9 @@ class RecoveryLocalityRetentionTests(unittest.TestCase):
             self.assertNotIn(forbidden,branch)
         self.assertLess(text.index('private _splitDriver='),text.index('call CBE_fnc_DrivingRecoveryCommandState'))
         self.assertIn('if (!_splitExpired) then',branch)
+        self.assertIn('|| {_nativeIssuerWaiting})',branch)
+        self.assertIn('if (!_splitOwner && {_nativeIssuerWaiting}) then',text)
+        self.assertLess(text.index('private _splitOwner='),text.index('call CBE_fnc_DrivingRecoveryCommandState'))
     def test_retention_is_distinct_from_full_owner_command_authority(self):
         text=source()
         owned=text.split('private _owned=',1)[1].split('private _executable=',1)[0]
