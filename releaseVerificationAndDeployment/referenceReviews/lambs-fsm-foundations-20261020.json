@@ -740,5 +740,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "originalKnowledgeWitness": {
+    "baseline": "c216505a",
+    "finding": "DangerRequest retained a distinct source observer when coalescing newer approximate geometry with an older known hostile. DangerStep substituted the response observer after source-witness loss. DangerActionSelect checked hostility but not original-witness knowledge before ENGAGE/MAINTAIN. VehicleContext retained the raw source even when the separate contact-publication knowledge gate failed.",
+    "implementation": "Keep original source witness identity. On-foot engagement causes with an unavailable, transferred or no-longer-knowing source witness become HIDE approximate alerts before MAINTAIN. DangerStep validates source hostility and original witness health/locality/group/knowledge before contact publication and publishes objNull in mounted context when invalid. Mounted domain response remains intact.",
+    "authority": "No anchor substitution for explicit source witness. Existing legacy position-only record interpretation, concrete native task ownership, response priorities, generations and original lifetimes remain. Does not clear an independent live response or contact merely because an unrelated event has no source.",
+    "cost": "Constant-time checks for the single selected event; no group scan, additional job, target reveal or deadline. Action classification and publication each validate their own boundary; runtime cost unmeasured.",
+    "validation": "Existing danger ownership regression extended for original-witness death, locality/group loss, lost knowledge and mounted targetless publication. All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Candidate .qa/candidates/danger-original-witness-c216505a fingerprint6664ba539d51be4bf507a8c48087709c3d5c8fd6900c586225d1f091a03dbc5f.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

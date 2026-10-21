@@ -163,8 +163,15 @@ private _source=_selected param [4,objNull,[objNull]];
 private _observer=_selected param [5,objNull,[objNull]];
 if (isNull _observer || {!alive _observer} || {!local _observer} || {group _observer != _group}) then {_observer=_actor};
 private _sourceObserver=_selected param [6,_observer,[objNull]];
-if (isNull _sourceObserver || {!alive _sourceObserver} || {!local _sourceObserver}
-    || {group _sourceObserver != _group}) then {_sourceObserver=_observer};
+// Do not substitute another observer when the retained identity witness is lost.
+// The affected actor can still react to the approximate event without a target identity.
+private _sourceKnown=!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")}
+    && {alive _source} && {!captive _source}
+    && {!(_source getVariable ["ace_captives_isSurrendering",false])}
+    && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
+    && {(side _group) getFriend (side _source) < 0.6}
+    && {[_sourceObserver] call CBE_fnc_CortexCombatEffective} && {local _sourceObserver}
+    && {group _sourceObserver == _group} && {_sourceObserver knowsAbout _source > 0};
 private _action=[_group,_selected] call CBE_fnc_DangerActionSelect;
 if (_action == "RELEASE") exitWith {
     // Refusal is not a new response or contact. Preserve an independent live response and
@@ -173,9 +180,7 @@ if (_action == "RELEASE") exitWith {
     if (_remaining isNotEqualTo [] || {count _live == 5 && {(_live select 4) == _generation}
         && {time < (_live select 3)}}) then {0.25} else {-1}
 };
-if (_action != "FORCED" && {!isNull _source} && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
-    && {!(_source getVariable ["ace_captives_isSurrendering",false]) && {!(_source getVariable ["ace_captives_isHandcuffed",false])}} && {(side _group) getFriend (side _source) < 0.6}
-    && {_sourceObserver knowsAbout _source > 0}) then {
+if (_action != "FORCED" && {_sourceKnown}) then {
     _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,time+2,_generation],true];
 };
 // A concrete native task is an ownership boundary, not a tactical response mode. The engine FSM may
@@ -246,7 +251,8 @@ if (_replace) then {
         // Retain the exact occupied vehicle and only the already validated native-known hostile.
         // Dedicated vehicle consumers can therefore distinguish a close threat at an emplacement
         // from approximate targetless damage without scanning for or manufacturing an enemy.
-        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_source],true];
+        private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};
+        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_vehicleSource],true];
     } else {
         _group setVariable ["CBE_Danger_VehicleContext",nil,true];
     };

@@ -4,6 +4,7 @@
  * creating a second target, route, firing or movement owner.
  * Locality/authority: Runs on the current group owner after CBE_fnc_DangerSelect has already bounded
  * and validated an observation. It reads one bounded living group representative and an existing operation.
+ * Retained hostile identity requires the original local source witness to retain native knowledge.
  * Repeat/JIP: Pure selection with no side effects. The caller publishes the finite result with its
  * generation, so a new owner reconstructs it from a fresh local observation.
  * Arguments: 0: group <GROUP>; 1: selected event <ARRAY>
@@ -55,6 +56,13 @@ if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"] && {!isNull _source}
         || {(side _group) getFriend (side _source) >= 0.6}}) exitWith {"RELEASE"};
 if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]
     && {isNull (_event param [4,objNull,[objNull]])}) exitWith {"HIDE"};
+// Identity belongs to the original native knowledge witness, not whichever actor
+// currently represents the group. Lost knowledge leaves an approximate alert only.
+private _sourceObserver=_event param [6,_actor,[objNull]];
+if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]
+    && {!([_sourceObserver] call CBE_fnc_CortexCombatEffective)
+        || {!local _sourceObserver} || {group _sourceObserver != _group}
+        || {_sourceObserver knowsAbout _source <= 0}}) exitWith {"HIDE"};
 // A current operation has already committed a physical route and owns its restoration. A danger
 // event raises its priority but must not send the group back to an earlier reaction position.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"MAINTAIN"};

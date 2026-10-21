@@ -1063,6 +1063,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_responseCommand in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]',source('dangerStep'))
         self.assertLess(source('dangerStep').index('private _activeAction=_group getVariable'),source('dangerStep').index('private _events='))
         self.assertIn('_sourceObserver knowsAbout _source > 0',source('dangerStep'))
+        assessment=source('dangerStep')
+        self.assertNotIn('then {_sourceObserver=_observer}',assessment)
+        self.assertIn('private _sourceObserver=_event param [6,_actor,[objNull]];',action)
+        for witness_gate in ('CBE_fnc_CortexCombatEffective','!local _sourceObserver',
+                             'group _sourceObserver != _group','_sourceObserver knowsAbout _source <= 0'):
+            self.assertIn(witness_gate,action)
+        self.assertLess(action.index('_sourceObserver knowsAbout _source <= 0'),action.index('exitWith {"MAINTAIN"}'))
+        self.assertIn('private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};',assessment)
+        self.assertIn('_generation,_vehicleSource],true]',assessment)
+        self.assertIn('if (_action != "FORCED" && {_sourceKnown})',assessment)
+        # An approximate event remains usable, but a substitute observer cannot renew identity.
+        def source_authority(witness_alive,witness_local,same_group,knowledge):
+            return witness_alive and witness_local and same_group and knowledge>0
+        for state in ((False,True,True,1),(True,False,True,1),
+                      (True,True,False,1),(True,True,True,0)):
+            known=source_authority(*state)
+            self.assertFalse(known)
+            self.assertEqual('ENGAGE' if known else 'HIDE','HIDE')
+            self.assertIsNone('hostile' if known else None)
+        self.assertTrue(source_authority(True,True,True,0.1))
         self.assertIn("if (count _latest > 0 && {!(_group getVariable ['CBE_AIPass_Managed',false])}",engine)
         self.assertIn('[_group,false,true] call CBE_fnc_CortexIsEligible',engine)
         self.assertIn('[_group] call CBE_fnc_DangerSetup;',engine)
