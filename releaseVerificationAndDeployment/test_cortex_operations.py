@@ -6815,6 +6815,25 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('set ["stanceCursor",(_index+1) mod _count]', text)
         self.assertIn('setVariable ["CBE_AIPass_StanceAt", _now + 10]', text)
         self.assertEqual(3,text.count('call _blocked;'))
+        receipt=source('cortexStanceReceipt')
+        for field in ('count _proof != 4','(_proof select 0) isNotEqualTo _group','(_proof select 1) > _epoch','(_proof select 2) isNotEqualTo "AUTO"','CBE_Cortex_AppliedStance','CBE_AIPass_StanceSet'):
+            self.assertIn(field,receipt)
+        self.assertNotIn('setUnitPos',receipt)
+        self.assertIn('(_weak select 0) isNotEqualTo (_proof select 3)',receipt)
+        self.assertIn('(_weak select 1) isNotEqualTo (toUpperANSI unitPos _actor)',receipt)
+        self.assertIn('(_weak select 5) isNotEqualTo _group',receipt)
+        release_chain=source('dangerEngineRelease').split('private _routine=',1)[1].split('if (_prior != _applied)',1)[0]
+        self.assertIn('_prior == (_routine select 3)',release_chain)
+        self.assertIn('setUnitPos "AUTO"',release_chain)
+        self.assertIn('exitWith {["RESTORE_PENDING"] call _evidence}',release_chain)
+        self.assertIn('CBE_Cortex_StanceReceipt",[_group,',text)
+        self.assertIn('toUpperANSI unitPos _unit == _stance',text)
+        self.assertIn('!fleeing _unit',text)
+        self.assertIn('private _nativePostureTask=_reservationFree',text)
+        for cleanup_name in ('cortexStance','cortexFlankStep','cortexGroupTick','cortexRestoreCalm'):
+            cleanup_source=source(cleanup_name)
+            self.assertIn('CBE_fnc_CortexStanceReceipt',cleanup_source)
+            self.assertIn('setVariable ["CBE_Cortex_StanceReceipt",nil,true]',cleanup_source)
         for guard in ('simulationEnabled _unit','!isObjectHidden _unit','ace_medical_ai_healQueue',
                       'getUnitState _unit in ["INIT","PLANNING","REPLAN"]',
                       'currentCommand _unit in ["MOVE","GET IN"',

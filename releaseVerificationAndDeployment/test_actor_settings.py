@@ -59,6 +59,15 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertIn('_successorPosture set [3,_generation]',transfer)
         self.assertNotIn('_successorPosture set [2,',transfer)
         self.assertNotIn('setUnitPos',transfer)
+        routine=s.split('private _routineHandover=[];',1)[1].split('private _nextOwned=',1)[0]
+        self.assertIn('call CBE_fnc_CortexStanceReceipt',routine)
+        self.assertIn('_routinePresent && {_routineHandover isEqualTo []}',routine)
+        self.assertIn('getVariable ["CBE_AIPass_StanceSet",false]) isNotEqualTo false',routine)
+        self.assertIn('_dangerBaseline == _routineApplied',routine)
+        self.assertIn('_routineBaseline="REFUSED"',routine)
+        self.assertIn('_routineBaseline=_routineHandover select 2',routine)
+        self.assertIn('_native=_routineBaseline',update)
+        self.assertLess(update.index('setVariable ["CBE_ActorSettings",_next,true]'),update.index('forEach ["CBE_Cortex_StanceReceipt"'))
     def test_adoption_changes_only_metadata_and_keeps_original_deadline(self):
         s=core();adopt=s.split('if (_mode == "ADOPT") exitWith {',1)[1].split('if (_lease isNotEqualTo [] && {_oldContext',1)[0]
         self.assertIn('setVariable ["CBE_ActorSettings",_next,true]',adopt)

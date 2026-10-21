@@ -416,12 +416,14 @@ class SharedRoutineReservationTests(unittest.TestCase):
 
     def test_stance_known_task_release_refuses_unknown_shapes_before_token_read(self):
         source=(ROOT/'addons/infantry/functions/cortexStance.sqf').read_text()
-        shape=source.split('private _knownReservation=',1)[1].split('if (!_reservationFree',1)[0]
+        shape=source.split('private _knownReservation=',1)[1].split('private _nativePostureTask=',1)[0]
         for guard in ['_reservation isEqualType []','count _reservation == 3',
                       '(_reservation select 0) isEqualType ""','count (_reservation select 1) == 3',
                       '!finite _x','finite (_reservation select 2)']:
             self.assertIn(guard,shape)
-        release=source.split('if (!_reservationFree',1)[1].split('_changed=_changed+1;',1)[0]
+        release=source.split('if ((_nativePostureTask',1)[1].split('_changed=_changed+1;',1)[0]
+        self.assertIn('private _nativePostureTask=_reservationFree',source)
+        self.assertIn('count _stanceReceipt == 4',release)
         self.assertLess(release.index('_knownReservation'),release.index('_reservation select 0'))
         self.assertIn('_currentStance ==',release)
         self.assertIn('CBE_fnc_CortexExternalTakeover',release)

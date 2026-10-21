@@ -398,6 +398,7 @@ class CfgFunctions {
             class CortexPlanRoute {file = "\z\cbe\addons\infantry\functions\cortexPlanRoute.sqf";};
             class CortexSelectAvenue {file = "\z\cbe\addons\infantry\functions\cortexSelectAvenue.sqf";};
             class CortexProfile {file = "\z\cbe\addons\core\functions\cortexProfile.sqf";};
+            class CortexStanceReceipt {file = "\z\cbe\addons\infantry\functions\cortexStanceReceipt.sqf";};
             class CortexStance {file = "\z\cbe\addons\infantry\functions\cortexStance.sqf";};
             class CortexZeusHeld {file = "\z\cbe\addons\infantry\functions\cortexZeusHeld.sqf";};
             class CortexZeusMark {file = "\z\cbe\addons\infantry\functions\cortexZeusMark.sqf";};

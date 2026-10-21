@@ -129,12 +129,18 @@ if (!_dangerYield) then {
 
 {
     if (local _x && {_x getVariable ["CBE_AIPass_StanceSet",false]} && {!([_group,"CBE_AIPass_Stance_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {
-        if (!_dangerYield && {!isPlayer _x} && {isNull (remoteControlled _x)}
-            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}) then {
+        private _routineProof=[_group,_x] call CBE_fnc_CortexStanceReceipt;
+        private _routineAuthority=!_dangerYield && {!isPlayer _x} && {isNull (remoteControlled _x)}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""};
+        if (_routineAuthority && {count _routineProof == 4}) then {
             if (toUpperANSI (unitPos _x) == (_x getVariable ["CBE_Cortex_AppliedStance",""])) then {_x setUnitPos "AUTO"};
         };
-        _x setVariable ["CBE_Cortex_AppliedStance",nil,true];
-        _x setVariable ["CBE_AIPass_StanceSet",nil,true];
+        if (!_routineAuthority || {count _routineProof != 4}
+            || {([_group,_x,true] call CBE_fnc_CortexStanceReceipt) isEqualTo []}) then {
+            _x setVariable ["CBE_Cortex_AppliedStance",nil,true];
+            _x setVariable ["CBE_Cortex_StanceReceipt",nil,true];
+            _x setVariable ["CBE_AIPass_StanceSet",nil,true];
+        };
     };
     private _target = _x getVariable ["CBE_AIPass_VehicleTarget",objNull];
     private _targetProtected=!isNull _target && {!alive _target || {captive _target}

@@ -174,12 +174,18 @@ private _pendingHolds=if (_yieldToExternal) then {[]} else {
 if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_CortexHolderRecallPending};
 {
     if (local _x && {_x getVariable ["CBE_AIPass_StanceSet", false]}) then {
-        if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
-            && {([_x] call CBE_fnc_CortexExternalOwner) == ""}) then {
+        private _routineProof=[_group,_x] call CBE_fnc_CortexStanceReceipt;
+        private _routineAuthority=!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
+            && {([_x] call CBE_fnc_CortexExternalOwner) == ""};
+        if (_routineAuthority && {count _routineProof == 4}) then {
             if (toUpperANSI (unitPos _x) == (_x getVariable ["CBE_Cortex_AppliedStance",""])) then {_x setUnitPos "AUTO"};
         };
-        _x setVariable ["CBE_Cortex_AppliedStance",nil,true];
-        _x setVariable ["CBE_AIPass_StanceSet", nil, true];
+        if (!_routineAuthority || {count _routineProof != 4}
+            || {([_group,_x,true] call CBE_fnc_CortexStanceReceipt) isEqualTo []}) then {
+            _x setVariable ["CBE_Cortex_AppliedStance",nil,true];
+            _x setVariable ["CBE_Cortex_StanceReceipt",nil,true];
+            _x setVariable ["CBE_AIPass_StanceSet",nil,true];
+        };
     };
     if (local _x) then {
         private _target = _x getVariable ["CBE_AIPass_VehicleTarget",objNull];

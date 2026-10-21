@@ -1142,5 +1142,21 @@
     "cost": "One extra max64 member pass at onfoot operation start, fixed receipt checks at first stance acquisition; no worker/deadline renewal.",
     "evidence": ".qa/danger-stance-handover-build.log; .qa/danger-stance-handover-independent.log",
     "limits": "No physical care/flight/dormancy/clearance/garrison/HC/performance acceptance. Legacy noncanonical stance controllers not blanket covered."
+  },
+  "routineStanceComposition20261021": {
+    "baseline": "3d4cd13e",
+    "intent": "Preserve true pre-CBE baseline when routine strong cover posture, weak danger posture and canonical operation/garrison stance compose.",
+    "method": "Typed current-actor/same-group/nonfuture-epoch routine proof, confirmed application/cleanup, partial/incompatible refusal and canonical receipt-before-consumption. Exact weak-over-strong cleanup releases AUTO only through existing native-task gates.",
+    "sourceHashes": {
+      "addons/infantry/functions/cortexStanceReceipt.sqf": "06b5c34433952557f2ce58b63d8e4f6e84cb51ad2c2adea0e03ae3598d998cfa",
+      "addons/infantry/functions/cortexStance.sqf": "7ec5dd14e77ded99bc911b0605197d3527af87d86f7204b5027a0d82ce0f9d75",
+      "addons/core/functions/actorSettings.sqf": "9c90d79d01a23b231a024e75ec1c7d361fb754696f66c45fb13969222e665533",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "92c7a54014558145506a8364d6ea483842d0d95168689ee1e29341dd1ba9d109",
+      "addons/infantry/functions/cortexFlankStep.sqf": "4038914c7ad9a72fc5d7d56bfe6141eb12a2cefcc2bf4bb9e5b1688349b8e81d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "e01e20810d3d0aa243da51e4a226143a18de285ab64809abcd166791b29dda1f",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "dc0f96eedb4bfc6c36840cc0029a2f67c7cb9629e1f81746cef24d7e95efff7e"
+    },
+    "evidence": ".qa/routine-stance-composition-trace-20261021.json; .qa/routine-stance-handover-build-sealed.log; .qa/routine-stance-handover-independent.log",
+    "limits": "No physical nested stance/CQB/garrison/HC/JIP/nativepartialwrite/performance proof; retained metadata is not ordered replication or guaranteed eventual handback. No new worker/rays."
   }
 }

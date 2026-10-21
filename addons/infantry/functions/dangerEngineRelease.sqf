@@ -86,6 +86,17 @@ private _applied=toUpperANSI (_lease param [1,"",[""]]);
 if (!(_prior in ["AUTO","UP","MIDDLE","DOWN"])
     || {!(_applied in ["AUTO","UP","MIDDLE","DOWN"])}) exitWith {["INVALID_STANCE_PROOF"] call _evidence};
 if (toUpperANSI (unitPos _actor) != _applied) exitWith {["STANCE_CHANGED",true] call _evidence};
+// An exact routine strong stance can be the baseline below this weak response.
+// Release that owned restriction too, rather than restoring an intermediate CBE value.
+private _routine=[_group,_actor] call CBE_fnc_CortexStanceReceipt;
+if (count _routine == 4 && {_prior == (_routine select 3)}) exitWith {
+    _actor setUnitPos "AUTO";
+    if (toUpperANSI unitPos _actor != (_routine select 2)) exitWith {["RESTORE_PENDING"] call _evidence};
+    {_actor setVariable [_x,nil,true]} forEach ["CBE_Cortex_StanceReceipt",
+        "CBE_Cortex_AppliedStance","CBE_AIPass_StanceSet"];
+    ["RESTORED",true] call _evidence;
+    true
+};
 if (_prior != _applied) then {_actor setUnitPosWeak _prior};
 if (toUpperANSI (unitPos _actor) != _prior) exitWith {["RESTORE_PENDING"] call _evidence};
 ["RESTORED",true] call _evidence;

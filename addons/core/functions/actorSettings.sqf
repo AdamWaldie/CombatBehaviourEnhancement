@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * First stance acquisition may consume an exact current danger-stance receipt, preserving
+ * First stance acquisition composes typed routine cover and exact danger-stance proof.
+ * It may consume an exact current danger-stance receipt, preserving
  * its original baseline. No native task or reservation is bypassed for this handover.
  * Purpose: Own temporary on-foot actor stance/speed settings independently of native movement tasks.
  * Locality/authority: Actual actor and group owner. APPLY/CHECK/ADOPT require the current common
@@ -166,10 +167,35 @@ _result=call {
         };
     };
     if (_dangerBaseline == "REFUSED") exitWith {"REFUSED"};
+    private _routineHandover=[];
+    private _routineBaseline="";
+    if ("STANCE" in _requested && {!("STANCE" in _owned)}) then {
+        _routineHandover=[_group,_actor] call CBE_fnc_CortexStanceReceipt;
+        private _routinePresent=(_actor getVariable ["CBE_Cortex_StanceReceipt",[]]) isNotEqualTo []
+            || {!isNil {_actor getVariable "CBE_Cortex_AppliedStance"}}
+            || {(_actor getVariable ["CBE_AIPass_StanceSet",false]) isNotEqualTo false};
+        if (_routinePresent && {_routineHandover isEqualTo []}) exitWith {_routineBaseline="REFUSED"};
+        if (_routineHandover isNotEqualTo []) then {
+            private _routineApplied=_routineHandover select 3;
+            // A danger weak stance may sit above this strong stance. Compose only an
+            // observed chain, never guess the ordering of incompatible baseline receipts.
+            if (_dangerBaseline != "") then {
+                if (_dangerBaseline == _routineApplied) then {
+                    _routineBaseline=_routineHandover select 2;
+                } else {_routineBaseline="REFUSED"};
+            } else {
+                if ((["STANCE"] call _read) == _routineApplied) then {
+                    _routineBaseline=_routineHandover select 2;
+                };
+            };
+        };
+    };
+    if (_routineBaseline == "REFUSED") exitWith {"REFUSED"};
     private _nextOwned=createHashMapFromArray (keys _owned apply {[_x,+(_owned get _x)]});
     {
         private _native=[_x] call _read;
         if (_x == "STANCE" && {_dangerBaseline != ""}) then {_native=_dangerBaseline};
+        if (_x == "STANCE" && {_routineBaseline != ""}) then {_native=_routineBaseline};
         private _pair=+(_nextOwned getOrDefault [_x,[_native,_native]]);
         _pair set [1,_requested get _x];_nextOwned set [_x,_pair];
     } forEach keys _requested;
@@ -186,6 +212,12 @@ _result=call {
         && {(_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo _dangerHandover}
         && {(["STANCE"] call _read) isEqualTo (_requested get "STANCE")}) then {
         _actor setVariable ["CBE_Danger_EngineStanceLease",nil];
+    };
+    if (_routineHandover isNotEqualTo []
+        && {(_actor getVariable ["CBE_Cortex_StanceReceipt",[]]) isEqualTo _routineHandover}
+        && {(["STANCE"] call _read) isEqualTo (_requested get "STANCE")}) then {
+        {_actor setVariable [_x,nil,true]} forEach ["CBE_Cortex_StanceReceipt",
+            "CBE_Cortex_AppliedStance","CBE_AIPass_StanceSet"];
     };
     if (keys _nextOwned findIf {!([_x,[_x] call _read,(_nextOwned get _x) select 1] call _same)} >= 0) exitWith {"PENDING"};
     "APPLIED"
