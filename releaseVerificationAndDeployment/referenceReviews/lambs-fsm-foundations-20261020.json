@@ -933,5 +933,23 @@
     "limits": "Scoped shared predicate plus infantry fire/launcher paths; not exhaustive every support executor review. Physical interruption/resumption, varied crew/native fleeing and measured performance remain unverified. No parity or percentage change.",
     "physicalAcceptance": false,
     "performanceMeasured": false
+  },
+  "queuedFireAndIndoorGuide20261021": {
+    "baseline": "c5b48c9b",
+    "fireTrace": "ArtilleryShot _operatorAvailable calls current shared CortexActorFireTaskAvailable. Both pre-safety admission and atomic final native shot boundary call that same closure and bind original gunner/token/generation. Previous shared fleeing fix reaches these later queued rounds; no new operator override/timer needed. Shot request remains distinct from actual Fired event.",
+    "fireSourceSha256": "4abde9805943653a2ee1f5c4f9db2af3564a15be3cf98081d744f5bbf3a56953",
+    "documentationDefect": "Main individual indoor section still said initial actors restricted to first16, contradicting rotating sample and unrestricted owner-validated START. Corrected admission sentence, added care/flee prerequisites and moved existing sampling paragraph from appended history into owning section without duplicate.",
+    "productChanged": "Shipped guide only; gameplay source unchanged.",
+    "validation": {
+      "focusedTests": 21,
+      "docs": "documentation_contract_checker passed; wiki_sync check22pages passed; documentation/wiki/reference-boundary and two fire/actor regressions passed.",
+      "priorFullGameplayPipeline": ".qa/shared-fire-native-flight-build.log (1484 tests passed)",
+      "repack": ".qa/indoor-guide-reconcile-final-repack.log; affected checks passed again, HEMTT/FSM/package only, unchanged gameplay retains prior full pipeline.",
+      "independent": ".qa/indoor-guide-reconcile-final-independent.log",
+      "candidate": ".qa/candidates/indoor-guide-reconcile-c5b48c9b-final",
+      "fingerprint": "cebe3326c91b377b42f96ce09af6c7f5ea40cbfd8ad1fccbed21b4e6a58b884f",
+      "superseded": "Initial guide repack/candidate retained but superseded after final diff caught unrelated Windows-default text decoding changes. Reconstructed document from git HEAD UTF-8 bytes and reapplied only two intended indoor hunks; unrelated existing text preserved, not repaired."
+    },
+    "limits": "Scoped source trace and documentation correction only. Artillery shot/fleeing interruption, native travel, physical effects/HC and performance unverified. Audits paused; no new parity or scores."
   }
 }

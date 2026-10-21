@@ -1,3 +1,10 @@
+
+Guide diff correction: initial repack retained/superseded after unintended Windows-default decoding changed unrelated non-ASCII text. Reconstructed from committed UTF-8 bytes, reapplied only2 intended indoor hunks; final21 checks/docs/wiki/repack/independent pass. Always specify UTF-8 for known UTF-8 documents; mixed handover remains byte-preserved.
+# Latest checkpoint - queued fire trace and corrected indoor guide
+
+## 2026-10-21 - Queued fire trace and indoor guide correction
+Baselinec5b48c9b. ArtilleryShot operatorAvailable already calls shared native-task guard at pre-safety and atomic final native issue, with gunner/token/generation proof. Prior shared-flight fix therefore reaches later queued shots; no extra controller needed. Main indoor guide still contradicted code by claiming first16-only initial eligibility. Corrected admission/care/flight wording and relocated existing rotating-sample paragraph into its owning section, avoiding duplicate update note. Gameplay source unchanged.21 focused documentation/wiki/reference-boundary/artillery-operator/shared-task regressions pass; docs checker and wiki22page check pass. Prior full gameplay pipeline .qa/shared-fire-native-flight-build.log passed1484. Guide-only HEMTT/FSM/package repack used build_mod -SkipStaticChecks after affected checks (.qa/indoor-guide-reconcile-final-repack.log), not another full test run. Independent .qa/indoor-guide-reconcile-final-independent.log; candidate .qa/candidates/indoor-guide-reconcile-c5b48c9b-final fingerprintcebe3326c91b377b42f96ce09af6c7f5ea40cbfd8ad1fccbed21b4e6a58b884f. Source trace/hash/limits in LAMBS foundations review. Physical effects/interruptions/native travel/HC/performance unverified. Audits PAUSED/no launches; goal active/incomplete. Local only/no push/merge/publish; unrelated dirt/protected references/signing preserved.
+
 # Latest checkpoint - shared scripted fire native-flight priority
 
 ## 2026-10-21 - Shared scripted-task/native-flight priority
