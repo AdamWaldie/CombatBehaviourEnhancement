@@ -1,3 +1,8 @@
+# Latest checkpoint - exact equipment inventory accounting
+
+## 2026-10-21 - Exact duplicate inventory accounting
+Corrected CasualtyWeaponRecover verification: previous presence-only checks could accept a lost duplicate equipped row replaced by a different row. Bounded occurrence consumption now compares expected receiver/source multisets independently of ordering. Existing regression extended with reordered duplicates and lost-duplicate counterexample. Full1482/offline compilation/FSM/package pass; independent preserved candidate .qa/candidates/casualty-multiset-8bdd979b fingerprint110a8b8822ab916d170c2b209d53ec9b951906148f24de3ca17d8d3f40bdb571. Logs .qa/casualty-multiset-build.log and independent counterpart. Guide wording subsequently clarified; product source unchanged. Audits remain PAUSED, no launch; full goal active/incomplete. Physical behaviour/performance unverified; unrelated changes/protected sources untouched. Local commit only/no push.
+
 # Latest checkpoint - optional casualty equipment recovery
 
 ## 2026-10-21 - Optional native casualty weapon recovery

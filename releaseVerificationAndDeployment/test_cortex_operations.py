@@ -747,11 +747,21 @@ class CortexOperations(unittest.TestCase):
         for invariant in ('_primary == ""','_secondary == ""','count _row == 7',
                           'count _receiverAfter == count _receiverBefore+1',
                           'count _sourceAfter == count _sourceBefore-1',
-                          '_sourceOthers findIf','_receiverBefore findIf',
+                          '[_sourceOthers,_sourceAfter] call _sameRows','[_expectedReceiver,_receiverAfter] call _sameRows',
                           '"weaponRecoveryAttempted",true','"deadline",-1'):
             self.assertIn(invariant,equipment)
         for forbidden in ('addWeapon','removeWeapon','setUnitLoadout','spawn','waitUntil','nearestObjects'):
             self.assertNotIn(forbidden,re.sub(r'/\*.*?\*/|//[^\n]*','',equipment,flags=re.S))
+        def same_rows(expected, actual):
+            remaining=list(actual)
+            for row in expected:
+                if row not in remaining:
+                    return False
+                remaining.remove(row)
+            return not remaining
+        self.assertTrue(same_rows(['rifle','rifle','launcher'],['launcher','rifle','rifle']))
+        self.assertFalse(same_rows(['rifle','rifle','launcher'],['rifle','pistol','launcher']))
+        self.assertIn('_remaining deleteAt _index',equipment)
         self.assertIn('CBE_fnc_PointActorOperation',point_fsm)
         self.assertIn('serverTime >=',point_fsm)
         for name in ('cortexLocality','cortexStop','cortexDiscover'):

@@ -72,12 +72,28 @@ _actor action ["TakeWeapon",_body,_weapon];
 private _receiverAfter=weaponsItems _actor;
 private _sourceAfter=if (!isNull _body) then {weaponsItems _body} else {[]};
 private _sourceOthers=_sourceBefore select {!(_x isEqualTo _candidate)};
+// Equipped snapshots are not ordered by slot. Consume each occurrence so duplicated
+// modded rows cannot satisfy conservation through a single surviving match.
+private _sameRows={
+    params ["_expected","_actual"];
+    if (count _expected != count _actual) exitWith {false};
+    private _remaining=+_actual;
+    private _matches=true;
+    {
+        private _expectedRow=_x;
+        private _index=_remaining findIf {_x isEqualTo _expectedRow};
+        if (_index < 0) exitWith {_matches=false};
+        _remaining deleteAt _index;
+    } forEach _expected;
+    _matches && {_remaining isEqualTo []}
+};
+private _expectedReceiver=+_receiverBefore;_expectedReceiver pushBack _candidate;
 private _verified=!isNull _body && {!alive _body} && {count _receiverAfter <= 8} && {count _sourceAfter <= 8}
     && {count _receiverAfter == count _receiverBefore+1} && {count _sourceAfter == count _sourceBefore-1}
     && {{_x isEqualTo _candidate} count _receiverAfter == 1}
     && {_sourceAfter findIf {_x isEqualTo _candidate} < 0}
-    && {_receiverBefore findIf {private _row=_x;_receiverAfter findIf {_x isEqualTo _row} < 0} < 0}
-    && {_sourceOthers findIf {private _row=_x;_sourceAfter findIf {_x isEqualTo _row} < 0} < 0}
+    && {[_expectedReceiver,_receiverAfter] call _sameRows}
+    && {[_sourceOthers,_sourceAfter] call _sameRows}
     && {[uniform _actor,vest _actor,backpack _actor] isEqualTo _clothing}
     && {handgunWeapon _actor == _handgun}
     && {if (_slot == "PRIMARY") then {primaryWeapon _actor == _weapon && {secondaryWeapon _actor == _secondary}}
