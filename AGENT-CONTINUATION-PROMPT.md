@@ -1,3 +1,8 @@
+# Latest checkpoint - body occupancy and native task priority
+
+## 2026-10-21 - Physical occupancy survives loss of movement permission
+Baseline48210a38. Read preserved LAMBS main/functions/UnitAction/fnc_doAssault.sqf and fnc_doAssaultCQB.sqf in full. Source nearby-men spacing intent useful; random displacement, dual destinations and probabilistic node consumption not selected. Actual CBE gap: _occupiedRoomTargets filtered actual bodies through _actorAvailable. Native care/flight/other task made a physically present worker disappear from destination preference. Same <=8 current-pair workers now contribute visible simulated on-foot body positions independently; only available actors retain exact owned future destination reservations. No new scan/controller/movement/deadline or visit credit. Existing entry regression extended,20 focused tests passed. Full1484+HEMTT/SQF/config/FSM/docs/package pass .qa/clear-body-occupancy-build.log; independent .qa/clear-body-occupancy-independent.log. Unsigned candidate .qa/candidates/clear-body-occupancy-48210a38 fingerprintd87e051abe9b9833783f3ffc0a8249c353caf960a69e7e523184729d2aab4e14. Source review has hashes. Limited current-worker spacing preference, not complete collision/path proof or physical CQB acceptance; all-occupied fallback unchanged. Audits PAUSED/no launches. Full goal active/incomplete. No push/merge/publish. Preserve unrelated dirt and protected references/signing.
+
 # Latest checkpoint - clearance native-flight ownership
 
 ## 2026-10-21 - Explicit clearance yields to native fleeing

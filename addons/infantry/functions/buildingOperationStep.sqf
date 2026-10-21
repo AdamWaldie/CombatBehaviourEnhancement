@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Current visible on-foot workers occupy space even when native tasks revoke movement authority.
  * Native fleeing retains movement authority through admission, execution and cleanup.
  * Room exhaustion requires failures from every currently capable lane; inactive lane
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
@@ -397,12 +398,14 @@ private _delay=call {
         {
             private _actor=_x;
             private _issued=_moves getOrDefault [netId _actor,[]];
-            if (!(_actor in _excluded) && {[_actor] call _actorAvailable}
+            if (!isNull _actor && {!(_actor in _excluded)} && {isNull objectParent _actor}
                 && {simulationEnabled _actor} && {!isObjectHidden _actor}) then {
                 // Actual body occupancy matters even after a native command ended or its
                 // receipt retired. Do not mistake an unrecorded idle teammate for free space.
                 _occupied pushBack (getPosATL _actor);
-                if (count _issued == 3 && {[_actor] call _ownsCurrentMove}) then {
+                // A native task may revoke movement permission without removing the body.
+                // Only an available worker can reserve its still-owned future destination.
+                if (count _issued == 3 && {[_actor] call _actorAvailable} && {[_actor] call _ownsCurrentMove}) then {
                     _occupied pushBack (+_issued);
                 };
             };

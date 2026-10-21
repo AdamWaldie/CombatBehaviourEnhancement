@@ -871,5 +871,25 @@
       "fingerprint": "7214825c85200ab9103cf81fc9450cc91f1ffe30e5b8471f245df835ca4f45d5"
     },
     "limitations": "Offline predicates only. CQB physical flow, casualty/refill under flight, normal/HC and performance unverified. Audits remain paused. No scores changed."
+  },
+  "clearBodyOccupancy20261021": {
+    "sourceScope": "fnc_doAssault and fnc_doAssaultCQB read in full from preserved local review. Source doAssault checks nearby men before random displacement; doAssaultCQB issues dual native destinations and probabilistically consumes nodes. No raw code copied.",
+    "selectedIntent": "Avoid sending entrants into a teammate occupying an interior position. Reject random displacement, probabilistic visit credit and competing destination writers.",
+    "finding": "CBE bounded occupancy helper required actorAvailable before retaining actual body position. Native care/fleeing/other task could therefore make an on-foot worker disappear from spacing preferences despite still occupying its post.",
+    "implementation": "Same current-pair roster and <=8 workers. Visible simulated on-foot bodies contribute physical position independently of availability. Only available workers with exact owned movement retain future target reservations. No new scan, movement command, worker, deadline or visit credit.",
+    "hashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "98070682f8fa4d031b4e6112d241d17d410c0acd981ba2b5eb51aba29c223d88",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1"
+    },
+    "validation": {
+      "focused": 20,
+      "fullTests": 1484,
+      "pipeline": ".qa/clear-body-occupancy-build.log",
+      "independent": ".qa/clear-body-occupancy-independent.log",
+      "candidate": ".qa/candidates/clear-body-occupancy-48210a38",
+      "fingerprint": "d87e051abe9b9833783f3ffc0a8249c353caf960a69e7e523184729d2aab4e14"
+    },
+    "limits": "Destination preference among current lane workers only; not all-world collision, path access or coherent entry proof. When every candidate is occupied, existing bounded fallback remains. Physical CQB/HC/performance unverified. No percentages changed."
   }
 }

@@ -64,6 +64,20 @@ class ClearEntryFlowTests(unittest.TestCase):
         helper=s.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]
         for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','_occupied pushBack (getPosATL _actor)','simulationEnabled','isObjectHidden'):
             self.assertIn(gate,helper)
+        body=helper.split('if (!isNull _actor',1)[1].split('_occupied pushBack (getPosATL _actor)',1)[0]
+        self.assertNotIn('call _actorAvailable',body)
+        self.assertIn('isNull objectParent _actor',body)
+        future=helper.split('if (count _issued == 3',1)[1].split('_occupied pushBack (+_issued)',1)[0]
+        self.assertIn('call _actorAvailable',future)
+        # Native tasks remove destination ownership, not the soldier standing there.
+        def occupancy(available, mounted=False, simulated=True, hidden=False):
+            body=not mounted and simulated and not hidden
+            return (body, body and available)
+        self.assertEqual(occupancy(False),(True,False))
+        self.assertEqual(occupancy(True),(True,True))
+        self.assertEqual(occupancy(False,mounted=True),(False,False))
+        self.assertEqual(occupancy(True,hidden=True),(False,False))
+        self.assertEqual(occupancy(True,simulated=False),(False,False))
         self.assertNotIn('doMove',helper)
         claim=s.split('// Prefer free room destinations',1)[1].split('private _point=',1)[0]
         self.assertIn('if (_freeCandidates isNotEqualTo [])',claim)
