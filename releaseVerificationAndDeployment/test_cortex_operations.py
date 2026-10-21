@@ -740,6 +740,18 @@ class CortexOperations(unittest.TestCase):
         self.assertTrue(verified(7,7))
         for args in ((0,0),(7,0),(7,30),(7,7,False)):
             self.assertFalse(verified(*args))
+        equipment=source('casualtyWeaponRecover')
+        self.assertEqual(equipment.count('action ["TakeWeapon"'),1)
+        self.assertIn('CBE_fnc_CasualtyWeaponRecover',pickup)
+        self.assertLess(equipment.index('distance (getPosASL _body) > 2'),equipment.index('action ["TakeWeapon"'))
+        for invariant in ('_primary == ""','_secondary == ""','count _row == 7',
+                          'count _receiverAfter == count _receiverBefore+1',
+                          'count _sourceAfter == count _sourceBefore-1',
+                          '_sourceOthers findIf','_receiverBefore findIf',
+                          '"weaponRecoveryAttempted",true','"deadline",-1'):
+            self.assertIn(invariant,equipment)
+        for forbidden in ('addWeapon','removeWeapon','setUnitLoadout','spawn','waitUntil','nearestObjects'):
+            self.assertNotIn(forbidden,re.sub(r'/\*.*?\*/|//[^\n]*','',equipment,flags=re.S))
         self.assertIn('CBE_fnc_PointActorOperation',point_fsm)
         self.assertIn('serverTime >=',point_fsm)
         for name in ('cortexLocality','cortexStop','cortexDiscover'):

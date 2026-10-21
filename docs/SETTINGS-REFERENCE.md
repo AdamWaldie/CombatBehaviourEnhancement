@@ -166,6 +166,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
+| `CBE_AIPass_CasualtyEquipment_Enable` | Casualty weapon recovery | CHECKBOX | false | [] | NEXT_OPERATION | At a verified own-group casualty visit, recover one loaded rifle or launcher into an empty slot. Never replaces existing weapons. Opt-in because this can change an intentionally unarmed role. |
 | `CBE_AIPass_AmmoShare_Enable` | Ammo sharing | CHECKBOX | true | [] | NEXT_OPERATION | Soldiers down to their last magazine get one from a nearby squad-mate. |
 
 ## 05 Vehicles

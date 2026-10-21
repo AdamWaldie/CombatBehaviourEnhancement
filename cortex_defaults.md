@@ -213,6 +213,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_CoordinatedAssault_Enable` | `true` | BOOL: reinforcing squads assault together while the first squad fires. |
 | `CBE_AIPass_CoordinatedAssault_MaxMovers` | `2` | Concurrent manoeuvre cap per opportunity; one to four safe distinct corridors. |
 | `CBE_AIPass_Stance_Enable` | `true` | BOOL: stance chosen from the height of the cover in front. |
+| `CBE_AIPass_CasualtyEquipment_Enable` | `false` | Recover one loaded casualty rifle or launcher into an empty slot; optional role change. |
 | `CBE_AIPass_AmmoShare_Enable` | `true` | BOOL: soldiers low on magazines get one from a squad-mate. |
 | `CBE_AIPass_AmmoShare_Distance` | `10` | METRES: how close the squad-mate must be. |
 | `CBE_AIPass_AAIntercept_Enable` | `false` | Experimental finite main-turret response and same-owner measured direct-pass fuse; cross-owner/payload support incomplete. |

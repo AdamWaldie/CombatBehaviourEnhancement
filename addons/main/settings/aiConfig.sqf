@@ -473,6 +473,7 @@ createHashMapFromArray [
         ["CBE_AIPass_CoordinatedAssault_Enable", true], // BOOL: reinforcing squads assault together while the first squad fires.
         ["CBE_AIPass_CoordinatedAssault_MaxMovers", 2], // Per-operation concurrent mover cap; safe distinct corridors remain required.
         ["CBE_AIPass_Stance_Enable", true], // BOOL: stance chosen from the height of the cover in front.
+        ["CBE_AIPass_CasualtyEquipment_Enable", false], // BOOL: recover one loaded casualty weapon into an empty slot at an actual visit.
         ["CBE_AIPass_AmmoShare_Enable", true], // BOOL: soldiers low on magazines get one from a squad-mate.
         ["CBE_AIPass_AmmoShare_Distance", 10], // METRES: how close the squad-mate must be.
         ["CBE_AIPass_AAIntercept_Enable", false], // BOOL: experimental finite native-warning main-turret response; measured same-owner direct-pass fuse only.

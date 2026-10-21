@@ -25,7 +25,9 @@
  * command issue alone remains UNVERIFIED. The point result stays VISITED either way.
  * CBE accounting loops admit at most128 rows per snapshot; oversized pre-action inventories
  * defer pickup, oversized post-action evidence cannot verify it. Native snapshot cost is unmeasured.
- * No recovery timer, generic action cancellation, backpack/weapon pickup or deadline extension.
+ * Optional casualty equipment recovery may take one loaded rifle/launcher into an empty slot
+ * through CasualtyWeaponRecover after the same physical visit. No backpack cloning/replacement.
+ * No recovery timer, generic action cancellation or deadline extension.
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],["_brain",createHashMap,[createHashMap]]];
 if (isNull _actor || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
@@ -137,6 +139,7 @@ if (_mode == "START") exitWith {
         ["jobKey",format ["CBE_POINT_%1_%2",clientOwner,_actor]]];
     _actor setVariable ["CBE_PointActor_Generation",_generation];
     _actor setVariable ["CBE_PointActor_Recovery",[_generation,"NOT_ATTEMPTED",_body,"",0,serverTime],true];
+    _actor setVariable ["CBE_PointActor_Equipment",[_generation,"NOT_ATTEMPTED",_body,"","",serverTime],true];
     _actor setVariable ["CBE_PointActor_Brain",_brain];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copy];
     _actor setVariable ["CBE_PointActor_Order",[_generation,_epoch,_group,_brain get "operationGeneration",
@@ -254,6 +257,8 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             };
         };
     };
+    _brain set ["visitReached",true];
+    [_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover;
     ["VISITED"] call _finish
 };
 if (_position vectorDistance (_brain get "progressPosition") >= 1) then {
