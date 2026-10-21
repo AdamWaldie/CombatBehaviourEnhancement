@@ -1116,5 +1116,12 @@
     },
     "evidence": ".qa/lambs-forced-task-trace-20261021.json; .qa/danger-posture-job-build.log; .qa/danger-posture-job-header-repack.log; .qa/danger-posture-job-independent.log",
     "limits": "No physical acceptance/performance guarantee. Pause/shutdown/budget pressure can exhaust original window; no late forced restore. Deliberate ATTACK/MOVE-disabled departures retained."
+  },
+  "dangerCleanupIdentity20261021": {
+    "baseline": "3a281fb3",
+    "correction": "Stable DANGER_POSTURE category coalesces through existing group-object/generation/epoch matching, not callsign. Terminal cleanup retires original local receipt-group slot immediately with bounded<=64 lookup.",
+    "sourceHash": "e0610cd288bdb8aa4efaab3bb471809da21c386e497f43b4cbcefb16ab6dc367",
+    "evidence": ".qa/danger-posture-identity-build.log; .qa/danger-posture-identity-independent.log",
+    "limits": "No physical rename/burst/HC/cleanup/performance acceptance; original retry window unchanged."
   }
 }

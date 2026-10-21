@@ -1,3 +1,9 @@
+# Latest checkpoint - stable danger cleanup identity
+
+
+## 2026-10-21 - Stable danger cleanup identity and slot retirement
+Baseline3a281fb3. Queue key formatted mutable groupcallsign could create duplicatejobs after rename; replaced with constant DANGER_POSTURE category because shared QueueJob already binds groupobject/generation/epoch. Terminal exact receipt cleanup now removes actor from original receiptgroup pendinglist immediately (local typedgroup,<=64boundedfind) without stance/movement command. Frees capacity before next callback; no provider/newowner mutation. Existing609focused/all1484+HEMTT/FSM/docs/package pass .qa/danger-posture-identity-build.log; independent .qa/danger-posture-identity-independent.log. Candidate .qa/candidates/danger-posture-identity-3a281fb3 fingerprint183b0b448d8ac989ee5e2f3290c7b1ff09a6d691a9b8366981ac32309b884677. No physical rename/burst/cleanup/HC/performance claim. AuditsPAUSED; no launches/push/merge/publication;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signing preserved.
+
 # Latest checkpoint - finite danger posture cleanup
 
 

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Cleanup coalesces by group object and epoch, independent of mutable callsigns.
+ * Terminal release retires its pending queue slot immediately, without a stance command.
  * Native fleeing defers restoration through the original bounded pending-stance path.
  * Purpose: Release CBE's finite weak danger stance without overwriting a newer owner.
  * Locality / Authority: Runs where the AI soldier is local when the engine danger FSM finishes.
@@ -27,7 +29,20 @@ private _lease=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
 if (count _lease != 6) exitWith {false};
 private _evidence={
     params ["_reason",["_retire",false]];
-    if (_retire) then {_actor setVariable ["CBE_Danger_EngineStanceLease",nil]};
+    if (_retire) then {
+        _actor setVariable ["CBE_Danger_EngineStanceLease",nil];
+        private _receiptGroup=_lease select 5;
+        if (_receiptGroup isEqualType grpNull && {!isNull _receiptGroup} && {local _receiptGroup}) then {
+            private _pendingRetirement=_receiptGroup getVariable ["CBE_Danger_StancePendingActors",[]];
+            if (_pendingRetirement isEqualType [] && {count _pendingRetirement <= 64}) then {
+                private _retirementIndex=_pendingRetirement find _actor;
+                if (_retirementIndex >= 0) then {
+                    _pendingRetirement deleteAt _retirementIndex;
+                    _receiptGroup setVariable ["CBE_Danger_StancePendingActors",_pendingRetirement];
+                };
+            };
+        };
+    };
     if (!_retire && {_reason in ["ACTOR_RESERVATION","ACTOR_DORMANT","NATIVE_TASK_OR_MEDICAL","RESTORE_PENDING"]}) then {
         private _pendingGroup=group _actor;
         private _pending=_pendingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
@@ -41,7 +56,7 @@ private _evidence={
                 private _cleanupEpoch=_pendingGroup getVariable ["CBE_AIPass_Epoch",0];
                 [CBE_fnc_DangerPostureStep,createHashMapFromArray [["group",_pendingGroup],
                     ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch]],0.25,
-                    format ["DANGER_POSTURE_%1_%2",_pendingGroup,_cleanupEpoch]] call CBE_fnc_CortexQueueJob;
+                    "DANGER_POSTURE"] call CBE_fnc_CortexQueueJob;
             };
         };
     };
