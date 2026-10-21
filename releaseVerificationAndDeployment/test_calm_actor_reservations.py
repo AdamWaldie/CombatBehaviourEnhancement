@@ -274,7 +274,11 @@ class SupportBoundCommitTests(unittest.TestCase):
         self.assertIn('(_row select 4) == _sequence',source)
         self.assertIn('(_row select 5) == _completedTurns',source)
         self.assertIn('["resumeNativeMoves",_resumeMoves]',source)
-        inherited=active.split('if !(_unit in (_drill getOrDefault ["resumeNativeMoves",[]])) then {',1)[1].split('};',1)[0]
+        inherited=active.split('if (!_continueNative) then {',1)[1].split('};',1)[0]
+        keep=active.split('private _continueNative=',1)[1].split('if (!_continueNative)',1)[0]
+        for proof in ('resumeNativeMoves','currentCommand _unit == "MOVE"',
+                      '_nativeGoal vectorDistance _spot <= 0.25','call _nativeCommandAvailable'):
+            self.assertIn(proof,keep)
         self.assertIn('_unit doMove _spot',inherited)
         self.assertIn('_distanceClock=time+((_savedProgress select 0) select 1)-serverTime',active)
         self.assertIn('_motionClock=time+((_savedProgress select 0) select 2)-serverTime',active)

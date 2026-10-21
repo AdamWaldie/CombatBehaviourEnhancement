@@ -219,5 +219,15 @@
     "currentCBE": "AdvanceStart armed two-actor admission uses minimum1 mover/1 cover and bounds<=20m; FlankStep small-survivor rebalance preserves opposite roles, actual actor spots/progress, finite grace/recovery and binary team handoff. Larger groups use pair-preserving fire-team allocation.",
     "disposition": "Two-person arrival-controlled alternation already has an integrated executor; not a missing parallel controller. Larger-group pair-granular alternation remains a distinct unimplemented capability. Do not replace binary teamTurn with arbitrary pair indices or claim full parity from two-actor support.",
     "nextAction": "If selecting larger-group pair-granular execution, first preserve movement reservations/checkpoint/wave identities and casualty reallocation in the current operation. No new free-running source loop. Actual cover efficacy and normal/HC behaviour remain unverified."
+  },
+  "sameBoundCasualtyContinuity": {
+    "baseline": "e553d729",
+    "finding": "MOVE casualty/relief/survivor rebalance reset to START and discarded spots. Subsequent issue rebuilt incumbent slots and per-actor progress/retries, despite retaining parent bound deadline. This could churn healthy paths and renew individual retry allowance.",
+    "implementation": "Capture previous actor-addressed spots, ASL3D progress clocks converted to existing server-time resume format, and spent retries before all three same-bound START transitions. Existing issue maps by actor; newcomers have no saved rows. Keep native MOVE only when current native goal equals preserved spot and existing native receipt still qualifies at write boundary.",
+    "authorityAndCost": "Capture <=64 previous movers, private arrays only. No extra world scan/worker or new deadline. Current native goal read only for retained MOVE candidates. New replacements with retained incumbents check at most5 local formation slots against terrain/all saved destinations before one existing cover query; no usable slot ends NO_REPLACEMENT_SPACE before movement writes. Existing ownership checks remain. Actual path/cover/performance unverified; not independent pair-wave parity.",
+    "validation": "All1482 regression cases/full HEMTT/SQF/config/FSM/docs/package gates pass; independent verify pass. Unsigned .qa/candidates/casualty-bound-continuity-e553d729 fingerprint8519305e19e73fdbbb8ff2940cbdd86df5d1fe2475fbab8062d391dc1076124d. Logs .qa/casualty-bound-continuity-build.log and .qa/casualty-bound-continuity-independent.log. Initial full run found one source-shape test referencing old resume-flag condition, updated to check stronger live command/goal/receipt contract. No runtime audit or new test cases.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

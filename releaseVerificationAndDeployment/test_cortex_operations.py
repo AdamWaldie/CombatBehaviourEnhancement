@@ -4318,6 +4318,24 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,step)
         self.assertIn('_x checkAIFeature "PATH" || {_x in _ownedPathUnits}',step)
         self.assertNotIn('addEventHandler ["Killed"',step)
+        capture=step.split('private _captureBound={',1)[1].split('private _selectRelief={',1)[0]
+        for proof in ('_oldMovers select [0,64]','_savedSpots pushBack [_actor,+_spot]',
+                      'serverTime+(_row select 1)-time','serverTime+(_row select 3)-time',
+                      '_savedRetries pushBack [_actor,_retry select 0]'):
+            self.assertIn(proof,capture)
+        for forbidden in ('boundDeadline','boundQuorumUntil','doMove','setPos'):
+            self.assertNotIn(forbidden,capture)
+        self.assertEqual(step.count('call _captureBound;'),3)
+        self.assertIn('(_resumeSpots select {(_x select 0) in _units}) apply',step)
+        self.assertIn('forEach [0,1,-1,2,-2]',step)
+        self.assertIn('(_spots+_reservedSpots) findIf {_candidate distance2D _x < 2}',step)
+        self.assertIn('if (!_slotsAvailable) exitWith {_result="NO_REPLACEMENT_SPACE" call _end}',step)
+
+        continuation=step.split('private _continueNative=',1)[1].split('if (!_continueNative)',1)[0]
+        for proof in ('resumeNativeMoves','currentCommand _unit == "MOVE"',
+                      '_nativeGoal vectorDistance _spot <= 0.25','call _nativeCommandAvailable'):
+            self.assertIn(proof,continuation)
+
         self.assertIn('["desiredStrength",count _element]',source('cortexFlankStart'))
         self.assertIn('["teamSizes",[count _element,count _coverElement]]',source('cortexAdvanceStart'))
         self.assertIn('["teamSizes",[count _first,count _second]]',source('cortexSupportBoundStart'))

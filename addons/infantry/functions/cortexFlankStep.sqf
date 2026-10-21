@@ -28,6 +28,8 @@
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
  * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
  * together where vacancies permit, preferring eligible buddies of existing team members.
+ * Same-bound casualty rebuilds retain incumbent actor destinations, progress clocks and spent
+ * retries through the existing resume records; only acknowledged matching native legs skip reissue.
  * A single required vacancy may still split an unrelated reserve pair. New recruits need rifle
  * capacity on ordinary legs; reserve ranking runs only for actual vacancies. Existing actors stay enrolled.
  * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
@@ -378,6 +380,36 @@ private _reinforcements=[];
 private _buddyPairs=_group getVariable ["CBE_CombatPairs",[]];
 if !(_buddyPairs isEqualType []) then {_buddyPairs=[]};
 _buddyPairs=_buddyPairs select [0,16];
+// Same-bound casualty rebuilds reuse the existing resume format. Preserve actor-addressed
+// destinations, physical clocks and spent retries before clearing index-addressed arrays.
+// This is local data only; issue still revalidates the exact native leg before skipping a write.
+private _captureBound={
+    private _oldMovers=_drill getOrDefault ["movers",[]];
+    private _oldSpots=_drill getOrDefault ["spots",[]];
+    private _oldProgress=_drill getOrDefault ["progress",[]];
+    private _oldRetries=_drill getOrDefault ["retries",[]];
+    private _savedSpots=[];private _savedProgress=[];private _savedRetries=[];private _nativeMoves=[];
+    {
+        private _actor=_x;
+        private _oldIndex=_forEachIndex;
+        private _spot=_oldSpots param [_oldIndex,[],[[]]];
+        if (!isNull _actor && {count _spot == 3}) then {
+            _savedSpots pushBack [_actor,+_spot];
+            _nativeMoves pushBack _actor;
+            private _row=_oldProgress param [_oldIndex,[],[[]]];
+            if (count _row == 4 && {(_drill getOrDefault ["progressCoordinates",""]) == "ASL3D"}) then {
+                _savedProgress pushBack [_actor,serverTime+(_row select 1)-time,
+                    serverTime+(_row select 3)-time,_row select 0,+(_row select 2)];
+            };
+            private _retry=_oldRetries param [_oldIndex,[],[[]]];
+            if (count _retry == 2) then {_savedRetries pushBack [_actor,_retry select 0]};
+        };
+    } forEach (_oldMovers select [0,64]);
+    _drill set ["resumeSpots",_savedSpots];
+    _drill set ["resumeProgress",_savedProgress];
+    _drill set ["resumeRetries",_savedRetries];
+    _drill set ["resumeNativeMoves",_nativeMoves];
+};
 private _selectRelief={
     params ["_donors","_keep"];
     if (count _donors <= _keep) exitWith {[]};
@@ -548,6 +580,7 @@ if (_reinforcements isNotEqualTo []) then {
     if (count _history > 32) then {_history=_history select [(count _history)-32,32]};
     _group setVariable ["CBE_Cortex_DrillReinforcements",_history,true];
     if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
+        call _captureBound;
         [_group,_drill,"START","CASUALTY_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
         _drill set ["spots",[]];
         _drill set ["boundStart",time];
@@ -739,6 +772,7 @@ private _ensureMovingTeam={
         _coverAvailable pushBack _coverer;
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
+            call _captureBound;
             [_group,_drill,"START","SURVIVOR_PAIR_REBALANCE"] call CBE_fnc_CortexDrillSetStage;
             _drill set ["spots",[]];
         };
@@ -756,6 +790,7 @@ private _ensureMovingTeam={
         _drill set ["teams",_teams];
         if ((_drill getOrDefault ["stage",""]) == "MOVE") then {
             // Membership changed: rebuild slots for this same committed bound before indexing them.
+            call _captureBound;
             [_group,_drill,"START","RECOVERY_REINFORCEMENT"] call CBE_fnc_CortexDrillSetStage;
             _drill set ["spots",[]];
         };
@@ -915,6 +950,9 @@ private _issue = {
     private _planned=[];
     private _direction = if (_kind in ["ASSAULT","CLEAR","CONSOLIDATE"]) then {_drill get "assaultDirection"} else {_point getDir _enemyPos};
     private _spots = [];
+    private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
+    private _reservedSpots=(_resumeSpots select {(_x select 0) in _units}) apply {+(_x select 1)};
+    private _slotsAvailable=true;
     // Retain only still-owned recovery overrides across the main element's next bound.
     // FlankEnd restores the same records on cancellation, migration or completion.
     private _disabled = +(_drill get "disabled");
@@ -930,13 +968,26 @@ private _issue = {
         private _depth = 0;
         if (_teams isNotEqualTo []) then {_lateral = _lateral + ([-8,8] select (_drill get "teamTurn"))};
         private _spot = (_point getPos [_lateral, _direction + 90]) getPos [_depth, _direction];
-        private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
         private _resumeIndex=_resumeSpots findIf {(_x select 0) == _unit};
         if (_resumeIndex >= 0) then {
             // Adoption retains the committed actor destination. Do not spend geometry budget
             // selecting cover that will immediately be discarded or reroll the approach.
             _spot=+((_resumeSpots select _resumeIndex) select 1);
         } else {
+            // A replacement cannot consume an incumbent's preserved slot, even when
+            // that incumbent occurs later in the reordered roster. Try five local slots.
+            if (_reservedSpots isNotEqualTo []) then {
+                private _slotFound=false;
+                private _preferredSpot=+_spot;
+                {
+                    private _candidate=_preferredSpot getPos [_x*_spacing,_direction+90];
+                    if (!surfaceIsWater _candidate && {((surfaceNormal _candidate) select 2) >= 0.55}
+                        && {(_spots+_reservedSpots) findIf {_candidate distance2D _x < 2} < 0}) exitWith {
+                        _spot=_candidate;_slotFound=true;
+                    };
+                } forEach [0,1,-1,2,-2];
+                if (!_slotFound) then {_slotsAvailable=false};
+            };
             if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
                 {
                     private _alternative=(_point getPos [_lateral*_x,_direction+90]) getPos [_depth,_direction];
@@ -946,14 +997,15 @@ private _issue = {
                 } forEach [0.65,0.35,0];
             };
             if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
-                private _cover = ([_spot, _enemyPos, 3, _spots, _group] call CBE_fnc_CortexFindCover) select 0;
+                private _cover = ([_spot, _enemyPos, 3, _spots+_reservedSpots, _group] call CBE_fnc_CortexFindCover) select 0;
                 // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
-                if (_cover distance2D _spot <= 2 && {_spots findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
+                if (_cover distance2D _spot <= 2 && {(_spots+_reservedSpots) findIf {_cover distance2D _x < 2} < 0}) then {_spot = _cover};
             };
         };
         _spots pushBack _spot;
         _planned pushBack [_unit,+_spot];
     } forEach _units;
+    if (!_slotsAvailable) exitWith {_result="NO_REPLACEMENT_SPACE" call _end};
     // Geometry is prepared above the local commit. Native writes and their journals commit only while
     // the same drill point, roster and observed actor tasks still own this entire bound.
     private _issued=false;
@@ -1033,7 +1085,12 @@ private _issue = {
             if ([_unit] call _mayIssueMovement) then {
                 // A transferred exact native leg continues in the engine. Observing it grants
                 // neither another doMove nor a fresh command-acknowledgement interval.
-                if !(_unit in (_drill getOrDefault ["resumeNativeMoves",[]])) then {
+                private _continueNative=_unit in (_drill getOrDefault ["resumeNativeMoves",[]])
+                    && {currentCommand _unit == "MOVE"} && {
+                        private _nativeGoal=(expectedDestination _unit) param [0,[],[[]]];
+                        count _nativeGoal == 3 && {_nativeGoal vectorDistance _spot <= 0.25}
+                    } && {[_unit] call _nativeCommandAvailable};
+                if (!_continueNative) then {
                     _unit doWatch _enemyPos;
                     _unit doMove _spot;
                     [_unit,"MOVE",_spot] call _recordNativeCommand;
