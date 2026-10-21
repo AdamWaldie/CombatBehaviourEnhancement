@@ -28,7 +28,8 @@
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
  * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
  * together where vacancies permit, preferring eligible buddies of existing team members.
- * A single required vacancy may still split an unrelated reserve pair.
+ * A single required vacancy may still split an unrelated reserve pair. New recruits need rifle
+ * capacity on ordinary legs; reserve ranking runs only for actual vacancies. Existing actors stay enrolled.
  * Team casualty/recovery transfers prefer unpaired survivors, then intact pairs when donor
  * strength permits. Relief must bring rifle fire capacity while leaving at least one qualified
  * rifle in the donor; headcount alone cannot preserve cover. Minimum capacity may split a pair.
@@ -423,6 +424,11 @@ private _rankCandidates={
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
+    private _refillLeg=(_drill getOrDefault ["points",[]]) param [_drill getOrDefault ["index",0],[]];
+    if !((_refillLeg param [1,"",[""]]) in ["CROSS_FAR","CONSOLIDATE"]) then {
+        _candidates=_candidates select {unitCombatMode _x in ["YELLOW","RED"]
+            && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
+    };
     private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
     private _rifles=_candidates select {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])};
@@ -432,7 +438,7 @@ private _rankCandidates={
 private _units=[];
 if (_teams isEqualTo []) then {
     _units=(_drill get "units") select {_x in _fitSquad};
-    private _candidates=[_fitSquad-_units] call _rankCandidates;
+    private _candidates=if (count _units < _desiredStrength) then {[_fitSquad-_units] call _rankCandidates} else {[]};
     while {count _units < _desiredStrength && {_candidates isNotEqualTo []}} do {
         private _vacancies=(_desiredStrength-count _units) min 5;
         private _relief=[_group,_candidates select [0,16],_vacancies,1,_units select [0,16]] call CBE_fnc_CombatElementSelect;
@@ -447,8 +453,12 @@ if (_teams isEqualTo []) then {
     _teams=_teams apply {_x select {_x in _fitSquad}};
     private _assigned=[];
     {_assigned append _x} forEach _teams;
-    private _candidates=[_fitSquad-_assigned] call _rankCandidates;
     private _desiredSizes=_drill getOrDefault ["teamSizes",_teams apply {count _x}];
+    private _needsRefill=false;
+    {
+        if (count _x < (_desiredSizes param [_forEachIndex,count _x])) exitWith {_needsRefill=true};
+    } forEach _teams;
+    private _candidates=if (_needsRefill) then {[_fitSquad-_assigned] call _rankCandidates} else {[]};
     {
         private _team=_x;
         private _desired=_desiredSizes param [_forEachIndex,count _team];

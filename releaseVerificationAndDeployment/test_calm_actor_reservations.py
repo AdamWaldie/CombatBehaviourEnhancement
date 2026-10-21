@@ -151,6 +151,11 @@ class ManoeuvreBuddyReliefTests(unittest.TestCase):
             self.assertNotIn(forbidden,helper)
         candidates=source.split('private _rankCandidates={',1)[1].split('private _units=[];',1)[0]
         self.assertIn('currentCommand _x != "STOP"',candidates)
+        for gate in ('CortexPrimaryAmmoAvailable','unitCombatMode _x in ["YELLOW","RED"]',
+                     'checkAIFeature "FIREWEAPON"','["CROSS_FAR","CONSOLIDATE"]'):
+            self.assertIn(gate,candidates)
+        self.assertIn('private _needsRefill=false',source)
+        self.assertIn('if (_needsRefill) then',source)
         refill=source.split('private _units=[];',1)[1].split('// Candidate selection prepares',1)[0]
         self.assertEqual(refill.count('call CBE_fnc_CombatElementSelect'),2)
         self.assertEqual(refill.count('_candidates=_candidates-_relief'),2)

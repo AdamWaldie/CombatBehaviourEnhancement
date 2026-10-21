@@ -168,5 +168,17 @@
     "physicalAcceptance": false,
     "scoresChanged": false,
     "exitExemption": "CROSS_FAR/CONSOLIDATE retain donor headcount/pair selection without ammo/ROE qualification, matching existing next-bound exemption so dry actors can leave danger."
+  },
+  "reserveRecruitFireCapacity": {
+    "baseline": "e307d7eb",
+    "finding": "Reserve refill could select dry/hold-fire/FIREWEAPON-disabled newcomers before the next-bound capacity check, replacing a casualty numerically without repairing tactical fire capacity. Reserve task/role ranking also ran when no vacancy existed.",
+    "implementation": "Filter new ordinary-leg reserve candidates with the same primary ammo, individual YELLOW/RED and FIREWEAPON policy before shared pair selection. Existing participants stay enrolled. CROSS_FAR/CONSOLIDATE preserve movement-only recruitment. Rank candidates only if single element or any team is below desired count.",
+    "authority": "Existing queued care, protected native tasks, reservations, locality, ownership and final roster commit unchanged. No forced reload, inventory edit, new worker, movement writer or deadline.",
+    "cost": "No reserve ranking/task/role/ammo work on intact-roster callbacks; actual vacancies add main-muzzle ammo qualification with loaded-round fast path. Physical cost not measured.",
+    "limits": "Available ammo/permission is not effective cover or instant readiness. No global firepower guarantee or independent pair-level executor. Dry existing actors can still finish current movement and use normal sharing/rearm paths.",
+    "validation": "Existing48 focused reservation tests passed; existing no-routine-inventory-poll assertion updated to restrict ammo checks to vacancy/relief helpers. Full build result in handover.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
