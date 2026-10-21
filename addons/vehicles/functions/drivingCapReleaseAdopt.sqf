@@ -5,6 +5,8 @@
  * The edge opens five seconds for late receipt/group delivery. Init/crew calls cannot create it.
  * Repeat/JIP: Metadata only, no tactical startup or native command. Reuses the immutable original
  * release deadline and baseline; incompatible private state or newer child work refuses adoption.
+ * Loss/gain events can arrive in either order across machines: source creation must fit the
+ * original five-second edge window, rather than assuming the source event arrived first.
  * No general cruising-cap migration or external-provider quiescence is established here.
  * Arguments: 0 vehicle <OBJECT, objNull>.
  * Return: BOOL - complete metadata adopted/matched, never proof of physical restoration.
@@ -29,12 +31,12 @@ isNil {
         _identity isEqualType [] && {count _identity == 3}
             && {_identity findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} < 0}
     };
-    if (!(_originalState isEqualType []) || {!(count _originalState in [4,12])}
+    if (!(_originalState isEqualType []) || {!(count _originalState in [4,11,12])}
         || {!(_originalRestore isEqualType [])} || {count _originalRestore != 1}
         || {!(_originalGroup isEqualType grpNull)} || {isNull _originalGroup} || {!local _originalGroup}
         || {!(_issuingEpoch isEqualType 0)} || {!finite _issuingEpoch}
         || {!(_originalDeadline isEqualType 0)} || {!finite _originalDeadline}
-        || {serverTime >= _originalDeadline} || {_originalDeadline > (_edge select 1)+30}
+        || {serverTime >= _originalDeadline} || {_originalDeadline > (_edge select 2)+30}
         || {!(_originalDriver isEqualType objNull)} || {!(_originalCommander isEqualType objNull)}
         || {!([_issuer] call _identityValid)} || {!([_custodian] call _identityValid)}
         || {_issuingEpoch != (_issuer select 1)}
@@ -73,6 +75,7 @@ isNil {
     _adopted set [8,_currentIdentity];
     _vehicle setVariable ["CBE_DrivingAssist_State",+_originalState];
     _vehicle setVariable ["CBE_DrivingAssist_Restore",+_originalRestore];
+    _vehicle setVariable ["CBE_DrivingCap_Issuer",[+_currentIdentity,_originalDriver,_originalCommander]];
     _vehicle setVariable ["CBE_DrivingCapRelease_Work",_adopted,true];
     _vehicle setVariable ["CBE_DrivingCapRelease_Result",["ADOPTED",serverTime]];
     _accepted=true;

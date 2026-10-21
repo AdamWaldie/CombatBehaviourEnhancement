@@ -168,6 +168,14 @@ _brain set ["geometryTracks",_geometryTracks];
     if (_pendingCapRelease isNotEqualTo []) then {
         [_vehicle,_group,true,_pendingCapRelease] call CBE_fnc_DrivingAssistRelease;
     } else {
+    // Give the actual outgoing owner its original bounded publication window. Native
+    // route following continues; no new cap/child may capture the inherited cap as baseline.
+    private _capEdge=_vehicle getVariable ["CBE_DrivingCap_LocalEdge",[]];
+    private _capLookup=_capEdge isEqualType [] && {count _capEdge == 3}
+        && {(_capEdge select 1) isEqualType 0} && {finite (_capEdge select 1)}
+        && {(_capEdge select 2) isEqualType 0} && {finite (_capEdge select 2)}
+        && {serverTime >= (_capEdge select 1)} && {serverTime < (_capEdge select 2)};
+    if (!_capLookup) then {
     [_vehicle] call CBE_fnc_DrivingPassRetireInherited;
     private _driver=driver _vehicle;
     private _movementOperator=effectiveCommander _vehicle;
@@ -899,6 +907,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (abs ((getForcedSpeed _vehicle)-_capMps) > 0.1) exitWith {false};
                 _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
                 _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
+                _vehicle setVariable ["CBE_DrivingCap_Issuer",[
+                    [clientOwner,_brain get "ownerEpoch",_brain get "generation"],_driver,effectiveCommander _vehicle]];
                 _entryAssistState=+_capReceipt;
                 if (_queueHold) then {["APPLIED",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
                 private _capIssueComplete=true;
@@ -1340,6 +1350,7 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             };
         };
+    };
     };
     };
 } forEach _vehicles;

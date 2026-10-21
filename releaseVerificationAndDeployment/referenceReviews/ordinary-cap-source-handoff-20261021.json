@@ -1,0 +1,37 @@
+{
+  "baseline": "30e1a094",
+  "scope": "Ordinary active cap source publication and receiving acquisition barrier at actual vehicle locality transfer",
+  "trace": [
+    "DrivingOperationFinish refuses native cleanup after actual group locality loss; CortexLocality then increments private epoch and retires the old brain. Original cap state/baseline alone therefore cannot reconstruct the issuer later.",
+    "Confirmed DrivingAssistStart application now records original local owner/epoch/generation and raw driver/effective-commander seats before the private brain/epoch can retire. This adds no recurring public broadcast.",
+    "Actual vehicle Local-loss branch captures its private loss edge and invokes DrivingCapReleaseOffer even though vehicle command locality is gone. Offer performs metadata only; it never forces speed, moves a vehicle or schedules a worker.",
+    "Offer requires complete current private receipts/source identity, original current seats/group, exact native applied cap and absence of child controllers. New complete pending fact uses source loss-edge time+30. Existing matching pending fact keeps its deadline and current custody and is never republished.",
+    "After publication, only the source machine matching private state/baseline/issuer/next are retired. A replaced native cap retires only stale local metadata, with no public mutation or native restoration. Changed seats, child controllers and incompatible proof refuse this path.",
+    "Receiving ordinary Start defers cap/child acquisition during its actual original five-second Local window. Native authored route following continues. Existing bounded lookups then admit complete fact or leave it unresolved.",
+    "Distributed loss/gain events may arrive in either order: source creation must fit receiver original window, not incorrectly precede its start. Receiving adoption still preserves original deadline and validates actual local group/seats/native cap/current authority.",
+    "Adoption retains local current-custody issuer for another transfer of the still-pending cap; successful release retires issuer with original private baseline. Eleven-field intermediate cap state joins existing four/twelve-field accepted forms."
+  ],
+  "referenceContext": "Continues prior HBQ cap-handback review and ordinary-cap application/incoming-owner records. No new whole-source review or parity claim; avoids route-refresh force-enable/reset shortcuts.",
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "5acb214361364f975481b0dc092c74d8c5c9d7878ee1481f80311e9fb798c2bb",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "d009fd5f8cc72b045df5335fddce6a7ef280053df47432f7dc971864de07a913",
+    "addons/vehicles/functions/drivingCapReleaseOffer.sqf": "b617fccc2e0ed3f6871a586fc920c07f3064fc9e4ea8061609baa8e78e8b7d36",
+    "addons/vehicles/functions/drivingCapReleaseAdopt.sqf": "0722ef687ebaaf7a9b36ad173964ae518a88f904ab69e64217994afc7f586e41",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "9db34bd395ec7ca56aa53ac6f902cbb9d5c54012abe5ec72cbad854c983a5dc3"
+  },
+  "validation": {
+    "tests": 1484,
+    "compiledSQF": 393,
+    "fullOffline": ".qa/ordinary-cap-source-handoff-build.log",
+    "independent": ".qa/ordinary-cap-source-handoff-independent.log",
+    "candidate": ".qa/candidates/ordinary-cap-source-handoff-30e1a094",
+    "fingerprint": "f2d168e642ebb7111da351c2e239a3814fae597365c197bbdeb26b7701a927a5"
+  },
+  "limits": [
+    "No Arma launch; audits paused. Normal/HC transfer order, repeated transfer, changed seats/children, cap acknowledgement and physical route continuation remain unverified.",
+    "Five-second receipt/group arrival and original thirty-second cleanup remain finite; late/missing proof has no fallback baseline or eventual-handback guarantee.",
+    "Changed-seat/active-child refusal and stale private state in those refused cases are not solved by ordinary offer. Child controllers retain separate paths; no general controller quiescence claim.",
+    "No continuous public active-cap lease was added. Loss-edge source event and last confirmed local proof are required. Missing preexisting issuer proof is not inferred or adapted.",
+    "No external-provider acknowledgement, JIP readiness, full driving acceptance or measured performance claim. No percentage rescore."
+  ]
+}

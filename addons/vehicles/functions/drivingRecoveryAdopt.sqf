@@ -32,6 +32,12 @@ isNil {
         if (_nativeEdge) then {
             _vehicle setVariable ["CBE_DrivingAbort_LocalEdge",nil];
             _vehicle setVariable ["CBE_DrivingCap_LocalEdge",nil];
+            _vehicle setVariable ["CBE_DrivingCap_LossEdge",nil];
+            if (!_gained && {!local _vehicle}) then {
+                private _lossEdge=[_epoch,serverTime];
+                _vehicle setVariable ["CBE_DrivingCap_LossEdge",_lossEdge];
+                [_vehicle,_lossEdge] call CBE_fnc_DrivingCapReleaseOffer;
+            };
             if (_gained && {local _vehicle}) then {
                 _vehicle setVariable ["CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]];
             };

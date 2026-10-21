@@ -46,6 +46,8 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertLess(commit.index('_vehicle forceSpeed _capMps;'),commit.index(confirmation))
         self.assertLess(commit.index(confirmation),commit.index('setVariable ["CBE_DrivingAssist_Restore",_previous]'))
         self.assertLess(commit.index(confirmation),commit.index('setVariable ["CBE_DrivingAssist_State",_capReceipt]'))
+        self.assertLess(commit.index(confirmation),commit.index('setVariable ["CBE_DrivingCap_Issuer"'))
+        self.assertIn('[clientOwner,_brain get "ownerEpoch",_brain get "generation"],_driver,effectiveCommander _vehicle',commit)
         fallback=commit.split('if (!_queueCommitted) then {',1)[1].split('private _issuedQueue=',1)[0]
         self.assertLess(fallback.index('_vehicle forceSpeed 0;'),fallback.index('abs (getForcedSpeed _vehicle) > 0.1'))
         failed,confirmed=fallback.split('} else {',1)

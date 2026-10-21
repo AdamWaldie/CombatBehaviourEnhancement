@@ -41,7 +41,7 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         # Complete pending facts travel together; custody changes cannot replace origin.
         adopter=(ROOT/'addons/vehicles/functions/drivingCapReleaseAdopt.sqf').read_text()
         for guard in ('remoteExecutedOwner > 0','count _fact != 9','serverTime >= (_edge select 2)',
-                      'serverTime >= _originalDeadline','_originalDeadline > (_edge select 1)+30',
+                      'serverTime >= _originalDeadline','_originalDeadline > (_edge select 2)+30',
                       '_issuingEpoch != (_issuer select 1)','driver _vehicle != _originalDriver',
                       'effectiveCommander _vehicle != _originalCommander','!local _originalGroup',
                       'groupOwner _originalGroup != clientOwner','_privateState isNotEqualTo _originalState',
@@ -62,6 +62,28 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('"CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]',native_edge)
         self.assertEqual(locality.count('"CBE_DrivingCap_LocalEdge",['),1)
         self.assertIn('call CBE_fnc_DrivingCapReleaseAdopt',locality)
+        offer=(ROOT/'addons/vehicles/functions/drivingCapReleaseOffer.sqf').read_text()
+        for guard in ('remoteExecutedOwner > 0','{local _vehicle}', 'CBE_DrivingCap_LossEdge',
+                      '((_source select 0) select 0) != clientOwner','CBE_DrivingCap_Issuer',
+                      'driver _vehicle != (_source select 1)','effectiveCommander _vehicle != (_source select 2)',
+                      'CBE_DrivingRecovery_Work','CBE_DrivingPass_Work','CBE_DrivingCorridor_Work',
+                      'CBE_DrivingBypass_Work','(_lossEdge select 1)+30','if (_created) then',
+                      '(_fact select 7) isNotEqualTo (_source select 0)',
+                      '(_fact select 8) isNotEqualTo (_source select 0)'):
+            self.assertIn(guard,offer)
+        self.assertIn('if (!_gained && {!local _vehicle}) then {',native_edge)
+        self.assertIn('[_vehicle,_lossEdge] call CBE_fnc_DrivingCapReleaseOffer',native_edge)
+        self.assertNotIn('forceSpeed',offer)
+        self.assertNotIn('doMove',offer)
+        self.assertNotIn('waitAndExecute',offer)
+        self.assertEqual(offer.count('setVariable ["CBE_DrivingCapRelease_Work"'),1)
+        self.assertLess(offer.index('if (_created) then'),offer.rindex('call _retireSource;'))
+        # While the real source may still publish, no fresh cap/child can capture its cap.
+        lookup=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text().split('private _capLookup=',1)[1].split('call CBE_fnc_DrivingPassRetireInherited',1)[0]
+        self.assertIn('serverTime < (_capEdge select 2)',lookup)
+        self.assertIn('if (!_capLookup) then {',lookup)
+        self.assertIn('setVariable ["CBE_DrivingCap_Issuer",[+_currentIdentity',adopter)
+
         self.assertIn('CBE_DrivingCapRelease_CleanupTicket',cleanup)
         self.assertIn('[_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease',cleanup)
         self.assertIn('serverTime < (_cap select 4)',cleanup)

@@ -209,6 +209,7 @@ if (_capPending) exitWith {};
 _vehicle setVariable ["CBE_DrivingCapRelease_Work",nil,true];
 _vehicle setVariable ["CBE_DrivingCapRelease_Result",["RETIRED",serverTime]];
 _vehicle setVariable ["CBE_DrivingAssist_Restore",nil];
+_vehicle setVariable ["CBE_DrivingCap_Issuer",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Next",nil];
 _vehicle setVariable ["CBE_DrivingTrafficSeen",nil];
 _vehicle setVariable ["CBE_DrivingSolidSeen",nil];
