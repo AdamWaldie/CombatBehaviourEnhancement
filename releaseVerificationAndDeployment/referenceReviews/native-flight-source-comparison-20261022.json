@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-22",
+  "baseline": "dd8c9b68",
+  "scope": "Source-functional forced-danger flight comparison; no runtime change or physical parity claim",
+  "upstream": {
+    "dispatch": "brainForced invokes doFleeing when native fleeing is true.",
+    "foot": "doFleeing clears group building memory, finds nearby enemy, may stop/prone under overhead cover, otherwise searches terrain/buildings and moves to cover; distant/unseen branch recalls leader and resets stance. It can write strong posture, forceSpeed and ACE lastFired.",
+    "mounted": "At low grounded speed it may replace dead gunner, eject/reboard or abandon according to native mobility/fuel/ammo/damage and chance.",
+    "departs": "Do not copy unconditional strong posture, full speed reset, global group-memory erasure, live unseen enemy geometry or blind delayed crew actions over mission/Zeus/medical ownership."
+  },
+  "currentCBE": {
+    "forced": "Mode classifies native flight as FORCED. CanContinue allows its original finite wait; Act does not issue a fleeing destination. Recycle has no FORCED continuation. Existing ownership guards yield to native flight.",
+    "withdrawal": "Morale and Retreat implement group pressure/overmatch withdrawal through a separate finite operation. This is not evidence of individual fleeing-cover/rejoin parity.",
+    "capacityDistinction": "Capabilities reads usable inventory/health. TacticalAssess separately filters current fire-task availability. Replacing morale inventory capability with temporary fire-task availability could spuriously classify a busy launcher as permanently absent; no such change made."
+  },
+  "openMaterialGap": {
+    "status": "SOURCE_FUNCTIONAL_DIFFERENCE_PHYSICAL_BEHAVIOUR_UNKNOWN",
+    "description": "CBE has no explicit actor-level counterpart to LAMBS doFleeing cover/rejoin path. Yielding to native flight may be correct ownership policy but does not prove equivalent movement or exclude a stalled native-flee state under the replacement danger FSM.",
+    "minimumEvidence": "When audits are authorised, compare a known fleeing actor under native versus CBE danger FSM: actual destination changes, travel/cover, task replacement and recovery. Until then no assertion that native engine movement fills this gap.",
+    "implementationConstraints": "Any demonstrated missing response must use existing finite owner-local actor execution with original deadline, witnessed stagnation, known threat geometry, native task and Zeus interruption, exact cleanup and no perpetual duplicate controller. Mounted flight remains a separate crew-domain design."
+  },
+  "hashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doFleeing.sqf": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+    "addons/infantry/functions/dangerEngineMode.sqf": "0aee5da201a87aa55ff7437b4de6d9ed3073e5b9492e496db6c54f1cb92047fc",
+    "addons/infantry/functions/dangerEngineCanContinue.sqf": "9adbe38979d465505867b5a87190bf22c88464337af9224dfa73c5f1f5922b20",
+    "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+    "addons/infantry/functions/dangerEngineRecycle.sqf": "a55df7bc8a4923a9b8ca14a530ebe1e224fac154c1bf0e64cfa6b5a8a77c98b0",
+    "addons/infantry/functions/cortexMorale.sqf": "9ffa4058b4548f4cb74e3dafdc0d307340fe433c3355b2ef23a144b0f075943b",
+    "addons/infantry/functions/cortexTacticalAssess.sqf": "522c312750eeca0d4af1dddbd7dd540600fd98a4e6430b258f2c60d94bcda8fd",
+    "addons/infantry/functions/cortexCapabilities.sqf": "f34ee94ae2e865cc180ebcf09a13ec19864f38254a7b7491a1f32120ce58e1b9",
+    "addons/infantry/functions/cortexRetreat.sqf": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+  },
+  "validation": "Read-only source comparison; no runtime code change, full build repeat or new candidate. Last candidate illumination-handback-68022164 remains current runtime evidence.",
+  "limits": [
+    "No full LAMBS review/parity or percentage claim.",
+    "Audits PAUSED; physical/performance acceptance incomplete.",
+    "Protected references unchanged; no source scripts executed."
+  ]
+}
