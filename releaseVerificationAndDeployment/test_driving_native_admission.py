@@ -17,6 +17,12 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('+(_nativeGoalReceipt select 6)',read('drivingRouteGoal'))
         release=read('drivingRecoveryRelease')
         observation=release.split('// A native-route return was already issued.',1)[1].split('// This executor restores',1)[0]
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text(encoding='utf-8')
+        self.assertIn('"request","nativeReturn","queueBinding"',cleanup)
+        observer=cleanup.split('private _returnRetired=',1)[1].split('_current=_target getVariable',1)[0]
+        self.assertIn('"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease',observer)
+        self.assertIn('if (_returnRetired) then',observer)
+
         self.assertIn('NATIVE_ROUTE_OBSERVED',observation)
         self.assertIn('releaseUnresolved',observation)
         self.assertNotIn('doMove',observation.split('if ((_work',1)[1])

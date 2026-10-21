@@ -25,5 +25,15 @@
     "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "df752faf9cff1fd8844764bae8139866b9d9d494a909170e92492c7eb435a04a",
     "addons/vehicles/functions/drivingRecoveryRelease.sqf": "302607ad0148c770433ef766a0adfdbbc9dfb1fd2dec457bc2dd31eab772a81b",
     "addons/vehicles/functions/drivingAssistStart.sqf": "9f029d713740afcc671fe4ef48299284830142f273434e3b4aabd430c6813b40"
+  },
+  "cleanup_followup": {
+    "baseline": "71b58c93",
+    "finding": "Delayed cleanup called general AssistRelease and could retire native-return work before active DrivingAssistStart observed it, losing spent recovery provenance.",
+    "fix": "Bind nativeReturn in cleanup signature; service return through DEFERRED_HANDBACK observer, calling general cap release only after retirement. Exact live brain retains original episode; cancelled/finished brain retires.",
+    "validation": "9 focused existing cases passed; first full run had one stale cleanup-signature assertion, updated; final full offline build passed all1485/396SQF. Independent package verifier exit0.",
+    "candidate": ".qa/candidates/native-return-cleanup-71b58c93",
+    "fingerprint": "7e2a8f51add66037719b6460d25168b80accfc14be6e8aa011090480c27f4b6d",
+    "log": ".qa/native-return-cleanup-build-final.log",
+    "limits": "No physical execution or timing evidence; audits paused."
   }
 }

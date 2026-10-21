@@ -27,7 +27,7 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","queueBinding","rearEnvelope"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope"] apply {_work getOrDefault [_x,[]]}
     };
     private _abortSignature={
         params ["_hold"];
@@ -144,7 +144,15 @@ isNil {
                     if (_matching) then {
                         // Release may register the same ticket again; publish the active registry first.
                         localNamespace setVariable ["CBE_DrivingRecovery_Cleanup",_registry];
-                        [_target,_current get "group"] call CBE_fnc_DrivingAssistRelease;
+                        if ((_current getOrDefault ["nativeReturn",[]]) isNotEqualTo []) then {
+                            // Observe the return without turning an active driving episode into
+                            // a general release. The executor retains its spent budget only for
+                            // the exact live brain; cancelled/finished brains retire normally.
+                            private _returnRetired=[_target,_current get "group","DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
+                            if (_returnRetired) then {[_target,_current get "group"] call CBE_fnc_DrivingAssistRelease};
+                        } else {
+                            [_target,_current get "group"] call CBE_fnc_DrivingAssistRelease;
+                        };
                         _current=_target getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                         _matching=_current getOrDefault ["releasePending",false]
                             && {!(_current getOrDefault ["releaseUnresolved",false])}
