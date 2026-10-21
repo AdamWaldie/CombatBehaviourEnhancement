@@ -7036,6 +7036,15 @@ class CortexOperations(unittest.TestCase):
 
     def test_convoy_spacing_does_not_trim_navigation_to_a_short_stop(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        self.assertIn('private _bodyGap=_nose+_tail+5;',text)
+        self.assertIn('private _bodyGap = _bodyGaps select _i;',text)
+        self.assertIn('_frontExtent,_rearExtent',text)
+        def facing_gap(follower_bounds, front_bounds):
+            return max(follower_bounds[1],0)+max(-front_bounds[0],0)+5
+        self.assertEqual(facing_gap((-4,4),(-3,3)),12)
+        self.assertEqual(facing_gap((-2,6),(-5,1)),16)
+        self.assertEqual(facing_gap((-6,2),(-1,5)),8)
+
         self.assertNotIn('_frontDistance > _desiredGap * 0.7',text)
         self.assertNotIn('_frontDistance < _gap',text)
         self.assertIn('private _limit = (_frontSpeed + (_controlGap-_desiredGap)*0.4) max 0;',text)

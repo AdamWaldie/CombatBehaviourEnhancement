@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Size-aware spacing uses facing hull extents from model origins, not symmetric half-lengths.
+ * Existing traffic/turn geometry remains authoritative; this is not swept collision proof.
  * Disabled registered carriers reconcile their unload policy before mobility filtering;
  * restoration uses the exact existing lease and never forces passengers or crew out.
  * Gate approach: current forward gate/barrier geometry contributes to the existing safety cap;
@@ -444,7 +446,9 @@ if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault
     private _specs = createHashMap;
     {
         private _bounds = boundingBoxReal _x;
-        _specs set [netId _x, [getNumber (configOf _x >> "maxSpeed"), abs (((_bounds select 1) select 1) - ((_bounds select 0) select 1))]];
+        private _frontExtent=((_bounds select 1) select 1) max 0;
+        private _rearExtent=(-((_bounds select 0) select 1)) max 0;
+        _specs set [netId _x, [getNumber (configOf _x >> "maxSpeed"), abs (((_bounds select 1) select 1) - ((_bounds select 0) select 1)),_frontExtent,_rearExtent]];
     } forEach _vehicles;
     _state set ["specs", _specs];
     _group setFormation "COLUMN";
@@ -587,6 +591,7 @@ if (_contact && {!_pushThrough || {_pinned}} && {[_group,"CBE_Convoy_ContactHalt
 };
 // Size-aware gaps prevent a long IFV and a truck from being treated like two short cars.
 private _gaps = [0];
+private _bodyGaps = [0];
 private _maximum = _speed;
 private _specs = _state get "specs";
 for "_i" from 0 to (count _vehicles - 1) do {
@@ -595,8 +600,15 @@ for "_i" from 0 to (count _vehicles - 1) do {
     if (_topSpeed > 0) then {_maximum = _maximum min (_topSpeed * 0.8)};
     if (_i > 0) then {
         private _front = _vehicles select (_i - 1);
-        private _lengths = ((_specs get (netId _vehicle)) select 1) + ((_specs get (netId _front)) select 1);
-        _gaps pushBack (_separation max (_lengths * 0.5 + 5));
+        private _followerSpec=_specs get (netId _vehicle);
+        private _frontSpec=_specs get (netId _front);
+        // The follower's nose faces the predecessor's rear. Off-centre model
+        // origins make half the sum of full lengths an incorrect physical gap.
+        private _nose=_followerSpec param [2,(_followerSpec select 1)*0.5,[0]];
+        private _tail=_frontSpec param [3,(_frontSpec select 1)*0.5,[0]];
+        private _bodyGap=_nose+_tail+5;
+        _bodyGaps pushBack _bodyGap;
+        _gaps pushBack (_separation max _bodyGap);
     };
 };
 private _hadBypass=!isNil {_lead getVariable "CBE_DrivingBypass_Work"};
@@ -998,7 +1010,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _retainedPathCap=_progress param [8,-1,[0]];
     if (!_pathAssistEnabled) then {_retainedPathCap=-1; _progress set [8,-1]};
     private _tolerance = (_desiredGap * 0.2) max 3;
-    private _bodyGap = (((_specs get (netId _vehicle)) select 1) + ((_specs get (netId _front)) select 1))*0.5+5;
+    private _bodyGap = _bodyGaps select _i;
     private _gapLow = (_desiredGap - _tolerance) max _bodyGap;
     private _gapHigh = _desiredGap + _tolerance;
     private _pairMeasurement=[_vehicle,_front,_desiredGap,_gap,_captureControl] call _measurePairGap;
