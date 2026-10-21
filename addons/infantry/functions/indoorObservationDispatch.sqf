@@ -49,7 +49,8 @@ if ([_state,"bodyBuilding"] call CBE_fnc_CortexCooldown
     || {leader _group distance2D _position > 100}) exitWith {0};
 [_state,"bodyBuilding",8] call CBE_fnc_CortexCooldown;
 private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
-    local _x && {!isPlayer _x} && {_x != leader _group} && {isNull objectParent _x}
+    local _x && {!isPlayer _x} && {!fleeing _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {_x != leader _group} && {isNull objectParent _x}
         && {[_x] call CBE_fnc_CortexCombatEffective} && {_x distance2D _position <= 50}
         && {!(behaviour _x in ["STEALTH","CARELESS"])}
         && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","PLANNING","REPLAN","BUSY"])}

@@ -828,5 +828,29 @@
       "fingerprint": "d158d897e646a6b23e48a5377466bf8de518390b671457721c82e772389ef3cc",
       "physical": "unrun; audits paused"
     }
+  },
+  "indoorCareFleeing20261021": {
+    "finding": "Queued ACE care was not filtered before bounded nearest-two investigation selection. Indoor active/release availability and point release could command over native fleeing.",
+    "sourceScope": "fnc_isForced read in full; fnc_brainForced first52 lines only, including fleeing dispatch. Intent comparison only; original CBE implementation, no whole-file or parity claim.",
+    "implementation": "Both bounded roster filters reject queued care and fleeing. Native indoor context and active operation reject fleeing; indoor and point cleanup and casualty weapon command refuse fleeing. Original capacity, cadence, expiry and native orders retained. No new worker, global scan or medical/courage settings mutation.",
+    "hashes": {
+      "addons/infantry/functions/indoorActorDispatch.sqf": "ed23a0ad6766f0003741522c2a86d9c07aab6cb5f58a8bebf95a5e7461c9612b",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "bb7610fb5788fa3f9fe09745ddabc8629f626832541b2b2fca9bb19b6238c071",
+      "addons/infantry/functions/indoorActorNativeContext.sqf": "8294b009d889d57001ad16affa4747d0d7992a4624c1dbfa01082c913d2ab96c",
+      "addons/infantry/functions/indoorActorOperation.sqf": "4043180a76baf6d95ac03dd0d4a1b7bc7e610f99d3d9cd3d55f5ef6542c9f8d6",
+      "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
+      "addons/infantry/functions/casualtyWeaponRecover.sqf": "2a70a56b5241b67aa16a5ef0b023af737008e99fccbe65113e46bf6db3cc0b16",
+      ".qa/lambs-2621-review/danger/functions/fnc_isForced.sqf": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/indoor-care-fleeing-build.log",
+      "independent": ".qa/indoor-care-fleeing-independent.log",
+      "candidate": ".qa/candidates/indoor-care-fleeing-7c3ad0b6",
+      "fingerprint": "68f5310b6b7cbe32471ff173c48a910e1f2e6abed3ca5a0a74940a49ee9e00d1",
+      "physical": "unrun; audits paused"
+    },
+    "limits": "Static predicate and candidate-selection regression only. No claim of physical entry, care/fleeing handover, CQB flow or measured performance. No percentages changed."
   }
 }

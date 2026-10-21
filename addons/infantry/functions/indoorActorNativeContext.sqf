@@ -4,7 +4,7 @@
  * same-contact native approach that must be observed without replaying movement.
  * Locality/authority: Read-only on actor/group owner. Actual engagement identity comes from
  * getAttackTarget; assignedTarget is only a conflicting mission-target veto. No hidden pose reads.
- * Native INIT, PLANNING and REPLAN never grant permission to replace a route.
+ * Native fleeing, INIT, PLANNING and REPLAN never grant permission to replace a route.
  * Repeat/JIP: Stateless; current waypoint metadata and native command are read each call,
  * Native group-ignored contacts refuse admission; at most one believed-position FIRE visibility query. No exact hostile transform is read.
  * Arguments: actor OBJECT objNull, contact OBJECT objNull, believed ATL ARRAY [], building OBJECT objNull;
@@ -18,7 +18,7 @@
  */
 params [["_actor",objNull,[objNull]],["_contact",objNull,[objNull]],
     ["_belief",[],[[]]],["_building",objNull,[objNull]],["_preflight",false,[true]]];
-if (isNull _actor || {!local _actor} || {!local group _actor}) exitWith {[]};
+if (isNull _actor || {!local _actor} || {!local group _actor} || {fleeing _actor}) exitWith {[]};
 // Queued treatment precedes native HEAL; it forbids investigation admission and new legs.
 if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {[]};
 if (_preflight && {isNull _contact}) exitWith {[]};

@@ -35,7 +35,7 @@ private _group=group _actor;
 private _vector={_this isEqualType [] && {count _this == 3}
     && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
 private _copy={_this apply {if (_x isEqualType []) then {_x call _copy} else {_x}}};
-private _releaseAvailable={local _actor && {local _group} && {!isNull _group}
+private _releaseAvailable={local _actor && {local _group} && {!isNull _group} && {!fleeing _actor}
     && {!isPlayer _actor} && {isNull remoteControlled _actor} && {isNull objectParent _actor}
     && {[_actor] call CBE_fnc_CortexCombatEffective} && {simulationEnabled _actor}
     && {!isObjectHidden _actor} && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}

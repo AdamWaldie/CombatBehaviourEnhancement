@@ -1,3 +1,9 @@
+# Latest checkpoint - indoor care and native fleeing priority
+
+## 2026-10-21 - Indoor care and native fleeing priority
+Baseline7c3ad0b6 plus queued-care/fleeing roster exclusions before nearest-two investigation ranking. Indoor NativeContext/active availability veto fleeing; indoor/point release and casualty weapon boundary veto fleeing too, avoiding cleanup doMove/doFollow over native flight. Existing capacity/cadence/deadlines retained; no new worker or settings. Existing lifecycle regression covers closest queued/fleeing actors giving way to ready actors and release predicates. LAMBS isForced fully read; brainForced first52 lines including fleeing branch, intent only/no copied code/no whole parity.
+Full1484 tests plus HEMTT/SQF/config/FSM/docs/package passed .qa/indoor-care-fleeing-build.log; independent verify .qa/indoor-care-fleeing-independent.log. Unsigned candidate .qa/candidates/indoor-care-fleeing-7c3ad0b6 fingerprint68f5310b6b7cbe32471ff173c48a910e1f2e6abed3ca5a0a74940a49ee9e00d1. Review referenceReviews/lambs-fsm-foundations-20261020.json has source/product hashes. Physical entry/medical or fleeing handover/CQB flow/performance unverified. Audits PAUSED: no launches. Full goal active/incomplete. Local only/no push/merge/publish. Preserve unrelated dirt, protected source archive and signing keys.
+
 # Latest checkpoint - bounded indoor roster fairness
 
 ## 2026-10-21 - Individual indoor roster fairness

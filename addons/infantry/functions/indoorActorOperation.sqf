@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing preempts investigation and forbids return-to-formation cleanup commands.
  * One stalled CBE-issued ISSUE leg may select an alternative node under the same deadline/probe budget.
  * Exact prior native destination/formation and twelve seconds without progress remain mandatory;
  * resumed movement, newer tasks and native planning forbid the retry. No access/clearance verdict.
@@ -79,7 +80,7 @@ private _searchMemoryValid={
         && {(_searchMemory select 2) <= (_memoryState getOrDefault ["searchDeadline",-1])}
 };
 private _releaseAvailable={
-    local _actor && {local _group} && {!isPlayer _actor} && {isNull remoteControlled _actor}
+    local _actor && {local _group} && {!isPlayer _actor} && {!fleeing _actor} && {isNull remoteControlled _actor}
         && {isNull objectParent _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
@@ -91,7 +92,7 @@ private _releaseAvailable={
     && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 private _available={
-    local _actor && {local _group} && {!isNull _group} && {!isPlayer _actor}
+    local _actor && {local _group} && {!isNull _group} && {!isPlayer _actor} && {!fleeing _actor}
         && {isNull remoteControlled _actor} && {isNull objectParent _actor}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {[_actor] call CBE_fnc_CortexCombatEffective}

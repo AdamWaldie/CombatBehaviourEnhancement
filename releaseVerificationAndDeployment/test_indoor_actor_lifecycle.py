@@ -494,6 +494,25 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertLess(s.index('private _actors='),s.index('private _actionable='))
         self.assertLess(s.index('private _actionable='),s.index('call CBE_fnc_BuildingContactSelect'))
         self.assertIn('_enemies select [0,8]',s)
+        for name in ('indoorActorDispatch','indoorObservationDispatch'):
+            dispatcher=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            roster=dispatcher.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]
+            self.assertIn('!fleeing _x',roster)
+            self.assertIn('ace_medical_ai_healQueue',roster)
+        context=(ROOT/'addons/infantry/functions/indoorActorNativeContext.sqf').read_text()
+        self.assertLess(context.index('fleeing _actor'),context.index('checkVisibility'))
+        for name in ('indoorActorOperation','pointActorOperation'):
+            operation=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            release=operation.split('private _releaseAvailable=',1)[1].split('private _available=',1)[0]
+            self.assertIn('!fleeing _actor',release)
+        indoor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        available=indoor.split('private _available=',1)[1].split('// Only STEP',1)[0]
+        self.assertIn('!fleeing _actor',available)
+        # The nearest two may be queued for care while their native command is still idle.
+        candidates=[(1,True,False),(2,True,False),(3,False,True),(4,False,False),(5,False,False)]
+        ready=[distance for distance,care,flee in candidates if not care and not flee]
+        self.assertEqual(ready[:2],[4,5])
+
         sample=(ROOT/'addons/infantry/functions/indoorActorSample.sqf').read_text()
         self.assertIn('private _budget=_count min 16;',sample)
         self.assertIn('((_cursor+_offset) mod _count)',sample)

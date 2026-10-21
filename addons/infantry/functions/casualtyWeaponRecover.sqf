@@ -30,7 +30,7 @@ if (!local _group || {(_brain getOrDefault ["actor",objNull]) != _actor}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
     || {!([_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible)}
     || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {!simulationEnabled _actor} || {isObjectHidden _actor}
-    || {isPlayer _actor} || {!isNull remoteControlled _actor} || {!isNull objectParent _actor}
+    || {isPlayer _actor} || {fleeing _actor} || {!isNull remoteControlled _actor} || {!isNull objectParent _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","MOVE"])} || {getUnitState _actor in ["BUSY","PLANNING","REPLAN"]}
     || {!isNull getAttackTarget _actor} || {!isNull assignedTarget _actor}

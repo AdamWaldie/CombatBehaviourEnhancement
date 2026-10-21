@@ -28,7 +28,8 @@ if (!(_range isEqualType 0) || {!finite _range} || {_range <= 0}) exitWith {0};
 // Establish the available roster before choosing a contact. Otherwise an unavailable
 // nearest contact can consume the selection while another nearby belief is actionable.
 private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
-    local _x && {!isPlayer _x} && {[_x] call CBE_fnc_CortexCombatEffective}
+    local _x && {!isPlayer _x} && {!fleeing _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {isNull objectParent _x} && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
         // Cheap executor prerequisites keep ineligible nearby actors from consuming
         // the bounded candidate slots; START still repeats full authority admission.
