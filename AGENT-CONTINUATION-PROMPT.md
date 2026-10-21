@@ -1,5 +1,8 @@
 
 
+Checkpoint: danger stance direct cleanup deadline (2026-10-21). Baseline c762964a plus scoped source edits. Shared DangerEngineRelease now enforces original expiry+30 before either native stance restoration path, including direct stop/start callers; finite timing required, expired proof retained. Existing609 focused and full offline pipeline passed; independent candidate .qa/candidates/danger-stance-deadline-c762964a verified, fingerprint e3bf8c307d11a29d1bee5d2b033484d190d76e6575fd234074381ae7e64c76a6. Review referenceReviews/danger-stance-deadline-20261021.json. Audits paused; physical timing/performance unverified. No remote mutation.
+
+
 Checkpoint: group danger posture footprint (2026-10-21)
 Baseline faf385fe plus scoped pending changes. DangerReact now checks all living members before group-wide posture application/restoration; max64, no worker. Ordinary travel/manoeuvre remains eligible. Focused10, complete offline build and independent candidate verify passed. Candidate .qa/candidates/danger-group-footprint-faf385fe; fingerprint 0d756b2e28272b319d06c080f519952918abd3a3bba179eda01b44e8fc43a286. Review referenceReviews/danger-group-footprint-20261021.json. Audits remain paused; no Arma launch. Other group writers, per-member baselines, physical behaviour and performance remain open. No push/merge/publication.
 # Latest checkpoint - finite group danger mode handback

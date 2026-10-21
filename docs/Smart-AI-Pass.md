@@ -2419,3 +2419,5 @@ An internal on-foot operation handoff can carry an exact unresolved group danger
 
 
 Group danger posture checks its complete native footprint before changing behaviour or combat mode. Living mounted, nonlocal, incapacitated/captive, stealth/careless, individually held-fire, fleeing or service-task members prevent a group-wide write. Ordinary native movement and CBE manoeuvre do not themselves block it. Actor reflexes and dedicated vehicle/tactical owners continue independently. Exact restoration uses the same task boundary, retaining pending proof within its original window while another member is protected. The check reads at most64 members and refuses larger groups rather than validating only a sample; it adds no worker or scan of other groups. This boundary currently covers danger posture, not every other group-mode writer.
+
+Direct danger-stance release calls enforce the same original expiry plus thirty seconds as the deferred worker. Expired or invalid timing proof cannot issue a late stance command; expired proof remains available for diagnosis. This does not guarantee restoration before the window closes.

@@ -86,6 +86,12 @@ private _applied=toUpperANSI (_lease param [1,"",[""]]);
 if (!(_prior in ["AUTO","UP","MIDDLE","DOWN"])
     || {!(_applied in ["AUTO","UP","MIDDLE","DOWN"])}) exitWith {["INVALID_STANCE_PROOF"] call _evidence};
 if (toUpperANSI (unitPos _actor) != _applied) exitWith {["STANCE_CHANGED",true] call _evidence};
+// Direct stop/start callers share the deferred worker's original hard restoration window.
+// Expiry retains proof, but cannot authorise a late native write over intervening intent.
+if (!((_lease select 2) isEqualType 0) || {!finite (_lease select 2)}) exitWith {
+    ["INVALID_STANCE_PROOF"] call _evidence
+};
+if (time >= (_lease select 2)+30) exitWith {["RESTORE_WINDOW_EXPIRED"] call _evidence};
 // An exact routine strong stance can be the baseline below this weak response.
 // Release that owned restriction too, rather than restoring an intermediate CBE value.
 private _routine=[_group,_actor] call CBE_fnc_CortexStanceReceipt;
