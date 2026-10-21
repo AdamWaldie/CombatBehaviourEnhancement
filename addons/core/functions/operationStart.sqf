@@ -4,7 +4,10 @@
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
  * After locality adoption, replacement, generation capture and publication run unscheduled even for
  * scheduled script callers. Normal group PFH jobs already run unscheduled; no extra job is created.
- * Array objectives and routes are copied at commitment, isolating later caller-array edits.
+ * Array objectives and routes are copied before admission, isolating later caller-array edits.
+ * Nonempty position objectives and every route point require two/three finite numeric coordinates.
+ * Invalid geometry returns before locality adoption, predecessor cleanup or generation mutation;
+ * empty objectives/routes and object targets remain supported.
  * Object objectives retain identity for features which deliberately track a live world object.
  * Progress domain: participant platforms are captured at commitment. Foot actors boarding another
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
@@ -23,6 +26,18 @@ params [
     ["_participants",[],[[]]], ["_route",[],[[]]], ["_phase","PLAN",[""]], ["_pairElements",[],[[]]]
 ];
 if (isNull _group || {!local _group} || {_intent == ""}) exitWith {createHashMap};
+// Validate the same private geometry that will be committed. A malformed replacement
+// must not adopt/retire work or consume the current generation. Empty means no position.
+private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};
+private _routeSnapshot=+_route;
+private _positionValid={
+    private _point=_this;
+    _point isEqualType [] && {count _point in [2,3]}
+        && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+};
+if ((_objectiveSnapshot isEqualType [] && {_objectiveSnapshot isNotEqualTo []}
+        && {!(_objectiveSnapshot call _positionValid)})
+    || {_routeSnapshot findIf {!(_x call _positionValid)} >= 0}) exitWith {createHashMap};
 // Reject a malformed optional partition before retiring any previous operation.
 private _partitionValid=count _pairElements <= 2;
 private _partitioned=[];
@@ -93,12 +108,9 @@ if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) the
         [_group,_pairs] call CBE_fnc_CombatPairsPublish;
     };
 };
-// Position orders are immutable snapshots; only an explicit object objective remains live.
-// Unary + already deep-copies the route, so no second per-point clone is needed.
-private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};
 private _operation=createHashMapFromArray [
     ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
-    ["pairs",_pairs], ["pairElements",_pairElements apply {_x select {_x in _capable}}], ["objective",_objectiveSnapshot], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
+    ["pairs",_pairs], ["pairElements",_pairElements apply {_x select {_x in _capable}}], ["objective",_objectiveSnapshot], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",_routeSnapshot], ["phase",toUpperANSI _phase],
     ["startedAt",time], ["lastProgressAt",time], ["lastProgressPosition",getPosATL _operationAnchor],
     ["participantProgress",_capable apply {[_x,getPosATL _x]}], ["lastProgressActor",objNull],
     ["participantPlatforms",createHashMapFromArray (_capable apply {[netId _x,vehicle _x]})],

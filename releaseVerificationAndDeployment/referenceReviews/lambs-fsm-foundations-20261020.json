@@ -785,5 +785,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "geometryAdmissionBeforeReplacement": {
+    "baseline": "c5fa6c9d",
+    "finding": "Shared OperationStart accepted malformed array objectives and route points before cancelling the predecessor. Feature starts usually validate their own proposals, but the shared public lifecycle lacked a coordinate admission boundary.",
+    "callerSurvey": "Production calls use live object targets or positions and coordinate routes; VEHICLE_ORIENT and documented PLAN support empty routes. Preserve empty objective sentinel, objNull/object targets and finite2D/3D coordinates.",
+    "implementation": "Copy objective/route at admission rather than publication, validate those same copies before locality adoption/cleanup/generation changes, reject malformed/non-finite nonempty objective vectors and malformed route points. Constructor commits validated snapshots. Existing partition validation, scheduled atomic replacement and fitness filters remain.",
+    "preparedRuntimeCheck": "Scheduled recovery fixture attempts invalid objective shape, non-position route entry and nonnumeric coordinate replacements; requires empty return, unchanged current generation and same operation. No fabricated production state. Prepared UNRUN; nonfinite protection currently static only.",
+    "cost": "One linear coordinate validation pass at operation start; existing objective/route copies moved rather than duplicated. No world query, controller or recurring job; runtime budget unmeasured.",
+    "validation": "Existing lifecycle regression extended, all1482/full HEMTT/SQF/config/FSM/docs/package pass; independent verify pass. Candidate .qa/candidates/operation-geometry-admission-c5fa6c9d fingerprintb412b444202823a6c36d8f12befe8ebdd23d478b9629c2bda0ea912199e110fc.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

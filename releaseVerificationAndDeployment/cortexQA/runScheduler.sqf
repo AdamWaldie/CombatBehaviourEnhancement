@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Exercises real queued squad movement and completion fairness under the minimum scheduler budget.
  * Caller-array mutation checks verify accepted operation objectives/routes without changing AI poses.
+ * Malformed replacement requests must refuse without retiring the current recovery operation.
  * Locality/authority: scheduled server fixture; production scheduler runs owner-local movement jobs.
  * Repeat/JIP: fresh actors, public destinations; caller restores settings, fixture jobs retire on deletion.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; required audit callbacks.
@@ -263,6 +264,17 @@ _recoveryTarget set [0,(_recoveryTarget select 0)+25];
 ["OPERATION-route-input-isolated",(_recoveryOperation getOrDefault ["route",[]]) isEqualTo [_recoveryObjectiveExpected]] call _check;
 _recoveryTarget=+_recoveryObjectiveExpected;
 private _recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
+{
+    _x params ["_case","_probeObjective","_probeRoute"];
+    private _refused=[_recoveryGroup,"MALFORMED_DIAGNOSTIC",_probeObjective,[_recoveryActor],_probeRoute,"MOVING"] call CBE_fnc_OperationStart;
+    ["OPERATION-invalid-"+_case+"-preserves-current",count _refused == 0
+        && {(_recoveryGroup getVariable ["CBE_OperationGeneration",-2]) == _recoveryGeneration}
+        && {(_recoveryGroup getVariable ["CBE_Operation",createHashMap]) isEqualTo _recoveryOperation}] call _check;
+} forEach [
+    ["objective",[0],[+_recoveryTarget]],
+    ["route-node",+_recoveryTarget,["not a position"]],
+    ["route-coordinate",+_recoveryTarget,[[0,"invalid",0]]]
+];
 private _recoveryAccepted=[_recoveryGroup,_recoveryGeneration,_recoveryActor,_recoveryTarget] call CBE_fnc_RecoveryStep;
 private _freshRecoveryState=[_recoveryGroup,_recoveryGeneration,3,12] call CBE_fnc_OperationStep;
 ["RECOVERY-fresh-window-remains-active",_recoveryAccepted == "RECOVERING" && {_freshRecoveryState == "ACTIVE"}] call _check;

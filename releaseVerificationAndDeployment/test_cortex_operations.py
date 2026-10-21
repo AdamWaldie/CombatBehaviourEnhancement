@@ -1598,8 +1598,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_OperationGeneration',start)
         self.assertIn('private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};',start)
         self.assertIn('["objective",_objectiveSnapshot]',start)
-        self.assertIn('["route",+_route]',start)
+        self.assertIn('["route",_routeSnapshot]',start)
+        self.assertIn('private _routeSnapshot=+_route;',start)
         self.assertNotIn('["objective",_objective]',start)
+        geometry=start.split('// Validate the same private geometry',1)[1].split('// Reject a malformed optional partition',1)[0]
+        for guard in ('count _point in [2,3]','!(_x isEqualType 0)','!finite _x',
+                      '_objectiveSnapshot isNotEqualTo []','_routeSnapshot findIf {!(_x call _positionValid)} >= 0'):
+            self.assertIn(guard,geometry)
+        self.assertLess(start.index('private _routeSnapshot='),start.index('CBE_fnc_CortexLocality'))
+        self.assertLess(start.index('_routeSnapshot findIf'),start.index('call CBE_fnc_OperationCancel'))
         transaction=start.split('private _cbeStartedOperation=createHashMap;',1)[1]
         self.assertTrue(transaction.startswith('\nisNil {\n_cbeStartedOperation=call {'))
         self.assertTrue(transaction.rstrip().endswith('};\n};\n_cbeStartedOperation'))
@@ -1620,6 +1627,10 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(qa.index('call CBE_fnc_OperationStart'),qa.index('_recoveryTarget set [0,'))
         self.assertLess(qa.index('_recoveryTarget set [0,'),qa.index('"OPERATION-objective-input-isolated"'))
         self.assertIn('(_recoveryRoute select 0) set [1,',qa)
+        self.assertIn('"OPERATION-invalid-"+_case+"-preserves-current"',qa)
+        self.assertIn('count _refused == 0',qa)
+        self.assertIn('getVariable ["CBE_OperationGeneration",-2]) == _recoveryGeneration',qa)
+        self.assertIn('isEqualTo _recoveryOperation',qa)
         server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
         self.assertIn('Return: Nothing (scheduled script)',server)
         self.assertIn('call compile preprocessFileLineNumbers "cortexQAScheduler.sqf"',server)
