@@ -227,5 +227,23 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "localDirectPassFuse20261021": {
+    "baseline": "84a69bd6",
+    "implementation": "New CortexAAInterceptEffect invoked only after an actual captured round passes within5m broad-phase proximity. Both projectile objects must be current/local, exact current episode/epoch/gunner lease, native shot parents and magazine ammo class must match. Native shot real/deletion/arming flags apply. Original actor task/FIREWEAPON/ROE/enable/pause gates remain. No remote entry, approximate identity, network effect or extra worker.",
+    "effectPolicy": "Explicit scripted direct-pass fuse, not native collision. <=0.1s paired samples, <=5deg missile rotation, oriented model-centre relative segment with interior closest pass only. Central sphere radius<=0.15m, never larger than smallest model half-width; geometry below0.02m or centre offset>4m refuses. Cache exact episode geometry including failure once. Actual bullet must travel configured fuseDistance or>=3m; historical pass AND current target remain>=30m from platform; current target>=5m above terrain. Exact captured shot and current positions required, no vanished-shot extrapolation.",
+    "mutation": "One local missile receipt precedes triggerAmmo. Native effect occurs at CURRENT munition position; delay recorded, no movement or replacement explosion. FUSE_REQUESTED receipt is not proof of destruction, replication, suppressed damage or successful interception. Current observation loop ends after request and preserves effect telemetry separately from closest-pass distance.",
+    "refusals": "Cross-owner projectiles, missing/ambiguous model geometry, mismatched/friendly source, unarmed/unreal/pending-deletion bullet, stale sample, endpoint-only proximity, fast rotation and any nonempty submunitionAmmo refuse effects. No nearest matching projectile copy, remote detonation or blast-chain scan. Full cross-owner/submunition interception remains missing, not declared complete.",
+    "sourceComparison": {
+      "path": ".qa\\aegism-intercept-3815260246-review\\aegism_detection\\functions\\fn_detonateCopy.sqf",
+      "sha256": "8a7b0ccfb91424f27834555bcde4c83ca9b87bc3b3d148b3abdbe0643ce44e2d",
+      "scope": "Full small detonateCopy execution read and exact preserved inventory hash verified. Source uses approximate ammo/shooter/spatial matching when remote object identity is absent, including40m tube tolerance and30m+speed window. That fallback is not selected. Exact CBE local native identity required instead; owner bridge still unresolved."
+    },
+    "cost": "At most existing4platforms*8live rounds; effect qualification only inside broad-phase5m and existing finite160steps/8s. One geometry read per exact episode, bounded native shot info/parent reads per close pass and constant vector math. Existing scheduler, no per-bullet job. Runtime cost unmeasured.",
+    "validation": "All1482 existing tests/full offline pipeline and HEMTT passed. Independent verify passed. Unsigned .qa/candidates/aa-direct-pass-84a69bd6 fingerprint 8f3189401331a75af62ea9f142c102e3749a5ca6e02d4441f678e83fe13ef7bf; logs .qa/aa-direct-pass-build.log and .qa/aa-direct-pass-independent.log. Existing AA test adds crossing/miss/approaching endpoint/zero-relative fixtures and identity/arming/native-effect wiring. Initial test substring matched remoteExecutedOwner guard, corrected command-boundary regex; HEMTT rejected notIn syntax, replaced native !(... in ...) and final compile passed. Style config lookup warnings reviewed; no baseline waiver.",
+    "remaining": "Exact cross-owner projectile provenance/dispatch, submunition payload policy, layered sensing/allocation, learned aim correction, real normal/provider-HC effects/replication/successor cleanup and5%/10% performance acceptance. Default-off experimental path only. No parity/score increase.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

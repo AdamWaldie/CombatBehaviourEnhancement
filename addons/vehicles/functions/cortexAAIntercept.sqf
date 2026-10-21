@@ -1,9 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Finite experimental point-defence aiming and real-shot observation for a native
- * incoming-missile warning. This is the aim/shot building block, not a simulated intercept effect.
+ * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
  * Locality/authority: Current local AI main turret [0] only. Existing task/ROE/owner checks apply.
- * No radar, skill, movement, ammunition creation, projectile steering or damage is changed.
+ * No radar, skill, movement, ammunition creation or projectile steering is changed.
+ * Exact same-owner real bullet passes may request a missile fuse; effect helper owns that policy.
  * Repeat/JIP: One eight-second episode/platform, max four local platforms, sixteen fire requests,
  * eight observed rounds and 160 steps. New warnings cannot renew an active episode. No JIP replay.
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
@@ -11,7 +12,7 @@
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
  * 2 payload ARRAY,[] (STEP: [job state HASHMAP]; SHOT: native Fired arguments).
- * Return: START/SHOT/RELEASE BOOL; STEP NUMBER next delay or -1. Never hit/intercept proof.
+ * Return: START/SHOT/RELEASE BOOL; STEP NUMBER next delay or -1. Fuse request is not physical intercept proof.
  * Callers: CortexAAObserve native warnings/Fired/cleanup; existing owner-local scheduler adapter.
  * Example: [_vehicle,"START"] call CBE_fnc_CortexAAIntercept;
  */
@@ -50,7 +51,7 @@ private _finish={
     };
     _state set ["finished",true];
     _vehicle setVariable ["CBE_AA_InterceptResult",[_reason,_state getOrDefault ["shots",0],
-        _state getOrDefault ["closestPass",-1],_state get "until"]];
+        _state getOrDefault ["closestPass",-1],_state get "until",_state getOrDefault ["effect",[]]]];
     _vehicle setVariable ["CBE_AA_Intercept",nil];
     missionNamespace setVariable ["CBE_AA_InterceptVehicles",
         (missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[_vehicle,objNull]];
@@ -66,7 +67,8 @@ if (_mode == "SHOT") exitWith {
         || {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") != "shotbullet"}) exitWith {false};
     private _rounds=_state get "rounds";
     if (count _rounds >= 8 || {_rounds findIf {(_x select 0) == _round} >= 0}) exitWith {false};
-    _rounds pushBack [_round,getPosASL _round,getPosASL (_state get "missile"),time];
+    _rounds pushBack [_round,getPosASL _round,getPosASL (_state get "missile"),time,
+        getPosASL _round,vectorDir (_state get "missile"),vectorUp (_state get "missile")];
     _state set ["shots",(_state get "shots")+1];
     true
 };
@@ -176,6 +178,7 @@ if ((_applied isEqualTo [] && {!isNil "_lock"}
 };
 private _targetPos=getPosASL _missile;
 private _rounds=_state get "rounds";
+private _effectRequested=false;
 // A measured same-time relative segment, never an extrapolated vanished projectile.
 for "_i" from ((count _rounds)-1) to 0 step -1 do {
     private _row=_rounds select _i;private _round=_row select 0;private _dt=time-(_row select 3);
@@ -189,10 +192,17 @@ for "_i" from ((count _rounds)-1) to 0 step -1 do {
             private _miss=vectorMagnitude (_start vectorAdd (_delta vectorMultiply _fraction));
             private _best=_state getOrDefault ["closestPass",-1];
             if (_best < 0 || {_miss < _best}) then {_state set ["closestPass",_miss]};
-            _rounds set [_i,[_round,_roundPos,+_targetPos,time]];
+            // Broad proximity only admits the exact, armed same-owner fuse policy.
+            if (_miss <= 5 && {[_state,_row,_roundPos,_targetPos] call CBE_fnc_CortexAAInterceptEffect}) then {
+                _effectRequested=true;
+            } else {
+                _rounds set [_i,[_round,_roundPos,+_targetPos,time,_row select 4,vectorDir _missile,vectorUp _missile]];
+            };
         };
     };
+    if (_effectRequested) exitWith {};
 };
+if (_effectRequested) exitWith {["FUSE_REQUESTED"] call _finish;-1};
 private _origin=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "barrel","Memory"]);
 private _range=_origin distance _targetPos;
 if (_range < 30 || {_range > 1500} || {(_targetPos select 2)-(getTerrainHeightASL _targetPos) < 5}) exitWith {

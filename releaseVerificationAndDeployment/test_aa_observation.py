@@ -107,6 +107,33 @@ class AAObservation(unittest.TestCase):
         fire_handler=source.split('private _handler=',1)[1].split('private _warningHandler=',1)[0]
         self.assertLess(fire_handler.index('"SHOT",_this'),fire_handler.index('CBE_AA_ObserveDue'))
         self.assertIn('"RELEASE"] call CBE_fnc_CortexAAIntercept',source)
+        effect=(ROOT/'addons/vehicles/functions/cortexAAInterceptEffect.sqf').read_text()
+        for guard in ('!local _round','!local _missile','getShotParents _round','getShotParents _missile',
+                      'getShotInfo _round','_roundInfo select 5','_roundInfo select 7',
+                      'time-_at > 0.1','CBE_AA_FuseReceipt','submunitionAmmo',
+                      '_fraction <= 0','_fraction >= 1','min 0.15','_radius >= 0.02',
+                      '_pass distance _origin','_targetPos distance (getPosASL _vehicle) < 30',
+                      'fuseGeometryRead','FUSE_REQUESTED'):
+            self.assertIn(guard,effect)
+        self.assertEqual(effect.count('\ntriggerAmmo _missile;'),1)
+        self.assertLess(effect.index('_distance > _radius'),effect.index('triggerAmmo _missile;'))
+        self.assertIn('CortexAAInterceptEffect',intercept)
+        self.assertNotRegex(effect,r'\bremoteExec(?:Call)?\b')
+        for forbidden in ('nearestObjects','createVehicle','deleteVehicle','setPos','setVelocity'):
+            self.assertNotIn(forbidden,effect)
+        # Independent swept-pass fixtures distinguish an interior crossing, a miss,
+        # approaching-only endpoint proximity, and zero relative movement.
+        def observed_pass(start,end,radius):
+            delta=tuple(b-a for a,b in zip(start,end))
+            squared=sum(a*a for a in delta)
+            if squared < 0.0001:return False
+            at=-sum(a*b for a,b in zip(start,delta))/squared
+            if not 0 < at < 1:return False
+            return sum((a+at*b)**2 for a,b in zip(start,delta)) <= radius**2
+        self.assertTrue(observed_pass((-1,0.05,0),(1,0.05,0),0.1))
+        self.assertFalse(observed_pass((-1,0.2,0),(1,0.2,0),0.1))
+        self.assertFalse(observed_pass((-1,0,0),(-0.01,0,0),0.1))
+        self.assertFalse(observed_pass((0,0,0),(0,0,0),0.1))
         # Analytical geometry fixtures: an observed relative segment crosses zero at
         # its midpoint; temporal gaps must be rejected by the production boundary.
         relative_start=(-10.0,1.0,0.0);relative_end=(10.0,1.0,0.0)
