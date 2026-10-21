@@ -191,5 +191,24 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "recoveryCoverAdmission": {
+    "baseline": "b8e86c62",
+    "finding": "FlankStep removes recovery actors before constructing _fit, so two-team cover excludes them. Its no-team _issue branch instead queried _fitSquad minus movers, allowing an armed separated recovery actor to be the only covering-capacity witness.",
+    "implementation": "Subtract current recovery actors from the single-element wider-squad cover pool. Preserve available unassigned cover and existing fire permission/ammo checks, exit/consolidation exemptions, recovery movement and original deadlines.",
+    "cost": "One existing-roster array subtraction at next-bound issue; no world query, polling job, timer or native command.",
+    "validation": "Existing casualty/rebalance regression extended with armed-recovery-only refusal and legitimate-cover admission. All1482/full build and independent verification passed; candidate .qa/candidates/bound-recovery-cover-b8e86c62 fingerprint b68d70a9a0d7f55d16787e9db586053c69b8e54240dee084d2e18513a73712d2.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "pairExecutionTrace": {
+    "scope": "Current CortexFlankStep execution inspected 2026-10-21; independent pair-level execution remains incomplete.",
+    "selection": "_ensureMovingTeam assumes exactly two roles via otherTurn=1-turn; recruitment/relief and actor admission run before each issue.",
+    "arrival": "MOVE observes actor-specific spots/progress/retries, then a 60-percent role quorum with finite six-second progress grace can mark remaining actors as recovery. It does not record independent pair wave arrival.",
+    "transition": "First team arrival enters PAUSE; PAUSE flips teamTurn 0 to1. Only second-team completion advances the route point. boundDeadlineIdentity is [point index,teamTurn].",
+    "recovery": "Recovery prefers a real surviving buddy in the same element, with one finite route attempt. Physically rejoined actors return only outside MOVE. Recorded resume spots, progress and retries are actor-addressed.",
+    "requiredDeparture": "Pair waves need distinct finite wave identity and arrivals under the existing parent operation deadline, coherent mover/cover selection and casualty recovery. Do not change teamTurn to arbitrary pair indices: binary donor logic, next-bound actor reservations, stage transitions and checkpoint identity would become inconsistent.",
+    "limits": "This trace proves code structure, not actual covering fire, native path quality, pair timing or source parity."
   }
 }

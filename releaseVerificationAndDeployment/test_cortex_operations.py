@@ -4224,7 +4224,7 @@ class CortexOperations(unittest.TestCase):
         for proof in ('["CROSS_FAR","CONSOLIDATE"]','_armedMovers < _minimumMovers',
                       '_coverCandidates findIf','FIRE_CAPACITY_LOST'):
             self.assertIn(proof,issue)
-        self.assertIn('if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units}',issue)
+        self.assertIn('if (_teams isEqualTo []) then {(_fitSquad-_units)-_recovering} else {_fit-_units}',issue)
         pre_issue=step.split('private _issue = {',1)[0]
         pre_relief,relief_tail=pre_issue.split('private _selectRelief={',1)
         relief,rank_tail=relief_tail.split('private _rankCandidates=',1)
@@ -4251,6 +4251,14 @@ class CortexOperations(unittest.TestCase):
         self.assertTrue(may_bound(False,'CONSOLIDATE',0,2,False))
         self.assertFalse(may_bound(True,'BOUND',0,2,False))
         self.assertTrue(may_bound(True,'BOUND',2,2,True))
+        # A separated but armed actor cannot supply the missing cover role.
+        fit_squad={'m1','m2','late','cover'}
+        movers={'m1','m2'}
+        recovering={'late'}
+        cover_candidates=fit_squad-movers-recovering
+        self.assertEqual(cover_candidates,{'cover'})
+        self.assertFalse(may_bound(False,'BOUND',2,2,bool(cover_candidates & {'late'})))
+        self.assertTrue(may_bound(False,'BOUND',2,2,bool(cover_candidates & {'cover'})))
 
 
     def test_coordinated_bound_team_contract_matches_server_reservation(self):

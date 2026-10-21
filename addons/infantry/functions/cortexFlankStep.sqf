@@ -875,7 +875,8 @@ private _issue = {
     if (!(_kind in ["CROSS_FAR","CONSOLIDATE"])) then {
         private _armedMovers={unitCombatMode _x in ["YELLOW","RED"]
             && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _units;
-        private _coverCandidates=if (_teams isEqualTo []) then {_fitSquad-_units} else {_fit-_units};
+        // Separated actors are still moving under recovery, not available cover.
+        private _coverCandidates=if (_teams isEqualTo []) then {(_fitSquad-_units)-_recovering} else {_fit-_units};
         private _armedCover=_coverCandidates findIf {unitCombatMode _x in ["YELLOW","RED"]
             && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} >= 0;
         if (_armedMovers < _minimumMovers || {!_armedCover}) then {_viable=false};
