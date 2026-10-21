@@ -3,6 +3,37 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class NativeAdmissionTests(unittest.TestCase):
+    def test_direct_native_intent_keeps_original_goal_and_observes_return_without_replay(self):
+        def read(name):return (ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+        native=read('drivingNativeRouteReceipt')
+        for proof in ('count waypoints _nativeGroup > 1','!local _nativeGroup','!local _nativeVehicle',
+                      '_nativePrior select 7','_nativePrior select 8','_nativeDriverGoal vectorDistance _nativeGoal > 3',
+                      'CBE_fnc_DrivingRecoveryCommandState','"NATIVE_MOVE",_nativeGroup'):
+            self.assertIn(proof,native)
+        body=native.split('params [[',1)[1]
+        for forbidden in ('doMove','setVariable','getForcedSpeed','execFSM','addWaypoint','DrivingRouteReceipt'):
+            self.assertNotIn(forbidden,body)
+        self.assertIn('call CBE_fnc_DrivingNativeRouteReceipt',read('drivingRouteReceipt'))
+        self.assertIn('+(_nativeGoalReceipt select 6)',read('drivingRouteGoal'))
+        release=read('drivingRecoveryRelease')
+        observation=release.split('// A native-route return was already issued.',1)[1].split('// This executor restores',1)[0]
+        self.assertIn('NATIVE_ROUTE_OBSERVED',observation)
+        self.assertIn('releaseUnresolved',observation)
+        self.assertNotIn('doMove',observation.split('if ((_work',1)[1])
+        resumed=observation.split('private _returnBrain=',1)[1].split('if ((_vehicle getVariable',1)[0]
+        self.assertIn('_work set ["deadline",_work get "hardDeadline"]',resumed)
+        self.assertNotIn('set ["hardDeadline"',resumed)
+        self.assertNotIn('doMove',resumed)
+        self.assertIn('_admitted select 6) isEqualTo _nativeGoal',native)
+        self.assertIn('serverTime >= (_work get "hardDeadline")',release)
+        self.assertIn('["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline")',release)
+        self.assertIn('if (!_nativeHandback) then {doStop _driver',release)
+        self.assertIn('"NATIVE_MOVE") exitWith {false}',read('drivingGateIntent'))
+        self.assertIn('"NATIVE_MOVE") exitWith {[false,false]}',read('drivingQueueAutoStep'))
+        for name in ('drivingCorridorStep','drivingBypassStep'):
+            self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read(name))
+
+
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):
             source=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')

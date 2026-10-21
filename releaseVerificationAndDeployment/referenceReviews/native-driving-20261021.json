@@ -1,0 +1,29 @@
+{
+  "baseline": "fa5456f1",
+  "scope": "Owner-local direct native MOVE provenance, recovery and observed return",
+  "implementation": [
+    "Admit one aligned driver/operator MOVE goal without an authored route; bind original goal, exact seats, epoch and owner.",
+    "Classify temporary legs without recursive route reads; return once to original goal and observe acknowledgement without replay.",
+    "Preserve original recovery deadline and spent episode after return acknowledgement. Replaced speed caps revoke return authority.",
+    "Explicitly refuse native route child gate, queue, corridor and bypass admission."
+  ],
+  "validation": {
+    "full": ".qa/native-driving-build.log: full offline build passed; 1485 regression tests and 396 SQF files",
+    "independent": ".qa/native-driving-independent.log; independently rerun verifier exit 0",
+    "candidate": ".qa/candidates/native-driving-fa5456f1",
+    "fingerprint": "48dcf7d26272f953ca3be0cd1b23a09f25efcddbc008b174a9846646d93f6514",
+    "provenance": "Baseline plus this working source batch and preserved unrelated worktree changes; unsigned development candidate, not a clean signed release.",
+    "initial_failures": "Three stale source contracts identified; shared-goal expectations updated and actual missing return-cap veto fixed before successful full build."
+  },
+  "remaining": [
+    "Native route locality adoption and casualty replacement remain unsupported.",
+    "Native gate/pass/queue/corridor/bypass integration remains open.",
+    "Native command timing, physical travel, HC and performance are unverified. Audits remain paused. No whole-feature parity or completion percentage claimed."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "dc6f83e0ce61bce0b7383a1d61886c21538b2eeeb500ab08017ade74d5b8b510",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "df752faf9cff1fd8844764bae8139866b9d9d494a909170e92492c7eb435a04a",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "302607ad0148c770433ef766a0adfdbbc9dfb1fd2dec457bc2dd31eab772a81b",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "9f029d713740afcc671fe4ef48299284830142f273434e3b4aabd430c6813b40"
+  }
+}

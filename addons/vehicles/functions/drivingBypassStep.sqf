@@ -48,6 +48,7 @@ private _queueAgreement=_vehicle getVariable ["CBE_DrivingQueue_Consent",createH
 private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
+if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {_inactive};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {

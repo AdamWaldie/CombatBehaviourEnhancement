@@ -53,6 +53,59 @@ isNil {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
+// A native-route return was already issued. Observe only; never replay that doMove.
+if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
+    private _returnState=[_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState;
+    // An observed command reply does not own a replaced speed cap.
+    private _returnCap=_work getOrDefault ["cap",-1e9];
+    if (!(_returnCap isEqualType 0) || {!finite _returnCap}
+        || {abs (getForcedSpeed _vehicle-_returnCap) > 0.1}) then {_returnState="LOST"};
+    if (_returnState in ["PENDING","EXPIRED"]) exitWith {
+        if (_returnState == "EXPIRED" && {!(_work getOrDefault ["releaseUnresolved",false])}) then {
+            _work set ["releasePending",true];_work set ["releaseUnresolved",true];
+            _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+            _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,
+                _work get "kind",_work get "hardDeadline","NATIVE_RETURN_UNRESOLVED"],true];
+        };
+        false
+    };
+    // Active driving continues its original spent episode after observed return. Never
+    // delete this budget and let the next tick create a fresh reverse allowance.
+    private _returnBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
+    private _returnRoute=_work getOrDefault ["route",[]];
+    private _returnAssist=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+    if (_returnState == "OWNED" && {_reason == "DEFERRED_HANDBACK"}
+        && {local _group} && {count _returnRoute == 9}
+        && {count _returnAssist >= 11} && {(_returnAssist select 3) isEqualTo _group}
+        && {(_returnAssist select 9) isEqualTo _returnRoute}
+        && {(_returnRoute select 7) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_returnRoute select 8) isEqualTo clientOwner}
+        && {!(_returnBrain getOrDefault ["cancelled",true])} && {!(_returnBrain getOrDefault ["finished",true])}
+        && {(_returnBrain getOrDefault ["route",[]]) isEqualTo _returnRoute}
+        && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work}) exitWith {
+        _work deleteAt "nativeReturn";_work deleteAt "releasePending";_work deleteAt "releaseUnresolved";
+        _work set ["kind","FINAL"];_work set ["commandMode","DESTINATION"];
+        _work set ["deadline",_work get "hardDeadline"];
+        _work set ["driverCommand",+(expectedDestination driver _vehicle)];
+        private _returnOperator=effectiveCommander _vehicle;
+        if (isNull _returnOperator) then {_returnOperator=driver _vehicle};
+        _work set ["command",+(expectedDestination _returnOperator)];
+        if (count _returnAssist >= 11) then {
+            _returnAssist set [6,3];_returnAssist set [7,time+((_work get "hardDeadline")-serverTime)];
+            _returnAssist set [8,"NATIVE_RETURN_OBSERVED"];_returnAssist set [10,false];
+            _vehicle setVariable ["CBE_DrivingAssist_State",_returnAssist];
+        };
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        false
+    };
+    if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",nil,true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,
+            _work get "kind",_work get "hardDeadline",
+            ["NATIVE_RETURN_SUPERSEDED","NATIVE_ROUTE_OBSERVED"] select (_returnState == "OWNED")],true];
+    };
+    true
+};
 // This executor restores destination commands only, never a different native command mode.
 private _commandMode=_work getOrDefault ["commandMode","DESTINATION"];
 if !(_commandMode in ["DESTINATION","SIMPLE_BACK"]) exitWith {false};
@@ -261,19 +314,37 @@ if (_owned) then {
                 || {_stopLinear >= 0.1} || {_stopAngular >= 0.01};
         };
         if (_nativeStopPending) exitWith {};
+        private _nativeHandback=((_work get "route") param [0,"",[""]]) == "NATIVE_MOVE";
+        if (_nativeHandback && {serverTime >= (_work get "hardDeadline")}) exitWith {
+            _work set ["releasePending",true];_work set ["releaseUnresolved",true];
+            _nativeStopPending=true;
+        };
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
-        doStop _driver;if (_operator != _driver) then {doStop _operator};
+        if (!_nativeHandback) then {doStop _driver;if (_operator != _driver) then {doStop _operator}};
         _handback="STOP_ONLY";
         // Following an on-foot leader could cause crew dismount; never invent that task.
         if (_leaderVehicle == _vehicle || {_mountedTarget}) then {
-            if (_driver != _operator) then {_driver doFollow _operator};
+            if (_driver != _operator && {!_nativeHandback}) then {_driver doFollow _operator};
             if (_leaderVehicle == _vehicle) then {
-                _operator doMove _originalGoal;_handback="AUTHORED_ROUTE";
+                private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+                    currentCommand _operator,+(expectedDestination _operator)];
+                _operator doMove _originalGoal;
+                _handback=["AUTHORED_ROUTE","NATIVE_ROUTE"] select _nativeHandback;
+                if (_nativeHandback) then {
+                    _work set ["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline"),_returnBefore]];
+                    _work set ["releasePending",true];
+                    _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+                };
             } else {
                 _operator doFollow _leader;_handback="MOUNTED_LEADER";
             };
         };
     };
+};
+if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
+    // Keep the existing cap; this observes forward acknowledgement, not a reverse stop.
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+    false
 };
 if (_nativeStopPending) exitWith {
     _work set ["releasePending",true];

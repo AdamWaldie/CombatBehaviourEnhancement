@@ -95,7 +95,8 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
         self.assertIn('_command == "STOP"',guard)
         self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""}',guard)
-        self.assertIn('vectorDistance (waypointPosition _waypoint) <= 3',guard)
+        self.assertIn('vectorDistance _routeGoal <= 3',guard)
+        self.assertIn('call CBE_fnc_DrivingRouteGoal',guard)
         self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)

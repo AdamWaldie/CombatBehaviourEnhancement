@@ -3,6 +3,8 @@
  * Purpose: Classifies native destination acknowledgement for one existing recovery journal.
  * Locality/authority: Read-only on current owner or during split-locality cleanup observation.
  * This proves command identity only; callers retain cap, route, owner, task and release guards.
+ * It never reads current route identity: route readers may classify an exact temporary native leg
+ * without recursion. Matching child/parent route metadata is provenance, not current-route authority.
  * Repeat/JIP: Original public request expiry survives migration. No writes, replay, deadline
  * renewal or physical progress inference. SIMPLE_BACK retains its separate input/turn contract.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 journal <HASHMAP, empty>.
@@ -16,7 +18,8 @@
  */
 params [["_vehicle",objNull,[objNull]],["_work",createHashMap,[createHashMap]]];
 if (isNull _vehicle || {count _work == 0}
-    || {(_work getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION"}) exitWith {"LOST"};
+    || {(_work getOrDefault ["commandMode","DESTINATION"]) != "DESTINATION"
+        && {(_work getOrDefault ["nativeReturn",[]]) isEqualTo []}}) exitWith {"LOST"};
 private _group=_work getOrDefault ["group",grpNull];
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
@@ -26,6 +29,28 @@ if (isNull _group || {isNull _driver} || {isNull _operator}
     || {_operator != (_work getOrDefault ["operator",objNull])}) exitWith {"LOST"};
 private _driverNative=expectedDestination _driver;
 private _operatorNative=expectedDestination _operator;
+private _nativeReturn=_work getOrDefault ["nativeReturn",[]];
+if (_nativeReturn isNotEqualTo []) exitWith {
+    if (!(_nativeReturn isEqualType []) || {count _nativeReturn != 3}) exitWith {"LOST"};
+    _nativeReturn params ["_returnGoal","_returnUntil","_returnBefore"];
+    if (!(_returnGoal isEqualType []) || {count _returnGoal != 3}
+        || {_returnGoal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+        || {!(_returnUntil isEqualType 0)} || {!finite _returnUntil}
+        || {!(_returnBefore isEqualType [])} || {count _returnBefore != 4}
+        || {!((_returnBefore select 0) isEqualType "")} || {!((_returnBefore select 2) isEqualType "")}
+        || {!((_returnBefore select 1) isEqualType [])} || {!((_returnBefore select 3) isEqualType [])}) exitWith {"LOST"};
+    private _operatorGoal=_operatorNative param [0,[],[[]]];
+    private _driverSame=_driver == _operator || {_driverNative isEqualTo (_returnBefore select 1)
+        && {currentCommand _driver in [_returnBefore select 0,"MOVE"]}};
+    if (_driverSame && {currentCommand _operator in ["","MOVE","WAIT"]}
+        && {count _operatorGoal == 3} && {_operatorGoal vectorDistance _returnGoal <= 0.25}) exitWith {"OWNED"};
+    private _unchanged=_driverNative isEqualTo (_returnBefore select 1)
+        && {_operatorNative isEqualTo (_returnBefore select 3)}
+        && {currentCommand _driver in [_returnBefore select 0,"MOVE"]}
+        && {currentCommand _operator in [_returnBefore select 2,"MOVE"]};
+    if (!_unchanged) exitWith {"LOST"};
+    ["PENDING","EXPIRED"] select (serverTime > _returnUntil)
+};
 // A finite bypass child intentionally changes the destination. Its exact live receipt
 // can retain the parent's budget; it cannot authorise ordinary parent recovery moves.
 private _child=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
@@ -43,7 +68,6 @@ if ((_work getOrDefault ["bypassSpent",false]) isEqualTo true
     && {(_child getOrDefault ["driver",objNull]) == _driver}
     && {(_child getOrDefault ["operator",objNull]) == _operator}
     && {(_child getOrDefault ["route",[]]) isEqualTo (_work getOrDefault ["route",[]])}
-    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work getOrDefault ["route",[]])}
     && {(_child getOrDefault ["recoveryParent",[]]) isEqualTo
         [_group,_work getOrDefault ["route",[]],_hard,_work getOrDefault ["progressAnchor",[]]]}
     && {_driverNative isEqualTo (_child getOrDefault ["driverCommand",[]])}

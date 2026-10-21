@@ -10201,7 +10201,7 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(len(writes),6)
         jam=start.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
         self.assertIn('&& {call _mayRecoverOrdinaryRoute}) then {',jam)
-        self.assertIn('private _requestGoal=waypointPosition [_group,currentWaypoint _group];',jam)
+        self.assertIn('private _requestGoal=[_group] call CBE_fnc_DrivingRouteGoal;',jam)
         self.assertIn('_movementOperator doMove _requestGoal;',jam)
         self.assertGreaterEqual(start.count('call _mayIssueDriving'),3)
         self.assertIn('if (!_capCommitted) then {',start)

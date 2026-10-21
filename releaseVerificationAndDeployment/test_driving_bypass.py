@@ -173,6 +173,10 @@ class DrivingBypassTests(unittest.TestCase):
                       '_operatorNative isEqualTo (_child','driverTask','operatorTask',
                       'exitWith {"BYPASS"}'):
             self.assertIn(guard,classify)
+        self.assertNotIn('call CBE_fnc_DrivingRouteReceipt',classify)
+        self.assertIn('(_recoveryWork get "route") isEqualTo _routeIdentity',assist)
+        parent_release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text()
+        self.assertIn('([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")',parent_release)
         release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text()
         self.assertIn('(serverTime+2) min _hard',release)
         self.assertIn('else {+(_returnBefore select 1)}',release)

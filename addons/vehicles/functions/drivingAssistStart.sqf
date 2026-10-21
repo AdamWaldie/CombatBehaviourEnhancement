@@ -191,6 +191,7 @@ _brain set ["geometryTracks",_geometryTracks];
         ])}
     };
     private _routeIdentity=call _readRouteIdentity;
+    private _nativeOnlyRoute=(_routeIdentity param [0,"",[""]]) == "NATIVE_MOVE";
     // Empty safety input performs metadata validation only, before successor work can retire.
     [_vehicle,_group,_brain,[],{false}] call CBE_fnc_DrivingAbortHandback;
     private _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
@@ -201,6 +202,9 @@ _brain set ["geometryTracks",_geometryTracks];
         [_vehicle,_group,"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
         _recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     };
+    // A requested native return is observation-only. Do not misclassify its old rear
+    // snapshots as a newer order or spend another recovery stage before acknowledgement.
+    if ((_recoveryWork getOrDefault ["nativeReturn",[]]) isNotEqualTo []) then {continue};
     // Queue lifetime ends through existing exact native/cap cleanup, not an ordinary
     // forward retry. Do not leave a completed queue STOP parked forever after expiry.
     if ("queueBinding" in _recoveryWork && {(_recoveryWork getOrDefault ["group",grpNull]) == _group}) then {
@@ -326,7 +330,8 @@ _brain set ["geometryTracks",_geometryTracks];
         || {_vehicle getVariable ["CBE_Convoy_Active",false]}
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         || {behaviour leader _group == "CARELESS"}
-        || {_routeIdentity isEqualTo []}) then {_release=true};
+        || {_routeIdentity isEqualTo []}
+        || {_nativeOnlyRoute && {(_routeIdentity param [2,objNull,[objNull]]) != _vehicle}}) then {_release=true};
     if (_release) then {
         if (_capReleaseWork isEqualTo []) then {[_vehicle,_group] call CBE_fnc_DrivingAssistRelease} else {
             [_vehicle,_group,true,_capReleaseWork] call CBE_fnc_DrivingAssistRelease;
@@ -384,8 +389,9 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_command == "STOP") exitWith {false};
             if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""};
             private _native=expectedDestination _movementOperator;
-            private _waypoint=[_group,currentWaypoint _group];
-            if (_command == "MOVE" && {(_native param [0,[]]) vectorDistance (waypointPosition _waypoint) <= 3}) exitWith {true};
+            private _routeGoal=[_group] call CBE_fnc_DrivingRouteGoal;
+            if (_command == "MOVE" && {_routeGoal isNotEqualTo []}
+                && {(_native param [0,[]]) vectorDistance _routeGoal <= 3}) exitWith {true};
             // The rear leg intentionally differs from the waypoint. Only an unchanged
             // current journal can authorize its own finite forward handback (including owned CBE),
             // not another MOVE or an unowned CBE.
@@ -965,8 +971,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (count _jam > 0 && {(_jam get "route") isNotEqualTo _routeIdentity
                     || {(_jam get "group") != _group}
                     || {(_vehicle distance2D (_jam get "origin")) >= 15
-                        && {((_jam get "origin") distance2D waypointPosition [_group,currentWaypoint _group])
-                            -(_vehicle distance2D waypointPosition [_group,currentWaypoint _group]) >= 15}}}) then {
+                        && {((_jam get "origin") distance2D ([_group] call CBE_fnc_DrivingRouteGoal))
+                            -(_vehicle distance2D ([_group] call CBE_fnc_DrivingRouteGoal)) >= 15}}}) then {
                     _jam=createHashMap;_jamChanged=true;
                 };
                 private _jamPeer=_traffic select 1;
@@ -1041,7 +1047,7 @@ _brain set ["geometryTracks",_geometryTracks];
                     if (!(_queueAdmission select 0) && {!(_jam get "yielded")} && {!_requestPending} && {(_jam get "attempts") < 3} && {serverTime < (_jam get "deadline")}
                         && {serverTime >= (_jam get "next")} && {serverTime-(_jam get "since") >= 20}
                         && {call _mayRecoverOrdinaryRoute}) then {
-                        private _requestGoal=waypointPosition [_group,currentWaypoint _group];
+                        private _requestGoal=[_group] call CBE_fnc_DrivingRouteGoal;
                         private _requestTasks=[currentCommand _driver,currentCommand _movementOperator];
                         _movementOperator doMove _requestGoal;
                         _jam set ["request",[+_requestGoal,serverTime+2,_requestTasks]];
@@ -1107,18 +1113,18 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_passActive) then {_recoveryResult="PASS_"+(_pass select 2)};
             private _routeProgress=true;
             if (_recoveryStage > 0) then {
-                private _progressWaypoint=currentWaypoint _group;
+                private _progressGoal=[_group] call CBE_fnc_DrivingRouteGoal;
                 _routeProgress=false;
                 private _progressJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                 private _progressAnchor=_progressJournal getOrDefault ["progressAnchor",[]];
                 // Stage clocks/positions change at each retry. Only progress beyond
                 // the original stalled position can replenish this finite episode.
-                if (_progressWaypoint < count waypoints _group
+                if (_progressGoal isNotEqualTo []
                     && {(_progressJournal getOrDefault ["group",grpNull]) == _group}
                     && {(_progressJournal getOrDefault ["route",[]]) isEqualTo _routeIdentity}
                     && {_progressAnchor isEqualType []} && {count _progressAnchor == 3}
                     && {_progressAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
-                    private _progressDestination=waypointPosition [_group,_progressWaypoint];
+                    private _progressDestination=_progressGoal;
                     _routeProgress=(_progressAnchor distance2D _progressDestination)
                         -(_vehicle distance2D _progressDestination) >= 3;
                 };
@@ -1134,7 +1140,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 [_vehicle,_group,"ROUTE_PROGRESS",false] call CBE_fnc_DrivingRecoveryRelease;
             };
             private _waypointIndex=currentWaypoint _group;
-            private _hasRoute=_waypointIndex < count waypoints _group;
+            private _recoveryGoal=[_group] call CBE_fnc_DrivingRouteGoal;
+            private _hasRoute=_recoveryGoal isNotEqualTo [];
             private _inCombat=behaviour leader _group in ["COMBAT","STEALTH"] || {getSuppression _driver > 0.1};
             // A reverse leg has its own finite deadline. It must return to the authored
             // route even while still moving; the ordinary stall timer is not another hold.
@@ -1159,8 +1166,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {time-_progressAt >= _observationWindow || {_reverseComplete} || {_finalExpired}} && {time >= _recoveryUntil}
                 && {call _mayIssueDriving} && {call _mayRecoverOrdinaryRoute}) then {
                 private _waypoint=[_group,_waypointIndex];
-                private _destination=waypointPosition _waypoint;
-                if (waypointType _waypoint == "MOVE" && {_vehicle distance2D _destination > (waypointCompletionRadius _waypoint max 20)}) then {
+                private _destination=+_recoveryGoal;
+                private _arrivalRadius=if (_nativeOnlyRoute) then {20} else {waypointCompletionRadius _waypoint max 20};
+                if (_vehicle distance2D _destination > _arrivalRadius) then {
                     private _recoveryTransitioned=false;
                     switch (_recoveryStage) do {
                         case 0: {

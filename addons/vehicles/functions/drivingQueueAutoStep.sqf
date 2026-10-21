@@ -25,6 +25,7 @@ if (isRemoteExecuted || {isNull _group} || {!local _group} || {isNull _vehicle} 
     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
     || {(_jam getOrDefault ["route",[]]) isNotEqualTo (_brain getOrDefault ["route",[]])}) exitWith {[false,false]};
+if (((_brain getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE") exitWith {[false,false]};
 private _executor=_group getVariable ["CBE_Driving_FSM",-1];
 if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {[false,false]};
 private _enabled=[_group,"CBE_AIPass_DrivingAssist_Queue_Enable",false,_vehicle] call CBE_fnc_CortexFeatureEnabled;

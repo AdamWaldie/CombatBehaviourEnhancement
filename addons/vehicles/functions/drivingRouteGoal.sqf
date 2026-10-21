@@ -7,13 +7,16 @@
  * Arguments: 0 group GROUP grpNull.
  * Return: ARRAY finite PositionAGL goal, or[] for absent/protected/non-MOVE waypoint.
  * Current callers: DrivingAssistStart recovery admission, DrivingGateIntent and DrivingRecoveryRelease.
- * Native script-only MOVE has no authored waypoint and remains unsupported here.
+ * No authored waypoint permits the distinct validated native MOVE goal, including exact temporary recovery.
  * Example: private _goal=[group driver truck1] call CBE_fnc_DrivingRouteGoal;
  */
 params [["_goalGroup",grpNull,[grpNull]]];
 if (isNull _goalGroup) exitWith {[]};
 private _goalIndex=currentWaypoint _goalGroup;
-if (_goalIndex <= 0 || {_goalIndex >= count waypoints _goalGroup}) exitWith {[]};
+if (_goalIndex <= 0 || {_goalIndex >= count waypoints _goalGroup}) exitWith {
+    private _nativeGoalReceipt=[_goalGroup] call CBE_fnc_DrivingNativeRouteReceipt;
+    if (count _nativeGoalReceipt == 9) then {+(_nativeGoalReceipt select 6)} else {[]}
+};
 private _goalWaypoint=[_goalGroup,_goalIndex];
 private _goalStatements=waypointStatements _goalWaypoint;
 private _goalCondition=toLowerANSI ((_goalStatements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
