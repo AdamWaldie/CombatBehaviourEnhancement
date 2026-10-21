@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * START searches bounded station capability; each STEP freshly reads only its exact admitted muzzle.
  * Purpose: Finite experimental point-defence aiming and real-shot observation for a native
  * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
  * Locality/authority: Current local AI main turret [0] only. Existing task/ROE/owner checks apply.
@@ -290,12 +291,20 @@ if (_crossMagnitude >= 5) then {
     _up=_up vectorDiff (_along vectorMultiply (_up vectorDotProduct _along));
 };
 if (vectorMagnitude _up > 0.1) then {_aim=_aim vectorAdd ((vectorNormalized _up) vectorMultiply ((_correction select 1)*_range))};
-private _observation=createHashMap;
-if (!([_vehicle,_gunner,objNull,_observation,false,true] call CBE_fnc_CortexGroundFireReady)
-    || {(_observation get "loadedWeapon") != (_state get "weapon")}
-    || {(_observation get "loadedMuzzle") != (_state get "muzzle")}
-    || {(_observation get "loadedMagazine") != (_state get "magazine")}
-    || {!((_observation get "loadedTurret") isEqualTo _turret)}) exitWith {["STATION_CHANGED"] call _finish;-1};
+// Admission already qualified this exact immutable weapon/muzzle/ammo configuration.
+// Fresh native state still proves permission; do not rescan unrelated station muzzles
+// on every aim step or let another loaded weapon substitute for this episode's identity.
+private _weapon=_state get "weapon";private _muzzle=_state get "muzzle";
+private _magazine=_state get "magazine";
+private _loaded=weaponState [_vehicle,_turret,_weapon,_muzzle];
+private _roundCount=_loaded param [4,-1,[0]];
+private _reloadPhase=_loaded param [6,1,[0]];
+if (count _loaded < 7 || {(_loaded select 0) != _weapon} || {(_loaded select 1) != _muzzle}
+    || {(_loaded select 3) != _magazine} || {!finite _roundCount} || {_roundCount < 20}
+    || {!finite _reloadPhase} || {_reloadPhase != 0}
+    || {!(_weapon in ((_vehicle weaponsTurret _turret) select [0,16]))}) exitWith {["STATION_CHANGED"] call _finish;-1};
+private _observation=createHashMapFromArray [["loadedWeapon",_weapon],["loadedMuzzle",_muzzle],
+    ["loadedMagazine",_magazine],["loadedTurret",+_turret]];
 private _camera=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "optic","Memory"]);
 private _point=_aim vectorAdd (_camera vectorDiff _origin);
 _vehicle lockCameraTo [_point,_turret,true];_state set ["applied",+_point];

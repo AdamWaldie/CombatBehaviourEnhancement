@@ -102,6 +102,25 @@ class AAObservation(unittest.TestCase):
         self.assertIn('time < (_aaLease select 1)',permission)
         self.assertIn('_job getOrDefault ["token",""]',intercept)
         self.assertIn('_observation get "loadedTurret"',intercept)
+        step=intercept.split('if (_mode != "STEP" || {count _state == 0})',1)[1]
+        self.assertNotIn('call CBE_fnc_CortexGroundFireReady',step)
+        self.assertIn('weaponState [_vehicle,_turret,_weapon,_muzzle]',step)
+        for proof in ('(_loaded select 0) != _weapon','(_loaded select 1) != _muzzle',
+                      '(_loaded select 3) != _magazine','_roundCount < 20','_reloadPhase != 0',
+                      'weaponsTurret _turret) select [0,16]'):
+            self.assertIn(proof,step)
+        self.assertLess(step.index('weaponState [_vehicle,_turret,_weapon,_muzzle]'),step.index('_vehicle lockCameraTo'))
+        self.assertLess(step.index('STATION_CHANGED'),step.index('call CBE_fnc_CortexGroundSelectMuzzle'))
+        # Continuation binds its admitted muzzle; an unrelated newly loaded station gun
+        # cannot replace it or force the episode to search the whole station again.
+        admitted=('gun','coax','ball')
+        def same_muzzle(row):
+            return len(row)>=7 and (row[0],row[1],row[3])==admitted and row[4]>=20 and row[6]==0
+        valid=['gun','coax','mode','ball',20,0,0]
+        self.assertTrue(same_muzzle(valid))
+        for index,value in ((0,'other'),(1,'other'),(3,'tracer'),(4,19),(6,.2)):
+            changed=valid.copy();changed[index]=value;self.assertFalse(same_muzzle(changed))
+        self.assertFalse(same_muzzle(valid[:5]))
         self.assertIn('_operator != (_state get "gunner")',intercept)
         self.assertIn('_muzzle != (_state get "muzzle")',intercept)
         fire_handler=source.split('private _handler=',1)[1].split('private _warningHandler=',1)[0]

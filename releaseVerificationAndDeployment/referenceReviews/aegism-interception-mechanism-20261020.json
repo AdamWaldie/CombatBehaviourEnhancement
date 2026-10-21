@@ -258,5 +258,26 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "exactAdmittedMuzzleRead20261021": {
+    "baseline": "adbe73a9",
+    "finding": "Every experimental interceptor STEP repeated GroundFireReady station search with <=32 native muzzle-state reads, despite owning one exact admitted weapon/muzzle/magazine. No fresh station-wide choice is needed for continuation.",
+    "implementation": "START retains full bounded damaging nonexplosive loaded-bullet qualification. STEP reads its exact admitted muzzle once and checks weapon/muzzle/magazine identity, finite >=20 rounds, completed reload and first16 station-weapon membership before updating aim. Builds exact selection observation for unchanged final GroundSelectMuzzle checks. Immutable config qualification is retained by identity, not cached live permission.",
+    "behaviourDifference": "An unrelated newly loaded station weapon no longer terminates an otherwise valid exact admitted muzzle because a full station search happens to rank it first. No substitution, retargeting, reloading or firing cadence change. Missing/changed/empty/reloading admitted muzzle still retires.",
+    "cost": "Continuation readiness weaponState bound32->1 per existing step; full START search and additional exact final firing/selection reads unchanged. No extra job/world scan/config cache or changed episode bounds. Typical gain depends on station; runtime unmeasured.",
+    "sourceIntent": "Original CBE implementation efficiency change; no new upstream review/copy or parity credit.",
+    "hashes": {
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "fa47c0420a1d5c0f265c6cd6241b7cac6eb7e7a04708d0ee767ee2148ccb5c61"
+    },
+    "validation": {
+      "tests": 1484,
+      "pipeline": ".qa/aa-exact-muzzle-read-build.log",
+      "independent": ".qa/aa-exact-muzzle-read-independent.log",
+      "candidate": ".qa/candidates/aa-exact-muzzle-read-adbe73a9",
+      "fingerprint": "ee47069ff64273b2807b55c06a25d3bc51a4401265637762970ddeb2e3296531"
+    },
+    "limits": "Default-off experimental feature. Physical aim/shot/interception, native station-change behaviour, normal/HC and5%median/10%p95 remain unverified. Static bound is not measured frame-time improvement. No scores changed.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }

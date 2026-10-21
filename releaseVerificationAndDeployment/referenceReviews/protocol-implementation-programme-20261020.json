@@ -95,19 +95,20 @@
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
       },
       "currentCodeEvidence20261021": {
-        "baseline": "792dde29",
+        "baseline": "adbe73a9",
         "reviewSections": [
           "protocol-aa-3809708209-20261020.json#sameGroupWarningAllocation20261021",
           "aegism-interception-mechanism-20261020.json#finiteAimShotImplementation20261021",
           "aegism-interception-mechanism-20261020.json#localDirectPassFuse20261021",
-          "aegism-interception-mechanism-20261020.json#measuredAimCalibration20261021"
+          "aegism-interception-mechanism-20261020.json#measuredAimCalibration20261021",
+          "aegism-interception-mechanism-20261020.json#exactAdmittedMuzzleRead20261021"
         ],
         "default": "CBE_AIPass_AAIntercept_Enable=false",
         "hashes": {
           "addons/vehicles/functions/cortexAAObserve.sqf": "bb912774b6275ddc7b7bee489ee486af7fd2d9631a9a47bc06ca341a84335bb4",
           "addons/vehicles/functions/cortexAAAllocate.sqf": "5f4b8081eb0133a42899ec8846fa1d72c3dfc009f695f7623a06e203646a4ee9",
           "addons/vehicles/functions/cortexAAWarningLink.sqf": "4790a21b94adc4efa7ac8ec7e7964fb441f8a2e1fe6148e0280f0f4842047efb",
-          "addons/vehicles/functions/cortexAAIntercept.sqf": "1967ee8a9d716e786fec5ca13e1bbc02183f6cd53b7ed4ca9c2711da6a736470",
+          "addons/vehicles/functions/cortexAAIntercept.sqf": "fa47c0420a1d5c0f265c6cd6241b7cac6eb7e7a04708d0ee767ee2148ccb5c61",
           "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "2dc3782312a931215085199285bac1f8c49c6e2d2e48dfd4bef0737c8aea9896",
           "addons/vehicles/functions/cortexAASpot.sqf": "acb39bfce7f1e7291c5ac0201a9a6123fe95a923facd593f6218e0ff5b69c309",
           "addons/vehicles/functions/cortexAARelocate.sqf": "6a732377b0a236cf4acb633ad10134ec1a1ad6df97ef4940a62e5f2c03553c78"
