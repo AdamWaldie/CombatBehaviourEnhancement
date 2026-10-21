@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native cap application and queue fallback STOP must confirm before their ownership receipt changes.
+ * An unconfirmed write preserves the last confirmed cap/baseline and cannot advance recovery.
  * Pending ordinary cap handback takes the cap-only path before child-controller work;
  * it never captures an unconfirmed old cap as a fresh baseline or restarts recovery.
  * Queued ACE care owns driver/operator task admission before the native HEAL transition.
@@ -893,20 +895,29 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (_capReceipt isEqualTo []) then {_capReceipt=[_capMps,_maximumGrade,time,_group]} else {
                     _capReceipt set [0,_capMps];
                 };
-                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
                 _vehicle forceSpeed _capMps;
+                if (abs ((getForcedSpeed _vehicle)-_capMps) > 0.1) exitWith {false};
+                _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
                 _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
                 _entryAssistState=+_capReceipt;
                 if (_queueHold) then {["APPLIED",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
+                private _capIssueComplete=true;
                 if (_queueNativeActive) then {
                     private _nativeQueueMode=if (_queueStarted) then {["ISSUE","STOP"] select _queueStop} else {"ISSUE"};
                     private _queueCommitted=[_nativeQueueMode,_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit;
                     if (!_queueCommitted) then {
                         // Refused issue cannot leave a positive cap on the original forward
                         // task. Roll back in this same sole-writer transaction; never replay BACK.
-                        _capMps=0;_capReceipt set [0,0];_vehicle forceSpeed 0;
-                        _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
-                        _entryAssistState=+_capReceipt;
+                        _vehicle forceSpeed 0;
+                        if (abs (getForcedSpeed _vehicle) > 0.1) then {
+                            // A failed STOP did not acquire a zero-speed lease. Keep the
+                            // confirmed positive cap/baseline and skip further recovery work.
+                            _capIssueComplete=false;
+                        } else {
+                            _capMps=0;_capReceipt set [0,0];
+                            _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
+                            _entryAssistState=+_capReceipt;
+                        };
                     };
                     private _issuedQueue=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
                     if ("queueBinding" in _issuedQueue) then {
@@ -914,11 +925,11 @@ _brain set ["geometryTracks",_geometryTracks];
                         _state set [10,true];_reverseIssued=true;
                     };
                 };
-                _capCommitted=true;
+                _capCommitted=_capIssueComplete;
             };
             if (!_capCommitted) then {
-                // No baseline/cap was published on refusal. Existing receipts remain available
-                // to their real owner; do not run stale cleanup over a successor here.
+                // Admission/application refusal or unconfirmed queue STOP cannot advance recovery.
+                // Preserve the last confirmed receipt; never invent zero-cap ownership or clean a successor.
             } else {
             if (_gateObservation isNotEqualTo [] && {call _mayIssueDriving}) then {
                 [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;

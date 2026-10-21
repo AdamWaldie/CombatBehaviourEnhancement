@@ -41,6 +41,19 @@ class DrivingRearMonitorTests(unittest.TestCase):
             self.assertLess(commit.index(proof),commit.index('_vehicle forceSpeed _capMps'))
         self.assertIn('setVariable ["CBE_DrivingAssist_Restore",_previous]',commit)
         self.assertIn('setVariable ["CBE_DrivingAssist_State",_capReceipt]',commit)
+        # Native failure must not fabricate a cap lease or discard its original baseline.
+        confirmation='if (abs ((getForcedSpeed _vehicle)-_capMps) > 0.1) exitWith {false};'
+        self.assertLess(commit.index('_vehicle forceSpeed _capMps;'),commit.index(confirmation))
+        self.assertLess(commit.index(confirmation),commit.index('setVariable ["CBE_DrivingAssist_Restore",_previous]'))
+        self.assertLess(commit.index(confirmation),commit.index('setVariable ["CBE_DrivingAssist_State",_capReceipt]'))
+        fallback=commit.split('if (!_queueCommitted) then {',1)[1].split('private _issuedQueue=',1)[0]
+        self.assertLess(fallback.index('_vehicle forceSpeed 0;'),fallback.index('abs (getForcedSpeed _vehicle) > 0.1'))
+        failed,confirmed=fallback.split('} else {',1)
+        self.assertIn('_capIssueComplete=false;',failed)
+        self.assertNotIn('_capReceipt set [0,0]',failed)
+        self.assertNotIn('setVariable ["CBE_DrivingAssist_State"',failed)
+        self.assertIn('_capReceipt set [0,0]',confirmed)
+        self.assertIn('_capCommitted=_capIssueComplete;',commit)
         self.assertIn('_entryAssistState=+_capReceipt',commit)
         self.assertNotIn('CBE_fnc_DrivingAssistRelease',text.split('if (!_capCommitted) then {',1)[1].split('} else {',1)[0])
 

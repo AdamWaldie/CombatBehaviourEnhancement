@@ -54,7 +54,7 @@ class RecoveryCleanupTests(unittest.TestCase):
         for proof in ('["ADMIT",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',
                       '[_nativeQueueMode,_group,_vehicle,_brain] call CBE_fnc_DrivingQueueReverseCommit',
                       '_queueHold=!_queueNativeActive', '_queueJournal getOrDefault ["ackUntil",-1]',
-                      '_queueStarted', '_capReceipt set [0,0];_vehicle forceSpeed 0'):
+                      '_queueStarted', '_capMps=0;_capReceipt set [0,0];'):
             self.assertIn(proof,integration)
 
 

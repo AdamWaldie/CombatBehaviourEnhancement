@@ -1,0 +1,27 @@
+{
+  "baseline": "943749cb",
+  "scope": "Confirm ordinary speed-cap acquisition and queue fallback cap before changing ownership receipts",
+  "finding": "Both forceSpeed writes in DrivingAssistStart previously published the requested applied cap without native confirmation. On failed update, later cleanup could regard the last confirmed CBE cap as a foreign cap and drop its original baseline. Failed queue fallback could fabricate zero-speed ownership.",
+  "resolution": [
+    "Initial/update forceSpeed readback must match requested cap within existing0.1 tolerance before publishing baseline/current-cap receipt or APPLIED queue acknowledgement. Failed write preserves prior private receipts and skips dependent work.",
+    "Queue fallback forceSpeed0 now confirms native zero before mutating capMps or cap receipt. Failure preserves the last confirmed positive cap/baseline and sets transaction outcome false, so subsequent recovery and final state publication do not proceed.",
+    "All existing brain/epoch/feature/native-cap/receipt/crew/takeover/queue admission gates remain. No extra native command, route reset, timer, worker or global scan.",
+    "Existing rear-monitor regression now covers both publication order and failed/confirmed queue branches. Two existing source-spelling assertions updated to confirmation-first order without dropping their authority checks."
+  ],
+  "sourceHash": "95393ae0011c32fe6ca4cee1fc42127ccede54ea1a20ee218f2135b00d5fd564",
+  "referenceContext": "Continues hbq-ordinary-cap-handback-20261021.json and ordinary-cap-incoming-owner-20261021.json. No new upstream review or whole-HBQ parity claim. Acquisition provenance is a prerequisite to broader cruising-cap migration.",
+  "validation": {
+    "tests": 1484,
+    "compiledSQF": 392,
+    "fullOffline": ".qa/ordinary-cap-application-build.log",
+    "independent": ".qa/ordinary-cap-application-independent.log",
+    "candidate": ".qa/candidates/ordinary-cap-application-943749cb",
+    "fingerprint": "6f8235be8812132eb346e182a7607f69d536b6716cbf2b5e733b03c5b3b229e4"
+  },
+  "limits": [
+    "No Arma launch; audits remain paused. Native failure injection, physical braking/queue behaviour, HC transfer and performance remain unverified.",
+    "A failed stop remains a failed stop; preserving the positive cap receipt does not make it physically safe or stopped.",
+    "Ordinary active cap provenance is still private. General cruise migration and stale private state on a returning machine remain unfinished.",
+    "No completion percentage change or release acceptance claim."
+  ]
+}

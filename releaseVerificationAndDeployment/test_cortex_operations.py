@@ -2976,7 +2976,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(cap.index('call _mayIssueDriving'),cap.index('_vehicle forceSpeed'))
         self.assertIn('isNotEqualTo _entryRestore',cap)
         self.assertIn('isNotEqualTo _entryAssistState',cap)
-        self.assertIn('_capReceipt set [0,0];_vehicle forceSpeed 0',cap)
+        self.assertIn('_capMps=0;_capReceipt set [0,0];',cap)
         self.assertIn('[_vehicle,_group] call CBE_fnc_DrivingAssistRelease;',driving)
         self.assertLess(driving.index('private _capCommitted=false;'),driving.index('_vehicle forceSpeed _capMps;'))
         recovery=driving.split('if (_hasRoute &&',1)[1].split('switch (_recoveryStage)',1)[0]
