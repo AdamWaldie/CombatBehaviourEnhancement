@@ -155,6 +155,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/crew-shared-goal-20261021.json",
+      "sha256": "e605ce96c8c35fb82f8321bd7efebe53655907bcd4e75dea2d3ab33ffdae28b1",
+      "scope": "Shared crew-seat plain-MOVE policy and native casualty continuity trace",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/driving-recovery-gate-scope-20261021.json",
       "sha256": "a29545131cb27bc02eb455aa091aafa7829eba4f5a9877542b2c3e50ab453181",
       "scope": "Recovery lifecycle and remaining gate passage/closure scope",
@@ -209,6 +218,22 @@
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
       ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-flight-20261021.json",
+      "sha256": "5996fe9129e3ff4fa22964832f26b3b4e703578f51e979a7e83414bb2be63efd",
+      "scope": "Native crew flight ownership in ordinary recovery",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-current-gaps-20261021.json",
+      "sha256": "a422eebf7d513d524f6583f3367994f707cdcc0f9aa62675809643955d15f8dd",
+      "scope": "Reconcile historical HBQ remaining-code statements against current execution chain",
+      "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
@@ -368,6 +393,16 @@
       "scope": "Complete HBQ moduleNavArea helper and CBE native/optional ZEN task registration chain",
       "sourceFileMentions": [
         "functions/fn_moduleNavArea.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-ordinary-cap-handback-20261021.json",
+      "sha256": "1445832308efc9b298fd509b7596b9301fa64aba7dc041ebafae2969aad86885",
+      "scope": "Ordinary driving cap handback and explicit FSM pending outcome; not whole HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

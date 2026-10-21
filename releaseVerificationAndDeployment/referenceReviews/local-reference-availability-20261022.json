@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-22",
+  "baseline": "4338a82a",
+  "scope": "Authoritative local reference availability; no source parity or implementation percentage",
+  "unavailable_recorded_paths": [
+    "LOCAL_IMPLEMENTATION_LEDGER.md",
+    ".qa/workshop-comparison-20261014/WORKSHOP-COMPARISON.md",
+    ".qa/workshop-comparison-20261014/source-code-index.json",
+    ".qa/workshop-comparison-20261014/wait-code-index.json"
+  ],
+  "search_boundary": [
+    "Current CBE checkout and its single registered Git worktree",
+    "Known GitHub project directory names",
+    "Separate AI-Reference-Archives filenames for the named missing records"
+  ],
+  "recovery_status": "Original private ledger/comparison not recovered. Do not reconstruct their detailed requirements or original source counts from memory. A known backup or prior saved copy is required for exact recovery. No conclusion about deletion cause.",
+  "verified": {
+    "pinned_down_archive": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708",
+    "manifest_sha256": "95c18276b0b4c5ba0903e94bf8226aef329bbfb76f507bd44351e468210f956a",
+    "files": 320,
+    "failures": 0,
+    "limits": "Preserved extracted snapshots; this does not recover absent original installed PBOs/signatures.",
+    "hbq_source_root": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai",
+    "hbq_controller_sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "hbq_source_inventory": "Unchanged compared with prior tracked index; four new review pointers added, no removed review pointer or historic status change.",
+    "hbq_index_sha256": "9eed0cdfbc867f135e415bee9a3b51b98776024c99a4754d31d989e64dd3b678",
+    "lambs_reference_present": true
+  },
+  "source_protection": "Read-only archive/source checks; no protected originals modified, moved or pruned. No inferred fresh Workshop availability.",
+  "validation": "Archive manifest/hash check and refreshed HBQ index check passed. No runtime source or packaged candidate changed; unchanged full build not repeated.",
+  "audits": "PAUSED"
+}
