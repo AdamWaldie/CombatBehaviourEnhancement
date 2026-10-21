@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Purpose: Starts one short terrain-checked escape by an intact armed ground vehicle after a close
  * hostile, hit or explosion danger generation, without becoming a persistent driving controller.
  * Locality / Authority: Runs on the current group and vehicle owner. It yields to convoy, player,
@@ -54,8 +55,8 @@ if ((units _group) findIf {alive _x && {vehicle _x == _x}} >= 0) exitWith {["FOO
 private _hasWeapon=([[-1]]+allTurrets [_vehicle,true]) findIf {
     (_vehicle weaponsTurret _x) findIf {
         private _config=configFile >> "CfgWeapons" >> _x;
-        toLowerANSI getText (_config >> "displayName") != "horn"
-            && {getText (_config >> "simulation") != "cmlauncher"}
+        !(_x isKindOf ["CarHorn",configFile >> "CfgWeapons"])
+            && {!(toLowerANSI getText (_config >> "simulation") in ["carhorn","cmlauncher"])}
     } >= 0
 } >= 0;
 if (!_hasWeapon) exitWith {["NO_WEAPON"] call _refuse};

@@ -120,5 +120,24 @@
       "performanceMeasured": false,
       "scoresChanged": false
     }
+  },
+  "vehicleHornClassification20261021": {
+    "scope": "Original CBE shared vehicle-classification defect found during armoured-force integration trace. No new upstream source reviewed or copied in this change.",
+    "finding": "Danger profile, jink admission and lost-gun withdrawal identified horns using lowercased English displayName. Translated/custom horn labels could classify an otherwise unarmed transport as armed; two simulation comparisons were also case-sensitive.",
+    "implementation": "All three existing live turret predicates exclude CarHorn config inheritance plus case-normalised carhorn/cmlauncher simulation. No cached platform result, extra worker, world scan or fire/movement command.",
+    "evidence": "Official Arma3 CfgWeapons Vehicle Weapons lists CarHorn and other horn entries: https://community.bistudio.com/wiki/Arma_3:_CfgWeapons_Vehicle_Weapons . Config identity is separate from presentation; simulation fallback also covers non-derived horn implementations.",
+    "hashes": {
+      "addons/infantry/functions/dangerVehicleProfile.sqf": "3a8983f05a648b6e44b70cc9cc4e190b13fa55dcb8eaf9f13ce81230d8d8655a",
+      "addons/vehicles/functions/cortexVehicleJink.sqf": "8db3bbbe999828fe8044218efe925b5a11b75aafe3dffb7b40a3852e8093591e",
+      "addons/vehicles/functions/cortexVehicles.sqf": "f18e616026a9be8a67487a8625a70af1d80b337c8f8b96c4c8492b32ff1558a6"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/vehicle-horn-classification-build.log",
+      "independent": ".qa/vehicle-horn-classification-independent.log",
+      "candidate": ".qa/candidates/vehicle-horn-classification-35c18416",
+      "fingerprint": "b3f97c0765e2ba202c68c44020fd6e64a7a9fdcb2fcf6e30dc6fbdc5a223d5d4"
+    },
+    "limits": "Horn/CM utility exclusion only; not a complete classifier for every modded utility weapon, loaded ammunition, station availability or firing readiness. Dynamic loadout/localisation/physical behaviour and performance unverified. No parity or score change."
   }
 }

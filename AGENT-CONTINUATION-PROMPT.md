@@ -1,3 +1,8 @@
+# Latest checkpoint - vehicle horn classification
+
+## 2026-10-21 - Stable horn classification across vehicle behaviours
+Baseline35c18416. During Protocol armoured-force integration trace found original CBE defect: DangerVehicleProfile/CortexVehicleJink/CortexVehicles classified horns by English displayName; custom/translated label could mark transport armed and affect jink/lost-gun withdrawal. All3 existing live turret predicates now exclude CarHorn config inheritance and case-normalised carhorn/cmlauncher simulation. No new controller/world scan/cache or movement/fire command. Existing regression extended for translated/custom horn labels, simulated standalone horn, mixed-case CM and real weapon named Horn. No new test case. Full1484+HEMTT/SQF/config/FSM/docs/package pass .qa/vehicle-horn-classification-build.log; independent .qa/vehicle-horn-classification-independent.log. Unsigned candidate .qa/candidates/vehicle-horn-classification-35c18416 fingerprintb3f97c0765e2ba202c68c44020fd6e64a7a9fdcb2fcf6e30dc6fbdc5a223d5d4. workshop-intake-3822504009.json records original defect/hashes/limits; no additional upstream review/parity claimed. Does not classify every modded utility weapon or prove loaded gunner/fire readiness. Physical localisation/loadout/jink/withdrawal/performance unverified; audits PAUSED/no launches. Full goal active/incomplete. No push/merge/publish. Unrelated dirt/protected references/signing preserved.
+
 # Latest checkpoint - HBQ source evidence reconciled
 
 ## 2026-10-21 - HBQ route wait/restart evidence reconciliation

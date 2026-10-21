@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Purpose: Classify the occupied vehicle domain for one bounded danger response so the danger FSM
  * can hand work to the correct existing subsystem without issuing movement, target or fire commands.
  * Locality/authority: Read-only. Call on the actor owner after validating the actor. It inspects the
@@ -26,8 +27,8 @@ private _hasRealWeapon=([[-1]]+allTurrets [_vehicle,true]) findIf {
     (_vehicle weaponsTurret _x) findIf {
         private _weaponConfig=configFile >> "CfgWeapons" >> _x;
         private _simulation=toLowerANSI getText (_weaponConfig >> "simulation");
-        toLowerANSI getText (_weaponConfig >> "displayName") != "horn"
-            && {_simulation != "cmlauncher"}
+        !(_x isKindOf ["CarHorn",configFile >> "CfgWeapons"])
+            && {!(_simulation in ["carhorn","cmlauncher"])}
     } >= 0
 } >= 0;
 if (_hasRealWeapon) exitWith {"ARMED"};

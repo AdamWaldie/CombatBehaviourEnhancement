@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Danger-derived hostile actions retain the original identity expiry/witness; close-range
  * crew safety uses native believed geometry, never the hidden enemy object position.
  * Ground gunnery selects the freshly qualified loaded station muzzle before requesting fire.
@@ -769,8 +770,8 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         ([[-1]] + allTurrets [_vehicle, true]) findIf {
             (_vehicle weaponsTurret _x) findIf {
                 private _weaponConfig = configFile >> "CfgWeapons" >> _x;
-                toLowerANSI (getText (_weaponConfig >> "displayName")) != "horn"
-                && {getText (_weaponConfig >> "simulation") != "cmlauncher"}
+                !(_x isKindOf ["CarHorn",configFile >> "CfgWeapons"])
+                && {!(toLowerANSI getText (_weaponConfig >> "simulation") in ["carhorn","cmlauncher"])}
             } >= 0
         } >= 0
     };

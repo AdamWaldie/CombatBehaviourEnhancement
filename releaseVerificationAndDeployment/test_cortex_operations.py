@@ -8957,6 +8957,20 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ['setPos','setVelocity','moveIn','allowDamage','disableCollisionWith','while {']:
             self.assertNotIn(forbidden,jink)
         self.assertIn('vehicleDangerJink',vehicles)
+        for name in ('dangerVehicleProfile','cortexVehicleJink','cortexVehicles'):
+            classifier=source(name)
+            self.assertIn('isKindOf ["CarHorn",configFile >> "CfgWeapons"]',classifier)
+            self.assertIn('["carhorn","cmlauncher"]',classifier)
+            self.assertNotIn('>> "displayName")) != "horn"',classifier)
+            self.assertNotIn('>> "displayName") != "horn"',classifier)
+        # Labels are presentation, not combat capability: translated horns remain utility.
+        def combat(horn_family,simulation,label):
+            return not horn_family and simulation.lower() not in ('carhorn','cmlauncher')
+        for label in ('Horn','Hupe','Custom siren',''):
+            self.assertFalse(combat(True,'Weapon',label))
+            self.assertFalse(combat(False,'CarHorn',label))
+        self.assertFalse(combat(False,'CMLauncher','Launcher'))
+        self.assertTrue(combat(False,'Weapon','Horn'))
         self.assertIn('serverTime+25,_generation],true]',jink)
         cleanup=vehicles.split('if (_finishedOwner == "VEHICLE_JINK")',1)[1].split('if (_finishedOwner == "VEHICLE_ORIENT")',1)[0]
         self.assertIn('(_marker param [4,-1,[0]]) == _generation',cleanup)
