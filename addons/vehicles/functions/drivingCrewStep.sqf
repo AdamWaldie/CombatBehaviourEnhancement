@@ -16,7 +16,8 @@
  * An authored plain MOVE uses the shared DrivingRouteGoal policy, including a finite goal.
  * Native casualty retains only an already admitted vehicle goal. Actual replacement-seat
  * occupancy and one finite original-goal acknowledgement rebind its operating receipt.
- * Active recovery-command casualties remain unsupported. Player, Zeus, specialist, convoy,
+ * Forward recovery casualties retain their original budget/cap after exact seat and goal ACK.
+ * Reverse/return recovery-command casualties remain unsupported. Player, Zeus, specialist, convoy,
  * service and newer orders win.
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,
@@ -135,6 +136,50 @@ private _nativeMissionCurrent={
             }
     } < 0
 };
+// A forward recovery has no temporary rear command to hand back. Retain its exact
+// cap and original episode through the seat action; never recreate a retry allowance.
+private _crewRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+private _crewRecoveryCurrent={
+    if (!_nativeCrew) exitWith {true};
+    private _currentRecovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    if (count _crewRecovery == 0) exitWith {count _currentRecovery == 0};
+    private _recoveryCap=_crewRecovery getOrDefault ["cap",[]];
+    private _recoveryHard=_crewRecovery getOrDefault ["hardDeadline",[]];
+    private _recoveryBaseline=_crewRecovery getOrDefault ["baseline",[]];
+    private _recoveryAnchor=_crewRecovery getOrDefault ["progressAnchor",[]];
+    private _recoveryAssist=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+    private _recoveryIssuer=_vehicle getVariable ["CBE_DrivingCap_Issuer",[]];
+    _currentRecovery isEqualTo _crewRecovery && {local _vehicle}
+        && {(_crewRecovery getOrDefault ["group",grpNull]) == _group}
+        && {(_crewRecovery getOrDefault ["route",[]]) isEqualTo _route}
+        && {(_crewRecovery getOrDefault ["driver",objNull]) isEqualTo (_route select 3)}
+        && {(_crewRecovery getOrDefault ["operator",objNull]) isEqualTo (_route select 4)}
+        && {(_crewRecovery getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+        && {(_crewRecovery getOrDefault ["commandMode",""]) == "DESTINATION"}
+        && {!(_crewRecovery getOrDefault ["releasePending",false])}
+        && {["request","nativeReturn","bypassReturn","queueBinding"] findIf {_x in _crewRecovery} < 0}
+        && {_recoveryHard isEqualType 0} && {finite _recoveryHard} && {serverTime < _recoveryHard}
+        && {_recoveryCap isEqualType 0} && {finite _recoveryCap}
+        && {abs (getForcedSpeed _vehicle-_recoveryCap) <= 0.1}
+        && {_recoveryBaseline isEqualType []} && {count _recoveryBaseline == 1}
+        && {(_recoveryBaseline select 0) isEqualType 0} && {finite (_recoveryBaseline select 0)}
+        && {(_recoveryBaseline select 0) >= -1}
+        && {count _recoveryIssuer == 3}
+        && {(_recoveryIssuer select 0) isEqualTo [clientOwner,_brain get "ownerEpoch",_brain get "generation"]}
+        && {(_recoveryIssuer select 1) isEqualTo (_route select 3)}
+        && {(_recoveryIssuer select 2) isEqualTo (_route select 4)
+            || {isNull (_recoveryIssuer select 2) && {(_route select 4) isEqualTo (_route select 3)}}}
+        && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isEqualTo []}
+        && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo _recoveryBaseline}
+        && {_recoveryAnchor isEqualType []} && {count _recoveryAnchor == 3}
+        && {_recoveryAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {count _recoveryAssist >= 11} && {(_recoveryAssist select 3) == _group}
+        && {(_recoveryAssist select 9) isEqualTo _route}
+        && {(_recoveryAssist select 0) isEqualTo _recoveryCap}
+        && {(_work getOrDefault ["recoveryBudget",_crewRecovery]) isEqualTo _crewRecovery}
+        && {["CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work","CBE_DrivingPass_Work"] findIf {
+            count (_vehicle getVariable [_x,createHashMap]) > 0} < 0}
+};
 private _available={
     _crew=fullCrew [_vehicle,"",false];
     params [["_requireStopped",true,[true]]];
@@ -150,6 +195,7 @@ private _available={
     private _assignedDriver=_driverSeat param [5,objNull];
     local _group && {alive _vehicle} && {canMove _vehicle} && {_motionSafe}
         && {call _nativeMissionCurrent}
+        && {call _crewRecoveryCurrent}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}
         && {vehicle leader _group == _vehicle}
         && {currentCommand leader _group != "STOP"}
@@ -214,10 +260,24 @@ private _nativeComplete={
             && {[_newDriver] call CBE_fnc_CortexCombatEffective}
             && {[_newOperator] call CBE_fnc_CortexCombatEffective}
             && {[_newDriver] call _nativeAtGoal}
-            && {[_newOperator] call _nativeAtGoal}) then {
+            && {[_newOperator] call _nativeAtGoal} && {call _crewRecoveryCurrent}) then {
             private _newRoute=["NATIVE_MOVE",_group,_vehicle,_newDriver,_newOperator,
                 [currentCommand _newDriver,+(expectedDestination _newDriver),currentCommand _newOperator,+(expectedDestination _newOperator)],
                 +_nativeGoal,_brain get "ownerEpoch",clientOwner];
+            if (count _crewRecovery > 0) then {
+                private _reboundRecovery=+_crewRecovery;
+                _reboundRecovery set ["route",+_newRoute];
+                _reboundRecovery set ["driver",_newDriver];_reboundRecovery set ["operator",_newOperator];
+                _reboundRecovery set ["driverCommand",+(expectedDestination _newDriver)];
+                _reboundRecovery set ["command",+(expectedDestination _newOperator)];
+                private _reboundAssist=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+                _reboundAssist set [9,+_newRoute];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_reboundRecovery,true];
+                _vehicle setVariable ["CBE_DrivingAssist_State",_reboundAssist];
+                _vehicle setVariable ["CBE_DrivingCap_Issuer",[
+                    [clientOwner,_brain get "ownerEpoch",_brain get "generation"],_newDriver,effectiveCommander _vehicle]];
+                // All clocks, anchor, baseline, stage and spent flags remain unchanged.
+            };
             _work set ["originalRoute",+_route];_work set ["route",_newRoute];
             _brain set ["route",_newRoute];
             ["COMPLETE"] call _finish;
@@ -327,6 +387,7 @@ if (count _work == 0) then {
             ["leader",leader _group],["leaderCommand",+(expectedDestination leader _group)],
             ["nativeCommand",currentCommand _candidate],["leaderNativeCommand",currentCommand leader _group],
             ["deadline",serverTime+25],["phase","READY"],["started",serverTime]];
+        if (_nativeCrew && {count _crewRecovery > 0}) then {_work set ["recoveryBudget",+_crewRecovery]};
         _phase="READY";_changed=true;_brain set ["crewVehicle",_vehicle];
     };
 };
@@ -344,15 +405,14 @@ if (isNull _candidate || {!local _candidate} || {fleeing _candidate} || {vehicle
     || {(expectedDestination _candidate) isNotEqualTo (_work get "command")}
     || {assignedVehicleRole _candidate isNotEqualTo (_work get "assignment")}) exitWith {["CANCELLED"] call _finish};
 if (!isNull _driver && {_driver != (_work get "driver") || {alive _driver}}) exitWith {["CANCELLED"] call _finish};
-// Settle exact prior cap ownership before native casualty actions. Recovery-command
-// handback with a dead driver is not inferred by this seat executor.
-if (_nativeCrew) then {
-    if (count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) > 0) exitWith {_phase="NATIVE_RECOVERY_UNRESOLVED"};
+// Forward recovery retains exact cap custody; reverse/return must first gain a
+// separate quiescent handover contract. Ordinary cap-only work settles as before.
+if (_nativeCrew && {!(call _crewRecoveryCurrent)}) exitWith {["CANCELLED"] call _finish};
+if (_nativeCrew && {count _crewRecovery == 0}) then {
     [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
 };
-if (_phase == "NATIVE_RECOVERY_UNRESOLVED") exitWith {["CANCELLED"] call _finish};
 if (_nativeCrew && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo []
-    || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo []}}) exitWith {call _publish;true};
+    || {count _crewRecovery == 0 && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo []}}}) exitWith {call _publish;true};
 // Seat vacancy and native order proof are checked atomically with each action.
 private _commandsOwned={
     (_vehicle getVariable ["CBE_DrivingCrew_Work",createHashMap]) isEqualTo _entryWork

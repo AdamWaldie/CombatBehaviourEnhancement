@@ -1,0 +1,27 @@
+{
+  "baseline": "1b3f5cc0",
+  "scope": "Same-owner native driver replacement during forward REFRESH/FINAL recovery",
+  "implementation": [
+    "Existing crew FSM permits only exact forward DESTINATION recovery without pending requests/returns/child work. Preserves original hard deadline, anchor, baseline, stage and spent flags.",
+    "Every availability and confirmation boundary rechecks unchanged journal, original finite deadline, current local cap readback, original issuer owner/epoch/generation and seats, matching restore/state and saved recovery budget.",
+    "Observed replacement seat plus original-goal acknowledgement rebinds recovery actor/native destination receipts, assist route and cap issuer atomically with brain route. No forceSpeed write or new retry budget.",
+    "Reverse/SIMPLE_BACK/nativeReturn/queued or child recovery remains refused pending a real quiescent command handback."
+  ],
+  "validation": {
+    "focused": "257 driving checks passed before final commander fallback tightening.",
+    "full": ".qa/forward-recovery-crew-build-final.log: complete offline gates passed; 1488 tests and 400 SQF.",
+    "candidate": ".qa/candidates/forward-recovery-crew-final-1b3f5cc0",
+    "fingerprint": "ea24a9d3ab7a011748c5c0058e1abda7538a4f6642d40a2ec45e202fe301dd70",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate; baseline plus intended edits and preserved unrelated dirty files."
+  },
+  "limits": [
+    "No physical seat/travel/performance acceptance; audits PAUSED.",
+    "Active reverse/return casualty and crew episode locality transfer remain incomplete.",
+    "Same-value native command observational ambiguity remains."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingCrewStep.sqf": "0d1afe0796bdf61053e34918af24e451d2c30fbfb4b56739e8f5c85ab2ffaba1",
+    "releaseVerificationAndDeployment/test_driving_crew.py": "fef52a945dbf0d9705a9f07e8f40cf4328358b51095015d08290452ef33f4d2b"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "baseline": "1b3f5cc0",
+  "scope": "Native driver casualty during an existing recovery episode: execution and budget dependency trace",
+  "status": "DIAGNOSED; implementation incomplete; no physical acceptance",
+  "findings": [
+    {
+      "path": "addons/vehicles/functions/drivingCrewStep.sqf",
+      "evidence": "NATIVE_RECOVERY_UNRESOLVED before DrivingAssistRelease",
+      "consequence": "Any nonempty recovery journal cancels native crew replacement, including forward REFRESH/FINAL records. This is a deliberate unsupported boundary, not evidence that replacement works during recovery."
+    },
+    {
+      "path": "addons/vehicles/functions/drivingCrewStep.sqf",
+      "evidence": "_nativeMissionCurrent accepts MOVE only at original goal or recorded candidate seat-action target",
+      "consequence": "A surviving commander still executing the owned reverse destination can reject admission even before the explicit recovery refusal. Removing only that refusal cannot repair this path."
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
+      "evidence": "Current driver/operator must equal journal actors before expectedDestination classification",
+      "consequence": "After replacement, the old recovery command cannot be adopted merely by substituting the new route; existing actor command proof no longer applies."
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "evidence": "_recordRecovery chooses old hardDeadline/progressAnchor only for the same group and exact route; final cap publication updates journal cap only for matching actors and native destinations",
+      "consequence": "Deleting old work or rebinding only the brain route permits a fresh recovery budget or loses cap custody. A replacement handover must carry original clocks/anchor/spent state deliberately."
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "evidence": "Original anchor distance-to-goal reduction >=3m gates route progress",
+      "consequence": "Seat occupancy, goal acknowledgement, elapsed time and lateral/reverse displacement cannot reset the spent recovery episode."
+    }
+  ],
+  "required_handover": [
+    "Classify forward REFRESH/FINAL separately from active reverse, nativeReturn and SIMPLE_BACK. Do not relax mission MOVE/STOP admission generally.",
+    "Retire or explicitly quiesce the old temporary movement command using surviving local owner proof before assigning new movement authority. Dead-actor destination snapshots alone are insufficient.",
+    "Preserve original hard deadline, progress anchor and spent child allowances across seat and route rebinding. Preserve confirmed cap baseline separately from budget metadata; never fabricate a forceSpeed receipt from an unchanged value.",
+    "Use existing finite crew phases and original deadlines; one original-goal command and observed actual seats/acknowledgement. No new permanent worker, force insertion, reset of mission orders or unlimited retries.",
+    "Validate casualty at forward, pending reverse, acknowledged reverse, return and expiry boundaries; newer STOP/MOVE, takeover and cap changes must win."
+  ],
+  "rejected_shortcuts": [
+    "Remove nonempty-work refusal alone",
+    "Clear recovery journal before seat switch",
+    "Rewrite old driver/operator receipts to replacement actors",
+    "Treat dead driver as proof that commander reverse stopped",
+    "Renew hardDeadline after original-goal ACK"
+  ],
+  "validation": {
+    "kind": "Source execution trace only",
+    "source_changed": false,
+    "full_build": "Not repeated: runtime source unchanged from prior validated checkpoint",
+    "audits": "PAUSED; no launch",
+    "performance": "No runtime measurement"
+  },
+  "source_sha256": {
+    "addons/vehicles/functions/drivingCrewStep.sqf": "fefc2261fd1e56aa2693b34d723e240a3aa657b95ea2ea54d7094ce3feb34239",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "e4f0148b6283efd621260a206487b788dee4b86379a8ff4f8af69194b84f3d17",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "e4066f3c1ff2cc8a9ccc3d1bdf82576c2d6dedbb41b31e7eb2b1a90ab0109490",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "9f029d713740afcc671fe4ef48299284830142f273434e3b4aabd430c6813b40",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "36c1fb65e246d405f0628edf35decffaeee34470242300048ae1778095de069c",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "df752faf9cff1fd8844764bae8139866b9d9d494a909170e92492c7eb435a04a"
+  }
+}

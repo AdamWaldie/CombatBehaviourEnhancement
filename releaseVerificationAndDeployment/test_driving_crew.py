@@ -77,7 +77,18 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_brain set ["route",_newRoute]',s)
         self.assertIn('_work set ["originalRoute",+_route]',s)
         self.assertIn('(serverTime+2) min (_work get "deadline")',s)
-        self.assertIn('NATIVE_RECOVERY_UNRESOLVED',s)
+        recovery=s.split('private _crewRecoveryCurrent={',1)[1].split('private _available={',1)[0]
+        for proof in ('["REFRESH","FINAL"]','"DESTINATION"','serverTime < _recoveryHard',
+                      '"request","nativeReturn","bypassReturn","queueBinding"','getForcedSpeed _vehicle',
+                      'CBE_DrivingCap_Issuer','CBE_DrivingAssist_Restore','recoveryBudget'):
+            self.assertIn(proof,recovery)
+        rebound=s.split('private _reboundRecovery=',1)[1].split('// All clocks',1)[0]
+        for field in ('route','driver','operator','driverCommand','command'):
+            self.assertIn(f'_reboundRecovery set ["{field}"',rebound)
+        for forbidden in ('set ["hardDeadline"','set ["progressAnchor"','forceSpeed','serverTime+'):
+            self.assertNotIn(forbidden,rebound)
+        self.assertIn('&& {call _crewRecoveryCurrent}',s)
+        self.assertIn('count _crewRecovery == 0',s)
         self.assertIn('((_work get "phase") == "COMPLETE" && {isNull _driver})',s)
         self.assertIn('CBE_DrivingCapRelease_Work',s)
         returning=s.split('if (_nativeCrew && {_phase == "RETURNING"}) exitWith {',1)[1].split('// Confirmation is observation',1)[0]
