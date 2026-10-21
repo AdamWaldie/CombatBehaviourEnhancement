@@ -146,5 +146,19 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "sameGroupWarningAllocation20261021": {
+    "baseline": "343033a3",
+    "intent": "Selected same-group multi-piece defence coordination through native warned projectiles, not Protocol global nearestObjects scans, invented radar knowledge or complete layered defence.",
+    "implementation": "CortexAAObserve publishes native receipt to CortexAAAllocate NOTICE. Owner/epoch-local registry<=8tracks and exact-projectile local lifetime receipts<=8group contexts anchor first8s even after registry prune. Overflow refuses. Same queued planner identity persists until observed retirement; new canonical warnings may request a subsequent1s pass only through that job, duplicates cannot restart passes. Each pass processes<=64group actors/16unique native-AA vehicles, one interceptor START attempt/callback.",
+    "allocation": "Within1500m known native warnings, relative3D closest approach<=2s/30m has urgent tier. Same tier ranks other active responder count then approach time; no altitude-only urgency. Canonical shared warning membership/epoch revalidated by START. Existing active responses are not replaced. Each platform can start automatically once per exact warning; original threat expiry clips response deadline, no attempt reset from later planner wakes.",
+    "communications": "CortexAAWarningLink reuses Contact Reports enable,3D voice range, horizontal radio radius and both CortexCanTransmit mission jamming hooks. Planner caches<=32actual endpoint queries/pass, overflow refuses new radio endpoints. START rechecks current link without planner cache. Active helper checks link at most1Hz; own asset needs none. Same group only, no broadcast or JIP replay. Defended-asset identity governs retarget checks; asset loss/hostility cancels. Fuse boundary>=30m applies to historical pass and current munition distance from both firing and defended assets.",
+    "authorityFix": "Point-defence START/STEP now explicitly reject hidden/simulation-disabled gunners as well as suspended/hidden vehicles; CombatEffective alone did not express those gates. Changed defended side refuses the final local fuse. Existing fire-task, native order/route/target, owner epoch and protected-lane checks retained.",
+    "cost": "Per pass<=16callbacks, each<=8track ranks and16platform coverage observations (metadata), max1actual station admission. One coalesced event-driven planner/group, no per-projectile/global sensor. At most4active local interceptors remains unchanged. Fresh input can request next finite pass; no input means terminal stop. Original threat/response clocks remain fixed. Runtime cost unmeasured.",
+    "validation": "All1482 existing tests/full offline HEMTT/SQF/config/FSM/docs/coverage/package passed; independent verify passed. Unsigned .qa/candidates/aa-group-allocation-343033a3 fingerprint 867e18bd6e2e880ca71c3263fcb0efa09441c5a9c6dff456d9a4e06340645e05. Logs .qa/aa-group-allocation-build.log and .qa/aa-group-allocation-independent.log. Existing regression checks urgency/spread, immutable lifetime, once/platform claims, comms and expired-planner coalescing; no new case count.152settings/384sources bookkeeping only.",
+    "remaining": "Physical multi-asset distribution/urgent ordering/communications/jamming/repeat/normal-HC/asset takeover/saturation and5%/10% performance. Cross-owner fuse identity, submunition payload handling, cross-group/general sensing and other weapon layers remain unsupported. This is not full Protocol/AEGIS parity.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

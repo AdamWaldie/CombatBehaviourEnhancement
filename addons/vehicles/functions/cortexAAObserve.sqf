@@ -107,7 +107,7 @@ private _warningHandler=_vehicle addEventHandler ["IncomingMissile",{
     private _source=if (isNull _shooter) then {objNull} else {vehicle _shooter};
     _vehicle setVariable ["CBE_AA_MissileWarning",[clientOwner,_group,
         _group getVariable ["CBE_AIPass_Epoch",0],serverTime+15,_missile,_source]];
-    [_vehicle,"START"] call CBE_fnc_CortexAAIntercept;
+    ["NOTICE",_vehicle] call CBE_fnc_CortexAAAllocate;
 }];
 _vehicle setVariable ["CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]];
 _tracked pushBackUnique _vehicle;

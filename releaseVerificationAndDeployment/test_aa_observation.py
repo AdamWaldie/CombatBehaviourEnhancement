@@ -87,7 +87,7 @@ class AAObservation(unittest.TestCase):
         self.assertLess(gunnery.index('_gunner doFire _target;'),gunnery.index('private _oldAllocation='))
 
         intercept=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
-        for bound in ('count _registry >= 4','count _rounds >= 8','time+8','>= 160',
+        for bound in ('count _registry >= 4','count _rounds >= 8','time+(8 min','>= 160',
                       '< 16','_dt > 0.2','CBE_AIPass_AAIntercept_Enable',
                       'CortexActorFireTaskAvailable','CortexExternalOwner','CAMERA_REPLACED'):
             self.assertIn(bound,intercept)
@@ -162,6 +162,45 @@ class AAObservation(unittest.TestCase):
         self.assertAlmostEqual(adjust([0.019,0.02,0.021],0,0.005),0.004)
         self.assertAlmostEqual(adjust([-0.005,-0.0045,-0.004],0,0.0005),-0.0005)
         self.assertAlmostEqual(2**(-30/30),0.5)
+
+        allocate=(ROOT/'addons/vehicles/functions/cortexAAAllocate.sqf').read_text()
+        link=(ROOT/'addons/vehicles/functions/cortexAAWarningLink.sqf').read_text()
+        for bound in ('count _tracks < 8','count _vehicles >= 16','select [0,64]',
+                      'time+1','CBE_AA_WarningLifetimes','count _lifetimes >= 8',
+                      'serverTime >= _firstExpiry','(_warning select 7) pushBackUnique _vehicle',
+                      '_position vectorDotProduct _velocity','_miss <= 30','_time <= 2',
+                      '_trackIndex','CortexAAWarningLink'):
+            self.assertIn(bound,allocate)
+        self.assertEqual(allocate.count('call CBE_fnc_CortexAAIntercept'),1)
+        self.assertIn('if (_freshPlan && {!_added}) exitWith {false}',allocate)
+        self.assertIn('if (_added) then {_plan set ["replan",true]}',allocate)
+        self.assertIn('_plan getOrDefault ["replan",false]',allocate)
+        fresh=allocate.split('private _freshPlan=',1)[1].split('if (_freshPlan &&',1)[0]
+        self.assertNotIn('time >=',fresh)
+        for forbidden in ('allUnits','allGroups','nearestObjects','nearEntities','doFire','reveal','spawn'):
+            self.assertNotIn(forbidden,allocate)
+        for guard in ('CBE_AIPass_ContactReports_Enable','CBE_AIPass_ContactReports_VoiceRange',
+                      'CBE_AIPass_ContactReports_Radius','CortexCanTransmit','count _cache < 32'):
+            self.assertIn(guard,link)
+        self.assertIn('CortexAAWarningLink',intercept)
+        self.assertIn('vehicle _homing != _victim',intercept)
+        self.assertIn('DEFENDED_ASSET_LOST',intercept)
+        self.assertIn('"linkDue",time+1',intercept)
+        self.assertIn('count _shared != 8',intercept)
+        self.assertIn('simulationEnabled _gunner',intercept)
+        self.assertIn('(side _group) getFriend (side _victim) < 0.6',effect)
+        self.assertIn('count _cache >= 32',link)
+        self.assertIn('CortexAAAllocate',source)
+        # Allocation semantics: urgent approach retains priority; equal tiers spread
+        # to unassigned threats. Claimed platform/threat pairs cannot restart.
+        warnings=[('urgent',0,1,0.5),('other',1,0,4.0)]
+        self.assertEqual(min(warnings,key=lambda row:row[1:])[0],'urgent')
+        warnings=[('covered',1,1,3.0),('uncovered',1,0,4.0)]
+        self.assertEqual(min(warnings,key=lambda row:row[1:])[0],'uncovered')
+        first_expiry=8.0
+        self.assertFalse(9.0<first_expiry)  # duplicate after pruning cannot renew
+        claims={'platform-one'}
+        self.assertNotIn('platform-two',claims);self.assertIn('platform-one',claims)
 
         # Analytical geometry fixtures: an observed relative segment crosses zero at
         # its midpoint; temporal gaps must be rejected by the production boundary.

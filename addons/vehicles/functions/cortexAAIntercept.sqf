@@ -12,9 +12,10 @@
  * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
- * 2 payload ARRAY,[] (STEP: [job state HASHMAP]; SHOT: native Fired arguments).
+ * 2 payload ARRAY,[] (START: [canonical shared warning ARRAY8] or native own receipt;
+ * STEP: [job state HASHMAP]; SHOT: native Fired arguments).
  * Return: START/SHOT/RELEASE BOOL; STEP NUMBER next delay or -1. Fuse request is not physical intercept proof.
- * Callers: CortexAAObserve native warnings/Fired/cleanup; existing owner-local scheduler adapter.
+ * Callers: CortexAAObserve Fired/cleanup, CortexAAAllocate START and owner-local scheduler adapter.
  * Example: [_vehicle,"START"] call CBE_fnc_CortexAAIntercept;
  */
 params [["_vehicle",objNull,[objNull]],["_mode","START",[""]],["_payload",[],[[]]]];
@@ -86,6 +87,8 @@ if (_mode == "START") exitWith {
     if (count _state > 0) exitWith {false};
     private _gunner=gunner _vehicle;private _group=group _gunner;
     if (!local _vehicle || {isNull _gunner} || {!local _gunner}
+        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
+        || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
         || {!([_group,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
         || {!([_gunner] call CBE_fnc_CortexActorFireTaskAvailable)}
         || {!([_group] call CBE_fnc_CortexIsEligible)}
@@ -93,10 +96,20 @@ if (_mode == "START") exitWith {
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
         || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") != "edsubcat_aas"}) exitWith {false};
     private _warning=_vehicle getVariable ["CBE_AA_MissileWarning",[]];
+    private _victim=_vehicle;
+    if (_payload isNotEqualTo []) then {
+        private _shared=_payload param [0,[],[[]]];
+        private _tracks=_group getVariable ["CBE_AA_WarningTracks",[]];
+        if (count _shared != 8 || {count _tracks != 3} || {(_tracks select 0) != clientOwner}
+            || {(_tracks select 1) != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {(_tracks select 2) findIf {_x isEqualTo _shared} < 0}) exitWith {_warning=[]};
+        _warning=_shared select [0,6];_victim=_shared select 6;
+    };
     if (count _warning != 6 || {(_warning select 0) != clientOwner} || {(_warning select 1) != _group}
         || {(_warning select 2) != (_group getVariable ["CBE_AIPass_Epoch",0])}
         || {serverTime >= (_warning select 3)} || {isNull (_warning select 4)}
         || {isNull (_warning select 5)} || {(side _group) getFriend (side (_warning select 5)) >= 0.6}) exitWith {false};
+    if (!([_vehicle,_gunner,_group,_victim] call CBE_fnc_CortexAAWarningLink)) exitWith {false};
     // Reap at most four terminal local records, including work discarded on master stop.
     {
         private _old=_x getVariable ["CBE_AA_Intercept",createHashMap];
@@ -137,7 +150,7 @@ if (_mode == "START") exitWith {
         ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
         ["route",[_group] call CBE_fnc_NativeOrderReceipt],["command",currentCommand _gunner],
         ["target",getAttackTarget _gunner],["assigned",assignedTarget _gunner],
-        ["until",time+8],["steps",0],["attempts",0],["shots",0],["rounds",[]],["nextFire",time+0.5]];
+        ["until",time+(8 min ((_warning select 3)-serverTime))],["victim",_victim],["linkDue",time+1],["steps",0],["attempts",0],["shots",0],["rounds",[]],["nextFire",time+0.5]];
     _vehicle setVariable ["CBE_AA_Intercept",_state];
     _gunner setVariable ["CBE_AA_InterceptOwner",[_token,_state get "until"]];
     _registry pushBackUnique _vehicle;missionNamespace setVariable ["CBE_AA_InterceptVehicles",_registry];
@@ -158,6 +171,7 @@ private _token=_state get "token";
 private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _group}
     && {gunner _vehicle == _gunner} && {_vehicle turretLocal _turret}
     && {group _gunner == _group} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+    && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
     && {(_group getVariable ["CBE_AIPass_Epoch",0]) == (_state get "ownerEpoch")}
     && {(_gunner getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
     && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
@@ -180,11 +194,18 @@ if (!_valid || {time >= (_state get "until")} || {(_state get "steps") >= 160}) 
 };
 if (isNull _missile || {!alive _missile} || {isNull (_state get "source")}
     || {(side _group) getFriend (side (_state get "source")) >= 0.6}) exitWith {["THREAT_ENDED"] call _finish;-1};
+private _victim=_state getOrDefault ["victim",_vehicle];
+if (isNull _victim || {!alive _victim} || {(side _group) getFriend (side _victim) < 0.6}) exitWith {["DEFENDED_ASSET_LOST"] call _finish;-1};
+if (time >= (_state getOrDefault ["linkDue",-1])) then {
+    _state set ["linkDue",time+1];
+    if (!([_vehicle,_gunner,_group,_victim] call CBE_fnc_CortexAAWarningLink)) then {_state set ["linkLost",true]};
+};
+if (_state getOrDefault ["linkLost",false]) exitWith {["WARNING_LINK_LOST"] call _finish;-1};
 private _homing=missileTarget _missile;
 if (!isNull _homing && {alive _homing}
     && {_homing isKindOf "Air" || {_homing isKindOf "LandVehicle"}
         || {_homing isKindOf "Ship"} || {_homing isKindOf "CAManBase"}}
-    && {vehicle _homing != _vehicle}) exitWith {["RETARGETED"] call _finish;-1};
+    && {vehicle _homing != _victim}) exitWith {["RETARGETED"] call _finish;-1};
 private _applied=_state getOrDefault ["applied",[]];
 private _lock=_vehicle lockedCameraTo _turret;
 if ((_applied isEqualTo [] && {!isNil "_lock"}

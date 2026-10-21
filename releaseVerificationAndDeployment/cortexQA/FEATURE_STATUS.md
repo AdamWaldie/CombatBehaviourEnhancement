@@ -54,7 +54,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | COORD - Coordinated assault | 2 | 0 | 14 | `runCoordinated.sqf` | 10 | implemented_partial |
 | STANCE - Cover stance | 1 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | AMMO - Magazine sharing | 2 | 0 | 3 | `runMechanics.sqf` | 0 | implemented_partial |
-| GUNNERY - Vehicle threat priority | 2 | 0 | 4 | `runGunnery.sqf` | 1 | implemented_partial |
+| GUNNERY - Vehicle threat priority | 2 | 0 | 6 | `runGunnery.sqf` | 1 | implemented_partial |
 | ART-SMOKE - Artillery smoke | 1 | 0 | 0 | `runArtillerySmoke.sqf` | 1 | implemented_partial |
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
@@ -378,7 +378,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Real shots/targets follow permitted priority and standoff movement without dismounting operating crew.
 
-**Automation and open work:** runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry. Local non-carrier missile effect requires exact native shot parents, armed bullet, observed interior closest pass within bounded model core and current owner; fuse command is not physical interception. Cross-owner/submunition cases must refuse effects. Stable measured miss calibration is unrun: require real per-round context, reject evasive/deviating tracks and demonstrate bounded correction/decay without skill or projectile edits.
+**Automation and open work:** runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry. Local non-carrier missile effect requires exact native shot parents, armed bullet, observed interior closest pass within bounded model core and current owner; fuse command is not physical interception. Cross-owner/submunition cases must refuse effects. Stable measured miss calibration is unrun: require real per-round context, reject evasive/deviating tracks and demonstrate bounded correction/decay without skill or projectile edits. Same-group warning allocation is unrun: require native provenance, no original-expiry renewal, voice/radio delivery and jam interruption, available-platform distribution with urgent3D approach priority, and no independent retarget of active responses.
 
 ### ART-SMOKE - Artillery smoke
 

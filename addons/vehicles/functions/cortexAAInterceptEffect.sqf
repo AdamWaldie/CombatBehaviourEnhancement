@@ -23,9 +23,10 @@ private _missile=_episode getOrDefault ["missile",objNull];
 private _gunner=_episode getOrDefault ["gunner",objNull];
 private _group=_episode getOrDefault ["group",grpNull];
 private _source=_episode getOrDefault ["source",objNull];
+private _victim=_episode getOrDefault ["victim",_vehicle];
 private _token=_episode getOrDefault ["token",""];
 private _until=_episode getOrDefault ["until",-1];
-if (isNull _round || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
+if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
     || {!local _round} || {!local _missile} || {!local _vehicle} || {!local _gunner} || {!local _group}
     || {!alive _round} || {!alive _missile} || {!alive _vehicle}
     || {gunner _vehicle != _gunner} || {group _gunner != _group}
@@ -41,7 +42,8 @@ if (isNull _round || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} 
     || {!(combatMode _group in ["YELLOW","RED"])} || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
     || {!([_group,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
-    || {(side _group) getFriend (side _source) >= 0.6}) exitWith {false};
+    || {(side _group) getFriend (side _source) >= 0.6}
+    || {(side _group) getFriend (side _victim) < 0.6}) exitWith {false};
 private _validVectors=true;
 {
     if (count _x != 3 || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {_validVectors=false};
@@ -49,6 +51,7 @@ private _validVectors=true;
 if (!_validVectors || {_roundPos distance (getPosASL _round) > 0.01}
     || {_targetPos distance (getPosASL _missile) > 0.01}
     || {_targetPos distance (getPosASL _vehicle) < 30}
+    || {_targetPos distance (getPosASL _victim) < 30}
     || {(_targetPos select 2)-(getTerrainHeightASL _targetPos) < 5}) exitWith {false};
 private _parents=getShotParents _round;private _targetParents=getShotParents _missile;
 if ((_parents param [0,objNull]) != _vehicle || {(_parents param [1,objNull]) != _gunner}
@@ -103,6 +106,7 @@ if (_distance > _radius) exitWith {false};
 private _pass=_previousRound vectorAdd ((_roundPos vectorDiff _previousRound) vectorMultiply _fraction);
 private _arming=getNumber (_ammo >> "fuseDistance");
 if (_pass distance _origin < (_arming max 3) || {_pass distance (getPosASL _vehicle) < 30}
+    || {_pass distance (getPosASL _victim) < 30}
     || {_pass distance (getPosASL _source) < 3}) exitWith {false};
 // Both native projectiles and their actual same-owner samples still exist here. This
 // command detonates the warhead where it is NOW, not at the historical closest pass.
