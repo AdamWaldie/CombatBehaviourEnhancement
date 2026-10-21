@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Fleeing actors receive no injected target/fire/suppression; the shared task gate repeats at issue.
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
@@ -107,7 +108,7 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // Physical capability does not imply firing authority. Evaluate specialist ownership once
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
-    ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x}
+    ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x} && {!fleeing _x}
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!(getUnitState _x in ["INIT","PLANNING","REPLAN"])}
@@ -154,7 +155,8 @@ private _closeThreatActors=[];
         // another target mutation to protect it from the suppression pass below.
         _closeThreatActors pushBack _unit;
         if (assignedTarget _unit != _closest
-            && {[_unit,aimPos _closest] call CBE_fnc_CortexLineOfFireClear}) then {
+            && {[_unit,aimPos _closest] call CBE_fnc_CortexLineOfFireClear}
+            && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}) then {
             _unit doTarget _closest;
             _unit setVariable ["CBE_Cortex_FireTarget",[_group,_group getVariable ["CBE_AIPass_Epoch",0],_closest]];
             _unit doFire _closest;
@@ -298,7 +300,8 @@ if (_suppressPos isNotEqualTo []) then {
                         _geometryChecks=_geometryChecks+1;
                         private _aimASL=[_unit,_targetASL,20] call CBE_fnc_CortexSuppressionAim;
                         if (_aimASL isNotEqualTo []
-                            && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}) then {
+                            && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}
+                            && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}) then {
                         _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];
                         _group setVariable ["CBE_AIPass_SuppressCursor",(_cursor + 1) mod count _ranked];

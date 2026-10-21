@@ -5567,6 +5567,15 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('"'+command+'"',guard)
         self.assertNotIn('doTarget',guard)
         self.assertNotIn('setVariable',guard)
+        self.assertIn('fleeing _actor',guard)
+        fire=source('cortexFireControl')
+        self.assertIn('!fleeing _x',fire)
+        self.assertEqual(fire.count('[_unit] call CBE_fnc_CortexActorFireTaskAvailable'),2)
+        self.assertLess(fire.index('call CBE_fnc_CortexActorFireTaskAvailable'),fire.index('_unit doTarget _closest'))
+        suppress=fire.split('private _aimASL=[_unit,_targetASL,20]',1)[1]
+        self.assertLess(suppress.index('call CBE_fnc_CortexActorFireTaskAvailable'),suppress.index('_unit doSuppressiveFire'))
+        anti=source('cortexAntiArmour').split('private _actorAvailable={',1)[1].split('private _mayRelocate',1)[0]
+        self.assertIn('!fleeing _actor',anti)
         admission=source('cortexCombinedArmsLocal')
         self.assertEqual(admission.count('[_gunner] call CBE_fnc_CortexActorFireTaskAvailable'),2)
         step=source('cortexCombinedGroundStep')

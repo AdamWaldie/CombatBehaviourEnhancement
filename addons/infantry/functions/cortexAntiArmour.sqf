@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
  * Puts the squad's best anti-tank gunner onto a known armoured vehicle, clear of backblast.
  *
  * When a tank or armoured vehicle the squad knows about is within 600 m, the
@@ -57,7 +58,7 @@ if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"
 private _actorAvailable={
     params ["_actor"];
     !isNull _actor && {local _actor} && {group _actor == _group}
-        && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {[_actor] call CBE_fnc_CortexCombatEffective} && {!fleeing _actor}
         && {!(_actor in _protectedParticipants)}
         && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
         && {!isPlayer _actor} && {isNull remoteControlled _actor}

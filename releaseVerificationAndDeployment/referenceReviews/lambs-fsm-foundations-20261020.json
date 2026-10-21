@@ -911,5 +911,27 @@
       "initialFailure": ".qa/danger-flight-boundary-build.log retained; new regression variable shadowed existing integer guard and changed native-task literal failed old assertion. Renamed test variable and added independent fleeing clause, preserving original native-task predicate/assertion; focused cases then full pipeline passed."
     },
     "limits": "FSM/static lifecycle evidence only; physical fleeing interruption and stance restoration not tested. Audits paused. No whole parity or score change."
+  },
+  "sharedScriptedFireFlight20261021": {
+    "baseline": "20c44a87",
+    "finding": "Shared actor fire/task availability omitted native fleeing, as did core infantry fire-control roster and anti-armour actor availability. Earlier danger/CQB-specific guards did not close these independent scripted command paths.",
+    "implementation": "Shared read-only task predicate now refuses fleeing, covering its existing firing/support/movement callers. Core infantry fire control filters fleeing actors and repeats shared task permission immediately before close-threat target/fire and suppression commands. Anti-armour current predicate refuses fleeing at selection, relocation and final fire revalidation. No native targeting/FIREWEAPON disable, courage/allowFleeing mutation or new worker.",
+    "sourceIntent": "Consistent with previously reviewed LAMBS native forced-task priority; no new upstream file review or code copying. Ordinary native ATTACK remains permitted when not fleeing/protected.",
+    "cost": "One cheap fleeing predicate in shared admission and existing actor filters; one shared task recheck at each of two existing infantry command boundaries. No world scan, geometry expansion or timer. Runtime unmeasured.",
+    "hashes": {
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "1f2d7464cb85f240005257ed4c84cd8a7e07d7886e28ec4d33b53aa340858b23",
+      "addons/core/functions/cortexFireControl.sqf": "88b99e75f43058be91d1b4211159a37e9a69dc25f4298db43681e7410c7b8485",
+      "addons/infantry/functions/cortexAntiArmour.sqf": "c63f72ae6c4237030e569ddbea0bf513390bf2d0a0e6ac84b39222b8440a264b"
+    },
+    "validation": {
+      "tests": 1484,
+      "pipeline": ".qa/shared-fire-native-flight-build.log",
+      "independent": ".qa/shared-fire-native-flight-independent.log",
+      "candidate": ".qa/candidates/shared-fire-native-flight-20c44a87",
+      "fingerprint": "87866760c73a66ce53331e9e74c6e4321cb2fb1141f0ae3760225bea525ec226"
+    },
+    "limits": "Scoped shared predicate plus infantry fire/launcher paths; not exhaustive every support executor review. Physical interruption/resumption, varied crew/native fleeing and measured performance remain unverified. No parity or percentage change.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }

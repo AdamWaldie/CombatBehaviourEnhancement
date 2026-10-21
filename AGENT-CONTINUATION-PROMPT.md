@@ -1,3 +1,8 @@
+# Latest checkpoint - shared scripted fire native-flight priority
+
+## 2026-10-21 - Shared scripted-task/native-flight priority
+Baseline20c44a87. Found remaining actual gap beyond earlier danger/CQB guards: common CortexActorFireTaskAvailable and infantry FireControl/AntiArmour allowed native fleeing. Shared read-only task gate now refuses flight; core FireControl filters roster and rechecks shared gate immediately before close-threat target/fire and suppression; AT predicate reused at selection/relocation/final fire refuses flight. Native targeting/firing/ordinary nonfleeing ATTACK untouched; no courage/allowFleeing changes, controller/timer/world scan. Existing regression extended; all1484+HEMTT/SQF/config/FSM/docs/package pass .qa/shared-fire-native-flight-build.log. Independent .qa/shared-fire-native-flight-independent.log. Candidate .qa/candidates/shared-fire-native-flight-20c44a87 fingerprint87866760c73a66ce53331e9e74c6e4321cb2fb1141f0ae3760225bea525ec226. LAMBS foundations review has exact scope/hashes; no new upstream review/parity/score. Scoped shared+infantry command paths, not exhaustive every support executor. Physical interruption/resumption/crew/native behaviour/HC/performance unverified. Audits PAUSED/no launches; goal active/incomplete. Local only/no push/merge/publish. Unrelated dirt/protected references/signing preserved.
+
 # Latest checkpoint - live vehicle feature retirement
 
 ## 2026-10-21 - Active vehicle feature closure retirement

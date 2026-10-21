@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing owns the actor even before its command label changes.
  * Purpose: Refuse scripted fire assignment while an actor has a protected native task or movement reservation.
  * Vehicle movement starts reuse the same native-task/reservation check for driver admission.
  * Locality/authority: Read-only on the actor owner. Callers retain health, ROE, station and target authority.
@@ -20,7 +21,7 @@ if (_aaLease isNotEqualTo []) then {
     if (!_typed || {time < (_aaLease select 1) && {(_aaLease select 0) != _fireOwner}}) exitWith {_fireOwner="REFUSED"};
 };
 if (_fireOwner == "REFUSED") exitWith {false};
-if (isNull _actor || {!local _actor}
+if (isNull _actor || {!local _actor} || {fleeing _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {false};
 !(toUpperANSI currentCommand _actor in [
