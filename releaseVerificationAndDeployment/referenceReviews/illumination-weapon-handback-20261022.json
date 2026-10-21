@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-22",
+  "baseline": "68022164",
+  "scope": "Finite infantry illumination weapon-selection handback, not full LAMBS parity",
+  "sourceIntent": {
+    "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doUGL.sqf",
+    "sha256": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1",
+    "review": "LAMBS doUGL selects one grenadier and illuminating magazine, aims at a revealed high dummy and schedules fire/cleanup after2s. It modifies magazine inventory and follows the leader afterwards. CBE retains finite native illumination intent without dummy disclosure, inventory manipulation or blind delayed recall. Source unchanged."
+  },
+  "finding": "CBE finish previously attempted selectWeapon then discarded baseline without readback. A refused restore could leave the launcher selected and let a later action capture it as its baseline.",
+  "implementation": [
+    "Native selection readback separates RESTORED/BASELINE_OBSERVED from SUPERSEDED/UNCONFIRMED; result fifth field records weapon handback independently of released flare.",
+    "An unconfirmed original/applied selection fact survives action retirement. Later eligible local admission observes only: still-applied launcher blocks, original or different native selection retires metadata. No replay, worker, timer or deadline renewal. Malformed proof refuses the actor.",
+    "Native fleeing now vetoes illumination authority before reload/aim/fire/restoration.",
+    "Prepared physical weapon-handback check requires actual original selection plus confirmed handback and no unresolved receipt; procedure remains unrun."
+  ],
+  "validation": {
+    "focusedTests": 609,
+    "tests": 1489,
+    "compiledSQF": 401,
+    "buildLog": ".qa/illumination-handback-build.log",
+    "independentLog": ".qa/illumination-handback-independent-verify.log",
+    "candidate": ".qa/candidates/illumination-handback-68022164",
+    "fingerprint": "8d994f507ef4deed37f18077ef647c682e3bf30c1807cf9c7a82f9f4013dcb25",
+    "provenance": "Unsigned development candidate: baseline+intended edits+retained unrelated dirt; no signed release."
+  },
+  "limits": [
+    "No physical illumination, trajectory, ammunition, timing, locality or performance acceptance.",
+    "No eventual restoration promise when care/newer authority or native selection refusal prevents cleanup.",
+    "Same-value external weapon/watch changes remain indistinguishable; no arbitrary delayed restoration added.",
+    "Public unresolved metadata carries evidence only, not inherited native command authority.",
+    "Audits PAUSED; no push/merge/publication."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexIlluminationStep.sqf": "a9f05f81ebb5f42e4190662ede925d79abce33e4d2d13291a42d8f0f7acbedf8",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "9b5d5f1a7a67c47612ed52c782c16e6457a618ba55d1788823c6ea44da814643",
+    "releaseVerificationAndDeployment/cortexQA/runIllumination.sqf": "42816596e8d33d9ba1a0d8103b36fd299c095db76260037cb784880923195dba"
+  }
+}

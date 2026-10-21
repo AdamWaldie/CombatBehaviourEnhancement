@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: One finite native infantry UGL illumination action, without dummy targets or inventory edits.
+ * Weapon handback requires native selection readback. Unconfirmed original/applied selection
+ * proof survives action retirement and blocks recapturing the launcher as a fresh baseline.
+ * Admission observes that proof only; it never retries an old weapon command.
  * Locality/authority: Group/actor owner, existing groupTactics FSM callback; original epoch,
  * operation, native route, idle command and actor reservation govern every weapon command.
  * Repeat/JIP: Opt-in; one attempt per60s, <=16 actors/8muzzles/128inventory rows per admission.
@@ -27,7 +30,7 @@ private _route=[_group] call CBE_fnc_NativeOrderReceipt;
 private _authority={
     local _group && {!isNull _actor} && {local _actor} && {group _actor == _group}
         && {isNull objectParent _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
-        && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {!fleeing _actor} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
@@ -37,6 +40,7 @@ private _authority={
 };
 private _finish={
     params ["_reason"];
+    private _weaponHandback="NOT_CHANGED";
     private _same=!isNull _actor && {(_actor getVariable ["CBE_Illumination_Work",createHashMap]) isEqualTo _work};
     if (_same) then {
         private _handler=_work getOrDefault ["handler",-1];
@@ -47,10 +51,30 @@ private _finish={
             && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_work getOrDefault ["lease",[]])
                 || {_migration && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}}};
         private _applied=_work getOrDefault ["selected",[]];
-        if (_owned && {_applied isNotEqualTo []} && {(weaponState _actor select [0,3]) isEqualTo _applied}) then {
-            private _sky=_work get "sky";
-            if ((_actor weaponDirection (_work get "muzzle")) vectorDotProduct ((eyePos _actor) vectorFromTo _sky) > 0.97) then {_actor doWatch objNull};
-            _actor selectWeapon (_work get "before");
+        if (_applied isNotEqualTo []) then {
+            _weaponHandback="UNCONFIRMED";
+            // Native weapon state is local evidence. A remote actor retains cleanup proof,
+            // never a speculative readback or a replayed selection on its previous owner.
+            if (local _actor) then {
+                private _selectedNow=weaponState _actor select [0,3];
+                if (_selectedNow isEqualTo (_work get "before")) then {
+                    _weaponHandback="BASELINE_OBSERVED";
+                } else {
+                    if (_selectedNow isNotEqualTo _applied) then {
+                        _weaponHandback="SUPERSEDED";
+                    } else {
+                        if (_owned) then {
+                            private _sky=_work get "sky";
+                            if ((_actor weaponDirection (_work get "muzzle")) vectorDotProduct ((eyePos _actor) vectorFromTo _sky) > 0.97) then {_actor doWatch objNull};
+                            _actor selectWeapon (_work get "before");
+                            if ((weaponState _actor select [0,3]) isEqualTo (_work get "before")) then {_weaponHandback="RESTORED"};
+                        };
+                    };
+                };
+            };
+            if (_weaponHandback == "UNCONFIRMED") then {
+                _actor setVariable ["CBE_Illumination_WeaponUnresolved",[+(_work get "before"),+_applied,serverTime],true];
+            };
         };
         if ((_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_work getOrDefault ["lease",[]])) then {
             _actor setVariable ["CBE_Cortex_ActorMove",nil];
@@ -58,7 +82,7 @@ private _finish={
         _actor setVariable ["CBE_Illumination_Work",nil,local _group];
     };
     if ((_group getVariable ["CBE_Illumination_Work",createHashMap]) isEqualTo _work) then {
-        _group setVariable ["CBE_Illumination_Result",[_reason,serverTime,_actor,_work getOrDefault ["released",false]],true];
+        _group setVariable ["CBE_Illumination_Result",[_reason,serverTime,_actor,_work getOrDefault ["released",false],_weaponHandback],true];
         _group setVariable ["CBE_Illumination_Work",nil,local _group];
     };
     false
@@ -89,6 +113,23 @@ if (count _work == 0) exitWith {
             || {!(_actor checkAIFeature "FIREWEAPON")} || {!(_actor checkAIFeature "TARGET")}
             || {unitCombatMode _actor != "YELLOW" && {unitCombatMode _actor != "RED"}}
             || {behaviour _actor in ["STEALTH","CARELESS"]} || {getSuppression _actor >= 0.2}) then {continue};
+        // Old cleanup proof permits observation only. Never restore over a newer task or
+        // capture the still-applied launcher as this action's original rifle selection.
+        private _unresolved=_actor getVariable ["CBE_Illumination_WeaponUnresolved",[]];
+        if (_unresolved isNotEqualTo []) then {
+            private _typed=_unresolved isEqualType [] && {count _unresolved == 3}
+                && {[0,1] findIf {private _selection=_unresolved select _x;
+                    !(_selection isEqualType []) || {count _selection != 3}
+                        || {_selection findIf {!(_x isEqualType "")} >= 0}} < 0}
+                && {(_unresolved select 2) isEqualType 0} && {finite (_unresolved select 2)};
+            if (!_typed) then {continue};
+            private _selectionNow=weaponState _actor select [0,3];
+            if (_selectionNow isEqualTo (_unresolved select 1)
+                && {_selectionNow isNotEqualTo (_unresolved select 0)}) then {continue};
+            // An observed original or a different native selection supersedes this fact;
+            // neither case grants an old command authority or a renewed deadline.
+            _actor setVariable ["CBE_Illumination_WeaponUnresolved",nil,true];
+        };
         private _weapon=primaryWeapon _actor;
         if (_weapon == "" || {currentWeapon _actor != _weapon}) then {continue};
         private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");

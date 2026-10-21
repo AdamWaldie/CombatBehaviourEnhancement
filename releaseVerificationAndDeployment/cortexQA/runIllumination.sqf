@@ -104,7 +104,9 @@ if (_ready) then {
             ["ILLUM-real-flare-and-upward-travel",count _release == 6 && {_rose}
                 && {((_release select 2) select 2) > 0} && {(_release select 3) == _flare},str _release] call _check;
             ["ILLUM-one-existing-round-spent",([_actor,_flare] call _rounds) == _beforeRounds-1,str [_beforeRounds,[_actor,_flare] call _rounds]] call _check;
-            ["ILLUM-selected-weapon-handback",(weaponState _actor select [0,3]) isEqualTo _beforeWeapon,str [weaponState _actor,_beforeWeapon]] call _check;
+            ["ILLUM-selected-weapon-handback",(weaponState _actor select [0,3]) isEqualTo _beforeWeapon
+                && {(_result param [4,""]) in ["RESTORED","BASELINE_OBSERVED"]}
+                && {(_actor getVariable ["CBE_Illumination_WeaponUnresolved",[]]) isEqualTo []},str [weaponState _actor,_beforeWeapon,_result]] call _check;
         } else {
             ["ILLUM-disable-before-release",_admitted && {_release isEqualTo []}
                 && {([_actor,_flare] call _rounds) == _beforeRounds},str _release] call _check;

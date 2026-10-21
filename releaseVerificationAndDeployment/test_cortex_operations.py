@@ -8362,6 +8362,18 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ('addMagazine','removeMagazine','addWeaponItem','createVehicle','reveal ',
                           'setVelocity','setPos','spawn','sleep','execFSM','setUnitPos'):
             self.assertNotIn(forbidden,text)
+        self.assertIn('!fleeing _actor',text)
+        finish=text.split('private _finish={',1)[1].split('if (_release) exitWith',1)[0]
+        self.assertIn('if (local _actor)',finish)
+        self.assertLess(finish.index('_actor selectWeapon (_work get "before")'),finish.index('_weaponHandback="RESTORED"'))
+        self.assertIn('weaponState _actor select [0,3]',finish)
+        self.assertIn('CBE_Illumination_WeaponUnresolved',finish)
+        self.assertIn('_weaponHandback]',finish)
+        unresolved=text.split('private _unresolved=',1)[1].split('private _weapon=primaryWeapon',1)[0]
+        self.assertIn('count _unresolved == 3',unresolved)
+        self.assertIn('then {continue}',unresolved)
+        self.assertNotIn('selectWeapon',unresolved)
+        self.assertNotIn('serverTime+',unresolved)
         self.assertEqual(text.count('forceWeaponFire'),1)
         self.assertLess(text.index('if (count _work == 0 &&'),text.index('call CBE_fnc_NativeOrderReceipt'))
         start=source('operationStart')
