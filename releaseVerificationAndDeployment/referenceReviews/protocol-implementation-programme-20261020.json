@@ -14,7 +14,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-cqb-3799391254-20261020.json",
-      "remaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven."
+      "remaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3800081309",
@@ -25,7 +29,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-airborne-3800081309-20261020.json",
-      "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation."
+      "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3801354927",
@@ -36,7 +44,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified."
+      "remaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3802121807",
@@ -47,7 +59,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-pairs-3802121807-20261020.json",
-      "remaining": "Persistent team-scoped pairing and two-actor successive advance admission integrated. Independent pair-granular leapfrog within larger squads, binary startup/dependencies/licence and physical validation remain."
+      "remaining": "Persistent team-scoped pairing and two-actor successive advance admission integrated. Independent pair-granular leapfrog within larger squads, binary startup/dependencies/licence and physical validation remain.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3803702313",
@@ -58,7 +74,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-city-3803702313-20261020.json",
-      "remaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation."
+      "remaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3809708209",
@@ -69,7 +89,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-aa-3809708209-20261020.json",
-      "remaining": "Scoped idle mobile native-AA relocation integrated through actual-shot/native-contact receipts and existing group FSM; mixed/custom-AA/authored-route cases remain. Ground anti-munition/layered allocation, weapon/shot/hit proof, binary startup/dependencies/licence and physical performance validation remain."
+      "remaining": "Scoped idle mobile native-AA relocation integrated through actual-shot/native-contact receipts and existing group FSM; mixed/custom-AA/authored-route cases remain. Ground anti-munition/layered allocation, weapon/shot/hit proof, binary startup/dependencies/licence and physical performance validation remain.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3813369033",
@@ -80,7 +104,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-navy-3813369033-20261020.json",
-      "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features."
+      "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3819636004",
@@ -91,7 +119,11 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-rappel-3819636004-20261020.json",
-      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature."
+      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     },
     {
       "workshopId": "3822504009",
@@ -102,11 +134,17 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Crewed countermeasure station admission integrated into existing shared helper. Continue suitable ATGM/cover/exposure/relocation comparison and selected armour integration; actual fire, movement, owner handback, performance and binary/dependency/licence evidence remain incomplete."
+      "remaining": "Crewed countermeasure station admission integrated into existing shared helper. Continue suitable ATGM/cover/exposure/relocation comparison and selected armour integration; actual fire, movement, owner handback, performance and binary/dependency/licence evidence remain incomplete.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
   "auditState": "PAUSED",
   "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product.",
-  "readableReviewCheckpoint": "All nine locally inventoried Protocol items now have readable-source review pointers. This is not complete Workshop collection discovery, binary config/startup/dependency/licence review, implementation or physical parity."
+  "readableReviewCheckpoint": "All nine locally inventoried Protocol items now have readable-source review pointers. This is not complete Workshop collection discovery, binary config/startup/dependency/licence review, implementation or physical parity.",
+  "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
+  "binaryReviewLimits": "Binary config startup/declarations now inspected for all nine recorded local sources. Older binary-startup-pending notes are superseded by protocol-binary-configuration-20261021.json only for that scope. Runtime guards/provider dependencies, licensing, missing behaviour and physical/performance proof remain separate."
 }

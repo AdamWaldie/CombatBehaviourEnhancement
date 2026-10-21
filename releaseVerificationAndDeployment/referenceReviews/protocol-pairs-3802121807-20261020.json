@@ -210,5 +210,14 @@
     "recovery": "Recovery prefers a real surviving buddy in the same element, with one finite route attempt. Physically rejoined actors return only outside MOVE. Recorded resume spots, progress and retries are actor-addressed.",
     "requiredDeparture": "Pair waves need distinct finite wave identity and arrivals under the existing parent operation deadline, coherent mover/cover selection and casualty recovery. Do not change teamTurn to arbitrary pair indices: binary donor logic, next-bound actor reservations, stage transitions and checkpoint identity would become inconsistent.",
     "limits": "This trace proves code structure, not actual covering fire, native path quality, pair timing or source parity."
+  },
+  "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
+  "pairExecutionReconciliation": {
+    "baseline": "2c82e308",
+    "protectedSourceHash": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "sourceSemantics": "One actor per consecutive pair moves while its partner receives suppression; turn flips every unslept global scan without physical arrival. No finite independent-wave arrival lifecycle exists in source.",
+    "currentCBE": "AdvanceStart armed two-actor admission uses minimum1 mover/1 cover and bounds<=20m; FlankStep small-survivor rebalance preserves opposite roles, actual actor spots/progress, finite grace/recovery and binary team handoff. Larger groups use pair-preserving fire-team allocation.",
+    "disposition": "Two-person arrival-controlled alternation already has an integrated executor; not a missing parallel controller. Larger-group pair-granular alternation remains a distinct unimplemented capability. Do not replace binary teamTurn with arbitrary pair indices or claim full parity from two-actor support.",
+    "nextAction": "If selecting larger-group pair-granular execution, first preserve movement reservations/checkpoint/wave identities and casualty reallocation in the current operation. No new free-running source loop. Actual cover efficacy and normal/HC behaviour remain unverified."
   }
 }

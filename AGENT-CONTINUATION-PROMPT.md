@@ -1,3 +1,11 @@
+# Latest source review - Protocol startup and pair execution
+
+Executable remains2c82e308, last verified unsigned candidate .qa/candidates/withdrawal-direction-3d83467b. Engineering-only update: all9 registered local Protocol binary configs decoded/hash-verified;9 postInit,7 preInit; declared A3_Data_F/cba_xeh; no CfgFunctions/CfgVehicles. Private .qa/protocol-config-review-20261021-nine-v1/provenance.json; tracked referenceReviews/protocol-binary-configuration-20261021.json. Three reference-boundary tests pass, no unchanged rebuild. Licensing/runtime-provider requirements remain unverified/incomplete. Rappelling binary does not declare Advanced Rappelling, but user-required runtime dependency and real finite handover remain. Nine local records are not full collection discovery.
+
+Pairs source toggles turns per unslept scan, not independently arrival-controlled waves. Existing CBE armed2actor AdvanceStart/FlankStep already has1mover/1cover, <=20m bounds and physical spot/progress lifecycle. Larger-group pair-granular execution remains missing; binary teamTurn cannot become arbitrary pair indices. See updated pairs review exact disposition. Implement selected missing behaviour next, do not repeat binary inspection or add duplicate free-running controller.
+
+Audits PAUSED, no Arma launch/publication. Full goal unchanged; no physical/performance/parity/score increase. CBE checkout only; preserve unrelated dirt, protected references/archive/signing. Verify live root/remote/branch/PR17 before Git mutations.
+
 # Latest checkpoint - directional withdrawal progress
 
 Baseline3d83467b plus shared RETREAT fix: project anchor displacement onto original escape axis using retained WithdrawalIntent threat and original origin. Radial lateral/toward-threat travel no longer refreshes progress or earns30m withdrawal criterion. Original best+3m,15s stall, four retries and120s deadline retained. Full1482/offline gates and independent verify passed; unsigned .qa/candidates/withdrawal-direction-3d83467b fingerprintb07daad10eec3930a812e6799614019126a40c66592da0ab6cd0a66e09145a3b. Logs .qa/withdrawal-direction-build.log and .qa/withdrawal-direction-independent.log. See newest handover/foundations review.
