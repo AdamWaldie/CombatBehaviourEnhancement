@@ -8,7 +8,8 @@
  * must remain owner-local. A protected native task on a living member blocks a new group waypoint,
  * because a group waypoint cannot exclude that actor; independent actor operations remain available. The shared gate prevents delayed callbacks from adding a CBE route after
  * Zeus, a player, or an external controller has taken ownership.
- * Queued ACE treatment blocks route adoption/replacement before native HEAL starts.
+ * Native fleeing and queued ACE treatment block route adoption/replacement; group waypoints
+ * cannot exclude those actors. This does not change morale or independently eligible actor work.
  * Crewed ground platforms retain native BACK/direct-commander input and simple LEFT/RIGHT turns.
  * Existing admission/commit scans inspect each distinct platform once per boundary.
  * Native policy edits relinquish route ownership, including scripts, forced behaviour and attachments.
@@ -75,7 +76,7 @@ if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)
 // Do not convert that native task into MOVE, even when the group's general eligibility is valid.
 // This does not disable sensing, firing or independently eligible actor-level operations.
 private _nativeTaskBusy={ (units _group) findIf {
-    alive _x && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    alive _x && {fleeing _x || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}
 } >= 0 };
 if (call _nativeTaskBusy) exitWith {[grpNull,-1]};

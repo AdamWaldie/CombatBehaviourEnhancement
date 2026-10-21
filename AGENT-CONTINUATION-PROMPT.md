@@ -1,3 +1,8 @@
+# Latest checkpoint - shared waypoint native flight priority
+
+## 2026-10-21 - Shared group waypoint native flight priority
+Baselineefa2b9ab. Shared CortexGroupMove living-member native-task predicate omitted fleeing despite care/service gates; added flight inside existing predicate used for entry/adoption/both atomic commit checks. No new scan/controller/morale/carequeue changes. It refuses new/adopted/replaced group routes, does not automatically retire existing routes, and does not disable separately eligible actor tasks.2focused/all1484+HEMTT/FSM/docs/package pass .qa/group-move-flight-build.log; independent .qa/group-move-flight-independent.log. Candidate .qa/candidates/group-move-flight-efa2b9ab fingerprint0c0fb605d379d444fbcfb6c6985c3da1c4af144dbcfd54ab24b08be568793a3c. LAMBS foundations review has currenthash/limits. Physical nativeflight/care/refusalcleanup/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signingpreserved. Prior private mixed-composition trace .qa/artillery-mixed-composition-route-trace-20261021.json records actual group route/ordinarydriving/Protocol source constraints and official doMove/doStop references: per-seat doMove is not independent battery routing because engine reforms leader/subordinates; do not substitute a second controller or silent group split. Mixed-composition scope remains unfinished, no acceptancecredit.
+
 # Latest checkpoint - postfire artillery scoot crew ownership
 
 ## 2026-10-21 - Postfire artillery scoot crew/session ownership

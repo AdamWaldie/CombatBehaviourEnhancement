@@ -1055,5 +1055,16 @@
     "audits": "PAUSED",
     "candidate": ".qa/candidates/garrison-duck-owned-recovery-f05273c8",
     "fingerprint": "8828cbdcc915ce89c2f44e28bad7d48b88fb557c651374bede436cb4a209a6f9"
+  },
+  "sharedGroupWaypointFlightPriority20261021": {
+    "baseline": "efa2b9ab",
+    "finding": "Shared CortexGroupMove native-task predicate covered care/service commands but omitted native fleeing. Actor-level flight protection did not cover group waypoint admission/adoption/replacement affecting the formation.",
+    "change": "Add read-only fleeing condition inside existing living-member predicate reused before adoption and both atomic commit checks. No new roster pass, controller, morale or care state mutation. Existing route is not automatically retired by this change; independently eligible actor work remains separate.",
+    "sourceIntent": "Carry reviewed LAMBS forced-flight priority into the shared CBE movement boundary, retaining one group decision owner rather than copying actor doMove loops.",
+    "validation": "2 focused existing generation/commit tests and all1484 plus SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package passed .qa/group-move-flight-build.log. Independent .qa/group-move-flight-independent.log passed; no new cases.",
+    "limits": "Physical flight, service overlap, route refusal/cleanup and performance unverified. Does not implement independent mixed-composition vehicle routing or automatic cancellation of existing routes. Audits paused.",
+    "sourceHash": "844a982c398980ac1a1857f81d33b9459961659fa3a03d14e3443ea20b2e7f3f",
+    "candidate": ".qa/candidates/group-move-flight-efa2b9ab",
+    "fingerprint": "0c0fb605d379d444fbcfb6c6985c3da1c4af144dbcfd54ab24b08be568793a3c"
   }
 }
