@@ -196,7 +196,7 @@ class ClearReplacementOccupancyTests(unittest.TestCase):
 class ClearPairSlotIdentityTests(unittest.TestCase):
     def test_filtered_pair_maps_mover_and_motion_back_to_durable_actor_slots(self):
         source=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
-        worker=source.split('private _laneRoster=+_x;',1)[1].split('private _allWorkersEntered=',1)[0]
+        worker=source.split('private _laneRoster=+(_pairs select _pairIndex);',1)[1].split('private _allWorkersEntered=',1)[0]
         for guard in ('_pair=_laneRoster select',
                       '_previousMover=_laneRoster select (_moverIndex mod count _laneRoster)',
                       '_moverIndex=_pair find _previousMover',
@@ -204,12 +204,35 @@ class ClearPairSlotIdentityTests(unittest.TestCase):
                       'private _activeSlot=_pair find _x',
                       '_laneRoster find (_pair select (_moverIndex mod count _pair))'):
             self.assertIn(guard,worker)
+        order=source.split('private _laneCount=count _pairs;',1)[1].split('private _laneRoster=',1)[0]
+        self.assertIn('roomLaneCursor',order)
+        self.assertIn('private _pairIndex=_x',order)
+        self.assertIn('(_laneCursor+_offset) mod _laneCount',order)
+        self.assertIn('} forEach _laneOrder;',worker)
+        self.assertNotIn('_pairs set',order)
+        for count in range(1,5):
+            starts=[]
+            for cursor in range(count):
+                indices=[(cursor+offset)%count for offset in range(count)]
+                self.assertEqual(sorted(indices),list(range(count)))
+                starts.append(indices[0])
+            self.assertEqual(starts,list(range(count)))
         self.assertEqual(worker.count('_state set [7,call _laneMoverSlot]'),2)
         self.assertIn('_state set [2,call _laneMotion]',worker)
         motion=worker.split('private _laneMotion={',1)[1].split('if (_now >= _startAt)',1)[0]
         self.assertNotIn('_forEachIndex',motion)
         self.assertNotIn('_state set [7,_moverIndex]',worker)
         self.assertNotIn('_state set [2,_lastPositions]',worker)
+        entry_motion=worker.split('if (_approachingEntry && {!_moved}) then {',1)[1].split('if (_moved)',1)[0]
+        self.assertIn('_lastPositions param [_pair find _x,getPosATL _x]',entry_motion)
+        self.assertNotIn('_forEachIndex',entry_motion)
+        from math import dist
+        previous={'lead':(0,0,0),'buddy':(10,0,0)}
+        actual=dict(previous)
+        self.assertFalse(any(dist(actual[actor],previous[actor]) >= 1 for actor in actual))
+        self.assertTrue(any(dist(actual[actor],previous['lead']) >= 1 for actor in actual))
+        actual['buddy']=(11,0,0)
+        self.assertTrue(any(dist(actual[actor],previous[actor]) >= 1 for actor in actual))
         switch=worker.split('if (_moverIndex < 0) then {',1)[1].split('private _laneMoverSlot=',1)[0]
         self.assertIn('_lastTarget=-1',switch)
         self.assertIn('_state set [13,1e12]',switch)

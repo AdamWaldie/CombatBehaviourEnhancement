@@ -172,6 +172,8 @@
  * Terminal settlement also retires that exact watch metadata; successor leases survive cleanup.
  * New room visits require the actual observer inside target bounds under target-owned roof,
  * plus a clear solid segment. Observer roof checks share the existing16-ray callback budget.
+ * Lane execution rotates its starting index while retaining original pair/state/route identities.
+ * Entry motion compares each available actor with its own prior sample, never an outer loop index.
  * Egress admission, continued exit work and terminal movement require idle/STOP or a matching
  * owned MOVE; newer FOLLOW/ATTACK/CBE tasks divert actors rather than authorizing recall.
  * Native tasks and newer authority remain protected at that transfer boundary.
@@ -2546,9 +2548,15 @@ private _delay=call {
     };
     private _lowestUnfinishedFloor=_floorWave select 2;
     private _pairRoutes=_job get "pairRoutes";
+    // Share the fixed geometry allowance fairly without permuting durable pair/state IDs.
+    private _laneCount=count _pairs;
+    private _laneCursor=(_job getOrDefault ["roomLaneCursor",0]) mod (_laneCount max 1);
+    private _laneOrder=[];
+    for "_offset" from 0 to (_laneCount-1) do {_laneOrder pushBack ((_laneCursor+_offset) mod _laneCount)};
+    _job set ["roomLaneCursor",(_laneCursor+1) mod (_laneCount max 1)];
     {
-        private _pairIndex=_forEachIndex;
-        private _laneRoster=+_x;
+        private _pairIndex=_x;
+        private _laneRoster=+(_pairs select _pairIndex);
         if (_laneRoster findIf {_x in _evadingWorkers} >= 0) then {continue};
         private _pair=_laneRoster select {[_x] call _actorAvailable && {!(_x in _unavailable)} && {!(netId _x in _earlyExits)}};
         if (_pair isEqualTo []) then {
@@ -3473,7 +3481,7 @@ private _delay=call {
                     private _moved=(getPosATL _point) vectorDistance _moverPrevious >= 1;
                     if (_approachingEntry && {!_moved}) then {
                         _moved=_pair findIf {
-                            private _old=_lastPositions param [_forEachIndex,getPosATL _x];
+                            private _old=_lastPositions param [_pair find _x,getPosATL _x];
                             (getPosATL _x) vectorDistance _old >= 1
                         } >= 0;
                     };
@@ -3659,7 +3667,7 @@ private _delay=call {
                 };
             };
         };
-    } forEach _pairs;
+    } forEach _laneOrder;
     if (_failureRosterChanged && {call _mayIssueMovement}) then {
         // An empty lane may have returned its claim during the loop above. Reconcile
         // only on capability changes, after those claims rejoin the pending queue.

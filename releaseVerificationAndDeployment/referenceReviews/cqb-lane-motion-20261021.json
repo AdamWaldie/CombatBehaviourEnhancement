@@ -1,0 +1,20 @@
+{
+  "baseline": "c974e9f4",
+  "findings": [
+    "Physical visit collection already requires owned roof/interior bounds/floor/segment and rotates actor order. Main lane executor still processed fixed pair order against the same geometry budget.",
+    "Entry approach motion used _forEachIndex inside findIf, which supplies _x but no index. Inherited outer lane-processing index could compare an actor with another buddy sample, treating stationary separation as movement and delaying entry recovery."
+  ],
+  "implementation": [
+    "Iterate a rotating list of original pair indices. Durable lane rosters/states/routes/claims retain original index identity; no _pairs reorder.",
+    "Find each active actor in the filtered pair to select its own previous sample for entry motion. Existing one-metre threshold, progress/retry and original operation clocks retained."
+  ],
+  "references": [
+    "https://community.bistudio.com/wiki/Magic_Variables"
+  ],
+  "bounds": "Same sixteen-ray callback budget, existing lane count and visit-observer rotation. One small lane-index list/cursor; actor motion identity lookup is within the pair. No new worker, movement command or deadline.",
+  "limits": "Fair processing order is not guaranteed geometry availability if earlier visit work exhausts budget. It does not prove physical entry/cohesion or diagnose every historical straggler. Owner adoption may reset proposal cursor without resetting progress.",
+  "validation": "Existing13 entry-flow checks extended with durable-index permutations and stationary-separated-buddy regression; full build result in handover.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false
+}
