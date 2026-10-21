@@ -773,5 +773,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "objectiveInputIsolation": {
+    "baseline": "fadd08e2",
+    "finding": "OperationStart copied its route but stored an array objective by reference. A caller retaining and later editing that vector could silently change the accepted operation objective without a new generation. Do not misdescribe unary+ route copying as shallow.",
+    "primaryReference": "https://community.bistudio.com/wiki/Array (official indexed documentation verified 2026-10-21); https://community.bistudio.com/wiki/a_plus_b confirms unary+ deep-copies nested array elements.",
+    "implementation": "At commitment copy array objective with unary+, retain object objective identity. Existing +route already performs native deep copy; no redundant per-point copying added.",
+    "preparedRuntimeCheck": "Existing scheduled recovery diagnostic now retains caller objective/route arrays, mutates coordinates after OperationStart, checks original operation objective/route values, then restores only caller target variable before normal recovery. No AI relocation or completion assignment. Checks are prepared and UNRUN.",
+    "cost": "One native array copy for array objectives only; no scan, worker or changed generation/deadline. Returned internal operation HashMap remains mutable by its owning implementation; this isolates input arrays, not arbitrary direct edits to internal state.",
+    "validation": "Existing shared lifecycle regression extended; all1482/full HEMTT/SQF/config/FSM/docs/package gates pass; independent verify pass. Candidate .qa/candidates/operation-objective-snapshot-fadd08e2 fingerprint87980db0327f6a5518a178de8b36f1bb0f956f5295546686c1354c5ea89741c4.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

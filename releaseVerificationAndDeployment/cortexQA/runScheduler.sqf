@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Exercises real queued squad movement and completion fairness under the minimum scheduler budget.
+ * Caller-array mutation checks verify accepted operation objectives/routes without changing AI poses.
  * Locality/authority: scheduled server fixture; production scheduler runs owner-local movement jobs.
  * Repeat/JIP: fresh actors, public destinations; caller restores settings, fixture jobs retire on deletion.
  * Arguments: check <CODE>, phase <CODE>, wait <CODE>; required audit callbacks.
@@ -252,7 +253,15 @@ _recoveryGroup setCombatMode "BLUE";
 _recoveryGroup setBehaviourStrong "CARELESS";
 private _recoveryOrigin=getPosATL _recoveryActor;
 private _recoveryTarget=_recoveryOrigin vectorAdd [100,0,0];
-private _recoveryOperation=[_recoveryGroup,"RECOVERY_DIAGNOSTIC",_recoveryTarget,[_recoveryActor],[_recoveryTarget],"MOVING"] call CBE_fnc_OperationStart;
+private _recoveryRoute=[_recoveryTarget];
+private _recoveryObjectiveExpected=+_recoveryTarget;
+private _recoveryOperation=[_recoveryGroup,"RECOVERY_DIAGNOSTIC",_recoveryTarget,[_recoveryActor],_recoveryRoute,"MOVING"] call CBE_fnc_OperationStart;
+// Edit only caller-owned arrays: the accepted position/route must retain their original values.
+_recoveryTarget set [0,(_recoveryTarget select 0)+25];
+(_recoveryRoute select 0) set [1,((_recoveryRoute select 0) select 1)+25];
+["OPERATION-objective-input-isolated",(_recoveryOperation getOrDefault ["objective",[]]) isEqualTo _recoveryObjectiveExpected] call _check;
+["OPERATION-route-input-isolated",(_recoveryOperation getOrDefault ["route",[]]) isEqualTo [_recoveryObjectiveExpected]] call _check;
+_recoveryTarget=+_recoveryObjectiveExpected;
 private _recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
 private _recoveryAccepted=[_recoveryGroup,_recoveryGeneration,_recoveryActor,_recoveryTarget] call CBE_fnc_RecoveryStep;
 private _freshRecoveryState=[_recoveryGroup,_recoveryGeneration,3,12] call CBE_fnc_OperationStep;

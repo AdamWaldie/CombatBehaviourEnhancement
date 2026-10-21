@@ -4,6 +4,8 @@
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
  * After locality adoption, replacement, generation capture and publication run unscheduled even for
  * scheduled script callers. Normal group PFH jobs already run unscheduled; no extra job is created.
+ * Array objectives and routes are copied at commitment, isolating later caller-array edits.
+ * Object objectives retain identity for features which deliberately track a live world object.
  * Progress domain: participant platforms are captured at commitment. Foot actors boarding another
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
  * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
@@ -91,9 +93,12 @@ if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) the
         [_group,_pairs] call CBE_fnc_CombatPairsPublish;
     };
 };
+// Position orders are immutable snapshots; only an explicit object objective remains live.
+// Unary + already deep-copies the route, so no second per-point clone is needed.
+private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};
 private _operation=createHashMapFromArray [
     ["intent",toUpperANSI _intent], ["generation",_generation], ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
-    ["pairs",_pairs], ["pairElements",_pairElements apply {_x select {_x in _capable}}], ["objective",_objective], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
+    ["pairs",_pairs], ["pairElements",_pairElements apply {_x select {_x in _capable}}], ["objective",_objectiveSnapshot], ["participants",_capable], ["participantsRequired",_participants isNotEqualTo []], ["route",+_route], ["phase",toUpperANSI _phase],
     ["startedAt",time], ["lastProgressAt",time], ["lastProgressPosition",getPosATL _operationAnchor],
     ["participantProgress",_capable apply {[_x,getPosATL _x]}], ["lastProgressActor",objNull],
     ["participantPlatforms",createHashMapFromArray (_capable apply {[netId _x,vehicle _x]})],

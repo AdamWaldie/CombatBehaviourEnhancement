@@ -1596,6 +1596,10 @@ class CortexOperations(unittest.TestCase):
         for required in ['intent','generation','ownerEpoch','objective','participants','route','lastProgressAt','cancelReason']:
             self.assertIn(required,start)
         self.assertIn('CBE_OperationGeneration',start)
+        self.assertIn('private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};',start)
+        self.assertIn('["objective",_objectiveSnapshot]',start)
+        self.assertIn('["route",+_route]',start)
+        self.assertNotIn('["objective",_objective]',start)
         transaction=start.split('private _cbeStartedOperation=createHashMap;',1)[1]
         self.assertTrue(transaction.startswith('\nisNil {\n_cbeStartedOperation=call {'))
         self.assertTrue(transaction.rstrip().endswith('};\n};\n_cbeStartedOperation'))
@@ -1611,6 +1615,11 @@ class CortexOperations(unittest.TestCase):
         # This boundary is required by a real scheduled caller, not a presumed PFH suspension.
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runScheduler.sqf').read_text()
         self.assertIn('call CBE_fnc_OperationStart',qa)
+        self.assertIn('"OPERATION-objective-input-isolated"',qa)
+        self.assertIn('"OPERATION-route-input-isolated"',qa)
+        self.assertLess(qa.index('call CBE_fnc_OperationStart'),qa.index('_recoveryTarget set [0,'))
+        self.assertLess(qa.index('_recoveryTarget set [0,'),qa.index('"OPERATION-objective-input-isolated"'))
+        self.assertIn('(_recoveryRoute select 0) set [1,',qa)
         server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
         self.assertIn('Return: Nothing (scheduled script)',server)
         self.assertIn('call compile preprocessFileLineNumbers "cortexQAScheduler.sqf"',server)
