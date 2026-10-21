@@ -1130,5 +1130,17 @@
     "sourceHash": "19e940959816d70fced1cbc89a88c432a1ca5c9123eeb0bb960ceb62e4d53f76",
     "evidence": ".qa/group-hide-flight-build.log; .qa/group-hide-flight-independent.log",
     "limits": "No physical acceptance/performance. Separate pending generation-handoff concern recorded at .qa/blocked-danger-operation-handoff-20261021.json remains unresolved."
+  },
+  "dangerStanceInternalHandoff20261021": {
+    "baseline": "28bd3fb8",
+    "intent": "Do not turn a blocked CBE weak stance into a new mission baseline when a finite internal operation replaces its generation.",
+    "method": "Exact group/owner/priorgeneration/value receipt rebind inside operation publication; canonical stance acquisition inherits original prior only while native stance still matches applied. Confirmed new stance retires old proof; malformed/foreign context refuses.",
+    "sourceHashes": {
+      "addons/core/functions/operationStart.sqf": "f4983041162f1f6cb1443e76967da96071a08f417f9a54fdae2c00b10795bc49",
+      "addons/core/functions/actorSettings.sqf": "07dcc484ed398172a1a8ff9555d502573cbf33cf314ec0ae1bf8857af8227e3e"
+    },
+    "cost": "One extra max64 member pass at onfoot operation start, fixed receipt checks at first stance acquisition; no worker/deadline renewal.",
+    "evidence": ".qa/danger-stance-handover-build.log; .qa/danger-stance-handover-independent.log",
+    "limits": "No physical care/flight/dormancy/clearance/garrison/HC/performance acceptance. Legacy noncanonical stance controllers not blanket covered."
   }
 }

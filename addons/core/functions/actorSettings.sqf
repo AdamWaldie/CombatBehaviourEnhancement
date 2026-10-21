@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * First stance acquisition may consume an exact current danger-stance receipt, preserving
+ * its original baseline. No native task or reservation is bypassed for this handover.
  * Purpose: Own temporary on-foot actor stance/speed settings independently of native movement tasks.
  * Locality/authority: Actual actor and group owner. APPLY/CHECK/ADOPT require the current common
  * operation generation/epoch and original finite deadline; RELEASE uses an exact issuer receipt.
@@ -144,9 +146,30 @@ _result=call {
     if (_lease isNotEqualTo [] && {keys _requested findIf {
         !(_x in _owned) || {!([_x,(_owned get _x) select 1,_requested get _x] call _same)}
     } < 0}) exitWith {"APPLIED"};
+    // Do not capture CBE's temporary danger stance as a new mission baseline.
+    // This is acquisition by an already-authorised settings owner, not a late native restore.
+    private _dangerHandover=[];
+    private _dangerBaseline="";
+    if ("STANCE" in _requested && {!("STANCE" in _owned)}) then {
+        _dangerHandover=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
+    };
+    if (_dangerHandover isNotEqualTo []) then {
+        if (!(_dangerHandover isEqualType []) || {count _dangerHandover != 6}
+            || {!(["STANCE",_dangerHandover select 0] call _valueValid)}
+            || {!(["STANCE",_dangerHandover select 1] call _valueValid)}
+            || {!((_dangerHandover select 2) isEqualType 0)} || {!finite (_dangerHandover select 2)}
+            || {(_dangerHandover select 3) isNotEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+            || {(_dangerHandover select 4) isNotEqualTo _epoch}
+            || {(_dangerHandover select 5) isNotEqualTo _group}) exitWith {_dangerBaseline="REFUSED"};
+        if ((["STANCE"] call _read) isEqualTo (_dangerHandover select 1)) then {
+            _dangerBaseline=_dangerHandover select 0;
+        };
+    };
+    if (_dangerBaseline == "REFUSED") exitWith {"REFUSED"};
     private _nextOwned=createHashMapFromArray (keys _owned apply {[_x,+(_owned get _x)]});
     {
         private _native=[_x] call _read;
+        if (_x == "STANCE" && {_dangerBaseline != ""}) then {_native=_dangerBaseline};
         private _pair=+(_nextOwned getOrDefault [_x,[_native,_native]]);
         _pair set [1,_requested get _x];_nextOwned set [_x,_pair];
     } forEach keys _requested;
@@ -157,6 +180,13 @@ _result=call {
     } forEach keys _requested;
     private _next=[+_context,_nextOwned,0];
     if (_next isNotEqualTo _lease) then {_actor setVariable ["CBE_ActorSettings",_next,true]};
+    // Only confirmed stance acquisition consumes the outgoing proof. Partial/failed writes
+    // retain it for exact cleanup; the canonical receipt already preserves the original baseline.
+    if (_dangerHandover isNotEqualTo []
+        && {(_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo _dangerHandover}
+        && {(["STANCE"] call _read) isEqualTo (_requested get "STANCE")}) then {
+        _actor setVariable ["CBE_Danger_EngineStanceLease",nil];
+    };
     if (keys _nextOwned findIf {!([_x,[_x] call _read,(_nextOwned get _x) select 1] call _same)} >= 0) exitWith {"PENDING"};
     "APPLIED"
 };

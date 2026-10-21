@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Unchanged blocked danger-stance receipts transfer metadata to the successor generation
+ * inside this publication transaction; original baselines and cleanup expiry never renew.
  * Purpose: Starts or replaces one finite CBE operation without allowing stale work to command the group.
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
  * After locality adoption, replacement, generation capture and publication run unscheduled even for
@@ -130,6 +132,26 @@ if (_dangerPosture) then {
         };
     } forEach ((units _group) select [0,64]);
     [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
+    // Both release paths above may defer to a native task. Carry only exact unchanged
+    // proof through this internal generation publication, never reapply stance here.
+    {
+        private _postureReceipt=_x getVariable ["CBE_Danger_EngineStanceLease",[]];
+        if (local _x && {group _x == _group} && {!isPlayer _x}
+            && {isNull remoteControlled _x} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+            && {_postureReceipt isEqualType []} && {count _postureReceipt == 6}
+            && {(_postureReceipt select 0) in ["AUTO","UP","MIDDLE","DOWN"]}
+            && {(_postureReceipt select 1) in ["AUTO","UP","MIDDLE","DOWN"]}
+            && {(_postureReceipt select 2) isEqualType 0} && {finite (_postureReceipt select 2)}
+            && {(_postureReceipt select 3) isEqualTo (_generation-1)}
+            && {(_postureReceipt select 4) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_postureReceipt select 5) isEqualTo _group}
+            && {toUpperANSI unitPos _x == (_postureReceipt select 1)}) then {
+            private _successorPosture=+_postureReceipt;
+            _successorPosture set [3,_generation];
+            _x setVariable ["CBE_Danger_EngineStanceLease",_successorPosture];
+        };
+    } forEach ((units _group) select [0,64]);
 };
 _group setVariable ["CBE_OperationGeneration",_generation,true];
 _group setVariable ["CBE_Operation",_operation,true];

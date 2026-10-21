@@ -46,6 +46,19 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertEqual(s.count('serverTime+1'),1)
         self.assertIn('serverTime < _releaseAt',s)
         self.assertIn('if (_releaseAt > 0 || {fleeing _actor}',s)
+        handover=s.split('private _dangerHandover=[];',1)[1].split('private _nextOwned=',1)[0]
+        for guard in ('CBE_Danger_EngineStanceLease','count _dangerHandover != 6','CBE_OperationGeneration','isNotEqualTo _epoch','isNotEqualTo _group'):
+            self.assertIn(guard,handover)
+        self.assertIn('_dangerBaseline=_dangerHandover select 0',handover)
+        self.assertIn('if (_x == "STANCE" && {_dangerBaseline != ""}) then {_native=_dangerBaseline}',update)
+        self.assertLess(update.index('setVariable ["CBE_ActorSettings",_next,true]'),update.index('setVariable ["CBE_Danger_EngineStanceLease",nil]'))
+        self.assertIn('(["STANCE"] call _read) isEqualTo (_requested get "STANCE")',update)
+        start=(ROOT/'addons/core/functions/operationStart.sqf').read_text(encoding='utf-8')
+        transfer=start.split('private _postureReceipt=',1)[1].split('_group setVariable ["CBE_OperationGeneration",_generation,true]',1)[0]
+        self.assertIn('(_postureReceipt select 3) isEqualTo (_generation-1)',transfer)
+        self.assertIn('_successorPosture set [3,_generation]',transfer)
+        self.assertNotIn('_successorPosture set [2,',transfer)
+        self.assertNotIn('setUnitPos',transfer)
     def test_adoption_changes_only_metadata_and_keeps_original_deadline(self):
         s=core();adopt=s.split('if (_mode == "ADOPT") exitWith {',1)[1].split('if (_lease isNotEqualTo [] && {_oldContext',1)[0]
         self.assertIn('setVariable ["CBE_ActorSettings",_next,true]',adopt)

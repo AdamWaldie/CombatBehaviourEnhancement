@@ -1,3 +1,9 @@
+# Latest checkpoint - internal danger stance baseline handoff
+
+
+## 2026-10-21 - Preserve danger stance baseline across internal operation handoff
+Baseline28bd3fb8. Blocked nativecare/flight/dormancy could retain old dangerstance proof while OperationStart published newgeneration, then generationmismatch retired baseline. OperationStart now carries only exact unchanged currentgroup/epoch/priorgeneration sixfield proof into successor generation inside existing isNil publication. Preserves prior/applied/originalexpiry, no nativewrite. ActorSettings first STANCE acquisition validates current dangerproof (common OperationGeneration even for GARRISON), carries originalprior into canonicalpair only if actualstance stillapplied; changed native stance remains ordinary baseline. Canonical receipt published before dangerproof consumed, consumption requires confirmed requestedstance and unchanged proof. No bypass of task/reservation/Zeus/external gates, no automaticdeadlineextension/newworker; one extra <=64member pass only at onfoot operationstart. Existing11actor-settings/all1484+HEMTT/FSM/docs/package pass .qa/danger-stance-handover-build.log; independent .qa/danger-stance-handover-independent.log. Candidate .qa/candidates/danger-stance-handover-28bd3fb8 fingerprinted0a6aae300f20e812479a6bb91f45ddee1efce1db79325e84665c9ccd56a1e0. Prior concern .qa/blocked-danger-operation-handoff-20261021.json retains historical trace plus scoped source resolution. Physical care/flight/dormancy/CQB/garrison/partialnativewrite/HC/performance unverified; legacy noncanonical actorstance paths not blanketcovered. AuditsPAUSED/noArma/no push/merge/publication. Fullgoalactive/incomplete; unrelateddirt/protectedreferences/signing preserved.
+
 # Latest checkpoint - squad danger-hide flight priority
 
 
