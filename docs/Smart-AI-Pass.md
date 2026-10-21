@@ -2404,3 +2404,6 @@ Danger posture handoff retains the group-hide baseline until the actor's request
 
 
 Post-contact indoor search can replace a casualty investigator with an idle, eligible soldier from the same group. The existing actor executor retires the exact casualty job and allows at most two replacement admission attempts in the original search episode, including sequential casualties. Replacements inherit the same building, shared physical-visit history, observation and original deadline; they do not restart the search or gain room-clearance credit from assignment. Native treatment, authored orders, contact reacquisition, reservations and the original timeout remain authoritative. With no suitable replacement or a refused admission, the search retains its incomplete result.
+
+
+The engine danger FSM now sends released or refused intake directly to exact cleanup before any action state. An already classified, current FORCED response may keep its original short wait while native boarding, supply or fleeing work continues; it issues no movement or posture command for that task. A task arriving during another response still interrupts it immediately. Owner, operation generation, feature, medical queue, CARELESS and Zeus checks remain active; the exception neither renews a deadline nor authorises a follow-up tactical action.

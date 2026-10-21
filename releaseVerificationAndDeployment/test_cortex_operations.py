@@ -795,18 +795,27 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('/*%FSM<STATEINIT',engine_fsm)
         self.assertIn('/*%FSM<CONDITION',engine_fsm)
         runtime_fsm=engine_fsm.split('class FSM',1)[1]
-        self.assertEqual(42,len(re.findall(r'\bitemno\s*=\s*\d+;',runtime_fsm)))
-        self.assertEqual(42,len(re.findall(r'\bprecondition\s*=',runtime_fsm)))
+        self.assertEqual(43,len(re.findall(r'\bitemno\s*=\s*\d+;',runtime_fsm)))
+        self.assertEqual(43,len(re.findall(r'\bprecondition\s*=',runtime_fsm)))
         editor_items=[int(value) for value in re.findall(r'item(\d+)\[\]\s*=',engine_fsm.split('class FSM',1)[0])]
-        self.assertEqual(list(range(42)),editor_items)
+        self.assertEqual(list(range(43)),editor_items)
         editor_link_ids=[int(value) for value in re.findall(r'link(\d+)\[\]\s*=',engine_fsm.split('class FSM',1)[0])]
-        self.assertEqual(list(range(46)),editor_link_ids)
+        self.assertEqual(list(range(48)),editor_link_ids)
         editor_links=[tuple(map(int,values)) for values in re.findall(r'link\d+\[\]\s*=\s*\{(\d+),(\d+)\}',engine_fsm.split('class FSM',1)[0])]
         self.assertTrue(editor_links)
         self.assertTrue(all(source_id in editor_items and target_id in editor_items for source_id,target_id in editor_links))
         engine_source=(ROOT/'tools/fsm/danger.bifsm').read_text()
         self.assertIn('InitCode=',engine_source)
         self.assertIn('Condition=',engine_source)
+        # Editing/exporting the graph must preserve actual runtime intake and exit code.
+        editable={int(m[1]):m[2] for m in re.finditer(
+            r'\tclass Item(\d+)\s*\n(.*?)(?=\n\tclass Item\d+|\n};\nclass GraphLinks)',engine_source,re.S)}
+        for item in re.finditer(r'itemno\s*=\s*(\d+);(.*?)(?=\bitemno\s*=|\Z)',runtime_fsm,re.S):
+            for field,editor_field in [('init','InitCode'),('condition','Condition')]:
+                code=re.search(r'\b'+field+r'\s*=\s*/\*.*?\*/\s*("(?:""|[^"])*")\s*/\*',item[2],re.S)
+                if code:
+                    self.assertIn(editor_field+'='+code[1]+';',editable[int(item[1])])
+
         request=source('dangerRequest')
         step=source('dangerStep')
         selection=source('dangerSelect')
@@ -1276,6 +1285,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_AIPass_Danger_Enable',engine_continue)
         self.assertIn('[_this,true] call CBE_fnc_DangerEngineCanContinue',engine_fsm)
         self.assertIn('!_initial && {fleeing _actor',engine_continue)
+        # A classified native task waits without action churn; a newly arriving task
+        # still interrupts non-FORCED work. Identity validation precedes that exception.
+        task_guard=engine_continue.split('if (behaviour _actor == "CARELESS"',1)[1].split('// A carrier reservation',1)[0]
+        self.assertIn('(_response param [0,"",[""]]) != "FORCED"',task_guard)
+        self.assertLess(engine_continue.index('count _response != 7'),engine_continue.index('if (behaviour _actor == "CARELESS"'))
+        released=engine_fsm.split('class Released',1)[1].split('/*%FSM</LINK>*/',1)[0]
+        self.assertIn('to="End_Danger_1"',released)
+        self.assertIn('_mode == ""RELEASE"" || {!_accepted}',released)
+        self.assertGreater(float(re.search(r'priority = ([0-9.]+)',released).group(1)),4)
+
         self.assertIn('_mode != "FORCED" && {currentCommand _actor',engine_act)
         self.assertIn('(_carrierTask select 0) in ["STATIC_DEPLOY","STATIC_PACK","STATIC_SUPPORT"]',engine_continue)
         self.assertIn('time < (_carrierTask select 2)',engine_continue)

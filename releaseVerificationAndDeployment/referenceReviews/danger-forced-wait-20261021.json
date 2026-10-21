@@ -1,0 +1,39 @@
+{
+  "baseline": "45ec3a47",
+  "scope": "Native danger FSM refusal routing, classified FORCED passive waiting and editable/runtime source parity",
+  "upstreamEvidence": {
+    ".qa/lambs-2621-review/danger/functions/fnc_isForcedExit.sqf": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf"
+  },
+  "sourceIntent": "LAMBS forced-exit ends disabled/CARELESS/MOVE-disabled cases; brainForced uses short timeouts for concrete native work, with additional fleeing/ATTACK actions. CBE retains the passive finite waiting intent, yields native work without copying forceMove, native fleeing changes, SuppressTarget deletion or competing movement. Ordinary ATTACK stays eligible autonomous combat.",
+  "findings": [
+    "Init had no direct mode RELEASE/refused-submit route and could enter an action state after intake had already yielded.",
+    "CanContinue interrupted native tasks/fleeing regardless of current response mode, so a valid FORCED response immediately bypassed its own short wait.",
+    "Editable danger.bifsm had stale Start entry intake, Init selection-window code and initial CanContinue condition; later editor export could undo existing runtime behavior."
+  ],
+  "implementation": [
+    "Init Released link priority6 precedes Forced4 and foot/vehicle routing, reaching existing exact cleanup when mode RELEASE or intake not processed. Editor graph adds matching item/link metadata.",
+    "Current response operation/epoch/group identity validates before the FORCED exception. New native tasks still interrupt non-FORCED responses; a valid FORCED response may wait to its existing original deadline. No native command or follow-up budget added.",
+    "Master/feature/locality, actor health, queued medical work, CARELESS, actor/platform ownership and Zeus gates remain authoritative. Carrier reservation FORCED logic remains intact.",
+    "Editable source now matches runtime InitCode/Condition fields including three previously stale entry/intake/initial-exit fields. Existing regression checks parity across all corresponding editable/runtime code fields and current graph counts."
+  ],
+  "sourceHashes": {
+    "addons/danger/danger.fsm": "b2ff1ca1c28a60586c808b60059e75046dd16b7f738d4557c704d78e6584904a",
+    "addons/infantry/functions/dangerEngineCanContinue.sqf": "9adbe38979d465505867b5a87190bf22c88464337af9224dfa73c5f1f5922b20",
+    "tools/fsm/danger.bifsm": "0340b427c60e3b7c911d9a50291a85bb96861946aa6424abefa8aa2c7f493d78"
+  },
+  "validation": {
+    "focusedInitial": ".qa/danger-forced-wait-focused.log failed old item count42",
+    "fullInitial": ".qa/danger-forced-wait-build.log failed old precondition count42; no candidate accepted",
+    "focusedFinal": ".qa/danger-forced-wait-focused-final.log 609 passed",
+    "fullOffline": ".qa/danger-forced-wait-build-final.log all1484,393SQF,HEMTT,FSM,docs,package passed",
+    "independent": ".qa/danger-forced-wait-independent.log",
+    "candidate": ".qa/candidates/danger-forced-wait-45ec3a47",
+    "fingerprint": "91880065831eea58ce1d6a5a5fcaef06155a3cee5709ae20182777720e7efb25"
+  },
+  "limits": [
+    "No Arma launch; audits paused. Physical forced-task timing, interruption, intake burst and 5%median/10%p95 budget remain unverified.",
+    "Disabling danger ends CBE responses but does not replace the configured engine fsmDanger path with an original vanilla file; no vanilla-FSM restoration claim.",
+    "This is a scoped source-functional comparison, not complete LAMBS parity or source-count completion. Protected sources unchanged."
+  ]
+}

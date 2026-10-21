@@ -17,7 +17,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=0;
-				InitCode="_queue pushBack [_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]; _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;";
+				InitCode="_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [((count _queue)-47) max 0,47]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;";
 			};
 		};
 		Left=-75;
@@ -89,7 +89,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=3;
-				InitCode="_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call CBE_fnc_DangerEngineSelect; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;";
+				InitCode="_window=_queue select [((count _queue)-48) max 0,48]; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-11) max 0,11]; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _queue=[]; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;";
 			};
 		};
 		Left=-75;
@@ -1043,7 +1043,7 @@ class GraphItems
 			{
 				Id=38;
 				Priority=2;
-				Condition="!([_this] call CBE_fnc_DangerEngineCanContinue)";
+				Condition="!([_this,true] call CBE_fnc_DangerEngineCanContinue)";
 			};
 		};
 		Left=175;
@@ -1133,6 +1133,34 @@ class GraphItems
 		Right=950;
 		Top=925;
 		Bottom=975;
+		Flags=218;
+		BasicText="";
+		BgColor=65535;
+	};
+	class Item42
+	{
+		class ItemInfo
+		{
+			ItemType=4;
+			Text="Released";
+			FontCharSet=0;
+			FontFace="";
+			FontHeight=10;
+			FontUnderline=0;
+			FontWeight=0;
+			lStyle=-842150451;
+			Shape=2;
+			class ItemInfo
+			{
+				Id=42;
+				Priority=6;
+				Condition="_mode == ""RELEASE"" || {!_accepted}";
+			};
+		};
+		Left=350;
+		Right=450;
+		Top=125;
+		Bottom=175;
 		Flags=218;
 		BasicText="";
 		BgColor=65535;
@@ -1645,6 +1673,22 @@ class GraphLinks
 		{
 			ArrowSize=0;
 		};
+	};
+	class Link46
+	{
+		From=3;
+		To=42;
+		Color=6316128;
+		Flags=2;
+		class Extra {ArrowSize=0;};
+	};
+	class Link47
+	{
+		From=42;
+		To=39;
+		Color=6316128;
+		Flags=2;
+		class Extra {ArrowSize=0;};
 	};
 };
 class Globals
