@@ -1,3 +1,9 @@
+# Latest checkpoint - finite danger posture cleanup
+
+
+## 2026-10-21 - Finite danger posture cleanup without tactical brain
+Baseline352aebf5. Prior LAMBS forced-task comparison .qa/lambs-forced-task-trace-20261021.json identified that retained danger stance proof alone did not guarantee a retry without GroupBrain. Implemented registered DangerPostureStep: one keyed group/epoch shared-scheduler job, at most64pending and one popped actor/callback at0.25s, original stance expiry+30 limit. Removed old GroupBrain cleanup service so no parallel cleanup owner. Release validates exact actor/operation/stance/native-task authority; blocked release requeues actor without requeueing running job/searching scheduler. No tactical bootstrap/contact manufacture, worldscan/peractor timer or deadline renewal. New source390; coverage wiring/report refreshed without acceptance credit. Initial609focusedfailed stale generatedreport only; regenerated correctreport. Full1484+HEMTT/FSM/docs/package passed .qa/danger-posture-job-build.log. Header/indentonly final repack .qa/danger-posture-job-header-repack.log. Candidate .qa/candidates/danger-posture-job-352aebf5 fingerprinted94a916ff1977d93104d2ea60f5ffebb2320773773031893fedcc4d57d9d17c, independent .qa/danger-posture-job-independent.log. Physical timing/64actorpressure/pause/resume/actualHC/nativecare/performance not proven; shutdown or scheduler pressure can still exhaust original window, retainedproof not eventualrestoration guarantee. AuditsPAUSED/noArmarunning verified. Localonly/no push/merge/publication. Fullgoal active/incomplete; unrelateddirt/protectedreferences/signing preserved.
+
 # Latest checkpoint - active drill native task handback
 
 

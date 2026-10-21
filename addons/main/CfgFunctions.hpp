@@ -153,6 +153,7 @@ class CfgFunctions {
             class DangerEngineCanContinue {file = "\z\cbe\addons\infantry\functions\dangerEngineCanContinue.sqf";};
             class DangerEngineAct {file = "\z\cbe\addons\infantry\functions\dangerEngineAct.sqf";};
             class DangerEngineRelease {file = "\z\cbe\addons\infantry\functions\dangerEngineRelease.sqf";};
+            class DangerPostureStep {file = "\z\cbe\addons\infantry\functions\dangerPostureStep.sqf";};
             class DangerEngineRecycle {file = "\z\cbe\addons\infantry\functions\dangerEngineRecycle.sqf";};
             class DangerVehicleProfile {file = "\z\cbe\addons\infantry\functions\dangerVehicleProfile.sqf";};
             class DangerEngineMode {file = "\z\cbe\addons\infantry\functions\dangerEngineMode.sqf";};

@@ -8,14 +8,16 @@
  * Zeus, specialist controller or finite actor reservation has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
  * Dormancy, blocked native tasks/reservations and unconfirmed restores retain the original lease for a later
  * existing caller. Automatic retries stop 30 seconds after the original stance expiry; proof remains.
- * No retry worker or deadline renewal is created; later cleanup is not guaranteed.
- * Arguments: 0: soldier <OBJECT>, objNull.
+ * One finite keyed shared-scheduler job services pending actors without a tactical brain.
+ * No per-actor worker or deadline renewal is created; scheduler pressure can still exhaust the window.
+ * Arguments: 0: soldier <OBJECT>, objNull; 1: running cleanup job <BOOL>, false.
+ * Only DangerPostureStep passes true to avoid requeueing its already-running callback.
  * Return Value: Boolean - true when CBE restored its exact owned stance, otherwise false.
  * Current callers: Engine danger FSM Finished, OperationStart and IndoorActorOperation START.
  * Example: [cursorObject] call CBE_fnc_DangerEngineRelease;
  */
 
-params [["_actor",objNull,[objNull]]];
+params [["_actor",objNull,[objNull]],["_cleanupRunning",false,[true]]];
 if (isNull _actor) exitWith {false};
 // This marker describes the currently executing engine-FSM action. Keeping it after Finished made
 // diagnostics report a response which no longer existed and let a later owner inherit stale state.
@@ -35,6 +37,12 @@ private _evidence={
             && {!(_actor in _pending)}) then {
             _pending pushBack _actor;
             _pendingGroup setVariable ["CBE_Danger_StancePendingActors",_pending];
+            if (!_cleanupRunning) then {
+                private _cleanupEpoch=_pendingGroup getVariable ["CBE_AIPass_Epoch",0];
+                [CBE_fnc_DangerPostureStep,createHashMapFromArray [["group",_pendingGroup],
+                    ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch]],0.25,
+                    format ["DANGER_POSTURE_%1_%2",_pendingGroup,_cleanupEpoch]] call CBE_fnc_CortexQueueJob;
+            };
         };
     };
     _actor setVariable ["CBE_Danger_EngineReleaseEvidence",[serverTime,_reason,+_lease,unitPos _actor]];

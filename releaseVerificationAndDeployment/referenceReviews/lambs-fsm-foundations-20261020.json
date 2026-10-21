@@ -1104,5 +1104,17 @@
     "method": "Existing actorTaskFree guards movement, fit roster and atomic publication. Existing disabled journal walked once per group callback; no global scan or new worker. Only PATH records on local native-task actors are restored and confirmed before retiring.",
     "validation": ".qa/drill-native-task-build.log; .qa/drill-native-task-independent.log",
     "limits": "No physical acceptance or measured performance. Returning actor can be reserve, no guaranteed immediate/original role restoration. Native settings same-value ownership follows existing drill journal contract."
+  },
+  "finiteDangerPostureCleanup20261021": {
+    "baseline": "352aebf5",
+    "sourceIntent": "LAMBS forced tasks yield to fleeing/care. CBE exact weak-posture restoration needs a finite owner even when reflex-only danger has not started tactical planning.",
+    "implementation": "DangerPostureStep registered shared-scheduler job, coalesced by group/epoch; one of max64 queued actors/callback; original expiry+30; old GroupBrain service removed. Blocked retry reinserts actor but does not requeue running callback.",
+    "sourceHashes": {
+      "addons/infantry/functions/dangerPostureStep.sqf": "b0aec43d23fa7446c901488cbe11ca9fae1372c0fe03c953bc8fe4c2bdb83138",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "eb29182995717b32d1e7cf5252128bd54e739b82dbab613356ee5db42a9a08a4",
+      "addons/infantry/functions/groupBrainStep.sqf": "04e9131f1c2f48e67f31827a5dfe19214b8efce18c4b124057fe1974265b1e3a"
+    },
+    "evidence": ".qa/lambs-forced-task-trace-20261021.json; .qa/danger-posture-job-build.log; .qa/danger-posture-job-header-repack.log; .qa/danger-posture-job-independent.log",
+    "limits": "No physical acceptance/performance guarantee. Pause/shutdown/budget pressure can exhaust original window; no late forced restore. Deliberate ATTACK/MOVE-disabled departures retained."
   }
 }

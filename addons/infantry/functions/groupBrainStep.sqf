@@ -5,9 +5,8 @@
  * Post-clear owned STOP handback uses native formation return, including the leader,
  * without replacing the new authored waypoint with a positional movement request.
  * An active replacement operation defers handback without deleting the original hold receipt.
- * Expired danger posture gets one rotating release attempt per callback, within a 64-record pending bound;
- * it adds no worker/wake and does not renew the original stance deadline. Automatic retries stop
- * 30 seconds after original expiry, retaining unresolved proof without further polling.
+ * Deferred danger posture belongs to DangerPostureStep on the shared scheduler; it does not
+ * depend on this tactical brain running and does not wake tactical planning.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
@@ -60,38 +59,7 @@ if ((_supportCleanupState getOrDefault ["supportStopCleanup",[]]) isNotEqualTo [
     [_group,_supportCleanupState,"PENDING"] call CBE_fnc_CortexSupportMaintain;
 };
 
-// Service expired weak posture through this existing owner-local callback. A refused
-// actor keeps its original proof; rotation prevents it blocking another actor's cleanup.
-// This does not wake/extend the brain or create another observer.
-private _pendingPosture=_group getVariable ["CBE_Danger_StancePendingActors",[]];
-if (_pendingPosture isEqualType [] && {count _pendingPosture <= 64} && {_pendingPosture isNotEqualTo []}) then {
-    private _retainedPosture=_pendingPosture select {
-        if (!(_x isEqualType objNull) || {isNull _x} || {!local _x} || {group _x != _group}) exitWith {false};
-        private _proof=_x getVariable ["CBE_Danger_EngineStanceLease",[]];
-        if (!(_proof isEqualType []) || {count _proof != 6}
-            || {!((_proof select 2) isEqualType 0)} || {!finite (_proof select 2)}) exitWith {false};
-        if (time >= (_proof select 2)+30) exitWith {
-            _x setVariable ["CBE_Danger_EngineReleaseEvidence",[serverTime,"RESTORE_WINDOW_EXPIRED",+_proof,unitPos _x]];
-            false
-        };
-        true
-    };
-    if (_retainedPosture isNotEqualTo _pendingPosture) then {
-        _group setVariable ["CBE_Danger_StancePendingActors",_retainedPosture];
-    };
-    private _expiredPosture=_retainedPosture select {
-        private _proof=_x getVariable ["CBE_Danger_EngineStanceLease",[]];
-        _proof isEqualType [] && {count _proof == 6}
-            && {(_proof select 2) isEqualType 0} && {finite (_proof select 2)}
-            && {time >= (_proof select 2)}
-            && {time >= ((_x getVariable ["CBE_Danger_EngineResponse",[]]) param [3,-1,[0]])}
-    };
-    if (_expiredPosture isNotEqualTo []) then {
-        private _cursor=_brain getOrDefault ["postureCleanupCursor",0];
-        [_expiredPosture select (_cursor mod count _expiredPosture)] call CBE_fnc_DangerEngineRelease;
-        _brain set ["postureCleanupCursor",(_cursor+1) mod 64];
-    };
-};
+// Deferred danger posture uses its finite shared-scheduler job, independently of this brain.
 
 // The original duck timer may have belonged to a previous owner/generation. Service
 // one surviving receipt here without recreating that timer or extending its deadline.
