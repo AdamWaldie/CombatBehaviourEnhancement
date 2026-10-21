@@ -4,8 +4,9 @@
  * commander to the admitted native goal before the existing crew executor changes seats.
  * Locality/authority: Existing driving FSM, exact local group/vehicle/commander and cap issuer.
  * Never reads a dead driver's native command as proof. A pending destination request uses
- * only its original reply deadline and surviving commander receipt, without replay. Return requests and
- * competing child controllers refuse admission. A changed mission command or cap wins.
+ * only its original reply deadline and surviving commander receipt, without replay. An already
+ * issued native return is observed the same way; it never issues another forward command.
+ * Competing child controllers refuse admission. A changed mission command or cap wins.
  * Repeat/JIP: One stop and one goal command, each observed within two seconds and the
  * original recovery hard deadline. No new worker, renewed recovery budget or forced seats.
  * Cap zero is confirmed before native stop; measured rest and native stop acknowledgement
@@ -13,7 +14,8 @@
  * A failed phase stays terminal in this journal. This is not physical recovery acceptance.
  * Arguments: 0 group <GROUP, grpNull>; 1 driving brain <HASHMAP, empty>.
  * Return: BOOL - true while this finite handback is pending; false permits existing crew logic.
- * Callers: DrivingOperationStep before DrivingCrewStep.
+ * Callers: DrivingOperationStep before DrivingCrewStep; DrivingRecoveryRelease observes a
+ * pending casualty return only while the same owner-local driving FSM is still live.
  * Example: private _pending=[group commander truck1,_brain] call CBE_fnc_DrivingRecoveryCrewHandback;
  */
 params [["_group",grpNull,[grpNull]],["_brain",createHashMap,[createHashMap]]];
@@ -32,8 +34,11 @@ isNil {
         if (isNull _vehicle || {!local _vehicle}) exitWith {false};
         private _entry=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (count _entry == 0 || {!((_entry getOrDefault ["kind",""]) in ["REFRESH","FINAL","REVERSE"])}
-            || {(_entry getOrDefault ["kind",""]) != "REVERSE" && {!("request" in _entry)}}
+            || {(_entry getOrDefault ["kind",""]) != "REVERSE" && {!("request" in _entry)} && {!("nativeReturn" in _entry)}}
             || {_entry getOrDefault ["crewHandbackFailed",false]}) exitWith {false};
+        private _executor=_group getVariable ["CBE_Driving_FSM",-1];
+        if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
+            || {completedFSM _executor}) exitWith {false};
         private _journal=+_entry;
         private _fail={
             if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _entry) then {
@@ -55,7 +60,7 @@ isNil {
         private _mode=_entry getOrDefault ["commandMode",""];
         private _handback=_entry getOrDefault ["crewHandback",[]];
         private _crew=fullCrew [_vehicle,"",false];
-        private _tasks=["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+        private _tasks=["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
         if (!alive _vehicle || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
             || {isNull _operator} || {!local _operator} || {!([_operator] call CBE_fnc_CortexCombatEffective)}
@@ -68,8 +73,9 @@ isNil {
             || {(_entry getOrDefault ["driver",objNull]) isNotEqualTo (_route select 3)}
             || {(_entry getOrDefault ["operator",objNull]) != _operator}
             || {!(_mode in ["DESTINATION","SIMPLE_BACK"])}
-            || {(_entry getOrDefault ["releasePending",false])}
-            || {["nativeReturn","bypassReturn","queueBinding"] findIf {_x in _entry} >= 0}
+            || {(_entry getOrDefault ["releasePending",false]) && {!("nativeReturn" in _entry)}}
+            || {_entry getOrDefault ["releaseUnresolved",false]}
+            || {["bypassReturn","queueBinding"] findIf {_x in _entry} >= 0}
             || {!(_hard isEqualType 0)} || {!finite _hard} || {serverTime >= _hard}
             || {!(_cap isEqualType 0)} || {!finite _cap} || {abs (getForcedSpeed _vehicle-_cap) > 0.1}
             || {count _baseline != 1} || {!((_baseline select 0) isEqualType 0)}
@@ -101,8 +107,8 @@ isNil {
                         || {[_actor] call CBE_fnc_CortexActorMoveReserved}
                         || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                         || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
-                        || {currentCommand _actor in _tasks && {!(_actor == _operator && {_handback isNotEqualTo []}
-                            && {currentCommand _actor == "STOP"})}}}}
+                        || {currentCommand _actor in _tasks}
+                        || {currentCommand _actor == "STOP" && {_actor != _operator}}}}
             } >= 0}) exitWith {call _fail};
         // A different living leader's MOVE is mission intent, not our reverse receipt.
         private _leader=leader _group;
@@ -118,15 +124,18 @@ isNil {
             && {vectorMagnitude velocity _vehicle < (1/3.6)} && {vectorMagnitude angularVelocity _vehicle < 0.01};
         // An issued destination may still be replying when the driver dies. Observe
         // only the original commander and original deadline; never reissue that request.
-        if ("request" in _entry) exitWith {
-            private _request=_entry get "request";
-            if (_mode != "DESTINATION" || {_handback isNotEqualTo []}
+        if ("request" in _entry || {"nativeReturn" in _entry}) exitWith {
+            private _returnRequest="nativeReturn" in _entry;
+            private _request=_entry get (["request","nativeReturn"] select _returnRequest);
+            if (_mode != "DESTINATION" && {!_returnRequest} || {_handback isNotEqualTo []}
+                || {_returnRequest && {"request" in _entry}}
                 || {!(_request isEqualType [])} || {count _request != 3}) exitWith {call _fail};
             _request params ["_requestGoal","_requestUntil","_requestBefore"];
             if (!(_requestGoal isEqualType []) || {count _requestGoal != 3}
                 || {_requestGoal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
                 || {!(_requestUntil isEqualType 0)} || {!finite _requestUntil}
                 || {serverTime >= _requestUntil} || {_requestUntil > _hard}
+                || {_returnRequest && {_requestGoal vectorDistance _goal > 0.25}}
                 || {!(_requestBefore isEqualType [])} || {count _requestBefore != 4}
                 || {!((_requestBefore select 2) isEqualType "")}
                 || {!((_requestBefore select 3) isEqualType [])}
@@ -143,11 +152,20 @@ isNil {
             if (abs (getForcedSpeed _vehicle) > 0.1) exitWith {call _fail};
             _journal set ["cap",0];_assist set [0,0];
             if (_requestAck) then {
-                _journal set ["command",+_native];_journal deleteAt "request";
+                _journal set ["command",+_native];
+                if (!_returnRequest) then {_journal deleteAt "request"};
+                if (_returnRequest && {_rest}) then {
+                    _journal deleteAt "nativeReturn";
+                    _journal deleteAt "releasePending";_journal deleteAt "releaseUnresolved";
+                    _journal set ["kind","FINAL"];_journal set ["commandMode","DESTINATION"];
+                    _journal set ["deadline",_hard];
+                    _assist set [6,3];_assist set [7,time+(_hard-serverTime)];
+                    _assist set [8,"CREW_RETURN_OBSERVED"];_assist set [10,false];
+                };
             };
             _vehicle setVariable ["CBE_DrivingRecovery_Work",_journal,true];
             _vehicle setVariable ["CBE_DrivingAssist_State",_assist];
-            true
+            !(_returnRequest && {_requestAck} && {_rest})
         };
         if (_handback isEqualTo []) exitWith {
             private _exact=_native isEqualTo (_entry getOrDefault ["command",[]]) && {_task in ["","MOVE","WAIT"]};

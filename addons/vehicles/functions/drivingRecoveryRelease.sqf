@@ -55,6 +55,22 @@ isNil {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
+// Cleanup may run before the driving callback after driver death. Let the same
+// live owner FSM observe its surviving commander's original reply first; do not
+// classify a dead driver's destination or erase a converted forward budget.
+private _casualtyBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
+private _casualtyRoute=_work getOrDefault ["route",[]];
+private _casualtyObserved=false;
+if (_reason == "DEFERRED_HANDBACK" && {local _group}
+    && {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []}
+    && {count _casualtyRoute == 9} && {(_casualtyRoute select 0) == "NATIVE_MOVE"}
+    && {!alive (_casualtyRoute select 3)}
+    && {(_casualtyBrain getOrDefault ["route",[]]) isEqualTo _casualtyRoute}) then {
+    private _casualtyPending=[_group,_casualtyBrain] call CBE_fnc_DrivingRecoveryCrewHandback;
+    _casualtyObserved=_casualtyPending
+        || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _work};
+};
+if (_casualtyObserved) exitWith {false};
 // expectedDestination is local-argument. During staggered locality delivery, preserve
 // only metadata proved by global seat identity and this local vehicle's exact cap.
 // Do not run a native command classifier against a remote crew member.
