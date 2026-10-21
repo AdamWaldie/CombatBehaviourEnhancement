@@ -16,5 +16,12 @@
   "validation": "Existing13 entry-flow checks extended with durable-index permutations and stationary-separated-buddy regression; full build result in handover.",
   "physicalAcceptance": false,
   "performanceMeasured": false,
-  "scoresChanged": false
+  "scoresChanged": false,
+  "validatorFollowup": {
+    "baseline": "c6b64e51",
+    "finding": "Offline validator rejected bare _forEachIndex only in simple apply blocks, missing the demonstrated findIf fault. Direct production scan found no remaining simple matches.",
+    "change": "Share compiled simple-block pattern for apply/findIf/select after comments and strings are removed. Diagnostic identifies the actual command and directs actor identity/indexed forEach/explicit outer capture. Nested blocks remain deliberately outside this heuristic.",
+    "validation": "All1482 existing tests passed without new cases; all434SQF files passed extended validator. Existing CQB identity regression exercises invalid three iteration commands plus valid actor identity/forEach/explicit capture/comment/string cases.",
+    "package": "No executable addon changed. Reuse unsigned .qa/candidates/cqb-lane-motion-c974e9f4 fingerprint4a7514bd9f3822082a5e9d2cd5a7a6b8ce4d6bcc171eab7ef1da2ba878944d01; no new build or physical claim."
+  }
 }

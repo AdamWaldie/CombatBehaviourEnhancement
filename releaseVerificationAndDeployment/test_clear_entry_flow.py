@@ -226,6 +226,16 @@ class ClearPairSlotIdentityTests(unittest.TestCase):
         entry_motion=worker.split('if (_approachingEntry && {!_moved}) then {',1)[1].split('if (_moved)',1)[0]
         self.assertIn('_lastPositions param [_pair find _x,getPosATL _x]',entry_motion)
         self.assertNotIn('_forEachIndex',entry_motion)
+        from sqf_validator import UNINDEXED_ITERATION_PATTERN, strip_comments_and_strings
+        for command in ('apply','findIf','select'):
+            bad=f'_pair {command} {{_lastPositions param [_forEachIndex,getPosATL _x]}}'
+            self.assertIsNotNone(UNINDEXED_ITERATION_PATTERN.search(strip_comments_and_strings(bad)))
+        for good in ('_pair findIf {_lastPositions param [_pair find _x,getPosATL _x]}',
+                     '{_lastPositions param [_forEachIndex,getPosATL _x]} forEach _pair',
+                     '_pair findIf {_lastPositions param [_outerIndex,getPosATL _x]}',
+                     '// _pair findIf {_forEachIndex > 0}',
+                     'diag_log "_pair findIf {_forEachIndex > 0}"'):
+            self.assertIsNone(UNINDEXED_ITERATION_PATTERN.search(strip_comments_and_strings(good)))
         from math import dist
         previous={'lead':(0,0,0),'buddy':(10,0,0)}
         actual=dict(previous)

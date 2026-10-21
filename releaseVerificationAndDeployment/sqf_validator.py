@@ -20,6 +20,13 @@ INVALID_RUNTIME_COMMANDS = {
 }
 
 
+# These iteration commands provide _x but no local _forEachIndex. Scan only simple
+# blocks after comments/strings are removed; nested scope ownership is not inferred.
+UNINDEXED_ITERATION_PATTERN = re.compile(
+    r"(?i)\b(apply|findIf|select)\s*\{[^{}]*\b_forEachIndex\b[^{}]*\}"
+)
+
+
 def find_backslash_escaped_quotes(content):
     """Find `\\"` inside actual SQF string literals (not comments).
 
@@ -263,13 +270,13 @@ def check_sqf_syntax(filepath):
             bad_count_file += 1
 
         executable = strip_comments_and_strings(content)
-        # apply supplies _x, not its own _forEachIndex. A bare index in a simple
+        # apply/findIf/select supply _x, not their own _forEachIndex. A bare index in a simple
         # mapping block silently reads an outer loop's index (or is undefined).
         # Capture an intentional outer index under a named variable instead.
         # Nested code blocks need scope analysis and are deliberately not guessed here.
-        for match in re.finditer(r"(?i)\bapply\s*\{[^{}]*\b_forEachIndex\b[^{}]*\}", executable):
+        for match in UNINDEXED_ITERATION_PATTERN.finditer(executable):
             index_line = executable.count("\n", 0, match.start()) + 1
-            print("ERROR: apply does not provide _forEachIndex at {0} Line number: {1}; use an indexed forEach or explicitly capture the outer index".format(filepath, index_line))
+            print("ERROR: {0} does not provide _forEachIndex at {1} Line number: {2}; use actor identity, an indexed forEach or explicitly capture the outer index".format(match.group(1), filepath, index_line))
             bad_count_file += 1
         for command, explanation in INVALID_RUNTIME_COMMANDS.items():
             for match in re.finditer(rf"(?i)\b{re.escape(command)}\b", executable):
