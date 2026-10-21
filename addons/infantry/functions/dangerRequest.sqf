@@ -5,6 +5,7 @@
  * Purpose: Coalesce observed danger into one finite group assessment FSM.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
  * Repeat/JIP: generation-checked, machine-local state; new owners rebuild from new observations.
+ * Approximate updates retain, but never renew, the original two-second hostile identity expiry.
  * Arguments: 0: observer <OBJECT>, objNull; 1: cause <STRING>, GUNFIRE;
  * 2: approximate ATL position <ARRAY>, []; 3: engine-confirmed hostile source <OBJECT>, objNull.
  * Return Value: Boolean - whether the observation was accepted.
@@ -37,7 +38,7 @@ _cadence set [_cause,time+0.25];
 _actor setVariable ["CBE_Danger_EventCadence",_cadence];
 private _events=_group getVariable ["CBE_Danger_Events",[]];
 private _index=_events findIf {
-    _x isEqualType [] && {count _x in [4,5,6,7]}
+    _x isEqualType [] && {count _x in [4,5,6,7,8]}
         && {(_x param [0,"",[""]]) == _cause}
         && {(_x param [5,objNull,[objNull]]) == _actor}
 };
@@ -46,6 +47,7 @@ private _index=_events findIf {
 // reveal or target assignment; objNull remains the normal value for approximate hazards and reports.
 private _hostileSource=objNull;
 private _sourceObserver=_actor;
+private _sourceUntil=time+2;
 if (!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
     && {!(_source getVariable ["ace_captives_isSurrendering",false]) && {!(_source getVariable ["ace_captives_isHandcuffed",false])}} && {(side _group) getFriend (side _source) < 0.6}
     && {_actor knowsAbout _source > 0} && {!_sourceIgnored}) then {_hostileSource=_source};
@@ -53,7 +55,8 @@ if (isNull _hostileSource && {_index >= 0}) then {
     private _prior=_events select _index;
     private _priorSource=_prior param [4,objNull,[objNull]];
     private _priorObserver=_prior param [6,_prior param [5,objNull,[objNull]],[objNull]];
-    if ((_prior param [3,-1,[0]]) > time && {!isNull _priorSource} && {!(_priorSource isKindOf "Logic")} && {!(_priorSource isKindOf "HeadlessClient_F")} && {alive _priorSource} && {!captive _priorSource}
+    private _priorUntil=_prior param [7,_prior param [3,-1,[0]],[0]];
+    if (finite _priorUntil && {_priorUntil > time} && {(_prior param [3,-1,[0]]) > time} && {!isNull _priorSource} && {!(_priorSource isKindOf "Logic")} && {!(_priorSource isKindOf "HeadlessClient_F")} && {alive _priorSource} && {!captive _priorSource}
         && {!(_priorSource getVariable ["ace_captives_isSurrendering",false]) && {!(_priorSource getVariable ["ace_captives_isHandcuffed",false])}}
         && {[_priorObserver] call CBE_fnc_CortexCombatEffective} && {local _priorObserver} && {group _priorObserver == _group}
         && {(side _group) getFriend (side _priorSource) < 0.6}
@@ -61,6 +64,7 @@ if (isNull _hostileSource && {_index >= 0}) then {
         && {!((_priorObserver targetKnowledge _priorSource) param [7,false,[true]])}) then {
         _hostileSource=_priorSource;
         _sourceObserver=_priorObserver;
+        _sourceUntil=_priorUntil;
     };
 };
 // Retain the exact local observer which received the native danger event. A mixed crew/passenger
@@ -68,7 +72,7 @@ if (isNull _hostileSource && {_index >= 0}) then {
 // vehicle danger into a foot response (or the reverse) whenever the selected anchor occupies a
 // different domain. A separate source observer preserves the native witness when a newer
 // approximate event inherits a still-live hostile identity from the previous coalesced record.
-private _event=[_cause,+_position,time,time+2,_hostileSource,_actor,_sourceObserver];
+private _event=[_cause,+_position,time,time+2,_hostileSource,_actor,_sourceObserver,_sourceUntil];
 if (_index >= 0) then {_events set [_index,_event]} else {_events pushBack _event};
 // Keep the queue bounded while preserving both fresh witnesses and its strongest hazard.
 // Only overflow needs priority work: the normal coalesced path retains its cheap write.

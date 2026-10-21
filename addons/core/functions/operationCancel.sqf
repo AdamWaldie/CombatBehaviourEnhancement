@@ -79,7 +79,7 @@ if (_operation getOrDefault ["dangerPosture",false] && {count _dangerResponse ==
     && {(_dangerResponse select 4) == (_group getVariable ["CBE_Danger_Generation",-1])}
     && {time < (_dangerResponse select 3)}) then {
     private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
-    if (!(count _dangerEvent in [4,5,6,7])
+    if (!(count _dangerEvent in [4,5,6,7,8])
         || {(_dangerEvent param [0,"",[""]]) != (_dangerResponse select 0)}
         || {(_dangerEvent param [2,-1,[0]]) != (_dangerResponse select 2)}) then {
         _dangerEvent=_dangerResponse select [0,4];

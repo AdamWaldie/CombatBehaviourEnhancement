@@ -142,7 +142,7 @@ if (_dangerPosture) then {
     if (_liveDanger isNotEqualTo []) then {
         _liveDanger params ["_dangerCause","_dangerPosition"];
         private _dangerEvent=_group getVariable ["CBE_Danger_ResponseEvent",[]];
-        if (!(count _dangerEvent in [4,5,6,7])
+        if (!(count _dangerEvent in [4,5,6,7,8])
             || {(_dangerEvent param [0,"",[""]]) != _dangerCause}
             || {(_dangerEvent param [2,-1,[0]]) != (_liveDanger select 2)}) then {
             _dangerEvent=_liveDanger select [0,4];

@@ -1,3 +1,8 @@
+# Latest checkpoint - finite inherited danger identity
+
+## 2026-10-21 - Separate danger identity lifetime from hazard freshness
+DangerRequest coalescing formerly renewed an inherited hostile identity whenever another approximate event refreshed the same cause/witness. Added optional eighth event field with original identity expiry: identified source gets time+2; inheritance retains the prior deadline. No fresh identity means no renewal. DangerStep contact receipt clips to that deadline; DangerActionSelect degrades expired identity to approximate HIDE for engagement causes. All event-shape readers in DangerSelect/Step and OperationStart/Cancel/Release admit8fields; legacy4..7 rows retain original event expiry. Hazard freshness remains independent. No new sensing/worker/network. Existing witness regression extended with repeated approximate updates; all1482/offline HEMTT/FSM/config/docs/package pass. Independent preserved candidate .qa/candidates/danger-identity-expiry-b645041c fingerprint63052b64de22aa50a043da3bbbca3d868d0888bd121c9c2c317c812e292bc131. Logs .qa/danger-identity-expiry-build.log and independent counterpart. Audits PAUSED/no launch; physical behaviour/performance and whole goal unverified/incomplete. Local only/no push. Protected sources and unrelated dirt preserved.
+
 # Latest checkpoint - caller-owned danger geometry
 
 ## 2026-10-21 - Preserve caller-owned danger geometry

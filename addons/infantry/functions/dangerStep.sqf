@@ -154,7 +154,7 @@ if (_selected isEqualTo []) exitWith {
 private _selectedIndex=_events findIf {_x isEqualTo _selected};
 if (_selectedIndex >= 0) then {_events deleteAt _selectedIndex};
 private _remaining=_events select {
-    _x isEqualType [] && {count _x in [4,5,6,7]}
+    _x isEqualType [] && {count _x in [4,5,6,7,8]}
         && {(_x param [3,-1,[0]]) > time}
 };
 _group setVariable ["CBE_Danger_Events",_remaining];
@@ -164,9 +164,10 @@ private _source=_selected param [4,objNull,[objNull]];
 private _observer=_selected param [5,objNull,[objNull]];
 if (isNull _observer || {!alive _observer} || {!local _observer} || {group _observer != _group}) then {_observer=_actor};
 private _sourceObserver=_selected param [6,_observer,[objNull]];
+private _sourceUntil=_selected param [7,_selected param [3,-1,[0]],[0]];
 // Do not substitute another observer when the retained identity witness is lost.
 // The affected actor can still react to the approximate event without a target identity.
-private _sourceKnown=!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")}
+private _sourceKnown=finite _sourceUntil && {time < _sourceUntil} && {!isNull _source} && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")}
     && {alive _source} && {!captive _source}
     && {!(_source getVariable ["ace_captives_isSurrendering",false])}
     && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
@@ -183,7 +184,7 @@ if (_action == "RELEASE") exitWith {
         && {time < (_live select 3)}}) then {0.25} else {-1}
 };
 if (_action != "FORCED" && {_sourceKnown}) then {
-    _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,time+2,_generation],true];
+    _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,(time+2) min _sourceUntil,_generation],true];
 };
 // A concrete native task is an ownership boundary, not a tactical response mode. The engine FSM may
 // record the event and perform its observation-only FORCED state, but the assessment layer must not
