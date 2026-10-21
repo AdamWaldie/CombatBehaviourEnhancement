@@ -1058,6 +1058,13 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(action.index('if (_cause in ["DETECTED"'),action.index('exitWith {"MAINTAIN"}'))
         self.assertNotIn('getPosATL _target',setup)
         self.assertIn("_records select [0,12]",engine)
+        self.assertIn('private _position=+(_x param [1,[],[[]]]);',engine)
+        self.assertLess(engine.index('private _position=+'),engine.index('_position pushBack'))
+        event_position=[10,20]
+        normalised=list(event_position)
+        normalised.append(3)
+        self.assertEqual(event_position,[10,20])
+        self.assertEqual(normalised,[10,20,3])
         self.assertIn('private _latestExpiry=createHashMap;',engine)
         self.assertIn('private _latestSourceExpiry=createHashMap;',engine)
         self.assertIn("_expires >= (_latestExpiry getOrDefault [_causeName,-1])",engine)

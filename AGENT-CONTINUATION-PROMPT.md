@@ -1,3 +1,8 @@
+# Latest checkpoint - caller-owned danger geometry
+
+## 2026-10-21 - Preserve caller-owned danger geometry
+DangerEngineSubmit formerly appended actor height directly to a caller-owned two-coordinate event position. It now copies that position before normalisation; queue readers cannot inherit ingestion side effects. Existing regression extended; no new worker/query/capacity. Full1482/offline HEMTT/FSM/config/docs/package pass; independently verified candidate .qa/candidates/danger-input-copy-258f7ba9 fingerprint e5edb6d87f26a97f9be002031353541214ce7d9f156231d40233036a4d4721f7. Logs .qa/danger-input-copy-build.log and independent counterpart. Guide clarified after product build. Shared danger Act/Release/CanContinue and LAMBS doCheckBody inspected; no additional defect established by that inspection. Audits PAUSED/no launch; physical tactics/performance and full goal remain incomplete. Unrelated dirt/protected sources preserved; local only, no push.
+
 # Latest checkpoint - exact equipment inventory accounting
 
 ## 2026-10-21 - Exact duplicate inventory accounting
