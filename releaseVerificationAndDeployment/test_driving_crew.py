@@ -182,7 +182,7 @@ class DrivingCrewTests(unittest.TestCase):
         step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
         start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text(encoding='utf-8')
-        self.assertIn('private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep',step)
+        self.assertIn('if (!_crewPending) then {_crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep}',step)
         self.assertIn('if (_crewPending) then {_phase="CREW_HANDOVER"}',step)
         self.assertIn('_crewPending || {_traffic}',step)
         self.assertIn('isNull driver _vehicle || {!alive driver _vehicle}',start)
@@ -350,3 +350,23 @@ class DrivingCrewTests(unittest.TestCase):
                       'finite _linearMotion','finite _angularMotion','CortexExternalTakeover',
                       'currentCommand _actor in _tasks','DrivingRouteReceipt'):
             self.assertIn(guard,admission)
+
+    def test_reverse_casualty_handback_requires_stop_rest_and_goal_before_seats(self):
+        source=(ROOT/'addons/vehicles/functions/drivingRecoveryCrewHandback.sqf').read_text(encoding='utf-8')
+        step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertLess(step.index('call CBE_fnc_DrivingRecoveryCrewHandback'),step.index('call CBE_fnc_DrivingCrewStep'))
+        for proof in ('isNil {','serverTime >= _hard','crewHandbackFailed','CBE_DrivingCap_Issuer',
+                      '"request","nativeReturn","bypassReturn","queueBinding"','CortexExternalTakeover',
+                      'CortexZeusHeld','CortexActorMoveReserved','simpleAcknowledged','vectorMagnitude angularVelocity'):
+            self.assertIn(proof,source)
+        self.assertLess(source.index('_vehicle forceSpeed 0'),source.index('doStop _operator'))
+        stop=source.split('if (_phase == "STOP") exitWith {',1)[1].split('if (_phase != "GOAL")',1)[0]
+        self.assertLess(stop.index('if (!_rest)'),stop.index('_operator doMove _goal'))
+        self.assertEqual(source.count('_operator doMove _goal'),1)
+        self.assertLess(source.index('serverTime >= (_handback select 1)'),source.index('private _ack='))
+        final=source.split('_journal set ["kind","FINAL"]',1)[1]
+        for forbidden in ('set ["hardDeadline"','set ["progressAnchor"','set ["baseline"','moveInDriver','setPos','setVelocity'):
+            self.assertNotIn(forbidden,final)
+        self.assertNotIn('expectedDestination _driver',source)
+        self.assertNotIn('waitAndExecute',source)
+        self.assertNotIn('addPerFrameHandler',source)

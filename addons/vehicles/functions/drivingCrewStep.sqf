@@ -17,7 +17,8 @@
  * Native casualty retains only an already admitted vehicle goal. Actual replacement-seat
  * occupancy and one finite original-goal acknowledgement rebind its operating receipt.
  * Forward recovery casualties retain their original budget/cap after exact seat and goal ACK.
- * Reverse/return recovery-command casualties remain unsupported. Player, Zeus, specialist, convoy,
+ * Acknowledged reverse casualties first use DrivingRecoveryCrewHandback; pending reverse/return
+ * requests remain unsupported. Player, Zeus, specialist, convoy,
  * service and newer orders win.
  * Repeat/JIP: Public original deadline and issued phases survive transfer without replaying actions.
  * Terminal receipts suppress repeated attempts for the same driver and route. No forced seating,

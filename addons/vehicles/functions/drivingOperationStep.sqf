@@ -39,7 +39,8 @@ if (([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_brain get "route"
 private _crewEntryRoute=_brain get "route";
 private _nativeCrewTransition=(_crewEntryRoute param [0,"",[""]]) == "NATIVE_MOVE"
     && {count _crewEntryRoute == 9} && {!alive (_crewEntryRoute select 3)};
-private _crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep;
+private _crewPending=[_group,_brain] call CBE_fnc_DrivingRecoveryCrewHandback;
+if (!_crewPending) then {_crewPending=[_group,_brain] call CBE_fnc_DrivingCrewStep};
 // Native crew actions/confirmation can change the operating receipt. Retire an old
 // callback before assistance or diagnostics can borrow a superseding owner's intent.
 if (!local _group || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}

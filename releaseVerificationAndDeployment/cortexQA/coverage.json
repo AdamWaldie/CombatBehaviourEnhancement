@@ -818,6 +818,7 @@
         "addons/vehicles/functions/drivingTurnTrack.sqf",
         "addons/vehicles/functions/drivingNativePathWatch.sqf",
         "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+        "addons/vehicles/functions/drivingRecoveryCrewHandback.sqf",
         "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
         "addons/vehicles/functions/drivingRecoveryCleanup.sqf",
         "addons/vehicles/functions/drivingRecoveryAdopt.sqf",

@@ -1,0 +1,32 @@
+{
+  "baseline": "594f3822",
+  "scope": "Finite same-owner handback of acknowledged reverse after driver death, before existing crew replacement",
+  "implementation": [
+    "Existing driving callback invokes one bounded handback before crew actions. Healthy/non-native paths exit before crew enumeration. No new worker or recurring scan.",
+    "Requires original surviving local commander, dead original driver, exact route/cap issuer/current readback/baseline and unexpired original hard deadline; competing child/pending request/return and external or mission task refuse.",
+    "Confirms owned cap at zero before one native destination stop or acknowledged SIMPLE_BACK STOP. Observes native stop and finite measured linear/angular rest before original-goal command once. Each phase expires within two seconds and original hard deadline; failed phase is terminal in journal.",
+    "Observed original-goal MOVE and rest convert recovery to FINAL without changing original anchor, hard deadline, baseline or spent flags. Existing finite crew executor still must confirm real seat and goal ACK before rebinding actors/cap custody.",
+    "No dead-driver expectedDestination proof, forced insertion, waypoint rewrite, new recovery allowance or timer-based consent."
+  ],
+  "validation": {
+    "focused": "258 driving checks passed.",
+    "full": ".qa/reverse-crew-build-final.log:1489 tests/401 SQF and complete offline gates passed.",
+    "initial_failures": "Source coverage registration then generated feature report were missing; registered function and regenerated report, retained failures in logs, reran gates.",
+    "candidate": ".qa/candidates/reverse-crew-594f3822",
+    "fingerprint": "5520ccc03c6519262959e84a1683feb294d3da51201ece6a03c3e35408c6ebb6",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate, baseline plus intended source and retained unrelated dirt."
+  },
+  "limits": [
+    "Physical native stop/seat/travel and runtime performance unverified. Audits PAUSED.",
+    "Pending reverse/return requests, no surviving original commander, crew locality transfer remain incomplete.",
+    "Identical replacement native commands cannot be distinguished by snapshots; do not claim transactional mission-order authority.",
+    "Two-second stop/goal phase timing needs physical tuning against tracked and wheeled engine responses; timeout does not count as success."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingRecoveryCrewHandback.sqf": "83ee7adc9450c33392e5cdefcc2b76ba0a41b0242f4788b57acf9e90b7d4a969",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "c8e1c98de4d6d0cedfb8d90d77eb31df69d8bd3564ab967d3460f4df3dcaef73",
+    "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
+    "addons/main/CfgFunctions.hpp": "ba01291b1a75de6140a99ead8e2747c6b086bb35a559565fdb94f1d05ed366f9"
+  }
+}
