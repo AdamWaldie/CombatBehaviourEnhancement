@@ -237,6 +237,12 @@ private _buildingAnchor = {
                     || {[_unit] call CBE_fnc_CortexActorMoveReserved}
                     || {toUpperANSI currentCommand _unit in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {};
                 if (time < (_unit getVariable ["CBE_AIPass_DuckUntil", -1])) exitWith {};
+                private _mayDuck=true;
+                if ((_unit getVariable ["CBE_Cortex_GarrisonDuckRestore",[]]) isNotEqualTo []) then {
+                    private _recovery=[_unit,group _unit,"RECOVER"] call CBE_fnc_CortexGarrisonSettings;
+                    _mayDuck=_recovery in ["APPLIED","ABSENT","CHANGED"];
+                };
+                if (!_mayDuck) exitWith {};
                 private _priorStance=unitPos _unit;
                 // Already prone is not a reason to raise the soldier under incoming fire.
                 if (toUpperANSI _priorStance == "DOWN") exitWith {};
@@ -254,6 +260,14 @@ private _buildingAnchor = {
                 if (([_unit,group _unit,"APPLY",createHashMapFromArray [["STANCE",_duckStance]]]
                     call CBE_fnc_CortexGarrisonSettings) != "APPLIED") exitWith {};
                 _unit setVariable ["CBE_Cortex_GarrisonDuckStance",_duckStance,true];
+                _unit setVariable ["CBE_Cortex_GarrisonDuckRestore",[
+                    _duckGroup getVariable ["CBE_Cortex_GarrisonSettingIssuer",""],+_duckAssignment,
+                    serverTime+(_until-time),toUpperANSI _priorStance,_duckStance],true];
+                private _duckPending=_duckGroup getVariable ["CBE_Cortex_GarrisonDuckPending",[]];
+                if (_duckPending isEqualType [] && {count _duckPending < 64} && {!(_unit in _duckPending)}) then {
+                    _duckPending pushBack _unit;
+                    _duckGroup setVariable ["CBE_Cortex_GarrisonDuckPending",_duckPending,true];
+                };
                 [{
                     params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
                     if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
@@ -276,8 +290,7 @@ private _buildingAnchor = {
                         && {[group _unit] call CBE_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
                         if (unitPos _unit == (_unit getVariable ["CBE_Cortex_GarrisonDuckStance", ""])) then {
-                            [_unit,group _unit,"APPLY",createHashMapFromArray [["STANCE",_priorStance]]]
-                                call CBE_fnc_CortexGarrisonSettings;
+                            [_unit,group _unit,"RECOVER"] call CBE_fnc_CortexGarrisonSettings;
                         };
                         _unit setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true];
                     };

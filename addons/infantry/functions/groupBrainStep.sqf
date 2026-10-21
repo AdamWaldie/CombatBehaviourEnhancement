@@ -93,6 +93,23 @@ if (_pendingPosture isEqualType [] && {count _pendingPosture <= 64} && {_pending
     };
 };
 
+// The original duck timer may have belonged to a previous owner/generation. Service
+// one surviving receipt here without recreating that timer or extending its deadline.
+private _duckPending=_group getVariable ["CBE_Cortex_GarrisonDuckPending",[]];
+if (_duckPending isEqualType [] && {count _duckPending > 0} && {count _duckPending <= 64}) then {
+    private _duckActor=_duckPending deleteAt 0;
+    if (_duckActor isEqualType objNull && {!isNull _duckActor} && {group _duckActor == _group}) then {
+        private _duckReceipt=_duckActor getVariable ["CBE_Cortex_GarrisonDuckRestore",[]];
+        if (_duckReceipt isEqualType [] && {count _duckReceipt == 5}
+            && {(_duckReceipt select 2) isEqualType 0} && {finite (_duckReceipt select 2)}
+            && {serverTime < (_duckReceipt select 2)+30}) then {
+            private _status=[_duckActor,_group,"RECOVER"] call CBE_fnc_CortexGarrisonSettings;
+            if (_status in ["REFUSED","PENDING"]) then {_duckPending pushBack _duckActor};
+        };
+    };
+    _group setVariable ["CBE_Cortex_GarrisonDuckPending",_duckPending,true];
+};
+
 // Retire one original garrison settings receipt per existing callback. Expiry stops
 // attempts but retains actor proof; another release of the same issuer cannot renew it.
 private _garrisonSettings=_group getVariable ["CBE_Cortex_GarrisonSettingsPending",[]];

@@ -4133,7 +4133,7 @@ class CortexOperations(unittest.TestCase):
         event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
         self.assertIn('_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]',event)
         self.assertIn('isNull _duckBuilding',event)
-        self.assertLess(event.index('private _duckTransform='),event.index('call CBE_fnc_CortexGarrisonSettings'))
+        self.assertLess(event.index('private _duckTransform='),event.index('[["STANCE",_duckStance]]'))
         self.assertIn('_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',delayed)
         self.assertIn('!isNull _building',delayed)
         self.assertLess(delayed.index('private _transform='),delayed.index('call CBE_fnc_CortexGarrisonSettings'))
@@ -4163,12 +4163,27 @@ class CortexOperations(unittest.TestCase):
         duck=apply.split('private _duck = {',1)[1].split('CBE_AIPass_GarrisonHandlerIds',1)[0]
         for proof in ['private _priorStance=unitPos _unit;', 'group _unit == _duckGroup',
                       'local _duckGroup', '== _duckGeneration', '== _duckEpoch',
-                      'isEqualTo _duckAssignment', '[["STANCE",_priorStance]]',
+                      'isEqualTo _duckAssignment', 'group _unit,"RECOVER"]',
                       '[_unit,_until,_priorStance,_duckGroup,_duckGeneration,_duckEpoch,_duckAssignment]']:
             self.assertIn(proof,duck)
-        self.assertLess(duck.index('private _priorStance=unitPos _unit;'),duck.index('call CBE_fnc_CortexGarrisonSettings'))
-        self.assertLess(duck.index('if (toUpperANSI _priorStance == "DOWN") exitWith {};'),duck.index('call CBE_fnc_CortexGarrisonSettings'))
+        self.assertLess(duck.index('private _priorStance=unitPos _unit;'),duck.index('[["STANCE",_duckStance]]'))
+        self.assertLess(duck.index('if (toUpperANSI _priorStance == "DOWN") exitWith {};'),duck.index('[["STANCE",_duckStance]]'))
         self.assertNotIn('_unit setUnitPos (_unit getVariable ["CBE_AIPass_GarrisonStance"',duck)
+        adapter=source('cortexGarrisonSettings')
+        for proof in ('CBE_Cortex_GarrisonDuckRestore','_duck select 0) != _issuer',
+                      '_duck select 1) isNotEqualTo','toUpperANSI (unitPos _actor) != (_duck select 4)',
+                      'serverTime >= (_duck select 2)+30','serverTime < (_duck select 2)',
+                      '[["STANCE",_duck select 3]]','_transform isNotEqualTo [getPosWorld _building'):
+            self.assertIn(proof,adapter)
+        self.assertIn('if (!_mayDuck) exitWith {};',duck)
+        brain=source('groupBrainStep')
+        self.assertIn('_duckPending deleteAt 0',brain)
+        self.assertIn('serverTime < (_duckReceipt select 2)+30',brain)
+        self.assertIn('serverTime+(_until-time)',duck)
+        self.assertIn('_duckQueue deleteAt _duckIndex',adapter)
+        self.assertEqual(adapter.count('call _forgetDuckPending;'),3)
+        self.assertIn('count _duckQueue <= 64',adapter)
+
 
     def test_suppression_reserve_rejection_has_live_positive_peers(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()

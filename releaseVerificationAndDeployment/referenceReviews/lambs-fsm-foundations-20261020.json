@@ -1034,5 +1034,26 @@
     "audits": "PAUSED",
     "candidate": ".qa/candidates/garrison-native-task-handback-205248f7",
     "fingerprint": "c2373b4419d024e5c35f6af7431f803fe48dc1cf0f1e7a636468192e2f765bdc"
+  },
+  "garrisonInterruptedDuckRecovery20261021": {
+    "baseline": "f05273c8",
+    "finding": "Original duck callback correctly cancels after owner/generation change, but no current-owner path previously restored the immediate pre-duck stance. Canonical final-release baseline alone did not provide that intermediate recovery.",
+    "implementation": [
+      "Publish issuer, exact assignment, original server expiry, immediate prior stance and applied duck stance only after APPLIED setting acknowledgement.",
+      "Original timer now calls receipt recovery. Existing group brain services one of<=64pending actors per callback, without creating or replaying timers.",
+      "Recovery validates current issuer/assignment/building transform and exact native duck stance; current owner/generation is adopted only through canonical settings checks. Native MOVE/FOLLOW/service tasks, care, flight, reservations, external ownership and dormancy yield.",
+      "Original duck expiry plus30seconds stops automatic attempts; no renewed deadline. A pending unresolved receipt blocks a fresh duck episode rather than extending the original window. Changed stance/order retires recovery metadata without restoring it; final exact settings handback remains separate.",
+      "Success, changed receipt and final RELEASE remove the actor from the bounded fallback queue immediately; stale normal-timer entries cannot starve later bursts. Removal scans at most64queue entries."
+    ],
+    "validation": "609 focused and all1484/SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package passed .qa/garrison-duck-owned-recovery-build-final.log. Initial successful build retained .qa/garrison-duck-owned-recovery-build.log; rerun justified by stale-slot cleanup improvement. Independent .qa/garrison-duck-owned-recovery-independent.log passed. Existing recovery contract extended; no new test cases.",
+    "limits": "Physical duck timing, interrupted callback/owner transfer, care/task delay, acknowledgement, saturation and5%/10%performance remain unverified; bounded fallback can run later than the normal timer. Expiry retains unresolved proof, not a guarantee of eventual automatic recovery.",
+    "sourceHashes": {
+      "addons/infantry/functions/cortexGarrisonSettings.sqf": "15256e7439d5f29abc3e204e5d3da777b2960acbaeda831963d0123371700357",
+      "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "cd929ad2c7d32b7dbbae946b920e996f53685b0f322e433edb602c866f969d68",
+      "addons/infantry/functions/groupBrainStep.sqf": "6ae2ffa88117a5164735b79e564b3e70e2ee0fc9a24433c00134f0a6a0e5123c"
+    },
+    "audits": "PAUSED",
+    "candidate": ".qa/candidates/garrison-duck-owned-recovery-f05273c8",
+    "fingerprint": "8828cbdcc915ce89c2f44e28bad7d48b88fb557c651374bede436cb4a209a6f9"
   }
 }

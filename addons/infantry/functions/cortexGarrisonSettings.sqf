@@ -6,7 +6,7 @@
  * Repeat/JIP: Baselines are captured by ActorSettings before writes, never from legacy mirrors.
  * Refused release retains proof and one original30second retirement window on the existing brain.
  * No movement, watch, new worker or retry deadline renewal is issued here.
- * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 mode STRING APPLY (CHECK, RELEASE);
+ * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 mode STRING APPLY (CHECK, RELEASE, RECOVER);
  * 3 requested HASHMAP empty;4 allow deferral BOOL true.
  * Return: ActorSettings status STRING, REFUSED when authority is absent.
  * Current callers: CortexGarrisonApplyLocal, CortexGarrisonRelease and GroupBrainStep.
@@ -17,7 +17,7 @@ params [["_actor",objNull,[objNull]],["_group",grpNull,[grpNull]],
 private _status="REFUSED";
 isNil {
 if (isNull _actor || {!local _actor} || {isNull _group} || {!local _group}
-    || {group _actor != _group} || {!(_mode in ["APPLY","CHECK","RELEASE"])}
+    || {group _actor != _group} || {!(_mode in ["APPLY","CHECK","RELEASE","RECOVER"])}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {};
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _issuer=_group getVariable ["CBE_Cortex_GarrisonSettingIssuer",""];
@@ -31,14 +31,27 @@ private _known=_lease isEqualType [] && {count _lease == 3}
     && {_actorIssuer isEqualType ""} && {_actorIssuer != ""}
     && {((_lease select 0) select 0) isEqualTo _group}
     && {((_lease select 0) select 1) isEqualTo _actorIssuer};
+// Normal timer success must free its fallback slot immediately for the next burst.
+// When called by GroupBrainStep that actor was already popped; do not reinsert it.
+private _forgetDuckPending={
+    private _duckQueue=_group getVariable ["CBE_Cortex_GarrisonDuckPending",[]];
+    if (_duckQueue isEqualType [] && {count _duckQueue <= 64}) then {
+        private _duckIndex=_duckQueue find _actor;
+        if (_duckIndex >= 0) then {
+            _duckQueue deleteAt _duckIndex;
+            _group setVariable ["CBE_Cortex_GarrisonDuckPending",_duckQueue,true];
+        };
+    };
+};
 private _mirrors=["CBE_AIPass_GarrisonStance","CBE_Cortex_GarrisonAppliedStance",
     "CBE_Cortex_GarrisonDuckStance","CBE_Cortex_GarrisonForcedSpeed",
-    "CBE_Cortex_GarrisonAppliedSpeed","CBE_Cortex_GarrisonSettingToken"];
+    "CBE_Cortex_GarrisonAppliedSpeed","CBE_Cortex_GarrisonSettingToken","CBE_Cortex_GarrisonDuckRestore"];
 if (_mode == "RELEASE" || {_known && {_actorIssuer != _issuer || {_retiring}}}) then {
     if (_known) then {
         private _context=+(_lease select 0); _context set [3,_epoch];
         _status=["RELEASE",_actor,_context] call CBE_fnc_ActorSettings;
         if (_status == "RELEASED") then {
+            call _forgetDuckPending;
             {_actor setVariable [_x,nil,true]} forEach _mirrors;
             _actor setVariable ["CBE_Cortex_GarrisonSettingRetireUntil",nil,true];
             _lease=[]; _known=false; _actorIssuer="";
@@ -67,6 +80,37 @@ if (_mode == "RELEASE" || {_known && {_actorIssuer != _issuer || {_retiring}}}) 
     };
 };
 if (_mode == "RELEASE") exitWith {};
+private _recovering=_mode == "RECOVER";
+if (_recovering && {_retiring || {!_known}}) exitWith {};
+if (_recovering) then {
+    private _duck=_actor getVariable ["CBE_Cortex_GarrisonDuckRestore",[]];
+    if (_duck isEqualTo []) exitWith {_status="ABSENT"};
+    if (!(_duck isEqualType []) || {count _duck != 5}
+        || {!((_duck select 0) isEqualType "")} || {!((_duck select 1) isEqualType [])}
+        || {!((_duck select 2) isEqualType 0)} || {!finite (_duck select 2)}
+        || {!((_duck select 3) in ["AUTO","UP","MIDDLE","DOWN"])}
+        || {!((_duck select 4) in ["AUTO","UP","MIDDLE","DOWN"])}) exitWith {};
+    if ((_duck select 0) != _issuer || {(_duck select 1) isNotEqualTo (_actor getVariable ["CBE_AIPass_GarrisonPos",[]])}
+        || {toUpperANSI (unitPos _actor) != (_duck select 4)}) exitWith {
+        _actor setVariable ["CBE_Cortex_GarrisonDuckRestore",nil,true];
+        _actor setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true];
+        call _forgetDuckPending;
+        _status="CHANGED";
+    };
+    private _assignment=_duck select 1;
+    private _building=_assignment param [2,objNull,[objNull]];
+    private _transform=_assignment param [3,[],[[]]];
+    if (_transform isNotEqualTo [] && {isNull _building
+        || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}) exitWith {};
+    if (serverTime >= (_duck select 2)+30) exitWith {_status="EXPIRED"};
+    if (serverTime < (_duck select 2)) exitWith {_status="PENDING"};
+    if (!(currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"])) exitWith {};
+    _requested=createHashMapFromArray [["STANCE",_duck select 3]];
+    _mode="APPLY";
+};
+// A refusal above must leave the original recovery receipt and deadline intact.
+if (_recovering && {_mode == "RECOVER"}) exitWith {};
+
 // Partial old mirrors never grant permission to recapture a temporary applied value as baseline.
 if (_lease isEqualTo [] && {_mirrors findIf {!isNil {_actor getVariable _x}} >= 0}) exitWith {};
 if (!(_issuer isEqualType "") || {_issuer == ""}) exitWith {};
@@ -78,6 +122,11 @@ if (_known && {(_lease select 0) isNotEqualTo _context}) then {
 };
 if (!_ready) exitWith {};
 _status=[_mode,_actor,_context,_requested,"GARRISON"] call CBE_fnc_ActorSettings;
+if (_recovering && {_status == "APPLIED"}) then {
+    call _forgetDuckPending;
+    _actor setVariable ["CBE_Cortex_GarrisonDuckRestore",nil,true];
+    _actor setVariable ["CBE_Cortex_GarrisonDuckStance",nil,true];
+};
 if (_status in ["APPLIED","PENDING"]) then {
     private _owned=(_actor getVariable ["CBE_ActorSettings",[]]) select 1;
     private _values=[["CBE_Cortex_GarrisonSettingToken",_issuer]];
