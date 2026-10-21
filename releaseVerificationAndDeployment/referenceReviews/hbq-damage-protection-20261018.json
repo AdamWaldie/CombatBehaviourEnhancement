@@ -90,5 +90,39 @@
     "physicalAcceptance": false,
     "auditsLaunched": false,
     "scoresChanged": false
+  },
+  "currentStateReconciliation20261021": {
+    "baseline": "e47341e5",
+    "scope": "Supersedes20261020 missing-late-observation nextAction only; historical findings preserved, no executable addon change.",
+    "sources": {
+      "addons/infantry/functions/cortexParachutePublish.sqf": "aadd8c984822857a1b1550f28a8e08b98732fef83fc1e7a5a37b823501a1828d",
+      "addons/infantry/functions/cortexParachuteObserve.sqf": "b27039dcc5060ea9b4cba75ad592ce6679b3edc7567212891beee1b0b2d926eb",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+      "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+      "addons/infantry/functions/cortexParachuteJump.sqf": "359e86d41670b481c82d415a9698779ef38c6676a999a9384546e326214fb3d2",
+      "addons/main/XEH_preInit.sqf": "b8bb98cdb95db455230e9766832b04e0d04f29abfa55de93651e7e2faf463f7c",
+      "addons/main/XEH_postInit.sqf": "cf673bcde5eb84d51d673da5e678785082b8970767b0860c93e5164be5d55972"
+    },
+    "currentCallPath": [
+      "Jump publishes exact live protection/deployment receipts then CBA serverEvent CBE_ParachutePublish.",
+      "XEH_preInit server handler calls ParachutePublish; server coalesces token and owns CBA globalEventJIP removal at original protection deadline+1second.",
+      "Peer wake calls ParachuteObserve; actor init/Local also resumes observation. Exact coalesced serial checks actual locality before invoking existing receipt readers at0.1second while needed.",
+      "ProtectionRelease restores matching captured baseline at original expiry; Deploy owns original finite deployment phase without replaying accepted exit motion."
+    ],
+    "supersededWork": [
+      "Do not add another late-receipt worker or bare damage-restoration timer; finite JIP publication/owner observation already exists.",
+      "Do not reuse this specialised airborne receipt path as claimed implementation of generic low-speed collision damage immunity."
+    ],
+    "remaining": [
+      "Delivery after original finite observation window is not guaranteed.",
+      "Same-value external allowDamage changes cannot be attributed without cooperation.",
+      "Actual normal/provider-HC late receipt, repeated protection, deployment and locality behaviour remain unverified.",
+      "Generic HBQ collision-damage filter is absent; broad source immunity/teleport protection and forced crew reseating have not been copied."
+    ],
+    "nextAction": "For future authorised physical verification, use existing exact-receipt/late-observation cases. Continue foundations/whole-source behaviour review elsewhere rather than rebuilding these completed source paths.",
+    "validation": "Focused existing parachute tests and HBQ index checked in this engineering checkpoint; no new package or acceptance credit.",
+    "physicalAcceptance": false,
+    "auditsLaunched": false,
+    "scoresChanged": false
   }
 }
