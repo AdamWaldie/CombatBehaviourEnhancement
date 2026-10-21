@@ -5853,6 +5853,10 @@ class CortexOperations(unittest.TestCase):
                        'CBE_Cortex_Withdrawal']:
             self.assertIn(marker,retreat_case)
         self.assertNotIn('setPos',retreat_case)
+        self.assertIn('["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW")',retreat_case)
+        self.assertIn('[_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility] call CBE_fnc_CortexSelectAvenue',retreat_case)
+        self.assertIn('if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}',retreat_case)
+
         self.assertIn('"retreatStart", "retreatTarget", "retreatProgress"',restore)
         self.assertIn('setVariable ["CBE_Cortex_Withdrawal",nil,true]',restore)
         self.assertIn('_operationState=[_group,_generation,3,15] call CBE_fnc_OperationStep',retreat_case)

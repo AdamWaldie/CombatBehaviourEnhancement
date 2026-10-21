@@ -2267,3 +2267,6 @@ Automatic vehicle countermeasure requests select an occupied, local, combat-effe
 
 
 Ground ammunition policy distinguishes native airLock categories: 0 is ground-only, 1 permits air and ground, and 2 is air-only. Dual-role rounds remain eligible when their target-use flags, warhead, actual local station and loaded readiness qualify; air-only rounds cannot borrow ground preference flags. Reserve loading uses the same domain distinction and retains its existing laser-guidance exclusions. No lock is fabricated, guidance forced or ammunition created. Native lock, actual firing and damage still require physical validation; scan limits and loading deadlines are unchanged.
+
+
+A stalled vehicle withdrawal retains vehicle terrain limits when choosing its finite retry route. It no longer falls back to infantry slope allowances. Without a retained threat position, it refuses an unchecked vehicle destination; the attempt still consumes the original retry budget and cannot extend the operation deadline. Infantry recovery keeps its existing fallback. This does not prove hull clearance, native pathfinding success or physical arrival.

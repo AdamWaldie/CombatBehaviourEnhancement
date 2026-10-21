@@ -1803,10 +1803,13 @@ switch (_state get "phase") do {
                 // A confirmed obstruction must not select the same failed destination again.
                 if (_candidate distance2D _target >= 20) then {_candidateRoutes pushBack [_candidate]};
             } forEach [30,-30,60,-60];
+            // Recovery must retain the initial operation's mobility envelope. Infantry
+            // slope limits or an unchecked fallback cannot authorize a vehicle retry.
+            private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
             private _legs=if (count _enemyPos >= 2) then {
-                [_origin,_candidateRoutes,_enemyPos] call CBE_fnc_CortexSelectAvenue
+                [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility] call CBE_fnc_CortexSelectAvenue
             } else {
-                _candidateRoutes param [0,[]]
+                if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
             };
             // Count failed planning/command attempts as retries, never as physical movement.
             // This keeps refusal from rerunning geometry on every brain callback.

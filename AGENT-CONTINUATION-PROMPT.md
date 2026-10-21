@@ -1,3 +1,9 @@
+# Latest checkpoint - vehicle withdrawal retry mobility
+
+Baseline dbad6cac plus current shared GroupTick RETREAT fix: VEHICLE_WITHDRAW retries now pass VEHICLE to SelectAvenue rather than default infantry limits; absent threat position refuses unvalidated vehicle fallback. Infantry fallback, four-retry budget, deadline and owner lifecycle retained. Full1482/offline gates and independent verification pass; unsigned .qa/candidates/vehicle-retry-mobility-dbad6cac fingerprint2e4acf3b1e4087afeb1bc568ed062ff86411af064f864ae64e16843e94d9c7af. Logs .qa/vehicle-retry-mobility-build.log and .qa/vehicle-retry-mobility-independent.log. See newest handover and armour intake comparison.
+
+Audits PAUSED, no Arma launch. Full objective unchanged, no physical/performance/parity or score claim. No publication. Preserve CBE/WMP boundary, protected references/signing and unrelated dirt; verify live root/remote/branch/PR17 before Git mutation. Next compare actual-shot episode/finite hull-safe firing relocation; route screening alone is not hull-safe cover. Independent pair waves and external handovers remain incomplete.
+
 # Latest checkpoint - ground ammunition domain policy
 
 Baseline ee1472f1 plus current correction: airLock1 supports air AND ground,2 air-only. GroundFireReady and GroundReload now use that native distinction, with existing target/warhead/loaded-station checks and reserve laser exclusions retained. Full1482/offline build and independent verify pass. Unsigned .qa/candidates/ground-dual-role-ee1472f1 fingerprintb019cd896f667787c65505ec528c76bcd98910686ae0b07f7842ea754b3a88d3; logs .qa/ground-dual-role-build.log and .qa/ground-dual-role-independent.log. See newest handover and workshop-intake-3822504009.json for primary evidence, limits and next step. No physical lock/fire/guidance/performance proof or percentage change.

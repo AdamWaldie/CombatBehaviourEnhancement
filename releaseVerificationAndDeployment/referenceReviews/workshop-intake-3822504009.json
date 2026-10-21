@@ -95,6 +95,17 @@
       "physicalAcceptance": false,
       "performanceMeasured": false,
       "scoresChanged": false
+    },
+    "withdrawalRecoveryComparison": {
+      "baseline": "dbad6cac",
+      "finding": "CortexVehicles initial escape calls CortexSelectAvenue VEHICLE. Shared GroupTick RETREAT retry called default INFANTRY and selected an unchecked raw candidate without a threat position; rejected vehicle terrain could be admitted after a stall.",
+      "implementation": "Carry VEHICLE_WITHDRAW mobility into bounded retry selector. No threat position refuses unvalidated vehicle fallback; infantry fallback retained. Failed planning still consumes one of original four retries, same deadline and owner operation.",
+      "sourceDisposition": "Protocol random terrain-object offset and free delayed doMove do not establish hull-safe cover or arrival. Keep useful smoke/withdrawal intent within current CBE operation and shared validated route selection; do not copy these shortcuts.",
+      "cost": "Same four candidates and selector sample caps; no additional geometry pass, query worker or timer. Vehicle terrain thresholds stricter, native terrain outcomes/performance unverified.",
+      "validation": "Existing609 operation tests and full1482/HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/vehicle-retry-mobility-dbad6cac fingerprint2e4acf3b1e4087afeb1bc568ed062ff86411af064f864ae64e16843e94d9c7af. Logs .qa/vehicle-retry-mobility-build.log and .qa/vehicle-retry-mobility-independent.log. No audit launch.",
+      "physicalAcceptance": false,
+      "performanceMeasured": false,
+      "scoresChanged": false
     }
   }
 }
