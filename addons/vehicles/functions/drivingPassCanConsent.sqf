@@ -66,6 +66,8 @@ if (["CBE_DrivingRecovery_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Wo
 } >= 0) exitWith {false};
 // Consent cannot displace a newer direct driver/commander destination or native CBE.
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
+// Gate intent supports native MOVE; pass/queue topology still requires authored routes.
+if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {false};
 // A route/crew snapshot cannot promise a hold when its ordinary executor ended.
 // Check the actual local handle; public state/generation alone is not liveness.
 private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];

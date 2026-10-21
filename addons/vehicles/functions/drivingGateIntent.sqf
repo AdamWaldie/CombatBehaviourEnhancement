@@ -15,7 +15,6 @@
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_route",[],[[]]]];
 if (isNull _group || {isNull _vehicle} || {_route isEqualTo []}
     || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}) exitWith {false};
-if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
 // expectedDestination requires local arguments. Server-side route metadata alone

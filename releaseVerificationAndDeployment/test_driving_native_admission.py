@@ -34,7 +34,15 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('serverTime >= (_work get "hardDeadline")',release)
         self.assertIn('["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline")',release)
         self.assertIn('if (!_nativeHandback) then {doStop _driver',release)
-        self.assertIn('"NATIVE_MOVE") exitWith {false}',read('drivingGateIntent'))
+        self.assertIn('"NATIVE_MOVE") exitWith {false}',read('drivingPassCanConsent'))
+        gate_route=read('drivingGateRouteMatches')
+        for proof in ('count _gateRoute != 9','_gateRouteOwner != groupOwner _gateRouteGroup',
+                      '_gateRouteOwner != owner _gateRouteVehicle','_gateRoute select 6','isServer'):
+            self.assertIn(proof,gate_route)
+        self.assertNotIn('expectedDestination',gate_route.split('params [[',1)[1])
+        self.assertNotIn('"NATIVE_MOVE") exitWith {false}',read('drivingGateIntent'))
+        for name in ('drivingGateOpenServer','drivingGateCloseServer'):
+            self.assertIn('call CBE_fnc_DrivingGateRouteMatches',read(name))
         self.assertIn('"NATIVE_MOVE") exitWith {[false,false]}',read('drivingQueueAutoStep'))
         for name in ('drivingCorridorStep','drivingBypassStep'):
             self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read(name))

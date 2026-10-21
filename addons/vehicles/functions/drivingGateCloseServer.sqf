@@ -58,7 +58,7 @@ if (driver _vehicle != _driver || {_currentCommander != _commander}
     || {groupOwner _taskGroup != (_job get "groupOwner")} || {owner _vehicle != (_job get "vehicleOwner")}
     || {[_driver,_commander] findIf {isNull _x || {!alive _x} || {isPlayer _x}
         || {!isNull remoteControlled _x} || {group _x != _taskGroup}} >= 0}
-    || {([_taskGroup] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo (_job get "route")}
+    || {!([_taskGroup,_vehicle,_job get "route"] call CBE_fnc_DrivingGateRouteMatches)}
     || {[_taskGroup] call CBE_fnc_CortexExternalTakeover}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     || {[] call CBE_fnc_CortexIsPaused}

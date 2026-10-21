@@ -77,7 +77,7 @@ class DrivingGateCapTests(unittest.TestCase):
         for guard in ['!isServer', 'remoteExecutedOwner', 'groupOwner _group', 'owner _vehicle',
                       'owner driver _vehicle', 'call CBE_fnc_CortexIsEligible', 'call CBE_fnc_CortexIsPaused',
                       '_expires <= serverTime', '_expires > serverTime+5',
-                      'call CBE_fnc_DrivingRouteReceipt', '_transform isNotEqualTo',
+                      'call CBE_fnc_DrivingGateRouteMatches', '_transform isNotEqualTo',
                       'call CBE_fnc_DrivingGateCap', '(_observed select 1) != _gate',
                       '(_observed select 2) > 12', 'abs speed _vehicle > 8',
                       'CBE_AIPass_Active', '!simulationEnabled _vehicle', 'isObjectHidden _vehicle']:
@@ -158,7 +158,7 @@ class DrivingGateMutationTests(unittest.TestCase):
         for guard in ('serverTime >= _expires','_convoyCurrent','_liveConfig select 0',
                       '_liveConfig select 5','_liveCommander != _requestedCommander',
                       'owner _driver','owner _liveCommander','call _locked',
-                      'CBE_ExternalDrivingOwner','CortexIsPaused','DrivingRouteReceipt',
+                      'CBE_ExternalDrivingOwner','CortexIsPaused','DrivingGateRouteMatches',
                       'animationSourcePhase','isObjectHidden _vehicle'):
             self.assertLess(body.index(guard),body.index('animateSource'))
         self.assertIn('private _currentOpening=',body)
@@ -213,7 +213,7 @@ class DrivingGateClosureTests(unittest.TestCase):
         self.assertNotIn('serverTime <',admission)
         self.assertIn('CBE_fnc_DrivingGateCloseServer,_job,1',opening)
         for token in ('canSuspend','remoteExecutedOwner','groupOwner _taskGroup',
-                      'owner _driver','owner _commander','DrivingRouteReceipt',
+                      'owner _driver','owner _commander','DrivingGateRouteMatches',
                       'OPERATION_CHANGED','NATIVE_ORDER_CHANGED','bis_disabled_Door',
                       'ANIMATION_CHANGED','OTHER_LEAF_CHANGED','PASSAGE_SAMPLE_LOST',
                       'CortexExternalTakeover','count _near > 16','false,false,false'):

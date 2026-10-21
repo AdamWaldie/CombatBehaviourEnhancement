@@ -64,7 +64,7 @@ if (isNull _driver || {_driver != _requestedDriver} || {_commander != _requested
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     || {!([_group,false,false,_revision >= 0] call CBE_fnc_CortexIsEligible)}
     || {[] call CBE_fnc_CortexIsPaused}
-    || {_route isEqualTo []} || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
+    || {_route isEqualTo []} || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateRouteMatches)}
     || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
     || {abs speed _vehicle > 8}) exitWith {false};
 // Native destination evidence is sampled only on the operating owner. A server-local
@@ -264,7 +264,7 @@ isNil {
         || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group
             || {_sender != owner _vehicle} || {_sender != owner _driver} || {_sender != owner _liveCommander}}}
         || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
-        || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}
+        || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateRouteMatches)}
         || {[] call CBE_fnc_CortexIsPaused}
         || {[_group] call CBE_fnc_CortexExternalTakeover}
         || {_sources findIf {abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02} >= 0}) exitWith {
