@@ -8,7 +8,7 @@
  * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
- * Native PLANNING and STEALTH actors defer all scripted fire-control orders; suppression additionally requires
+ * Native PLANNING, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
  * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
@@ -102,6 +102,8 @@ if (_now < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
 private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // A native MOVE is still movement authority without a CBE reservation. Scripted targeting
 // must not replace it with ATTACK pursuit; native firing remains enabled.
+// Moving FOLLOW/ATTACK actors also retain their route: command spelling alone does not
+// identify stationary cover. Reuse the danger-response 0.5 km/h motion boundary.
 // Physical capability does not imply firing authority. Evaluate specialist ownership once
 // per roster member, before any scripted targeting or suppression command in this callback.
 private _eligible = (units _group) select {
@@ -109,6 +111,7 @@ private _eligible = (units _group) select {
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {getUnitState _x != "PLANNING"}
+        && {abs (speed _x) < 0.5}
         && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}

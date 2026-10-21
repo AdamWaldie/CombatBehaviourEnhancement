@@ -7571,6 +7571,10 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_disabled pushBack [_unit,"AUTOTARGET"]',step)
         fire=source('cortexFireControl')
         self.assertIn('currentCommand _x in ["MOVE","GET IN","GET OUT"',fire)
+        roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
+        self.assertIn('abs (speed _x) < 0.5',roster)
+        self.assertEqual(fire.count('speed _x'),1)
+        self.assertLess(fire.index('abs (speed _x) < 0.5'),fire.index('_unit doTarget'))
         self.assertNotIn('disableAI',fire)
         self.assertIn('} forEach _members;',fire)
         self.assertNotIn('} forEach (_members + _movingMembers);',fire)
