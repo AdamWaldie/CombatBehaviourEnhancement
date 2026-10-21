@@ -29,6 +29,16 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
 
     def test_recall_boundary_requires_allowed_command_and_move_receipt(self):
         s=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
+        self.assertIn('private _taskFree=!fleeing _x',s)
+        step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        available=step.split('private _actorAvailable={',1)[1].split('private _actorTaskFree={',1)[0]
+        task=step.split('private _actorTaskFree={',1)[1].split('// Record only stops',1)[0]
+        reserve=step.split('private _reserveReady={',1)[1].split('private _reserveCommitReady={',1)[0]
+        self.assertIn('!fleeing _actor',available)
+        self.assertIn('!fleeing _actor',task)
+        self.assertIn('!fleeing _candidate',reserve)
+        admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
+        self.assertIn('&& {!isPlayer _actor} && {!fleeing _actor}',admission)
         start=s.index('private _movementOwned=')
         end=s.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x})',start)
         guard=s[start:end]

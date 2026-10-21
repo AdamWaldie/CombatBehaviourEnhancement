@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing retains movement authority through admission, execution and cleanup.
  * Release commands preserve live or malformed actor reservations; only typed finite leases expire.
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
@@ -114,7 +115,7 @@ if (isNull _leader) then {_leader=leader _group};
                 && {(_stage select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}};
         [_x,_group,_releaseGeneration,_entryEpoch] call CBE_fnc_CortexClearSettingsRelease;
         private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
-        private _taskFree=simulationEnabled _x && {!isObjectHidden _x}
+        private _taskFree=!fleeing _x && {simulationEnabled _x} && {!isObjectHidden _x}
             && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
         if (_ownedActor && {_free} && {_taskFree || {currentCommand _x == "JOIN"}}

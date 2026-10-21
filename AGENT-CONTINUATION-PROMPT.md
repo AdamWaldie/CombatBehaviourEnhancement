@@ -1,3 +1,8 @@
+# Latest checkpoint - clearance native-flight ownership
+
+## 2026-10-21 - Explicit clearance yields to native fleeing
+Baseline25fe6204. Traced clearance settlement: it already retains actual settled posts instead of completion recall around an interior leader. Separate actual gap: explicit CLEAR admission/active availability/task availability/reserve promotion/release lacked native fleeing veto. Those existing predicates now reject fleeing; no new controller/scan/settings/deadline extension. Existing regression extended;27 focused tests pass from releaseVerificationAndDeployment. Initial root invocation had sqf_validator import-path error, corrected invocation passed without test/source weakening. Full1484+HEMTT/SQF/config/FSM/docs/package pass .qa/clear-native-fleeing-build.log; independent .qa/clear-native-fleeing-independent.log. Unsigned candidate .qa/candidates/clear-native-fleeing-25fe6204 fingerprint7214825c85200ab9103cf81fc9450cc91f1ffe30e5b8471f245df835ca4f45d5. Review lambs-fsm-foundations-20261020.json updated. Physical entry/sprawl/exit/flight replacement/HC/performance unverified; no claim of fixing those visual faults. Audits PAUSED/no launches. Full goal active/incomplete. Local only, no push/merge/publish. Preserve unrelated dirt/protected references/signing keys.
+
 # Latest checkpoint - indoor care and native fleeing priority
 
 ## 2026-10-21 - Indoor care and native fleeing priority

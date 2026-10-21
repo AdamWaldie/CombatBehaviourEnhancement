@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing retains movement authority through admission, execution and cleanup.
  * Room exhaustion requires failures from every currently capable lane; inactive lane
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
  * The original configured lane count still bounds retries after casualties.
@@ -274,7 +275,7 @@ private _delay=call {
         params ["_actor",["_retainEvasion",false]];
         private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
         if (!_free && {_retainEvasion}) then {_free=[_actor] call _retainedEvasion};
-        [_actor] call CBE_fnc_CortexCombatEffective && {local _actor} && {!isPlayer _actor}
+        [_actor] call CBE_fnc_CortexCombatEffective && {local _actor} && {!isPlayer _actor} && {!fleeing _actor}
             && {group _actor == _group} && {isNull objectParent _actor} && {_free}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
             && {isNull (remoteControlled _actor)}
@@ -284,7 +285,7 @@ private _delay=call {
     };
     private _actorTaskFree={
         params ["_actor"];
-        simulationEnabled _actor && {!isObjectHidden _actor}
+        !fleeing _actor && {simulationEnabled _actor} && {!isObjectHidden _actor}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
     };
@@ -1431,7 +1432,7 @@ private _delay=call {
             };
         };
         [_candidate] call CBE_fnc_CortexCombatEffective && {_stageCommandFree} && {local _candidate}
-            && {group _candidate == _group} && {!isPlayer _candidate}
+            && {group _candidate == _group} && {!isPlayer _candidate} && {!fleeing _candidate}
             && {isNull objectParent _candidate} && {!(_candidate in _reserved)} && {!(_candidate in _rotatedOut)}
             && {!(_candidate in _unavailable)} && {isNull (remoteControlled _candidate)}
             && {([_candidate] call CBE_fnc_CortexExternalOwner) == ""}

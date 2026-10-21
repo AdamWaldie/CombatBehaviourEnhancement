@@ -852,5 +852,24 @@
       "physical": "unrun; audits paused"
     },
     "limits": "Static predicate and candidate-selection regression only. No claim of physical entry, care/fleeing handover, CQB flow or measured performance. No percentages changed."
+  },
+  "clearNativeFleeing20261021": {
+    "finding": "Explicit CLEAR actor admission, active/task availability, reserve promotion and release lacked explicit native fleeing veto; unchanged native MOVE/STOP could otherwise authorize clearance movement over native flight.",
+    "implementation": "Reject fleeing actors at those existing predicates. Original operation limits, casualty replacement and deadline retained; no new controller, scan, courage or allowFleeing change. Existing settlement already avoids completion recall around an interior leader; no new wedge fix claimed.",
+    "sourceIntent": "Same native forced-task priority comparison as indoorCareFleeing20261021; no additional upstream files reviewed or copied.",
+    "hashes": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "c4840a915214814d11093470216b87f96e1b496f3f140cc70045be5a3dcebca4",
+      "addons/infantry/functions/buildingOperationStep.sqf": "63c7754a155a9c5a674b68d47ca730ce1e9911b96909c05712df70f9ebee062a",
+      "addons/infantry/functions/cortexClearRelease.sqf": "73aab91078a19c48c48df45751503e96941e8b3f24edacebad49ef3601a2714e"
+    },
+    "validation": {
+      "focused": 27,
+      "fullTests": 1484,
+      "pipeline": ".qa/clear-native-fleeing-build.log",
+      "independent": ".qa/clear-native-fleeing-independent.log",
+      "candidate": ".qa/candidates/clear-native-fleeing-25fe6204",
+      "fingerprint": "7214825c85200ab9103cf81fc9450cc91f1ffe30e5b8471f245df835ca4f45d5"
+    },
+    "limitations": "Offline predicates only. CQB physical flow, casualty/refill under flight, normal/HC and performance unverified. Audits remain paused. No scores changed."
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing retains movement authority through admission, execution and cleanup.
  * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
  * policy ends admission rather than allowing unowned autonomous attack delegation.
  * Egress adoption preserves original allocation attempt counts and retry times; it never grants a fresh budget.
@@ -242,7 +243,7 @@ private _actorAdmissible={
             && {(_journal select 7) isEqualTo _reservation}
             && {(_indoor getOrDefault ["lease",[]]) isEqualTo _reservation};
     };
-    _canMove && {[_actor] call CBE_fnc_CortexCombatEffective} && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
+    _canMove && {[_actor] call CBE_fnc_CortexCombatEffective} && {local _actor} && {group _actor == _group} && {!isPlayer _actor} && {!fleeing _actor}
         && {isNull objectParent _actor} && {_reservationFree}
         && {_resume || {simulationEnabled _actor && {!isObjectHidden _actor}}}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
