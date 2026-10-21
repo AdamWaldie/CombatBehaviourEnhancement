@@ -1,3 +1,9 @@
+# Latest checkpoint - shared dual-axis hull projection
+
+## 2026-10-21 - Reuse one hull sample for two projections
+Baseline22fe117d plus optional fourth secondary unit-axis argument to DrivingHullInterval. Existing calls still return2values with original0.05m margin; dual returns4, invalid secondary refuses. Four native model transforms produce both intervals. GateCloseServer parked-hull checks and GateOpenServer admission use dual output instead of two repeated pose/bounds observations. Dense closure bound136->72 transforms/sample; admission12->8. Same entities/query/cadence/thresholds, no new worker or API replacement. Existing geometry regression extended against an exhaustive8corner oracle across centred/asymmetric rotated/tilted/scaled transforms and3axes. No new case count.
+All1484/full offline HEMTT/SQF/FSM/config/docs/package pass .qa/hull-dual-projection-build.log. Independent preserved unsigned candidate .qa/candidates/hull-dual-projection-22fe117d fingerprint366f8c43b81b4b2fc15d10e2c60b1393c5c927d3fe59fad9f4fa2a1bc5964639; .qa/hull-dual-projection-independent.log. Review register updated with current hashes and static cost delta, no measured speedup/5percent median10percent p95 claim. Audits PAUSED/no launch. Full goal active/incomplete; physical gate/normal-HC/performance unverified. Unrelated dirt and protected sources/signing untouched. Local only/no push.
+
 # Latest checkpoint - finite gate passage and closure
 
 ## 2026-10-21 - Finite opt-in gate passage/closure implementation

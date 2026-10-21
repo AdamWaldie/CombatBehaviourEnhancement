@@ -235,6 +235,35 @@ class DrivingPassPlanTests(unittest.TestCase):
                          '[_low select 0,_low select 1,_high select 2]'):
             self.assertIn(endpoint,span)
         self.assertIn('[_minimum-0.05,_maximum+0.05]',span)
+        self.assertIn('_span append [_secondMinimum-0.05,_secondMaximum+0.05]',span)
+        self.assertIn('vectorMagnitude _secondAxis',span)
+        # Compare the affine projection with an independent exhaustive eight-corner oracle.
+        from itertools import product
+        low=(-2,-5,-1); high=(4,1,3); origin=(7,-3,2)
+        matrices=(((1,0,0),(0,1,0),(0,0,1)),
+                  ((0,-1,0),(1,0,0),(0,0,1)),
+                  ((1,0,0),(0,.8,-.6),(0,.6,.8)),
+                  ((2,0,0),(0,1,0),(0,0,.5)))
+        axes=((1,0,0),(.6,.8,0),(0,.6,.8))
+        def dot(a,b): return sum(x*y for x,y in zip(a,b))
+        for matrix in matrices:
+            def transform(point):
+                return tuple(dot(row,point)+shift for row,shift in zip(matrix,(11,4,-2)))
+            corners=[transform(point) for point in product(*zip(low,high))]
+            corner=transform(low)
+            edges=[tuple(b-a for a,b in zip(corner,transform(point))) for point in
+                   ((high[0],low[1],low[2]),(low[0],high[1],low[2]),(low[0],low[1],high[2]))]
+            for axis in axes:
+                start=dot(tuple(a-b for a,b in zip(corner,origin)),axis)
+                projected=(start+sum(min(dot(edge,axis),0) for edge in edges)-.05,
+                           start+sum(max(dot(edge,axis),0) for edge in edges)+.05)
+                exhaustive=[dot(tuple(a-b for a,b in zip(point,origin)),axis) for point in corners]
+                self.assertAlmostEqual(projected[0],min(exhaustive)-.05)
+                self.assertAlmostEqual(projected[1],max(exhaustive)+.05)
+        gate=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text()
+        self.assertIn('[_x,_origin,_axis,_side] call CBE_fnc_DrivingHullInterval',gate)
+        self.assertNotIn('private _sideHull=',gate)
+
         self.assertIn('RETURN_SCAN',s)
         self.assertIn('DROP_BACK',s)
         # A forward path remains active while losing longitudinal ground to the peer.

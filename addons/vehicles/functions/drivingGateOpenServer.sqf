@@ -268,8 +268,9 @@ isNil {
                 _axis=vectorNormalized _axis;
                 if (((getPosWorld _vehicle) vectorDiff _origin) vectorDotProduct _axis > 0) then {_axis=_axis vectorMultiply -1};
                 private _side=[_axis select 1,-(_axis select 0),0];
-                private _gateSpan=[_gate,_origin,_axis] call CBE_fnc_DrivingHullInterval;
-                private _aperture=[_gate,_origin,_side] call CBE_fnc_DrivingHullInterval;
+                private _gateBounds=[_gate,_origin,_axis,_side] call CBE_fnc_DrivingHullInterval;
+                private _gateSpan=if (count _gateBounds == 4) then {_gateBounds select [0,2]} else {[]};
+                private _aperture=if (count _gateBounds == 4) then {_gateBounds select [2,2]} else {[]};
                 private _hull=[_vehicle,_origin,_axis] call CBE_fnc_DrivingHullInterval;
                 if (count _gateSpan == 2 && {count _aperture == 2} && {count _hull == 2}
                     && {(_hull select 1) < (_gateSpan select 0)-0.5}

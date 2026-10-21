@@ -2336,3 +2336,5 @@ A verified completed closure permits a new opening cycle in the same bounded per
 Completed passage cycles carry a monotonic server serial. A vehicle that missed several intervening cycles may use the latest completed one; the same serial cannot renew its gate attempt twice. Closure hints are included in delivery identity even if the previous opening acknowledgement was lost.
 
 After issuing closure, the remaining callback only observes matching gate animation within the original deadline; vehicle departure cannot cause another command. An explicit addon stop retires the matching observations and local delivery acknowledgements. The server starts a new admission history on that explicit master lifecycle, while an ordinary timeout or locality change cannot reset it.
+
+Gate clearance obtains the normal and lateral hull intervals from one model-bounds sample. The shared projection helper reuses four native transforms for both axes; existing single-axis callers retain the same two-value result and margin. Admission and clearance thresholds are unchanged. This lowers duplicate geometry work; measured frame-time improvement remains unverified.

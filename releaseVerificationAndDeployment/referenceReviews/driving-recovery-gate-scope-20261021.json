@@ -71,5 +71,24 @@
       "independentLog": ".qa/gate-passage-close-final-independent.log",
       "physical": "Unrun; audits paused."
     }
+  },
+  "dualAxisProjection20261021": {
+    "status": "implemented and offline validated; runtime unmeasured",
+    "scope": "Shared DrivingHullInterval optional second unit axis retains original two-value default. One box/four native transforms yield both padded intervals. Gate constructor and parked-hull clearance reuse it; all other callers unchanged.",
+    "geometryEvidence": "Existing pass geometry regression extended: affine extrema compared against exhaustive eight-corner projection for identity, rotation, tilt, scale and asymmetric bounds across three unit axes. No new test case count.",
+    "cost": "Dense closure sample maximum falls from136 to72 native transforms; gate admission from12 to8. Same local entity query,16-entity cap, margins, cadence and refusal rules. No measured frame-time or5/10budget claim.",
+    "hashes": {
+      "addons/vehicles/functions/drivingHullInterval.sqf": "6b3cda84104f13efde9080289dfc0ccf1403b100a64dcdd094e9c1ed305adeba",
+      "addons/vehicles/functions/drivingGateCloseServer.sqf": "73bdac127c02cc29229b346aff5998fa0a51437406440d163fe52a031b7de4cf",
+      "addons/vehicles/functions/drivingGateOpenServer.sqf": "54b4c4a82f911d63a1d273182fac6ef72cb9780af26e18a47b862f0a81a526a1"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/hull-dual-projection-build.log",
+      "independent": ".qa/hull-dual-projection-independent.log",
+      "candidate": ".qa/candidates/hull-dual-projection-22fe117d",
+      "fingerprint": "366f8c43b81b4b2fc15d10e2c60b1393c5c927d3fe59fad9f4fa2a1bc5964639",
+      "physical": "unrun; audits paused"
+    }
   }
 }

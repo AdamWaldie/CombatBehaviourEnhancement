@@ -154,11 +154,10 @@ private _clear=true;private _aperture=_job get "aperture";private _gateSpan=_job
         // Active traffic in this small approach area keeps the gate open. Parked bodies
         // still block when their full hull occupies the gate's closure envelope.
         if (abs speed _x > 1 || {!unitReady _x && {crew _x isNotEqualTo []}}) exitWith {_clear=false};
-        private _normalHull=[_x,_origin,_axis] call CBE_fnc_DrivingHullInterval;
-        private _sideHull=[_x,_origin,_side] call CBE_fnc_DrivingHullInterval;
-        if (count _normalHull != 2 || {count _sideHull != 2}
-            || {(_normalHull select 0) < (_gateSpan select 1)+3 && {(_normalHull select 1) > (_gateSpan select 0)-3}
-                && {(_sideHull select 0) < (_aperture select 1)+2} && {(_sideHull select 1) > (_aperture select 0)-2}}) exitWith {_clear=false};
+        private _hull=[_x,_origin,_axis,_side] call CBE_fnc_DrivingHullInterval;
+        if (count _hull != 4
+            || {(_hull select 0) < (_gateSpan select 1)+3 && {(_hull select 1) > (_gateSpan select 0)-3}
+                && {(_hull select 2) < (_aperture select 1)+2} && {(_hull select 3) > (_aperture select 0)-2}}) exitWith {_clear=false};
     };
 } forEach _near;
 if (!_clear) exitWith {2};
