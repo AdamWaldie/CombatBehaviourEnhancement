@@ -3714,6 +3714,17 @@ class CortexOperations(unittest.TestCase):
                        '[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened',
                        '[_threatASL,_sampleASL,objNull,"CONCEALMENT",_threatObject] call CBE_fnc_CortexCoverScreened']:
             self.assertIn(marker, selector)
+        vehicle=selector.split('if (_vehicleScreening) then {',1)[1].split('} else {',1)[0]
+        for marker in ('forEach [-1,0,1]','_platform,"COVER",_threatObject',
+                       'if (_screened) then {_hardScreen=_hardScreen+3}'):
+            self.assertIn(marker,vehicle)
+        self.assertNotIn('CONCEALMENT',vehicle)
+        self.assertIn('boundingBoxReal _platform',selector)
+        self.assertIn('getObjectScale _platform',selector)
+        self.assertIn('_radius <= 30',selector)
+        self.assertIn('_height <= 20',selector)
+        self.assertIn('_threatObject,"VEHICLE",_vehicle',source('cortexVehicles'))
+        self.assertIn('objNull,"VEHICLE",_vehicle',source('cortexAARelocate'))
         self.assertNotIn('selectRandom [',start)
         self.assertNotIn('private _routeProtection = {',start)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runMultiManoeuvre.sqf').read_text()
@@ -4697,7 +4708,12 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('private _approachProtection=',server)
         self.assertIn('forEach [0.25,0.5,0.75]',selector)
         self.assertIn('[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened',selector)
-        self.assertEqual(selector.count('call CBE_fnc_CortexCoverScreened'),2)
+        screening=selector.split('if (_vehicleScreening) then {',1)[1]
+        vehicle_branch,infantry_branch=screening.split('} else {',1)
+        self.assertEqual(vehicle_branch.count('call CBE_fnc_CortexCoverScreened'),1)
+        self.assertEqual(infantry_branch.count('call CBE_fnc_CortexCoverScreened'),2)
+        self.assertIn('forEach [-1,0,1]',vehicle_branch)
+        self.assertIn('forEach [0.25,0.5,0.75]',infantry_branch)
         self.assertNotIn('lineIntersectsSurfaces',selector)
         screen=source('cortexCoverScreened')
         self.assertIn('!(_object isKindOf "CAManBase")',screen)
@@ -5879,7 +5895,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_leader distance2D _start',progress)
 
         self.assertIn('["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW")',retreat_case)
-        self.assertIn('[_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility] call CBE_fnc_CortexSelectAvenue',retreat_case)
+        self.assertIn('[_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue',retreat_case)
         self.assertIn('if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}',retreat_case)
 
         self.assertIn('"retreatStart", "retreatTarget", "retreatProgress"',restore)

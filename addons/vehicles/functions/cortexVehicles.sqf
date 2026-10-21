@@ -708,7 +708,7 @@ private _selectVehicleEscape = {
     {
         _candidates pushBack [_origin getPos [_distance,_awayBearing+_x]];
     } forEach [0,-25,25,-45,45];
-    private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE"]
+    private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE",_vehicle]
         call CBE_fnc_CortexSelectAvenue;
     if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
 };

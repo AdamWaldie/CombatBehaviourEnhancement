@@ -113,7 +113,7 @@ _state set ["aaRelocationConsumedAt",_shot select 3];
 private _origin=getPosATL _vehicle;private _threat=_contact select 1;
 private _bearing=_threat getDir _origin;private _candidates=[];
 {_candidates pushBack [_origin getPos [150,_bearing+_x]]} forEach [0,-35,35,-70,70];
-private _selected=[_origin,_candidates,_threat,[],objNull,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
+private _selected=[_origin,_candidates,_threat,[],objNull,"VEHICLE",_vehicle] call CBE_fnc_CortexSelectAvenue;
 if (_selected isEqualTo []) exitWith {false};
 private _spot=_selected select (count _selected-1);private _started=false;
 isNil {

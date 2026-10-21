@@ -106,6 +106,19 @@
       "physicalAcceptance": false,
       "performanceMeasured": false,
       "scoresChanged": false
+    },
+    "vehicleEndpointScreening": {
+      "baseline": "56d1b8ad",
+      "finding": "Existing vehicle escape/AA planning passed VEHICLE terrain mode but screening rays used infantry1m samples along the route. Narrow/low objects could earn preference without testing the vehicle endpoint envelope.",
+      "implementation": "Optional platform argument in shared SelectAvenue. Derive conservative horizontal radius from model bounds and uniform render scale, upper sample height from full model height. Replace three route sample locations with endpoint left/centre/right at that height, ignoring own platform. All3 require hard screening before any cover bonus; no concealment/partial credit. Unknown/nonpositive or radius>30m/height>20m geometry gets no screening credit; terrain-only escape remains possible.",
+      "integration": "CortexVehicles withdrawal/standoff, shared RETREAT vehicle retry and CortexAARelocate supply actual platform. Other callers retain default route screening. No extra movement owner or new command/worker/cache.",
+      "cost": "One boundingBoxReal/getObjectScale observation per plan. At most3 COVER helper calls per route leg replacing previous3 COVER plus up to3 CONCEALMENT calls. Terrain samples and candidate caps unchanged. Cost unmeasured.",
+      "limits": "Sparse upper-envelope observations are not full hull protection, occupancy clearance, vehicle future tilt/heading prediction or firing-position/guidance proof. Scaled active vehicle physics and nonuniform scaling remain unsupported engine concerns; getObjectScale is render scale, not collision proof. Actual native driving/cover/performance unverified.",
+      "primarySemantics": "https://community.bohemia.net/wiki/getObjectScale : render scale relative to model; indexed documentation retrieved2026-10-21. No claim of collision scaling.",
+      "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/vehicle-endpoint-screen-56d1b8ad fingerprint32176ca35a557312cf2dd7c82638bab0ac76b49acc7e8f7ac66a9f39e1f90287. Logs .qa/vehicle-endpoint-screen-build.log and .qa/vehicle-endpoint-screen-independent.log. Initial full run exposed an old aggregate source-call count; existing test now checks separate mutually exclusive vehicle1call-site/3probes and infantry2call-sites/3samples budgets. No physical audit.",
+      "physicalAcceptance": false,
+      "performanceMeasured": false,
+      "scoresChanged": false
     }
   }
 }

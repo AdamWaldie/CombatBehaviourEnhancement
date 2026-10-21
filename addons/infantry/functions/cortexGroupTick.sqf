@@ -1821,7 +1821,8 @@ switch (_state get "phase") do {
             // slope limits or an unchecked fallback cannot authorize a vehicle retry.
             private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
             private _legs=if (count _enemyPos >= 2) then {
-                [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility] call CBE_fnc_CortexSelectAvenue
+                private _screenPlatform=[objNull,vehicle _leader] select (_mobility == "VEHICLE");
+                [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue
             } else {
                 if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
             };
