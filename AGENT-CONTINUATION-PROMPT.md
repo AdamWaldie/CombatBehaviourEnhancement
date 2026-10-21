@@ -1,3 +1,9 @@
+# Latest checkpoint - squad danger-hide flight priority
+
+
+## 2026-10-21 - Squad danger-hide flight priority
+Baselineff35b08b. DangerGroupHideStep lacked fleeing at both new posture admission and exact restoration, despite care/dormancy guards. Added !fleeing at those existing gates; blocked unchanged proof follows existing finite actor cleanup, no movement or native-flight policy mutation. Existing regression extended. All1484+HEMTT/FSM/docs/package pass .qa/group-hide-flight-build.log, independent .qa/group-hide-flight-independent.log. Candidate .qa/candidates/group-hide-flight-ff35b08b fingerprint1a42e5eb2b13628a82f6c313ea515f73525c3dc1739e60125f461725768bf81f. No physical flight/clearance/HC/performance acceptance. AuditsPAUSED/no launches/push/merge/publication. Unrelateddirt/protectedreferences/signing preserved. Fullgoalactive/incomplete. Next concrete lifecycle gap recorded in .qa/blocked-danger-operation-handoff-20261021.json: OperationStart may publish newgeneration after old weakstance restoration is blocked; later generation mismatch retires proof and incoming ActorSettings may capture CBEstance as baseline. Not physically reproduced. Trace actual incoming reservation/settings ordering before bounded transfer/refusal; do not blindly restore across newer authority.
+
 # Latest checkpoint - stable danger cleanup identity
 
 

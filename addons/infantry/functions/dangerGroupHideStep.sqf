@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing blocks both new weak posture and restoration; unchanged proof defers
+ * through the finite actor cleanup instead of overwriting the native flight response.
  * New posture admission preserves native INIT/PLANNING/REPLAN movement preparation.
  * Purpose: Apply or release one finite squad-level low-profile response after immediate incoming danger without taking movement, target or firing ownership.
  * Locality / Authority: Runs only on the owner of the local AI group from the existing group-brain step. It changes weak stance only for local, idle, ordinary on-foot actors not reserved by another CBE operation.
@@ -46,7 +48,7 @@ private _mayRestore={
         && {isNull remoteControlled _unit}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {[_unit] call CBE_fnc_CortexCombatEffective}
-        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
         && {_postureFree}
@@ -165,7 +167,7 @@ private _candidates=_members select {
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!(_x in _reserved)}
         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-        && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {currentCommand _x in ["","ATTACK","FIRE","SUPPRESS"]}
         && {abs (speed _x) <= 0.5}

@@ -10644,6 +10644,9 @@ class CortexOperations(unittest.TestCase):
         restore=text.split('private _mayRestore={',1)[1].split('private _release={',1)[0]
         self.assertIn('CBE_Danger_EngineStanceLease',restore)
         self.assertIn('CBE_Cortex_ActorMove',restore)
+        self.assertIn('!fleeing _unit',restore)
+        admission=text.split('private _candidates=',1)[1]
+        self.assertIn('!fleeing _x',admission)
         self.assertIn('"DANGER_COVER"',restore)
         self.assertIn('currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]',restore)
         self.assertIn('isNull objectParent _unit',section)

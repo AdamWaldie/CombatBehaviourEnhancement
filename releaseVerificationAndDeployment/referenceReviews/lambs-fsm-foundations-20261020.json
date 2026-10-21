@@ -1123,5 +1123,12 @@
     "sourceHash": "e0610cd288bdb8aa4efaab3bb471809da21c386e497f43b4cbcefb16ab6dc367",
     "evidence": ".qa/danger-posture-identity-build.log; .qa/danger-posture-identity-independent.log",
     "limits": "No physical rename/burst/HC/cleanup/performance acceptance; original retry window unchanged."
+  },
+  "squadHideFlightPriority20261021": {
+    "baseline": "ff35b08b",
+    "correction": "New squad hide posture and its exact restoration yield to native flight; existing deferRestore transfers unchanged blocked proof into finite actor cleanup.",
+    "sourceHash": "19e940959816d70fced1cbc89a88c432a1ca5c9123eeb0bb960ceb62e4d53f76",
+    "evidence": ".qa/group-hide-flight-build.log; .qa/group-hide-flight-independent.log",
+    "limits": "No physical acceptance/performance. Separate pending generation-handoff concern recorded at .qa/blocked-danger-operation-handoff-20261021.json remains unresolved."
   }
 }
