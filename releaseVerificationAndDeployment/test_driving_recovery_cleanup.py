@@ -119,13 +119,13 @@ class RecoveryCleanupTests(unittest.TestCase):
 
     def test_each_deferred_return_registers_observation_before_returning(self):
         text=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
-        locality=text.split('if (_retainAcrossLocality && {!local',1)[1].split('private _handback=',1)[0]
+        locality=text.split('private _splitUntil=',1)[1].split('// A native-route return',1)[0]
         mobility=text.split('if (_owned && {!_executable}) exitWith {',1)[1].split('if (_owned) then {',1)[0]
         for branch in (locality,mobility):
             self.assertIn('[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;',branch)
             self.assertLess(branch.index('set ["releasePending",true]'),branch.index('call CBE_fnc_DrivingRecoveryCleanup'))
             # Already-pending receipts also register; registration is outside first-publication guard.
-            self.assertIn('};\n    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;\n    false',branch)
+            self.assertTrue('};\n    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;\n    false' in branch or 'if (!_splitExpired) then {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;}' in branch)
             for command in ('doMove','doStop','doFollow','forceSpeed','remoteExec','serverTime+'):
                 self.assertNotIn(command,branch)
 
@@ -137,7 +137,7 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertIn(marker,gate)
         for forbidden in (' doMove ', 'doStop','forceSpeed','nil,true','serverTime+','set ["hardDeadline"'):
             self.assertNotIn(forbidden,gate)
-        self.assertEqual(release.count('call _releaseExpired'),3)
+        self.assertEqual(release.count('call _releaseExpired'),2)
         self.assertLess(release.index('if (_owned && {call _releaseExpired})'),release.index('if (_owned) then {'))
         self.assertIn('if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false}',gate)
         classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
@@ -147,7 +147,7 @@ class RecoveryCleanupTests(unittest.TestCase):
         for marker in ('"OWNED"','"PENDING"','"EXPIRED"','"LOST"','serverTime > _until',
                        '_position vectorDistance _goal <= 0.25','group _driver != _group'):
             self.assertIn(marker,classify)
-        pending=release.split('// Pending/expired unchanged destination requests',1)[1].split('if (_retainAcrossLocality && {!local',1)[0]
+        pending=release.split('// Pending/expired unchanged destination requests',1)[1].split('private _handback=',1)[0]
         for marker in ('["PENDING","EXPIRED"]','call _releaseExpired','DEFERRED_NATIVE_ACK',
                        'call CBE_fnc_DrivingRecoveryCleanup'):
             self.assertIn(marker,pending)

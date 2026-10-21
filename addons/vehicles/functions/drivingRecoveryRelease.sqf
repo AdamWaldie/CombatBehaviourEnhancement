@@ -8,7 +8,7 @@
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
- * and hand back to the unchanged plain authored MOVE. Forward retries retire metadata only.
+ * and hand back to the unchanged plain authored or native MOVE. Forward retries retire metadata only.
  * Locality / Authority: Current vehicle/group owner. Original seats, both native destinations,
  * route, external/tactical ownership and crew tasks protect cleanup. No waypoint reconstruction.
  * Active fire, attack, service and other non-route commands forbid movement cleanup.
@@ -29,7 +29,9 @@
  * Cleanup compares the current journal before clearing; newer work and commands remain untouched.
  * Admission, route metadata, native command checks and handback execute without suspension.
  * Split vehicle/group/crew locality preserves an unchanged issued reverse journal and cap
- * until the existing owner callback can finish cleanup. This retention grants no commands.
+ * within the original hard deadline. Split-locality retention reads no crew destination
+ * or command; expiry records unresolved proof without further automatic tickets.
+ * This retention grants no commands and does not implement native-route owner adoption.
  * Changed seats/route/cap/native intent or external ownership revoke retention immediately.
  * An otherwise exactly owned reverse retains its journal while mobility/simulation prevents
  * handback. Receipt-only cleanup survives tactical shutdown only to the original hard deadline.
@@ -53,6 +55,45 @@ isNil {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
+// expectedDestination is local-argument. During staggered locality delivery, preserve
+// only metadata proved by global seat identity and this local vehicle's exact cap.
+// Do not run a native command classifier against a remote crew member.
+private _splitDriver=driver _vehicle;private _splitOperator=effectiveCommander _vehicle;
+if (isNull _splitOperator) then {_splitOperator=_splitDriver};
+if (!local _group || {isNull _splitDriver} || {isNull _splitOperator}
+    || {!local _splitDriver} || {!local _splitOperator}) exitWith {
+    private _splitCap=_work getOrDefault ["cap",-1e9];
+    private _splitExact=((_work getOrDefault ["kind",""]) == "REVERSE"
+        || {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []})
+        && {!isNull _splitDriver} && {!isNull _splitOperator}
+        && {_splitDriver isEqualTo (_work getOrDefault ["driver",objNull])}
+        && {_splitOperator isEqualTo (_work getOrDefault ["operator",objNull])}
+        && {group _splitDriver == _group} && {group _splitOperator == _group}
+        && {_splitCap isEqualType 0} && {finite _splitCap}
+        && {abs (getForcedSpeed _vehicle-_splitCap) <= 0.1};
+    if (!_splitExact) exitWith {
+        if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work) then {
+            _vehicle setVariable ["CBE_DrivingRecovery_Work",nil,true];
+            _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,
+                _work getOrDefault ["kind",""],_work getOrDefault ["hardDeadline",-1],"LOCALITY_PROOF_LOST"],true];
+        };
+        true
+    };
+    private _splitUntil=_work getOrDefault ["hardDeadline",-1];
+    private _splitExpired=!(_splitUntil isEqualType 0) || {!finite _splitUntil} || {serverTime >= _splitUntil};
+    private _splitChanged=!(_work getOrDefault ["releasePending",false])
+        || {_splitExpired && {!(_work getOrDefault ["releaseUnresolved",false])}};
+    if (_splitChanged) then {
+        _work set ["releasePending",true];
+        if (_splitExpired) then {_work set ["releaseUnresolved",true]};
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+        _vehicle setVariable ["CBE_DrivingRecovery_Result",[_reason,serverTime,_group,
+            _work getOrDefault ["kind",""],_splitUntil,
+            ["DEFERRED_LOCALITY","UNRESOLVED_LOCALITY"] select _splitExpired],true];
+    };
+    if (!_splitExpired) then {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;};
+    false
+};
 // A native-route return was already issued. Observe only; never replay that doMove.
 if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
     private _returnState=[_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState;
@@ -216,18 +257,6 @@ if (_retainAcrossLocality && {_commandState in ["PENDING","EXPIRED"]}) exitWith 
         _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
         _vehicle setVariable ["CBE_DrivingRecovery_Result",[
             _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED_NATIVE_ACK"
-        ],true];
-    };
-    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
-    false
-};
-if (_retainAcrossLocality && {!local _group || {!local _driver} || {!local _operator}}) exitWith {
-    if (call _releaseExpired) exitWith {false};
-    if !(_work getOrDefault ["releasePending",false]) then {
-        _work set ["releasePending",true];
-        _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
-        _vehicle setVariable ["CBE_DrivingRecovery_Result",[
-            _reason,serverTime,_group,_work get "kind",_work get "hardDeadline","DEFERRED_LOCALITY"
         ],true];
     };
     [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
