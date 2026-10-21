@@ -13,6 +13,7 @@
  * Return: STRING APPLIED/OWNED/ADOPTED/RELEASED/ABSENT/CHANGED/PENDING/REFUSED.
  * Native stance rule names are normalised before enum validation and exact receipt comparisons.
  * A settings acknowledgement never grants movement, target or physical-progress authority.
+ * Acquisition/check/adoption yield to native flight and queued care; exact release stays task-independent.
  * Current callers: CortexClearSettingsApply and CortexClearSettingsRelease.
  * Example: ["APPLY",soldier1,[_group,"task-token",4,2,serverTime+30],createHashMapFromArray [["SPEED",4]]] call CBE_fnc_ActorSettings;
  */
@@ -95,7 +96,11 @@ _result=call {
             "PENDING"
         }
     };
-    if (_releaseAt > 0) exitWith {"REFUSED"};
+    // Native flight and pending treatment own new settings as well as movement.
+    // Exact RELEASE above remains independent: removing our unchanged cap/stance
+    // must not require cancelling or waiting for the native task.
+    if (_releaseAt > 0 || {fleeing _actor}
+        || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {"REFUSED"};
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     if ((_operation getOrDefault ["generation",-1]) != _generation
         || {(_operation getOrDefault ["ownerEpoch",-1]) != _epoch}

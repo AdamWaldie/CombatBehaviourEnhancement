@@ -1,3 +1,8 @@
+# Latest checkpoint - shared settings native task acquisition
+
+## 2026-10-21 - Shared actor-settings native task acquisition
+Baseline4ab1912d. ActorSettings shared APPLY/CHECK/ADOPT lacked native fleeing and queued treatment despite concrete command gates; now refuses those non-RELEASE calls. Exact typed RELEASE remains before gate, can remove unchanged own cap/stance without cancelling native tasks, retains unconfirmed pairs and preserves newer edits. No new job/scan,2actor-local reads.14focused/all1484+HEMTT/FSM/docs/package pass .qa/actor-settings-native-task-build.log; independent .qa/actor-settings-native-task-independent.log. Candidate .qa/candidates/actor-settings-native-task-4ab1912d fingerprintfc26ecc51814b35adc6372afe2c0c197ef661198150a14b46b398435f1a4d7f7. LAMBS foundations review has sourcehash/scope. Garrison legacy setting mirrors are still deleted after refused release; unlike clearance no canonical issuer lease/finite pending retirement. That migration remains an actual code gap; do not add a blind restore timer or import partial mirrors. Garrison approach cap is4km/h bounded by baseline; no proof of permanently zero cap. Physical care/flight/repeatedtask/HC/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish. Goalactive/incomplete;unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - defence/garrison native-task release
 
 ## 2026-10-21 - Defence/garrison release native task priority

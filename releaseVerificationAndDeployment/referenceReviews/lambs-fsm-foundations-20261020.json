@@ -965,5 +965,17 @@
     "validation": "609 focused and all1484 tests, SQF/config/docs/wiki/parity/performance static gates, HEMTT/FSM/package passed .qa/hold-release-task-priority-build.log. Independent verification passed .qa/hold-release-task-priority-independent.log.",
     "candidate": ".qa/candidates/hold-release-task-priority-c7eb819a",
     "fingerprint": "336aede828818e12ac1254c45d07af594fd50703a6e172e7e827f162fa178bea"
+  },
+  "actorSettingsNativeTaskBoundary20261021": {
+    "baseline": "4ab1912d",
+    "finding": "Shared ActorSettings acquisition/check/adoption omitted fleeing and ACE pending treatment despite preserving concrete native commands. High-level guards did not constitute self-contained setting authority.",
+    "change": "Refuse non-RELEASE requests during native flight or pending care. Exact typed RELEASE stays before those checks, preserves newer native edits and retains unconfirmed pairs; no native task cancellation.",
+    "garrisonGap": "Legacy garrison release discards original/applied stance and speed mirrors even after refusal; unlike clearance it has no canonical issuer lease or bounded pending retirement. Migration remains unfinished, not fixed by this guard.",
+    "cost": "Two actor-local reads in existing non-release call; no additional loop, job or scans.",
+    "sourceHash": "40eecdac16e2cb8ae4f505400d4fe994d8920d7ca4dfc70839033a391c726322",
+    "validation": "14 focused existing settings tests and all1484 full build gates plus HEMTT/FSM/package passed .qa/actor-settings-native-task-build.log. Independent .qa/actor-settings-native-task-independent.log passed.",
+    "limits": "No physical treatment/flight/settings restoration or HC/performance proof; audits paused.",
+    "candidate": ".qa/candidates/actor-settings-native-task-4ab1912d",
+    "fingerprint": "fc26ecc51814b35adc6372afe2c0c197ef661198150a14b46b398435f1a4d7f7"
   }
 }

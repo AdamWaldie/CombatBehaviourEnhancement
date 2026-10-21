@@ -22,6 +22,11 @@ class ActorSettingsTests(unittest.TestCase):
             self.assertLess(s.index(required),s.index('private _nextOwned='))
         self.assertLess(s.index('count units _group > 64'),s.index('call CBE_fnc_CortexExternalTakeover'))
         self.assertIn('call _write',apply)
+        task_gate=s.split('if (_releaseAt > 0',1)[1].split('private _operation=',1)[0]
+        self.assertIn('fleeing _actor',task_gate)
+        self.assertIn('ace_medical_ai_healQueue',task_gate)
+        self.assertLess(s.index('if (_mode == "RELEASE") exitWith'),s.index('if (_releaseAt > 0'))
+        self.assertLess(s.index('if (_releaseAt > 0'),s.index('if (_mode == "ADOPT") exitWith'))
         self.assertIn('then {toUpperANSI (unitPos _actor)} else {getForcedSpeed _actor}',s)
     def test_preserve_baseline_and_refuse_changed_or_replaced_context(self):
         s=core()
@@ -35,7 +40,7 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertNotIn('_deadline=serverTime',s)
         self.assertEqual(s.count('serverTime+1'),1)
         self.assertIn('serverTime < _releaseAt',s)
-        self.assertIn('if (_releaseAt > 0) exitWith',s)
+        self.assertIn('if (_releaseAt > 0 || {fleeing _actor}',s)
     def test_adoption_changes_only_metadata_and_keeps_original_deadline(self):
         s=core();adopt=s.split('if (_mode == "ADOPT") exitWith {',1)[1].split('if (_lease isNotEqualTo [] && {_oldContext',1)[0]
         self.assertIn('setVariable ["CBE_ActorSettings",_next,true]',adopt)
