@@ -1066,5 +1066,21 @@
     "sourceHash": "844a982c398980ac1a1857f81d33b9459961659fa3a03d14e3443ea20b2e7f3f",
     "candidate": ".qa/candidates/group-move-flight-efa2b9ab",
     "fingerprint": "0c0fb605d379d444fbcfb6c6985c3da1c4af144dbcfd54ab24b08be568793a3c"
+  },
+  "operationRecoveryFlightPriority20261021": {
+    "baseline": "d9cf8b88",
+    "finding": "OperationStep/recovery native-task gates omitted fleeing. Native escape could count as operation travel or an old recovery observation could quarantine the actor; RecoveryStep could spend its one retry and issue doMove over flight. Leader fallback also credited suspended travel after return from flight/care/dormancy.",
+    "change": "Classify native fleeing as temporary ownership in existing participant/recovery paths. Remove its recovery observation, retain membership and recoveryAttempts, exclude aggregate progress. Both preflight and atomic recovery issue yield before budget/move. Empty-roster fallback tracks suspension and rebases original-platform position on return without changing lastProgressAt or retry budget. Publish only suspension/resumption changes through existing optimistic operation commit.",
+    "cost": "Existing bounded participant/fallback passes and snapshot/commit only; no extra job, movement writer, geometry or clock renewal.",
+    "validation": "609 focused and all1484 plus SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package passed .qa/operation-native-flight-build.log. Independent .qa/operation-native-flight-independent.log passed. Existing tests extended, no new cases.",
+    "limits": "Physical native flight/care/dormancy/refusal handling/owner transfer/HC and5%/10%performance remain unverified. Does not cancel all native tasks or give new actor/vehicle routing authority; mounted fallback observes its existing leader/platform contract.",
+    "sourceHashes": {
+      "addons/core/functions/operationStep.sqf": "f47f6dce607b2e5a4490ff3cc6b788a29f56c04c25ea2d376efb0b49f2b978c2",
+      "addons/infantry/functions/recoveryStep.sqf": "74684a9813990b432d0335ca5125ae83e9cbef16833def66895af6058c4af527"
+    },
+    "audits": "PAUSED",
+    "snapshotTrace": "Reviewed final optimistic commit and separate recoverySource -> new recovery map. Mutation occurs in that separate map/new records; no new alias/copy fix justified.",
+    "candidate": ".qa/candidates/operation-native-flight-d9cf8b88",
+    "fingerprint": "fe67ba70652a0d3610ae46def25fbfa5abcf5a31ec00e50bbb8001e1034e18ef"
   }
 }

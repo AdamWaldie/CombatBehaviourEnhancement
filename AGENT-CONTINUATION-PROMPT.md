@@ -1,3 +1,8 @@
+# Latest checkpoint - operation/recovery native flight
+
+## 2026-10-21 - Operation progress/recovery native flight priority
+Baselined9cf8b88. OperationStep/recovery native-task guards omitted flight. Flight now follows existing temporaryownership path: retire actor recovery observation,retainparticipant+spent recoveryAttempts,no quarantine/no aggregate tactical progress. RecoveryStep admission/final unscheduled budget+move transaction bothYIELDbeforeattemptspend/doMove. Emptyrosterleaderfallback also suspends for flight/care/dormancy and rebasesposition on return, without renewing lastProgressAt/retries; avoids crediting suspendedtravel after ownershipreturns. Suspension state publishes only on transitions through existing optimistic commit. Reviewed separate recovery map clone/newrecords; no alias/copychange justified.609focused/all1484+HEMTT/FSM/docs/package pass .qa/operation-native-flight-build.log; independent .qa/operation-native-flight-independent.log. Candidate .qa/candidates/operation-native-flight-d9cf8b88 fingerprintfe67ba70652a0d3610ae46def25fbfa5abcf5a31ec00e50bbb8001e1034e18ef. LAMBS foundations review has currenthash/scope/cost/limits. Mounted fallback retains original leader/platform contract; not full allcrew/nativeplatform attribution. Physical flight/care/resumption/recovery/HC/clock/callerfailure/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - shared waypoint native flight priority
 
 ## 2026-10-21 - Shared group waypoint native flight priority

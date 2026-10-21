@@ -8,7 +8,8 @@
  * Captured participant/fallback platforms exclude later transport or vehicle switches from progress.
  * Explicitly admitted mounted crews retain their original vehicle domain. Missing legacy receipts
  * permit foot observation only; they never infer a new mounted domain.
- * Queued ACE treatment is temporary task ownership even before the native HEAL command.
+ * Native flight and queued ACE treatment are temporary task ownership; neither grants tactical
+ * progress or consumes/quarantines recovery. The declared-empty leader fallback yields as well.
  * Recovery observations for no-longer-eligible participants retire before timeout handling;
  * observed incapacitation/capture/owner changes cannot become a stale failure on return.
  * CLEAR destination failures retire the recovery observation without quarantining a capable actor;
@@ -93,7 +94,7 @@ if (count _recovery > 0) then {
     private _key=netId _actor;
     private _record=_recovery getOrDefault [_key,[]];
     private _reserved=[_actor] call CBE_fnc_CortexActorMoveReserved;
-    private _nativeTask=(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    private _nativeTask=fleeing _actor || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
     private _suspended=!simulationEnabled _actor || {isObjectHidden _actor}
         || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")};
@@ -178,6 +179,7 @@ private _progressActor=objNull;
 } forEach _participants;
 // Some finite operations intentionally have no foot participants. Preserve leader-based progress
 // only for that case, rather than requiring a vehicle or support operation to manufacture an actor roster.
+private _fallbackChanged=false;
 if (_participants isEqualTo [] && {!_participantsRequired}) then {
     private _leader=leader _group;
     private _position=getPosATL _leader;
@@ -188,14 +190,33 @@ if (_participants isEqualTo [] && {!_participantsRequired}) then {
             _platform isEqualType objNull && {!isNull _platform} && {vehicle _leader == _platform}
         }
     };
-    if (_sameDomain && {simulationEnabled _leader} && {!isObjectHidden _leader}
-        && {_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum}) then {
-        _progressed=true;
-        _progressActor=_leader;
-        _operation set ["lastProgressPosition",_position];
+    if (_sameDomain) then {
+        private _fallbackSuspended=!simulationEnabled _leader || {isObjectHidden _leader}
+            || {fleeing _leader} || {(_leader getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []};
+        private _wasSuspended=_operation getOrDefault ["fallbackProgressSuspended",false];
+        if (_fallbackSuspended) then {
+            if (!_wasSuspended) then {
+                _operation set ["fallbackProgressSuspended",true];
+                _fallbackChanged=true;
+            };
+        } else {
+            if (_wasSuspended) then {
+                // Rebase observation only. Motion during native ownership cannot be
+                // credited on return, and neither the progress clock nor retry budget renews.
+                _operation set ["lastProgressPosition",_position];
+                _operation set ["fallbackProgressSuspended",false];
+                _fallbackChanged=true;
+            } else {
+                if (_position distance2D (_operation getOrDefault ["lastProgressPosition",_position]) >= _minimum) then {
+                    _progressed=true;
+                    _progressActor=_leader;
+                    _operation set ["lastProgressPosition",_position];
+                };
+            };
+        };
     };
 };
-private _changed=false;
+private _changed=_fallbackChanged;
 private _status=if (_progressed) then {
     _operation set ["participantProgress",_updated];
     _operation set ["recovery",_recovery];
@@ -207,7 +228,7 @@ private _status=if (_progressed) then {
     _changed=true;
     "ACTIVE"
 } else {
-    _changed=_recoveryChanged || {count _unavailable != _unavailableCount}
+    _changed=_fallbackChanged || {_recoveryChanged} || {count _unavailable != _unavailableCount}
         || {_updated isNotEqualTo _records};
     _operation set ["participantProgress",_updated];
     _operation set ["recovery",_recovery];

@@ -1772,6 +1772,7 @@ class CortexOperations(unittest.TestCase):
         step=source('operationStep')
         task=step.split('private _nativeTask=',1)[1].split('private _suspended=',1)[0]
         self.assertIn('ace_medical_ai_healQueue',task)
+        self.assertIn('fleeing _actor',task)
         temporary=step.split('if (_reserved || {_nativeTask} || {_suspended}) then',1)[1].split('if (!_reserved',1)[0]
         self.assertIn('_recovery deleteAt _key',temporary)
         self.assertIn('_temporarilyOwned pushBack _actor',temporary)
@@ -1781,6 +1782,9 @@ class CortexOperations(unittest.TestCase):
         recovery=source('recoveryStep')
         self.assertEqual(recovery.count('if (call _reserved) exitWith {"YIELDED"}'),2)
         self.assertEqual(recovery.count('ace_medical_ai_healQueue'),2)
+        self.assertEqual(recovery.count('fleeing _actor'),2)
+        self.assertLess(recovery.index('fleeing _actor'),recovery.index('if (_attempts >= 1)'))
+        self.assertLess(recovery.rindex('fleeing _actor'),recovery.index('_used set [_key,_attempts+1]'))
         self.assertLess(recovery.index('ace_medical_ai_healQueue'),recovery.index('if (_attempts >= 1)'))
         self.assertLess(recovery.rindex('ace_medical_ai_healQueue'),recovery.index('_used set [_key,_attempts+1]'))
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',recovery)
@@ -7287,7 +7291,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn("[_lastPosition,_currentPosition] select _actorProgressed",step)
         leader=step.split("if (_participants isEqualTo [] && {!_participantsRequired})",1)[1].split("if (_progressed)",1)[0]
         self.assertIn("simulationEnabled _leader",leader)
-        self.assertIn("!isObjectHidden _leader",leader)
+        self.assertIn("isObjectHidden _leader",leader)
+        self.assertIn("fleeing _leader",leader)
+        self.assertIn("ace_medical_ai_healQueue",leader)
+        self.assertIn('fallbackProgressSuspended',leader)
+        resume=leader.split('if (_wasSuspended) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('set ["lastProgressPosition",_position]',resume)
+        self.assertNotIn('lastProgressAt',resume)
+        self.assertNotIn('_progressed=true',resume)
+        self.assertIn('_changed=_fallbackChanged || {_recoveryChanged}',step)
+
 
     def test_recovery_dormancy_yields_before_retry_commit(self):
         recovery=source("recoveryStep")
