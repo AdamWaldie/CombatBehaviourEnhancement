@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Dormant/hidden actors and queued medical healers retain assignment identity but yield
- * approach and event/delayed duck commands. No queue is cleared or deadline renewed.
+ * approach and event/delayed duck commands. Native flight also owns all four command boundaries.
+ * No queue is cleared, morale changed or deadline renewed.
  * Delayed movement retries require idle/STOP or the exact owned MOVE; native combat, waiting
  * and follow tasks retain authority even if their destination did not change.
  * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
@@ -136,7 +137,7 @@ private _mayIssueMovement = {
     _commandOwned && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
-        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
@@ -235,7 +236,7 @@ private _buildingAnchor = {
             _unit setVariable ["CBE_AIPass_GarrisonHandlers", true];
             private _duck = {
                 params ["_unit"];
-                if (!local _unit || {isPlayer _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit}
+                if (!local _unit || {isPlayer _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit} || {fleeing _unit}
                     || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                     || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {(_unit getVariable ["CBE_AIPass_GarrisonPos", []]) isEqualTo []}
                     || {!([group _unit] call CBE_fnc_CortexIsEligible)} || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}) exitWith {};
@@ -263,7 +264,7 @@ private _buildingAnchor = {
                 [{
                     params ["_unit", "_until", "_priorStance", "_duckGroup", "_duckGeneration", "_duckEpoch", "_duckAssignment"];
                     if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {!isPlayer _unit}
-                        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+                        && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
                         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                         && {(_unit getVariable ["CBE_AIPass_DuckUntil", -1]) == _until}
                         && {group _unit == _duckGroup} && {local _duckGroup}
@@ -362,7 +363,7 @@ private _buildingAnchor = {
         !([_group] call CBE_fnc_CortexExternalTakeover) && {local _actor} && {group _actor == _group} && {isNull objectParent _actor}
             && {_commandOwned} && {_free} && {isNull remoteControlled _actor} && {!isPlayer _actor}
         && {_actor checkAIFeature "MOVE"}
-        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
             && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}

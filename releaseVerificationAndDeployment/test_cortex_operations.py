@@ -4142,7 +4142,7 @@ class CortexOperations(unittest.TestCase):
         duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('CBE_AIPass_GarrisonHandlerIds',1)[0]
         event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
         for section in (event,delayed):
-            for guard in ('simulationEnabled _unit','isObjectHidden _unit','ace_medical_ai_healQueue'):
+            for guard in ('simulationEnabled _unit','isObjectHidden _unit','ace_medical_ai_healQueue','fleeing _unit'):
                 self.assertIn(guard,section)
             self.assertIn('CBE_fnc_CortexActorMoveReserved',section)
             self.assertIn('objectParent _unit',section)
@@ -4154,6 +4154,7 @@ class CortexOperations(unittest.TestCase):
 
         apply=source('cortexGarrisonApplyLocal')
         self.assertEqual(apply.count('simulationEnabled _actor'),2)
+        self.assertEqual(apply.count('!fleeing _actor'),2)
         self.assertEqual(apply.count('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []'),2)
         self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',apply)
 

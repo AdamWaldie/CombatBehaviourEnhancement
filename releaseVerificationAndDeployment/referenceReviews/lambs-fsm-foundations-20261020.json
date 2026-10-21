@@ -977,5 +977,15 @@
     "limits": "No physical treatment/flight/settings restoration or HC/performance proof; audits paused.",
     "candidate": ".qa/candidates/actor-settings-native-task-4ab1912d",
     "fingerprint": "fc26ecc51814b35adc6372afe2c0c197ef661198150a14b46b398435f1a4d7f7"
+  },
+  "activeGarrisonFlightPriority20261021": {
+    "baseline": "9e2b6e4b",
+    "finding": "Both garrison movement gates and event/delayed duck guards protected care/dormancy but omitted native fleeing. Existing owned MOVE or STOP could still admit CBE commands during flight.",
+    "change": "Add read-only fleeing veto at all four existing boundaries; preserve assignment, original deadline and native morale. No new callbacks, state, scans or settings.",
+    "limits": "Legacy garrison exact-setting receipt/retirement gap remains unfinished; this is not a deferred restoration implementation. Actual flight, physical posts/recovery/HC and performance unverified; audits paused.",
+    "sourceHash": "3465c4626d97a0d1e4da414a010055508c74111dd95dadc64edf24fea0fa3a64",
+    "validation": "609 existing operation tests passed .qa/garrison-native-flight-focused-final.log. Initial test-edit assertion failed because a text needle matched another case; product edit was present and old609 tests passed; extended only intended existing case afterward. Full build pending. Final all1484+HEMTT/FSM/docs/package passed .qa/garrison-native-flight-build.log; independent .qa/garrison-native-flight-independent.log passed.",
+    "candidate": ".qa/candidates/garrison-native-flight-9e2b6e4b",
+    "fingerprint": "f8423a96b735f27ed6433b82f214ffef351f3e16f4ce9287acb33e621aa06315"
   }
 }

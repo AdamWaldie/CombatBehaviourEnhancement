@@ -1,3 +1,8 @@
+# Latest checkpoint - active garrison native flight
+
+## 2026-10-21 - Active garrison native flight priority
+Baseline9e2b6e4b. Native flight omitted in both initial/continuing movement gates and event/delayed duck commands despite care/dormancy protection. Added read-only fleeing veto at all4 existing gates; no new state/callback/scan/setting/morale or deadline mutation. Existing regression extended;609focused/all1484+HEMTT/FSM/docs/package pass .qa/garrison-native-flight-build.log; independent .qa/garrison-native-flight-independent.log. Candidate .qa/candidates/garrison-native-flight-9e2b6e4b fingerprintf8423a96b735f27ed6433b82f214ffef351f3e16f4ce9287acb33e621aa06315. Initial test-edit assertion had ambiguous needle, product was written but tests not extended; scoped test edit and reran before fullpipeline. LAMBS review recordslimits. Garrison setting migration remains unfinished: legacy garrison has no common finite operation, issuer receipt or pending retirement; do not import partial public mirrors or add blind retry timer. Needs acquisition-through-release design, not a claimedfix from flight guard. Physical garrison/flight/CQB/HC/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish. Fullgoalactive/incomplete;unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - shared settings native task acquisition
 
 ## 2026-10-21 - Shared actor-settings native task acquisition
