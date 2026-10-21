@@ -1006,6 +1006,12 @@ class CortexOperations(unittest.TestCase):
         stealth=tick.split('if (_stealthCover) then {',1)[1].split('} else {',1)[0]
         self.assertIn('[_group,-1,false,""] call CBE_fnc_DangerGroupHideStep',stealth)
         self.assertIn('|| {fleeing _actor}',source('dangerCoverStep'))
+        cover=source('dangerCoverStep')
+        handoff=cover.index('[_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep')
+        self.assertLess(handoff,cover.index('_actor doMove _spot'))
+        self.assertLess(cover.index('[_actor] call CBE_fnc_DangerEngineRelease'),cover.index('_actor doMove _spot'))
+        self.assertIn('["POSTURE_HANDOFF"] call _clearLease',cover)
+
         reflex=source('dangerEngineAct')
         self.assertIn('unitCombatMode _actor in ["BLUE","GREEN"]',reflex)
 

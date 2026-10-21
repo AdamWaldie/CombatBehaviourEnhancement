@@ -262,6 +262,16 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
+// A stationary danger response may still own weak prone/crouch. Relinquish that exact
+// temporary policy before the movement owner starts; blocked restoration cannot become
+// a new route baseline or rely on the engine FSM finishing some time after step-off.
+[_actor] call CBE_fnc_DangerEngineRelease;
+if ((_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isNotEqualTo []) exitWith {
+    ["POSTURE_HANDOFF"] call _clearLease
+};
+if (!([_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep)) exitWith {
+    ["POSTURE_HANDOFF"] call _clearLease
+};
 _group setVariable ["CBE_Danger_CoverPending",nil];
 _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];
 // The observation may end before native pathing reaches cover. Retain the committed move
