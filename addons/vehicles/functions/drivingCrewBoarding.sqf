@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native fleeing ends cooperation without cancelling the boarding order.
  * Pending ACE care ends native-boarding cooperation without clearing its queue or renewing seat deadlines.
  * Purpose: Offers a finite vehicle wait for an already-ordered operating crew member.
  * Locality/authority: Existing ordinary-driving callback, current group/vehicle owner only.
@@ -78,7 +79,7 @@ private _next=[];
     private _index=_rows findIf {(_x select 0) == _actor && {(_x select 1) == _role}
         && {(_x select 2) isEqualTo _path}};
     private _row=if (_index < 0) then {[]} else {+(_rows select _index)};
-    private _boarding=local _actor && {toUpperANSI currentCommand _actor == "GET IN"}
+    private _boarding=local _actor && {!fleeing _actor} && {toUpperANSI currentCommand _actor == "GET IN"}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {[_actor] call CBE_fnc_CortexCombatEffective}

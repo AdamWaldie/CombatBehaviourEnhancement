@@ -1,0 +1,27 @@
+{
+  "baseline": "6a0d3280",
+  "scope": "Native crew flight ownership in ordinary recovery",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf",
+    "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+    "read": "complete helper"
+  },
+  "sourceDisposition": "Preserve operational crew retention and passenger distinction. Do not copy delayed moveIn seating from assignment alone: orderGetIn false may preserve assignment, and delayed callbacks need renewed authority. Existing native GET IN cooperation and exact policy receipts remain. Automatic recall remains unimplemented, not parity.",
+  "finding": "Combat crew recovery already refuses native fleeing. Ordinary dead-driver replacement and boarding waits lacked that boundary.",
+  "implementation": [
+    "Living fleeing crew veto ordinary replacement at shared action admission. Candidate selection and active candidate guard also refuse flight.",
+    "Native GET IN cooperation marks its original wait ended when the local assigned actor flees; no cancellation of native task or new seat order.",
+    "No new worker, scan, policy write, lifetime or retry; unchanged existing fullCrew bound. An already issued native seat action is not reversed."
+  ],
+  "validation": {
+    "focused": "15 existing driving crew tests passed",
+    "full": ".qa/crew-flight-build.log all1484/394SQF and full offline gates passed",
+    "independent": ".qa/crew-flight-independent.log",
+    "candidate": ".qa/candidates/crew-flight-6a0d3280",
+    "fingerprint": "9eb47aaa257dd7d1e83c8434d14d12f8b21c280a92e946e06f1f271b79e052a4"
+  },
+  "limits": [
+    "Audits paused; physical crew action timing, actual native fleeing while mounted, repeated episodes and performance remain unverified.",
+    "No automatic recall, external-controller quiescence/resume or whole-HBQ parity claim. Protected sources untouched."
+  ]
+}

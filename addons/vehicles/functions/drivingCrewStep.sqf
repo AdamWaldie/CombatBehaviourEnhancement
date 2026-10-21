@@ -135,7 +135,7 @@ private _available={
             isPlayer _actor || {!isNull remoteControlled _actor}
                 || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
                 || {[_actor] call CBE_fnc_CortexExternalOwner != ""}
-                || {alive _actor && {group _actor != _group || {!local _actor}
+                || {alive _actor && {group _actor != _group || {!local _actor} || {fleeing _actor}
                     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                     || {currentCommand _actor in _tasks}
                     || {currentCommand _actor == "ACTION" && {!(_actor == _candidate && {_phase == "SWITCHING"})}}}}
@@ -164,7 +164,7 @@ if (count _work == 0) then {
     if (!isNull _driver && {alive _driver}) exitWith {};
     private _choices=_crew select {
         private _actor=_x select 0;
-        alive _actor && {local _actor} && {group _actor == _group} && {!isPlayer _actor}
+        alive _actor && {local _actor} && {!fleeing _actor} && {group _actor == _group} && {!isPlayer _actor}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
             && {simulationEnabled _actor} && {!isObjectHidden _actor}
             && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
@@ -198,7 +198,7 @@ if (count _work == 0) then {
 if (count _work == 0) exitWith {call _publish;false};
 _brain set ["crewVehicle",_vehicle];
 if (serverTime >= (_work get "deadline")) exitWith {["EXPIRED"] call _finish};
-if (isNull _candidate || {!local _candidate} || {vehicle _candidate != _vehicle}
+if (isNull _candidate || {!local _candidate} || {fleeing _candidate} || {vehicle _candidate != _vehicle}
     || {!([_candidate] call CBE_fnc_CortexCombatEffective)}
     || {!simulationEnabled _candidate} || {isObjectHidden _candidate}
     || {!(_candidate checkAIFeature "MOVE")} || {!(_candidate checkAIFeature "PATH")}

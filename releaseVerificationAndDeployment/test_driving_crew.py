@@ -136,6 +136,10 @@ class DrivingCrewTests(unittest.TestCase):
                       'CBE_AIPass_VehicleRemount_Enable','CBE_DrivingRecovery_Work',
                       'CBE_DrivingPass_Work','CBE_DrivingBypass_Work','CBE_DrivingCorridor_Work'):
             self.assertIn(proof,body)
+        self.assertIn('!fleeing _actor',body)
+        crew=self.source()
+        self.assertIn('|| {fleeing _actor}',crew)
+        self.assertIn('|| {fleeing _candidate}',crew)
         self.assertEqual(body.count('serverTime+60'),1)
         self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',body)
         self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',body)
