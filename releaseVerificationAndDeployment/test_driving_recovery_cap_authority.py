@@ -44,7 +44,7 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
         self.assertIn('if (_commandMode == "SIMPLE_BACK") then',release)
         self.assertIn('simpleAcknowledged',release)
         self.assertIn('simpleBefore',release)
-        self.assertLess(release.index('waypointType _waypoint == "MOVE"'),release.index('sendSimpleCommand "STOP"'))
+        self.assertLess(release.index('call CBE_fnc_DrivingRouteGoal'),release.index('sendSimpleCommand "STOP"'))
         self.assertIn('if (_nativeStopPending) exitWith {}',release)
         self.assertIn('if (_nativeStopPending) exitWith {',release)
 

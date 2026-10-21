@@ -43,10 +43,8 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('isNil {',transaction)
         self.assertLess(transaction.index('isNil {'),transaction.index('CBE_DrivingRecovery_Work'))
         for check in ('alive _vehicle','canMove _vehicle','simulationEnabled _vehicle',
-                      '!isObjectHidden _vehicle','waypointType _waypoint == "MOVE"',
-                      '_condition == "true"','waypointScript _waypoint == ""',
-                      '(synchronizedTriggers _waypoint) isEqualTo []',
-                      '(synchronizedWaypoints _waypoint) isEqualTo []'):
+                      '!isObjectHidden _vehicle','call CBE_fnc_DrivingRouteGoal',
+                      'if (_originalGoal isNotEqualTo []) then {'):
             self.assertLess(transaction.index(check),transaction.index('doStop _driver'))
         self.assertLess(transaction.index('doStop _driver'),transaction.index('_operator doMove'))
         self.assertIn('if ((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work)',transaction)
@@ -91,8 +89,10 @@ class NativeAdmissionTests(unittest.TestCase):
         admission=assist.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         for text in [admission,release]:
-            self.assertIn('(synchronizedTriggers _waypoint) isEqualTo []',text)
-            self.assertIn('(synchronizedWaypoints _waypoint) isEqualTo []',text)
+            self.assertIn('call CBE_fnc_DrivingRouteGoal',text)
+        goal=(ROOT/'addons/vehicles/functions/drivingRouteGoal.sqf').read_text(encoding='utf-8')
+        self.assertIn('synchronizedTriggers _goalWaypoint isNotEqualTo []',goal)
+        self.assertIn('synchronizedWaypoints _goalWaypoint isNotEqualTo []',goal)
         self.assertNotIn('triggerActivated',admission)
 
     def test_pre_path_rechecks_do_not_reject_fixed_path_owned_stop(self):

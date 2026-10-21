@@ -231,13 +231,8 @@ if (_owned && {!_executable}) exitWith {
 };
 private _nativeStopPending=false;
 if (_owned) then {
-    private _index=currentWaypoint _group;private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
-    private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-    if (_index > 0 && {_index < count waypoints _group} && {waypointType _waypoint == "MOVE"} && {_condition == "true"}
-        && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
-        && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
-        && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
-        && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}) then {
+    private _originalGoal=[_group] call CBE_fnc_DrivingRouteGoal;
+    if (_originalGoal isNotEqualTo []) then {
         private _leader=leader _group;
         private _leaderVehicle=vehicle _leader;
         private _mountedTarget=!isNull _leader && {[_leader] call CBE_fnc_CortexCombatEffective}
@@ -273,7 +268,7 @@ if (_owned) then {
         if (_leaderVehicle == _vehicle || {_mountedTarget}) then {
             if (_driver != _operator) then {_driver doFollow _operator};
             if (_leaderVehicle == _vehicle) then {
-                _operator doMove waypointPosition _waypoint;_handback="AUTHORED_ROUTE";
+                _operator doMove _originalGoal;_handback="AUTHORED_ROUTE";
             } else {
                 _operator doFollow _leader;_handback="MOUNTED_LEADER";
             };

@@ -126,8 +126,7 @@ class DrivingGateIntentTests(unittest.TestCase):
 
     def test_plain_and_owned_alternate_intent_have_distinct_stop_contracts(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateIntent.sqf').read_text()
-        for marker in ('waypointType _waypoint != "MOVE"','synchronizedWaypoints',
-                       'synchronizedTriggers','waypointAttachedObject','waypointTimeout',
+        for marker in ('call CBE_fnc_DrivingRouteGoal',
                        'CBE_DrivingBypass_Work","FOLLOW"','CBE_DrivingCorridor_Work","CROSS"',
                        'expectedDestination _driver','expectedDestination _operator',
                        'serverTime <','"controller",[]','"phase",""]) == "APPROACH"',

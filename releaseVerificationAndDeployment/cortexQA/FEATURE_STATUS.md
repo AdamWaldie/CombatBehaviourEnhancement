@@ -33,7 +33,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | WITHDRAW - Damaged vehicle withdrawal | 5 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
 | COVER - Cover selection and clearance | 1 | 0 | 2 | `runCover.sqf` | 1 | implemented_partial |
-| VEH-DRIVING - Ordinary vehicle route safety | 6 | 0 | 80 | `runVehicleDrills.sqf`, `runDrivingTraffic.sqf`, `runParkedBypass.sqf`, `runRoadPassing.sqf`, `runDrivingCrew.sqf` | 0 | implemented_partial |
+| VEH-DRIVING - Ordinary vehicle route safety | 6 | 0 | 81 | `runVehicleDrills.sqf`, `runDrivingTraffic.sqf`, `runParkedBypass.sqf`, `runRoadPassing.sqf`, `runDrivingCrew.sqf` | 0 | implemented_partial |
 | CNV-MOVE - Mixed convoy path and spacing | 5 | 0 | 11 | `runServer.sqf`, `runConvoyMatrix.sqf` | 0 | implemented_partial |
 | CNV-FIRE - Convoy weapon crew | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-COVER - Convoy dismount positions | 1 | 0 | 0 | `runServer.sqf` | 0 | implemented_partial |

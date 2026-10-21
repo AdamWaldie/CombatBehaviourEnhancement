@@ -10168,10 +10168,13 @@ class CortexOperations(unittest.TestCase):
     def test_driving_recovery_cannot_bypass_a_distant_authored_gate(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         policy=text.split('private _recoveryOrderFree = {',1)[1].split('private _mayRecoverRoute',1)[0]
-        for proof in ['_index <= 0','waypointType _waypoint == "MOVE"',
-                      '_condition == "true"','_statements param [1,""]',
+        self.assertIn('call CBE_fnc_DrivingRouteGoal',policy)
+        policy=source('drivingRouteGoal')
+        for proof in ['_goalIndex <= 0','waypointType _goalWaypoint != "MOVE"',
+                      '_goalCondition != "true"','_goalStatements param [1,""]',
                       'waypointScript','waypointTimeout','waypointAttachedVehicle',
-                      'waypointAttachedObject','synchronizedWaypoints','(synchronizedTriggers _waypoint) isEqualTo []']:
+                      'waypointAttachedObject','synchronizedWaypoints','synchronizedTriggers',
+                      '!finite _x']:
             self.assertIn(proof,policy)
         self.assertNotIn('distance2D',policy)
         self.assertNotIn('compile',policy)

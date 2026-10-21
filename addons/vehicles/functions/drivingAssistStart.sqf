@@ -372,18 +372,7 @@ _brain set ["geometryTracks",_geometryTracks];
         // A distant script/timer/synchronization gate is still authored intent. Recovery
         // may refresh only a plain MOVE, never bypass a gate merely because it is far away.
         private _recoveryOrderFree = {
-            private _index=currentWaypoint _group;
-            if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
-            private _waypoint=[_group,_index];
-            private _statements=waypointStatements _waypoint;
-            private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-            waypointType _waypoint == "MOVE" && {_condition == "true"}
-                && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
-                && {waypointScript _waypoint == ""}
-                && {(waypointTimeout _waypoint param [2,0]) <= 0}
-                && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
-                && {(synchronizedWaypoints _waypoint) isEqualTo []}
-                && {(synchronizedTriggers _waypoint) isEqualTo []}
+            ([_group] call CBE_fnc_DrivingRouteGoal) isNotEqualTo []
         };
         private _crewBoardingHold=false;private _queueHold=false;
         private _mayRecoverRoute = {

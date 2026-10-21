@@ -18,16 +18,8 @@ if (isNull _group || {isNull _vehicle} || {_route isEqualTo []}
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
 if (isNull _driver || {isNull _operator}) exitWith {false};
-private _index=currentWaypoint _group;private _waypoint=[_group,_index];
-private _destination=waypointPosition _waypoint;
-private _statements=waypointStatements _waypoint;
-private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-if (waypointType _waypoint != "MOVE" || {_condition != "true"}
-    || {((_statements param [1,""]) splitString (toString [32,9,13,10])) isNotEqualTo []}
-    || {waypointScript _waypoint != ""} || {(waypointTimeout _waypoint param [2,0]) > 0}
-    || {!isNull waypointAttachedVehicle _waypoint} || {!isNull waypointAttachedObject _waypoint}
-    || {(synchronizedWaypoints _waypoint) isNotEqualTo []}
-    || {(synchronizedTriggers _waypoint) isNotEqualTo []}) exitWith {false};
+private _destination=[_group] call CBE_fnc_DrivingRouteGoal;
+if (_destination isEqualTo []) exitWith {false};
 private _alternate=false;
 {
     _x params ["_variable","_phase"];
