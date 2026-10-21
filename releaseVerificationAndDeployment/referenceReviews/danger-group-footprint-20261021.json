@@ -1,0 +1,21 @@
+{
+  "baseline": "faf385fe",
+  "scope": "Group danger posture native task footprint",
+  "implementation": [
+    "Check every living member before group-wide danger behaviour/combat-mode application and exact restoration. Mounted, nonlocal, player, care, flight, captive/incapacitated, stealth/careless and held-fire members refuse the write.",
+    "Ordinary travel and CBE manoeuvre remain eligible. Maximum64 members; larger groups refuse instead of sampling. No new worker or native command.",
+    "Pending restoration retains its original receipt and expiry; changed native components retire without an unnecessary footprint check."
+  ],
+  "validation": {
+    "focused": "10 existing retirement tests passed",
+    "fullOffline": ".qa/danger-group-footprint-build.log",
+    "independent": ".qa/danger-group-footprint-independent.log",
+    "candidate": ".qa/candidates/danger-group-footprint-faf385fe",
+    "fingerprint": "0d756b2e28272b319d06c080f519952918abd3a3bba179eda01b44e8fc43a286"
+  },
+  "limits": [
+    "Audits paused; no Arma launch. Physical native timing, mixed-role behaviour, HC and performance unverified.",
+    "This covers DangerReact group-mode writes, not every group writer or per-member baseline restoration.",
+    "No source parity or buildout percentage rescore. Protected sources and unrelated dirt preserved."
+  ]
+}

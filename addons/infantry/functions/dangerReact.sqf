@@ -61,15 +61,19 @@ if (_cause in ["RESTORE","RELEASE"]) exitWith {
                 private _pending=false;
                 private _mayAttempt=(_lease select 4) isEqualType 0 && {finite (_lease select 4)}
                     && {time < (_lease select 4)+30};
+                private _needsWrite=(_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour})
+                    || {_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}};
+                private _mayWrite=_mayAttempt && {!_needsWrite
+                    || {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable}};
                 if (_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour}) then {
-                    if (_mayAttempt) then {_group setBehaviour _behaviour};
+                    if (_mayWrite) then {_group setBehaviour _behaviour};
                     if (behaviour _postureActor == _ownedBehaviour) then {_pending=true} else {
                         // Restored or superseded: this component has no remaining write authority.
                         _remaining set [1,_behaviour];
                     };
                 } else {_remaining set [1,_behaviour]};
                 if (_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}) then {
-                    if (_mayAttempt) then {_group setCombatMode _combatMode};
+                    if (_mayWrite) then {_group setCombatMode _combatMode};
                     if (combatMode _group == _ownedCombatMode) then {_pending=true} else {
                         _remaining set [3,_combatMode];
                     };
@@ -121,6 +125,8 @@ isNil {
         if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
             || {!isNull objectParent _actor} || {fleeing _actor}
             || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"ASSESS"};
+        // These commands affect every member, not just the event witness.
+        if (!([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)) exitWith {"ASSESS"};
         _postureActor=[_group] call CBE_fnc_CortexGroupAnchor;
         if (isNull _postureActor) then {_postureActor=leader _group};
         if (!([_postureActor] call CBE_fnc_CortexCombatEffective) || {!local _postureActor}) exitWith {"IGNORED"};

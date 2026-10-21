@@ -1,3 +1,7 @@
+
+
+Checkpoint: group danger posture footprint (2026-10-21)
+Baseline faf385fe plus scoped pending changes. DangerReact now checks all living members before group-wide posture application/restoration; max64, no worker. Ordinary travel/manoeuvre remains eligible. Focused10, complete offline build and independent candidate verify passed. Candidate .qa/candidates/danger-group-footprint-faf385fe; fingerprint 0d756b2e28272b319d06c080f519952918abd3a3bba179eda01b44e8fc43a286. Review referenceReviews/danger-group-footprint-20261021.json. Audits remain paused; no Arma launch. Other group writers, per-member baselines, physical behaviour and performance remain open. No push/merge/publication.
 # Latest checkpoint - finite group danger mode handback
 
 

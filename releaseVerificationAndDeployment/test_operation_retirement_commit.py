@@ -77,9 +77,19 @@ class OperationRetirement(unittest.TestCase):
             self.assertLess(restore.index(proof),restore.index('_group setBehaviour'))
         self.assertLess(restore.index('CBE_fnc_CortexExternalTakeover'),restore.index('_group setCombatMode'))
         self.assertIn('private _lease=+(',text)
+        footprint=(ROOT/'addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf').read_text(encoding='utf-8')
+        for proof in ('count _members > 64','!local _group','!local _x','!isNull objectParent _x',
+                      'CortexCombatEffective','fleeing _x','"CARELESS","STEALTH"','"BLUE","GREEN"',
+                      'ace_medical_ai_healQueue','"GET IN"','"HEAL"','"SCRIPTED"'):
+            self.assertIn(proof,footprint)
+        for forbidden in ('setBehaviour','setCombatMode','setUnitPos','waitAndExecute','nearestObjects'):
+            self.assertNotIn(forbidden,footprint)
+        self.assertIn('private _mayWrite=_mayAttempt && {!_needsWrite',restore)
+        self.assertIn('CBE_fnc_CortexGroupPostureTaskAvailable',restore)
+
         for proof in ('private _remaining=+_lease','time < (_lease select 4)+30',
-                      'if (_mayAttempt) then {_group setBehaviour _behaviour}',
-                      'if (_mayAttempt) then {_group setCombatMode _combatMode}',
+                      'if (_mayWrite) then {_group setBehaviour _behaviour}',
+                      'if (_mayWrite) then {_group setCombatMode _combatMode}',
                       '_remaining set [1,_behaviour]','_remaining set [3,_combatMode]',
                       '["CBE_Danger_ReactionLease",_remaining,true]',
                       '["UNRESOLVED","RESTORE_PENDING"] select _mayAttempt'):
@@ -102,6 +112,8 @@ class OperationRetirement(unittest.TestCase):
     def test_danger_application_and_baseline_share_authority_boundary(self):
         text=(ROOT/'addons/infantry/functions/dangerReact.sqf').read_text(encoding='utf-8')
         commit=text.split('private _postureResult="IGNORED";',1)[1]
+        self.assertLess(commit.index('call CBE_fnc_CortexGroupPostureTaskAvailable'),commit.index('_group setBehaviour'))
+        self.assertLess(commit.index('call CBE_fnc_CortexGroupPostureTaskAvailable'),commit.index('_group setCombatMode'))
         self.assertIn('if (behaviour _postureActor == "COMBAT") then {_appliedBehaviour="COMBAT"}',commit)
         self.assertIn('if (combatMode _group == _desiredCombat) then {_appliedCombat=_desiredCombat}',commit)
 

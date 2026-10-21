@@ -170,6 +170,7 @@ class CfgFunctions {
             class DangerRequest {file = "\z\cbe\addons\infantry\functions\dangerRequest.sqf";};
             class DangerStep {file = "\z\cbe\addons\infantry\functions\dangerStep.sqf";};
             class DangerSetup {file = "\z\cbe\addons\infantry\functions\dangerSetup.sqf";};
+            class CortexGroupPostureTaskAvailable {file = "\z\cbe\addons\infantry\functions\cortexGroupPostureTaskAvailable.sqf";};
             class DangerReact {file = "\z\cbe\addons\infantry\functions\dangerReact.sqf";};
             class GroupBrainStart {file = "\z\cbe\addons\infantry\functions\groupBrainStart.sqf";};
             class GroupBrainQueue {file = "\z\cbe\addons\infantry\functions\groupBrainQueue.sqf";};

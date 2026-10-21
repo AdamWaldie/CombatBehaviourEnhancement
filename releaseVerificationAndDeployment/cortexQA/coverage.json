@@ -416,7 +416,8 @@
         "addons/infantry/functions/pointActorOperation.sqf",
         "addons/infantry/functions/casualtyObservationSelect.sqf",
         "addons/infantry/functions/casualtyWeaponRecover.sqf",
-        "addons/infantry/functions/dangerPostureStep.sqf"
+        "addons/infantry/functions/dangerPostureStep.sqf",
+        "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf"
       ]
     },
     {
