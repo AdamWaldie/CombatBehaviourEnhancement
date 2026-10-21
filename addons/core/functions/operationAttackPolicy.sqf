@@ -3,7 +3,9 @@
  * Purpose: Acquire or check the common operation's reversible native group attack permission.
  * Locality/authority: Current group owner and matching live generation/owner epoch only.
  * Repeat/JIP: Repeated calls retain the first baseline and issue no command. A changed native
- * policy is refused, never reapplied. Migration may supply the admitted durable task baseline;
+ * policy is refused, never reapplied. New ownership is published only after native readback
+ * confirms the requested permission; unconfirmed writes return REFUSED without a receipt.
+ * Migration may supply the admitted durable task baseline;
  * this does not adopt an old operation or replay movement. OperationRestore releases the receipt.
  * Arguments: 0 group <GROUP>, grpNull; 1 operation <HASHMAP>, empty; 2 applied policy <BOOL>, false;
  * 3 original policy <ARRAY>, [] to capture now or [BOOL] from an admitted durable task.
@@ -46,10 +48,11 @@ _cbePolicyResult=call {
         "OWNED"
     };
     private _baseline=if (_original isEqualTo []) then {attackEnabled _anchor} else {_original select 0};
+    if (attackEnabled _anchor != _applied) then {_group enableAttack _applied};
+    if (attackEnabled _anchor != _applied) exitWith {"REFUSED"};
     _restore set ["groupAttack",[_baseline,_applied]];
     _current set ["restore",_restore];
     _group setVariable ["CBE_Operation",_current,true];
-    if (attackEnabled _anchor != _applied) then {_group enableAttack _applied};
     "ACQUIRED"
 };
 };

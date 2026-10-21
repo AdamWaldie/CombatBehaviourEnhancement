@@ -13,6 +13,11 @@ class OperationAttackPolicyTests(unittest.TestCase):
                       'CBE_fnc_CortexExternalOwner','CBE_fnc_CompatibilityExternalControl'):
             self.assertLess(text.index(proof),text.index('_restore set ["groupAttack"'))
             self.assertLess(text.index(proof),text.index('_group enableAttack'))
+
+        confirmation='if (attackEnabled _anchor != _applied) exitWith {"REFUSED"};'
+        self.assertLess(text.index('_group enableAttack _applied'),text.index(confirmation))
+        self.assertLess(text.index(confirmation),text.index('_restore set ["groupAttack"'))
+        self.assertLess(text.index(confirmation),text.index('"ACQUIRED"',text.index('private _baseline=')))
         self.assertIn('class OperationAttackPolicy',source('addons/main/CfgFunctions.hpp'))
         self.assertLess(text.index('count _members > 64'),text.index('call CBE_fnc_CortexExternalTakeover'))
     def test_existing_receipt_is_typed_read_only_and_does_not_reapply(self):
