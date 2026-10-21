@@ -4144,6 +4144,17 @@ class CortexOperations(unittest.TestCase):
             text=source(name)
             self.assertIn(expected,text)
             self.assertNotIn(rejected,text)
+        observer=source('cortexSpotterFix')
+        body=observer.split('params [[',1)[1]
+        for command in ('selectWeapon','doWatch','doMove','doTarget','doFire','setVariable'):
+            self.assertNotIn(command,body)
+        for gate in ('local _spotter','isPlayer _spotter','CBE_AIPass_Spotter',
+                     'simulationEnabled _spotter','isObjectHidden _spotter','binocular _spotter == ""',
+                     'CBE_fnc_CortexCanTransmit','_spotter targetKnowledge _enemy',
+                     '_spotter knowsAbout _enemy < 1.5','time - (_knowledge select 2) > 5',
+                     'checkVisibility','_spotter getHideFrom _enemy'):
+            self.assertIn(gate,observer)
+        self.assertNotIn(' selectWeapon ',source('cortexGroupTick'))
 
     def test_danger_recycle_never_substitutes_exact_hostile_position(self):
         recycle=source("dangerEngineRecycle")

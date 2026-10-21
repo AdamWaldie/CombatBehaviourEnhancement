@@ -1294,11 +1294,8 @@ switch (_state get "phase") do {
         } >= 0}];
         if (_tacticalTier) then {
             private _vehicleOwnsMovement = _groupMovementOwned;
-            {
-                if (local _x && {!(_x getVariable ["CBE_AIPass_Spotter", false])} && {binocular _x != ""} && {currentWeapon _x == binocular _x} && {primaryWeapon _x != ""}) then {
-                    _x selectWeapon (primaryWeapon _x);
-                };
-            } forEach _alive;
+            // Native and mission weapon selections are not group-tick cleanup leases.
+            // Observer reporting is read-only and cannot leave a CBE binocular override.
             if (!_holdFire && {["CBE_AIPass_FireControl_Enable", true] call _get}) then {[_group, _state, _enemies] call CBE_fnc_CortexFireControl};
             if (["CBE_AIPass_Stance_Enable", true] call _get) then {[_group, _state, _enemies] call CBE_fnc_CortexStance};
             if (!_holdFire && {_hasTargetKnowledge} && {["CBE_AIPass_AntiArmour_Enable", true] call _get}) then {[_group, _state, _enemies] call CBE_fnc_CortexAntiArmour};
