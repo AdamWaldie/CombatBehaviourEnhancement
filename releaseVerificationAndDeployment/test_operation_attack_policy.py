@@ -19,6 +19,12 @@ class OperationAttackPolicyTests(unittest.TestCase):
         self.assertLess(text.index(confirmation),text.index('_restore set ["groupAttack"'))
         self.assertLess(text.index(confirmation),text.index('"ACQUIRED"',text.index('private _baseline=')))
         self.assertIn('class OperationAttackPolicy',source('addons/main/CfgFunctions.hpp'))
+        unresolved=text.split('private _unresolved=',1)[1].split('private _restore=',1)[0]
+        for proof in ('CBE_OperationAttack_Unresolved','finite (_unresolved select 1)','finite (_unresolved select 4)',
+                      'attackEnabled _anchor == (_unresolved select 2)','exitWith {"REFUSED"}'):
+            self.assertIn(proof,unresolved)
+        self.assertNotIn('enableAttack',unresolved)
+
         self.assertLess(text.index('count _members > 64'),text.index('call CBE_fnc_CortexExternalTakeover'))
     def test_existing_receipt_is_typed_read_only_and_does_not_reapply(self):
         text=source('addons/core/functions/operationAttackPolicy.sqf')

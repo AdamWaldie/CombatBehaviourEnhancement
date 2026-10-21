@@ -149,6 +149,13 @@ class OperationRetirement(unittest.TestCase):
         self.assertLess(body.index('!local _group'),body.index('_group enableAttack'))
         self.assertIn('!isNull remoteControlled _x',body)
         self.assertIn('bis_fnc_moduleRemoteControl_owner',body)
+        confirmation='if (attackEnabled _anchor != (_attack select 0)) exitWith {'
+        self.assertLess(text.index('_group enableAttack'),text.index(confirmation))
+        self.assertLess(text.index(confirmation),text.index('[true,"RESTORED"]'))
+        self.assertIn('if (_decision != "RESTORE_UNCONFIRMED") then {_restore deleteAt "groupAttack"}',text)
+        self.assertIn('CBE_OperationAttack_Unresolved',text)
+        self.assertLess(text.index('getVariable ["CBE_OperationAttack_Unresolved",[]]) isNotEqualTo []'),text.index('_group enableAttack'))
+
         for forbidden in ('lineIntersects','nearestObjects','spawn {','waitUntil','doMove','doFollow'):
             self.assertNotIn(forbidden,text)
 if __name__=='__main__': unittest.main()

@@ -5,6 +5,9 @@
  * Repeat/JIP: Repeated calls retain the first baseline and issue no command. A changed native
  * policy is refused, never reapplied. New ownership is published only after native readback
  * confirms the requested permission; unconfirmed writes return REFUSED without a receipt.
+ * An unresolved previous restore blocks acquisition until the original native permission is
+ * actually observed by the current local owner. Metadata retirement after an owner change
+ * does not adopt old command authority. This check issues no restore retry.
  * Migration may supply the admitted durable task baseline;
  * this does not adopt an old operation or replay movement. OperationRestore releases the receipt.
  * Arguments: 0 group <GROUP>, grpNull; 1 operation <HASHMAP>, empty; 2 applied policy <BOOL>, false;
@@ -37,6 +40,25 @@ _cbePolicyResult=call {
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
             || {[_x] call CBE_fnc_CompatibilityExternalControl}} >= 0}) exitWith {"REFUSED"};
+    // A previous operation may have retired after its native restore was refused.
+    // Never capture that still-applied restriction as this operation's mission baseline.
+    // Property observation can retire proof; no delayed native write is authorised here.
+    private _unresolved=_group getVariable ["CBE_OperationAttack_Unresolved",[]];
+    if (_unresolved isNotEqualTo []) then {
+        private _resolved=_unresolved isEqualType [] && {count _unresolved == 6}
+            && {(_unresolved select 0) isEqualType 0} && {finite (_unresolved select 0)}
+            && {(_unresolved select 0) >= 0}
+            && {(_unresolved select 1) isEqualType 0} && {finite (_unresolved select 1)}
+            && {(_unresolved select 1) >= 0}
+            && {(_unresolved select 2) isEqualType true} && {(_unresolved select 3) isEqualType true}
+            && {(_unresolved select 2) != (_unresolved select 3)}
+            && {(_unresolved select 4) isEqualType 0} && {finite (_unresolved select 4)}
+            && {(_unresolved select 4) >= 0}
+            && {(_unresolved select 5) isEqualType 0} && {finite (_unresolved select 5)}
+            && {attackEnabled _anchor == (_unresolved select 2)};
+        if (_resolved) then {_group setVariable ["CBE_OperationAttack_Unresolved",nil,true]};
+    };
+    if ((_group getVariable ["CBE_OperationAttack_Unresolved",[]]) isNotEqualTo []) exitWith {"REFUSED"};
     private _restore=_current getOrDefault ["restore",createHashMap];
     if !(_restore isEqualType createHashMap) exitWith {"REFUSED"};
     private _lease=_restore getOrDefault ["groupAttack",[]];
