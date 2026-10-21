@@ -651,6 +651,7 @@
         "addons/vehicles/functions/cortexNavalAssault.sqf",
         "addons/vehicles/functions/cortexNavalRelease.sqf",
         "addons/vehicles/functions/cortexVehicles.sqf",
+        "addons/vehicles/functions/cortexVehicleCrewAvailable.sqf",
         "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
         "addons/vehicles/functions/cortexVehicleJink.sqf",
         "addons/vehicles/functions/cortexVehicleOrient.sqf",

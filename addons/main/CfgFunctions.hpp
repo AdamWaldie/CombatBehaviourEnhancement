@@ -365,6 +365,7 @@ class CfgFunctions {
             class CortexPassengerReady {file = "\z\cbe\addons\vehicles\functions\cortexPassengerReady.sqf";};
             class ConvoyUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\convoyUnloadPolicy.sqf";};
             class CortexVehicleUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\cortexVehicleUnloadPolicy.sqf";};
+            class CortexVehicleCrewAvailable {file = "\z\cbe\addons\vehicles\functions\cortexVehicleCrewAvailable.sqf";};
             class CortexVehicleCrewRecover {file = "\z\cbe\addons\vehicles\functions\cortexVehicleCrewRecover.sqf";};
               class CortexVehicleJink {file = "\z\cbe\addons\vehicles\functions\cortexVehicleJink.sqf";};
               class CortexVehicleReverseStep {file = "\z\cbe\addons\vehicles\functions\cortexVehicleReverseStep.sqf";};

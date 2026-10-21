@@ -8957,6 +8957,23 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ['setPos','setVelocity','moveIn','allowDamage','disableCollisionWith','while {']:
             self.assertNotIn(forbidden,jink)
         self.assertIn('vehicleDangerJink',vehicles)
+        crew=source('cortexVehicleCrewAvailable')
+        for gate in ('effectiveCommander _crewVehicle','driver _crewVehicle','_expectedSeats isNotEqualTo _seats',
+                     'CortexActorFireTaskAvailable','fleeing _x','simulationEnabled _x','CortexExternalOwner','CBE_ExternalDrivingOwner'):
+            self.assertIn(gate,crew)
+        self.assertIn('_seats arrayIntersect _seats',crew)
+        self.assertIn('if (_expectedSeats isNotEqualTo _seats) exitWith {false}',crew)
+        current=['driver','commander']
+        for malformed in ([],['driver'],['driver','replacement'],['commander','driver']):
+            self.assertNotEqual(malformed,current)
+        self.assertEqual(list(dict.fromkeys(['driver','driver'])),['driver'])
+        self.assertEqual(jink.count('call CBE_fnc_CortexVehicleCrewAvailable'),3)
+        self.assertLess(jink.rindex('call CBE_fnc_CortexVehicleCrewAvailable'),jink.index('call CBE_fnc_CortexGroupMove'))
+        self.assertIn('_operation set ["vehicleJinkCrew",[_vehicle,+_jinkSeats]]',jink)
+        self.assertIn('getOrDefault ["vehicleJinkCrew",[]]',vehicles)
+        self.assertIn('"VEHICLE_CREW_CHANGED"] call CBE_fnc_OperationCancel',vehicles)
+        for command in ('doMove','doFollow','doStop','setVariable','sendSimpleCommand'):
+            self.assertNotIn(command,crew)
         for name in ('dangerVehicleProfile','cortexVehicleJink','cortexVehicles'):
             classifier=source(name)
             self.assertIn('isKindOf ["CarHorn",configFile >> "CfgWeapons"]',classifier)

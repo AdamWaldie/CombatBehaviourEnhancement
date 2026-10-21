@@ -139,5 +139,25 @@
       "fingerprint": "b3f97c0765e2ba202c68c44020fd6e64a7a9fdcb2fcf6e30dc6fbdc5a223d5d4"
     },
     "limits": "Horn/CM utility exclusion only; not a complete classifier for every modded utility weapon, loaded ammunition, station availability or firing readiness. Dynamic loadout/localisation/physical behaviour and performance unverified. No parity or score change."
+  },
+  "jinkCrewOwnership20261021": {
+    "baseline": "13b4ff07",
+    "finding": "Jink admission checked driver protected tasks only; a separate effective commander could have care/native/specialist ownership. Active jink route retention did not bind control-seat identity or recheck those tasks.",
+    "implementation": "Read-only CortexVehicleCrewAvailable checks exact required driver/commander pair, <=2 unique actors, local/group/control/simulation/health/MOVE/PATH/care/native task/reservation/fleeing/external platform and actor guards. Used before planning admission, after geometry and after OperationStart before GroupMove. Operation stores vehicle/control-seat binding. Existing CortexVehicles lifecycle cancels exact jink generation on missing/changed/protected seats, retiring owned temporary waypoint without replacement movement. No new timer/scan or altered reverse/route ownership contract.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleCrewAvailable.sqf": "23a5e5eb6ba92fcd990ef316a4f8a75ee83a4298bdc7da8d194e8c6b871a6747",
+      "addons/vehicles/functions/cortexVehicleJink.sqf": "99224910ac9a071bedf18100906d5233fd8cd77c490d763d6a20bc95eefcacdf",
+      "addons/vehicles/functions/cortexVehicles.sqf": "20c66e6d5934acdecd8cc124179efc8de3d0edf9d964e5b8846ef37d46f22c95",
+      "addons/main/CfgFunctions.hpp": "0d7bdef4f040ca80c0a34b3e645f97c21f993740772de767927cdd2a597c2e3c"
+    },
+    "validation": {
+      "tests": 1484,
+      "pipeline": ".qa/vehicle-jink-crew-sealed-build.log",
+      "independent": ".qa/vehicle-jink-crew-independent.log",
+      "candidate": ".qa/candidates/vehicle-jink-crew-13b4ff07",
+      "fingerprint": "55bbec43b54bdb706c58804298c6379adf1d08799ed94adaadb5549bf5a926ae",
+      "retainedAttempts": "vehicle-jink-crew-build.log failed missing coverage registration and two existing literal contracts; vehicle-jink-crew-final-build.log then failed stale generated status page. Both resolved; existing reverse/route assertions preserved. vehicle-jink-crew-validated-build.log passed before final strict missing-binding refusal. Final sealed log supersedes it."
+    },
+    "limits": "No physical escape, interruption latency, seat migration/HC, return to mission route or measured performance proof. Missing portable binding cancels, never reconstructs/replays permission. No new source parity or percentages."
   }
 }

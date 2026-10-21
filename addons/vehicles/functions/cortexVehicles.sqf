@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Active jinks retire when either original movement-control seat changes or gains a protected task.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Danger-derived hostile actions retain the original identity expiry/witness; close-range
  * crew safety uses native believed geometry, never the hidden enemy object position.
@@ -115,6 +116,7 @@ if (_vehicleMove isNotEqualTo []) then {
         private _orientThreatInvalid=false;
         private _orientInputChanged=false;
         private _vehicleRouteChanged=false;
+        private _vehicleCrewChanged=false;
         if (_movementOwner == "VEHICLE_ORIENT") then {
             private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
             private _orientVehicle=_orientState param [1,objNull,[objNull]];
@@ -213,7 +215,15 @@ if (_vehicleMove isNotEqualTo []) then {
             // future node is interruption and must never be reported as objective completion.
             _vehicleRouteChanged=!_reverseActive && {!_routeOwned}
                 && {count _moveWaypoint != 2 || {(_moveWaypoint select 1) >= currentWaypoint _group}};
+            if (_movementOwner == "VEHICLE_JINK") then {
+                private _jinkCrew=_moveOperation getOrDefault ["vehicleJinkCrew",[]];
+                _vehicleCrewChanged=!(_jinkCrew isEqualType []) || {count _jinkCrew != 2};
+                if (!_vehicleCrewChanged) then {
+                    _vehicleCrewChanged=!([_group,_jinkCrew select 0,_jinkCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable);
+                };
+            };
             _activeVehicleMove = _reverseActive || {_routeOwned && {time < (_vehicleMove select 1)}};
+            if (_vehicleCrewChanged) then {_activeVehicleMove=false};
         };
         if (!_activeVehicleMove) then {
             private _finishedOwner=_vehicleMove param [0,""];
@@ -249,7 +259,9 @@ if (_vehicleMove isNotEqualTo []) then {
                             call CBE_fnc_OperationRelease;
                     };
                 } else {
-                    if (_vehicleRouteChanged) then {
+                    if (_vehicleCrewChanged) then {
+                        [_group,_generation,"VEHICLE_CREW_CHANGED"] call CBE_fnc_OperationCancel;
+                    } else {if (_vehicleRouteChanged) then {
                         [_group,_generation,"VEHICLE_ROUTE_REPLACED"] call CBE_fnc_OperationCancel;
                     } else {
                     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
@@ -259,7 +271,7 @@ if (_vehicleMove isNotEqualTo []) then {
                         && {vehicle _anchor distance2D _position <= (_intent getOrDefault ["radius",25])};
                     [_group,_generation,["INCOMPLETE","COMPLETE"] select _arrived,
                         ["VEHICLE_MOVE_NO_ARRIVAL","OBJECTIVE_REACHED"] select _arrived] call CBE_fnc_OperationRelease;
-                    };
+                    };};
                 };
                 _state deleteAt "vehicleOperationGeneration";
             };

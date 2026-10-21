@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Both current control seats are checked and bound for admission, commit and continuation.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Purpose: Starts one short terrain-checked escape by an intact armed ground vehicle after a close
  * hostile, hit or explosion danger generation, without becoming a persistent driving controller.
@@ -45,6 +46,8 @@ if (isNull _driver || {!alive _driver} || {!local _driver} || {isPlayer _driver}
 if (!([_driver] call CBE_fnc_CortexCombatEffective)
     || {!(_driver checkAIFeature "MOVE")} || {!(_driver checkAIFeature "PATH")}
     || {!([_driver] call CBE_fnc_CortexActorFireTaskAvailable)}) exitWith {["DRIVER_TASK"] call _refuse};
+private _jinkSeats=[_driver,effectiveCommander _vehicle];
+if (!([_group,_vehicle,_jinkSeats] call CBE_fnc_CortexVehicleCrewAvailable)) exitWith {["CREW_TASK"] call _refuse};
 // A vehicle carrying passengers first owes them the normal task-safe dismount decision. The jink
 // is reserved for a crewed fighting platform and cannot drag an unloading squad away.
 if ((fullCrew [_vehicle,"",false]) findIf {
@@ -69,6 +72,7 @@ private _candidates=[];
 private _route=[_origin,_candidates,_threatPosition,[],_threat,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {["NO_ROUTE"] call _refuse};
 private _destination=+(_route select -1);
+if (!([_group,_vehicle,_jinkSeats] call CBE_fnc_CortexVehicleCrewAvailable)) exitWith {["CREW_CHANGED"] call _refuse};
 if !([_group,"VEHICLE_JINK",true,serverTime+25] call CBE_fnc_CortexOwnershipLease) exitWith {["LEASE_BUSY"] call _refuse};
 private _operation=[_group,"VEHICLE_JINK",_threat,crew _vehicle,[_destination],"MOVING"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
@@ -76,6 +80,12 @@ if (count _operation == 0) exitWith {
     ["OPERATION_REFUSED"] call _refuse
 };
 private _generation=_operation get "generation";
+_operation set ["vehicleJinkCrew",[_vehicle,+_jinkSeats]];
+if (!([_group,_vehicle,_jinkSeats] call CBE_fnc_CortexVehicleCrewAvailable)) exitWith {
+    [_group,_generation,"VEHICLE_CREW_CHANGED"] call CBE_fnc_OperationCancel;
+    [_group,"VEHICLE_JINK",false] call CBE_fnc_CortexOwnershipLease;
+    ["CREW_CHANGED"] call _refuse
+};
 private _waypoint=[_group,_destination,25,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
