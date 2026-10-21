@@ -204,8 +204,10 @@ private _newLeases=[];
     private _applied=["MIDDLE","DOWN"] select (getSuppression _x > 0.55 && {_cause in ["HIT","SUPPRESSED"]});
     if (_prior != _applied) then {
         _x setUnitPosWeak _applied;
-        _newLeases pushBack [_x,_prior,_applied,_generation,
-            _group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0]];
+        if (toUpperANSI unitPos _x == _applied) then {
+            _newLeases pushBack [_x,_prior,_applied,_generation,
+                _group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0]];
+        };
     };
 } forEach _candidates;
 if (_newLeases isEqualTo []) exitWith {false};

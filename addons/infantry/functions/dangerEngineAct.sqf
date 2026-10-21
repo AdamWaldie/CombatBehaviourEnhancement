@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Weak-posture ownership is recorded only after native confirmation. Group-hide proof survives
+ * a refused/unconfirmed actor handoff and retires only after its original baseline is carried or restored.
  * Native fleeing which begins after FSM classification vetoes non-forced action mutation.
  * Purpose: Apply one bounded, low-priority danger stance without taking movement, target or firing ownership or arresting a committed operation.
  * Locality / Authority: Runs only for the local AI soldier after ownership and order classification.
@@ -172,6 +174,7 @@ if (_desiredStance != "") then {
     // Transfer its original baseline before the actor FSM acquires this soldier; otherwise the
     // actor captures a temporary crouch/prone value and restores that value permanently later.
     private _groupLeases=_group getVariable ["CBE_Danger_GroupHideLeases",[]];
+    private _groupTransfer=[];
     private _groupLeaseIndex=_groupLeases findIf {(_x param [0,objNull]) == _actor};
     if (_groupLeaseIndex >= 0) then {
         private _groupLease=_groupLeases select _groupLeaseIndex;
@@ -179,9 +182,8 @@ if (_desiredStance != "") then {
             && {count _groupLease == 6} && {(_groupLease select 4) == (_group getVariable ["CBE_OperationGeneration",0])
                 && {(_groupLease select 5) == (_group getVariable ["CBE_AIPass_Epoch",0])}}) then {
             _priorStance=_groupLease param [1,_currentStance,[""]];
+            if (_priorStance in ["AUTO","UP","MIDDLE","DOWN"]) then {_groupTransfer=+_groupLease};
         };
-        _groupLeases deleteAt _groupLeaseIndex;
-        _group setVariable ["CBE_Danger_GroupHideLeases",_groupLeases];
     };
     private _mayApply=true;
     if (count _lease > 0 && {count _lease != 6}) then {
@@ -204,6 +206,9 @@ if (_desiredStance != "") then {
         // Weak stance is deliberate: native combat AI and the active movement owner can override it
         // immediately. CBE records the exact applied value only so cleanup remains generation-safe.
         if (_currentStance != _desiredStance) then {_actor setUnitPosWeak _desiredStance};
+        // A lower-priority request is not ownership of the resulting native rule.
+        // Keep the old actor/group proof when commander/script priority prevents this request.
+        if (toUpperANSI unitPos _actor == _desiredStance) then {
         // Renew proof without reissuing the same engine command. When the authored baseline
         // already equals the desired stance, CBE changed nothing and owns no restoration.
         if (_priorStance != _desiredStance) then {
@@ -211,6 +216,15 @@ if (_desiredStance != "") then {
                 _group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_group]];
         } else {
             _actor setVariable ["CBE_Danger_EngineStanceLease",nil];
+        };
+        // Publish the incoming original baseline (or confirm it restored) before consuming
+        // exact outgoing proof. A different actor receipt cannot borrow this baseline.
+        if (_groupTransfer isNotEqualTo [] && {_priorStance == (_groupTransfer select 1)}
+            && {(_group getVariable ["CBE_Danger_GroupHideLeases",[]]) isEqualTo _groupLeases}
+            && {(_groupLeases param [_groupLeaseIndex,[]]) isEqualTo _groupTransfer}) then {
+            _groupLeases deleteAt _groupLeaseIndex;
+            _group setVariable ["CBE_Danger_GroupHideLeases",_groupLeases];
+        };
         };
     };
 };

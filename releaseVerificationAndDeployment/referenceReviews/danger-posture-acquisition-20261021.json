@@ -1,0 +1,44 @@
+{
+  "baseline": "24cc8d78",
+  "scope": "LAMBS assessment intent comparison and exact group-to-actor weak-posture acquisition; not whole LAMBS parity",
+  "upstreamEvidence": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84"
+  },
+  "sourceIntent": [
+    "brain selects immediate/hide/engage/assess; an empty queue becomes assessment. brainAssess yields suppression, PATH-disabled, STEALTH, STOP and BLUE/GREEN, otherwise uses existing group memory before rare indoor reposition or weak crouch.",
+    "doAssaultMemory selects nearby memory with lower-floor preference, retains busy near-destination work and removes close visible points; it can also issue whole-group doFollow when memory drains. CBE must retain useful bounded observation/continuation through its existing operation owner, not copy a competing raw movement writer."
+  ],
+  "comparisonLimit": "CBE group tick contact/building/actor dispatch and observation investigation call sites inspected. Complete memory/assessment semantic parity remains unproven; no new autonomous assessment movement added.",
+  "finding": "DangerEngineAct deleted a matching group-hide lease before _mayApply and before native posture application. Refused incoming actor work could therefore erase the original group baseline. Both actor/group acquisition also recorded requested weak posture without native-value confirmation.",
+  "implementation": [
+    "Actor stages exact current group lease without consuming it. Confirmation of native requested rule gates actor receipt publication/renewal.",
+    "Outgoing group proof retires only after incoming baseline publication or confirmed original baseline restoration, with matching original prior, exact group snapshot and exact selected lease. Refusal retains outgoing proof.",
+    "Group-hide admission records only a requested rule observed applied by its existing unitPos boundary. Stronger/native authored stance remains unchanged on refusal.",
+    "No movement change, new worker, new timer, scan, event intake change or deadline renewal on unconfirmed acquisition. Existing test updated from incorrect deletion-before-application ordering to confirmation/publication-before-consumption."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "26af9f058418d421ed475c1e3d5c93076fd3c502e4dd86f653b84c1b28acecb0",
+    "addons/infantry/functions/dangerGroupHideStep.sqf": "13199c0bec8e018254f92009b07eee5a085d48ba377fe7c8ac889180c1d4a1fc"
+  },
+  "engineReference": {
+    "url": "https://community.bistudio.com/wiki/setUnitPosWeak",
+    "verified": "Lowest-priority FSM position rule, below commanding-menu and setUnitPos scripted rules.",
+    "uncertainty": "Direct unitPos documentation fetch was403; documentation inspected does not establish all weak-rule readback timing. New acquisition checks reuse the same unitPos observation already required by cleanup, not proof of animation. Native weak-rule readback, unarmed actors and commanded/scripted priority matrix remain physical validation items."
+  },
+  "validation": {
+    "tests": 1484,
+    "compiledSQF": 393,
+    "focused": ".qa/danger-posture-acquire-focused.log 609 passed",
+    "fullOffline": ".qa/danger-posture-acquire-build.log",
+    "independent": ".qa/danger-posture-acquire-independent.log",
+    "candidate": ".qa/candidates/danger-posture-acquire-24cc8d78",
+    "fingerprint": "57fecfd347d66c3dbd261cc9aad33610bc57eda6c98d8d6525e1ccf13a3109d0"
+  },
+  "limits": [
+    "Audits paused; no Arma launch or physical posture/HC/priority/performance acceptance.",
+    "No complete assessment/memory parity or buildout percentage claim. Protected source unchanged; no upstream code copied.",
+    "Existing cleanup budgets still finite; retaining original proof does not guarantee eventual restoration."
+  ]
+}

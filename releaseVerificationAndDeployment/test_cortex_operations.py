@@ -10257,7 +10257,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_groupLeaseIndex=_groupLeases findIf',actor)
         self.assertIn('_priorStance=_groupLease param [1,_currentStance',actor)
         self.assertIn('_groupLeases deleteAt _groupLeaseIndex',actor)
-        self.assertLess(actor.index('_groupLeases deleteAt'),actor.index('_actor setUnitPosWeak'))
+        self.assertLess(actor.index('_actor setUnitPosWeak'),actor.index('_groupLeases deleteAt'))
+        acquisition=actor.split('if (_mayApply) then {',1)[1].split('private _stats=',1)[0]
+        confirm=acquisition.index('if (toUpperANSI unitPos _actor == _desiredStance) then {')
+        self.assertLess(confirm,acquisition.index('_actor setVariable ["CBE_Danger_EngineStanceLease"'))
+        self.assertLess(acquisition.index('_actor setVariable ["CBE_Danger_EngineStanceLease"'),acquisition.index('_groupLeases deleteAt'))
+        for proof in ('_groupTransfer isNotEqualTo []','_priorStance == (_groupTransfer select 1)',
+                      'isEqualTo _groupLeases','isEqualTo _groupTransfer'):
+            self.assertIn(proof,acquisition)
+        group_apply=group_hide.split('private _newLeases=[];',1)[1]
+        self.assertLess(group_apply.index('if (toUpperANSI unitPos _x == _applied) then {'),group_apply.index('_newLeases pushBack'))
 
     def test_actor_reservations_keep_mobile_danger_posture_including_indoor(self):
         actor=source('dangerEngineAct')
