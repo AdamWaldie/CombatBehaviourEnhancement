@@ -308,7 +308,6 @@ if (_mode == "START") exitWith {
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {false};
     // Native command, destination and actual engagement identity remain fixed until SELECT.
     // BUSY combat paths are observation-only; arbitrary individual MOVE tasks are never replaced.
-    private _members=(units _group) select [0,16];
     private _investigators=_group getVariable ["CBE_IndoorActor_Actors",[]];
     if (!(_investigators isEqualType []) || {count _investigators > 2}) exitWith {false};
     _investigators=_investigators select {
@@ -316,7 +315,7 @@ if (_mode == "START") exitWith {
             && {count (_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) > 0}
             && {!((_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) getOrDefault ["finished",true])}
     };
-    if (!(_actor in _members) || {count _investigators >= 2}) exitWith {false};
+    if (group _actor != _group || {count _investigators >= 2}) exitWith {false};
     private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
     if (_actor in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]])
         || {_actor in (_state getOrDefault ["supportHeld",[]])}) exitWith {false};

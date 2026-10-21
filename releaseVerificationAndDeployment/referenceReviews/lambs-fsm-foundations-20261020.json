@@ -808,5 +808,25 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "indoorRosterFairness20261021": {
+    "scope": "Original CBE individual indoor selection/admission defect; no new upstream parity claim.",
+    "finding": "Contact/body dispatch sampled only the first16 units; START independently rejected every actor outside that prefix. Discovery already prunes departed casualty investigators, so that initially suspected group reservation needed no change.",
+    "implementation": "Shared IndoorActorSample rotates <=16 indices over one native group roster snapshot and freezes its cursor at2 live investigators. Contact/body dispatch share the local cursor; START retains current group/two-investigator/native/owner/lease admission without a prefix-membership restriction. Body-clue cadence is consumed before sampling, including empty/occupied selections; original clue/task expiry unchanged.",
+    "limits": "Stable roster sampling fairness only. Very large groups may not be fully sampled within one20s clue. Group composition changes can repeat samples. Actual movement, capacity turnover, JIP/HC and runtime performance unverified.",
+    "hashes": {
+      "addons/infantry/functions/indoorActorSample.sqf": "797600e5a791c1bc15d426292499cb3e1967cf8c4453e53ae416bfb5bb46084f",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "fd3e16e3eb874b095169c682dbfc74b8820fc4a7036695f59417d006bcb6681a",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "9d2e9f2b928f95725e10583670f25e5292d68f72d565c8267d974eccf8561547",
+      "addons/infantry/functions/indoorActorOperation.sqf": "5a5591746d4f6d63f1df6e72b665f6d1703cd4c9eb51e257aac406001ebc4bec"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/indoor-roster-rotation-build.log",
+      "independent": ".qa/indoor-roster-rotation-independent.log",
+      "candidate": ".qa/candidates/indoor-roster-rotation-ae7f9c89",
+      "fingerprint": "d158d897e646a6b23e48a5377466bf8de518390b671457721c82e772389ef3cc",
+      "physical": "unrun; audits paused"
+    }
   }
 }

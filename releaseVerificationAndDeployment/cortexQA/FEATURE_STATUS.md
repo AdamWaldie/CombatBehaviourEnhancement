@@ -58,7 +58,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | ART-SMOKE - Artillery smoke | 1 | 0 | 0 | `runArtillerySmoke.sqf` | 1 | implemented_partial |
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
-| CLEAR - Building clearance | 2 | 0 | 27 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
+| CLEAR - Building clearance | 2 | 0 | 28 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
 | UI - CBA configuration and diagnostics | 0 | 0 | 3 | `runClient.sqf` | 0 | implemented_partial |
 | LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 18 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
@@ -402,7 +402,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Team physically visits required positions and engages; inaccessible rooms produce INCOMPLETE, never cleared-by-timeout.
 
-**Automation and open work:** runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun.
+**Automation and open work:** runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun. Individual indoor dispatch rotates at most16 members across the full stable roster; full two-investigator occupancy freezes selection. Larger-group physical admission/fairness remains unrun.
 
 ### UI - CBA configuration and diagnostics
 

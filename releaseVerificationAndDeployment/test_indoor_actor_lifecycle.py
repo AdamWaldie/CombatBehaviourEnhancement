@@ -64,7 +64,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         start=s.split('if (_mode == "START") exitWith {',1)[1].split('private _current=',1)[0]
         for guard in ('CBE_Cortex_ActorMove','CBE_IndoorActor_Order','CBE_IndoorActor_Brain',
                       'CBE_Operation','CBE_fnc_IndoorActorNativeContext','CBE_IndoorActor_Cooldown',
-                      'serverTime-(_belief select 1) > 5','select [0,16]','count _investigators >= 2'):
+                      'serverTime-(_belief select 1) > 5','group _actor != _group','count _investigators >= 2'):
             self.assertIn(guard,start)
         self.assertIn('(serverTime+45) min ((_belief select 1)+30)',start)
         self.assertEqual(s.count('_actor doMove _node;'),1)
@@ -482,7 +482,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
 
     def test_natural_dispatch_is_bounded_and_does_not_claim_the_squad(self):
         s=(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text()
-        for guard in ('"indoorActors",8','select [0,16]','_admitted >= 2','knowsAbout _contact >= 1',
+        for guard in ('"indoorActors",8','CBE_fnc_IndoorActorSample','_admitted >= 2','knowsAbout _contact >= 1',
                       'distance2D (_belief select 0) <= (_range min 40)','CBE_AIPass_BuildingCombat_Range','CBE_IndoorActor_Cooldown',
                       'CBE_fnc_IndoorActorGroupAvailable','CBE_fnc_BuildingContactSelect',
                       '["contact",_contact]','["belief",_belief]'):
@@ -494,6 +494,38 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertLess(s.index('private _actors='),s.index('private _actionable='))
         self.assertLess(s.index('private _actionable='),s.index('call CBE_fnc_BuildingContactSelect'))
         self.assertIn('_enemies select [0,8]',s)
+        sample=(ROOT/'addons/infantry/functions/indoorActorSample.sqf').read_text()
+        self.assertIn('private _budget=_count min 16;',sample)
+        self.assertIn('((_cursor+_offset) mod _count)',sample)
+        self.assertLess(sample.index('if (_active >= 2)'),sample.index('indoorActorCursor'))
+        self.assertIn('count _investigators > 2',sample)
+        self.assertNotIn('doMove',sample)
+        operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
+        self.assertNotIn('private _members=(units _group) select [0,16]',operation)
+        observation=(ROOT/'addons/infantry/functions/indoorObservationDispatch.sqf').read_text()
+        self.assertLess(observation.index('"bodyBuilding",8'),observation.index('call CBE_fnc_IndoorActorSample'))
+        def window(roster,cursor,active):
+            if active>=2 or not roster:
+                return [],cursor
+            cursor%=len(roster)
+            size=min(16,len(roster))
+            return [roster[(cursor+i)%len(roster)] for i in range(size)],(cursor+size)%len(roster)
+        for size in (0,1,12,17,32,48,65):
+            roster=list(range(size)); cursor=0; seen=set()
+            for _ in range((size+15)//16):
+                batch,cursor=window(roster,cursor,0)
+                self.assertLessEqual(len(batch),16)
+                self.assertEqual(len(set(batch)),len(batch))
+                seen.update(batch)
+            self.assertEqual(seen,set(roster))
+        roster=list(range(32)); _,cursor=window(roster,0,0)
+        for _ in range(8):
+            batch,cursor=window(roster,cursor,2)
+            self.assertEqual(batch,[])
+            self.assertEqual(cursor,16)
+        batch,cursor=window(roster,cursor,1)
+        self.assertEqual(batch,list(range(16,32)))
+
         self.assertIn('_actors findIf',s)
         self.assertIn('[_group,_actionable,_range]',s)
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()

@@ -6,7 +6,7 @@
  * Native INIT/PLANNING/REPLAN/BUSY work is not an idle actor available for this clue.
  * Locality/authority: Current group owner only. Existing indoor actor FSM owns all movement.
  * Repeat/JIP: One public clue with original twenty-second expiry and owner epoch; no replay on gain.
- * At most one bounded selection per eight seconds, four nearby buildings and sixteen squad actors.
+ * At most one bounded selection per eight seconds, four nearby buildings and sixteen rotating squad actors.
  * At most two investigators use the existing per-group indoor actor limit. No permanent worker.
  * Witness availability is not a live execution lease; current investigators retain their own gates.
  * The original clue remains until expiry; physically visited nodes guide later eligible actors
@@ -47,7 +47,8 @@ if ([_state,"bodyBuilding"] call CBE_fnc_CortexCooldown
     || {behaviour leader _group in ["STEALTH","CARELESS"]}
     || {combatMode _group in ["BLUE","GREEN"]}
     || {leader _group distance2D _position > 100}) exitWith {0};
-private _actors=((units _group) select [0,16]) select {
+[_state,"bodyBuilding",8] call CBE_fnc_CortexCooldown;
+private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
     local _x && {!isPlayer _x} && {_x != leader _group} && {isNull objectParent _x}
         && {[_x] call CBE_fnc_CortexCombatEffective} && {_x distance2D _position <= 50}
         && {!(behaviour _x in ["STEALTH","CARELESS"])}
@@ -67,7 +68,7 @@ private _actors=((units _group) select [0,16]) select {
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
 };
 if (_actors isEqualTo []) exitWith {0};
-[_state,"bodyBuilding",8] call CBE_fnc_CortexCooldown;
+
 // Static navigation positions are candidates, not hostile occupancy or accessibility proof.
 // Event altitude need not be guessed: choose a real low-floor candidate in absolute ASL.
 private _buildings=nearestObjects [_position,["House"],15,true];

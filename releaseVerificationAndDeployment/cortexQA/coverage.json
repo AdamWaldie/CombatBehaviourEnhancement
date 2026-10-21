@@ -1440,7 +1440,7 @@
         "20260929-184640: only one of four room positions visited; clearance incomplete. Outside-start prerequisite also failed, so fresh-group cases are required.",
         "20261011-231043-192: 2/6-person clearance and handover pass; active 12-person native replacement order remains unaccepted."
       ],
-      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun.",
+      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun. Individual indoor dispatch rotates at most16 members across the full stable roster; full two-investigator occupancy freezes selection. Larger-group physical admission/fairness remains unrun.",
       "executable_sources": [
         "runBuildingComparison.sqf",
         "runIndoorActors.sqf",
@@ -1474,7 +1474,8 @@
         "addons/infantry/functions/cortexClearSettingsApply.sqf",
         "addons/infantry/functions/indoorObservationDispatch.sqf",
         "addons/infantry/functions/cortexRouteDoors.sqf",
-        "addons/infantry/functions/buildingActorHoldOwned.sqf"
+        "addons/infantry/functions/buildingActorHoldOwned.sqf",
+        "addons/infantry/functions/indoorActorSample.sqf"
       ]
     },
     {

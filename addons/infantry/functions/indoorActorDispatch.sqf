@@ -7,7 +7,7 @@
  * Locality/authority: Current group owner only. The actor executor revalidates all ownership,
  * native orders and feature gates before movement; this dispatcher issues no movement itself.
  * Repeat/JIP: At most one building selection per eight seconds per owner-local group state.
- * Sixteen actors and eight native beliefs are checked before the existing three-roof-query selector.
+ * Sixteen rotating actors and eight native beliefs are checked before the existing three-roof-query selector.
  * Shared native-task preflight adds no visibility/geometry query and grants no command authority.
  * Actor journals, hard deadlines and cooldowns prevent replay; locality does not resume old jobs.
  * Shared reservation admission permits valid expired markers but refuses live or malformed records.
@@ -27,7 +27,7 @@ if (!(_range isEqualType 0) || {!finite _range} || {_range <= 0}) exitWith {0};
 [_state,"indoorActors",8] call CBE_fnc_CortexCooldown;
 // Establish the available roster before choosing a contact. Otherwise an unavailable
 // nearest contact can consume the selection while another nearby belief is actionable.
-private _actors=((units _group) select [0,16]) select {
+private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
     local _x && {!isPlayer _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {isNull objectParent _x} && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
         // Cheap executor prerequisites keep ineligible nearby actors from consuming
