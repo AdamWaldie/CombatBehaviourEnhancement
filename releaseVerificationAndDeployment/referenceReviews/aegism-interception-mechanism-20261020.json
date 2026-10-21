@@ -245,5 +245,18 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "measuredAimCalibration20261021": {
+    "baseline": "85871dba",
+    "sourceIntent": "Selected source actual-round signed miss projection, decayed ammo/class calibration and outlier rejection. Original CBE implementation uses bounded consistent-median estimates rather than copying source weighted estimator or projectile effects. Protected ciwsSpot hash unchanged.",
+    "implementation": "CortexAASpot reads or samples owner-local cache. A captured native Fired row freezes actual shot time/target position/velocity/actual barrel origin and applied aim correction. Once per round, an interior same-time relative pass with<=0.1s gap can sample signed transverse/vertical error. Both projectiles local, current episode owner/epoch/station required. More than2m deviation from shot-time constant-velocity track,6m miss or flight outside0..2s refuses. Nearly radial motion cannot supply lead estimate.",
+    "learning": "At most8 ammo/munition-class rows, scoped to owner/group epoch/gunner/weapon/muzzle/magazine. Four estimates/axis retained<=30s. Need3 estimates and spread<=0.02s or0.002rad; median update gain0.2 with per-sample caps0.005s/0.0005rad and total0.05s/0.005rad. Rejected axes cannot reapply an old median. Corrections halve30s/expire60s, observer cleanup clears cache. No replay, timer, skill/velocity/damage edits or new firing authority. Later aim-point correction only.",
+    "nativeKinematics": "Honor weapon or selected muzzle positive initSpeed as fixed speed and negative value as magazine-speed multiplier; zero retains magazine speed. Honor finite configured ammunition coefGravity, default1, supported0..4. Existing solver still constant-velocity lead/approximate gravity, no direct drag solver. Unsupported speed/gravity refuse before operation.",
+    "cost": "Existing4platform/8round/8s/160step bounds unchanged. One calibration attempt/captured real round; <=8row metadata lookup and<=4sample median/axis. No extra worker/world/geometry scan. Snapshot actual barrel origin once/captured shot. Runtime cost unmeasured.",
+    "validation": "All1482 existing tests/full offline HEMTT/SQF/config/FSM/docs/coverage/package passed; independent verify passed. Unsigned .qa/candidates/aa-calibration-85871dba fingerprint b813089ca688b01a0d516f24f98e38dcb00d2bad1466e98032b64f519ec7ecda. Logs .qa/aa-calibration-build.log and .qa/aa-calibration-independent.log. Existing regression includes insufficient/inconsistent sample refusal, bounded positive/negative median updates, decay and source integration.152settings/382sources are bookkeeping. No actual calibration/convergence/accuracy/balance/performance proof.",
+    "remaining": "Physical convergence/evasion rejection/native aim and repeated handback, full ballistics, cross-owner effects/submunition payload support, layered sensing/allocation and5%/10% performance acceptance. Rappelling provider handover remains incomplete; current provider main and child workers still lack complete finite quiescence/abort acknowledgement. No module exposed or provider code rewritten by this batch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

@@ -51,6 +51,7 @@ _vehicle setVariable ["CBE_AA_LastShot",nil];
 _vehicle setVariable ["CBE_AA_LastFireAt",nil];
 _vehicle setVariable ["CBE_AA_ObserveDue",nil];
 _vehicle setVariable ["CBE_AA_MissileWarning",nil];
+_vehicle setVariable ["CBE_AA_Corrections",nil];
 private _tracked=missionNamespace getVariable ["CBE_AA_ObservedVehicles",[]];
 _tracked=_tracked-[_vehicle,objNull];
 missionNamespace setVariable ["CBE_AA_ObservedVehicles",_tracked];

@@ -9,6 +9,7 @@
  * eight observed rounds and 160 steps. New warnings cannot renew an active episode. No JIP replay.
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
  * The fire lease expires at the original deadline even after discarded cleanup.
+ * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
  * 2 payload ARRAY,[] (STEP: [job state HASHMAP]; SHOT: native Fired arguments).
@@ -67,8 +68,14 @@ if (_mode == "SHOT") exitWith {
         || {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") != "shotbullet"}) exitWith {false};
     private _rounds=_state get "rounds";
     if (count _rounds >= 8 || {_rounds findIf {(_x select 0) == _round} >= 0}) exitWith {false};
+    private _shotContext=+(_state getOrDefault ["aimContext",[]]);
+    if (count _shotContext == 5) then {
+        _shotContext set [0,time];_shotContext set [1,getPosASL (_state get "missile")];
+        _shotContext set [2,velocity (_state get "missile")];
+        _shotContext set [4,_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "barrel","Memory"])];
+    };
     _rounds pushBack [_round,getPosASL _round,getPosASL (_state get "missile"),time,
-        getPosASL _round,vectorDir (_state get "missile"),vectorUp (_state get "missile")];
+        getPosASL _round,vectorDir (_state get "missile"),vectorUp (_state get "missile"),_shotContext,false];
     _state set ["shots",(_state get "shots")+1];
     true
 };
@@ -105,6 +112,15 @@ if (_mode == "START") exitWith {
     if (!isNil "_lock" && {!(_lock isEqualType objNull && {isNull _lock})}) exitWith {false};
     private _magazine=_observation get "loadedMagazine";
     private _speed=getNumber (configFile >> "CfgMagazines" >> _magazine >> "initSpeed");
+    private _weaponConfig=configFile >> "CfgWeapons" >> (_observation get "loadedWeapon");
+    private _muzzleConfig=_weaponConfig >> (_observation get "loadedMuzzle");
+    private _override=getNumber (_weaponConfig >> "initSpeed");
+    if (isNumber (_muzzleConfig >> "initSpeed")) then {_override=getNumber (_muzzleConfig >> "initSpeed")};
+    if (_override > 0) then {_speed=_override};
+    if (_override < 0) then {_speed=_speed*(-_override)};
+    private _ammoConfig=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+    private _gravity=if (isNumber (_ammoConfig >> "coefGravity")) then {getNumber (_ammoConfig >> "coefGravity")} else {1};
+    if (!finite _speed || {!finite _gravity} || {_gravity < 0} || {_gravity > 4}) exitWith {false};
     private _turretConfig=configOf _vehicle >> "Turrets";
     private _main=("true" configClasses _turretConfig) param [0,configNull];
     private _barrel=getText (_main >> "gunBeg");
@@ -117,7 +133,7 @@ if (_mode == "START") exitWith {
     _state=createHashMapFromArray [["vehicle",_vehicle],["group",_group],["gunner",_gunner],
         ["token",_token],["turret",_turret],["missile",_warning select 4],["source",_warning select 5],
         ["weapon",_observation get "loadedWeapon"],["muzzle",_observation get "loadedMuzzle"],
-        ["magazine",_magazine],["speed",_speed],["barrel",_barrel],["optic",_optic],
+        ["magazine",_magazine],["speed",_speed],["gravity",_gravity],["barrel",_barrel],["optic",_optic],
         ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
         ["route",[_group] call CBE_fnc_NativeOrderReceipt],["command",currentCommand _gunner],
         ["target",getAttackTarget _gunner],["assigned",assignedTarget _gunner],
@@ -192,11 +208,21 @@ for "_i" from ((count _rounds)-1) to 0 step -1 do {
             private _miss=vectorMagnitude (_start vectorAdd (_delta vectorMultiply _fraction));
             private _best=_state getOrDefault ["closestPass",-1];
             if (_best < 0 || {_miss < _best}) then {_state set ["closestPass",_miss]};
+            if (!(_row select 8) && {_dt <= 0.1} && {_fraction > 0} && {_fraction < 1}) then {
+                _row set [8,true];
+                private _context=_row select 7;
+                if (count _context == 5) then {
+                    private _passTarget=(_row select 2) vectorAdd ((_targetPos vectorDiff (_row select 2)) vectorMultiply _fraction);
+                    private _error=_start vectorAdd (_delta vectorMultiply _fraction);
+                    private _flight=(_row select 3)+_dt*_fraction-(_context select 0);
+                    [_state,"SAMPLE",[_error,_passTarget,_flight,_context]] call CBE_fnc_CortexAASpot;
+                };
+            };
             // Broad proximity only admits the exact, armed same-owner fuse policy.
             if (_miss <= 5 && {[_state,_row,_roundPos,_targetPos] call CBE_fnc_CortexAAInterceptEffect}) then {
                 _effectRequested=true;
             } else {
-                _rounds set [_i,[_round,_roundPos,+_targetPos,time,_row select 4,vectorDir _missile,vectorUp _missile]];
+                _rounds set [_i,[_round,_roundPos,+_targetPos,time,_row select 4,vectorDir _missile,vectorUp _missile,_row select 7,_row select 8]];
             };
         };
     };
@@ -231,7 +257,18 @@ if (!finite _tof || {_tof <= 0} || {_tof > 2} || {abs speed _vehicle > 3}) exitW
     ["NO_FINITE_SOLUTION"] call _finish;-1
 };
 private _aim=_targetPos vectorAdd (_velocity vectorMultiply _tof);
-_aim set [2,(_aim select 2)+0.5*9.80665*_tof*_tof];
+_aim set [2,(_aim select 2)+0.5*9.80665*(_state get "gravity")*_tof*_tof];
+private _correction=[_state] call CBE_fnc_CortexAASpot;
+private _los=_origin vectorFromTo _targetPos;
+private _cross=_velocity vectorDiff (_los vectorMultiply (_velocity vectorDotProduct _los));
+private _crossMagnitude=vectorMagnitude _cross;
+private _up=[0,0,1] vectorDiff (_los vectorMultiply (_los select 2));
+if (_crossMagnitude >= 5) then {
+    _aim=_aim vectorAdd (_cross vectorMultiply (_correction select 0));
+    private _along=_cross vectorMultiply (1/_crossMagnitude);
+    _up=_up vectorDiff (_along vectorMultiply (_up vectorDotProduct _along));
+};
+if (vectorMagnitude _up > 0.1) then {_aim=_aim vectorAdd ((vectorNormalized _up) vectorMultiply ((_correction select 1)*_range))};
 private _observation=createHashMap;
 if (!([_vehicle,_gunner,objNull,_observation,false,true] call CBE_fnc_CortexGroundFireReady)
     || {(_observation get "loadedWeapon") != (_state get "weapon")}
@@ -241,6 +278,7 @@ if (!([_vehicle,_gunner,objNull,_observation,false,true] call CBE_fnc_CortexGrou
 private _camera=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "optic","Memory"]);
 private _point=_aim vectorAdd (_camera vectorDiff _origin);
 _vehicle lockCameraTo [_point,_turret,true];_state set ["applied",+_point];
+_state set ["aimContext",[time,+_targetPos,+_velocity,+_correction,+_origin]];
 private _direction=_vehicle weaponDirection (_state get "weapon");
 private _aligned=(_direction vectorCos (_origin vectorFromTo _aim)) >= cos 0.5;
 if (_aligned && {time >= (_state get "nextFire")} && {(_state get "attempts") < 16}

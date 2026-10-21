@@ -8,7 +8,7 @@
  * Repeat/JIP: One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
  * turning over5deg, submunition payloads or cross-owner projectiles refuse without effects.
  * Arguments: 0 episode HASHMAP,empty; 1 captured row ARRAY,empty, [round,previous round ASL,
- * previous missile ASL,time,shot origin ASL,previous missile direction,previous missile up];
+ * previous missile ASL,time,shot origin ASL,previous missile direction,previous missile up,shot context,spot attempted];
  * 2 current round ASL ARRAY,[]; 3 current missile ASL ARRAY,[].
  * Return: BOOL,true only when triggerAmmo was requested; not physical destruction/interception proof.
  * Current caller: CortexAAIntercept STEP after its owner/task/ROE and temporal admission.
@@ -16,7 +16,7 @@
  */
 params [["_episode",createHashMap,[createHashMap]],["_row",[],[[]]],
     ["_roundPos",[],[[]]],["_targetPos",[],[[]]]];
-if (remoteExecutedOwner > 0 || {count _row != 7}) exitWith {false};
+if (remoteExecutedOwner > 0 || {count _row != 9}) exitWith {false};
 _row params ["_round","_previousRound","_previousMissile","_at","_origin","_previousDir","_previousUp"];
 private _vehicle=_episode getOrDefault ["vehicle",objNull];
 private _missile=_episode getOrDefault ["missile",objNull];

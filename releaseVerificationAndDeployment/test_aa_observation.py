@@ -134,6 +134,35 @@ class AAObservation(unittest.TestCase):
         self.assertFalse(observed_pass((-1,0.2,0),(1,0.2,0),0.1))
         self.assertFalse(observed_pass((-1,0,0),(-0.01,0,0),0.1))
         self.assertFalse(observed_pass((0,0,0),(0,0,0),0.1))
+        spot=(ROOT/'addons/vehicles/functions/cortexAASpot.sqf').read_text()
+        for guard in ('!local _missile','select [0,8]','count _rows > 8','count _samples > 4',
+                      'count _samples < 3','_age <= 60','2^(-_age/30)',
+                      'time-(_x select 1) <= 30','_leadAdded','_elevationAdded',
+                      'vectorMagnitude _miss > 6','_flight > 2','> 2}',
+                      '0.005','0.0005','0.05'):
+            self.assertIn(guard,spot)
+        for forbidden in ('setSkill','setVelocity','triggerAmmo','doFire','lockCameraTo','spawn','waitUntil','remoteExecCall'):
+            self.assertNotIn(forbidden,spot)
+        self.assertIn('[_state,"SAMPLE"',intercept)
+        self.assertIn('_row set [8,true]',intercept)
+        self.assertIn('[_state] call CBE_fnc_CortexAASpot',intercept)
+        self.assertIn('if (_override > 0) then {_speed=_override}',intercept)
+        self.assertIn('if (_override < 0) then {_speed=_speed*(-_override)}',intercept)
+        self.assertIn('coefGravity',intercept)
+        self.assertIn('CBE_AA_Corrections",nil',source)
+        # Calibration invariants: insufficient/conflicting evidence leaves aim alone;
+        # three coherent corrections move toward the measured bias with bounded gain.
+        import statistics
+        def adjust(values,current,step):
+            if len(values)<3 or max(values)-min(values)>4*step:return current
+            change=(statistics.median(values)-current)*0.2
+            return current+max(-step,min(step,change))
+        self.assertEqual(adjust([0.02],0,0.005),0)
+        self.assertEqual(adjust([-0.05,0,0.05],0,0.005),0)
+        self.assertAlmostEqual(adjust([0.019,0.02,0.021],0,0.005),0.004)
+        self.assertAlmostEqual(adjust([-0.005,-0.0045,-0.004],0,0.0005),-0.0005)
+        self.assertAlmostEqual(2**(-30/30),0.5)
+
         # Analytical geometry fixtures: an observed relative segment crosses zero at
         # its midpoint; temporal gaps must be rejected by the production boundary.
         relative_start=(-10.0,1.0,0.0);relative_end=(10.0,1.0,0.0)
