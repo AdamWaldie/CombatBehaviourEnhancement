@@ -4,7 +4,7 @@
  * lies inside the complete firing cone, including near a target beyond 600 metres.
  * One rectangular native area query covers the full segment and maximum cone width. It includes
  * mounted people; the shooter's own platform and its occupants are excluded. Every other live
- * person or land vehicle is projected in ASL from two metres ahead to ten metres beyond the target,
+ * person or land vehicle is projected in ASL from the shooter's forward plane to ten metres beyond the target,
  * with the existing two-metre plus approximately five-degree radial margin.
  * Optional actual loaded-magazine metadata adds a config-based aimpoint blast veto in
  * the same query: max12m/four times indirectHitRange for damaging explosive ammo, <=250m.
@@ -70,7 +70,7 @@ _candidates findIf {
             || {_platform != _shooter && {vehicle _other == _platform}};
         private _offset=_position vectorDiff _from;
         private _along=_offset vectorDotProduct _direction;
-        _blastUnsafe || {!_ownPlatform && {_along > 2} && {_along < _length+10}
+        _blastUnsafe || {!_ownPlatform && {_along > 0} && {_along < _length+10}
             && {vectorMagnitude (_offset vectorDiff (_direction vectorMultiply _along)) < 2+_along*0.087}}
     };
 } < 0

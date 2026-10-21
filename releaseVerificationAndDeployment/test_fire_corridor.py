@@ -13,6 +13,8 @@ class FireCorridorTests(unittest.TestCase):
                        'count _candidates > 64','vehicle _other == _platform'):
             self.assertIn(marker,code)
         self.assertEqual(code.count('nearEntities'),1)
+        self.assertIn('_along > 0',code)
+        self.assertNotIn('_along > 2',code)
         for proof in ('_coneWidth max _safetyRadius','indirectHitRange','12 max (4*_range)',
                       '_safetyRadius > 250','_position vectorDistance _target <= _safetyRadius',
                       '_blastUnsafe || {!_ownPlatform'):
@@ -34,7 +36,7 @@ class FireCorridorTests(unittest.TestCase):
             width=2+(length+10)*0.087
             centre_y=length*axis[1]/2
             half_y=length*axis[1]/2+width+10
-            for along in (2.1,600,1209.9):
+            for along in (0.01,0.5,1.99,2.1,600,1209.9):
                 radial=(2+along*0.087)*0.999
                 for sign in (-1,1):
                     position=tuple(along*a+sign*radial*p for a,p in zip(axis,perpendicular))

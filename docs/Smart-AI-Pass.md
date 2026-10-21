@@ -2239,3 +2239,6 @@ Artillery fix generation observes existing native knowledge and line of sight wi
 
 
 Contact summarisation reuses one leader-to-belief distance sample for coarse range admission and ranking. It retains native candidate sorting, stable tie indices, the eight-contact shortlist and eight-member personal-observer refinement. Different observers still supply their own native belief positions; no distance is cached across calls or used as a live hostile transform. This removes a duplicate native distance read for each admitted coarse contact without introducing a scripted heap, additional scan or worker. Native target-list cost and the overall performance budget remain unmeasured.
+
+
+The shared scripted-fire corridor now checks protected actors immediately ahead of the shooter, including within the first two metres. The shooter, own platform and its occupants keep their existing cone exemption; allies on other platforms, civilians and captives do not. The existing query area, 64-candidate refusal, radial margin and explosive aimpoint checks remain unchanged. This closes a point-based close-range gap without adding a query or disabling native firing. It is not a guarantee of projectile, hull or future-motion safety; physical tight-formation and mounted-fire validation remain outstanding.
