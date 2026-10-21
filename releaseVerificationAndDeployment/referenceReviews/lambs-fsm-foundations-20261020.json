@@ -1095,5 +1095,14 @@
     },
     "validation": ".qa/recall-native-task-build.log; .qa/recall-native-task-doc-repack.log; .qa/recall-native-task-independent.log",
     "limits": "Active drill roster native-flight handling remains separate; no physical acceptance, eventual rejoin or performance claim. No new controller, scan or timer."
+  },
+  "activeDrillNativeFlight20261021": {
+    "baseline": "72d21971",
+    "source": "addons/infantry/functions/cortexFlankStep.sqf",
+    "sha256": "ea837e173906ee8cde949a4209606a8e02e9c94ff78b9dd849720f57eb7fd0d9",
+    "intent": "Native flight/care takes movement priority; release drill-owned PATH before roster replacement without issuing native movement",
+    "method": "Existing actorTaskFree guards movement, fit roster and atomic publication. Existing disabled journal walked once per group callback; no global scan or new worker. Only PATH records on local native-task actors are restored and confirmed before retiring.",
+    "validation": ".qa/drill-native-task-build.log; .qa/drill-native-task-independent.log",
+    "limits": "No physical acceptance or measured performance. Returning actor can be reserve, no guaranteed immediate/original role restoration. Native settings same-value ownership follows existing drill journal contract."
   }
 }

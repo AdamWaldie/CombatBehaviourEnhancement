@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight yields active movement and replacement admission. Exact drill-owned PATH
+ * restrictions are released for fleeing/queued-care actors without issuing movement.
  * Ordinary new-bound admission rechecks main-muzzle ammunition for the surviving mover
  * minimum and at least one cover actor. Road-exit/consolidation and coordinated roles retain
  * their existing policy. No per-movement-sample inventory poll or forced reload is added.
@@ -270,7 +272,7 @@ private _actorTaskFree={
     params ["_actor"];
     private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     _free && {[_actor] call _nativeCommandAvailable} && {[_actor] call CBE_fnc_CortexCombatEffective}
-        && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {local _actor} && {!isPlayer _actor} && {group _actor == _group} && {isNull objectParent _actor}
         && {isNull remoteControlled _actor}
@@ -361,6 +363,22 @@ if (count _movementLease == 2 && {(_movementLease select 0) == "TACTICAL_DRILL"}
 // Rebuild depleted manoeuvre elements from the surviving squad inside this existing group job.
 // There is no casualty event handler or per-unit scheduler. A change during a live bound restarts
 // that bound from the same route point so spot indexes cannot drift after a casualty.
+// A native task must not inherit our cover PATH restriction. This callback has already
+// validated the current drill/operation/owner; restoration is not a new movement order.
+// Keep unconfirmed records for normal cleanup and never touch another actor controller.
+private _nativeTaskDisabled=[];
+{
+    _x params ["_actor","_feature"];
+    if (_feature == "PATH" && {alive _actor} && {local _actor} && {group _actor == _group}
+        && {!isPlayer _actor} && {isNull remoteControlled _actor}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {fleeing _actor || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}) then {
+        _actor enableAI "PATH";
+        if !(_actor checkAIFeature "PATH") then {_nativeTaskDisabled pushBack _x};
+    } else {_nativeTaskDisabled pushBack _x};
+} forEach (_drill getOrDefault ["disabled",[]]);
+_drill set ["disabled",_nativeTaskDisabled];
 private _ownedPathUnits=(_drill getOrDefault ["disabled",[]]) select {(_x select 1) == "PATH"} apply {_x select 0};
 private _rosterEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _unavailable=+((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["unavailable",[]]);

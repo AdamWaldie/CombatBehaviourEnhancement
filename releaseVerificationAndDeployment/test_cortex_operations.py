@@ -1761,6 +1761,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(probe.index('isNil {'),probe.index('setVariable ["CBE_Danger_CoverPending"'))
         bounds=source('cortexFlankStep')
         self.assertIn('&& {[_x] call _actorTaskFree}',bounds)
+        task_free=bounds.split('private _actorTaskFree={',1)[1].split('private _mayIssueMovement',1)[0]
+        self.assertIn('!fleeing _actor',task_free)
+        native_release=bounds.split('private _nativeTaskDisabled=[];',1)[1].split('private _ownedPathUnits=',1)[0]
+        for guard in ('_feature == "PATH"','local _actor','group _actor == _group','CBE_fnc_CortexExternalOwner','CBE_fnc_CompatibilityExternalControl','fleeing _actor','ace_medical_ai_healQueue'):
+            self.assertIn(guard,native_release)
+        self.assertIn('_actor enableAI "PATH"',native_release)
+        self.assertIn('if !(_actor checkAIFeature "PATH") then {_nativeTaskDisabled pushBack _x}',native_release)
+        self.assertNotIn('doMove',native_release)
+        self.assertNotIn('doFollow',native_release)
         self.assertIn('[_actor] call _mayIssueMovement',bounds)
         self.assertGreaterEqual(bounds.count('[_unit] call _mayIssueMovement'),3)
         restoration=bounds.split('private _restoreFeatures = {',1)[1].split('private _issue = {',1)[0]

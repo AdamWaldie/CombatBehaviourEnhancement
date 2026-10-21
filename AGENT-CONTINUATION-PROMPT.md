@@ -1,3 +1,9 @@
+# Latest checkpoint - active drill native task handback
+
+
+## 2026-10-21 - Active drill native flight and PATH handback
+Baseline72d21971. Active actorTaskFree lacked fleeing. Added flight to existing movement/roster/final-command predicate. Before live roster rebuild, release only journaled drill-owned PATH restrictions for fleeing/queued-care actors, with local/group/player/remote/external-provider guards; retire record only after PATH enabled. No move/follow/stop, no native task mutation, no timer/worker. Existing finite roster can replace diverted actors; no quarantine is added and returning soldiers remain ordinary reserve candidates, not guaranteed original-role restoration. Existing bound hard deadline retained; no admission/retry redesign.609focused/all1484+HEMTT/FSM/docs/package passed .qa/drill-native-task-build.log. Independent .qa/drill-native-task-independent.log; candidate .qa/candidates/drill-native-task-72d21971 fingerprint66f879df9e0ffd129d9282c7e7b48d68a605ca5d454f662570f557166ae4502f. Physical native flight/treatment/return/casualty/HC/performance remains unverified. Audits PAUSED/no Arma launches. No push/merge/publication; full goal active/incomplete. Unrelated dirt/protected reference sources/signing preserved. Next: continue foundational ownership/lifecycle source comparison; live validation remains held.
+
 # Latest checkpoint - native task priority during recall
 
 
