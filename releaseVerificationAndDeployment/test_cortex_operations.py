@@ -1596,6 +1596,24 @@ class CortexOperations(unittest.TestCase):
         for required in ['intent','generation','ownerEpoch','objective','participants','route','lastProgressAt','cancelReason']:
             self.assertIn(required,start)
         self.assertIn('CBE_OperationGeneration',start)
+        transaction=start.split('private _cbeStartedOperation=createHashMap;',1)[1]
+        self.assertTrue(transaction.startswith('\nisNil {\n_cbeStartedOperation=call {'))
+        self.assertTrue(transaction.rstrip().endswith('};\n};\n_cbeStartedOperation'))
+        self.assertLess(start.index('CBE_fnc_CortexLocality'),start.index('private _cbeStartedOperation='))
+        for shared_step in ('private _previous=','private _generation=',
+                            'call CBE_fnc_CortexFlankEnd','call CBE_fnc_OperationCancel',
+                            'call CBE_fnc_CombatPairs','CBE_Danger_EngineStanceLease',
+                            '_group setVariable ["CBE_OperationGeneration",_generation,true]',
+                            '_group setVariable ["CBE_Operation",_operation,true]'):
+            self.assertIn(shared_step,transaction)
+        for forbidden in ('sleep ','uiSleep ','waitUntil','spawn '):
+            self.assertNotIn(forbidden,transaction)
+        # This boundary is required by a real scheduled caller, not a presumed PFH suspension.
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runScheduler.sqf').read_text()
+        self.assertIn('call CBE_fnc_OperationStart',qa)
+        server=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text()
+        self.assertIn('Return: Nothing (scheduled script)',server)
+        self.assertIn('call compile preprocessFileLineNumbers "cortexQAScheduler.sqf"',server)
         self.assertIn('CBE_fnc_OperationCancel',start)
         self.assertIn('dangerAtStart',start)
         self.assertIn('private _operationAnchor=[_group] call CBE_fnc_CortexGroupAnchor;',start)

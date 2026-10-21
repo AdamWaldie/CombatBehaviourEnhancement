@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Starts or replaces one finite CBE operation without allowing stale work to command the group.
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
+ * After locality adoption, replacement, generation capture and publication run unscheduled even for
+ * scheduled script callers. Normal group PFH jobs already run unscheduled; no extra job is created.
  * Progress domain: participant platforms are captured at commitment. Foot actors boarding another
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
  * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
@@ -40,6 +42,12 @@ if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {createHa
 if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
     [_group,true] call CBE_fnc_CortexLocality;
 };
+// Public scheduled callers share this lifecycle with unscheduled group jobs. Keep
+// generation capture, outgoing cleanup and new publication in one non-suspending call.
+// Locality adoption above may resume durable work; recapture only after it returns.
+private _cbeStartedOperation=createHashMap;
+isNil {
+_cbeStartedOperation=call {
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
 // Relinquish finite weapon support before changing the original operation proof.
 [_group,true] call CBE_fnc_CortexIlluminationStep;
@@ -128,3 +136,6 @@ if (_dangerPosture) then {
     };
 };
 _operation
+};
+};
+_cbeStartedOperation

@@ -762,5 +762,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "operationStartScheduling": {
+    "baseline": "37cb9aea",
+    "finding": "OperationCancel/Release use captured generation and atomic retirement, but OperationStart captured the next generation before outgoing cleanup and published afterward without a non-suspending section. Normal CBA PFH jobs are unscheduled; this is not an alleged PFH race. Checked-in scheduled runServer directly calls compiled runScheduler/runContact scripts which call OperationStart, proving scheduled entry is supported.",
+    "implementation": "After optional CortexLocality adoption, run the existing eligibility recheck, support retirement, current generation capture, predecessor cleanup, pairing, baseline transfer and publication in one isNil/CODE section. Return the original operation HashMap contract. Adoption remains outside so nested durable resumes finish before current state is recaptured.",
+    "authority": "No new scan, controller, lock, timer, native command or renewal. Existing actor/task/Zeus/epoch admission and outgoing exact-setting cleanup retained. Does not claim protection against unknown synchronous external re-entry or real provider quiescence.",
+    "cost": "Normal PFH path already unscheduled. Scheduled callers now complete the same existing work without scheduler slicing; no additional queries, but resulting frame-time cost must be measured. No5/10-percent budget claim.",
+    "validation": "Existing generation lifecycle regression extended to bind cleanup/publication inside transaction and name real scheduled QA call chain. All1482/full HEMTT/SQF/config/FSM/docs/package gates passed; independent verify passed. Candidate .qa/candidates/operation-start-atomic-37cb9aea fingerprintaa6653e392037f6323deeea96c3d29f93ac393bf0613837afb604f52186c361a.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
