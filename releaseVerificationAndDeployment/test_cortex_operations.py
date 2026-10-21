@@ -6518,12 +6518,23 @@ class CortexOperations(unittest.TestCase):
 
     def test_cover_stance_bounds_rays_and_rotates_units(self):
         text=source('cortexStance')
-        self.assertIn('{abs speed _unit < 1}',text)
+        self.assertIn('{abs speed _unit < 0.5}',text)
         self.assertIn('if (_sampled >= 2) exitWith {}', text)
         self.assertIn('for "_offset" from 0 to ((_count min 12)-1) do {', text)
         self.assertIn('set ["stanceCursor",(_index+1) mod _count]', text)
         self.assertIn('setVariable ["CBE_AIPass_StanceAt", _now + 10]', text)
         self.assertEqual(3,text.count('call _blocked;'))
+        for guard in ('simulationEnabled _unit','!isObjectHidden _unit','ace_medical_ai_healQueue',
+                      'getUnitState _unit in ["INIT","PLANNING","REPLAN"]',
+                      'currentCommand _unit in ["MOVE","GET IN"',
+                      '(_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]'):
+            self.assertIn(guard,text)
+        concealed=text.split('if (behaviour _unit == "STEALTH") then {',1)[1].split('} else {',1)[0]
+        self.assertIn('_currentStance == (_unit getVariable ["CBE_Cortex_AppliedStance",""])',concealed)
+        self.assertIn('_unit setUnitPos "AUTO"',concealed)
+        for forbidden in ('lineIntersectsSurfaces','_sampled=_sampled+1','setUnitPos "UP"','doMove'):
+            self.assertNotIn(forbidden,concealed)
+
 
     def test_cover_stance_requires_clearance_above_protection(self):
         text=source('cortexStance')
