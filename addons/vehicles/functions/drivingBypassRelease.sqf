@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE treatment revokes movement cleanup; treatment queues remain untouched.
  * Native flight revokes stop/route recall authority; exact unrelated cap release remains separate.
  * Purpose: Retires a controller-owned bypass and only its exact owned fixed path/native handback.
  * Locality / Authority: Current vehicle/group owner. Both seats, route, command receipts and
@@ -84,6 +85,7 @@ isNil {
     {
         _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
             && {!fleeing _x} && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
             && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             && {simulationEnabled _x} && {!isObjectHidden _x}

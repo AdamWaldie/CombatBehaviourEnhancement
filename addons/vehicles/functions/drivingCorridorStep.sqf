@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE treatment vetoes steering before the native medical task appears.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Admission snapshots both native crew commands before geometry, then atomically rechecks
  * the actual controller, seats, authored route and area transform before issue/publication.
@@ -46,6 +47,7 @@ private _crewReady={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {fleeing _x} || {group _x != _group} || {vehicle _x != _vehicle}
             || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}

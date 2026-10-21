@@ -213,6 +213,12 @@ class DrivingCrewTests(unittest.TestCase):
                            ('drivingBypassStep','{fleeing _x}'),('drivingBypassRelease','!fleeing _x')]:
             text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
             self.assertIn(proof,text)
+        # Treatment can be queued while the previous MOVE/STOP receipt still matches.
+        for name in ('drivingBypassStep','drivingCorridorStep','drivingBypassRelease',
+                     'drivingCorridorRelease','drivingAbortHandback'):
+            text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertIn('getVariable ["ace_medical_ai_healQueue",[]]',text)
+            self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',text)
 
         self.assertEqual(body.count('serverTime+60'),1)
         self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',body)

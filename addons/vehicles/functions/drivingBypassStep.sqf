@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE treatment vetoes steering before the native medical task appears.
  * Either operating crew member entering native flight vetoes bypass steering.
  * Ordinary admission requires actual approach room before spending work; an inactive
  * result may include fifth HASHMAP field with a fresh BACKOFF diagnosis for the caller.
@@ -55,6 +56,7 @@ private _seatsAvailable={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
             || {fleeing _x} || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x} || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}

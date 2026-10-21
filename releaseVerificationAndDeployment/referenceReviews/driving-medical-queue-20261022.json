@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-22",
+  "baseline": "3a0880f3",
+  "finding": "Corridor and bypass steering/cleanup plus abort wakeup tested active medical commands but not pending ACE treatment. CortexCombatEffective does not inspect that queue, so matching MOVE/STOP could authorise movement before the medical task appears.",
+  "implementation": "Read-only queue veto in both seats at corridor/bypass admission/steering and release, and abort observation/commit. No queue mutation, new worker or scan. Exact cap-only release remains independent.",
+  "engineReference": {
+    "url": "https://community.bistudio.com/wiki/setDriveOnPath",
+    "checked": "2026-10-22",
+    "finding": "Another movement command or doStop stops the fixed-path effect. Metadata deletion is not cancellation. Native unitReady does not prove path completion.",
+    "disposition": "Do not inject cancellation over treatment, flight or newer command authority. Whether native treatment/flight supersedes an already-issued path remains physically unverified; no forced fallback introduced."
+  },
+  "validation": {
+    "buildLog": ".qa/driving-medical-build.log",
+    "tests": 1489,
+    "compiledSQF": 401,
+    "independentVerifyLog": ".qa/driving-medical-independent-verify.log",
+    "candidate": ".qa/candidates/driving-medical-3a0880f3",
+    "fingerprint": "d91c9f4e59bda136691af78103bb68fe7536a6e2efa17510fbe5b5122ca808c2",
+    "provenance": "Unsigned development candidate including retained unrelated dirty state. Focused module-name invocation first had a Python import-path error; complete standard discovery then passed."
+  },
+  "limits": [
+    "No physical or performance acceptance; audits paused.",
+    "No whole HBQ, convoy or LAMBS parity claim.",
+    "Fixed-path relinquishment on revoked command authority needs later authorised engine validation."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAbortHandback.sqf": "7a7845536e069eef5ab80cf3ef499f5ae53444e0d2ecc65774d501e359428ab9",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "42939d6a40736167463d312d93e08de3f02b7bfaad21eafa237e894e4027231f",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "f7293584e9abf6f39d1b087c4e8f7bf25deb325fb7acc8e717767fc27a6a3187",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "49a4bfe811544fe063db464c18e26a63cc765c2d6274ebdbd0561c7e1f35926a",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "82084c45bdde46a1300a0aabac26c3fbeba418a3b27418e29d80cab434526f65"
+  }
+}

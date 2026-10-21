@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued ACE treatment blocks safety observation and native route wakeup.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Purpose: Hands back an unchanged authored route after an exact owned queue-abort STOP,
  * only when the existing driving observer has fresh clear traffic/geometry and an owned cap.
@@ -123,6 +124,7 @@ if (_released && {_safety isEqualTo []} && {call _mayResume}) then {
     if (alive _vehicle && {canMove _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {vectorMagnitude velocity _vehicle < 0.1} && {vectorMagnitude angularVelocity _vehicle < 0.01}
         && {[_driver,_operator] findIf {fleeing _x || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} < 0}
         && {abs ((getForcedSpeed _vehicle)-_baseline) <= 0.1}
         && {serverTime >= (_hold getOrDefault ["observeAt",-1])}) then {
@@ -162,6 +164,7 @@ isNil {
         || {!alive _vehicle} || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
         || {vehicle leader _group != _vehicle} || {!([_group] call CBE_fnc_DrivingMovementAvailable)}
         || {[_driver,_operator] findIf {fleeing _x || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} >= 0}
         || {!finite _linear} || {!finite _angular} || {_linear >= 0.1} || {_angular >= 0.01}
         || {if (_released) then {
