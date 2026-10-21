@@ -9,7 +9,7 @@
  * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16;
  * 2 publish <BOOL,true>; false computes rows without changing the shared registry, for one combined publication.
  * Return Value: ARRAY of one- or two-actor pairs; [] for invalid authority or an oversized request.
- * Current callers: OperationStart, RebalanceRoles and CortexClearBuilding.
+ * Current callers: OperationStart, RebalanceRoles, CortexClearBuilding and CortexAdvanceStart.
  * Example: [group player,[soldier1,soldier2]] call CBE_fnc_CombatPairs;
  */
 params [["_group",grpNull,[grpNull]],["_actors",[],[[]]],["_publish",true,[true]]];

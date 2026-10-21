@@ -7,7 +7,8 @@
  * Full original authored waypoint metadata must still match before inspect or resume admission.
  * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
  * No source MOVE or acknowledgement grace is replayed; reserved/unavailable/service actors stay excluded.
- * Resumed team partitions seed pair repair without mixing mover/cover identity or renewing time.
+ * Resumed fire-team partitions seed pair repair; buddy-bound identity stays across the roles.
+ * Neither mode renews the original movement deadline.
  * Hidden or simulation-disabled actors and medics with queued treatment stay in the living roster
  * but cannot be recruited into the resumed movement operation; treatment queues are never changed.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
@@ -126,7 +127,7 @@ if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLe
 private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
 private _pairElements=(_drill getOrDefault ["teams",[]]) apply {_x select {_x in _capable}};
 // Two advance actors retain one buddy identity across the singleton movement roles.
-if (_type == "ADVANCE" && {count _capable == 2}) then {_pairElements=[]};
+if (_type == "ADVANCE" && {count _capable == 2 || {(_drill getOrDefault ["buddyBounds",false]) isEqualTo true}}) then {_pairElements=[]};
 private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase,_pairElements] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];

@@ -229,5 +229,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "synchronisedBuddyBounds": {
+    "baseline": "f939c42e",
+    "implementation": "Own read-only CombatPairElements proposes opposite mover/cover roles for complete eligible pairs, preserves existing opposite assignments and balances orphans with extra actor in role0. Otherwise viable fully armed4..16 advances use bounded CombatPairs proposal without publishing before operation admission, then global pair identity across roles and <=25m bounds. Other advances retain fire-team policy.",
+    "lifecycle": "Existing binary teamTurn/stages, actual spot arrival, quorum/recovery, same-bound incumbent continuity and original deadlines retained. Next-bound _ensureMovingTeam explicitly reconciles available published pair rows before issue, not during independent active MOVE. RebalanceRoles does not re-pair buddy-bound actors inside role partitions. Checkpoint/DrillResume preserve buddyBounds and global pairing, original destinations/clocks/deadlines. No second worker or arbitrary pair index.",
+    "costAndBalance": "<=16 actors/16 pair rows, metadata comparisons at next-bound allocation. One extra existing nearest-partner proposal at qualifying start; no new world scan, setting, module, radar or direct fire/movement command. Existing specialist/capacity/ROE gates remain. Runtime cost unmeasured.",
+    "limits": "Synchronised pair-opposed roles, not independently timed pair waves or demonstrated cover efficacy. Physical arrival/cover/casualty/recovery/migration and performance remain unverified; audits paused. No whole Protocol parity or score increase.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/buddy-role-f939c42e fingerprint29033595ec519c4f7f3e5d5942c0131ed8f474fa181a2b36dd442536fecd44c8. Logs .qa/buddy-role-build.log and .qa/buddy-role-independent.log. Existing pair lifecycle regression extended with2..16 actor partition model, stable opposite-role reconstruction, odd orphan/overlap handling and production wiring. Initial model shadowed a test-local source string, fixed locally; old two-person-only source assertion updated for explicit larger buddy mode. No new unittest case count or runtime audit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "twoActorMaintenance": "RebalanceRoles now also preserves global pairing for two-actor ADVANCE, even if the parent began in fire-team mode; otherwise participant maintenance could replace the single buddy identity with two singleton role partitions."
   }
 }

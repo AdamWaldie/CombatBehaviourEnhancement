@@ -1253,7 +1253,8 @@
         "addons/infantry/functions/cortexTacticalAssess.sqf",
         "addons/infantry/functions/cortexTacticalReposition.sqf",
         "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf",
-        "addons/infantry/functions/combatElementSelect.sqf"
+        "addons/infantry/functions/combatElementSelect.sqf",
+        "addons/infantry/functions/combatPairElements.sqf"
       ]
     },
     {

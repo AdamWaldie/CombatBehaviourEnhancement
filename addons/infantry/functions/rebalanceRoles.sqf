@@ -8,7 +8,8 @@
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
  * Protected native tasks, queued medical treatment and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
  * Temporary treatment does not remove living pair identity or mutate the medical queue.
- * A matching current drill retains mover/cover partitions during pair repair, including role
+ * A matching fire-team drill retains mover/cover partitions during pair repair; synchronised
+ * buddy bounds and two-actor advances preserve pair identity across those roles. This includes role
  * transfers with unchanged participant count. New pair metadata grants no movement authority.
  * Repeat/JIP: Idempotent for an unchanged generation and owner epoch. Only roster changes publish
  * operation state; unchanged callbacks do not retransmit it. Public state carries the roster after
@@ -68,7 +69,9 @@ private _rosterChanged=_current isNotEqualTo (_operation getOrDefault ["particip
 private _pairElements=[];
 private _drill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
 if ((_drill getOrDefault ["operationGeneration",-1]) == _generation
-    && {(_drill getOrDefault ["ownerEpoch",-1]) == _entryEpoch}) then {
+    && {(_drill getOrDefault ["ownerEpoch",-1]) == _entryEpoch}
+    && {!((_drill getOrDefault ["buddyBounds",false]) isEqualTo true)}
+    && {!((_operation getOrDefault ["intent",""]) == "ADVANCE" && {count _current == 2})}) then {
     private _teams=_drill getOrDefault ["teams",[]];
     if (_teams isEqualType [] && {count _teams == 2}
         && {_teams findIf {!(_x isEqualType [])} < 0}) then {

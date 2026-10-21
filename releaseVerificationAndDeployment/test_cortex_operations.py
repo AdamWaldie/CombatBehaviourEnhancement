@@ -10670,6 +10670,46 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('call CBE_fnc_CombatElementSelect',source(caller))
             self.assertIn('select [0,16]) apply',source(caller))
 
+        roles=source('combatPairElements')
+        for marker in ('count _actors > 16','_pairs select [0,16]','_a in _priorFirst',
+                       '_b in _priorFirst','_actors-_assigned','[_first,_second]'):
+            self.assertIn(marker,roles)
+        for forbidden in ('doMove','doSuppressiveFire','setVariable','enableAI','disableAI'):
+            self.assertNotIn(forbidden,roles)
+        advance=source('cortexAdvanceStart')
+        self.assertIn('count _armedFoot == count _onFoot',advance)
+        self.assertIn('call CBE_fnc_CombatPairElements',advance)
+        self.assertIn('_buddyPair || {_buddyBounds}',advance)
+        self.assertIn('_bound=_bound min 25',advance)
+        self.assertIn('["buddyBounds",_buddyBounds]',advance)
+        self.assertIn('"buddyBounds"',source('cortexCheckpoint'))
+        self.assertIn('(_drill getOrDefault ["buddyBounds",false]) isEqualTo true',source('rebalanceRoles'))
+        self.assertIn('(_operation getOrDefault ["intent",""]) == "ADVANCE" && {count _current == 2}',source('rebalanceRoles'))
+
+        self.assertIn('_drill get "teamTurn",_fit,true',source('cortexFlankStep'))
+        def partition(actors,pairs,previous=((),())):
+            first=[];second=[];assigned=[]
+            for pair in pairs[:16]:
+                if len(pair)!=2 or pair[0]==pair[1] or any(x not in actors or x in assigned for x in pair):continue
+                a,b=pair
+                if a in previous[0] and b in previous[1]:swap=False
+                elif b in previous[0] and a in previous[1]:swap=True
+                else:swap=actors.index(b)<actors.index(a)
+                first.append(b if swap else a);second.append(a if swap else b);assigned.extend(pair)
+            for actor in actors:
+                if actor not in assigned:(first if len(first)<=len(second) else second).append(actor)
+            return first,second
+        for count in range(2,17):
+            actors=list(range(count));model_pairs=[actors[i:i+2] for i in range(0,count,2)]
+            first,second=partition(actors,model_pairs)
+            self.assertCountEqual(first+second,actors)
+            self.assertEqual(len(set(first+second)),count)
+            self.assertLessEqual(abs(len(first)-len(second)),1)
+            for pair in model_pairs:
+                if len(pair)==2:self.assertEqual(sum(x in first for x in pair),1)
+            self.assertEqual(partition(list(reversed(actors)),model_pairs,(first,second)),(first,second))
+        self.assertEqual(partition(['a','b','c'],[['a','b']]),(['a','c'],['b']))
+        self.assertEqual(partition(['a','b','c','d'],[['a','b'],['a','c'],['c','d']]),(['a','c'],['b','d']))
         self.assertIn('call CBE_fnc_CombatPairs',source('cortexClearBuilding'))
         self.assertIn('["pairs",_pairs]',source('operationStart'))
         start=source('operationStart')
@@ -10681,15 +10721,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_publish) then',pairs)
         advance=source('cortexAdvanceStart')
         self.assertIn('"MANOEUVRE",_pairElements]',advance)
-        self.assertIn('if (_buddyPair) then {[]} else {[_element,_coverElement]}',advance)
+        self.assertIn('if (_buddyPair || {_buddyBounds}) then {[]} else {[_element,_coverElement]}',advance)
         self.assertIn('count _onFoot == 2 && {count _armedFoot == 2}',advance)
         self.assertIn('if (_smallElement) then {_bound=_bound min 20}',advance)
-        self.assertIn('_group,[0,20] select _smallElement] call CBE_fnc_CortexPlanRoute',advance)
+        self.assertIn('_group,if (_smallElement) then {20} else {[0,25] select _buddyBounds}] call CBE_fnc_CortexPlanRoute',advance)
         self.assertIn('_bound=_bound min (_maximumBound max 15)',source('cortexPlanRoute'))
         self.assertIn('if (count _coverRifles < _minimumCover)',advance)
         self.assertIn('count _onFoot in [2,3] && {count _armedFoot == count _onFoot}',advance)
         self.assertIn('if (_smallElement && {!_buddyPair}) then {_size=2 min count _candidates}',advance)
-        self.assertIn('if (_type == "ADVANCE" && {count _capable == 2}) then {_pairElements=[]}',source('cortexDrillResume'))
+        self.assertIn('if (_type == "ADVANCE" && {count _capable == 2 || {(_drill getOrDefault ["buddyBounds",false]) isEqualTo true}}) then {_pairElements=[]}',source('cortexDrillResume'))
         self.assertIn('"ASSAULT",[_assaultElement,_coverElement]',source('cortexAssaultStart'))
 
         rebalance=source('rebalanceRoles')

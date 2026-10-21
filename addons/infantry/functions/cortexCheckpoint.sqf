@@ -64,7 +64,7 @@ if (count _drill > 0) then {
                 };
                 _payload pushBack [_x,_value];
             };
-        } forEach ["type","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
+        } forEach ["type","buddyBounds","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
             "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundQuorumUntil","boundWaypoint","authoredOrder"];
         // Carry passive HOLD provenance only. No MOVE replay, acknowledgement grace,
         // local callback or FSM handle becomes portable command authority.

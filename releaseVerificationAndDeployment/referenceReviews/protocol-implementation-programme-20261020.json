@@ -55,11 +55,11 @@
       "name": "PROTOCOL AI PAIRS",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807",
       "metadataSHA256": "75bb5e4bc28cce88c69c8cbaa2cc2e4775617c0b6b08d195367b60b9bc72428f",
-      "status": "READABLE_SCRIPT_REVIEWED_PARTIAL_INTENT_INTEGRATION",
+      "status": "SYNCHRONISED_BUDDY_ROLES_INTEGRATED_PHYSICAL_PENDING",
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-pairs-3802121807-20261020.json",
-      "remaining": "Persistent team-scoped pairing and two-actor successive advance admission integrated. Independent pair-granular leapfrog within larger squads, binary startup/dependencies/licence and physical validation remain.",
+      "remaining": "Qualifying fully armed4..16-person advances now use synchronised opposite buddy roles through existing finite two-role FSM, casualty/next-bound allocation and ownership checkpoint. Independent per-pair timing, actual cover/arrival/recovery/migration/performance and licensing remain unverified. Binary registration/declarations reviewed separately; not whole source parity.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"

@@ -752,7 +752,7 @@ private _waitForTeam=false;
 private _teamRecoveryFailed=false;
 private _teamDeferred=false;
 private _ensureMovingTeam={
-    params ["_turn","_available"];
+    params ["_turn","_available",["_repartition",false]];
     private _answer=[[],[]];
     private _committed=false;
     isNil {
@@ -761,6 +761,16 @@ private _ensureMovingTeam={
         || {_teams isNotEqualTo (_drill getOrDefault ["teams",[]])}
         || {_available findIf {!([_x] call _actorTaskFree) || {!(_x checkAIFeature "MOVE")}
             || {!(_x checkAIFeature "PATH") && {!(_x in _ownedPathUnits)}}} >= 0}) exitWith {};
+    if (_repartition && {(_drill getOrDefault ["buddyBounds",false]) isEqualTo true}
+        && {count _available >= 2} && {count _available <= 16}) then {
+        private _pairRoles=[_group,_available,_group getVariable ["CBE_CombatPairs",[]],_teams]
+            call CBE_fnc_CombatPairElements;
+        if (_pairRoles isNotEqualTo []) then {
+            _teams=_pairRoles;
+            _drill set ["teams",_teams];
+            _minimumMovers=[count _available] call _movingMinimum;
+        };
+    };
     private _otherTurn=1-_turn;
     private _movingAvailable=(_teams select _turn) select {_x in _available};
     private _coverAvailable=(_teams select _otherTurn) select {_x in _available};
@@ -897,7 +907,7 @@ private _issue = {
     if (_teams isNotEqualTo []) then {
         // PAUSE can swap the team inside this same callback. Rebalance the newly selected
         // movers before any destination write, not one scheduler interval afterward.
-        private _roster=[_drill get "teamTurn",_fit] call _ensureMovingTeam;
+        private _roster=[_drill get "teamTurn",_fit,true] call _ensureMovingTeam;
         _units=_roster select 0;
         _viable=count _units >= _minimumMovers && {count (_roster select 1) >= 1};
     };
