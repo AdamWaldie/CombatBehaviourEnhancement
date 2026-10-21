@@ -174,5 +174,18 @@
       }
     ],
     "validation": "9 focused queue-proposal tests/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/queue-plan-refusal-build.log. Unsignedcandidate .qa/candidates/queue-plan-refusal-51295693 independentfingerprintbdf0ea3e992f6f86b642930ce6cb13e36a049d316968b18380bce32860a2191f. No runtime/percentage claim."
+  },
+  "queueRoomPropagationFollowup20261021": {
+    "baseline": "0673b16d",
+    "finding": "Static-obstacle adaptive rear planning exists, but authenticated traffic queue preflight and native leaf issue still call DrivingRearPlan with its default six-metre maximum. Do not describe the static extension as queue implementation.",
+    "verifiedBoundaries": [
+      "DrivingRearPlan accepts maximumTravel6..24 only with a fresh nine-field STATIC obstacle observation and qualified DrivingBypassApproach BACKOFF geometry; default callers cannot extend.",
+      "DrivingQueueAgreementOwner VERIFY/COMMIT leaf preflight invokes DrivingRearPlan with vehicle only.",
+      "DrivingQueueReverseCommit native leaf issue independently invokes DrivingRearPlan with vehicle only; parent issue delegates DrivingQueueParentRoom.",
+      "DrivingQueueParentRoom accepts dependency rearEnvelope only [8,6] or [3.5,2], verifies measured travel/full-hull gap and obtains a default parent rear plan."
+    ],
+    "nextImplementationRequirement": "Derive requested longitudinal room from the actual queue crossing hull/ramp proposal, bind a bounded per-dependency travel requirement into the existing authenticated agreement, validate it at every owner and native issue boundary, and prove measured parent room before advancing. Retain original expiry, fresh rear support/body/pedestrian checks, exact native task receipts and sole movement writer. Do not feed moving traffic into the STATIC-only obstacle extension or merely widen the parent whitelist.",
+    "validation": "Read-only call-path examination. No product change, no build credit, no runtime evidence. Previous 0673b16d candidate remains the latest full validated product source.",
+    "cqbRecheck": "Current exit proposal/candidate paths already reserve posts >=3m apart, check current occupancy and physical endpoint arrival; completed cleanup uses one-shot holds instead of leader wedge recall. No distance tuning justified without fresh authorised physical evidence. Historical crowding remains unverified, not declared fixed."
   }
 }
