@@ -180,5 +180,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "preferredBoundSlotCohesion": {
+    "baseline": "cc4240dd",
+    "finding": "After recruitment or relief, existing buddies could receive opposite ends of the moving element slot order.",
+    "implementation": "Read current shared pair registry at issue, keep eligible existing buddies adjacent before slot geometry, and preserve the exact selected roster. Bound to sixteen movers and sixteen pair rows; larger elements retain their order.",
+    "authority": "No recruitment, team or pair-identity mutation, movement worker, query or deadline. Resume spots, progress clocks and retries are restored by actor identity; cover geometry remains authoritative.",
+    "limits": "Preferred slot adjacency is not a physical spacing guarantee. Current executor still alternates fire teams; independent pair-level leapfrogging remains unfinished.",
+    "validation": "All 1482 tests and full build passed. Preserved unsigned development candidate .qa/candidates/buddy-bound-slots-cc4240dd, built on cc4240dd plus intended product edits; independent verification passed. Fingerprint 2ecf14e0cec747ba0caca4cf1f5ec002511273c1f2e4b4b106f852cc39a886d0.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

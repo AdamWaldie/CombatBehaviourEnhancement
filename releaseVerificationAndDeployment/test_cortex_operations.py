@@ -10456,6 +10456,39 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_ranked findIf {_x in _incumbents}',element)
         self.assertLess(element.index('private _selected=[];'),element.index('private _intact=[];'))
         self.assertIn('_x findIf {_x in _incumbents} >= 0',element)
+        step=source('cortexFlankStep')
+        layout=step.split('// Slot ordering is not a new roster/role assignment.',1)[1].split('_point=+_point;',1)[0]
+        for proof in ('count _units <= 16','_slotPairs select [0,16]',
+                      '_x findIf {!(_x in _units)} < 0','pushBackUnique (_partners select 0)',
+                      'count _orderedMovers == count _units'):
+            self.assertIn(proof,layout)
+        for forbidden in ('doMove','setVariable','set ["teams"','CombatPairsPublish','getPos','lineIntersects'):
+            self.assertNotIn(forbidden,layout)
+        self.assertLess(step.index('_units=_orderedMovers'),step.index('private _issueNative='))
+        self.assertIn('_drill set ["movers", +_units]',step)
+        # Slot adjacency preserves the exact eligible roster and never imports a missing buddy.
+        def ordered(roster,pairs):
+            result=[]
+            for actor in roster:
+                if actor in result: continue
+                result.append(actor)
+                for row in pairs[:16]:
+                    if not isinstance(row,list) or len(row)!=2 or row[0]==row[1]: continue
+                    if actor in row and all(member in roster for member in row):
+                        partner=next(member for member in row if member!=actor)
+                        if partner not in result: result.append(partner)
+                        break
+            return result if len(result)==len(roster) else roster
+        layout_pairs=[['a','b'],['c','d']]
+        for roster,expected in [(['a','c','d','b'],['a','b','c','d']),
+                                (['b','a','d','c'],['b','a','d','c']),
+                                (['a','c','b','e','d'],['a','b','c','d','e']),
+                                (['a','c','d'],['a','c','d'])]:
+            result=ordered(roster,layout_pairs)
+            self.assertEqual(result,expected)
+            self.assertCountEqual(result,roster)
+            self.assertEqual(len(result),len(set(result)))
+        self.assertEqual(ordered(['a','c','d'],[['a'],'bad',['a','x'],['c','c']]),['a','c','d'])
         self.assertIn('_candidates=_candidates-_selected',element)
         for mutation in ('doMove','doSuppressiveFire','setVariable','enableAI','disableAI'):
             self.assertNotIn(mutation,element)

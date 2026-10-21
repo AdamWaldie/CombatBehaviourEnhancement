@@ -881,6 +881,30 @@ private _issue = {
         if (_armedMovers < _minimumMovers || {!_armedCover}) then {_viable=false};
     };
     if (!_viable) exitWith {_result="FIRE_CAPACITY_LOST" call _end};
+    // Slot ordering is not a new roster/role assignment. Keep currently eligible buddies
+    // adjacent before geometry selection; do not recruit a partner from another element.
+    // Resume spots remain actor-addressed and override these new-bound slot preferences.
+    if (count _units > 1 && {count _units <= 16}) then {
+        private _slotPairs=_group getVariable ["CBE_CombatPairs",[]];
+        if !(_slotPairs isEqualType []) then {_slotPairs=[]};
+        _slotPairs=_slotPairs select [0,16];
+        private _orderedMovers=[];
+        {
+            private _actor=_x;
+            if !(_actor in _orderedMovers) then {
+                _orderedMovers pushBack _actor;
+                private _pairIndex=_slotPairs findIf {
+                    _x isEqualType [] && {count _x == 2} && {(_x select 0) != (_x select 1)}
+                        && {_actor in _x} && {_x findIf {!(_x in _units)} < 0}
+                };
+                if (_pairIndex >= 0) then {
+                    private _partners=(_slotPairs select _pairIndex)-[_actor];
+                    _orderedMovers pushBackUnique (_partners select 0);
+                };
+            };
+        } forEach _units;
+        if (count _orderedMovers == count _units) then {_units=_orderedMovers};
+    };
     _point=+_point;
     private _issueEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
     private _issuePhase=[_drill getOrDefault ["stage",""],_drill get "index",_drill getOrDefault ["teamTurn",0]];
