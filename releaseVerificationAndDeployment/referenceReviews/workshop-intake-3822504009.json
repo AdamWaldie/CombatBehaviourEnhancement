@@ -5,7 +5,7 @@
   "author": "Biden",
   "added": "2026-10-20",
   "priority": "HIGH",
-  "status": "READABLE_SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+  "status": "READABLE_SOURCE_REVIEWED_PARTIAL_SELECTED_INTENT_INTEGRATION",
   "scope": "High-priority evaluation of the complete AI armoured-force and vehicle-engagement scope. Select complementary improvements and merge intent into current CBE ground-vehicle and combined-arms FSMs; not an automatic wholesale port.",
   "identityEvidence": "Installed mod.cpp identifies name/author and describes an armoured-force vehicle AI engagement overhaul. meta.cpp publishedid is0; supplied URL and installation folder identify the Workshop item. Web page unavailable.",
   "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
@@ -71,6 +71,18 @@
         "BIS_fnc_fire dispatch is not proof of actual fire; verify Fired evidence later.",
         "No measured runtime speedup or physical smoke/withdrawal acceptance."
       ]
+    },
+    "crewedCountermeasureIntegration": {
+      "baseline": "770e775b",
+      "sourceEvidence": "Preserved fn_armored_force.sqf smoke branch resolves turretUnit and requires a living operator before launcher selection. Reverified extract SHA256 f0b14982dca5aa4a574520ddf287730ec26f12a1bd8b571f6eccab106a087355. Primary turretUnit documentation confirms driver path[-1] support: https://community.bistudio.com/wiki/turretUnit .",
+      "finding": "CBE countermeasure helper selected configuration/ammunition by turret but did not validate station occupancy or its operator. An empty/changed/protected station could be the chosen firing request.",
+      "implementation": "Resolve local occupied station, locate compatible cmlauncher/ammunition, then require combat-effective nonplayer operator, protected task availability and shared group exclusions with internal CBE feature ownership allowed. Recheck exact operator/turret and weapon membership at dispatch in existing native-call path. Do not assign crew or change ROE/skills/movement.",
+      "balanceAndCost": "Preserve driver-first/modded turret selection and one live magazine snapshot. Full ownership checks only for stations with suitable launcher/ammo, repeated for selected station at dispatch. No world scan, worker or cooldown change. Added actor/group checks are unmeasured.",
+      "limits": "Compatible available magazine inventory is not loaded-muzzle readiness or actual fire. BIS_fnc_fire remains a dispatch; source page direct403 and no downstream implementation/quiescence claim. Actual ground smoke/air flare/projectile effects and physical owner changes unverified. Not a complete armour implementation or parity claim.",
+      "validation": "Existing countermeasure regression extended; all1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Candidate .qa/candidates/countermeasure-station-770e775b fingerprint76462fc3b7457be2421e2cb832b4fb5d0cf06437d961978e0aaf469d32fa601b.",
+      "physicalAcceptance": false,
+      "performanceMeasured": false,
+      "scoresChanged": false
     }
   }
 }

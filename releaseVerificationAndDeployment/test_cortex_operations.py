@@ -3149,6 +3149,22 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(text.count('magazinesAllTurrets _vehicle'),1)
         self.assertIn('_magazineSnapshot select',text)
         self.assertLess(text.index('private _magazineSnapshot='),text.index('private _turret = _x;'))
+        self.assertIn('private _operator=_vehicle turretUnit _turret;',text)
+        self.assertLess(text.index('if (!isNull _operator && {local _operator})'),text.index('_vehicle weaponsTurret _turret'))
+        self.assertIn('if (_index >= 0 && {[_operator] call _operatorAvailable})',text)
+        for guard in ('local _actor','!isPlayer _actor','vehicle _actor == _vehicle',
+                      'CBE_fnc_CortexCombatEffective','CBE_fnc_CortexActorFireTaskAvailable',
+                      '[group _actor,false,false,true] call CBE_fnc_CortexIsEligible'):
+            self.assertIn(guard,text)
+        commit=text.split('private _dispatched=false;',1)[1].split('if (!_dispatched)',1)[0]
+        self.assertTrue(commit.startswith('\nisNil {'))
+        self.assertIn('(_vehicle turretUnit _turret) != _operator',commit)
+        self.assertIn('!([_operator] call _operatorAvailable)',commit)
+        self.assertLess(commit.index('(_vehicle turretUnit _turret) != _operator'),commit.index('call BIS_fnc_fire'))
+        self.assertIn('"NO_ELIGIBLE_LAUNCHER"',text)
+        self.assertIn('"STATION_CHANGED"',text)
+        for forbidden in ('moveIn','assignAs','enableAI','setCombatMode','setUnitCombatMode','selectRandom'):
+            self.assertNotIn(forbidden,text)
 
     def test_artillery_baseline_retains_counter_owner(self):
         text=(ROOT/'releaseVerificationAndDeployment/cortexQA/runServer.sqf').read_text(encoding='utf-8')

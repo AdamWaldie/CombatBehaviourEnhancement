@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20",
+  "updated": "2026-10-21",
   "userPriority": [
     "Foundations and FSM lifecycle: LAMBS functional parity and improvement",
     "Complete Protocol AI collection: implement, fix and improve"
@@ -98,11 +98,11 @@
       "name": "PROTOCOL AI ARMORED FORCE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
       "metadataSHA256": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628",
-      "status": "READABLE_SCRIPTS_REVIEWED_PENDING_INTEGRATION",
+      "status": "READABLE_SOURCE_REVIEWED_SELECTED_STATION_INTENT_INTEGRATED",
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Existing complete readable review retained; merge selected armour intent into owned finite vehicle/combined-arms paths and physically validate."
+      "remaining": "Crewed countermeasure station admission integrated into existing shared helper. Continue suitable ATGM/cover/exposure/relocation comparison and selected armour integration; actual fire, movement, owner handback, performance and binary/dependency/licence evidence remain incomplete."
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
