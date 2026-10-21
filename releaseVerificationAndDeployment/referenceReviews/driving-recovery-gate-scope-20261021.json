@@ -35,5 +35,41 @@
     "fullPipelineRepeated": false,
     "reason": "Source review only; prior dc2af4ec product candidate remains unchanged.",
     "physical": "Unrun; audits paused. No source parity or performance credit."
+  },
+  "passageClosureImplementation20261021": {
+    "status": "implemented opt-in; physical and performance unverified",
+    "sourceCallPath": "HBQ fn_driveAssist ClosedGates calls2203/2243/2708; opened gate records2641/2655/2820; shutdown worker2964..2984 read. Source may take closure responsibility for already-open gates and start a separate180s cleanup worker. Those ownership/worker choices were not copied.",
+    "selectedIntent": "Close leaves after passage with people/traffic clearance; retain gate and source identity.",
+    "implementation": "Authenticated GateOpenServer registers one finite server scheduler job, no group adoption. Default-off CBE_AIPass_DrivingAssist_CloseGates_Enable. <=8 outstanding jobs including overdue callbacks, <=8 leaves, <=16 nearby entities, original120s deadline. Observe aperture crossing plus current full-hull tail clearance; include dead entities via Arma2.18 area nearEntities. One closure request restores only leaves CBE opened; observe actual phase separately. Route, seats, owners, epoch/operation, gate pose/locks and newer native intent veto before closure. Read-only issued-animation observation may finish after vehicle departure. Explicit stop retires jobs and admission lifecycle, no gate command. Monotonic private server completed-cycle proof permits repeat opening in the same bounded route gate slot; public hints cannot authenticate it. Lost acknowledgements/multiple intervening cycles cannot turn one completion into repeated refills.",
+    "bounds": "At most one25m local entity query/sample, refuse above16 returned entities. Whole-hull projections may cost up to136 native model transforms in a dense closure sample; cost unmeasured. Two-second passage cadence, one-second closure observation. No dedicated PFH, sleeper, vehicle movement, collision mutation, network job replay or renewed deadline.",
+    "deliberateDepartures": [
+      "Preserve gates/leaves already open at admission instead of claiming their closure.",
+      "Do not issue closure after vehicle/route/owner authority is lost before command.",
+      "No independent shutdown closure worker; stop never commands a gate.",
+      "No timeout-derived passage. Crossing segments with >6s sample gap or >25m displacement refuse.",
+      "Opening geometry admission only supports bounded model apertures; unknown/moved/conflicting gates stay open."
+    ],
+    "limits": [
+      "Sampled clearance is not continuous collision safety or full swept gate-volume proof.",
+      "Same-value intervening gate edits are indistinguishable.",
+      "Normal/actual-provider HC, multiplayer timing, actual gate motion, repeated physical passages and frame-time budget unverified.",
+      "No complete directional passage arbiter or whole-HBQ parity claim."
+    ],
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingGateCloseServer.sqf": "b96834451030481f79c5106dd68f779d6b8cfc490fbb42b60503a3e075a6a418",
+      "addons/vehicles/functions/drivingGateOpenServer.sqf": "11bd74bf849b52176e8b7634ade605a993e61bb884e4e63b727bab817fa6994b",
+      "addons/vehicles/functions/drivingGateRequest.sqf": "f90367e25506cb544479e29f43d5f51d0e899590a7955db545249b716387da1d",
+      "addons/core/functions/cortexStop.sqf": "675c14ce5a2e7f0c175bedb8139c9578a629822d3db1c3fe74828e87738c1356"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/gate-passage-close-lifecycle-build.log",
+      "documentationRefresh": "Guide contradictions reconciled afterward; documentation_contract_checker/wiki_sync/reference-boundary tests passed; unchanged product source rebuilt/compiled/sealed with build_mod -SkipStaticChecks.",
+      "repackLog": ".qa/gate-passage-close-doc-repack.log",
+      "candidate": ".qa/candidates/gate-passage-close-16a1af53-final",
+      "fingerprint": "ecadd722ee571ef20c4cb8ab1eacaf67f374e89362edf62f8c24f4f2b3a34b95",
+      "independentLog": ".qa/gate-passage-close-final-independent.log",
+      "physical": "Unrun; audits paused."
+    }
   }
 }

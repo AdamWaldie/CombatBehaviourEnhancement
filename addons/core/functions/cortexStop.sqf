@@ -96,6 +96,9 @@ if (isServer) then {
     isNil {
         if (!local _vehicle) exitWith {};
         [_vehicle] call CBE_fnc_DrivingAssistRelease;
+        _vehicle setVariable ["CBE_DrivingGate_Result",nil,true];
+        _vehicle setVariable ["CBE_DrivingGate_Pending",nil,true];
+        _vehicle setVariable ["CBE_DrivingGate_RequestState",nil];
         private _positionWork=_vehicle getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
         if (count _positionWork > 0) then {
             [_vehicle,_positionWork get "token",_positionWork get "session",true] call CBE_fnc_CortexArtilleryPosition;
@@ -139,6 +142,20 @@ if (isServer) then {
 missionNamespace setVariable ["CBE_AA_ObservedVehicles",[]];
 if (hasInterface && {!isServer}) exitWith {};
 missionNamespace setVariable ["CBE_AIPass_Active", false];
+// Gate observation jobs never survive scheduler shutdown or replay a closure on restart.
+if (isServer) then {
+    missionNamespace setVariable ["CBE_DrivingGate_StopSerial",(missionNamespace getVariable ["CBE_DrivingGate_StopSerial",0])+1];
+    {
+        private _gate=_x getOrDefault ["gate",objNull];
+        if (!isNull _gate && {(_gate getVariable ["CBE_DrivingGate_CloseWork",createHashMap]) isEqualTo _x}) then {
+            _gate setVariable ["CBE_DrivingGate_CloseWork",nil];
+            _gate setVariable ["CBE_DrivingGate_CloseResult",["STOPPED",serverTime,_x get "vehicle",_x get "until"],true];
+        };
+        _x set ["done",true];
+    } forEach (missionNamespace getVariable ["CBE_DrivingGate_CloseJobs",[]]);
+    missionNamespace setVariable ["CBE_DrivingGate_CloseJobs",[]];
+};
+
 missionNamespace setVariable ["CBE_AIPass_InitPending", false];
 
 {

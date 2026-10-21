@@ -8,7 +8,9 @@
  * animateSource has global effect; native animation state supplies JIP, without replay commands.
  * Repeat/JIP: One initial opening attempt and at most one unlock retry per gate/transform
  * in the current vehicle route/revision, with sixteen distinct gate contexts per route. A gate-wide twelve-second opening receipt coalesces
- * simultaneous requests. No closure, timer callback, retry controller or gate ownership transfer.
+ * simultaneous requests. Observed completed closure permits one fresh passage cycle in that
+ * same bounded gate slot. Optional finite passage/closure uses the shared server scheduler;
+ * no gate ownership transfer or timeout-based clearance.
  * A LOCKED refusal may be reconsidered once after BIS locks clear, bound to its original
  * timestamp; the server validates the transition and retains the consumed retry through migration.
  * A context-bound acknowledgement prevents repeated owner requests; delivery retries return
@@ -83,18 +85,24 @@ if (_revision >= 0) then {
 if (_revision == -2 || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
 // Check the server-local attempt history before geometry/config work. A delivery retry
 // receives the original outcome; it never becomes another animation or geometry scan.
+private _stopSerial=missionNamespace getVariable ["CBE_DrivingGate_StopSerial",0];
 private _receipt=_vehicle getVariable ["CBE_DrivingGate_ServerAttempts",[]];
-private _attempts=if (count _receipt == 4 && {(_receipt select 0) == _group} && {(_receipt select 1) isEqualTo _route} && {(_receipt select 2) == _revision}) then {+(_receipt select 3)} else {[]};
+private _attempts=if ((_vehicle getVariable ["CBE_DrivingGate_AttemptStopSerial",0]) == _stopSerial && {count _receipt == 4} && {(_receipt select 0) == _group} && {(_receipt select 1) isEqualTo _route} && {(_receipt select 2) == _revision}) then {+(_receipt select 3)} else {[]};
 private _key=[_gate,+_transform];
 private _attemptIndex=_attempts findIf {(_x select [0,2]) isEqualTo _key};
+private _closedProof=_gate getVariable ["CBE_DrivingGate_ClosedProof",[]];
+private _passageCycle=if (count _closedProof == 3 && {(_closedProof select 0) isEqualTo _transform}
+    && {(_closedProof select 1) isEqualType 0} && {finite (_closedProof select 1)}
+    && {(_closedProof select 1) > 0}) then {_closedProof select 1} else {0};
 private _publishResult={
     params ["_reason","_until"];
     if (_attemptIndex >= 0) then {
         private _row=_attempts select _attemptIndex;
         _row set [2,_reason]; _row set [3,_until];
-        _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
+        _vehicle setVariable ["CBE_DrivingGate_AttemptStopSerial",_stopSerial];
+    _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
     };
-    private _ack=[_gate,_reason,_until,_group,+_route,_revision,+_transform];
+    private _ack=[_gate,_reason,_until,_group,+_route,_revision,+_transform,_passageCycle];
     if ((_vehicle getVariable ["CBE_DrivingGate_Result",[]]) isNotEqualTo _ack) then {
         _vehicle setVariable ["CBE_DrivingGate_Result",_ack,true];
     };
@@ -110,23 +118,34 @@ if (_attemptIndex >= 0 && {_unlockReceipt >= 0}) then {
         };
     };
 };
-if (_attemptIndex >= 0 && {!_retryUnlock}) exitWith {
+private _retryPassage=false;
+if (_attemptIndex >= 0) then {
+    private _previous=_attempts select _attemptIndex;
+    _retryPassage=_passageCycle > (_previous param [5,0,[0]])
+        && {(_previous select 2) in ["OPEN_REQUESTED","SHARED_OPENING","OPEN_WINDOW_EXPIRED","ALREADY_OPEN_OR_MOVING"]};
+};
+if (_attemptIndex >= 0 && {!_retryUnlock} && {!_retryPassage}) exitWith {
     private _previous=_attempts select _attemptIndex;
     private _reason=_previous select 2;
     if (_reason in ["OPEN_REQUESTED","SHARED_OPENING"] && {serverTime >= (_previous select 3)}) then {_reason="OPEN_WINDOW_EXPIRED"};
     [_reason,_previous select 3] call _publishResult;
     false
 };
-if (!_retryUnlock && {count _attempts >= 16}) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
+if (!_retryUnlock && {!_retryPassage} && {count _attempts >= 16}) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
 private _observed=[_vehicle,0,true] call CBE_fnc_DrivingGateCap;
 if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
 if (_retryUnlock) then {
-    _attempts set [_attemptIndex,[_gate,+_transform,"VALIDATING",serverTime+5,1]];
+    _attempts set [_attemptIndex,[_gate,+_transform,"VALIDATING",serverTime+5,1,_passageCycle]];
 } else {
-    _attemptIndex=count _attempts;
-    _attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5,0];
+    if (_retryPassage) then {
+        _attempts set [_attemptIndex,[_gate,+_transform,"VALIDATING",serverTime+5,0,_passageCycle]];
+    } else {
+        _attemptIndex=count _attempts;
+        _attempts pushBack [_gate,+_transform,"VALIDATING",serverTime+5,0,_passageCycle];
+    };
 };
-_vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
+_vehicle setVariable ["CBE_DrivingGate_AttemptStopSerial",_stopSerial];
+    _vehicle setVariable ["CBE_DrivingGate_ServerAttempts",[_group,+_route,_revision,_attempts]];
 private _sources=[];
 private _preferredSources=createHashMap;
 private _definitions="true" configClasses ((configOf _gate) >> "AnimationSources");
@@ -230,6 +249,58 @@ isNil {
     {
         if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
     } forEach _sources;
+    // Closure is separately opt-in and requires a complete pre-passage observation.
+    // Opening still succeeds when geometry/capacity cannot admit safe closure work.
+    if ([_group,"CBE_AIPass_DrivingAssist_CloseGates_Enable",false,_vehicle] call CBE_fnc_CortexFeatureEnabled) then {
+        private _closeJobs=(missionNamespace getVariable ["CBE_DrivingGate_CloseJobs",[]]) select {
+            !(_x getOrDefault ["done",false])
+        };
+        missionNamespace setVariable ["CBE_DrivingGate_CloseJobs",_closeJobs];
+        private _existingClose=_gate getVariable ["CBE_DrivingGate_CloseWork",createHashMap];
+        if (count _closeJobs < 8 && {count _existingClose == 0 || {serverTime >= (_existingClose getOrDefault ["until",-1])}}) then {
+            private _box=boundingBoxReal _gate;private _low=_box select 0;private _high=_box select 1;
+            private _origin=_gate modelToWorldWorld ((_low vectorAdd _high) vectorMultiply 0.5);
+            private _axis=if ((_high select 0)-(_low select 0) >= (_high select 1)-(_low select 1)) then {
+                vectorDir _gate
+            } else {private _dir=vectorDir _gate;[_dir select 1,-(_dir select 0),0]};
+            _axis set [2,0];
+            if (vectorMagnitude _axis > 0.1) then {
+                _axis=vectorNormalized _axis;
+                if (((getPosWorld _vehicle) vectorDiff _origin) vectorDotProduct _axis > 0) then {_axis=_axis vectorMultiply -1};
+                private _side=[_axis select 1,-(_axis select 0),0];
+                private _gateSpan=[_gate,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+                private _aperture=[_gate,_origin,_side] call CBE_fnc_DrivingHullInterval;
+                private _hull=[_vehicle,_origin,_axis] call CBE_fnc_DrivingHullInterval;
+                if (count _gateSpan == 2 && {count _aperture == 2} && {count _hull == 2}
+                    && {(_hull select 1) < (_gateSpan select 0)-0.5}
+                    && {(_aperture select 1)-(_aperture select 0) >= 1.5}
+                    && {(_aperture select 1)-(_aperture select 0) <= 20}
+                    && {(_gateSpan select 1)-(_gateSpan select 0) <= 8}) then {
+                    private _serial=(missionNamespace getVariable ["CBE_DrivingGate_CloseSerial",0])+1;
+                    missionNamespace setVariable ["CBE_DrivingGate_CloseSerial",_serial];
+                    private _leaves=_sources select {(_x select 2) < 0.1};
+                    private _job=createHashMapFromArray [["gate",_gate],["vehicle",_vehicle],["taskGroup",_group],
+                        ["driver",_driver],["commander",_requestedCommander],["groupOwner",groupOwner _group],
+                        ["vehicleOwner",owner _vehicle],["driverOwner",owner _driver],["commanderOwner",owner _requestedCommander],
+                        ["native",[+(expectedDestination _driver),+(expectedDestination _requestedCommander)]],
+                        ["nativeTasks",[currentCommand _driver,currentCommand _requestedCommander]],
+                        ["route",+_route],["revision",_revision],
+                        ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+                        ["operation",_group getVariable ["CBE_OperationGeneration",0]],
+                        ["transform",+_transform],["opening",+(_gate getVariable ["CBE_DrivingGate_ServerOpening",[]])],
+                        ["leaves",+_leaves],["otherLeaves",_sources select {(_x select 2) >= 0.1}],
+                        ["lastPhases",_leaves apply {_x select 2}],["phase","PASSAGE"],
+                        ["started",serverTime],["until",serverTime+120],["origin",_origin],["axis",_axis],["side",_side],
+                        ["gateSpan",_gateSpan],["aperture",_aperture],["sample",[serverTime,getPosWorld _vehicle]],
+                        ["crossed",false],["done",false],["generation",_serial],
+                        ["jobKey",format ["CBE_GATE_CLOSE_%1_%2",netId _gate,_serial]]];
+                    _gate setVariable ["CBE_DrivingGate_CloseWork",_job];
+                    _closeJobs pushBack _job;missionNamespace setVariable ["CBE_DrivingGate_CloseJobs",_closeJobs];
+                    [CBE_fnc_DrivingGateCloseServer,_job,1,_job get "jobKey"] call CBE_fnc_CortexQueueJob;
+                };
+            };
+        };
+    };
     ["OPEN_REQUESTED",serverTime+12] call _publishResult;
     _opened=true;
 };

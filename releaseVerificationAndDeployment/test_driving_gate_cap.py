@@ -12,7 +12,7 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('(_previous select 2) == "LOCKED"',server)
         self.assertIn('(_previous select 3) == _unlockReceipt',server)
         self.assertIn('(_previous param [4,0]) == 0',server)
-        self.assertIn('"VALIDATING",serverTime+5,1]',server)
+        self.assertIn('"VALIDATING",serverTime+5,1,_passageCycle]',server)
         self.assertLess(server.index('private _retryUnlock=false'),server.index('call CBE_fnc_DrivingGateCap'))
         for code in (owner,server):
             self.assertIn('bis_disabled_Door_%1',code)
@@ -108,10 +108,10 @@ class DrivingGateCapTests(unittest.TestCase):
                       'OPEN_WINDOW_EXPIRED', 'REQUEST_TIMEOUT',
                       'CBE_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true', '["driver",_driver]', '["commander",_commander]']:
             self.assertIn(guard,owner)
-        self.assertLess(server.index('if (_attemptIndex >= 0 && {!_retryUnlock}) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
+        self.assertLess(server.index('if (_attemptIndex >= 0 && {!_retryUnlock} && {!_retryPassage}) exitWith'),server.index('call CBE_fnc_DrivingGateCap'))
         self.assertIn('_driver != _requestedDriver',server)
         self.assertIn('_commander != _requestedCommander',server)
-        self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform]',server)
+        self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform,_passageCycle]',server)
         self.assertNotIn('animateSource',owner)
 
 class DrivingGateIntentTests(unittest.TestCase):
@@ -160,4 +160,78 @@ class DrivingGateMutationTests(unittest.TestCase):
         self.assertIn('"SHARED_OPENING",_currentOpening select 2',body)
         self.assertNotIn('lineIntersects',body)
         self.assertNotIn('nearestObjects',body)
+class DrivingGateClosureTests(unittest.TestCase):
+    def test_finite_closure_retains_authority_and_never_infers_passage_from_time(self):
+        close=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text()
+        opening=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
+        stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
+        self.assertIn('count _closeJobs < 8',opening)
+        self.assertIn('["until",serverTime+120]',opening)
+        # Outstanding callbacks occupy slots until they retire, even when overdue.
+        admission=opening.split('private _closeJobs=',1)[1].split('private _existingClose=',1)[0]
+        self.assertNotIn('serverTime <',admission)
+        self.assertIn('CBE_fnc_DrivingGateCloseServer,_job,1',opening)
+        for token in ('canSuspend','remoteExecutedOwner','groupOwner _taskGroup',
+                      'owner _driver','owner _commander','DrivingRouteReceipt',
+                      'OPERATION_CHANGED','NATIVE_ORDER_CHANGED','bis_disabled_Door',
+                      'ANIMATION_CHANGED','OTHER_LEAF_CHANGED','PASSAGE_SAMPLE_LOST',
+                      'CortexExternalTakeover','count _near > 16','false,false,false'):
+            self.assertIn(token,close)
+        self.assertIn('CBE_DrivingGate_CloseJobs',stop)
+        self.assertIn('_x set ["done",true]',stop)
+        self.assertIn('CBE_DrivingGate_StopSerial',stop)
+        self.assertIn('CBE_DrivingGate_AttemptStopSerial',opening)
+        self.assertIn('CBE_DrivingGate_Result",nil,true',stop)
+        completion=close.split('if ((_job get "phase") == "CLOSING") exitWith {',1)[1].split('if (isNull _vehicle',1)[0]
+        self.assertNotIn('animateSource',completion)
+        self.assertIn('CLOSED_OBSERVED',completion)
+
+        self.assertNotIn('["group",_group]',opening.split('private _job=createHashMapFromArray',1)[1])
+        mutation=close.index('_gate animateSource')
+        self.assertLess(close.index('if (!_clear)'),mutation)
+        self.assertLess(close.index('if (!_open'),mutation)
+        self.assertEqual(close.count('_gate animateSource'),1)
+        self.assertIn('CLOSE_REQUESTED',close)
+        self.assertIn('CLOSED_OBSERVED',close)
+        self.assertIn('CBE_DrivingGate_ClosedProof',close)
+        self.assertIn('CBE_DrivingGate_ClosedProof',opening)
+        self.assertNotIn('getVariable ["CBE_DrivingGate_ClosedCycle"',opening)
+        self.assertIn('_passageCycle > (_previous param [5,0,[0]])',opening)
+        self.assertIn('if (_retryPassage) then',opening)
+        def new_passage(previous_reason, accepted_cycle, closed_cycle, pose_matches=True):
+            return pose_matches and previous_reason in ('OPEN_REQUESTED','SHARED_OPENING','OPEN_WINDOW_EXPIRED','ALREADY_OPEN_OR_MOVING') and closed_cycle>accepted_cycle
+        self.assertTrue(new_passage('OPEN_REQUESTED',0,12))
+        self.assertTrue(new_passage('SHARED_OPENING',2,12))
+        self.assertTrue(new_passage('OPEN_WINDOW_EXPIRED',2,12))
+        self.assertFalse(new_passage('OPEN_REQUESTED',30,12))
+        self.assertFalse(new_passage('LOCKED',12,12))
+        self.assertFalse(new_passage('OPEN_REQUESTED',12,12,False))
+
+        for command in ('doMove','forceSpeed','setVelocity','setPos','spawn','waitUntil'):
+            self.assertNotIn(command,close)
+
+    def test_aperture_crossing_and_tail_clearance_are_distinct(self):
+        def crossing(before, after, half_width, dt=2):
+            if dt<=0 or dt>6 or sum((b-a)**2 for a,b in zip(before,after))>25**2:
+                return False
+            if not before[0]<0<=after[0]:
+                return False
+            fraction=-before[0]/(after[0]-before[0])
+            lateral=before[1]+fraction*(after[1]-before[1])
+            return lateral-half_width>-3 and lateral+half_width<3
+        self.assertTrue(crossing((-4,0),(4,0),1))
+        self.assertFalse(crossing((-4,5),(4,5),1))
+        self.assertFalse(crossing((4,0),(8,0),1))
+        self.assertFalse(crossing((4,0),(-4,0),1))
+        self.assertFalse(crossing((-4,0),(4,0),4))
+        self.assertFalse(crossing((-40,0),(40,0),1))
+        self.assertFalse(crossing((-4,0),(4,0),1,7))
+        def cleared(minimum, gate_maximum=0.5):
+            return minimum>gate_maximum+3
+        self.assertFalse(cleared(2))  # nose crossed, tail still near gate
+        self.assertTrue(cleared(4))
+        close=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text()
+        self.assertIn('_crossSide+(_lateral select 0)',close)
+        self.assertIn('(_span select 0) <= ((_job get "gateSpan") select 1)+3',close)
+
 if __name__=='__main__': unittest.main()

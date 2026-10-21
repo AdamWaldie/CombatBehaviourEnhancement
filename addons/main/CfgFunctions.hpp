@@ -44,6 +44,7 @@ class CfgFunctions {
             class DrivingRoadCap {file = "\z\cbe\addons\vehicles\functions\drivingRoadCap.sqf";};
             class DrivingGateIntent {file = "\z\cbe\addons\vehicles\functions\drivingGateIntent.sqf";};
             class DrivingGateRequest {file = "\z\cbe\addons\vehicles\functions\drivingGateRequest.sqf";};
+            class DrivingGateCloseServer {file = "\z\cbe\addons\vehicles\functions\drivingGateCloseServer.sqf";};
             class DrivingGateOpenServer {file = "\z\cbe\addons\vehicles\functions\drivingGateOpenServer.sqf";};
             class DrivingCorridorDispatch {file = "\z\cbe\addons\vehicles\functions\drivingCorridorDispatch.sqf";};
             class ZenDrivingCorridorModule {file = "\z\cbe\addons\vehicles\functions\zenDrivingCorridorModule.sqf";};

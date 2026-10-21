@@ -408,6 +408,7 @@ createHashMapFromArray [
         ["CBE_AIPass_DrivingAssist_Passing_Enable", false], // Experimental finite automatic admission; physical/performance acceptance pending.
         ["CBE_AIPass_DrivingAssist_Queue_Enable", false], // Opt-in cooperative head-on jam initiation; physical/performance acceptance pending.
         ["CBE_AIPass_DrivingAssist_MaxSpeed", 70], // General driving cap in km/h; terrain and lower authored caps still apply.
+        ["CBE_AIPass_DrivingAssist_CloseGates_Enable", false], // Finite passage observation and sampled-clear gate closure; opt-in.
         ["CBE_AIPass_DrivingAssist_Recovery_Enable", true], // Allows new finite recovery attempts; does not cancel a native leg already issued.
         ["CBE_AIPass_NavalAssault_Enable", true], // BOOL: finite coastal approach and passenger landing; yields to player, Zeus and neutral external-control ownership.
         ["CBE_AIPass_ContactReports_Enable", true], // BOOL: share sightings by radio (jammable) or voice.
