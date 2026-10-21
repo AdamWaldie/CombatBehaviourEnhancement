@@ -4,7 +4,9 @@
  * Finite individual indoor tasks retire their exact-owned native legs before other group cleanup.
  * Stops Cortex on this machine and hands every affected group back to its own orders.
  *
- * Removes tactical event handlers and discards tactical jobs. The shared scheduler and skill jobs
+ * Removes tactical event handlers and discards tactical jobs. Exact finite stance cleanup
+ * survives the controlled same-owner epoch edge with its original expiry; no tactics restart.
+ * The shared scheduler and skill jobs
  * remain while skill adjustment is enabled. Every locally managed
  * group is released (CBE_fnc_CortexReleaseGroup): drills end with only the AI features they
  * disabled re-enabled, pass waypoints are removed, behaviour and speed are restored and COMPAT group AI
@@ -274,7 +276,42 @@ if (!isNil "_civilianCreated") then {
     _x setVariable ["CBE_AIPass_Adopted", nil];
     private _stoppingGroup=_x;
     private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
+    private _postureOldEpoch=_stoppingGroup getVariable ["CBE_AIPass_Epoch",0];
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // This same-machine shutdown owns this epoch edge. Carry only exact deferred
+    // weak-stance restoration, never an active danger response or tactical task.
+    if (local _stoppingGroup && {!([_stoppingGroup] call CBE_fnc_CortexExternalTakeover)}
+        && {!([_stoppingGroup] call CBE_fnc_CortexZeusHeld)}) then {
+        private _posturePending=_stoppingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
+        if (_posturePending isEqualType [] && {count _posturePending <= 64}) then {
+            {
+                private _postureActor=_x;
+                if (_postureActor isEqualType objNull) then {
+                    private _postureProof=_postureActor getVariable ["CBE_Danger_EngineStanceLease",[]];
+                    if (!isNull _postureActor && {local _postureActor} && {alive _postureActor}
+                        && {!isPlayer _postureActor} && {group _postureActor == _stoppingGroup}
+                        && {_postureProof isEqualType []} && {count _postureProof == 6}
+                        && {(_postureProof select 0) in ["AUTO","UP","MIDDLE","DOWN"]}
+                        && {(_postureProof select 1) in ["AUTO","UP","MIDDLE","DOWN"]}
+                        && {(_postureProof select 2) isEqualType 0} && {finite (_postureProof select 2)}
+                        && {time < (_postureProof select 2)+30}
+                        && {(_postureProof select 3) == (_stoppingGroup getVariable ["CBE_OperationGeneration",0])}
+                        && {(_postureProof select 4) isEqualTo _postureOldEpoch}
+                        && {(_postureProof select 5) == _stoppingGroup}
+                        && {toUpperANSI unitPos _postureActor == (_postureProof select 1)}
+                        && {isNull remoteControlled _postureActor}
+                        && {[_postureActor] call CBE_fnc_CortexExternalOwner == ""}
+                        && {!([_postureActor] call CBE_fnc_CompatibilityExternalControl)}) then {
+                        private _postureRebound=+_postureProof;
+                        _postureRebound set [4,_stoppingGroup getVariable ["CBE_AIPass_Epoch",0]];
+                        _postureActor setVariable ["CBE_Danger_EngineStanceLease",_postureRebound];
+                        [_postureActor] call CBE_fnc_DangerEngineRelease;
+                    };
+                };
+            } forEach +_posturePending;
+        };
+    };
+
     // Master stop owns this exact epoch edge. Retain only validated released STOP
     // cleanup on the same machine; no timer, command or deadline is restarted here.
     private _abortVehicles=[];

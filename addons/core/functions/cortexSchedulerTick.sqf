@@ -47,7 +47,8 @@
 if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     && {!(missionNamespace getVariable ["CBE_AI_RebalanceActive", false])}
     && {!(missionNamespace getVariable ["CBE_Convoy_SchedulerActive", false])}
-    && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}) exitWith {};
+    && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive", false])}) exitWith {};
 private _jobs = missionNamespace getVariable ["CBE_AIPass_Jobs", []];
 private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 private _now = time;
@@ -75,6 +76,7 @@ if (_paused) then {missionNamespace setVariable ["CBE_AIPass_ResumeGraceUntil",_
 private _processed = 0;
 private _next = [];
 private _rescheduled = [];
+private _postureRetired=false;
 private _earliest = -1;
 {
     _x params ["_dueAt", "_job", "_state"];
@@ -91,6 +93,7 @@ private _earliest = -1;
             case "SKILLS": {"CBE_AI_RebalanceActive"};
             case "CONVOY": {"CBE_Convoy_SchedulerActive"};
             case "AIRCRAFT": {"CBE_Aircraft_SchedulerActive"};
+            case "POSTURE_CLEANUP": {"CBE_Danger_PostureSchedulerActive"};
             default {"CBE_AIPass_Active"};
         };
         private _enabled = missionNamespace getVariable [_enabledFlag, false];
@@ -100,13 +103,16 @@ private _earliest = -1;
         private _jobPaused = _paused && {!_skillsJob};
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
         // Removing an already-owned stance is handback, not a new tactical action.
-        // This category retains the ordinary master/owner stale gates and shared budget.
+        // This category retains the owner stale gate and shared budget; its finite handback
+        // runtime can outlive tactical shutdown.
         if (_subsystem == "POSTURE_CLEANUP") then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
         private _callbackCanSuspend=canSuspend;
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
+        if (_subsystem == "POSTURE_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_postureRetired=true};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
         private _queueLatency=(_now-_dueAt) max 0;
         _state set ["lastCallbackMs",_callbackMs];
@@ -178,4 +184,13 @@ if (
     missionNamespace setVariable ["CBE_Aircraft_DecelerationSchedulerActive", _decelerationActive];
     missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", _landingActive];
     if (_changed) then {[] call CBE_fnc_SchedulerReconcile};
+};
+
+// A shutdown handback keeps only the existing finite cleanup job. When its final
+// receipt retires, reconcile the shared callback rather than leave an idle worker.
+if (_postureRetired && {missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive",false]}) then {
+    private _postureLeft=(_next findIf {((_x select 2) getOrDefault ["subsystem",""]) == "POSTURE_CLEANUP"}) >= 0
+        || {((missionNamespace getVariable ["CBE_AIPass_PendingJobs",[]]) findIf {
+            ((_x select 2) getOrDefault ["subsystem",""]) == "POSTURE_CLEANUP"}) >= 0};
+    if (!_postureLeft) then {[] call CBE_fnc_SchedulerReconcile};
 };

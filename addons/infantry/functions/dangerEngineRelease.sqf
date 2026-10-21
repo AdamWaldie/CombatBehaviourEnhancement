@@ -10,7 +10,8 @@
  * Zeus, specialist controller or finite actor reservation has taken ownership. New leases also bind operation generation, owner epoch and group; replacement work cannot inherit the restoration.
  * Dormancy, blocked native tasks/reservations and unconfirmed restores retain the original lease for a later
  * existing caller. Automatic retries stop 30 seconds after the original stance expiry; proof remains.
- * One finite keyed shared-scheduler job services pending actors without a tactical brain.
+ * One finite keyed shared-scheduler job services pending actors without a tactical brain,
+ * including disabled tactics. Direct blocked release wakes an existing queue entry too.
  * No per-actor worker or deadline renewal is created; scheduler pressure can still exhaust the window.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: running cleanup job <BOOL>, false.
  * Only DangerPostureStep passes true to avoid requeueing its already-running callback.
@@ -46,17 +47,18 @@ private _evidence={
     if (!_retire && {_reason in ["ACTOR_RESERVATION","ACTOR_DORMANT","NATIVE_TASK_OR_MEDICAL","RESTORE_PENDING"]}) then {
         private _pendingGroup=group _actor;
         private _pending=_pendingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
-        if (local _pendingGroup && {_pending isEqualType []} && {count _pending < 64}
+        if (local _pendingGroup && {_pending isEqualType []} && {count _pending <= 64}
+            && {_actor in _pending || {count _pending < 64}}
             && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
-            && {time < (_lease select 2)+30}
-            && {!(_actor in _pending)}) then {
-            _pending pushBack _actor;
+            && {time < (_lease select 2)+30}) then {
+            if (!(_actor in _pending)) then {_pending pushBack _actor};
             _pendingGroup setVariable ["CBE_Danger_StancePendingActors",_pending];
             if (!_cleanupRunning) then {
                 private _cleanupEpoch=_pendingGroup getVariable ["CBE_AIPass_Epoch",0];
                 [CBE_fnc_DangerPostureStep,createHashMapFromArray [["group",_pendingGroup],
                     ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch],["subsystem","POSTURE_CLEANUP"]],0.25,
                     "DANGER_POSTURE"] call CBE_fnc_CortexQueueJob;
+                [] call CBE_fnc_SchedulerReconcile;
             };
         };
     };

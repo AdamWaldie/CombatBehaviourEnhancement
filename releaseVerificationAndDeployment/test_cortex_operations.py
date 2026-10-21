@@ -10564,6 +10564,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_DangerPostureStep',release)
         self.assertIn('"DANGER_POSTURE"] call CBE_fnc_CortexQueueJob',release)
         self.assertNotIn('format ["DANGER_POSTURE',release)
+        self.assertIn('call CBE_fnc_SchedulerReconcile',release)
+        self.assertIn('_actor in _pending || {count _pending < 64}',release)
+        reconcile=source('schedulerReconcile')
+        self.assertIn('case "POSTURE_CLEANUP"',reconcile)
+        self.assertIn('CBE_Danger_PostureSchedulerActive',reconcile)
+        scheduler=source('cortexSchedulerTick')
+        self.assertIn('case "POSTURE_CLEANUP": {"CBE_Danger_PostureSchedulerActive"}',scheduler)
+        self.assertIn('if (!_postureLeft) then {[] call CBE_fnc_SchedulerReconcile}',scheduler)
+        stop=source('cortexStop')
+        adoption=stop.split('private _postureOldEpoch=',1)[1].split('// Master stop owns this exact epoch edge.',1)[0]
+        for proof in ('_postureProof select 4) isEqualTo _postureOldEpoch','toUpperANSI unitPos _postureActor',
+                      'time < (_postureProof select 2)+30','CortexExternalTakeover','CortexZeusHeld'):
+            self.assertIn(proof,adoption)
+        self.assertIn('_postureRebound set [4,',adoption)
+        self.assertNotIn('_postureRebound set [2,',adoption)
+
         queue=source('cortexQueueJob')
         self.assertIn('(_candidateState getOrDefault ["group",grpNull]) == _group',queue)
         self.assertIn('(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")',queue)

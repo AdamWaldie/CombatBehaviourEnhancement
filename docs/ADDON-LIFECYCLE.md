@@ -1394,3 +1394,10 @@ Native CANFIRE suppression consumes the current eight-field danger observation a
 
 
 Danger-cover cleanup checks the previous leased soldier independently when another observer supplies the current event. A failed approach may return to formation only while that previous soldier remains combat-effective and is not fleeing, in addition to the existing exact route, task, owner and movement-receipt checks. A new healthy observer grants no authority to recall an incapacitated or fleeing previous responder. Retiring the old CBE marker does not clear the native flight or care state.
+
+
+### Finite danger-stance handback after tactical shutdown
+
+Disabling tactics retires tactical jobs while retaining the existing bounded posture-cleanup job for exact pending weak-stance receipts. The controlled same-machine shutdown epoch carries only the original group/generation, unchanged applied stance and original expiry plus thirty-second restoration window. It grants no danger event, route or tactical planning authority. Zeus, player, specialist, changed stance and unrelated ownership still win; medical, flight or native-task blocks can wait only inside that original window.
+
+The shared scheduler remains active solely while valid finite cleanup jobs remain, then releases that runtime. It pops one of at most sixty-four queued actors per callback, and checks for final runtime retirement only when a cleanup job actually ends. A direct blocked release can wake its existing queue entry without adding another actor or renewing the receipt. Expiry records unresolved restoration; it never forces a late stance change. Runtime shutdown/medical/flight transitions and performance still require physical validation; audits remain paused.

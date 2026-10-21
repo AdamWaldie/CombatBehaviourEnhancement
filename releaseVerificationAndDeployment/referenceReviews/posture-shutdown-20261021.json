@@ -1,0 +1,33 @@
+{
+  "baseline": "49ee346f",
+  "scope": "Finite exact danger-stance restoration survives tactical shutdown without keeping tactics alive",
+  "finding": [
+    "DangerEngineRelease queued blocked stance restoration, but SchedulerReconcile filtered POSTURE_CLEANUP under default tactical master state; SchedulerTick also treated it as disabled. CortexStop advanced epoch after release, invalidating remaining exact old-epoch restoration.",
+    "Direct release of an actor already present in the bounded pending list did not wake its cleanup job."
+  ],
+  "implementation": [
+    "POSTURE_CLEANUP has an independent finite shared-scheduler active flag derived only from retained local owner/epoch jobs with one to64 pending actors. No tactical job retained by it.",
+    "Controlled same-machine CortexStop epoch edge carries only typed exact pending weak stance proof: unchanged applied stance, original group/current generation/old epoch, original expiry+30, local ordinary actor and no Zeus/external owner. Only issuing epoch changes; existing release rechecks native tasks/medical/flight before any native stance write.",
+    "Existing actor cleanup job runs while tactics disabled; last actual cleanup retirement triggers runtime reconciliation and callback removal when other runtimes are off. No new worker or world scan; retirement queue search runs only after a cleanup job ends.",
+    "Direct blocked release can wake an already queued actor; queue stays bounded64 and original receipt expiry is never renewed."
+  ],
+  "validation": {
+    "focused": ".qa/posture-shutdown-tests.log:609 existing cortex checks passed before final retirement cadence refinement.",
+    "full": ".qa/posture-shutdown-build.log:1489 tests/401 SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/posture-shutdown-49ee346f",
+    "fingerprint": "5d461a4a3546da33c1e3d6d4253b5caf8533b48946a103e73077614a4000b7e4",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate, baseline plus intended edits and retained unrelated dirt."
+  },
+  "limits": [
+    "Physical disable/medical/flight/expiry transitions and 5percent median/10percent p95 runtime budget unverified; audits PAUSED.",
+    "Unrelated locality or operation-generation transfer still cannot borrow this controlled shutdown epoch edge.",
+    "Expired unchanged proof remains unresolved; no forced late restoration or eventual-success claim."
+  ],
+  "source_sha256": {
+    "addons/infantry/functions/dangerEngineRelease.sqf": "3415a04e84ce8983a791ca344e788a96847967bbbf624e783d5adc139644d2c6",
+    "addons/core/functions/schedulerReconcile.sqf": "edcf4d248580db8c0807c325f536e0302299de9bdfde75fc920c7b9c093d7df9",
+    "addons/core/functions/cortexSchedulerTick.sqf": "b429db227e9bed0ce406bab0e6e517911bfd48307d4e17e5b67fea22cb62017f",
+    "addons/core/functions/cortexStop.sqf": "8bc74ad19a414b17142d5c76303d61a0bec59755b4c41e753af874daac67a700"
+  }
+}
