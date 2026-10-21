@@ -58,6 +58,8 @@ private _eligible=_living select {
                 && {isNull remoteControlled _x} && {isNull objectParent _x}
                 && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                 && {currentCommand _x in ["","STOP"]}
+                && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)} && {[_x] call CBE_fnc_CortexCombatEffective}
                 && {_x getVariable ["CBE_AIPass_GarrisonDisabledPath",false]} && {!(_x checkAIFeature "PATH")}
                 && {private _other=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
@@ -72,6 +74,8 @@ private _eligible=_living select {
     _spare && {currentCommand _actor in ["","STOP"]} && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull objectParent _actor} && {_actor checkAIFeature "MOVE"} && {_free}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!(_actor getVariable ["CBE_AIPass_GarrisonFailed",false])}
         && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
         && {!(currentCommand _actor in ["MOVE","FOLLOW","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}

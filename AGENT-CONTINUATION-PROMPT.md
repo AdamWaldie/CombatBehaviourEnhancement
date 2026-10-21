@@ -1,3 +1,8 @@
+# Latest checkpoint - garrison native-task PATH handback
+
+## 2026-10-21 - Garrison native task PATH handback
+Baseline205248f7. Actual gap: flight/queued care stopped new garrison commands but did not enter groupTick partial-release diversion, so arrived actors could retain CBE PATH lock. Added flight/healerqueue to existing diversion; release(group,false,actors) clears only their assignment and own PATH restriction, calls exact canonical settings cleanup, and native-task gate prevents recall/watch replacement. Admission/precommit/instantplacement/refill/alternateobserver reject dormant,hidden,fleeing,queuedcare. Existing roster prevents diverted enrolled actors becoming new reinforcements. No new scans/callback/timer/geometry/morale/native route or queue writes.609focused/all1484+HEMTT/FSM/docs/package pass .qa/garrison-native-task-handback-build.log; independent .qa/garrison-native-task-handback-independent.log. Candidate .qa/candidates/garrison-native-task-handback-205248f7 fingerprintc2373b4419d024e5c35f6af7431f803fe48dc1cf0f1e7a636468192e2f765bdc. LAMBS foundations review has scope/hash/limits. Physical PATH/nativeflight/caretravel/refill/partialrelease/HC/Zeus/performance unverified. Prior delayed duck generation/owner interruption recovery gap remains; canonical proof retention is not automatic immediate-posture recovery. Audits PAUSED/no launches;localonly/no push/merge/publish;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - garrison canonical settings migration
 
 ## 2026-10-21 - Garrison canonical settings migration

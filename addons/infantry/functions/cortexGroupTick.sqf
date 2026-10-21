@@ -195,7 +195,9 @@ if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []) then {
     private _diverted=_alive select {
         private _actor=_x;
         private _command=currentCommand _actor;
-        private _nativeTask=_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+        private _nativeTask=fleeing _actor
+            || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+            || {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
         private _receipt=_actor getVariable ["CBE_Cortex_GarrisonMove",[]];
         private _live=(expectedDestination _actor) param [0,[]];
         private _matching=count _receipt == 5 && {(_receipt select 0) == _group}

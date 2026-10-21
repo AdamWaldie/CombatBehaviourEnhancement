@@ -1018,5 +1018,21 @@
     },
     "acceptance": false,
     "audits": "PAUSED; no launches, remote CI, push, merge or publication."
+  },
+  "garrisonNativeTaskHandback20261021": {
+    "baseline": "205248f7",
+    "finding": "Fleeing/queued treatment stopped CBE garrison commands but did not enter the existing partial-release diversion path; arrived actors could retain CBE PATH lock. Refill/admission also omitted these eligibility states.",
+    "implementation": "Include flight and queued healer work in the existing group diversion predicate, using CortexGarrisonRelease(group,false,actors) to remove only their assignment/owned PATH hold and exact settings. Native-task release gate prevents recall/watch replacement. Admission, precommit snapshot, explicit initial placement, refill actor and alternate observer reject dormant/hidden/fleeing/queued care. Existing roster prevents diverted enrolled actors from becoming new reinforcements.",
+    "cost": "Existing bounded group/actor/alternate-observer passes only; no new scans, geometry, timers or callbacks. No morale, care queue or native route mutation.",
+    "validation": "609 focused/all1484 tests plus full SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package pass .qa/garrison-native-task-handback-build.log; independent .qa/garrison-native-task-handback-independent.log passed. Existing regression extended, no new cases.",
+    "limits": "Physical PATH/flight/treatment travel, partial release/refill, native edits, HC/Zeus and5%/10% performance remain unverified. Delayed duck interruption recovery is a separate remaining gap.",
+    "sourceHashes": {
+      "addons/infantry/functions/cortexGroupTick.sqf": "a082ce4c9d1e7642e72e7c29968c1bd451e7d9591d2a4200f43ca4436d017af8",
+      "addons/infantry/functions/cortexGarrison.sqf": "f89fec00ad870ea88c11af1b321cdd689734e9ec2b11f6feef2787c2a28757d8",
+      "addons/infantry/functions/cortexGarrisonRefill.sqf": "3d301aaf0073982e2092f0a28fe98fcc5fe95723ed336117faa1443f07f8933f"
+    },
+    "audits": "PAUSED",
+    "candidate": ".qa/candidates/garrison-native-task-handback-205248f7",
+    "fingerprint": "c2373b4419d024e5c35f6af7431f803fe48dc1cf0f1e7a636468192e2f765bdc"
   }
 }

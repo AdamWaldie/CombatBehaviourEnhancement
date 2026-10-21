@@ -73,6 +73,8 @@ private _units = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {vehicle _x == _x} && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
 };
 if (_units isEqualTo [] || {count _units > 64}) exitWith {false};
 
@@ -99,6 +101,8 @@ private _admissionCurrent={
                 || {isPlayer _actor} || {!isNull remoteControlled _actor}
                 || {!([_actor] call CBE_fnc_CortexCombatEffective)}
                 || {[_actor] call CBE_fnc_CortexActorMoveReserved}
+                || {!simulationEnabled _actor} || {isObjectHidden _actor} || {fleeing _actor}
+                || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                 || {currentCommand _actor != _command}
                 || {if (_command == "FOLLOW" && {!isNull _followLeader}) then {
                     formLeader _actor != _followLeader
@@ -173,6 +177,8 @@ if (_teleport) then {
             && {isNull remoteControlled _unit} && {isNull objectParent _unit}
             && {[_unit] call CBE_fnc_CortexCombatEffective} && {_unit checkAIFeature "MOVE"}
             && {_free} && {!([_group,false,_unit] call CBE_fnc_CortexExternalTakeover)}
+            && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
+            && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
             && {!isNull _building} && {alive _building}
             && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) then {

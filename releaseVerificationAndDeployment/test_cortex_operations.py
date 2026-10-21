@@ -7194,6 +7194,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,false,_diverted]',handover)
         for command in ["doMove","doFollow","doStop","setUnitPos","forceSpeed"]:
             self.assertNotIn(command,handover)
+        diverted=source("cortexGroupTick").split("private _diverted=_alive select {",1)[1].split("if (_diverted isNotEqualTo [])",1)[0]
+        for proof in ("fleeing _actor", "ace_medical_ai_healQueue"):
+            self.assertIn(proof,diverted)
+        admission=source("cortexGarrison")
+        for actor in ("_x", "_actor", "_unit"):
+            self.assertIn(f"fleeing {actor}",admission)
+            self.assertIn(f'{actor} getVariable ["ace_medical_ai_healQueue",[]]',admission)
+        refill=source("cortexGarrisonRefill")
+        for actor in ("_x", "_actor"):
+            for proof in (f"!fleeing {actor}", f"simulationEnabled {actor}",f"!isObjectHidden {actor}",f'{actor} getVariable ["ace_medical_ai_healQueue",[]]'):
+                self.assertIn(proof,refill)
 
     def test_partial_garrison_release_preserves_other_assignments(self):
         release=source("cortexGarrisonRelease");tick=source("cortexGroupTick")
