@@ -1386,6 +1386,8 @@ Defence arrival workers now keep a local issued-movement receipt bound to the ac
 
 ### Defence owner adoption
 
+Defence and garrison release leave recall, watch, stance and speed commands untouched while an actor is dormant, fleeing or queued for treatment. Garrison release still removes its own PATH restriction so native tasks can move the actor. Assignment metadata is retired; this does not promise deferred restoration of temporary settings after the native task ends.
+
 A fresh explicit defence supplies its admitted actor list; reserve commitment supplies only its selected reserve. Discovery supplies no fresh actors. New owners may adopt non-idle actors only through a typed six-field public MOVE/HOLD receipt binding group, generation, owner epoch, destination, exact assignment and command kind. Unmatched native commands lose only their CBE assignment, with no replacement movement. Actual CBE arrival publishes HOLD; MOVE requires the recorded destination. Jobs also retire when their captured owner epoch or authored native route changes. Receipts and route identity are cleared on release. Actor lists are bounded to 64; non-server remote execution of this internal executor is refused; server-forwarded task calls remain valid.
 
 Existing running defences without the new route receipt are released in replacement-order mode rather than assumed safe to adopt. Identical native commands remain ambiguous, and migrated receipt delivery order, STOP behaviour, WATCH restoration, casualty reinforcement and real HC/server round trips require physical validation. This adds per-command public metadata rather than a recurring network publisher. It is source implementation with offline checks, not accepted handover behaviour.

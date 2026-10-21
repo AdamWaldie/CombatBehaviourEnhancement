@@ -951,5 +951,19 @@
       "superseded": "Initial guide repack/candidate retained but superseded after final diff caught unrelated Windows-default text decoding changes. Reconstructed document from git HEAD UTF-8 bytes and reapplied only two intended indoor hunks; unrelated existing text preserved, not repaired."
     },
     "limits": "Scoped source trace and documentation correction only. Artillery shot/fleeing interruption, native travel, physical effects/HC and performance unverified. Audits paused; no new parity or scores."
+  },
+  "holdReleaseNativeTaskPriority20261021": {
+    "baseline": "c7eb819a",
+    "finding": "Defence/garrison native-command gates omitted dormancy, fleeing and queued ACE treatment, permitting recall/watch and garrison posture/speed changes during those native tasks.",
+    "sourceIntent": "Previously reviewed LAMBS isForced/brainForced care and flight priority; implement CBE task priority rather than upstream controller or ACE timer writes.",
+    "change": "Extend existing native-task release gate for both task owners; preserve existing owned PATH restoration and metadata retirement. No new worker, settings, roster scan or provider state mutation.",
+    "limits": "Does not add deferred setting restoration or prove physical release, native care/flight, repeated task flow, HC or performance. Audits remain paused.",
+    "sourceHashes": {
+      "addons/infantry/functions/cortexDefendRelease.sqf": "9f2b906f17ebbd57bbca9c2c85c8b017f56c2a50c84e1e6d75255dfa1d9e8d04",
+      "addons/infantry/functions/cortexGarrisonRelease.sqf": "dc67f580728cd941ec368d673f639124f8116c8bf17d7eeffe0d210ff9a9335a"
+    },
+    "validation": "609 focused and all1484 tests, SQF/config/docs/wiki/parity/performance static gates, HEMTT/FSM/package passed .qa/hold-release-task-priority-build.log. Independent verification passed .qa/hold-release-task-priority-independent.log.",
+    "candidate": ".qa/candidates/hold-release-task-priority-c7eb819a",
+    "fingerprint": "336aede828818e12ac1254c45d07af594fd50703a6e172e7e827f162fa178bea"
   }
 }

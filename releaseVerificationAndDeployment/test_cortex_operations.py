@@ -7209,6 +7209,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_command == "MOVE" && {_ownedMove}',release)
         self.assertIn('if (_recallCommand &&',release)
         self.assertIn('setVariable ["CBE_Cortex_GarrisonMove",nil,true]',release)
+        for name, actor in (("cortexGarrisonRelease", "_unit"), ("cortexDefendRelease", "_x")):
+            text=source(name)
+            gate=text.split("private _nativeTask=",1)[1].split("if ([_x] call",1)[0]
+            for condition in (f"!simulationEnabled {actor}", f"isObjectHidden {actor}", f"fleeing {actor}", "ace_medical_ai_healQueue", "GET IN", "HEAL", "REARM"):
+                self.assertIn(condition,gate)
+            self.assertIn("{!_nativeTask}",text)
+        # Releasing our own PATH restriction is still necessary for native flight/care.
+        self.assertLess(release.index('enableAI "PATH"'),release.index("private _nativeTask="))
 
     def test_defence_arrival_requires_destination_floor(self):
         defend=source("cortexDefendApplyLocal")

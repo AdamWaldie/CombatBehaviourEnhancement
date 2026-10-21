@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Release commands preserve live or malformed actor reservations; only typed finite leases expire.
+ * Dormancy, native flight and queued treatment suppress recall/watch/stance/speed commands; metadata retires.
  * Ends a defence order: soldiers normally rejoin formation and fight as a normal squad. Replacement-
  * order release clears Cortex state and releases only a still-owned combat-labelled hold, so a
  * new group waypoint can move the soldier without overwriting a newer direct unit command.
@@ -67,7 +68,9 @@ if (isNull _leader) then {_leader=leader _group};
         && {(getPosATL _x) vectorDistance (_receipt select 3) <= 3};
     private _ownedCommand=_ownedMove || {_ownedHold} || {_receiptValid && {_command == ""}};
     private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
-    private _nativeTask=currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+    private _nativeTask=!simulationEnabled _x || {isObjectHidden _x} || {fleeing _x}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+            || {currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
     if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}
         && {_reservationFree} && {!_nativeTask} && {_ownedCommand} && {isNull objectParent _x}
         && {isNull remoteControlled _x}

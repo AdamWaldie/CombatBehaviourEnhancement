@@ -1,3 +1,8 @@
+# Latest checkpoint - defence/garrison native-task release
+
+## 2026-10-21 - Defence/garrison release native task priority
+Baselinec7eb819a. Actual gap: native command gate omitted dormancy, fleeing and pending ACE healer queue in both DefendRelease and GarrisonRelease. Extended existing gate so recall/watch and garrison stance/speed commands yield; existing owned PATH restoration remains before gate so native task is not left PATH-disabled. Metadata cleanup unchanged. No new worker/setting/scan/provider writes. Existing regression extended;609 focused/all1484 plus HEMTT/FSM/docs/package pass .qa/hold-release-task-priority-build.log. Independent .qa/hold-release-task-priority-independent.log; candidate .qa/candidates/hold-release-task-priority-c7eb819a fingerprint336aede828818e12ac1254c45d07af594fd50703a6e172e7e827f162fa178bea. Review LAMBS foundations JSON has exact source hashes/scope. Existing lack of deferred garrison setting restoration remains; no physical care/flight/recall/HC/performance proof. Audits PAUSED, no launches/push/merge/publish. Goal incomplete/active. Unrelated dirt/protected sources/signing preserved. Prior operation cancellation trace saved privately .qa/operation-retirement-trace-20261021.json;6 focused checks passed, no product change.
+
 # Latest checkpoint - convoy lower-band smoothing continuity
 
 ## 2026-10-21 - Convoy lower-band smoothing discontinuity

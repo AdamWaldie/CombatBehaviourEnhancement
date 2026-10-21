@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Release commands preserve live or malformed actor reservations; only typed finite leases expire.
+ * Dormancy, native flight and queued treatment suppress recall/watch/stance/speed commands; metadata retires.
  * Ends a garrison order: soldiers can move again and return to their normal stance. Normal release
  * rejoins formation; replacement-order release clears only a still-owned combat-labelled hold so
  * a new group waypoint can move the soldier without overwriting a newer direct unit command.
@@ -67,7 +68,9 @@ if (isNull _leader) then {_leader=leader _group};
 
         if (_x getVariable ["CBE_AIPass_GarrisonDisabledPath", false]) then {_x enableAI "PATH"};
         private _reservationFree=!([_unit] call CBE_fnc_CortexActorMoveReserved);
-        private _nativeTask=currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+        private _nativeTask=!simulationEnabled _unit || {isObjectHidden _unit} || {fleeing _unit}
+            || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+            || {currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
         if ([_x] call CBE_fnc_CortexCombatEffective && {!isPlayer _x}
             && {_reservationFree} && {!_nativeTask} && {isNull objectParent _unit}
             && {isNull remoteControlled _unit}
