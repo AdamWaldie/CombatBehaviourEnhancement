@@ -18,6 +18,9 @@
  * Native FOLLOW/CBE/STOP or non-route tasks also refuse opportunistic relocation. A MOVE
  * must address the current plain authored waypoint; individual destination replacements refuse.
  *
+ * Shared typed movement reservations and current CLEAR/MEDICAL_AID/WITHDRAW participants
+ * refuse new targeting and relocation. Unknown leases remain reserved; typed expired leases
+ * may be reassessed. Two-team START protects the team selected for the next bound.
  * Review contract: A blocked backblast causes only a relocation request. A later group step must recheck clearance before ordering the shot.
  * Active actor reservations and every member of a tactical drill are not relocated. Explicit
  * holding/clearing orders and disabled PATH/MOVE also prevent relocation; stationary support
@@ -45,10 +48,18 @@ params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap
 if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {!([_group,"CBE_AIPass_AntiArmour_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!(combatMode _group in ["YELLOW","RED"])}) exitWith {false};
+private _protectedParticipants=[];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
+if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
+    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+    _protectedParticipants=_operation getOrDefault ["participants",[]];
+};
 private _actorAvailable={
     params ["_actor"];
     !isNull _actor && {local _actor} && {group _actor == _group}
         && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {!(_actor in _protectedParticipants)}
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
@@ -72,7 +83,11 @@ if (count _relocation == 3) then {
     } else {
         if (!isNull _relocating && {local _relocating}) then {
             private _actorMove=_relocating getVariable ["CBE_Cortex_ActorMove",[]];
-            if (count _actorMove == 3 && {(_actorMove select 0) == "ANTI_ARMOUR"}
+            if (_actorMove isEqualType [] && {count _actorMove == 3}
+                && {(_actorMove select 0) isEqualType ""} && {(_actorMove select 0) == "ANTI_ARMOUR"}
+                && {(_actorMove select 1) isEqualType []} && {count (_actorMove select 1) == 3}
+                && {(_actorMove select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {(_actorMove select 2) isEqualType 0} && {finite (_actorMove select 2)}
                 && {(_actorMove select 1) distance2D _relocationSpot < 1}
                 && {(_actorMove select 2) == _relocationUntil}) then {
                 _relocating setVariable ["CBE_Cortex_ActorMove",nil];
@@ -85,7 +100,11 @@ if (count _relocation == 3) then {
 if (_relocationBlocks || {[_state,"antiArmourMove"] call CBE_fnc_CortexCooldown}) exitWith {false};
 private _drill = _state getOrDefault ["drill",createHashMap];
 private _moving = if ((_drill getOrDefault ["stage",""]) in ["START","MOVE"]) then {
-    _drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]
+    if ((_drill getOrDefault ["stage",""]) == "START" && {(_drill getOrDefault ["teams",[]]) isNotEqualTo []}) then {
+        // Selected movers change before new destinations exist. The prior bound's movers
+        // cannot identify the next team during this admission interval.
+        (_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]
+    } else {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]}
 } else {[]};
 // Reserve an opportunistic grenade thrower only for its short action window.
 if (time < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
@@ -101,9 +120,7 @@ if (_armourIndex < 0) exitWith {false};
 (_enemies select _armourIndex) params ["_enemyUnit", "_enemyPos"];
 private _armour = vehicle _enemyUnit;
 private _gunners = (units _group) select {
-    private _actorMove = _x getVariable ["CBE_Cortex_ActorMove",[]];
     ([_x] call _actorAvailable) && {!(_x in _moving)} && {!(_x in _recovering)} && {unitCombatMode _x in ["YELLOW","RED"]} && {isNull objectParent _x} && {"AT" in ([_x] call CBE_fnc_CortexCapabilities)}
-        && {count _actorMove != 3 || {_now >= (_actorMove select 2)}}
 };
 if (_gunners findIf {assignedTarget _x == _armour && {(_x getVariable ["CBE_AIPass_TargetHold", -1]) > _now}} >= 0) exitWith {false};
 private _ranked = [];

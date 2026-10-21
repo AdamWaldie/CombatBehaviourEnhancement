@@ -9,7 +9,7 @@
  * Current callers: CortexAdvanceStart/FlankStart/AssaultStart and CortexClearBuilding admission,
  * CortexGarrison instant placement, CortexGarrisonApplyLocal, CortexDefendApplyLocal,
  * CortexClearRelease/DefendRelease/GarrisonRelease, DangerEngineRelease, OperationStep
- * and RecoveryStep; CortexFireControl protects the same reservations from injected targeting.
+ * and RecoveryStep; CortexFireControl and CortexAntiArmour protect the same reservations from injected targeting.
  * Example: private _reserved=[soldier1] call CBE_fnc_CortexActorMoveReserved;
  */
 params [["_actor",objNull,[objNull]]];

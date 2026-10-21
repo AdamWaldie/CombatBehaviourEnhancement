@@ -4312,7 +4312,13 @@ class CortexOperations(unittest.TestCase):
         text = source('cortexAntiArmour')
         self.assertIn('!(_x in _moving)', text)
         self.assertIn('getVariable ["CBE_Cortex_ActorMove",[]]',text)
-        self.assertIn('_now >= (_actorMove select 2)',text)
+        self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',text)
+        roster=text.split('private _gunners =',1)[1].split('if (_gunners findIf',1)[0]
+        self.assertNotIn('count _actorMove',roster)
+        self.assertIn('!(_actor in _protectedParticipants)',text)
+        for guard in ('["CLEAR","MEDICAL_AID","WITHDRAW"]','getOrDefault ["ownerEpoch",-1]',
+                      '(_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]'):
+            self.assertIn(guard,text)
         self.assertIn('CBE_fnc_CortexCombatEffective', text)
         available=text.split('private _actorAvailable={',1)[1].split('private _now =',1)[0]
         for guard in ('_actor checkAIFeature "FIREWEAPON"','ace_medical_ai_healQueue',
@@ -10190,6 +10196,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_actorMove select 0) == "ANTI_ARMOUR"',section)
         self.assertIn('(_actorMove select 1) distance2D _relocationSpot < 1',section)
         self.assertIn('(_actorMove select 2) == _relocationUntil',section)
+        for guard in ('_actorMove isEqualType []','(_actorMove select 1) isEqualType []',
+                      'count (_actorMove select 1) == 3','finite (_actorMove select 2)'):
+            self.assertIn(guard,section)
+        self.assertLess(section.index('(_actorMove select 1) isEqualType []'),section.index('(_actorMove select 1) distance2D'))
+
 
     def test_cover_cleanup_preserves_replaced_native_destination(self):
         text=source('dangerCoverStep')
