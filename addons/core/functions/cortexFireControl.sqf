@@ -29,7 +29,7 @@
  * short per-group random delay, so separate squads do not produce an uncanny global volley. This models
  * alternating or "talking" fire inside an element while leaving unrelated elements asynchronous.
  * A suppressor needs at least two nonempty spare magazines and 60 rounds
- * for his weapon, must currently hold a loaded primary bullet muzzle, must not himself be heavily
+ * for his weapon, must currently hold a loaded primary bullet muzzle with a completed magazine reload, must not himself be heavily
  * suppressed, and must have a clear line of fire
  * (CBE_fnc_CortexLineOfFireClear keeps friendlies, including the flanking element, and civilians out
  * of the cone). Each suppressor rests 8 s between bursts. Flank element members are left alone.
@@ -273,7 +273,11 @@ if (_suppressPos isNotEqualTo []) then {
                 private _magazine = currentMagazine _unit;
                 private _ammo = configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
                 private _loaded = if (_muzzle == "") then {0} else {_unit ammo _muzzle};
-                private _rifleReady = _weapon != "" && {currentWeapon _unit == _weapon}
+                private _weaponState = weaponState _unit;
+                private _reload = _weaponState param [6,1,[0]];
+                private _rifleReady = count _weaponState >= 7
+                    && {(_weaponState select 0) == _weapon} && {(_weaponState select 1) == _muzzle}
+                    && {finite _reload} && {_reload == 0} && {_weapon != ""} && {currentWeapon _unit == _weapon}
                     && {_loaded > 0} && {toLowerANSI getText (_ammo >> "simulation") == "shotbullet"}
                     && {getNumber (_ammo >> "hit") > 0};
                 // No usable loaded primary means no reserve scan or firing-lane query.
