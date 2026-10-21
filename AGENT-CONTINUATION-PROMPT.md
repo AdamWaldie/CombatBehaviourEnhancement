@@ -1,8 +1,8 @@
-# Latest checkpoint - vehicle withdrawal retry mobility
+# Latest checkpoint - directional withdrawal progress
 
-Baseline dbad6cac plus current shared GroupTick RETREAT fix: VEHICLE_WITHDRAW retries now pass VEHICLE to SelectAvenue rather than default infantry limits; absent threat position refuses unvalidated vehicle fallback. Infantry fallback, four-retry budget, deadline and owner lifecycle retained. Full1482/offline gates and independent verification pass; unsigned .qa/candidates/vehicle-retry-mobility-dbad6cac fingerprint2e4acf3b1e4087afeb1bc568ed062ff86411af064f864ae64e16843e94d9c7af. Logs .qa/vehicle-retry-mobility-build.log and .qa/vehicle-retry-mobility-independent.log. See newest handover and armour intake comparison.
+Baseline3d83467b plus shared RETREAT fix: project anchor displacement onto original escape axis using retained WithdrawalIntent threat and original origin. Radial lateral/toward-threat travel no longer refreshes progress or earns30m withdrawal criterion. Original best+3m,15s stall, four retries and120s deadline retained. Full1482/offline gates and independent verify passed; unsigned .qa/candidates/withdrawal-direction-3d83467b fingerprintb07daad10eec3930a812e6799614019126a40c66592da0ab6cd0a66e09145a3b. Logs .qa/withdrawal-direction-build.log and .qa/withdrawal-direction-independent.log. See newest handover/foundations review.
 
-Audits PAUSED, no Arma launch. Full objective unchanged, no physical/performance/parity or score claim. No publication. Preserve CBE/WMP boundary, protected references/signing and unrelated dirt; verify live root/remote/branch/PR17 before Git mutation. Next compare actual-shot episode/finite hull-safe firing relocation; route screening alone is not hull-safe cover. Independent pair waves and external handovers remain incomplete.
+Audits PAUSED, no Arma launch. Full production-readiness goal unchanged, physical/performance/parity unproven; no score change/publication. CBE checkout only, preserve unrelated dirt/protected sources/signing; verify root/remote/branch/livePR17 before Git mutations. Hull-safe armour firing relocation, independent pair waves and required provider handovers remain open. Do not add further withdrawal guards without a concrete new failure.
 
 # Latest checkpoint - ground ammunition domain policy
 

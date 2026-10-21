@@ -2270,3 +2270,6 @@ Ground ammunition policy distinguishes native airLock categories: 0 is ground-on
 
 
 A stalled vehicle withdrawal retains vehicle terrain limits when choosing its finite retry route. It no longer falls back to infantry slope allowances. Without a retained threat position, it refuses an unchecked vehicle destination; the attempt still consumes the original retry budget and cannot extend the operation deadline. Infantry recovery keeps its existing fallback. This does not prove hull clearance, native pathfinding success or physical arrival.
+
+
+Withdrawal progress is measured along the original escape direction, from the episode origin away from its retained believed threat position. Sideways movement and movement toward that position cannot earn retreat progress or completion. Returning over previously covered ground cannot reset the stall clock until the existing best progress is exceeded by three metres. Replanning and locality adoption retain the original episode geometry, retry budget and deadline. Missing or coincident threat geometry earns no progress. This is anchor progress, not proof that every survivor or vehicle reached cover; physical withdrawal and casualty behaviour remain unverified.

@@ -1778,7 +1778,21 @@ switch (_state get "phase") do {
         private _reversing=(_group getVariable ["CBE_VehicleReverse",[]]) isNotEqualTo [];
         private _moving = _reversing || {(waypoints _group) findIf {(_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}} >= 0};
         private _start = _state getOrDefault ["retreatStart",getPosATL _leader];
-        private _travel = _leader distance2D _start;
+        // Use the episode's original believed threat, not a newer contact or replan
+        // destination. Lateral/toward-threat travel is not progress along the escape axis.
+        private _withdrawalIntent=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+        private _retreatThreat=_withdrawalIntent param [3,[],[[]]];
+        private _travel=0;
+        if (count _start >= 2 && {count _retreatThreat >= 2}) then {
+            private _axisX=(_start select 0)-(_retreatThreat select 0);
+            private _axisY=(_start select 1)-(_retreatThreat select 1);
+            private _axisLength=sqrt (_axisX*_axisX+_axisY*_axisY);
+            if (_axisLength > 0.1) then {
+                private _currentPosition=getPosATL _leader;
+                _travel=((((_currentPosition select 0)-(_start select 0))*_axisX
+                    +((_currentPosition select 1)-(_start select 1))*_axisY)/_axisLength) max 0;
+            };
+        };
         private _progress = _state getOrDefault ["retreatProgress",[_now,0,0]];
         _progress params ["_progressAt","_bestTravel","_replans"];
         // Only net withdrawal counts. Sideways or back-and-forth motion must not keep a

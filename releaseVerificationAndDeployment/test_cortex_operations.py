@@ -5853,6 +5853,13 @@ class CortexOperations(unittest.TestCase):
                        'CBE_Cortex_Withdrawal']:
             self.assertIn(marker,retreat_case)
         self.assertNotIn('setPos',retreat_case)
+        progress=retreat_case.split('private _start =',1)[1].split('private _progress =',1)[0]
+        self.assertIn('_withdrawalIntent param [3,[],[[]]]',progress)
+        self.assertIn('private _travel=0',progress)
+        self.assertIn('*_axisX',progress)
+        self.assertIn('*_axisY)/_axisLength) max 0',progress)
+        self.assertNotIn('_leader distance2D _start',progress)
+
         self.assertIn('["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW")',retreat_case)
         self.assertIn('[_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility] call CBE_fnc_CortexSelectAvenue',retreat_case)
         self.assertIn('if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}',retreat_case)

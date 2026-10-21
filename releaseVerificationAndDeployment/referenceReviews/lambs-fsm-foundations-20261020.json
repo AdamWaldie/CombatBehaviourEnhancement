@@ -797,5 +797,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "withdrawalDirectionalProgress": {
+    "baseline": "3d83467b",
+    "finding": "Shared RETREAT claimed only net withdrawal counted but used leader distance2D origin. Pure lateral or toward-threat displacement could refresh progress and satisfy30m withdrawal criterion.",
+    "implementation": "Compute nonnegative displacement projected along original origin-minus-believed-threat axis. Threat comes from retained seven-field WithdrawalIntent, not current enemy/object pose or changing retry target. Missing/coincident geometry earns0. Original best+3m progress threshold, stall15s, four retries and120s deadline unchanged.",
+    "integration": "Shared infantry/vehicle retreat progress, public telemetry, retry decision and withdrawal status consume same directional value. Locality resume retains original origin/threat and best progress. This does not establish every participant arrival, cover or native route success.",
+    "cost": "One getPosATL replacing one distance2D plus constant scalar arithmetic per existing RETREAT callback, no world scan, job or new geometry rays. Runtime unmeasured.",
+    "validation": "Existing609 operation tests and full1482/HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/withdrawal-direction-3d83467b fingerprintb07daad10eec3930a812e6799614019126a40c66592da0ab6cd0a66e09145a3b. Logs .qa/withdrawal-direction-build.log and .qa/withdrawal-direction-independent.log. No physical audit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
