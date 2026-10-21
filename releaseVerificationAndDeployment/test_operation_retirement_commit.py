@@ -77,10 +77,34 @@ class OperationRetirement(unittest.TestCase):
             self.assertLess(restore.index(proof),restore.index('_group setBehaviour'))
         self.assertLess(restore.index('CBE_fnc_CortexExternalTakeover'),restore.index('_group setCombatMode'))
         self.assertIn('private _lease=+(',text)
+        for proof in ('private _remaining=+_lease','time < (_lease select 4)+30',
+                      'if (_mayAttempt) then {_group setBehaviour _behaviour}',
+                      'if (_mayAttempt) then {_group setCombatMode _combatMode}',
+                      '_remaining set [1,_behaviour]','_remaining set [3,_combatMode]',
+                      '["CBE_Danger_ReactionLease",_remaining,true]',
+                      '["UNRESOLVED","RESTORE_PENDING"] select _mayAttempt'):
+            self.assertIn(proof,restore)
+        self.assertNotIn('_remaining set [4,',restore)
+        self.assertNotIn('waitAndExecute',restore)
+        start=(ROOT/'addons/core/functions/operationStart.sqf').read_text(encoding='utf-8')
+        carry=start.split('// Carry unresolved group posture',1)[1].split('_group setVariable ["CBE_OperationGeneration",_generation,true]',1)[0]
+        for proof in ('count _reactionReceipt == 8','(_reactionReceipt select 5) isEqualTo (_generation-1)',
+                      'CBE_AIPass_Epoch','(_reactionReceipt select 7) isEqualTo clientOwner',
+                      'behaviour _operationAnchor == (_reactionReceipt select 1)',
+                      'combatMode _group == (_reactionReceipt select 3)',
+                      '_successorReaction set [5,_generation]'):
+            self.assertIn(proof,carry)
+        for forbidden in ('setBehaviour','setCombatMode','_successorReaction set [4,','waitAndExecute'):
+            self.assertNotIn(forbidden,carry)
+
+
 
     def test_danger_application_and_baseline_share_authority_boundary(self):
         text=(ROOT/'addons/infantry/functions/dangerReact.sqf').read_text(encoding='utf-8')
         commit=text.split('private _postureResult="IGNORED";',1)[1]
+        self.assertIn('if (behaviour _postureActor == "COMBAT") then {_appliedBehaviour="COMBAT"}',commit)
+        self.assertIn('if (combatMode _group == _desiredCombat) then {_appliedCombat=_desiredCombat}',commit)
+
         for proof in ('isNil {','!local _actor','!local _group','group _actor != _group',
                       'CBE_AIPass_Epoch','CBE_OperationGeneration','isNotEqualTo _lease',
                       'CBE_fnc_CortexExternalTakeover','combatMode _group in ["BLUE","GREEN"]',

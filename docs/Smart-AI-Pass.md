@@ -2410,3 +2410,9 @@ The engine danger FSM now sends released or refused intake directly to exact cle
 
 
 The group danger-assessment launcher validates FSM handles before testing or publishing them. An invalid startup records one local failure for the current owner epoch and does not retry on successive danger events. Observer cleanup/reset clears that terminal marker; a new owner epoch starts independently. A valid FSM that already completed is not reported as a startup failure or republished as running. This prevents an event-driven failure loop without adding a retry worker; native startup-failure handling still requires in-engine validation.
+
+
+Finite group danger posture records requested behaviour and combat modes only after native confirmation. Restoration retires each confirmed or superseded component separately and retains any unchanged, un-restored component. Existing group observation may retry within thirty seconds of the original lease expiry; expiry is never renewed by cleanup and no new worker is added. After that window the receipt remains unresolved and grants no further automatic write. New ownership, Zeus and changed native values retain their existing protections. Native refusal, mixed-unit behaviour and operation-transfer composition still require physical validation.
+
+
+An internal on-foot operation handoff can carry an exact unresolved group danger receipt into its successor generation. It preserves the original baseline and expiry, requires the same owner/epoch and unchanged still-owned native values, and issues no native command. Confirmed or superseded components gain no new write authority from this metadata transfer.

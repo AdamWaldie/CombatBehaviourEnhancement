@@ -3,12 +3,14 @@
  * Purpose: Applies a short, local danger posture selected by the danger FSM without replacing an active CBE or external movement operation.
  * Locality/authority: Runs where the observed actor and its group are local. It changes only group behaviour and combat mode that it records as owned. Explicit BLUE/GREEN hold-fire discipline remains authoritative.
  * Application and its lease commit atomically after current native-task/hold-fire/owner checks.
+ * Only native-confirmed requested values become owned. Unconfirmed restoration retains the
+ * original pair proof; attempts end thirty seconds after original lease expiry, without a new worker.
  * STEALTH defers group posture/RED escalation; native defence and weak actor reflexes remain independent.
  * Restoration atomically rechecks the exact lease, actor/group locality, epoch and generation.
  * Cleanup may retire a dead observer's group lease using a surviving local posture anchor. New reactions require a live observer.
  * Repeat/JIP: One public lease contains prior/applied values, operation generation, locality epoch and owner. Repeated events extend the lease; restore changes only values still matching CBE's application and discards its lease on external takeover. DangerStep owns the finite response context.
  * Arguments: 0 actor <OBJECT>; 1 cause <STRING, RESTORE or RELEASE>; 2 approximate danger position <ARRAY, []>; 3 classified action <STRING, "">.
- * Return Value: STRING - RESTORED, ASSESS, POSTURE, YIELDED or IGNORED.
+ * Return Value: STRING - RESTORED, RESTORE_PENDING, UNRESOLVED, ASSESS, POSTURE, YIELDED or IGNORED.
  * Current callers: DangerStep and CortexGroupTick cleanup.
  * Example: [leader group player,"SUPPRESSED",getPosATL player,"HIDE"] call CBE_fnc_DangerReact;
  */
@@ -55,10 +57,30 @@ if (_cause in ["RESTORE","RELEASE"]) exitWith {
             // RESTORE waits for expiry; explicit RELEASE relinquishes unchanged owned values now.
             if (_leaseOwned && {_cause == "RELEASE" || {time >= (_lease select 4)}}) then {
                 _lease params ["_behaviour","_ownedBehaviour","_combatMode","_ownedCombatMode"];
-                if (_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour}) then {_group setBehaviour _behaviour};
-                if (_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}) then {_group setCombatMode _combatMode};
-                _group setVariable ["CBE_Danger_ReactionLease",nil,true];
-                "RESTORED"
+                private _remaining=+_lease;
+                private _pending=false;
+                private _mayAttempt=(_lease select 4) isEqualType 0 && {finite (_lease select 4)}
+                    && {time < (_lease select 4)+30};
+                if (_behaviour != _ownedBehaviour && {behaviour _postureActor == _ownedBehaviour}) then {
+                    if (_mayAttempt) then {_group setBehaviour _behaviour};
+                    if (behaviour _postureActor == _ownedBehaviour) then {_pending=true} else {
+                        // Restored or superseded: this component has no remaining write authority.
+                        _remaining set [1,_behaviour];
+                    };
+                } else {_remaining set [1,_behaviour]};
+                if (_combatMode != _ownedCombatMode && {combatMode _group == _ownedCombatMode}) then {
+                    if (_mayAttempt) then {_group setCombatMode _combatMode};
+                    if (combatMode _group == _ownedCombatMode) then {_pending=true} else {
+                        _remaining set [3,_combatMode];
+                    };
+                } else {_remaining set [3,_combatMode]};
+                if (_pending) then {
+                    _group setVariable ["CBE_Danger_ReactionLease",_remaining,true];
+                    ["UNRESOLVED","RESTORE_PENDING"] select _mayAttempt
+                } else {
+                    _group setVariable ["CBE_Danger_ReactionLease",nil,true];
+                    "RESTORED"
+                }
             } else {"ASSESS"}
         };
     };
@@ -126,7 +148,7 @@ private _appliedCombat=if (_combatIntact) then {_lease select 3} else {_priorCom
 // silently turn it into a CBE combat task.
 if (_priorBehaviour in ["SAFE","AWARE"]) then {
     if (behaviour _postureActor != "COMBAT") then {_group setBehaviour "COMBAT"};
-    _appliedBehaviour="COMBAT";
+    if (behaviour _postureActor == "COMBAT") then {_appliedBehaviour="COMBAT"};
 };
 // MAINTAIN means keep the committed route, not ignore the threat. A manoeuvring element may adopt
 // the same short combat posture as an idle element without receiving a destination, target or
@@ -150,7 +172,7 @@ private _tacticalModeOwned=count _operation > 0 && {count _tacticalMode == 2}
     && {combatMode _group == (_tacticalMode select 1)};
 if (!_tacticalModeOwned && {_priorCombat == "WHITE" || {_engaging && {_priorCombat == "YELLOW"}}}) then {
     if (combatMode _group != _desiredCombat) then {_group setCombatMode _desiredCombat};
-    _appliedCombat=_desiredCombat;
+    if (combatMode _group == _desiredCombat) then {_appliedCombat=_desiredCombat};
 };
 // These finite durations are fixed policy, not mutable state. Avoid allocating the same
 // lookup map for every danger response across a large firefight.

@@ -152,6 +152,28 @@ if (_dangerPosture) then {
             _x setVariable ["CBE_Danger_EngineStanceLease",_successorPosture];
         };
     } forEach ((units _group) select [0,64]);
+    // Carry unresolved group posture through the same internal publication. Confirmed
+    // components are already retired; preserve the original baseline and expiry of the rest.
+    private _reactionReceipt=_group getVariable ["CBE_Danger_ReactionLease",[]];
+    if (_reactionReceipt isEqualType [] && {count _reactionReceipt == 8}
+        && {(_reactionReceipt select 0) in ["CARELESS","SAFE","AWARE","COMBAT","STEALTH"]}
+        && {(_reactionReceipt select 1) in ["CARELESS","SAFE","AWARE","COMBAT","STEALTH"]}
+        && {(_reactionReceipt select 2) in ["BLUE","GREEN","WHITE","YELLOW","RED"]}
+        && {(_reactionReceipt select 3) in ["BLUE","GREEN","WHITE","YELLOW","RED"]}
+        && {(_reactionReceipt select 4) isEqualType 0} && {finite (_reactionReceipt select 4)}
+        && {(_reactionReceipt select 5) isEqualTo (_generation-1)}
+        && {(_reactionReceipt select 6) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_reactionReceipt select 7) isEqualTo clientOwner}
+        && {(_reactionReceipt select 0) != (_reactionReceipt select 1)
+            || {(_reactionReceipt select 2) != (_reactionReceipt select 3)}}
+        && {(_reactionReceipt select 0) == (_reactionReceipt select 1)
+            || {behaviour _operationAnchor == (_reactionReceipt select 1)}}
+        && {(_reactionReceipt select 2) == (_reactionReceipt select 3)
+            || {combatMode _group == (_reactionReceipt select 3)}}) then {
+        private _successorReaction=+_reactionReceipt;
+        _successorReaction set [5,_generation];
+        _group setVariable ["CBE_Danger_ReactionLease",_successorReaction,true];
+    };
 };
 _group setVariable ["CBE_OperationGeneration",_generation,true];
 _group setVariable ["CBE_Operation",_operation,true];

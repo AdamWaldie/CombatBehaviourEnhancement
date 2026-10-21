@@ -1,0 +1,34 @@
+{
+  "baseline": "7f13ef62",
+  "scope": "Confirmed finite group danger behaviour/combat ownership, partial restoration and internal operation handoff",
+  "trace": [
+    "DangerStep already wakes the existing scheduler-owned group brain for expensive tactical work; no additional assessment queue layer was introduced.",
+    "DangerReact recorded requested COMBAT/ROE values without native confirmation and deleted its eight-field original receipt after unconfirmed restore.",
+    "OperationStart released old danger posture before generation publication, then could recapture retained applied CBE modes as a new baseline if release remained unresolved."
+  ],
+  "implementation": [
+    "Application records requested behaviour/combat values only when current native readback matches. Existing atomic authority/ROE/STEALTH/native-task gates remain.",
+    "Restoration independently retires each confirmed or superseded component, retains unchanged un-restored components and original receipt expiry, and returns RESTORE_PENDING/UNRESOLVED rather than consuming pending proof.",
+    "Native cleanup attempts stop at original lease expiry+30; no new timer/worker. Existing group observation can service pending work, but shutdown or context retirement may leave it unresolved.",
+    "Existing OperationStart unscheduled publication carries only exact prior-generation/same-owner/epoch typed eight-field proof with unchanged still-owned native components. It updates generation only, never original baseline/expiry or native modes.",
+    "Existing retirement/authority regression extended for both native confirmations, partial retirement, hard window and metadata-only handoff. No extra test cases."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerReact.sqf": "acec667b3cbf882cfd8ac607067e2f9f4bad874cfbe0d485380b99348f895f71",
+    "addons/core/functions/operationStart.sqf": "8391a52ab3d92576fbb42009548aec15597c15c05ea42f19d9397df596e1ff9e"
+  },
+  "validation": {
+    "focused": "test_operation_retirement_commit.py10passed before final handoff extension; final full includes extension",
+    "superseded": ".qa/danger-group-posture-build.log and .qa/candidates/danger-group-posture-7f13ef62 passed initial partial-cleanup version; superseded after operation handoff correction",
+    "fullOffline": ".qa/danger-group-posture-build-final.log all1484,393SQF,HEMTT,FSM,docs,package passed",
+    "independent": ".qa/danger-group-posture-independent-final.log",
+    "candidate": ".qa/candidates/danger-group-posture-handoff-7f13ef62",
+    "fingerprint": "f7edc242f7b5c63bd5a9ba7f46c5d5f8654014e24185ea359ebc37c64eb645e4"
+  },
+  "limits": [
+    "Audits paused; no Arma launch. Setter/readback timing including delayed native effects, refusal/partial application, mixed-unit behaviour, operation transitions, HC and performance unverified.",
+    "The eight-field lease still observes one group posture anchor; this does not establish preservation of every independent member behaviour in a mixed-role group.",
+    "Retained proof is not eventual restoration. Owner/operation change outside the exact internal handoff, shutdown or original-window expiry can leave it unresolved.",
+    "No external-provider quiescence, whole LAMBS parity or percentage rescore. No new upstream source review or protected-source mutation."
+  ]
+}
