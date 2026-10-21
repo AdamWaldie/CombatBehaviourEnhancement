@@ -6381,6 +6381,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_state set ["movementLease",["ARTILLERY_SCOOT",time+120]]',scoot)
         self.assertIn('CBE_fnc_CortexSelectAvenue',scoot)
         self.assertEqual(scoot.count('call _crewReady'),2)
+        self.assertIn('count _session != 7',scoot)
+        self.assertIn('(_session select 6) isEqualTo _seats',scoot)
+        self.assertIn('movementOrder",[]]),_scootSeats]',mission)
+        active=tick.split('private _record=_scootOperation',1)[1].split('// Continue the existing finite AA',1)[0]
+        self.assertIn('(_session select 6) isEqualTo _seats',active)
+        self.assertIn('(_seats arrayIntersect _seats) findIf',active)
+        for guard in ('local _x','isPlayer _x','CortexActorFireTaskAvailable','CortexExternalOwner','CompatibilityExternalControl','checkAIFeature "MOVE"','checkAIFeature "PATH"'):
+            self.assertIn(guard,active)
+        self.assertIn('RELOCATION_CREW_CHANGED',source('artilleryMissionStep'))
+
         crew=scoot.split('private _crewReady=',1)[1].split('private _nativeOrder=',1)[0]
         for guard in ('driver _battery == _driver','local _x','CortexActorFireTaskAvailable',
                       'currentCommand _x in ["","MOVE","WAIT"]','NativeOrderReceipt',

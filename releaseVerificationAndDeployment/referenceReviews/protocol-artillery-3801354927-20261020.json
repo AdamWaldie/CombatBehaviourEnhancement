@@ -91,5 +91,21 @@
     "limits": "No new upstream parity, runtime licence proof, physical travel/rounds/crew handover or performance claim. Audits paused.",
     "candidate": ".qa/candidates/artillery-position-crew-c1deb309",
     "fingerprint": "fbd3e38a8453647e72d6ea0dc37b062c26d0c89dde4d2874992d47997b71b9f4"
+  },
+  "postfireCrewBinding20261021": {
+    "baseline": "0c43d0d2",
+    "finding": "Postfire session preserved route/deadline/generations but did not bind the control pair; pending retries and active relocation could inherit replacement seats. Active session check also lacked individual continuing crew eligibility.",
+    "change": "Server captures normalized driver/commander pair in seventh session field. Pending sessionCurrent compares it; active group callback compares pair and bounded unique<=2crew native-task/player/remote/external/simulation/MOVE/PATH eligibility plus platform control. Existing exact operation cancellation wins without replacement move. Read-only relocation observer rejects changed pair. Original nullcommander driver fallback and existing pending/active deadlines retained.",
+    "validation": "609 focused and final all1484 plus SQF/config/docs/wiki/parity/static-performance/HEMTT/FSM/package passed .qa/artillery-scoot-crew-build-final.log. Initial full .qa/artillery-scoot-crew-build.log retained one stale six-field source-contract failure; updated existing schema assertion while retaining all expiry/generation/retry checks. Independent .qa/artillery-scoot-crew-independent.log passed.",
+    "limits": "Physical scoot, crew changes, replacement native route, safety, owner transfer, authored-route handback and performance unverified; audits paused. Detection/static checking not provider handover proof.",
+    "sourceHashes": {
+      "addons/support/functions/cortexArtilleryMissionStep.sqf": "9413ab0ef9138906feac930c0ce38aa09e491881777727a6cdd9cd6d735613db",
+      "addons/support/functions/cortexArtilleryScoot.sqf": "b420d502ddc19e448818e88be318bca78232eb63eab966d39e2249684a06a3c8",
+      "addons/support/functions/artilleryMissionStep.sqf": "e80f59417cd7771e058c36b9a9adb76b18216b60adad3c6eb63b6215c877b057",
+      "addons/infantry/functions/cortexGroupTick.sqf": "e0e6eed1a2907acb9b2a93fde9990f1e401be925fe9ab1236fed65edfd86b69f"
+    },
+    "candidate": ".qa/candidates/artillery-scoot-crew-0c43d0d2",
+    "fingerprint": "d5fcc3ec6f750f6cd8d1441f162e617fa6694dd04a71cd322870cfecc16cfa04",
+    "remainingCodeScope": "Postfire uses a whole-group native movement operation; multi-vehicle/foot composition and whether independent battery authority is required still need source-intent/execution assessment. This crew binding is not mixed-group support or provider quiescence."
   }
 }

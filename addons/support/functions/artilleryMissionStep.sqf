@@ -48,9 +48,12 @@ if (_semantic != "RELOCATING" && {_registered isNotEqualTo _mission || {(_missio
 private _observeRelocation={
     private _session=_mission getOrDefault ["scootSession",[]];
     private _observeUntil=_mission getOrDefault ["scootObserveUntil",-1];
-    if (!(_session isEqualType []) || {count _session != 6} || {(_session param [0,""]) != _token}
+    if (!(_session isEqualType []) || {count _session != 7} || {(_session param [0,""]) != _token}
         || {!(_observeUntil isEqualType 0)} || {!finite _observeUntil}
         || {serverTime >= _observeUntil}) exitWith {[false,"RELOCATION_OBSERVER_EXPIRED"]};
+    private _seats=[driver _battery,effectiveCommander _battery];
+    if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
+    if ((_session select 6) isNotEqualTo _seats) exitWith {[false,"RELOCATION_CREW_CHANGED"]};
     private _crewGroup=_mission getOrDefault ["scootGroup",grpNull];
     if (isNull _crewGroup || {group driver _battery != _crewGroup}) exitWith {[false,"RELOCATION_CREW_CHANGED"]};
     private _pending=(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token

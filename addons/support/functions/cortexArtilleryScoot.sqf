@@ -19,7 +19,7 @@
  * stale cleanup cannot clear a successor. Geometry precedes atomic session/lease/move admission.
  * Arguments: 0: battery <OBJECT>, default objNull; 1: mission token <STRING>, default "";
  * 2 session <ARRAY, [] reads public receipt> [token, purpose generation, counter generation,
- * original server deadline, purpose, [original movement group, authored route]]. Server dispatch and delayed retries carry the exact session.
+ * original server deadline, purpose, [original movement group, authored route], original driver/commander pair]. Server dispatch and delayed retries carry the exact session.
  * Return Value: Boolean - true when relocation started or remains pending.
  * Current callers: ArtilleryMissionStep and CortexLocality.
  * Example: [_gun,_token] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _gun];
@@ -29,8 +29,10 @@ if (isNull _battery || {_token == ""} || {_battery getVariable ["CBE_Cortex_Arti
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 if (!local _battery) exitWith {false};
 if (_session isEqualTo []) then {_session=+(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]])};
-if (count _session != 6 || {(_session select 0) != _token}
+if (count _session != 7 || {(_session select 0) != _token}
     || {!((_session select 4) in ["SUPPORT","COUNTER"])}
+    || {!((_session select 6) isEqualType [])} || {count (_session select 6) != 2}
+    || {(_session select 6) findIf {!(_x isEqualType objNull)} >= 0}
     || {[1,2,3] findIf {!((_session select _x) isEqualType 0) || {!finite (_session select _x)}} >= 0}) exitWith {false};
 private _clear = {
     // Old retries may observe a successor while planning. Retire only this exact receipt.
@@ -65,6 +67,9 @@ private _sessionCurrent={
         && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}
         && {serverTime < (_session select 3)}
         && {group driver _battery == (_movementOrder select 0)}
+        && {private _seats=[driver _battery,effectiveCommander _battery];
+            if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
+            (_session select 6) isEqualTo _seats}
         && {([_movementOrder select 0] call CBE_fnc_NativeOrderReceipt) isEqualTo (_movementOrder select 1)}
         && {(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])}
         && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}

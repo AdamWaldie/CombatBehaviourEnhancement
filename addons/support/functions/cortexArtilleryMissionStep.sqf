@@ -157,9 +157,11 @@ if ((_mission get "burstsLeft") <= 0) exitWith {
         private _scootToken = _mission get "token";
         private _scootPurpose=_mission get "purpose";
         private _scootGenerationName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select (_scootPurpose == "COUNTER");
+        private _scootSeats=[driver _battery,effectiveCommander _battery];
+        if (isNull (_scootSeats select 1)) then {_scootSeats set [1,_scootSeats select 0]};
         private _scootSession=[_scootToken,missionNamespace getVariable [_scootGenerationName,0],
             _mission getOrDefault ["counterGeneration",-1],serverTime+120,_scootPurpose,
-            +(_mission getOrDefault ["movementOrder",[]])];
+            +(_mission getOrDefault ["movementOrder",[]]),_scootSeats];
         // Retain the original observation identity after the fire registry retires.
         // Pending admission is at most120s and a started native move at most another120s.
         _mission set ["scootSession",+_scootSession];

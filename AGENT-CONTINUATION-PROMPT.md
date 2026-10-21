@@ -1,3 +1,8 @@
+# Latest checkpoint - postfire artillery scoot crew ownership
+
+## 2026-10-21 - Postfire artillery scoot crew/session ownership
+Baseline0c43d0d2. Server postfire session now7fields, adding normalized admitted driver/effectivecommander pair. Pending sessionCurrent/retries require exactpair. Active GroupTick compares pair and<=2uniquecrew native-task/player/remote/external/simulation/MOVE/PATH authority plus live vehicle control before existing exact-generation cancel. Read-only relocation observer rejects changedpair. Nullcommander fallbacktodriver retained. Original pending120s/started120s windows, routes, retries, feature generations and cleanup unchanged; no new movement controller or scheduler.609focused/finalall1484+HEMTT/FSM/docs/package pass .qa/artillery-scoot-crew-build-final.log. Initial full .qa/artillery-scoot-crew-build.log failed one stale sixfield contract; extended same test for7fields/originalpair while preserving all deadline/generation/retry checks. Candidate .qa/candidates/artillery-scoot-crew-0c43d0d2 fingerprintd5fcc3ec6f750f6cd8d1441f162e617fa6694dd04a71cd322870cfecc16cfa04; independent .qa/artillery-scoot-crew-independent.log. Protocol artillery review updated sourcehashes/scope/limits. Remaining: scoot useswholegroupmovement, mixed vehicle/foot composition/independent battery authority still needs trace; exactcrew is not mixedgroup support or real externalproviderquiescence. Physical relocation/actualcrewchanges/nativeorders/HC/handback/performance unverified. Audits PAUSED/no launches;localonly/no push/merge/publish;fullgoalactive/incomplete. Unrelateddirt/protectedreferences/signingpreserved.
+
 # Latest checkpoint - artillery prefire exact crew binding
 
 ## 2026-10-21 - Artillery prefire exact crew binding

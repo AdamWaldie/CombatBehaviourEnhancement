@@ -17,11 +17,14 @@ class ArtilleryScootSession(unittest.TestCase):
         self.assertIn('group driver _battery == (_movementOrder select 0)',s)
         self.assertIn('isEqualTo (_movementOrder select 1)',s)
         self.assertNotIn('private _nativeOrder=[_group] call',s)
-        for marker in ('count _session != 6','serverTime < (_session select 3)',
+        for marker in ('count _session != 7','serverTime < (_session select 3)',
                        '(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])',
                        '(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])'):
             self.assertIn(marker,s)
         self.assertEqual(s.count('[_battery,_token,+_session],5]'),2)
+        self.assertIn('count (_session select 6) != 2',s)
+        self.assertIn('(_session select 6) isEqualTo _seats',s)
+        self.assertNotIn('_session set [6,',s)
         self.assertNotIn('_session set [3,',s)
         self.assertLess(s.index('if !(call _sessionCurrent)'),s.index('if (_busy) exitWith'))
     def test_cleanup_and_post_geometry_move_admission_preserve_current_session(self):

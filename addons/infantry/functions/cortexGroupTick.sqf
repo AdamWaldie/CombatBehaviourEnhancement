@@ -416,13 +416,30 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
             private _battery=_record select 0;private _session=_record select 1;
             _valid=_battery isEqualType objNull && {!isNull _battery} && {alive _battery}
                 && {local _battery} && {group driver _battery == _group}
-                && {_session isEqualType []} && {count _session == 6};
+                && {_session isEqualType []} && {count _session == 7};
             if (_valid) then {
                 private _purpose=_session select 4;private _counter=_purpose == "COUNTER";
                 private _epochName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter;
                 private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
                 private _setting=["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter;
+                private _seats=[driver _battery,effectiveCommander _battery];
+                if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
                 _valid=_purpose in ["SUPPORT","COUNTER"]
+                    && {(_session select 6) isEqualTo _seats}
+                    && {simulationEnabled _battery} && {!isObjectHidden _battery} && {canMove _battery}
+                    && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
+                    && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}
+                    && {(_seats arrayIntersect _seats) findIf {
+                        isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _battery}
+                            || {isPlayer _x} || {!isNull remoteControlled _x}
+                            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                            || {!simulationEnabled _x} || {isObjectHidden _x}
+                            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+                            || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+                            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+                            || {[_x] call CBE_fnc_CompatibilityExternalControl}
+                            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+                    } < 0}
                     && {(_session select 1) == (missionNamespace getVariable [_epochName,0])}
                     && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
                     && {missionNamespace getVariable [_setting,true]}
