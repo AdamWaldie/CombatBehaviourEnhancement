@@ -177,9 +177,12 @@ _group setVariable ["CBE_BuildingBrain_FSM",nil];
 } forEach units _group;
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
 _group setVariable ["CBE_DrivingAbort_Transfer",nil];
+_group setVariable ["CBE_DrivingNative_Transfer",nil];
 if (_abortSource isNotEqualTo []) then {
     if (isNil {_group getVariable "CBE_Driving_Generation"}) then {_group setVariable ["CBE_Driving_Generation",0]};
     _group setVariable ["CBE_DrivingAbort_Transfer",[_abortSource,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
+    _group setVariable ["CBE_DrivingNative_Transfer",[_abortSource select 0,_abortSource select 1,
+        _group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
 };
 // First adoption establishes this machine's epoch; it is not a transfer from another
 // owner. Keep the existing map object so an initiating feature's local reference remains

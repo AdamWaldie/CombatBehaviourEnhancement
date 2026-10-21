@@ -33,6 +33,7 @@ isNil {
             _vehicle setVariable ["CBE_DrivingAbort_LocalEdge",nil];
             _vehicle setVariable ["CBE_DrivingCap_LocalEdge",nil];
             _vehicle setVariable ["CBE_DrivingCap_LossEdge",nil];
+            _vehicle setVariable ["CBE_DrivingNative_LocalEdge",nil];
             if (!_gained && {!local _vehicle}) then {
                 private _lossEdge=[_epoch,serverTime];
                 _vehicle setVariable ["CBE_DrivingCap_LossEdge",_lossEdge];
@@ -40,6 +41,15 @@ isNil {
             };
             if (_gained && {local _vehicle}) then {
                 _vehicle setVariable ["CBE_DrivingCap_LocalEdge",[group driver _vehicle,serverTime,serverTime+5]];
+                private _nativeEdgeGroup=group driver _vehicle;
+                private _nativeEdgeStatus=_nativeEdgeGroup getVariable ["CBE_Driving_State",[]];
+                if (_nativeEdgeStatus isEqualType [] && {count _nativeEdgeStatus == 6}
+                    && {[4,5] findIf {private _value=_nativeEdgeStatus select _x;
+                        !(_value isEqualType 0) || {!finite _value} || {_value < 0} || {_value != floor _value}} < 0}
+                    && {(_nativeEdgeStatus select 4) != clientOwner}) then {
+                    _vehicle setVariable ["CBE_DrivingNative_LocalEdge",[_nativeEdgeGroup,
+                        _nativeEdgeStatus select 4,_nativeEdgeStatus select 5,serverTime+5]];
+                };
             };
             if (_gained && {local _vehicle} && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}) then {
                 private _edgeGroup=group driver _vehicle;
@@ -83,6 +93,7 @@ isNil {
                 [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
             };
         };
+        if ([_vehicle] call CBE_fnc_DrivingNativeRecoveryAdopt) then {_accepted=true};
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (_work getOrDefault ["releasePending",false]
             && {(_work getOrDefault ["kind",""]) == "REVERSE"}
@@ -92,7 +103,8 @@ isNil {
         } else {
             // A reverse receipt and its later pending flag can arrive separately. Observe
             // within the original window only; nonpending work never authorizes release.
-            private _lookup=count _work == 0 || {(_work getOrDefault ["kind",""]) == "REVERSE"
+            private _lookup=count _work == 0 || {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}
+                || {(_work getOrDefault ["kind",""]) == "REVERSE"
                 && {(_work getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"]}};
             if (_lookup && {_attempt < 5} && {count crew _vehicle > 0}) then {
                 [{_this call CBE_fnc_DrivingRecoveryAdopt},

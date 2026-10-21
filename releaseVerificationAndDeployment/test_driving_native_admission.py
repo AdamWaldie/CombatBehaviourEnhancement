@@ -48,6 +48,36 @@ class NativeAdmissionTests(unittest.TestCase):
             self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read(name))
 
 
+    def test_native_recovery_adoption_requires_real_edge_and_preserves_spent_episode(self):
+        adopt=(ROOT/'addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf').read_text(encoding='utf-8')
+        edge=(ROOT/'addons/vehicles/functions/drivingRecoveryAdopt.sqf').read_text(encoding='utf-8')
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        for proof in ('CBE_DrivingNative_Transfer','CBE_DrivingNative_LocalEdge',
+                      '_adoptRoute select 7','_adoptRoute select 8','serverTime >= (_adoptWork get "hardDeadline")',
+                      'getForcedSpeed _adoptVehicle','CBE_fnc_DrivingRecoveryCommandState',
+                      '"SIMPLE_BACK"','CBE_DrivingAbort_Hold','"queueBinding" in _adoptWork','CortexActorMoveReserved','CortexZeusHeld','nativeAdoptedFrom',
+                      '_adoptWork getOrDefault ["baseline",[]]','_adoptNextRoute set [7,_adoptEpoch]',
+                      '"ADOPTED_NATIVE_RECOVERY"','CBE_fnc_DrivingOperationStart'):
+            self.assertIn(proof,adopt)
+        for forbidden in ('doMove','doStop','doFollow','forceSpeed','sendSimpleCommand',
+                          'set ["hardDeadline"','set ["deadline"','serverTime+','waitAndExecute','execFSM'):
+            self.assertNotIn(forbidden,adopt.split('params [[',1)[1])
+        native_edge=edge.split('if (_nativeEdge) then {',1)[1].split('if (_epoch ==',1)[0]
+        self.assertIn('CBE_DrivingNative_LocalEdge',native_edge)
+        self.assertIn('serverTime+5',native_edge)
+        self.assertIn('CBE_DrivingNative_Transfer',locality)
+        self.assertLess(locality.index('private _abortSource=[]'),locality.index('CBE_fnc_DrivingOperationFinish'))
+        # Metadata transfer must leave every clock/budget and the original goal intact.
+        journal={'route':['NATIVE_MOVE',1,2,3,4,[],[10,20,0],7,8],
+                 'hardDeadline':96,'deadline':42,'started':12,'progressAnchor':[0,0,0],
+                 'kind':'REVERSE','baseline':[-1],'bypassSpent':True}
+        original=dict(journal)
+        next_journal=dict(journal);next_journal['route']=list(journal['route'])
+        next_journal['route'][7:]=[9,10]
+        for key in ('hardDeadline','deadline','started','progressAnchor','kind','baseline','bypassSpent'):
+            self.assertEqual(next_journal[key],original[key])
+        self.assertEqual(next_journal['route'][:7],original['route'][:7])
+
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):
             source=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
