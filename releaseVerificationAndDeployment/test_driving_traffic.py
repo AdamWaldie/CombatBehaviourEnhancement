@@ -116,6 +116,25 @@ class DrivingTrafficTests(unittest.TestCase):
         smoothing=s.split('// Tracks accelerate and brake unevenly.',1)[1].split('_limit = [_vehicle',1)[0]
         self.assertNotIn('_frontSpeed > 2',smoothing)
         self.assertIn('_controlGap >= _gapLow && {_closingCap > 0} && {!_frontReversing}',smoothing)
+        self.assertIn('(_controlGap-_gapLow)/((_desiredGap-_gapLow) max 1)',smoothing)
+        self.assertIn('max 0)*_smoothingBlend',smoothing)
+        import math
+        def cap(gap,front,previous,mass,blend):
+            limit=max(0,front+(gap-50)*.4)
+            if gap>60:limit+=min((gap-60)*math.sqrt(gap-60)*.15,8)
+            if gap<40:limit=min(limit,max(0,front-(40-gap)*1.2))
+            decel=4/max(1,min(2.5,1+(mass-3000)/7000));reaction=4*decel
+            closing=min(50,front+3.6*max(0,math.sqrt(reaction**2+2*decel*max(0,gap-40))-reaction))
+            if gap>=40 and closing>0:
+                weight=max(0,min(1,(gap-40)/10)) if blend else 1
+                limit=max(limit,max(0,previous-4)*weight)
+            return max(0,min(limit,previous+4,closing))
+        self.assertAlmostEqual(cap(40.00001,2,5,3000,False)-cap(39.99999,2,5,3000,False),1)
+        for mass in (3000,15000,30000):
+            for front in (0,2,10,30):
+                for previous in (0,5,20):
+                    for boundary in (40,50,60):
+                        self.assertLess(abs(cap(boundary+.00001,front,previous,mass,True)-cap(boundary-.00001,front,previous,mass,True)),.001)
         self.assertIn('min _closingCap',smoothing)
         self.assertLess(smoothing.index('_previous select 0)-4*_elapsed'),smoothing.index('min _closingCap'))
         self.assertIn('if (_frontReversing) then {_limit=0}',smoothing)

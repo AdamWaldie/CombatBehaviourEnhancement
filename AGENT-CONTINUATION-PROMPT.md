@@ -1,3 +1,8 @@
+# Latest checkpoint - convoy lower-band smoothing continuity
+
+## 2026-10-21 - Convoy lower-band smoothing discontinuity
+Baseline02c35371. Usage check ordinary allowed,102.1593235credits,weekly67%used/33%remaining; low-credit threshold not reached. Reviewed mixed-convoy scalar path. Initial reading suggested no discontinuity, but numeric sweep FAILED at mass3000/front2/priorcap5/gap40m: old cap jumps0->1km/h across +/-0.00001m because full smoothing floor enables at gapLow. Actual fix scales existing decay floor by clamped progress through lower half-band (>=1m denominator for collapsedband). No new gap setting/loop/timer; raw mass-aware closing/acceleration/reverse/retained-path/traffic/pedestrian constraints unchanged. Existing regression reproducesoldjump and checks108 mass/front/priorcap/boundary combinations; no new testcase.20 focused and all1484+HEMTT/SQF/config/FSM/docs/package pass .qa/convoy-lower-band-smoothing-build.log. Independent .qa/convoy-lower-band-smoothing-independent.log; candidate .qa/candidates/convoy-lower-band-smoothing-02c35371 fingerprint65346fb972f99a73106cf89b50c4baa4b4d426755ccd349be0c9e0ff31ffcaa4. Review convoy-continuous-catchup-20261019.json has scope/hash/failing old example and final checks. Scalar continuity not physical closed-loop stability/path startup/gap convergence/clearance/performance; user's mixed stop/start finding remains unverified. Audits PAUSED/no launches; full goal active/incomplete. Local only/no push/merge/publish. Unrelated dirt/protected source/signing preserved; explicitUTF8 reads.
+
 # Latest checkpoint - AA exact admitted-muzzle readiness
 
 ## 2026-10-21 - AA exact-muzzle continuation cost

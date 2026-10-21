@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Follower smoothing fades in across the existing lower tolerance band; hard closing/reverse caps remain final.
  * Size-aware spacing uses facing hull extents from model origins, not symmetric half-lengths.
  * Existing traffic/turn geometry remains authoritative; this is not swept collision proof.
  * Disabled registered carriers reconcile their unload policy before mobility filtering;
@@ -1063,7 +1064,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
     // Compression and the raw closing cap still brake immediately. A brief predecessor
     // dip below 2 km/h must not flip the pacing policy while spare longitudinal room remains.
     if (_controlGap >= _gapLow && {_closingCap > 0} && {!_frontReversing}) then {
-        _limit=_limit max (((_previous select 0)-4*_elapsed) max 0);
+        // Fade in the smoothing floor across the existing lower half-band.
+        // Switching its full value on at gapLow creates a stop/start cap jump.
+        private _smoothingBlend=((_controlGap-_gapLow)/((_desiredGap-_gapLow) max 1)) max 0 min 1;
+        _limit=_limit max ((((_previous select 0)-4*_elapsed) max 0)*_smoothingBlend);
     };
     _limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0;
     // Keep enough motion to steer back onto the recorded predecessor track.
