@@ -1158,5 +1158,16 @@
     },
     "evidence": ".qa/routine-stance-composition-trace-20261021.json; .qa/routine-stance-handover-build-sealed.log; .qa/routine-stance-handover-independent.log",
     "limits": "No physical nested stance/CQB/garrison/HC/JIP/nativepartialwrite/performance proof; retained metadata is not ordered replication or guaranteed eventual handback. No new worker/rays."
+  },
+  "finitePosturePauseCleanup20261021": {
+    "baseline": "f05ed022",
+    "finding": "Ordinary tactical pause postponed the finite cleanup job through its original retry window.",
+    "implementation": "Explicit POSTURE_CLEANUP job category bypasses pause only. Master, epoch, actual owner, native-task and budget gates remain. No planner wake or renewed deadline.",
+    "sourceHashes": {
+      "addons/infantry/functions/dangerEngineRelease.sqf": "0c9362c9fc5bbdce9817746037bdcfba290fb3cabd6223f32775ba9a792ad5e0",
+      "addons/core/functions/cortexSchedulerTick.sqf": "a40e02ba35d2e91dc6ea23e71fa69f2359bbdc75d075ba30aa71c47a602ebab5"
+    },
+    "evidence": ".qa/posture-cleanup-pause-build.log; .qa/posture-cleanup-pause-independent.log",
+    "limits": "No in-engine pause/HC/nativecare/burst/performance acceptance; original window still bounded and addon disable remains normal shutdown."
   }
 }

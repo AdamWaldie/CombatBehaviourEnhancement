@@ -20,7 +20,8 @@
  * Due processing still traverses the queue once and
  * jobs move to the back, so no group is starved when the budget is always spent. When the machine's FPS is below
  * CBE_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
- * active, due jobs are postponed by five seconds and never run. The pause refreshes a one-minute
+ * active, tactical jobs are postponed by five seconds. Finite posture cleanup may remove only
+ * exact-owned settings during the pause; it cannot start tactics. The pause refreshes a one-minute
  * resumption grace used by tactical-drill watchdogs, so deferred work is not mistaken for starvation.
  * Locality and authority: machine-local. It performs no world scans. Changed restoration checkpoints are published after group jobs.
  * The latest 256 executed callbacks retain duration, lateness and bounded job identity in a local
@@ -98,6 +99,9 @@ private _earliest = -1;
         // unrelated infantry ENDEX or safe-start gate is active.
         private _jobPaused = _paused && {!_skillsJob};
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
+        // Removing an already-owned stance is handback, not a new tactical action.
+        // This category retains the ordinary master/owner stale gates and shared budget.
+        if (_subsystem == "POSTURE_CLEANUP") then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
         private _callbackCanSuspend=canSuspend;

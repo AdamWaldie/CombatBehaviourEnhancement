@@ -1,3 +1,9 @@
+# Latest checkpoint - finite posture cleanup during pause
+
+
+## 2026-10-21 - Finite posture cleanup during tactical pause
+Baselinef05ed022. DangerPostureStep was queued as ordinary TACTICS, so SafeStart/ENDEX postponed all retries and could exhaust original expiry+30 without service. Release now labels its finite keyed job POSTURE_CLEANUP; SchedulerTick exempts only that category from tactical pause. Existing masterenable/actualowner/epoch/nativecare/flight/Zeus/external/changedstance gates and softbudget/lowFPSpolicy remain. No tacticalbrainwake, movement, worker or reneweddeadline. Addon disable remains existing shutdown, not cleanup runtime extension. All1484+HEMTT/FSM/docs/package pass .qa/posture-cleanup-pause-build.log; independent .qa/posture-cleanup-pause-independent.log. Candidate .qa/candidates/posture-cleanup-pause-f05ed022 fingerprint58dadc0380298cbb2f6ea230390f9ee5b24cec98aa6feafaa83e5a8d7ad92a94. No physical pause/resume/nativecare/HC/64actorpressure/performance acceptance; budget/lowFPS or shutdown may still exhaust originalwindow. AuditsPAUSED/no launches/push/merge/publication. Fullgoalactive/incomplete; unrelateddirt/protectedreferences/signing preserved. Buildout register was read for nextgap selection, not rescored; old provisional sourcehashes not currentproof.
+
 # Latest checkpoint - typed routine stance composition
 
 

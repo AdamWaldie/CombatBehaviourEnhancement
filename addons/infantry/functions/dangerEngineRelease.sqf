@@ -55,7 +55,7 @@ private _evidence={
             if (!_cleanupRunning) then {
                 private _cleanupEpoch=_pendingGroup getVariable ["CBE_AIPass_Epoch",0];
                 [CBE_fnc_DangerPostureStep,createHashMapFromArray [["group",_pendingGroup],
-                    ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch]],0.25,
+                    ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch],["subsystem","POSTURE_CLEANUP"]],0.25,
                     "DANGER_POSTURE"] call CBE_fnc_CortexQueueJob;
             };
         };
