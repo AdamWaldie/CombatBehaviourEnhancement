@@ -6,6 +6,8 @@
  * Arguments: 0 projected bounds ARRAY [minX,maxX,minY,maxY], []; 1 circumscribed hull
  * radius NUMBER 0, positive <=12m; 2 side NUMBER 1, exactly -1/1;
  * 3 held queue mode BOOL false, permitting a straight corridor only beyond the full hull.
+ * Ordinary projected spans remain <=30m; a held queue union may extend90m longitudinally.
+ * Width stays <=30m. Consumers must retain individual hull and finite path/geometry budgets.
  * Return: HASHMAP status ROOM/REFUSED, reason; valid inputs also return straight BOOL,
  * before/lateral/ramp/clearAfter/after NUMBER and requiredBack NUMBER. requiredBack is only
  * the missing longitudinal approach under unchanged heading/geometry, never permission to reverse.
@@ -18,7 +20,7 @@ private _fail={params ["_reason"];createHashMapFromArray [["status","REFUSED"],[
 if (count _bounds != 4 || {_bounds findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {!finite _radius} || {_radius <= 0} || {_radius > 12} || {!(_side in [-1,1])}) exitWith {["INVALID_ROOM_INPUT"] call _fail};
 _bounds params ["_minX","_maxX","_minY","_maxY"];
-if (_maxX < _minX || {_maxY < _minY} || {_maxX-_minX > 30} || {_maxY-_minY > 30}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
+if (_maxX < _minX || {_maxY < _minY} || {_maxX-_minX > 30} || {_maxY-_minY > ([30,90] select _queueMode)}) exitWith {["INSUFFICIENT_APPROACH_ROOM"] call _fail};
 private _straightQueue=_queueMode && {_maxX <= -(_radius+1) || {_minX >= _radius+1}};
 private _before=_minY-_radius-3;
 private _lateral=if (_straightQueue) then {0} else {if (_side > 0) then {_maxX+_radius+3} else {_minX-_radius-3}};

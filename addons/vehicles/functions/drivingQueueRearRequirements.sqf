@@ -73,6 +73,15 @@ private _ownAcross=[_hulls select 0,_origin,_rootRight] call _span;
 private _radius=sqrt (((abs (_ownAlong select 0)) max (abs (_ownAlong select 1)))^2
     +((abs (_ownAcross select 0)) max (abs (_ownAcross select 1)))^2)+1;
 if (!finite _radius || {_radius > 12}) exitWith {[]};
+// The longer union budget never admits a single oversized traffic body.
+{
+    private _alongBody=[_x,_origin,_rootAxis] call _span;
+    private _acrossBody=[_x,_origin,_rootRight] call _span;
+    // _span adds0.05m on each side; apply the same raw30m hull budget as the planner.
+    if ((_alongBody select 1)-(_alongBody select 0) > 30.1
+        || {(_acrossBody select 1)-(_acrossBody select 0) > 30.1}) exitWith {_valid=false};
+} forEach (_hulls select [1]);
+if (!_valid) exitWith {[]};
 private _union=[];{_union append _x} forEach (_hulls select [1]);
 private _along=[_union,_origin,_rootAxis] call _span;private _across=[_union,_origin,_rootRight] call _span;
 private _required=1e6;

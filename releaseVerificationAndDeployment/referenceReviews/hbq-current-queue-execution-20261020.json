@@ -244,5 +244,35 @@
         "sha256": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b"
       }
     ]
+  },
+  "queueUnionBudgetFollowup20261021": {
+    "baseline": "9377ffd2",
+    "supersedes": "The >30m projected queue-union refusal in adaptiveQueueRoomImplementation20261021 is now scoped separately from individual hull limits.",
+    "finding": "DrivingBypassRoom applied the ordinary single-obstacle longitudinal30m cap to the entire held queue union. This could reject a valid3/4vehicle chain after room-making despite every individual body remaining within scope.",
+    "change": "Ordinary projected length remains30m. Held queue union longitudinal length may be90m; union width and every projected individual traffic hull remain30m. DrivingBypassPlan checks each individual body during its existing corner loop. Admission requirements mirror that individual budget, accounting for their0.05m per-edge rounding pad.",
+    "retained": "Existing <=4participants, radius<=12m, actual-owner/all-owner consent, finite original expiry, held pose/native STOP receipt, strict forward ramps, <=24guide points, existing geometry and post-query current-pose/authority checks. PATH_BUDGET refuses overlong sampled routes before geometry; no new world query, path node or movement writer.",
+    "validation": {
+      "fullBuild": ".qa/queue-union-build.log",
+      "tests": 1482,
+      "independent": ".qa/queue-union-independent.log",
+      "candidate": ".qa/candidates/queue-union-9377ffd2",
+      "fingerprint": "347ad0acf6430b02608b89498cc5f81e41f0e5d69c10de53590758be11346df6",
+      "provenance": "Unsigned development package from9377ffd2 plus intended product edits; later review/handover metadata non-executable."
+    },
+    "remaining": "No physical3/4vehicle crossing, repeated queue, locality handover or performance result.90m union budget does not guarantee a route fits24points, has support or clears occupied traffic. Audits paused; no percentage/parity claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "sha256": "d88d12e6e558ca58cdde3456e0926a1d2e8025d92d344294ac999bad673e7ab5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "sha256": "76fe4a472cb5fb9e22d01c33cdf359b28a4c50a5bbd007695f86b28d56c3486a"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
+        "sha256": "56d4658c9b256e9227074bdf6c899ccc48a51fefdb6098f75f75ec92beb39921"
+      }
+    ]
   }
 }

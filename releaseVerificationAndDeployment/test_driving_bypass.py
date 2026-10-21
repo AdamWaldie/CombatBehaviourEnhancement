@@ -498,6 +498,7 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertIn('for "_i" from 1 to 4',source)
 
     def test_bypass_uses_forward_ramps_instead_of_sideways_anchor_turns(self):
+        import math
         s=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text(encoding='utf-8')
         room=(ROOT/'addons/vehicles/functions/drivingBypassRoom.sqf').read_text()
         self.assertIn('call CBE_fnc_DrivingBypassRoom',s)
@@ -511,6 +512,22 @@ class ConvoyBypassObservedCheckpointTests(unittest.TestCase):
         self.assertIn('!_straightQueue && {_before < _rampTravel}',room)
         self.assertIn('(_radius+3+_rampTravel-_minY) max 0',room)
         self.assertIn('!finite _radius',room)
+        self.assertIn('_maxY-_minY > ([30,90] select _queueMode)',room)
+        self.assertIn('_maxX-_minX > 30',room)
+        self.assertIn('_bodyMaxX-_bodyMinX > 30',s)
+        self.assertIn('_bodyMaxY-_bodyMinY > 30',s)
+        # Three ordinary held hulls can exceed the single-obstacle span without
+        # being individually oversized. The existing finite path cap still wins.
+        def span_allowed(width,length,queue):
+            return width <= 30 and length <= (90 if queue else 30)
+        self.assertFalse(span_allowed(6,42,False))
+        self.assertTrue(span_allowed(6,42,True))
+        self.assertTrue(span_allowed(30,90,True))
+        self.assertFalse(span_allowed(30.01,42,True))
+        self.assertFalse(span_allowed(6,90.01,True))
+        # Five-metre guide spacing already rejects an overlong route before rays.
+        self.assertGreater(1+math.ceil(121/5),24)
+
         for forbidden in ('setVariable','setDriveOnPath','lineIntersects','nearestObjects','modelToWorld','boundingBoxReal'):
             self.assertNotIn(forbidden,room.split('params [[',1)[1])
         # A body beyond either corridor edge can leave a straight passage; touching

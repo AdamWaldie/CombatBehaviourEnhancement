@@ -18,7 +18,7 @@
  * Return Value: ARRAY [valid BOOL, reason STRING, pointsATL ARRAY, pointsASL ARRAY,
  * obstacle transform ARRAY, vehicle transform ARRAY, rayCount NUMBER].
  * Limits: stationary STATIC object only (vehicle hulls must remain engine-off and unoccupied), observation <=1.5 seconds old/50 m away, vehicle <=8 km/h;
- * projected object span <=30 m, hull circumscribed clearance radius <=12 m. Gradual forward pull-out/rejoin profiles
+ * projected individual object spans/union width <=30 m, held queue union length <=90 m, hull circumscribed clearance radius <=12 m. Gradual forward pull-out/rejoin profiles
  * resample at <=5 m, at most 24 stations/279 support/body rays. No spawning or collision helpers.
  * Smoothstep ramps bound nominal tangent departure to 35 degrees and retain forward travel.
  * Missing ramp room refuses instead of asking native steering for a right-angle lateral step.
@@ -93,14 +93,18 @@ private _knownHull=true;
     private _body=_x;private _other=boundingBoxReal _body;
     private _otherLow=_other select 0;private _otherHigh=_other select 1;
     if (_otherLow vectorDistance _otherHigh < 0.5) exitWith {_knownHull=false};
+    private _bodyMinX=1e9;private _bodyMaxX=-1e9;private _bodyMinY=1e9;private _bodyMaxY=-1e9;
     {
         private _xCoord=_x;
         {private _yCoord=_x;{
             private _delta=(_body modelToWorldWorld [_xCoord,_yCoord,_x]) vectorDiff _origin;
             private _lateral=_delta vectorDotProduct _right;private _along=_delta vectorDotProduct _forward;
+            _bodyMinX=_bodyMinX min _lateral;_bodyMaxX=_bodyMaxX max _lateral;
+            _bodyMinY=_bodyMinY min _along;_bodyMaxY=_bodyMaxY max _along;
             _minX=_minX min _lateral;_maxX=_maxX max _lateral;_minY=_minY min _along;_maxY=_maxY max _along;
         } forEach [_otherLow select 2,_otherHigh select 2];} forEach [_otherLow select 1,_otherHigh select 1];
     } forEach [_otherLow select 0,_otherHigh select 0];
+    if (_bodyMaxX-_bodyMinX > 30 || {_bodyMaxY-_bodyMinY > 30}) exitWith {_knownHull=false};
 } forEach _bodies;
 if (!_knownHull) exitWith {["UNCERTAIN_OBSTACLE_HULL"] call _fail};
 // Share arithmetic with recovery planning; this result grants no physical clearance.
