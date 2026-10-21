@@ -6160,6 +6160,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_moveGeneration == (_moveOperation getOrDefault ["generation",-2])',route)
         self.assertIn('_policy isEqualTo (_moveIntent getOrDefault ["nativePolicy",[]])',route)
         self.assertIn('"VEHICLE_ROUTE_REPLACED"] call CBE_fnc_OperationCancel',vehicles)
+        feature=vehicles.split('private _movementFeature=switch',1)[1].split('private _orientControllerExternal=',1)[0]
+        for gate in ('"VEHICLE_JINK": {"CBE_AIPass_VehicleJink_Enable"}',
+                     '"VEHICLE_WITHDRAW": {"CBE_AIPass_VehicleWithdraw_Enable"}',
+                     'default {"CBE_AIPass_VehicleGunnery_Enable"}',
+                     '"CBE_AIPass_Vehicles_Enable"','[_group,_movementFeature,true]'):
+            self.assertIn(gate,feature)
+        self.assertLess(vehicles.index('if (_vehicleFeatureDisabled) then {_activeVehicleMove=false}'),
+                        vehicles.index('if (!_activeVehicleMove)'))
+        self.assertLess(vehicles.index('"FEATURE_DISABLED"] call CBE_fnc_OperationCancel'),
+                        vehicles.index('["VEHICLE_MOVE_NO_ARRIVAL","OBJECTIVE_REACHED"]'))
+        self.assertLess(vehicles.index('"FEATURE_DISABLED"] call CBE_fnc_OperationCancel'),
+                        vehicles.index('if (_lifecycleOnly) exitWith'))
         self.assertIn('private _movementOwned = _activeVehicleMove',vehicles)
         self.assertIn('if (_enemies isEqualTo []) exitWith {_movementOwned}',vehicles)
         self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]]',vehicles)

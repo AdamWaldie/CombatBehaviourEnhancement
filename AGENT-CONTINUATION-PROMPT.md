@@ -1,3 +1,8 @@
+# Latest checkpoint - live vehicle feature retirement
+
+## 2026-10-21 - Active vehicle feature closure retirement
+Baseline76daa928. Actual lifecycle gap: CortexVehicles serviced active work outside admission but did not cancel on live master/owning feature closure. Existing lifecycle now checks Vehicles plus Jink/Withdraw/Gunnery (orientation+standoff), forces inactive and cancels exact operation FEATURE_DISABLED before arrival outcome. Existing owned-route/reverse/exact-turn retirement remains; no replacement movement/retry/controller/settings.2feature reads per existing active-operation service, no scan/geometry.3 focused cases and full1484+HEMTT/SQF/config/FSM/docs/package pass .qa/vehicle-feature-retirement-build.log. Independent .qa/vehicle-feature-retirement-independent.log; candidate .qa/candidates/vehicle-feature-retirement-76daa928 fingerprintbbfb55fe260b930cbb186de1be1c9289356e5448be091d22c383001766fd5401. Review workshop-intake-3822504009.json records current hash/limits. Physical interruption/turn cessation/reverse quiescence/native travel/HC/performance unverified. Audits PAUSED/no launches; full goal active/incomplete. Local only/no push/merge/publish. Preserve unrelated dirt/protected sources/signing keys.
+
 # Latest checkpoint - ground weapon source intent trace
 
 ## 2026-10-21 - Ground weapon/readiness source intent trace

@@ -200,5 +200,25 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "productChanged": false
+  },
+  "vehicleFeatureRetirement20261021": {
+    "baseline": "76daa928",
+    "finding": "Existing lifecycle-only vehicle service ran before contact/admission returns but did not close active manoeuvre ownership when its enable gate closed. Jink/orientation/withdrawal/standoff could therefore remain active until original movement deadline.",
+    "implementation": "Same lifecycle callback reads master Vehicles plus owning feature: Jink, Withdraw, or Gunnery for orientation/standoff. Closed gate forces inactive status and cancels exact operation generation as FEATURE_DISABLED before arrival evaluation. Existing exact route/reverse/turn retirement runs; no replacement manoeuvre, extra worker, timer or new CBA setting.",
+    "cost": "Two existing feature-gate reads per active vehicle operation service; no roster/world scan or geometry added. Runtime performance unmeasured.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicles.sqf": "5980d9de697845cc052aa686b5e8414f91ac6715370eb593fa480044b502a016"
+    },
+    "validation": {
+      "focused": 3,
+      "tests": 1484,
+      "pipeline": ".qa/vehicle-feature-retirement-build.log",
+      "independent": ".qa/vehicle-feature-retirement-independent.log",
+      "candidate": ".qa/candidates/vehicle-feature-retirement-76daa928",
+      "fingerprint": "bbfb55fe260b930cbb186de1be1c9289356e5448be091d22c383001766fd5401"
+    },
+    "limits": "Static lifecycle gating only. Physical turn cessation/reverse quiescence/native travel/normal-HC/settings interruption latency and measured budget unverified. No upstream source/parity/score claim.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }

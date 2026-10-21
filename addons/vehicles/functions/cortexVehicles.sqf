@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Danger-derived hostile actions retain the original identity expiry/witness; close-range
@@ -108,6 +109,13 @@ if (_vehicleMove isNotEqualTo []) then {
     private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"];
     if (_vehicleOwnsLease) then {
         private _movementOwner=_vehicleMove param [0,""];
+        private _movementFeature=switch (_movementOwner) do {
+            case "VEHICLE_JINK": {"CBE_AIPass_VehicleJink_Enable"};
+            case "VEHICLE_WITHDRAW": {"CBE_AIPass_VehicleWithdraw_Enable"};
+            default {"CBE_AIPass_VehicleGunnery_Enable"};
+        };
+        private _vehicleFeatureDisabled=!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+            || {!([_group,_movementFeature,true] call CBE_fnc_CortexFeatureEnabled)};
         private _orientControllerExternal=false;
         private _orientDriverProtected=false;
         private _orientCommanderProtected=false;
@@ -225,11 +233,14 @@ if (_vehicleMove isNotEqualTo []) then {
             _activeVehicleMove = _reverseActive || {_routeOwned && {time < (_vehicleMove select 1)}};
             if (_vehicleCrewChanged) then {_activeVehicleMove=false};
         };
+        if (_vehicleFeatureDisabled) then {_activeVehicleMove=false};
         if (!_activeVehicleMove) then {
             private _finishedOwner=_vehicleMove param [0,""];
             private _generation=_state getOrDefault ["vehicleOperationGeneration",-1];
             if (_generation >= 0) then {
-                if (_finishedOwner == "VEHICLE_ORIENT") then {
+                if (_vehicleFeatureDisabled) then {
+                    [_group,_generation,"FEATURE_DISABLED"] call CBE_fnc_OperationCancel;
+                } else {if (_finishedOwner == "VEHICLE_ORIENT") then {
                     private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
                     private _orientVehicle=_orientState param [1,objNull,[objNull]];
                     private _orientMarker=if (!isNull _orientVehicle) then {
@@ -272,6 +283,7 @@ if (_vehicleMove isNotEqualTo []) then {
                     [_group,_generation,["INCOMPLETE","COMPLETE"] select _arrived,
                         ["VEHICLE_MOVE_NO_ARRIVAL","OBJECTIVE_REACHED"] select _arrived] call CBE_fnc_OperationRelease;
                     };};
+                };
                 };
                 _state deleteAt "vehicleOperationGeneration";
             };
