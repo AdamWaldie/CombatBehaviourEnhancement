@@ -61,5 +61,19 @@
     "manifest_commit": "6ae5f63a",
     "manifest_dirty": true
   },
-  "buildout": "Existing source criteria reassessed; no score increase or physical acceptance inferred."
+  "buildout": "Existing source criteria reassessed; no score increase or physical acceptance inferred.",
+  "declaredOwnerReleaseFollowup": {
+    "baseline": "0fd1a915",
+    "scope": "Current production setSkill discovery and AI lighting/receipt authority; separate mission framework inspected read-only, no provider edits.",
+    "finding": "Only AIApplyProfile/AIRestoreProfile write CBE skills. Their mission checks already preserve edits, but AILightingStep only invoked profile application on changed signature. A newly declared skill owner with unchanged lighting could retain old CBE effects until another apply or explicit helper call.",
+    "implementation": "Existing ten-unit lighting callback checks declared skill owner irrespective of signature. Nonempty/invalid-type owner joins existing profileBlocked release path. Restore only if any original/applied skill or aim receipt remains; sticky released owners skip repeated parsing. Existing exact native comparison and incomplete receipt rules retained.",
+    "cost": "One unit ownership variable read per visited actor, up to four receipt-existence reads only on blocked cleanup; no native skill polling unless actual restoration work exists. No new watcher, scan or callback.",
+    "limits": "Next registered pass is bounded by existing rotating roster, not a fixed per-actor latency guarantee. Same-value external edits remain indistinguishable. Physical mission/JIP/HC sequencing unverified.",
+    "validation": "Existing5 skill-authority tests passed without new cases; full build result in handover.",
+    "currentSources": {
+      "addons/core/functions/aiLightingStep.sqf": "4e450dd6f55ac40ac005a2680bc86a909ba6f9feaa7491c9cb6e88af5bab305e"
+    },
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  }
 }

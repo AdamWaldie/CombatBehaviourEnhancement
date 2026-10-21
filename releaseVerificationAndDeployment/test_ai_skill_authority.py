@@ -35,6 +35,19 @@ class SkillAuthorityTests(unittest.TestCase):
         self.assertIn('(_unit skill _x)-(_applied get _x)',restore)
         self.assertNotIn('CBE_AI_SkillOwner',restore)
         self.assertNotIn('CBE_AI_SkillOwner',src('addons/core/functions/aiRebalanceStop.sqf'))
+        lighting=src('addons/core/functions/aiLightingStep.sqf')
+        self.assertIn('getVariable ["CBE_AI_SkillOwner",""]',lighting)
+        self.assertIn('!(_skillOwner isEqualType "")',lighting)
+        self.assertIn('_skillOwner != ""',lighting)
+        self.assertLess(lighting.index('getVariable ["CBE_AI_SkillOwner",""]'),
+                        lighting.index('call CBE_fnc_AIRestoreProfile'))
+        self.assertLess(lighting.index('call CBE_fnc_AIRestoreProfile'),
+                        lighting.index('_signature isNotEqualTo'))
+        release_gate=lighting.split('if (local _unit && {_profileBlocked}) then {',1)[1].split('if (local _unit && {alive',1)[0]
+        for receipt in ('CBE_AI_OriginalSkills','CBE_AI_AppliedSkills','CBE_AI_OriginalAimCoef','CBE_AI_AppliedAimCoef'):
+            self.assertIn(receipt,release_gate)
+        self.assertNotIn('call CBE_fnc_AIProfileYield',lighting)
+        self.assertNotIn('setSkill',lighting)
     def test_partial_profile_refresh_plans_from_original_not_native_previous_result(self):
         text=src('addons/core/functions/aiApplyProfile.sqf')
         plan,commit=text.split('private _profileCommitted=false;',1)
