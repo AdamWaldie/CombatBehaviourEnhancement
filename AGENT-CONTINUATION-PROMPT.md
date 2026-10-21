@@ -1,5 +1,8 @@
 
 
+Checkpoint: defensive origin/completion (2026-10-21). Baseline76977779 plus scoped corrections. Original ASL admission origin now binds defensive node radius/floor/improvement across retries. Physical arrival and final observation require >=1m actual displacement; final proximity retained or POSITION_LOST. No added queries/workers/budgets. Existing32 focused and full offline1484/394SQF/gates passed; independent .qa/candidates/defensive-origin-76977779 fingerprint2bc7639fab81f85b6be97e39ebce3767b4a01433c127fd6fe1731c9ee9e8dc10. Review referenceReviews/defensive-origin-20261021.json. Audits paused; physical usefulness/performance unverified. No remote mutation.
+
+
 Checkpoint: defensive indoor reposition (2026-10-21). Baseline356e4353 plus scoped source edits. Existing CONTACT individual fallback/actor FSM now supports same-building same-floor short defensive reposition toward known believed threats, with existing2-actor capacity/deadline/probe/retry/cleanup. Exact REPOSITIONED completion retains arrived native position without formation recall, grants no clearance. Source trace .qa/lambs-defensive-indoor-gap-20261021.json; engineering review referenceReviews/defensive-indoor-20261021.json. Final full offline .qa/defensive-indoor-build-retention.log passed1484/394SQF and complete gates; independently verified .qa/candidates/defensive-indoor-356e4353 fingerprint f79f1369bb89c756eb3b770ad816761327d6b832e90846592c58a82c8263d4aa. Previous builds superseded as recorded. Audits paused, no launches. Physical usefulness/HC/performance unverified; native route may exit/reenter and height band is not topology. No whole-parity/buildout rescore. Unrelated dirt/protected sources preserved; no remote mutation.
 
 

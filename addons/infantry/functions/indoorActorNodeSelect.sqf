@@ -24,6 +24,8 @@
  * they never affect known-contact work or add roof rays.
  * 7 defensive BOOL false restricts candidates to an eight-metre same-floor improvement
  * toward believed threat geometry, retaining all roof/occupancy/failure checks.
+ * 8 defensiveOrigin ASL ARRAY [] is mandatory for defensive selection and binds the
+ * original radius/floor across retries; it is never replaced by the actor's new position.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
  * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch.
@@ -31,7 +33,7 @@
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]],
-    ["_search",createHashMap,[createHashMap]],["_searchMemory",[],[[]]],["_defensive",false,[true]]];
+    ["_search",createHashMap,[createHashMap]],["_searchMemory",[],[[]]],["_defensive",false,[true]],["_defensiveOrigin",[],[[]]]];
 _search set ["pending",false];
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
@@ -39,14 +41,14 @@ private _positionValid={
 };
 if (isNull _actor || {!local _actor} || {!local group _actor}
     || {isNull _building} || {!alive _building} || {!(_belief call _positionValid)}
-    || {count _reserved > 16}) exitWith {[]};
+    || {count _reserved > 16} || {_defensive && {!(_defensiveOrigin call _positionValid)}}) exitWith {[]};
 // Reject unknown reservations rather than sending a second actor to an unverified destination.
 if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
 private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
-private _binding=[_actor,_building,_transform,+_belief,+_searchMemory,_defensive];
+private _binding=[_actor,_building,_transform,+_belief,+_searchMemory,_defensive,+_defensiveOrigin];
 private _previousBinding=_search getOrDefault ["binding",[]];
 if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};
 private _probed=_search getOrDefault ["probed",[]];
@@ -107,8 +109,8 @@ if (count _positions > 512) exitWith {[]};
 private _bounds=boundingBoxReal _building;
 private _low=_bounds select 0;
 private _high=_bounds select 1;
-private _beliefHeight=if (_defensive) then {(getPosASL _actor) select 2} else {(AGLToASL _belief) select 2};
-private _origin=getPosATL _actor;
+private _beliefHeight=if (_defensive) then {_defensiveOrigin select 2} else {(AGLToASL _belief) select 2};
+private _origin=if (_defensive) then {ASLToAGL _defensiveOrigin} else {getPosATL _actor};
 // Reservation metadata does not include a teammate who is simply standing at a node.
 // Sample only the existing bounded squad roster; never inspect unseen hostile positions.
 private _bodies=[];

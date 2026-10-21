@@ -375,7 +375,7 @@ if (_mode == "START") exitWith {
         ["ownerEpoch",_epoch],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
-        ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],["defensive",_defensive],
+        ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],["defensive",_defensive],["defensiveOrigin",getPosASL _actor],
         ["searchMemory",_searchMemory call _copyArray],["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
@@ -558,7 +558,7 @@ if (_phase == "SELECT") exitWith {
     private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
     _brain set ["nodeSearch",_nodeSearch];
     private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
-        _brain getOrDefault ["observationClue",[]],_nodeSearch,_brain getOrDefault ["searchMemory",[]],_defensive] call CBE_fnc_IndoorActorNodeSelect;
+        _brain getOrDefault ["observationClue",[]],_nodeSearch,_brain getOrDefault ["searchMemory",[]],_defensive,_brain getOrDefault ["defensiveOrigin",[]]] call CBE_fnc_IndoorActorNodeSelect;
     if (_node isEqualTo []) exitWith {
         // A roof miss is not an inaccessible building. Continue the bounded search on
         // the existing FSM callback, under the unchanged original operation deadline.
@@ -639,6 +639,9 @@ if (_phase == "APPROACH") exitWith {
             && {_height <= 1} && {_segment isEqualTo []} && {_roof isNotEqualTo []}
             && {private _hit=_roof select 0; (_hit select 2) == _building || {(_hit select 3) == _building}};
     };
+    if (_inside && {_defensive}) then {
+        _inside=_positionASL vectorDistance (_brain get "defensiveOrigin") >= 1;
+    };
     if (_inside) then {
         _brain set ["phase","OBSERVE"]; _brain set ["observeUntil",serverTime+2];
     } else {
@@ -669,6 +672,10 @@ if (_phase == "APPROACH") exitWith {
     -1
 };
 if (_phase == "OBSERVE" && {serverTime >= (_brain get "observeUntil")}) exitWith {
+    if (_defensive && {(getPosASL _actor) vectorDistance (AGLToASL _target) > 1.5
+        || {(getPosASL _actor) vectorDistance (_brain get "defensiveOrigin") < 1}}) exitWith {
+        ["POSITION_LOST"] call _finish
+    };
     // This is a visit/investigation result, never a cleared-room or killed-enemy assertion.
     if (_searchMemory isNotEqualTo []) then {
         if !(call _recordSearchVisit) exitWith {_brain set ["reason","VISIT_UNCONFIRMED"]};

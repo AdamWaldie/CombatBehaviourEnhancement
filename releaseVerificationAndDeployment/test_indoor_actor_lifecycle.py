@@ -69,7 +69,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         for proof in ('["defensive",true]','(_actors select [0,3])','_admitted >= 2'):
             self.assertIn(proof,dispatch)
         for proof in ('_node distance2D _origin <= 8','(_origin distance2D _belief)-0.8',
-                      'if (_defensive) then {(getPosASL _actor) select 2}', '+_searchMemory,_defensive'):
+                      'if (_defensive) then {_defensiveOrigin select 2}', '+_searchMemory,_defensive'):
             self.assertIn(proof,selector)
         for proof in ('"REPOSITIONED"','DEFENSIVE_CONTEXT_LOST','if (!_contained',
                       '["defensive",_defensive]','currentCommand _actor == "MOVE"',
@@ -83,6 +83,10 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'serverTime < (_searchMemory select 2)','(_searchMemory select 1)+120',
                       'getOrDefault ["searchDeadline",-1]'):
             self.assertIn(proof,memory)
+        self.assertIn('ASLToAGL _defensiveOrigin',selector)
+        self.assertIn('_defensiveOrigin call _positionValid',selector)
+        self.assertIn('_positionASL vectorDistance (_brain get "defensiveOrigin") >= 1',operation)
+        self.assertIn('["POSITION_LOST"] call _finish',operation)
         self.assertIn('|| {!isNull _contact} || {_clue isNotEqualTo []}',operation)
         self.assertIn('(_belief select 1) isNotEqualTo (_searchMemory select 1)',operation)
 

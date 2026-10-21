@@ -1,0 +1,24 @@
+{
+  "baseline": "76977779",
+  "scope": "Defensive reposition original geometry and measured completion",
+  "finding": [
+    "Alternative node selection used current actor position/floor, allowing a retry to drift beyond the original radius.",
+    "Minimum candidate distance overlapped arrival tolerance, so selected metadata alone did not guarantee useful physical displacement."
+  ],
+  "implementation": [
+    "Capture original ASL origin in actor brain, pass and bind it into node search; require finite origin for defensive selection. Original radius/floor and improvement comparison survive retry.",
+    "At APPROACH arrival and final OBSERVE completion require at least1m actual displacement from origin. Final observation must still be within1.5m of node, else POSITION_LOST cleanup.",
+    "No extra ray, worker, deadline, retry or movement command. Ordinary investigation selection/arrival remains unchanged."
+  ],
+  "validation": {
+    "focused": "32 existing indoor lifecycle tests passed",
+    "full": ".qa/defensive-origin-build.log all1484/394SQF and complete offline gates passed",
+    "independent": ".qa/defensive-origin-independent.log",
+    "candidate": ".qa/candidates/defensive-origin-76977779",
+    "fingerprint": "2bc7639fab81f85b6be97e39ebce3767b4a01433c127fd6fe1731c9ee9e8dc10"
+  },
+  "limits": [
+    "Audits paused; no Arma launch or physical/performance claim.",
+    "Original floor remains a height band, not topology. Native path can exit/reenter; improved threat distance is not proven firing utility."
+  ]
+}
