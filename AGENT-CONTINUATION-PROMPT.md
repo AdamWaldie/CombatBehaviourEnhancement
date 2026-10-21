@@ -1,3 +1,8 @@
+# Latest checkpoint - HBQ source evidence reconciled
+
+## 2026-10-21 - HBQ route wait/restart evidence reconciliation
+Baselinec689cfd3, no product change. Reread complete HBQ routeWaiting/refreshRoute and current CBE nativeWaiting/recoveryOrderFree/route receipt/native acknowledgement/release handback branches. Existing CBE preserves authored waits and stricter plain-MOVE recovery, no condition execution, waypoint replacement, forced MOVE/PATH enable or on-foot leader follow. SIMPLE_BACK requires STOP acknowledgement and physical quiescence. No newly established code defect; no speculative timing/controller changes. Current hashes/dispositions in driving-recovery-gate-scope-20261021.json. HBQ evidence index was stale only because it omitted that gate review pointer; verified protected source list/hashes and historical pointers unchanged before refresh. --write then read-only check passes:19sources/54readable pointers/31unresolved historical texts. Counts are navigation only/no parity.41 focused recovery/bypass tests pass. No unchanged full build repeated; product candidate remains .qa/candidates/danger-flight-boundary-dad80dc1 fingerprint125eb6baa852870213ea147efafc45e092383ab90ee8137adf26771a41751dcc. Physical waits/commander handback/CQB/convoy/performance unverified; audits PAUSED/no launch. Full goal active/incomplete. Local only/no push/merge/publish. Preserve unrelated dirt/protected source archive/signing.
+
 # Latest checkpoint - danger FSM native-flight action boundary
 
 ## 2026-10-21 - Danger action and stance cleanup native-flight boundary

@@ -155,6 +155,17 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/driving-recovery-gate-scope-20261021.json",
+      "sha256": "a29545131cb27bc02eb455aa091aafa7829eba4f5a9877542b2c3e50ab453181",
+      "scope": "Recovery lifecycle and remaining gate passage/closure scope",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/driving-total-motion-20261018.json",
       "sha256": "1de0cd93afbbff87dfb123294412b0ee65e9d7288a1823c425d38baad0ca511b",
       "scope": "Native driving stationary admission prerequisite; not queue execution",

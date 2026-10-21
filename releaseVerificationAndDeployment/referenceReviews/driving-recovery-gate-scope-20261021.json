@@ -90,5 +90,24 @@
       "fingerprint": "366f8c43b81b4b2fc15d10e2c60b1393c5c927d3fe59fad9f4fa2a1bc5964639",
       "physical": "unrun; audits paused"
     }
+  },
+  "routeWaitRestartRecheck20261021": {
+    "baseline": "c689cfd3",
+    "sourceScope": "routeWaiting and refreshRoute read in full; CBE current nativeWaiting/recoveryOrderFree, route receipt, recovery command classifier and release handback branches read. Not full driving-controller rereview.",
+    "confirmed": "Intentional HOLD/inactive trigger/timeout/nontrue condition is not stuck. CBE recovery requires current plain MOVE, no scripts/statements/attachments/synchronisation, independent of distance. Original route receipts and native crew command identity bind recovery and handback. No condition execution.",
+    "departures": "Do not recreate authored waypoint, enable disabled MOVE/PATH, force engine state or copy unconditional crew follow. CBE native handback uses current effective commander, only plain route, and refuses on-foot leader follow. SIMPLE_BACK STOP acknowledgement plus physical quiescence is retained before handback.",
+    "decision": "No new product defect established by this trace; no recovery retry/timing/controller edits. Physical commanded vehicle continuation and intentional-wait behaviour remain unverified.",
+    "hashes": {
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "87392e5b280aa51cae3036ec72146318fd2889e461a8a2e139c9dfe7cd645f1e",
+      "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "5e3b5eef421e03dc373a74886f52b60e105512790885c760f2a4b04e1305edce",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+    },
+    "indexReconciliation": "Before refresh sourceFiles, historicIndex and historicReviewPointers matched exactly; only missing readable pointer was this driving-recovery-gate-scope record. Preserve31 unresolved historic texts; refresh is navigation metadata only, no parity or score credit.",
+    "productChanged": false,
+    "fullBuildRepeated": false,
+    "audits": "PAUSED"
   }
 }
