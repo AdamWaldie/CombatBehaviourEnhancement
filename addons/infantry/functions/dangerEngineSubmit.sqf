@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
@@ -50,7 +51,8 @@ private _reflexOnly=0;
             private _hostileSource=!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
                 && {!(_source getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
-                && {(side _group) getFriend (side _source) < 0.6};
+                && {(side _group) getFriend (side _source) < 0.6}
+                && {!((_actor targetKnowledge _source) param [7,false,[true]])};
             private _hostileEngage=_cause in [0,3,8] && {_hostileSource};
             // Discovering a friendly body from another group is still an alert; native cause 6
             // must not be discarded merely because that casualty shares the observer's side.

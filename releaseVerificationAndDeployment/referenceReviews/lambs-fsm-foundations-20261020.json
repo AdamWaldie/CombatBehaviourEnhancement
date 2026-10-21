@@ -751,5 +751,16 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "missionIgnoredDangerTargets": {
+    "baseline": "6de16931",
+    "finding": "CortexKnowledge already excludes targetKnowledge field7 ignored contacts, but native danger classification/recycle, EnemyDetected, direct requests and queued group/mounted handoffs did not consistently honor that authority. A mission could ignore a target yet danger still grant an engagement posture or retain its identity.",
+    "implementation": "Use native ignored flag at existing boundaries. EnemyDetected rejects before cache/geometry; engine submission excludes ignored hostile identity and engagement-only intake; direct detection/proximity/can-fire request rejects before cadence consumption. Real hazards retain approximate alerts. Current/inherited request identities, queued contact and mounted source publication require nonignored original witness. Action classification rejects ignored engagement causes before vehicle dispatch, and active native recycle drains.",
+    "limits": "No ignore/reveal mutation, second controller, scan, new timer or life extension. Already published independent finite posture leases retain existing cleanup; no immediate global retrospective cancellation claim. Hazards from ignored actors can still produce safety reactions. Static gate coverage is not physical mission-policy proof.",
+    "cost": "Native targetKnowledge reads in existing bounded event paths, including at most12 engine-submission records, current/prior request identity and one selected group event. EnemyDetected rejection avoids later cache/geometry work. No new recurring job; actual5/10-percent performance budget unmeasured.",
+    "validation": "Existing danger ownership/recycle contracts extended across all7 modified boundaries and ordering before cache, cadence, vehicle and movement-preservation decisions. All1482/full HEMTT/SQF/config/FSM/docs/package gates pass; independent candidate verify pass. Candidate .qa/candidates/danger-ignore-policy-6de16931 fingerprint19d1baa78e0ad8d3ecaf1501e92d8185721c83aad79ff2a9b070193946c76204.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Classify one engine danger record into a finite immediate-response state.
  * Locality / Authority: Runs for the local AI soldier and reads current orders and ownership only.
  * Repeat/JIP: Pure classification. A new owner receives and classifies later engine danger locally.
@@ -51,6 +52,7 @@ if (_cause in [0,3,8]) exitWith {
     if (!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
         && {!(_source getVariable ["ace_captives_isSurrendering",false])}
         && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
-        && {(side _group) getFriend (side _source) < 0.6}) then {"ENGAGE"} else {"ASSESS"}
+        && {(side _group) getFriend (side _source) < 0.6}
+        && {!((_actor targetKnowledge _source) param [7,false,[true]])}) then {"ENGAGE"} else {"ASSESS"}
 };
 "ASSESS"

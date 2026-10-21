@@ -1083,6 +1083,20 @@ class CortexOperations(unittest.TestCase):
             self.assertEqual('ENGAGE' if known else 'HIDE','HIDE')
             self.assertIsNone('hostile' if known else None)
         self.assertTrue(source_authority(True,True,True,0.1))
+        # Native ignore policy must survive every event entry and deferred handoff.
+        for name in ('dangerSetup','dangerRequest','dangerEngineSubmit','dangerEngineMode',
+                     'dangerEngineRecycle','dangerActionSelect','dangerStep'):
+            boundary=source(name)
+            self.assertIn('targetKnowledge',boundary,name)
+            self.assertIn('param [7,false,[true]]',boundary,name)
+            self.assertNotIn(' ignoreTarget [',boundary,name)
+        ignore_guard='if (_sourceIgnored && {_cause in ["DETECTED","PROXIMITY","CANFIRE"]})'
+        self.assertIn(ignore_guard,request)
+        self.assertLess(request.index(ignore_guard),request.index('_cadence set [_cause,time+0.25]'))
+        self.assertLess(action.index(ignore_guard),action.index('exitWith {"VEHICLE"}'))
+        self.assertIn('_priorObserver targetKnowledge _priorSource',request)
+        self.assertIn('_sourceObserver targetKnowledge _source',assessment)
+        self.assertLess(setup.index('(_observer targetKnowledge _target)'),setup.index('private _contacts='))
         self.assertIn("if (count _latest > 0 && {!(_group getVariable ['CBE_AIPass_Managed',false])}",engine)
         self.assertIn('[_group,false,true] call CBE_fnc_CortexIsEligible',engine)
         self.assertIn('[_group] call CBE_fnc_DangerSetup;',engine)

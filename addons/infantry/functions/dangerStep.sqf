@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Response-deadline extension is independent of the group wake throttle. A stronger event
  * inside that throttle retains the complete surviving response window without extra wakes.
  * Purpose: Assess current danger, publish one finite response context and wake the existing group tactics FSM without creating a second tactical owner.
@@ -171,7 +172,8 @@ private _sourceKnown=!isNull _source && {!(_source isKindOf "Logic")} && {!(_sou
     && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
     && {(side _group) getFriend (side _source) < 0.6}
     && {[_sourceObserver] call CBE_fnc_CortexCombatEffective} && {local _sourceObserver}
-    && {group _sourceObserver == _group} && {_sourceObserver knowsAbout _source > 0};
+    && {group _sourceObserver == _group} && {_sourceObserver knowsAbout _source > 0}
+    && {!((_sourceObserver targetKnowledge _source) param [7,false,[true]])};
 private _action=[_group,_selected] call CBE_fnc_DangerActionSelect;
 if (_action == "RELEASE") exitWith {
     // Refusal is not a new response or contact. Preserve an independent live response and

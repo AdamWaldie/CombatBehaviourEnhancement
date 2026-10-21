@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Coalesce observed danger into one finite group assessment FSM.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
@@ -25,6 +26,10 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])
     || {!(_group getVariable ["CBE_AIPass_Managed",false])}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
+// Detection alone cannot override a mission's ignoreTarget instruction. Real hazards
+// remain approximate alerts, with the ignored hostile identity omitted below.
+private _sourceIgnored=!isNull _source && {(_actor targetKnowledge _source) param [7,false,[true]]};
+if (_sourceIgnored && {_cause in ["DETECTED","PROXIMITY","CANFIRE"]}) exitWith {false};
 // Eligibility was checked at observer installation and is rechecked before dispatch. Keep bullet
 // callbacks cheap: cadence rejects duplicates before the ownership scan; accepted events are coalesced by cause and witness.
 // One witness must not throttle or replace another witness in a different occupied domain.
@@ -43,7 +48,7 @@ private _hostileSource=objNull;
 private _sourceObserver=_actor;
 if (!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
     && {!(_source getVariable ["ace_captives_isSurrendering",false]) && {!(_source getVariable ["ace_captives_isHandcuffed",false])}} && {(side _group) getFriend (side _source) < 0.6}
-    && {_actor knowsAbout _source > 0}) then {_hostileSource=_source};
+    && {_actor knowsAbout _source > 0} && {!_sourceIgnored}) then {_hostileSource=_source};
 if (isNull _hostileSource && {_index >= 0}) then {
     private _prior=_events select _index;
     private _priorSource=_prior param [4,objNull,[objNull]];
@@ -52,7 +57,8 @@ if (isNull _hostileSource && {_index >= 0}) then {
         && {!(_priorSource getVariable ["ace_captives_isSurrendering",false]) && {!(_priorSource getVariable ["ace_captives_isHandcuffed",false])}}
         && {[_priorObserver] call CBE_fnc_CortexCombatEffective} && {local _priorObserver} && {group _priorObserver == _group}
         && {(side _group) getFriend (side _priorSource) < 0.6}
-        && {_priorObserver knowsAbout _priorSource > 0}) then {
+        && {_priorObserver knowsAbout _priorSource > 0}
+        && {!((_priorObserver targetKnowledge _priorSource) param [7,false,[true]])}) then {
         _hostileSource=_priorSource;
         _sourceObserver=_priorObserver;
     };

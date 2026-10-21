@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Maintain the bounded group contact observer that complements the engine danger FSM.
  * Locality / Authority: Group-owner local. The engine FSM supplies immediate causes; this observer
  * retains only engine-confirmed target identity without revealing targets or issuing movement.
@@ -103,6 +104,7 @@ private _handler=_group addEventHandler ["EnemyDetected",{
     // leader for getHideFrom returns no usable geometry and used to discard the immediate wake.
     private _observer=if (!isNull _leader && {alive _leader} && {local _leader}
         && {_leader knowsAbout _target >= 1}) then {_leader} else {_spotters select _knowerIndex};
+    if ((_observer targetKnowledge _target) param [7,false,[true]]) exitWith {};
     private _contacts=_observingGroup getVariable ["CBE_Danger_ObservedContacts",[]];
     _contacts=(_contacts select [((count _contacts)-8) max 0,8]) select {
         _x isEqualType [] && {count _x in [2,3]} && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType 0}

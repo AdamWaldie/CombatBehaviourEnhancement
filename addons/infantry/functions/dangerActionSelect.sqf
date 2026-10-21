@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Classifies a coalesced danger observation for the native AI and CBE diagnostics without
  * creating a second target, route, firing or movement owner.
  * Locality/authority: Runs on the current group owner after CBE_fnc_DangerSelect has already bounded
@@ -40,13 +41,18 @@ if (!([_actor] call CBE_fnc_CortexCombatEffective) || {!local _actor} || {isPlay
 // authoritative. Zeus, players and declared external owners have already yielded above.
 if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
     || {fleeing _actor} || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"FORCED"};
-if (!isNull objectParent _actor) exitWith {"VEHICLE"};
 private _cause=_event select 0;
+private _source=_event param [4,objNull,[objNull]];
+private _sourceObserver=_event param [6,_actor,[objNull]];
+private _sourceIgnored=!isNull _source && {!isNull _sourceObserver} && {local _sourceObserver}
+    && {group _sourceObserver == _group}
+    && {(_sourceObserver targetKnowledge _source) param [7,false,[true]]};
+if (_sourceIgnored && {_cause in ["DETECTED","PROXIMITY","CANFIRE"]}) exitWith {"RELEASE"};
+if (!isNull objectParent _actor) exitWith {"VEHICLE"};
 // Detection, proximity, a firing opportunity and audible fire require the native-known hostile
 // retained in the event before they can become an engagement. Resolve this before MAINTAIN: an
 // approximate observation during an existing operation may preserve that route, but it cannot gain
 // CONTACT authority merely because CBE already owns movement.
-private _source=_event param [4,objNull,[objNull]];
 // A retained identity is not permanent hostility. Zeus/mission side changes and surrender
 // invalidate engagement authority even while native knowledge still remembers that object.
 if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"] && {!isNull _source}
@@ -58,11 +64,10 @@ if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]
     && {isNull (_event param [4,objNull,[objNull]])}) exitWith {"HIDE"};
 // Identity belongs to the original native knowledge witness, not whichever actor
 // currently represents the group. Lost knowledge leaves an approximate alert only.
-private _sourceObserver=_event param [6,_actor,[objNull]];
 if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]
     && {!([_sourceObserver] call CBE_fnc_CortexCombatEffective)
         || {!local _sourceObserver} || {group _sourceObserver != _group}
-        || {_sourceObserver knowsAbout _source <= 0}}) exitWith {"HIDE"};
+        || {_sourceObserver knowsAbout _source <= 0} || {_sourceIgnored}}) exitWith {"HIDE"};
 // A current operation has already committed a physical route and owns its restoration. A danger
 // event raises its priority but must not send the group back to an earlier reaction position.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"MAINTAIN"};

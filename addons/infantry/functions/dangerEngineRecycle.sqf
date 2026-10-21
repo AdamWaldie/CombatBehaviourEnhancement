@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Decide whether one completed engine danger response needs a bounded follow-up sample.
  * It preserves close hostile contact, its original danger cause and commander vehicle awareness
  * from the observer's believed geometry, never the unseen source's actual range.
@@ -71,6 +72,7 @@ switch (_mode) do {
     };
 };
 if (!_follow) exitWith {[]};
+if ((_actor targetKnowledge _source) param [7,false,[true]]) exitWith {[]};
 
 private _position=_actor getHideFrom _source;
 // Recycling may retain only the engine's believed geometry. Falling back to the source object's
