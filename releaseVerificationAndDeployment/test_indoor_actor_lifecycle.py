@@ -64,6 +64,18 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             self.assertIn(proof,context)
 
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text(encoding='utf-8')
+        dispatch=(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text(encoding='utf-8')
+        selector=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text(encoding='utf-8')
+        for proof in ('["defensive",true]','(_actors select [0,3])','_admitted >= 2'):
+            self.assertIn(proof,dispatch)
+        for proof in ('_node distance2D _origin <= 8','(_origin distance2D _belief)-0.8',
+                      'if (_defensive) then {(getPosASL _actor) select 2}', '+_searchMemory,_defensive'):
+            self.assertIn(proof,selector)
+        for proof in ('"REPOSITIONED"','DEFENSIVE_CONTEXT_LOST','if (!_contained',
+                      '["defensive",_defensive]','currentCommand _actor == "MOVE"',
+                      'if (_ownsLeg && {!_retainDefensive}) then {'):
+            self.assertIn(proof,operation)
+
         memory=operation.split('private _searchMemoryValid=',1)[1].split('private _releaseAvailable=',1)[0]
         for proof in ('count _searchMemory == 4','"phase",""]) == "SEARCH"',
                       'getOrDefault ["searchMemory",[]]) isEqualTo _searchMemory',

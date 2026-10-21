@@ -22,6 +22,8 @@
  * to retire an unchanged native leg without replaying movement or renewing the original deadline.
  * Arguments: 0 mode <STRING>, START; 1 actor <OBJECT>, objNull; 2 context <HASHMAP>, empty.
  * START context: building OBJECT, belief [ATL ARRAY, server timestamp], optional contact OBJECT.
+ * Optional defensive BOOL false admits one same-building/same-floor reposition from an idle
+ * armed defender toward known threat belief. It grants no search memory or clearance credit.
  * Optional deadline NUMBER only shortens the original maximum; position-only clues cannot renew it.
  * Optional searchMemory [ATL position, original server observation, fixed expiry, owner epoch] permits
  * older position-only admission only while identical to current SEARCH state and its deadline.
@@ -50,6 +52,8 @@ params [["_mode","START",[""]],["_actor",objNull,[objNull]],
 _mode=toUpperANSI _mode;
 private _observationOnly=_brain getOrDefault ["observationOnly",false];
 private _searchMemory=_brain getOrDefault ["searchMemory",[]];
+private _defensive=_brain getOrDefault ["defensive",false];
+if !(_defensive isEqualType true) exitWith {false};
 if !(_searchMemory isEqualType []) exitWith {false};
 if !(_observationOnly isEqualType true) exitWith {false};
 private _migration=_mode == "TRANSFER";
@@ -201,7 +205,15 @@ if (_mode == "FINISH") exitWith {
         && {currentCommand _actor == "MOVE"}
         && {_destination call _vectorValid} && {_target call _vectorValid}
         && {_destination vectorDistance _target <= 0.25};
-    if (_ownsLeg) then {
+    // A physically completed defensive reposition should not immediately recall the actor
+    // out of its useful room. Relinquish the completed native leg without issuing another.
+    private _retainDefensive=!_migration && {_defensive}
+        && {(_brain getOrDefault ["reason",""]) == "REPOSITIONED"}
+        && {(_brain getOrDefault ["phase",""]) == "OBSERVE"}
+        && {serverTime >= (_brain getOrDefault ["observeUntil",1e12])}
+        && {_target call _vectorValid}
+        && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5};
+    if (_ownsLeg && {!_retainDefensive}) then {
         private _index=currentWaypoint _group;
         private _waypoint=[_group,_index];
         if (_actor == leader _group && {_index > 0} && {_index < count waypoints _group}
@@ -270,6 +282,10 @@ if (_mode == "FINISH") exitWith {
     true
 };
 if (_mode == "START") exitWith {
+    if (_defensive && {_observationOnly || {_searchMemory isNotEqualTo []}
+        || {isNull (_brain getOrDefault ["contact",objNull])}
+        || {behaviour _actor in ["STEALTH","CARELESS"]}
+        || {currentCommand _actor == "MOVE"} || {abs speed _actor >= 0.5}}) exitWith {false};
     private _building=_brain getOrDefault ["building",objNull];
     private _belief=_brain getOrDefault ["belief",[]];
     private _contact=_brain getOrDefault ["contact",objNull];
@@ -292,6 +308,19 @@ if (_mode == "START") exitWith {
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
         || {!finite (_belief select 1)} || {serverTime-(_belief select 1) < 0}
         || {serverTime-(_belief select 1) > 5 && {!(call _searchMemoryValid)}}) exitWith {false};
+    if (_defensive) then {
+        private _bounds=boundingBoxReal _building;
+        private _model=_building worldToModel getPosATL _actor;
+        private _low=_bounds select 0; private _high=_bounds select 1;
+        private _contained=(_model select 0) > (_low select 0) && {(_model select 0) < (_high select 0)}
+            && {(_model select 1) > (_low select 1)} && {(_model select 1) < (_high select 1)}
+            && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
+        private _roof=lineIntersectsSurfaces [eyePos _actor,(eyePos _actor) vectorAdd [0,0,20],_actor,objNull,true,1,"GEOM","NONE"];
+        if (!_contained || {_roof isEqualTo []} || {private _hit=_roof select 0; (_hit select 2) != _building && {(_hit select 3) != _building}}) then {
+            _building=objNull;
+        };
+    };
+    if (isNull _building) exitWith {false};
     if !(call _available) exitWith {false};
     // Fresh scripted/Zeus-created groups may precede periodic discovery. Establish the
     // owner epoch before publishing an actor journal, never adopt over that new journal later.
@@ -346,7 +375,7 @@ if (_mode == "START") exitWith {
         ["ownerEpoch",_epoch],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
-        ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],
+        ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],["defensive",_defensive],
         ["searchMemory",_searchMemory call _copyArray],["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
         ["nextAt",time],["progressAt",serverTime],["progressPosition",getPosASL _actor]];
@@ -453,6 +482,8 @@ if ((_brain getOrDefault ["contactRequired",false] && {isNull _contact})
 if (!isNull _contact && {(_actor targetKnowledge _contact) param [7,false,[true]]}) exitWith {
     ["TARGET_IGNORED"] call _finish
 };
+if (_defensive && {behaviour _actor in ["STEALTH","CARELESS"]
+    || {_actor knowsAbout _contact < 1}}) exitWith {["DEFENSIVE_CONTEXT_LOST"] call _finish};
 private _phase=_brain get "phase";
 if (_phase == "SELECT") exitWith {
     private _retryOwned=_brain getOrDefault ["retryOwned",false];
@@ -527,7 +558,7 @@ if (_phase == "SELECT") exitWith {
     private _nodeSearch=_brain getOrDefault ["nodeSearch",createHashMap];
     _brain set ["nodeSearch",_nodeSearch];
     private _node=[_actor,_building,(_brain get "belief") select 0,_reserved,
-        _brain getOrDefault ["observationClue",[]],_nodeSearch,_brain getOrDefault ["searchMemory",[]]] call CBE_fnc_IndoorActorNodeSelect;
+        _brain getOrDefault ["observationClue",[]],_nodeSearch,_brain getOrDefault ["searchMemory",[]],_defensive] call CBE_fnc_IndoorActorNodeSelect;
     if (_node isEqualTo []) exitWith {
         // A roof miss is not an inaccessible building. Continue the bounded search on
         // the existing FSM callback, under the unchanged original operation deadline.
@@ -650,6 +681,6 @@ if (_phase == "OBSERVE" && {serverTime >= (_brain get "observeUntil")}) exitWith
     };
     if ((_brain getOrDefault ["reason",""]) == "VISIT_UNCONFIRMED") exitWith {["VISIT_UNCONFIRMED"] call _finish};
     if ((_brain get "phase") == "SELECT") exitWith {-1};
-    ["VISITED"] call _finish
+    [["VISITED","REPOSITIONED"] select _defensive] call _finish
 };
 -1

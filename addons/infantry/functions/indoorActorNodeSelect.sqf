@@ -22,6 +22,8 @@
  * live contact/body-clue selection retains its belief-floor band. Neither grants access or clearance.
  * Visit preferences share the sixteen-destination exclusion budget after live reservations;
  * they never affect known-contact work or add roof rays.
+ * 7 defensive BOOL false restricts candidates to an eight-metre same-floor improvement
+ * toward believed threat geometry, retaining all roof/occupancy/failure checks.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
  * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch.
@@ -29,7 +31,7 @@
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
     ["_belief",[],[[]]],["_reserved",[],[[]]],["_clue",[],[[]]],
-    ["_search",createHashMap,[createHashMap]],["_searchMemory",[],[[]]]];
+    ["_search",createHashMap,[createHashMap]],["_searchMemory",[],[[]]],["_defensive",false,[true]]];
 _search set ["pending",false];
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
@@ -44,7 +46,7 @@ private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
 private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
-private _binding=[_actor,_building,_transform,+_belief,+_searchMemory];
+private _binding=[_actor,_building,_transform,+_belief,+_searchMemory,_defensive];
 private _previousBinding=_search getOrDefault ["binding",[]];
 if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};
 private _probed=_search getOrDefault ["probed",[]];
@@ -105,7 +107,7 @@ if (count _positions > 512) exitWith {[]};
 private _bounds=boundingBoxReal _building;
 private _low=_bounds select 0;
 private _high=_bounds select 1;
-private _beliefHeight=(AGLToASL _belief) select 2;
+private _beliefHeight=if (_defensive) then {(getPosASL _actor) select 2} else {(AGLToASL _belief) select 2};
 private _origin=getPosATL _actor;
 // Reservation metadata does not include a teammate who is simply standing at a node.
 // Sample only the existing bounded squad roster; never inspect unseen hostile positions.
@@ -126,7 +128,10 @@ private _ranked=[];
             && {(_model select 2) >= (_low select 2)-0.5} && {(_model select 2) <= (_high select 2)};
         private _nodeASL=AGLToASL _node;
         private _height=_nodeASL select 2;
-        if (_inside && {_searchAllFloors || {abs (_height-_beliefHeight) <= 1.5}}
+        if (_inside && {!_defensive || {_node distance2D _origin <= 8
+            && {_node distance2D _origin >= 1.5}
+            && {_node distance2D _belief < (_origin distance2D _belief)-0.8}}}
+            && {_searchAllFloors || {abs (_height-_beliefHeight) <= 1.5}}
             && {_probed findIf {_x vectorDistance _nodeASL < 0.1} < 0}
             && {_reservedASL findIf {_x vectorDistance _nodeASL < 1.5} < 0}
             && {_bodies findIf {_x distance2D _nodeASL < 1.5 && {abs ((_x select 2)-_height) <= 1}} < 0}

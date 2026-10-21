@@ -9,6 +9,8 @@
  * Repeat/JIP: At most one building selection per eight seconds per owner-local group state.
  * Sixteen rotating actors and eight native beliefs are checked before the existing three-roof-query selector.
  * Shared native-task preflight adds no visibility/geometry query and grants no command authority.
+ * When no enemy-owned building qualifies, up to three current indoor defenders may propose
+ * one short same-building reposition through the same actor FSM and two-actor capacity.
  * Actor journals, hard deadlines and cooldowns prevent replay; locality does not resume old jobs.
  * Shared reservation admission permits valid expired markers but refuses live or malformed records.
  * Arguments: 0 group <GROUP>, grpNull; 1 group state <HASHMAP>, empty;
@@ -55,7 +57,35 @@ private _actionable=(_enemies select [0,8]) select {
         && {([_x,_target,_position,objNull,true] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo []}} >= 0
 };
 private _selection=[_group,_actionable,_range] call CBE_fnc_BuildingContactSelect;
-if (_selection isEqualTo []) exitWith {0};
+if (_selection isEqualTo []) exitWith {
+    // A defender's useful building is its own, not necessarily the enemy's house.
+    // Reuse the finite actor owner; at most three current-roof probes per dispatch.
+    private _admitted=0;
+    {
+        if (_admitted >= 2) exitWith {};
+        private _actor=_x;
+        if (!(behaviour _actor in ["STEALTH","CARELESS"]) && {abs speed _actor < 0.5}
+            && {currentCommand _actor != "MOVE"}) then {
+            private _known=_actionable findIf {_actor knowsAbout (_x select 0) >= 1
+                && {([_actor,_x select 0,_x select 1,objNull,true] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo []}};
+            if (_known >= 0) then {
+                private _roof=lineIntersectsSurfaces [eyePos _actor,(eyePos _actor) vectorAdd [0,0,20],_actor,objNull,true,1,"GEOM","NONE"];
+                if (_roof isNotEqualTo []) then {
+                    private _hit=_roof select 0;
+                    private _house=_hit select 3;
+                    if (isNull _house) then {_house=_hit select 2};
+                    if (!isNull _house && {_house isKindOf "House" || {_house isKindOf "Building"}}) then {
+                        private _record=_actionable select _known;
+                        if (["START",_actor,createHashMapFromArray [["building",_house],
+                            ["contact",_record select 0],["belief",[+(_record select 1),serverTime-(_record select 2)]],
+                            ["defensive",true]]] call CBE_fnc_IndoorActorOperation) then {_admitted=_admitted+1};
+                    };
+                };
+            };
+        };
+    } forEach (_actors select [0,3]);
+    _admitted
+};
 _selection params ["_building","_contact","_belief"];
 private _ranked=[];
 {
