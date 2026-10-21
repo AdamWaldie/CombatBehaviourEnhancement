@@ -1,3 +1,9 @@
+# Latest checkpoint - finite danger startup failure
+
+
+## 2026-10-21 - Finite danger-assessment startup failure
+Baseline1fdef171. DangerRequest stored/unconditionally checked native FSM handles. Reuse now requires exact epoch/generation and finite nonnegative integral Number before completedFSM. New execFSM result validates before liveness/publication; invalid startup records local [epoch,generation,serverTime] CBE_Danger_FSMFailure and logs once, returns false, and subsequent same-epoch danger events cannot retry. Existing DangerSetup cleanup clears failure; new owner epoch independent. Valid already-completed FSM drains without false startupfailure or stale running publication. No new worker/timer/scan or native movement. Existing regression extended; initial609focused failed stale == spelling after strict isEqualTo generation comparison, corrected without weakening generation gate. Full .qa/danger-startup-build.log all1484+393SQF/HEMTT/FSM/docs/package pass; independent .qa/danger-startup-independent.log. Candidate .qa/candidates/danger-startup-1fdef171 fingerprintb37713ed417a4af53ce68ae9b835bddd4e1364781c72d044635e98bf84830782. Review/sourcehashes releaseVerificationAndDeployment/referenceReviews/danger-startup-lifecycle-20261021.json. Native failure injection/startup recovery/physicalbehaviour/performance unverified; failure is terminal until legitimate reset/newowner, not successful behaviour. AuditsPAUSED/noArma/push/merge/publication. Fullgoalactive/incomplete; unrelateddirt/protectedWorkshop/signing unchanged. Latest account check ordinaryUsageAllowed true,102.1593235credits,weekly80%used; threshold20notreached, no reset consumed. Continue LAMBS FSM/operation foundation and source-functional integration; no percentage/acceptance credit from static gates.
+
 # Latest checkpoint - danger FSM passive forced wait
 
 

@@ -5,6 +5,8 @@
  * Purpose: Coalesce observed danger into one finite group assessment FSM.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
  * Repeat/JIP: generation-checked, machine-local state; new owners rebuild from new observations.
+ * Invalid FSM startup is terminal for this owner epoch until observer cleanup/reset. No event-driven
+ * retry loop is created; completed valid handles may drain normally without being marked failed.
  * Approximate updates retain, but never renew, the original two-second hostile identity expiry.
  * Arguments: 0: observer <OBJECT>, objNull; 1: cause <STRING>, GUNFIRE;
  * 2: approximate ATL position <ARRAY>, []; 3: engine-confirmed hostile source <OBJECT>, objNull.
@@ -27,6 +29,10 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])
     || {!(_group getVariable ["CBE_AIPass_Managed",false])}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
+private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _startupFailure=_group getVariable ["CBE_Danger_FSMFailure",[]];
+if (_startupFailure isEqualType [] && {count _startupFailure == 3}
+    && {(_startupFailure select 0) isEqualTo _epoch}) exitWith {false};
 // Detection alone cannot override a mission's ignoreTarget instruction. Real hazards
 // remain approximate alerts, with the ignored hostile identity omitted below.
 private _sourceIgnored=!isNull _source && {(_actor targetKnowledge _source) param [7,false,[true]]};
@@ -87,12 +93,22 @@ if (count _events > 16) then {
 };
 _group setVariable ["CBE_Danger_Events",_events];
 private _running=_group getVariable ["CBE_Danger_FSM",[]];
-if (count _running == 3 && {(_running select 0) == (_group getVariable ["CBE_AIPass_Epoch",0])}
-    && {(_running select 1) == (_group getVariable ["CBE_Danger_Generation",0])}
+if (_running isEqualType [] && {count _running == 3} && {(_running select 0) isEqualTo _epoch}
+    && {(_running select 1) isEqualTo (_group getVariable ["CBE_Danger_Generation",0])}
+    && {(_running select 2) isEqualType 0} && {finite (_running select 2)}
+    && {(_running select 2) >= 0} && {(_running select 2) == floor (_running select 2)}
     && {!completedFSM (_running select 2)}) exitWith {true};
 private _generation=(_group getVariable ["CBE_Danger_Generation",0])+1;
 _group setVariable ["CBE_Danger_Generation",_generation];
-private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _fsm=[_group,_epoch,_generation] execFSM "\z\cbe\addons\main\fsm\dangerAssessment.fsm";
-_group setVariable ["CBE_Danger_FSM",[_epoch,_generation,_fsm]];
+if (!(_fsm isEqualType 0) || {!finite _fsm} || {_fsm < 0} || {_fsm != floor _fsm}) exitWith {
+    _group setVariable ["CBE_Danger_FSM",nil];
+    _group setVariable ["CBE_Danger_FSMFailure",[_epoch,_generation,serverTime]];
+    diag_log format ["[CBE] Danger assessment startup failed for %1, epoch %2, generation %3; no automatic retry.",
+        _group,_epoch,_generation];
+    false
+};
+// A valid FSM may already have drained a forced/expired observation. Do not resurrect
+// its handle or misclassify successful finite completion as a startup failure.
+if (!completedFSM _fsm) then {_group setVariable ["CBE_Danger_FSM",[_epoch,_generation,_fsm]];};
 true

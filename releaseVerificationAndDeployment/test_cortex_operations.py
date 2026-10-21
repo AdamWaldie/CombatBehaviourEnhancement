@@ -804,6 +804,18 @@ class CortexOperations(unittest.TestCase):
         editor_links=[tuple(map(int,values)) for values in re.findall(r'link\d+\[\]\s*=\s*\{(\d+),(\d+)\}',engine_fsm.split('class FSM',1)[0])]
         self.assertTrue(editor_links)
         self.assertTrue(all(source_id in editor_items and target_id in editor_items for source_id,target_id in editor_links))
+        launcher=source('dangerRequest')
+        current=launcher.split('private _running=',1)[1].split('private _generation=',1)[0]
+        for proof in ('_running isEqualType []','isEqualType 0','finite (_running select 2)',
+                      '(_running select 2) >= 0','floor (_running select 2)'):
+            self.assertLess(current.index(proof),current.index('completedFSM'))
+        self.assertLess(launcher.index('CBE_Danger_FSMFailure'),launcher.index('execFSM'))
+        start=launcher.split('private _fsm=',1)[1]
+        for proof in ('_fsm isEqualType 0','finite _fsm','_fsm < 0','_fsm != floor _fsm'):
+            self.assertLess(start.index(proof),start.index('completedFSM'))
+        self.assertIn('if (!completedFSM _fsm) then',start)
+        self.assertIn('["CBE_Danger_FSMFailure",[_epoch,_generation,serverTime]]',start)
+        self.assertIn('["CBE_Danger_FSMFailure",nil]',source('dangerSetup'))
         engine_source=(ROOT/'tools/fsm/danger.bifsm').read_text()
         self.assertIn('InitCode=',engine_source)
         self.assertIn('Condition=',engine_source)
@@ -2196,7 +2208,7 @@ class CortexOperations(unittest.TestCase):
         request=source('dangerRequest')
         setup=source('dangerSetup')
         fsm=(ROOT/'addons/main/fsm/dangerAssessment.fsm').read_text(encoding='utf-8')
-        self.assertIn('(_running select 1) == (_group getVariable ["CBE_Danger_Generation",0])',request)
+        self.assertIn('(_running select 1) isEqualTo (_group getVariable ["CBE_Danger_Generation",0])',request)
         self.assertIn('private _dangerCoverLease=_group getVariable ["CBE_Danger_CoverLease",[]];',setup)
         self.assertIn('call CBE_fnc_DangerCoverStep',setup)
         self.assertIn('_group setVariable ["CBE_Danger_Generation",(_group getVariable ["CBE_Danger_Generation",0])+1];',setup)

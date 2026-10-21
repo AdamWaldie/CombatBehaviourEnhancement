@@ -1,0 +1,28 @@
+{
+  "baseline": "1fdef171",
+  "scope": "Finite startup failure and safe liveness checks for owner-local group danger assessment",
+  "finding": "DangerRequest passed stored handles to completedFSM and published new execFSM results without type/range validation. Invalid startup could be retried from subsequent coalesced danger events.",
+  "implementation": [
+    "Running handle reuse requires an array with exact owner epoch/generation and finite nonnegative integral numeric handle before completedFSM.",
+    "New execFSM result is validated before liveness check/publication. Invalid startup clears the running marker, records one local epoch/generation/server-time failure and logs it once.",
+    "Subsequent danger requests in that owner epoch return without another startup until existing observer cleanup/reset clears failure. A new owner epoch is independent. No retry timer or worker.",
+    "A valid already-completed FSM is not treated as startup failure or republished as running, preserving legitimate immediate finite drain.",
+    "Existing source regression checks handle guards precede completedFSM, failure gate precedes execFSM, completed-handle conditional publication and setup reset. Generation assertion retains strict identity comparison."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerRequest.sqf": "5ab3328fb4e5c0aedc779403869940ac7ff5903ee79c49759d8b8c92906f425b",
+    "addons/infantry/functions/dangerSetup.sqf": "10b0d403ddfead17c4cd81ba7707aa4482ba9c480839180e7e88e55c045014f4"
+  },
+  "validation": {
+    "focusedInitial": ".qa/danger-startup-focused.log failed one stale generation comparison spelling assertion; updated to strict isEqualTo",
+    "fullOffline": ".qa/danger-startup-build.log all1484,393SQF,HEMTT,FSM,docs,package passed",
+    "independent": ".qa/danger-startup-independent.log",
+    "candidate": ".qa/candidates/danger-startup-1fdef171",
+    "fingerprint": "b37713ed417a4af53ce68ae9b835bddd4e1364781c72d044635e98bf84830782"
+  },
+  "limits": [
+    "No native failure injection, physical behaviour or performance evidence. Audits remain paused; no Arma launch.",
+    "The terminal failure is not automatic recovery or proof of a working danger group brain. A legitimate cleanup/reset or new owner context is needed before a fresh attempt.",
+    "No new LAMBS source review or parity percentage claim. This is a CBE execution-foundation correction. Protected sources unchanged."
+  ]
+}

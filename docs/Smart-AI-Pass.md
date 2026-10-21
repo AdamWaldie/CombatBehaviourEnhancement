@@ -2407,3 +2407,6 @@ Post-contact indoor search can replace a casualty investigator with an idle, eli
 
 
 The engine danger FSM now sends released or refused intake directly to exact cleanup before any action state. An already classified, current FORCED response may keep its original short wait while native boarding, supply or fleeing work continues; it issues no movement or posture command for that task. A task arriving during another response still interrupts it immediately. Owner, operation generation, feature, medical queue, CARELESS and Zeus checks remain active; the exception neither renews a deadline nor authorises a follow-up tactical action.
+
+
+The group danger-assessment launcher validates FSM handles before testing or publishing them. An invalid startup records one local failure for the current owner epoch and does not retry on successive danger events. Observer cleanup/reset clears that terminal marker; a new owner epoch starts independently. A valid FSM that already completed is not reported as a startup failure or republished as running. This prevents an event-driven failure loop without adding a retry worker; native startup-failure handling still requires in-engine validation.

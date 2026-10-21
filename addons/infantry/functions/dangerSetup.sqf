@@ -62,6 +62,7 @@ if (!_enabled) exitWith {
     // immediately so a fresh owner-local observation can start the replacement generation rather
     // than coalescing into a brain that has already lost authority.
     _group setVariable ["CBE_Danger_FSM",nil];
+    _group setVariable ["CBE_Danger_FSMFailure",nil];
     _group setVariable ["CBE_Danger_Events",nil];
     _group setVariable ["CBE_Danger_EventCadence",nil];
     _group setVariable ["CBE_Danger_EngineStats",nil];
