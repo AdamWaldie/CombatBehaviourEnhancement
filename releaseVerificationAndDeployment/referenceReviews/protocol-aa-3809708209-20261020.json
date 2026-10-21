@@ -78,7 +78,7 @@
     "Reveal target level4 and forced radar/target/fire writes over native knowledge; friendly missiles may be selected.",
     "Heavy hide search and nested waits delay other groups; no per-asset coalesced generation or original bounded episode."
   ],
-  "disposition": "READABLE_SOURCE_REVIEW_COMPLETE; ground AA anti-munition and relocate functionality remains a real product gap. Aircraft missile evasion is not parity.",
+  "disposition": "Readable-source review complete for recorded scope. Scoped native-AA relocation and same-group warning allocation plus experimental default-off point-defence code are now integrated; see current sections and shared AEGIS mechanism review. Physical firing/interception, balance/performance and broader unsupported ownership/weapon layers remain unproven or incomplete. Aircraft evasion is not ground-AA parity.",
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
@@ -160,5 +160,6 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
-  }
+  },
+  "historicalDisposition20261020": "READABLE_SOURCE_REVIEW_COMPLETE; ground AA anti-munition and relocate functionality remains a real product gap. Aircraft missile evasion is not parity."
 }

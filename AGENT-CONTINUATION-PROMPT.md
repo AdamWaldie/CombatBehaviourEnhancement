@@ -1,3 +1,8 @@
+# Latest checkpoint - Protocol implementation register reconciled
+
+## 2026-10-21 - Protocol programme status reconciled
+Baseline792dde29, no product changes. Programme AA entry still described ground point-defence/allocation as absent despite tracked later implementations. Reconciled to scoped native-AA relocation plus default-off main-turret native-warning allocation/finite aim-shot/local-direct-pass fuse/calibration code. Explicit remaining cross-owner/payload/broader weapon layers/mixed relocation/physical balance/performance gaps. Armour entry links original horn classification and jink exact-seat lifecycle work. Protocol-AA old disposition retained as historicalDisposition20261020; current disposition points to implemented scope without parity/acceptance credit. Checked9 source-review+binary-review links,4 exact AA review section keys,7 current source hashes and actual default-off feature gate. No percentage edits, new source review, test-count or runtime claims. Existing product candidate remains .qa/candidates/vehicle-jink-crew-13b4ff07 fingerprint55bbec43b54bdb706c58804298c6379adf1d08799ed94adaadb5549bf5a926ae. No unchanged full build repeated for engineering metadata. Audits PAUSED/no launches; full goal active/incomplete. Local only/no push/merge/publish. Unrelated dirt/protected references/signing preserved.
+
 # Latest checkpoint - exact jink control-seat authority
 
 ## 2026-10-21 - Jink driver/commander authority across lifecycle

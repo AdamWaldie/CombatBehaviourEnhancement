@@ -85,14 +85,34 @@
       "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209",
       "metadataSHA256": "6f8b7b24a8515ad74d09a6dd009efd92d210de542cb1f679decb74b51b952d0d",
-      "status": "READABLE_SCRIPTS_REVIEWED_GROUND_AA_BEHAVIOUR_GAPS",
+      "status": "SCOPED_NATIVE_AA_AND_EXPERIMENTAL_POINT_DEFENCE_CODE_INTEGRATED_PHYSICAL_PENDING",
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-aa-3809708209-20261020.json",
-      "remaining": "Scoped idle mobile native-AA relocation integrated through actual-shot/native-contact receipts and existing group FSM; mixed/custom-AA/authored-route cases remain. Ground anti-munition/layered allocation, weapon/shot/hit proof, binary startup/dependencies/licence and physical performance validation remain.",
+      "remaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentCodeEvidence20261021": {
+        "baseline": "792dde29",
+        "reviewSections": [
+          "protocol-aa-3809708209-20261020.json#sameGroupWarningAllocation20261021",
+          "aegism-interception-mechanism-20261020.json#finiteAimShotImplementation20261021",
+          "aegism-interception-mechanism-20261020.json#localDirectPassFuse20261021",
+          "aegism-interception-mechanism-20261020.json#measuredAimCalibration20261021"
+        ],
+        "default": "CBE_AIPass_AAIntercept_Enable=false",
+        "hashes": {
+          "addons/vehicles/functions/cortexAAObserve.sqf": "bb912774b6275ddc7b7bee489ee486af7fd2d9631a9a47bc06ca341a84335bb4",
+          "addons/vehicles/functions/cortexAAAllocate.sqf": "5f4b8081eb0133a42899ec8846fa1d72c3dfc009f695f7623a06e203646a4ee9",
+          "addons/vehicles/functions/cortexAAWarningLink.sqf": "4790a21b94adc4efa7ac8ec7e7964fb441f8a2e1fe6148e0280f0f4842047efb",
+          "addons/vehicles/functions/cortexAAIntercept.sqf": "1967ee8a9d716e786fec5ca13e1bbc02183f6cd53b7ed4ca9c2711da6a736470",
+          "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "2dc3782312a931215085199285bac1f8c49c6e2d2e48dfd4bef0737c8aea9896",
+          "addons/vehicles/functions/cortexAASpot.sqf": "acb39bfce7f1e7291c5ac0201a9a6123fe95a923facd593f6218e0ff5b69c309",
+          "addons/vehicles/functions/cortexAARelocate.sqf": "6a732377b0a236cf4acb633ad10134ec1a1ad6df97ef4940a62e5f2c03553c78"
+        },
+        "limits": "Code presence and bounded intended execution only. START/fire/fuse requests are not physical arrival, firing, destruction, balance or performance proof. No source parity or percentage credit."
       }
     },
     {
@@ -134,10 +154,20 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Crewed countermeasure station admission integrated into existing shared helper. Continue suitable ATGM/cover/exposure/relocation comparison and selected armour integration; actual fire, movement, owner handback, performance and binary/dependency/licence evidence remain incomplete.",
+      "remaining": "Selected countermeasure-station intent and original CBE vehicle foundations now include language-independent horn exclusion and exact jink control-seat authority/cancellation. Continue suitable ATGM/cover/exposure/relocation integration; actual shots, tactical movement, owner handback and performance remain unverified. Binary registration/declarations reviewed; runtime/provider dependencies and licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentCodeEvidence20261021": {
+        "baseline": "792dde29",
+        "review": "workshop-intake-3822504009.json",
+        "sections": [
+          "vehicleHornClassification20261021",
+          "jinkCrewOwnership20261021"
+        ],
+        "physicalAcceptance": false,
+        "performanceMeasured": false
       }
     }
   ],
@@ -146,5 +176,14 @@
   "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product.",
   "readableReviewCheckpoint": "All nine locally inventoried Protocol items now have readable-source review pointers. This is not complete Workshop collection discovery, binary config/startup/dependency/licence review, implementation or physical parity.",
   "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
-  "binaryReviewLimits": "Binary config startup/declarations now inspected for all nine recorded local sources. Older binary-startup-pending notes are superseded by protocol-binary-configuration-20261021.json only for that scope. Runtime guards/provider dependencies, licensing, missing behaviour and physical/performance proof remain separate."
+  "binaryReviewLimits": "Binary config startup/declarations now inspected for all nine recorded local sources. Older binary-startup-pending notes are superseded by protocol-binary-configuration-20261021.json only for that scope. Runtime guards/provider dependencies, licensing, missing behaviour and physical/performance proof remain separate.",
+  "reconciliation20261021": {
+    "baseline": "792dde29",
+    "scope": "Reconcile current AA and armour implementation records with current source; not a new source review or whole-collection discovery. Existing binaryConfigurationReview is authoritative only for registration/declarations; old remaining strings mentioning pending binary inspection are historical and do not supersede it.",
+    "changed": "AA no longer described as wholly absent; experimental default-off scope, unsupported cases and absent physical proof explicit. Armour links current horn/control-seat foundation changes. No statuses or percentages inferred from counts.",
+    "productChanged": false,
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  }
 }
