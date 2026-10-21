@@ -8,7 +8,7 @@ class SearchMoveOwnership(unittest.TestCase):
         text=source('cortexSearchMoveOwned.sqf')
         for proof in ('currentCommand _actor in ["MOVE","","STOP"]','_native vectorDistance _target <= 0.25',
                       'CBE_fnc_NativeOrderReceipt','CortexActorMoveReserved','CortexZeusHeld',
-                      'CortexExternalTakeover','CBE_AIPass_ClearOrder','select [0,16]'):
+                      'CortexExternalTakeover','CBE_AIPass_ClearOrder','select [0,16]','fleeing _actor','ace_medical_ai_healQueue'):
             self.assertIn(proof,text)
         for forbidden in ('doMove','doFollow','doStop','setVariable','serverTime+'):
             self.assertNotIn(forbidden,text)

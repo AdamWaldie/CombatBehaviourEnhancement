@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Finite indoor actors release only their exact journal-owned native legs before group cleanup.
+ * Final post-clear recall yields to native flight, queued care and dormancy.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
  * Ends any flank drill (re-enabling only the AI features the drill itself disabled), rejoins the
@@ -96,6 +97,8 @@ if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason ==
             if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
                 && {isNull objectParent _x} && {isNull remoteControlled _x}
                 && {[_x] call CBE_fnc_CortexCombatEffective}
+                && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                 && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}) then {

@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Native STOP cleanup requires a matching current-drill HOLD receipt; MOVE cleanup requires
  * the actual requested destination. Unknown/changed tasks remain untouched. Restoring owned
- * feature settings does not authorize movement recall.
+ * feature settings does not authorize movement recall. Native flight and queued care
+ * also prohibit recall; exact owned feature restoration remains independent.
  * Completed ordinary holds retain original issuer and native destination/order provenance.
  * Failed support-bound and transient retry stops remain separate ownership roles.
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
@@ -146,7 +147,7 @@ private _ownsNativeMovement={
 // only capable foot actors whose current task has not acquired a newer independent owner.
 _members=_members select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
-    simulationEnabled _x && {!isObjectHidden _x}
+    simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && _free && {[_x] call _ownsNativeMovement} && {[_x] call CBE_fnc_CortexCombatEffective} && {!isPlayer _x} && {isNull objectParent _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}

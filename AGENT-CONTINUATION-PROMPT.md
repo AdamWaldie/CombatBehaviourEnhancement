@@ -1,3 +1,9 @@
+# Latest checkpoint - native task priority during recall
+
+
+## 2026-10-21 - Native task priority during owned movement recall
+Baseline d4f62e7e. Holder/search recall now refuses fleeing/queued care; calm final recall and shutdown post-clear recall also refuse dormant/hidden actors. Calm invokes FlankEnd first, so its movement-only roster filter also excludes fleeing (care was already guarded). Exact owned feature/PATH restoration remains separate from new native movement commands. No new worker/settings/deadlines. Existing tests extended; all1484+HEMTT/FSM/docs/package passed .qa/recall-native-task-build.log. Guide-only repack .qa/recall-native-task-doc-repack.log; independent verification .qa/recall-native-task-independent.log. Candidate .qa/candidates/recall-native-task-d4f62e7e. Active FlankStep actorTaskFree still lacks flight; it also feeds fit roster/refill, so trace temporary membership/rejoin semantics before changing it. No guaranteed delayed rejoin claimed. Physical native task/cleanup/HC/performance unverified. Audits PAUSED; no launch, push, merge, publication. Full goal active/incomplete. Unrelated dirt and protected sources/signing preserved.
+
 # Latest checkpoint - operation/recovery native flight
 
 ## 2026-10-21 - Operation progress/recovery native flight priority

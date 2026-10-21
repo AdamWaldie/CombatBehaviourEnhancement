@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight and queued care grant no ordinary recall authority.
  * Purpose: Read exact completed-drill hold provenance before ordinary actor recall.
  * Locality/authority: Current group and actor owner only; public rows alone grant no command.
  * Repeat/JIP: Read-only. Immutable issuer owner/epoch/generation survive checkpoint transfer;
@@ -18,6 +19,8 @@
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_actor",objNull,[objNull]]];
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _group} || {!local _group} || {isNull _actor} || {!local _actor}
     || {group _actor != _group} || {isPlayer _actor} || {!isNull objectParent _actor}
+    || {fleeing _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull remoteControlled _actor}

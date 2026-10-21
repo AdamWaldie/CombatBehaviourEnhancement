@@ -1082,5 +1082,18 @@
     "snapshotTrace": "Reviewed final optimistic commit and separate recoverySource -> new recovery map. Mutation occurs in that separate map/new records; no new alias/copy fix justified.",
     "candidate": ".qa/candidates/operation-native-flight-d9cf8b88",
     "fingerprint": "fe67ba70652a0d3610ae46def25fbfa5abcf5a31ec00e50bbb8001e1034e18ef"
+  },
+  "ownedRecallNativeTaskPriority20261021": {
+    "intent": "Yield movement recall to native flight and queued care without suppressing exact owned feature restoration",
+    "sourceBaseline": "d4f62e7e",
+    "sources": {
+      "addons/infantry/functions/cortexHolderRecallOwned.sqf": "5865d072682e43350ebf427514721e594bd29d441a14ad834863d9c68b770ab4",
+      "addons/infantry/functions/cortexSearchMoveOwned.sqf": "540e17ef1bac1cbe81c4044e8b474fb849764457cc682d3312aa94171256e368",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "cbbb53616e6e3426016d103f4f8ec59db0f1e0298c1e2243a753c38ba60a8f79",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "cc9c2d1b319993189fba79bdddec04395f4b6a18c9c2b66bd0d2d0c5c6e81b51",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "da8e9e7316dd96fc8524e2402c8dc84140693182ca1401b6a1d7fd482482083b"
+    },
+    "validation": ".qa/recall-native-task-build.log; .qa/recall-native-task-doc-repack.log; .qa/recall-native-task-independent.log",
+    "limits": "Active drill roster native-flight handling remains separate; no physical acceptance, eventual rejoin or performance claim. No new controller, scan or timer."
   }
 }

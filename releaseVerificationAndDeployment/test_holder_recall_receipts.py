@@ -19,7 +19,7 @@ class HolderRecallReceiptTests(unittest.TestCase):
                       'count _rows > 64','count _x == 8','_native vectorDistance _target <= 0.25',
                       'CBE_Cortex_HolderToken','isNotEqualTo (_row select [1,5])','simulationEnabled _actor',
                       '_actor checkAIFeature "MOVE"','_actor checkAIFeature "PATH"',
-                      'CBE_fnc_NativeOrderReceipt'):
+                      'CBE_fnc_NativeOrderReceipt','fleeing _actor','ace_medical_ai_healQueue'):
             self.assertIn(guard,helper)
         for forbidden in ('setVariable','doStop','doFollow','doMove','spawn','waitUntil','setPos','setVelocity'):
             self.assertNotIn(forbidden,helper)

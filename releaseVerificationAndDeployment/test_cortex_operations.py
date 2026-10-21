@@ -3563,6 +3563,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexZeusHeld',release_hold)
         self.assertIn('"CBE_AIPass_ClearOrder",[]]) isEqualTo []',release_hold)
         self.assertIn('_unit doFollow _leader',release_hold)
+        for actor,text in (('_unit',release_hold),('_x',source('cortexReleaseGroup').split('// Full shutdown',1)[1].split('// New curator intent',1)[0])):
+            for guard in (f'simulationEnabled {actor}',f'!isObjectHidden {actor}',f'!fleeing {actor}',f'{actor} getVariable ["ace_medical_ai_healQueue",[]]'):
+                self.assertIn(guard,text)
+        self.assertLess(release_hold.index('_unit enableAI "PATH"'),release_hold.index('!fleeing _unit'))
+        drill_recall=source("cortexFlankEnd").split("_members=_members select {",1)[1].split("private _stragglers",1)[0]
+        for guard in ("!fleeing _x", 'ace_medical_ai_healQueue', "_ownsNativeMovement"):
+            self.assertIn(guard,drill_recall)
+
         for external in ['GET IN','GET OUT','ACTION','SCRIPTED']:
             self.assertNotIn(f'"{external}"',release_hold)
         self.assertIn('[_x,false,false] call _releaseOwnedHold',restore)

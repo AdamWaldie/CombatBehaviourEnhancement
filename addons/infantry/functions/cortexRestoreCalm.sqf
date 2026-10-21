@@ -51,6 +51,7 @@
  * [_group, _state] call CBE_fnc_CortexRestoreCalm;
  * Result: the group carries on with its mission as it was before contact.
  *
+ * Recall yields to dormancy, native flight and queued care; owned PATH handback remains separate.
  * PATH restoration requires the actual legacy support marker; ordinary drill holders never
  * enable PATH. Return-to-formation excludes active clearance, Zeus, services and actor reservations.
  * Current callers: CortexGroupTick, CortexReleaseGroup, CortexLocality and CortexOnboardContact.
@@ -114,6 +115,8 @@ private _releaseOwnedHold={
             if (_restorePath) then {_ownedHold} else {[_group,_state,_unit] call CBE_fnc_CortexHolderRecallOwned}
         };
         if (!_yieldToExternal && {_recallOwned}
+            && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
+            && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!isNull _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
             && {isNull objectParent _unit} && {[_unit] call CBE_fnc_CortexCombatEffective}
             && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
