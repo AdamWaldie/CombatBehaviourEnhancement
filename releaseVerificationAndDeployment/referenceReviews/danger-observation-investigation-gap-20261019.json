@@ -18,17 +18,16 @@
     "Assessment can use accumulated building memory, while suppression, STOP, stealth and hold-fire defer autonomous action."
   ],
   "actualCbePath": [
-    "Engine HIDE body/scream cause may glanceAt known position for idle actor; no target identity disclosure.",
-    "Group assessment retains finite alerting response and prompt cadence, without treating body/scream as incoming-fire geometry or confirmed attacker.",
-    "CALM investigations consume known hostiles or SOUND/REPORT area reports; native body/scream response does not create that memory or an individual body-check operation."
+    "DangerEngineAct HIDE cause5 calls PointActorOperation START using original source/body position. Existing finite actor FSM owns one original12-second point approach, original2-second native acknowledgement and one move; new tasks interrupt through exact route/actor ownership.",
+    "CasualtyObservationSelect corroborates an explicit body or existing bounded actual-death identity receipt. No allDeadMen world scan. Visit requires real position proximity and LOS before optional compatible-magazine or empty-slot weapon recovery.",
+    "DangerStep BODY_FOUND publishes an original20-second observer/epoch-bound building clue with same-location coalescing; existing CALM group path may dispatch bounded individual nearby-building investigation. It does not invent enemy identity or room safety.",
+    "A point VISITED result and equipment transfer verification are separate. Native command issue alone does not verify visit or inventory conservation."
   ],
-  "gap": "Individual body investigation and memory-driven follow-on are not implemented by a brief look. No whole-source parity credit.",
+  "gap": "The original absence claim is superseded by the named implemented paths. Physical casualty visit, interruption/continuation, inventory conservation, nearby-building suspicion and runtime balance/performance remain unverified; source implementation is not acceptance.",
   "disposition": [
-    "Retain separation of alerting evidence from hostile knowledge and immediate physical hazard.",
-    "Build finite individual point investigation on owner/epoch/native-task/actor-reservation foundations; do not repurpose cover-away movement or send whole squad merely to reuse group investigation.",
-    "Use bounded local discovery only if physical corpse identity is needed; no allDeadMen world scan.",
-    "Treat inventory/rearm/launcher/backpack transfer separately with ammunition/loadout/mission-authority balance. No automatic raw upstream inventory mutation copied.",
-    "Actual position visit, cancellation, no-progress, original deadline and guarded continuation are required; flags or guessed corpse identity cannot count as physical success."
+    "Do not implement a duplicate body-check controller from the historical gap. Use the listed source and current review evidence.",
+    "Keep original LAMBS intent comparison and deliberately reject global corpse scanning, forced inventory/backpack copying and unguarded follow commands.",
+    "Retain physical acceptance as unverified while audits are paused. No score changes or whole-source parity claim."
   ],
   "sourceHashes": {
     "addons/infantry/functions/dangerEngineAct.sqf": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d",
@@ -39,5 +38,37 @@
   "implementationChange": false,
   "physicalAcceptance": false,
   "scoresChanged": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "currentReviewDate": "2026-10-22",
+  "currentSourceParent": "51349fb3",
+  "status": "HISTORICAL_BUILD_GAP_SUPERSEDED; PHYSICAL_ACCEPTANCE_UNVERIFIED",
+  "supersededBy": [
+    "casualty-point-investigation-20261019.json",
+    "body-building-memory-20261019.json",
+    "casualty-identity-provenance-20261019.json",
+    "casualty-equipment-recovery-20261020.json"
+  ],
+  "historicalGap": "Individual body investigation and memory-driven follow-on are not implemented by a brief look. No whole-source parity credit.",
+  "historicalActualCbePath": [
+    "Engine HIDE body/scream cause may glanceAt known position for idle actor; no target identity disclosure.",
+    "Group assessment retains finite alerting response and prompt cadence, without treating body/scream as incoming-fire geometry or confirmed attacker.",
+    "CALM investigations consume known hostiles or SOUND/REPORT area reports; native body/scream response does not create that memory or an individual body-check operation."
+  ],
+  "historicalDisposition": [
+    "Retain separation of alerting evidence from hostile knowledge and immediate physical hazard.",
+    "Build finite individual point investigation on owner/epoch/native-task/actor-reservation foundations; do not repurpose cover-away movement or send whole squad merely to reuse group investigation.",
+    "Use bounded local discovery only if physical corpse identity is needed; no allDeadMen world scan.",
+    "Treat inventory/rearm/launcher/backpack transfer separately with ammunition/loadout/mission-authority balance. No automatic raw upstream inventory mutation copied.",
+    "Actual position visit, cancellation, no-progress, original deadline and guarded continuation are required; flags or guessed corpse identity cannot count as physical success."
+  ],
+  "currentSourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+    "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
+    "addons/main/fsm/pointActor.fsm": "9663f6ca5c3b88645b4f48666b4ce8460b20d1ac3c0536f4cf4b0fdf71e7ddfe",
+    "addons/infantry/functions/casualtyObservationSelect.sqf": "ca6593060dd7303a534a24e4835fa2d089a95b17fde1612578866fc69904764c",
+    "addons/infantry/functions/casualtyWeaponRecover.sqf": "2a70a56b5241b67aa16a5ef0b023af737008e99fccbe65113e46bf6db3cc0b16",
+    "addons/infantry/functions/dangerStep.sqf": "ea99366d9107e6c639537ab996246c4eb14795062c2ae6d2b88f6183afbff9e1",
+    "addons/infantry/functions/cortexGroupTick.sqf": "050deee4a403d426947122dda90b8514e4ca1561e393a14426f3430b5b7f86f7"
+  },
+  "currentValidation": "JSON parsed; superseding files exist; seven current source hashes verified. No runtime source changed; unchanged passing full build was not repeated."
 }
