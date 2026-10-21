@@ -1507,7 +1507,7 @@ switch (_state get "phase") do {
         };
         _state set ["searchTeam", _team];
         _state set ["searchDeadline",serverTime + (["CBE_AIPass_PostContact_SearchSeconds",45] call _get)];
-        {_state deleteAt _x} forEach ["searchMemory","searchIndoorJobs","searchIndoorAttempted","searchPointVisited","searchBuildingVisits"];
+        {_state deleteAt _x} forEach ["searchMemory","searchIndoorJobs","searchIndoorAttempted","searchPointVisited","searchBuildingVisits","searchIndoorBuilding","searchIndoorReplacementAttempts"];
         [_group,_state,"SEARCH","SEARCH_TEAM_SENT",_now] call CBE_fnc_CortexSetPhase;
         _delay = 3;
     };
@@ -1564,25 +1564,87 @@ switch (_state get "phase") do {
                         };
                     } forEach (_team select [0,2]);
                 };
+                if (_jobs isNotEqualTo []) then {_state set ["searchIndoorBuilding",_house]};
                 _state set ["searchIndoorJobs",_jobs];
                 if (_jobs isEqualTo []) then {_state deleteAt "searchMemory"};
             };
         };
         private _indoorPending=false;private _indoorVisited=true;
         private _indoorJobs=_state getOrDefault ["searchIndoorJobs",[]];
+        private _lostIndoorSlots=[];
         {
             _x params ["_searchActor","_searchGeneration"];
             private _actorBrain=_searchActor getVariable ["CBE_IndoorActor_Brain",createHashMap];
-            if ((_actorBrain getOrDefault ["generation",-1]) == _searchGeneration
-                && {!(_actorBrain getOrDefault ["finished",false])}) then {_indoorPending=true} else {
+            private _sameIndoorJob=(_actorBrain getOrDefault ["generation",-1]) == _searchGeneration
+                && {!(_actorBrain getOrDefault ["finished",false])};
+            private _casualty=!([_searchActor] call CBE_fnc_CortexCombatEffective);
+            if (_sameIndoorJob && {_casualty} && {local _searchActor} && {group _searchActor == _group}) then {
+                // Exact actor cleanup retires only this casualty's job/reservation. Its native
+                // task/health guards forbid a return-to-formation command during treatment.
+                ["FINISH",_searchActor,_actorBrain] call CBE_fnc_IndoorActorOperation;
+                _sameIndoorJob=false;
+            };
+            if (_sameIndoorJob) then {_indoorPending=true} else {
                 private _result=_searchActor getVariable ["CBE_IndoorActor_Result",[]];
                 if (count _result < 2 || {(_result select 0) != _searchGeneration}
-                    || {(_result select 1) != "VISITED"}) then {_indoorVisited=false};
+                    || {(_result select 1) != "VISITED"}) then {
+                    _indoorVisited=false;
+                    if (_casualty) then {_lostIndoorSlots pushBack _forEachIndex};
+                };
             };
         } forEach (_indoorJobs select [0,2]);
+        // Shared memory can outlive its original investigators. At most two replacement
+        // admission attempts, including sequential casualties, share the original deadline.
+        private _replacementMemory=_state getOrDefault ["searchMemory",[]];
+        private _replacementHouse=_state getOrDefault ["searchIndoorBuilding",objNull];
+        private _replacementAttempts=_state getOrDefault ["searchIndoorReplacementAttempts",0];
+        if (_lostIndoorSlots isNotEqualTo [] && {_visible isEqualTo []} && {!_ordered} && {!_holdFire}
+            && {!_searchTimedOut} && {_state getOrDefault ["searchPointVisited",false]}
+            && {_replacementAttempts isEqualType 0} && {finite _replacementAttempts}
+            && {_replacementAttempts >= 0} && {_replacementAttempts < 2}
+            && {!isNull _replacementHouse} && {alive _replacementHouse}
+            && {_replacementMemory isEqualType []} && {count _replacementMemory == 4}
+            && {(_replacementMemory select 2) isEqualType 0} && {finite (_replacementMemory select 2)}
+            && {serverTime < (_replacementMemory select 2)} && {(_replacementMemory select 2) <= _searchDeadline}
+            && {(_replacementMemory select 3) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+            private _originalInvestigators=_indoorJobs apply {_x select 0};
+            private _replacementActors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
+                !(_x in _originalInvestigators) && {_x != leader _group} && {local _x} && {!isPlayer _x}
+                    && {group _x == _group} && {[_x] call CBE_fnc_CortexCombatEffective}
+                    && {!fleeing _x} && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
+                    && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","PLANNING","REPLAN","BUSY"])}
+                    && {isNull getAttackTarget _x} && {isNull assignedTarget _x}
+                    && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                    && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                    && {currentWeapon _x != ""} && {getSuppression _x < 0.5}
+                    && {unitCombatMode _x in ["YELLOW","RED","WHITE"]}
+                    && {isNull remoteControlled _x} && {[_x] call CBE_fnc_CortexExternalOwner == ""}
+                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                    && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
+                    && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}
+            };
+            if (_replacementActors isNotEqualTo []) then {
+                private _replacementSlot=0;
+                {
+                    if (_replacementSlot >= count _lostIndoorSlots || {_replacementAttempts >= 2}) exitWith {};
+                    _replacementAttempts=_replacementAttempts+1;
+                    _state set ["searchIndoorReplacementAttempts",_replacementAttempts];
+                    if (["START",_x,createHashMapFromArray [["building",_replacementHouse],
+                        ["belief",[+(_replacementMemory select 0),_replacementMemory select 1]],
+                        ["searchMemory",+_replacementMemory],["observationOnly",true],
+                        ["deadline",_replacementMemory select 2]]] call CBE_fnc_IndoorActorOperation) then {
+                        _indoorJobs set [_lostIndoorSlots select _replacementSlot,
+                            [_x,(_x getVariable ["CBE_IndoorActor_Brain",createHashMap]) get "generation"]];
+                        _replacementSlot=_replacementSlot+1;
+                        _indoorPending=true;
+                    };
+                } forEach (_replacementActors select [0,2]);
+                _state set ["searchIndoorJobs",_indoorJobs];
+            };
+        };
         private _searchVisitDone=(_state getOrDefault ["searchPointVisited",false]) && {!_indoorPending};
 
-        private _done = _visible isNotEqualTo [] || {_team isEqualTo []}
+        private _done = _visible isNotEqualTo [] || {_team isEqualTo [] && {!_indoorPending}}
             || {_searchVisitDone} || {_searchTimedOut};
         if (_done) then {
             if ([] call _mayIssueMovement) then {

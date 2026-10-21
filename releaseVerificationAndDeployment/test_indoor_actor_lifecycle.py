@@ -43,6 +43,20 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '(_houses select [0,4])','(_team select [0,2])','CBE_fnc_IndoorActorOperation',
                       '["observationOnly",true]','SEARCH_BUILDING_INCOMPLETE','SEARCH_BUILDING_VISITED'):
             self.assertIn(proof,search)
+        replacements=search.split('// Shared memory can outlive',1)[1].split('private _searchVisitDone=',1)[0]
+        for proof in ('searchIndoorReplacementAttempts','_replacementAttempts < 2','_replacementAttempts >= 2','searchIndoorBuilding','_lostIndoorSlots isNotEqualTo []',
+                      'serverTime < (_replacementMemory select 2)','(_replacementMemory select 2) <= _searchDeadline',
+                      'CBE_AIPass_Epoch','(_replacementActors select [0,2])',
+                      '["searchMemory",+_replacementMemory]','["deadline",_replacementMemory select 2]',
+                      '!(_x in _originalInvestigators)','CBE_fnc_CortexActorMoveReserved',
+                      'CBE_fnc_IndoorActorGroupAvailable','currentCommand _x == ""'):
+            self.assertIn(proof,replacements)
+        for forbidden in ('serverTime+45','serverTime + 45','doMove','doFollow','searchPointVisited",true',
+                          'searchBuildingVisits",','VISITED','waitAndExecute'):
+            self.assertNotIn(forbidden,replacements)
+        self.assertIn('["FINISH",_searchActor,_actorBrain] call CBE_fnc_IndoorActorOperation',search)
+        self.assertIn('if (_sameIndoorJob && {_casualty}',search)
+        self.assertIn('{_team isEqualTo [] && {!_indoorPending}}',search)
         self.assertIn('serverTime-(_observedContact select 2)',tick)
         context=(ROOT/'addons/infantry/functions/indoorActorNativeContext.sqf').read_text(encoding='utf-8')
         for proof in ('SEARCH_MEMORY','_actor distance2D _destination <= 2',

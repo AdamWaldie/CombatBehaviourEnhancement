@@ -2401,3 +2401,6 @@ Normal cap application now keeps a private issuer/epoch/generation and original-
 
 
 Danger posture handoff retains the group-hide baseline until the actor's requested weak posture is reflected by the native position rule and the incoming receipt carries that same original baseline, or the baseline is already restored. A refused or unconfirmed request does not consume the outgoing proof. Group-hide admission also records only an applied native rule. Commander and scripted stance priorities remain authoritative; these checks do not force an animation or prove a physical crouch/prone transition. Native weak-rule readback and posture timing remain in-engine validation items.
+
+
+Post-contact indoor search can replace a casualty investigator with an idle, eligible soldier from the same group. The existing actor executor retires the exact casualty job and allows at most two replacement admission attempts in the original search episode, including sequential casualties. Replacements inherit the same building, shared physical-visit history, observation and original deadline; they do not restart the search or gain room-clearance credit from assignment. Native treatment, authored orders, contact reacquisition, reservations and the original timeout remain authoritative. With no suitable replacement or a refused admission, the search retains its incomplete result.

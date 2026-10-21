@@ -1,0 +1,42 @@
+{
+  "baseline": "2fbc9569",
+  "scope": "Post-contact shared-memory indoor investigator casualty replacement, not whole-squad CLEAR reinforcement or complete LAMBS parity",
+  "sourceIntent": "LAMBS brainAssess/doAssaultMemory keep shared nearby observation work usable by later actors. CBE uses finite owner-local actor operations and physical node history instead of copying competing direct group-follow/movement commands. Source review pointers remain danger-posture-acquisition-20261021.json and lambs-fsm-foundations-20261020.json.",
+  "trace": [
+    "CONTACT dispatch uses available actor reservations; tactical start capacity excludes reserved actors, while IndoorActorGroupAvailable permits only explicit disjoint manoeuvre rosters without group waypoints. No new competing controller was required.",
+    "Body-clue investigation already retains original memory and physical history for later actors. Post-contact SEARCH instead recorded searchIndoorAttempted once and tracked only original jobs, with no casualty replacement.",
+    "SEARCH could finish incomplete while memory/deadline remained valid; a dead actor stale brain could also remain pending until cleanup."
+  ],
+  "implementation": [
+    "Keep original selected building with search state; clear building/replacement counters only at creation of a new search episode.",
+    "Retire only an exact local same-generation casualty actor job through existing FINISH. Its health/native-task gates prevent a treatment-time movement command; no successful visit is fabricated.",
+    "Only an unfinished casualty slot is eligible. Historical VISITED result remains valid if the actor becomes a casualty after completing its work.",
+    "Sample existing at-most16 rotating actors; exclude leaders, original current investigators, protected native work, active targets, player/external owners, care/fleeing/dormant actors and reservations. Existing executor repeats full admission and per-group two-active limit.",
+    "At most two admission attempts across the entire original episode, including sequential losses. Requests reuse exact same building, searchMemory, physical-history key and original deadline. No candidate availability does not create or extend a timer.",
+    "Replace a job row only after START accepts its new generation. Admission creates no visit proof. Empty original search-team roster does not terminate a live accepted replacement; later genuine result/deadline determines completion."
+  ],
+  "cost": "Existing group SEARCH cadence only; up to two recorded jobs checked per tick, existing16actor sample only under casualty eligibility, at most two START attempts total. No new worker, recurring world scan or direct movement writer. Runtime budget still unmeasured.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexGroupTick.sqf": "24b088f156cd2cf7767e0fa81a23ab74a22fe0df278f59fbe4b31130166879ad",
+    "addons/infantry/functions/indoorActorOperation.sqf": "4043180a76baf6d95ac03dd0d4a1b7bc7e610f99d3d9cd3d55f5ef6542c9f8d6",
+    "addons/infantry/functions/indoorActorDispatch.sqf": "ed23a0ad6766f0003741522c2a86d9c07aab6cb5f58a8bebf95a5e7461c9612b",
+    "addons/infantry/functions/indoorObservationDispatch.sqf": "bb7610fb5788fa3f9fe09745ddabc8629f626832541b2b2fca9bb19b6238c071",
+    "addons/infantry/functions/indoorActorGroupAvailable.sqf": "30df1193a60b154568a3363f9e441b6c27bf07a4010c8baf281957cd6ba72bdc"
+  },
+  "validation": {
+    "focused": ".qa initial test_indoor_actor_lifecycle.py 32 passed",
+    "fullOffline": ".qa/search-indoor-casualty-build-final.log",
+    "tests": 1484,
+    "compiledSQF": 393,
+    "superseded": ".qa/search-indoor-casualty-build.log passed single-wave version; superseded for sequential casualty handling",
+    "independent": ".qa/search-indoor-casualty-independent.log",
+    "candidate": ".qa/candidates/search-indoor-casualty-2fbc9569",
+    "fingerprint": "c2453da21d5ef6dd6df990a12c192747af343ca40910a3126a0dc5b3998f9cb2"
+  },
+  "limits": [
+    "Audits remain paused; no Arma launch. Physical casualty/treatment timing, entry, search flow, native-order interruption, HC and performance unverified.",
+    "No suitable actor or exhausted/refused two-attempt budget can still end incomplete under original deadline.",
+    "This is post-contact indoor investigation, not exhaustive clearance, room safety or general cross-squad reinforcements.",
+    "No source parity/buildout percentage change, provider quiescence claim or publication. Protected references unchanged."
+  ]
+}
