@@ -1,5 +1,8 @@
 
 
+Checkpoint: native danger witness qualification (2026-10-21). Baseline47b71f4c plus scoped changes. EnemyDetected now qualifies at most12 roster members/event with private rotation; friendly events skip qualification, leader preference requires eligible AI witness membership. No polling. Full roster retrieval remains; a sole out-of-sample witness may be missed until another native event. Existing609 focused and full offline pipeline passed; independent candidate .qa/candidates/danger-witness-47b71f4c verified, fingerprint1446542707e5e8f8d5d9833ffdb5f078887c50a53830d263118a3295d01ae864. Review referenceReviews/danger-witness-20261021.json. Audits paused; physical behaviour/performance unverified. No remote mutation.
+
+
 Checkpoint: danger stance direct cleanup deadline (2026-10-21). Baseline c762964a plus scoped source edits. Shared DangerEngineRelease now enforces original expiry+30 before either native stance restoration path, including direct stop/start callers; finite timing required, expired proof retained. Existing609 focused and full offline pipeline passed; independent candidate .qa/candidates/danger-stance-deadline-c762964a verified, fingerprint e3bf8c307d11a29d1bee5d2b033484d190d76e6575fd234074381ae7e64c76a6. Review referenceReviews/danger-stance-deadline-20261021.json. Audits paused; physical timing/performance unverified. No remote mutation.
 
 

@@ -67,6 +67,7 @@ if (!_enabled) exitWith {
     _group setVariable ["CBE_Danger_EventCadence",nil];
     _group setVariable ["CBE_Danger_EngineStats",nil];
     _group setVariable ["CBE_Danger_ObservedContacts",nil];
+    _group setVariable ["CBE_Danger_SpotterCursor",nil];
     _group setVariable ["CBE_Danger_LastAssessment",nil];
     _group setVariable ["CBE_Danger_WakeAfter",nil];
     _group setVariable ["CBE_Danger_SmokeLease",nil,true];
@@ -95,15 +96,29 @@ private _handler=_group addEventHandler ["EnemyDetected",{
     // EnemyDetected can report a man or a vehicle. A vehicle object has no useful direct `group`,
     // so compare the target object's actual side or armoured/air contacts lose their identity here.
     private _friendly=(side _observingGroup) getFriend (side _target) >= 0.6;
-    private _spotters=(units _observingGroup) select {[_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}};
-    _spotters resize ((count _spotters) min 12);
+    if (_friendly) exitWith {};
+    // Bound qualification itself, rather than filtering the entire group before truncation.
+    // Rotate only on real native observations; no timer or retry is created for missed witnesses.
+    private _members=units _observingGroup;
+    private _memberCount=count _members;
+    if (_memberCount == 0) exitWith {};
+    private _sampleStart=(_observingGroup getVariable ["CBE_Danger_SpotterCursor",0]) mod _memberCount;
+    private _sampleCount=_memberCount min 12;
+    private _spotters=[];
+    for "_sampleIndex" from 0 to (_sampleCount-1) do {
+        private _member=_members select ((_sampleStart+_sampleIndex) mod _memberCount);
+        if (local _member && {!isPlayer _member} && {[_member] call CBE_fnc_CortexCombatEffective}) then {
+            _spotters pushBack _member;
+        };
+    };
+    _observingGroup setVariable ["CBE_Danger_SpotterCursor",(_sampleStart+_sampleCount) mod _memberCount];
     private _knowerIndex=_spotters findIf {_x knowsAbout _target >= 1};
-    if (_friendly || {_knowerIndex < 0}) exitWith {};
+    if (_knowerIndex < 0) exitWith {};
     private _leader=leader _observingGroup;
     // Prefer the leader only when the leader actually owns native knowledge of this target. A
     // wingman can trigger EnemyDetected while the leader is behind cover; asking that unknowing
     // leader for getHideFrom returns no usable geometry and used to discard the immediate wake.
-    private _observer=if (!isNull _leader && {alive _leader} && {local _leader}
+    private _observer=if (_leader in _spotters
         && {_leader knowsAbout _target >= 1}) then {_leader} else {_spotters select _knowerIndex};
     if ((_observer targetKnowledge _target) param [7,false,[true]]) exitWith {};
     private _contacts=_observingGroup getVariable ["CBE_Danger_ObservedContacts",[]];

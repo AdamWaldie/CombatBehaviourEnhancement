@@ -1,0 +1,21 @@
+{
+  "baseline": "47b71f4c",
+  "scope": "Bounded eligible native contact witnesses",
+  "finding": "EnemyDetected filtered the whole roster before truncating, then could prefer a player/incapacitated leader over an eligible knowing AI.",
+  "implementation": [
+    "Friendly observations return before witness work. Qualify at most12 current members with a private rotating cursor; no new timer or polling.",
+    "Prefer leader only within qualified witnesses with native knowledge; otherwise retain actual qualified knower. Cleanup resets cursor."
+  ],
+  "validation": {
+    "focused": "609 existing tests passed",
+    "full": ".qa/danger-witness-build.log",
+    "independent": ".qa/danger-witness-independent.log",
+    "candidate": ".qa/candidates/danger-witness-47b71f4c",
+    "fingerprint": "1446542707e5e8f8d5d9833ffdb5f078887c50a53830d263118a3295d01ae864"
+  },
+  "limits": [
+    "Getting units still obtains the full native roster; only scripted qualification/knowledge work is bounded.",
+    "A sole eligible witness outside the sample may be missed until another native event. Roster changes affect rotation; no fairness deadline.",
+    "No Arma launch; physical detection, HC, mixed groups and performance remain unverified. No parity or percentage rescore."
+  ]
+}
