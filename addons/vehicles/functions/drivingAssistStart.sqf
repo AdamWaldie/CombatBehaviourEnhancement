@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Native cap application and queue fallback STOP must confirm before their ownership receipt changes.
  * An unconfirmed write preserves the last confirmed cap/baseline and cannot advance recovery.
  * Pending ordinary cap handback takes the cap-only path before child-controller work;
@@ -182,7 +183,7 @@ _brain set ["geometryTracks",_geometryTracks];
     if (isNull _movementOperator) then {_movementOperator=_driver};
     private _nativeTaskFree={
         params ["_actor"];
-        !isNull _actor && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+        !isNull _actor && {!fleeing _actor} && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _actor in [
             "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",

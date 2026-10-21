@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight revokes stop/route recall authority; exact unrelated cap release remains separate.
  * Purpose: Retires a controller-owned bypass and only its exact owned fixed path/native handback.
  * Locality / Authority: Current vehicle/group owner. Both seats, route, command receipts and
  * external/tactical ownership protect cleanup. Both native command types must also match;
@@ -82,7 +83,7 @@ isNil {
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
     {
         _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
-            && {[_x] call CBE_fnc_CortexCombatEffective}
+            && {!fleeing _x} && {[_x] call CBE_fnc_CortexCombatEffective}
             && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
             && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             && {simulationEnabled _x} && {!isObjectHidden _x}

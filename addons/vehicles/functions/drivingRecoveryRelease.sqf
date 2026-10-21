@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Pending ACE care revokes native reverse handback just as its later HEAL command does; queues remain read-only.
  * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
  * turn/input receipt. An unowned BACK revokes stop/route handback and deferred retention.
@@ -258,7 +259,7 @@ private _retainAcrossLocality=_resume && {_destinationControlFree} && {(_work ge
     && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {[_driver,_operator] findIf {
-        !alive _x || {group _x != _group} || {vehicle _x != _vehicle}
+        !alive _x || {fleeing _x} || {group _x != _group} || {vehicle _x != _vehicle}
             || {isPlayer _x} || {!isNull remoteControlled _x}
             || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}
@@ -325,7 +326,7 @@ private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree
     && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
 {
     _owned=_owned && {!isNull _x} && {local _x} && {group _x == _group} && {vehicle _x == _vehicle}
-        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {!fleeing _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
         && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {[_x] call CBE_fnc_CortexExternalOwner == ""}

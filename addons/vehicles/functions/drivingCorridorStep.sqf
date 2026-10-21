@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Admission snapshots both native crew commands before geometry, then atomically rechecks
  * the actual controller, seats, authored route and area transform before issue/publication.
  * APPROACH-to-CROSS rechecks current work, entry pose, area, task and deadline atomically
@@ -43,7 +44,7 @@ private _operator=effectiveCommander _vehicle;
 // A separate commander is an independent command boundary, not permission to bypass its task.
 private _crewReady={
     [_driver,_operator] findIf {
-        isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
+        isNull _x || {!local _x} || {fleeing _x} || {group _x != _group} || {vehicle _x != _vehicle}
             || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x}

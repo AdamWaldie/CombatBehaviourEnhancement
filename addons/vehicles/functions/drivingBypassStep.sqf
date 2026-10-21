@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Either operating crew member entering native flight vetoes bypass steering.
  * Ordinary admission requires actual approach room before spending work; an inactive
  * result may include fifth HASHMAP field with a fresh BACKOFF diagnosis for the caller.
  * Purpose: Runs a finite ordinary/convoy-lead bypass or explicitly granted queue crossing through the existing controller.
@@ -53,7 +54,7 @@ private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {
         isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
-            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {fleeing _x} || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {[_x] call CBE_fnc_CortexActorMoveReserved} || {isPlayer _x}
             || {!isNull remoteControlled _x} || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}

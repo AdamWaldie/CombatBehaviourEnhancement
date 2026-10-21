@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-22",
+  "baseline": "9fd672498e34b40281025f71e7773c18dbbd3de0",
+  "finding": "Native fleeing may retain the previous MOVE command, so destination matching alone must not authorise ordinary driving mutations or recall.",
+  "implementation": "Either operating crew member fleeing vetoes admission, pass consent, queue reverse, corridor/bypass steering and movement handback. Existing exact cap-only cleanup remains separate. No flee-state mutation, worker or scan added.",
+  "sourceDisposition": "CBE ownership defect; no new whole-HBQ semantic review or parity claim. Protected sources unchanged.",
+  "validation": {
+    "tests": 1489,
+    "compiledSQF": 401,
+    "buildLog": ".qa/driving-flight-build.log",
+    "independentVerifyLog": ".qa/driving-flight-independent-verify.log",
+    "candidate": ".qa/candidates/driving-flight-9fd67249",
+    "fingerprint": "295835988e067a74530919739e88db39fdd2bf6430825b14d5eb818f4288a0d4",
+    "provenance": "Unsigned development build of baseline plus intended edits and retained unrelated dirty state; not clean signed release."
+  },
+  "limits": [
+    "Static checks do not prove physical flight or that an already-issued fixed path relinquishes steering.",
+    "Native transitions and performance remain unverified; audits paused.",
+    "Native pass/queue integration and whole convoy flight remain unproven."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAbortHandback.sqf": "468987aaaeb14ff799f8b25189b2bd5be1f52271e5ded83c91032f9bfdbea519",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "8654814bf722ce57ea9da0a54310b8faf4912c5c6217d98aa3b026dbb34217d9",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "cfa31333d3abf6ad829e5d2172ad3089a72a8d312410dd85b4a4a122461f3b6c",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "62defce98e85eb05a9c1d1a41480c2b4958148a34ac6d63933e264bc2503baa6",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "92b87a87346352c7d98cb78c8a76d3beece4e12ab7871a4276b2216acd660b25",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "74716aacdb731a93d035821ceaaa46313e2a0086a25893033352f3bf02c89317",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "4ab876f1f89385fc7af8c9e8a9a1d9803a421d2204c8245bdd4b08690bd412a7",
+    "addons/vehicles/functions/drivingPassFinish.sqf": "682a6e70070b12d3d79889b1894963662c6528e88405bff9015dcfb3a6594f73",
+    "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "447a322244c42a77aa19a61d036dcc0339369b7b46a73a6d936d09c290a44f47",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "55e4c822a9f4c2897d4c276f4782db183dff09526c270ca825edac909433a26d"
+  }
+}

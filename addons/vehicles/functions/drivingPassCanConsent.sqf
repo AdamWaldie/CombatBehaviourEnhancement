@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Purpose: Reads whether this owner may consent to one vehicle's proposed road-pass role.
  * Locality/authority: Current vehicle, driver, commander and group owner only. False for a
  * remote participant; observing its public receipt cannot substitute for its owner's consent.
@@ -54,7 +55,7 @@ if (isNull _group || {!local _group} || {group _operator != _group}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {!([_group] call CBE_fnc_DrivingMovementAvailable)}
     || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
-if ([_driver,_operator] findIf {!local _x || {isPlayer _x} || {!isNull remoteControlled _x}
+if ([_driver,_operator] findIf {!local _x || {fleeing _x} || {isPlayer _x} || {!isNull remoteControlled _x}
     || {!simulationEnabled _x} || {isObjectHidden _x}
     || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!([_x] call CBE_fnc_CortexCombatEffective)}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Purpose: Commit one granted queue leaf BACK or its exact native STOP/settled hold.
  * Locality/authority: Local actual vehicle/group/crew owner only, authenticated private
  * EXECUTE consent and current ordinary driving brain. The sole cap writer must already
@@ -56,7 +57,7 @@ if (isNull _driver || {isNull _operator} || {_driver == _operator}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     || {[_driver,_operator] findIf {
-        !local _x || {group _x != _group} || {isPlayer _x} || {!isNull remoteControlled _x}
+        !local _x || {fleeing _x} || {group _x != _group} || {isPlayer _x} || {!isNull remoteControlled _x}
             || {!simulationEnabled _x} || {isObjectHidden _x} || {!(_x checkAIFeature "MOVE")}
             || {!(_x checkAIFeature "PATH")} || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {[_x] call CBE_fnc_CortexActorMoveReserved}

@@ -203,6 +203,17 @@ class DrivingCrewTests(unittest.TestCase):
         crew=self.source()
         self.assertIn('|| {fleeing _actor}',crew)
         self.assertIn('|| {fleeing _candidate}',crew)
+        ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        admission=ordinary.split('private _nativeTaskFree={',1)[1].split('private _routeIdentity=',1)[0]
+        self.assertIn('!fleeing _actor',admission)
+        for name,proof in [('drivingPassCanConsent','{fleeing _x}'),('drivingPassFinish','!fleeing _actor'),
+                           ('drivingCorridorStep','{fleeing _x}'),('drivingCorridorRelease','!fleeing _actor'),
+                           ('drivingQueueReverseCommit','{fleeing _x}'),('drivingAbortHandback','findIf {fleeing _x'),
+                           ('drivingRecoveryRelease','!fleeing _x'),
+                           ('drivingBypassStep','{fleeing _x}'),('drivingBypassRelease','!fleeing _x')]:
+            text=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertIn(proof,text)
+
         self.assertEqual(body.count('serverTime+60'),1)
         self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',body)
         self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',body)
