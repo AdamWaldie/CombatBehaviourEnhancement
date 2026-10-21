@@ -1,3 +1,8 @@
+# Latest checkpoint - ground weapon source intent trace
+
+## 2026-10-21 - Ground weapon/readiness source intent trace
+Baselineb06239f1; no product change. Inspected Protocol armoured-force source77..144/281..357 for ATGM name/whole-vehicle ammo selection and fire/relocation requests. Traced current GroundFireReady/SelectMuzzle/Reload station/muzzle, target suitability, loaded damaging rounds, finite reserve/native completion and exact selected muzzle boundaries. Existing CBE checks supersede need for another utility/combat classifier at fire boundary; don't copy weapon names, exact live target lead, reveal, request-as-shot counts or extra reload loop.4 existing focused ground ammo/reserve/suppression regressions pass. Review workshop-intake-3822504009.json has exact hashes/scope. No entire source parity or guided-lock/effect proof. Physical selection/reload/fire/hit/modded loadout/HC/performance unverified. No unchanged full build repeated. Candidate remains .qa/candidates/vehicle-jink-crew-13b4ff07 fingerprint55bbec43b54bdb706c58804298c6379adf1d08799ed94adaadb5549bf5a926ae. Audits PAUSED/no launches; full goal active/incomplete. Local only/no push/merge/publish. Unrelated dirt/protected sources/signing preserved.
+
 # Latest checkpoint - jink locality trace
 
 ## 2026-10-21 - Jink locality boundary trace

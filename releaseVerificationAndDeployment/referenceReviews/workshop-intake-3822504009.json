@@ -182,5 +182,23 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "productChanged": false
+  },
+  "groundWeaponIntentTrace20261021": {
+    "baseline": "b06239f1",
+    "sourceScope": "fn_armored_force lines77..144 and281..357 inspected for magazine/name classification, ATGM fire requests, exact target lead/reveal and relocation admission; not a new whole-file review. Current CBE readiness/selection headers, actual station/muzzle evaluation and reserve load admission/pending/candidate/commit portions traced.",
+    "sourceFindings": "ATGM identity relies on weapon/magazine names and whole-vehicle ammo. Requests ATGM and first weapon fire without exact selected-muzzle qualification. Counts requests and can start relocation without demonstrated shots or arrival. Exact live target pose/velocity, reveal and fixed lead are not justified by belief-only fire control.",
+    "currentImplementation": "CBE reads selected native gunner station, <=16 weapons/8 muzzles each/32 state queries; only loaded damaging target-suitable rounds qualify. Exact requested muzzle rechecked before selection. Reserve loading uses actual station inventory/compatible muzzle, original native order/target/contact stamp/opportunity and finite native completion observation; no delayed fire from READY. Existing suppression requires loaded nonexplosive bullet policy.",
+    "decision": "No second utility/combat classifier, name-based ATGM heuristic, fixed target lead, extra watcher or speculative firing change. Existing role-specific readiness is stronger than whole-vehicle weapon presence; horn classification remains domain admission rather than firing proof.",
+    "hashes": {
+      ".qa/protocol-armour-3822504009-review/functions/fn_armored_force.sqf": "f0b14982dca5aa4a574520ddf287730ec26f12a1bd8b571f6eccab106a087355",
+      "addons/infantry/functions/cortexGroundFireReady.sqf": "c3b7b841361a8c622e8453444d632c3406fd49a2ae7d5b0e42c99111d7c4aa20",
+      "addons/infantry/functions/cortexGroundSelectMuzzle.sqf": "6cb43145064d3a222c0bb731c797919e478ab51b80aa116c2eab7835a2d9c299",
+      "addons/infantry/functions/cortexGroundReload.sqf": "21b92bb59420b61561d730af0134daa43ed2804bd3093443dc0245eef2709e6d"
+    },
+    "validation": "Four existing focused loaded-station/reserve/suppression regressions passed. No product change, unchanged full build not repeated.",
+    "limits": "Not native guided-lock/terminal effect or whole Protocol armour parity. Actual muzzle selection, reload timing, fired shots, hit/effect, varied mod loadouts, owner migration, balance and runtime performance remain unverified. No score changes.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "productChanged": false
   }
 }
