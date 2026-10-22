@@ -970,7 +970,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(queued.index('CBE_fnc_CortexExternalTakeover'),queued.index('_unit doWatch'))
         self.assertIn('CBE_fnc_DangerActionSelect',step)
         self.assertIn('private _actor=[_group] call CBE_fnc_CortexGroupAnchor;',step)
-        self.assertIn('[_observer,_cause,_position,_action] call CBE_fnc_DangerReact',step)
+        self.assertIn('[_observer,_cause,_position,_action,_response select 3] call CBE_fnc_DangerReact',step)
         self.assertIn('time+_responseLifetime',step)
         self.assertIn('time >= (_existing select 3)',step)
         self.assertIn('if (_action == "FORCED") exitWith {',step)
@@ -1787,9 +1787,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _operationAnchor=[_group] call CBE_fnc_CortexGroupAnchor;',start)
         self.assertIn('private _dangerPosture=(vehicle _operationAnchor) isEqualTo _operationAnchor;',start)
         self.assertIn('["dangerPosture",_dangerPosture]',start)
-        self.assertIn('[_dangerObserver,_dangerCause,_dangerPosition,_dangerAction] call CBE_fnc_DangerReact',start)
+        self.assertIn('[_dangerObserver,_dangerCause,_dangerPosition,_dangerAction,_liveDanger select 3] call CBE_fnc_DangerReact',start)
+        reaction=source('dangerReact')
+        self.assertIn('_dangerAction,_liveDanger select 3] call CBE_fnc_DangerReact',start)
+        self.assertIn('(time+_duration) min _responseUntil',reaction)
+        self.assertLess(reaction.index('if (!(_responseUntil isEqualType 0)'),reaction.index('_group setBehaviour \"COMBAT\"'))
+        deadline=13
+        for transition in (10,11,12.9):
+            self.assertEqual(min(transition+3,deadline),13)
+
         self.assertIn('[_operationAnchor,"RELEASE"] call CBE_fnc_DangerReact',start)
-        self.assertLess(start.index('_group setVariable ["CBE_Operation",_operation,true]'),start.index('_dangerAction] call CBE_fnc_DangerReact'))
+        self.assertLess(start.index('_group setVariable ["CBE_Operation",_operation,true]'),start.index('_dangerAction,_liveDanger select 3] call CBE_fnc_DangerReact'))
         self.assertIn('CBE_fnc_CortexGroupMoveClear',cancel)
         for native_path in ['dangerEngineMode','dangerEngineRecycle','dangerEngineSubmit']:
             self.assertIn('captive _source',source(native_path))
@@ -1925,6 +1933,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('(_dangerEvent param [2,-1,[0]]) != (_dangerResponse select 2)',completion)
             self.assertIn('call CBE_fnc_DangerActionSelect',completion)
             self.assertIn('call CBE_fnc_DangerReact',completion)
+            self.assertIn('_dangerAction,_dangerResponse select 3] call CBE_fnc_DangerReact',completion)
             self.assertLess(completion.index('_group setVariable ["CBE_Operation",nil,true]'),completion.index('private _dangerEvent='))
         self.assertIn('CBE_fnc_CortexZeusHeld',step)
         self.assertIn('participantProgress',start)

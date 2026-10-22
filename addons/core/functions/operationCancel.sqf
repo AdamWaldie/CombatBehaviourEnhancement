@@ -86,6 +86,6 @@ if (_operation getOrDefault ["dangerPosture",false] && {count _dangerResponse ==
     };
     if (isNull _dangerActor) then {_dangerActor=[_group] call CBE_fnc_CortexGroupAnchor};
     private _dangerAction=[_group,_dangerEvent] call CBE_fnc_DangerActionSelect;
-    [_dangerActor,_dangerEvent select 0,_dangerEvent select 1,_dangerAction] call CBE_fnc_DangerReact;
+    [_dangerActor,_dangerEvent select 0,_dangerEvent select 1,_dangerAction,_dangerResponse select 3] call CBE_fnc_DangerReact;
 };
 true

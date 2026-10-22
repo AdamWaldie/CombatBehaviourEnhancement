@@ -193,7 +193,7 @@ if (_dangerPosture) then {
         };
         private _dangerAction=[_group,_dangerEvent] call CBE_fnc_DangerActionSelect;
         private _dangerObserver=_dangerEvent param [5,_operationAnchor,[objNull]];
-        [_dangerObserver,_dangerCause,_dangerPosition,_dangerAction] call CBE_fnc_DangerReact;
+        [_dangerObserver,_dangerCause,_dangerPosition,_dangerAction,_liveDanger select 3] call CBE_fnc_DangerReact;
     };
 };
 _operation

@@ -241,7 +241,7 @@ if (_replace) then {
     // must not turn a still-live HIDE response into ENGAGE while diagnostics continue to report
     // the hit/explosion that caused it. Equal priority updates deliberately refresh the short
     // lease from the newest observation.
-    [_observer,_cause,_position,_action] call CBE_fnc_DangerReact;
+    [_observer,_cause,_position,_action,_response select 3] call CBE_fnc_DangerReact;
     _group setVariable ["CBE_Danger_Response",_response,true];
     _group setVariable ["CBE_Danger_ResponseEvent",+_selected];
     // Keep the responder beside the action lease. CBE_Danger_LastAssessment is intentionally the

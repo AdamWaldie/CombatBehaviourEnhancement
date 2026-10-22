@@ -9,12 +9,13 @@
  * Restoration atomically rechecks the exact lease, actor/group locality, epoch and generation.
  * Cleanup may retire a dead observer's group lease using a surviving local posture anchor. New reactions require a live observer.
  * Repeat/JIP: One public lease contains prior/applied values, operation generation, locality epoch and owner. Repeated events extend the lease; restore changes only values still matching CBE's application and discards its lease on external takeover. DangerStep owns the finite response context.
- * Arguments: 0 actor <OBJECT>; 1 cause <STRING, RESTORE or RELEASE>; 2 approximate danger position <ARRAY, []>; 3 classified action <STRING, "">.
+ * Arguments: 0 actor <OBJECT>; 1 cause <STRING, RESTORE or RELEASE>; 2 approximate danger position <ARRAY, []>; 3 classified action <STRING, "">; 4 original response deadline <NUMBER, -1>.
+ * An omitted deadline starts a fresh reaction; operation handoffs retain the existing response expiry.
  * Return Value: STRING - RESTORED, RESTORE_PENDING, UNRESOLVED, ASSESS, POSTURE, YIELDED or IGNORED.
  * Current callers: DangerStep and CortexGroupTick cleanup.
  * Example: [leader group player,"SUPPRESSED",getPosATL player,"HIDE"] call CBE_fnc_DangerReact;
  */
-params [["_actor",objNull,[objNull]],["_cause","RESTORE",[""]],["_position",[],[[]]],["_action","",[""]]];
+params [["_actor",objNull,[objNull]],["_cause","RESTORE",[""]],["_position",[],[[]]],["_action","",[""]],["_responseUntil",-1]];
 if (isNull _actor || {!local _actor} || {!alive _actor && {!(_cause in ["RESTORE","RELEASE"])}}) exitWith {"IGNORED"};
 private _group=group _actor;
 if (isNull _group || {!local _group}) exitWith {"IGNORED"};
@@ -90,6 +91,9 @@ if (_cause in ["RESTORE","RELEASE"]) exitWith {
     };
     _restoreResult
 };
+// Handoffs cannot restart a response clock. Validate before any posture write.
+if (!(_responseUntil isEqualType 0) || {!finite _responseUntil}
+    || {_responseUntil != -1 && {_responseUntil <= time}}) exitWith {"IGNORED"};
 if !(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"]) exitWith {"IGNORED"};
 if (_yieldToOwner) exitWith {"IGNORED"};
 // The immediate FSM response is deliberately posture-only. Movement, target assignment and route
@@ -115,6 +119,7 @@ private _postureResult="IGNORED";
 isNil {
     _postureResult=call {
         if (isNull _actor || {!local _actor} || {!local _group} || {group _actor != _group}
+            || {_responseUntil != -1 && {_responseUntil <= time}}
             || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
             || {_generation != (_group getVariable ["CBE_OperationGeneration",0])}
             || {(_group getVariable ["CBE_Danger_ReactionLease",[]]) isNotEqualTo _lease}
@@ -194,7 +199,8 @@ private _duration=switch (_cause) do {
     case "DETECTED": {1.5};
     default {1};
 };
-private _until=(time + _duration) max (if (_leaseIntact) then {_lease select 4} else {-1});
+private _requestedUntil=if (_responseUntil == -1) then {time+_duration} else {(time+_duration) min _responseUntil};
+private _until=_requestedUntil max (if (_leaseIntact) then {_lease select 4} else {-1});
 _group setVariable ["CBE_Danger_ReactionLease",[_priorBehaviour,_appliedBehaviour,_priorCombat,_appliedCombat,_until,_generation,_epoch,clientOwner],true];
 "POSTURE"
     };
