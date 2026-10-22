@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Pulls a broken squad back, away from the enemy, under smoke.
+ * Resume retains the original120-second server-time episode, with no minimum lease extension.
+ * Expired/malformed resume intent refuses before teardown; route issue rechecks remaining time.
  * Concrete native tasks, queued care and native flight defer startup before geometry/support teardown.
  * Incapacitated nonparticipants do not alone veto the healthy survivors' route. Group behaviour,
  * combat and speed application commits under the same footprint and records only confirmed writes.
@@ -63,6 +65,13 @@ private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (!([_leader] call CBE_fnc_CortexCombatEffective) || {!local _leader} || {group _leader != _group}) exitWith {false};
 private _resuming = count _resume == 7 && {(_resume select 0) == "INFANTRY"};
+if (_resume isNotEqualTo [] && {!_resuming}) exitWith {false};
+private _startedAt = if (_resuming) then {_resume select 4} else {serverTime};
+if (!(_startedAt isEqualType 0) || {!finite _startedAt} || {_startedAt < 0}
+    || {_startedAt > serverTime+1}) exitWith {false};
+private _elapsed = (serverTime-_startedAt) max 0;
+if (_elapsed >= 120) exitWith {false};
+
 private _enemyPos = if (_resuming) then {_resume select 3} else {_state getOrDefault ["enemyPos", []]};
 if (count _enemyPos < 2) exitWith {false};
 private _distance = (missionNamespace getVariable ["CBE_AIPass_Morale_RetreatDistance", 200]) * ([_group, "retreatScale"] call CBE_fnc_CortexProfile);
@@ -95,6 +104,9 @@ if (_point isEqualTo []) exitWith {
     _group setVariable ["CBE_Cortex_Withdrawal",["BLOCKED",0,0],true];
     false
 };
+// Preserve the original episode even when setup is called by a scheduled script.
+_elapsed=(serverTime-_startedAt) max 0;
+if (_elapsed >= 120) exitWith {false};
 // Finish any manoeuvre before acquiring its attack-setting restoration record.
 if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
     [_group,_state,"RETREAT"] call CBE_fnc_CortexFlankEnd;
@@ -105,8 +117,7 @@ if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_
     [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
 [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
-private _remainingLease=(120-((serverTime-(if (_resuming) then {_resume select 4} else {serverTime})) max 0)) max 3;
-if !([_group,"INFANTRY_WITHDRAW",true,serverTime+_remainingLease] call CBE_fnc_CortexOwnershipLease) exitWith {
+if !([_group,"INFANTRY_WITHDRAW",true,_startedAt+120] call CBE_fnc_CortexOwnershipLease) exitWith {
     _group setVariable ["CBE_Cortex_Withdrawal",["EXTERNAL_BUSY",0,0],true];
     false
 };
@@ -173,6 +184,14 @@ isNil {
         }];
     };
 };
+_elapsed=(serverTime-_startedAt) max 0;
+if (_elapsed >= 120) exitWith {
+    [_group,_generation,"INCOMPLETE","EPISODE_EXPIRED"] call CBE_fnc_OperationRelease;
+    [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+    _group setVariable ["CBE_Cortex_Withdrawal",["EXPIRED",0,0],true];
+    false
+};
+_operation set ["startedAt",time-_elapsed];
 private _waypoint=[_group,_point,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
@@ -192,11 +211,10 @@ _group enableAttack false;
 // Group policy commits after the route/episode bookkeeping below.
 
 private _origin = if (_resuming) then {+(_resume select 1)} else {getPosATL _leader};
-private _startedAt = if (_resuming) then {_resume select 4} else {serverTime};
 private _replans = if (_resuming) then {_resume select 5} else {0};
 private _bestTravel = if (_resuming) then {_resume select 6} else {0};
-private _elapsed = (serverTime-_startedAt) max 0;
-private _remaining = (120-_elapsed) max 3;
+_elapsed = (serverTime-_startedAt) max 0;
+private _remaining = 120-_elapsed;
 _state set ["movementLease",["INFANTRY_WITHDRAW",time+_remaining]];
 _state set ["retreatStart",_origin];
 _state set ["retreatTarget",_point];

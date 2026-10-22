@@ -100,5 +100,17 @@
       "addons/support/functions/cortexSupportMaintain.sqf": "780eaf27715529f3cb0418ec577ca172e296ef87347fd3c15e99a39696d9861d",
       "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "f184c554b47aa6378f62909bf4f31fcc7844b94f04175a4dbfc582354dbfa4ba"
     }
+  },
+  "withdrawalOriginalDeadline20261022": {
+    "baseline": "6e7c19fb",
+    "change": "Infantry resumption and shared movement leases preserve the original absolute deadline; reject malformed or expired acquisition before driving handback. No minimum three-second or one-second extension. Release remains independent of expiry.",
+    "validation": "1491 tests plus full local build and independent package verification passed. Existing cases extended.",
+    "candidate": ".qa/candidates/withdrawal-original-deadline-6e7c19fb",
+    "fingerprint": "8909aad37c2451e541db392bd1313f53e9ea21a9d89f43ce19480ba2478becc2",
+    "limitations": [
+      "Unsigned dirty development snapshot; retained unrelated changes.",
+      "No in-engine, HC/JIP or measured performance validation; audits paused.",
+      "Infantry locality resumption native-order receipt coverage remains a separate unresolved trace; do not claim complete handover parity."
+    ]
   }
 }

@@ -207,6 +207,13 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexFeatureEnabled',src('cortexArtilleryShot'))
     def test_wait_movement_lease_is_exclusive_and_owner_scoped(self):
         lease = src('cortexOwnershipLease')
+        self.assertIn('[_owner,_expires]',lease)
+        self.assertNotIn('_expires max (serverTime + 1)',lease)
+        for guard in ('!(_acquire isEqualType true)','!(_expires isEqualType 0)','_expires <= serverTime'):
+            self.assertIn(guard,lease)
+        self.assertLess(lease.index('_expires <= serverTime'),lease.index('call CBE_fnc_DrivingOperationFinish'))
+        self.assertGreaterEqual(lease.count('_expires <= serverTime'),2)
+
         for contract in ['CBE_Cortex_MovementLease','CBE_Cortex_OwnershipBusyRefusals',
                          'serverTime','CBE_fnc_CortexExternalTakeover']:
             self.assertIn(contract,lease)

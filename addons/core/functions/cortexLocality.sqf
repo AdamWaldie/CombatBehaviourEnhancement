@@ -411,6 +411,8 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
     && {(_withdrawalIntent select 0) in ["INFANTRY","VEHICLE"]}
     && {count (_withdrawalIntent select 2) >= 2}
     && {count (_withdrawalIntent select 3) >= 2}
+    && {(_withdrawalIntent select 4) isEqualType 0} && {finite (_withdrawalIntent select 4)}
+    && {(_withdrawalIntent select 4) >= 0} && {(_withdrawalIntent select 4) <= serverTime+1}
     && {serverTime-(_withdrawalIntent select 4) < 120}
     && {(_withdrawalIntent select 0) != "VEHICLE" || {_vehicleWithdrawalOrderCurrent}}
     && {[_group] call CBE_fnc_CortexIsEligible}

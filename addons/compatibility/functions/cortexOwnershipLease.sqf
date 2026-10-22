@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Gives one finite CBE operation exclusive ownership of the group's CBE movement domain.
  * Locality / Authority: Call only where the group is local. The public lease follows group locality so a server or headless-client owner can renew or release it.
- * Repeat/JIP: Reacquiring the same owner renews its deadline without replacing the captured baseline.
+ * Repeat/JIP: Reacquiring the same owner uses the explicitly supplied live deadline.
+ * Missing expiry defaults to thirty seconds; invalid/expired explicit expiry is refused before
+ * ordinary-driving handback. No minimum duration is minted and release is independent of expiry.
  * Unknown/malformed existing leases refuse acquisition and release; only their producer or an
  * explicit administrative repair can resolve unrecognised state. Discovery never renews a lease.
  * A competing unexpired CBE owner is refused; external ownership is handled before acquisition. Repeated release is safe.
@@ -17,10 +19,10 @@
 params [
     ["_group",grpNull,[grpNull]],
     ["_owner","",[""]],
-    ["_acquire",true,[false]],
-    ["_expires",serverTime + 30,[0]]
+    ["_acquire",true],
+    ["_expires",serverTime + 30]
 ];
-if (isNull _group || {!local _group}) exitWith {false};
+if (isNull _group || {!local _group} || {!(_acquire isEqualType true)}) exitWith {false};
 
 private _lease=_group getVariable ["CBE_Cortex_MovementLease",[]];
 private _typed=_lease isEqualType [] && {count _lease == 2}
@@ -29,7 +31,8 @@ private _typed=_lease isEqualType [] && {count _lease == 2}
 if (_lease isNotEqualTo [] && {!_typed}) exitWith {false};
 private _live=_typed && {serverTime < (_lease select 1)};
 if (_acquire) exitWith {
-    if (_owner == "" || {!finite _expires} || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+    if (_owner == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
     if (_live && {(_lease select 0) != _owner}) exitWith {
         missionNamespace setVariable [
             "CBE_Cortex_OwnershipBusyRefusals",
@@ -41,9 +44,9 @@ if (_acquire) exitWith {
     // successor tactical lease or allowing its caller to issue movement/speed commands.
     private _drivingBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
     if (count _drivingBrain > 0) then {[_drivingBrain,"TACTICAL_HANDOVER"] call CBE_fnc_DrivingOperationFinish};
-    if (!local _group || {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isNotEqualTo _lease}
+    if (!local _group || {_expires <= serverTime} || {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isNotEqualTo _lease}
         || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
-    _group setVariable ["CBE_Cortex_MovementLease",[_owner,_expires max (serverTime + 1)],true];
+    _group setVariable ["CBE_Cortex_MovementLease",[_owner,_expires],true];
     true
 };
 
