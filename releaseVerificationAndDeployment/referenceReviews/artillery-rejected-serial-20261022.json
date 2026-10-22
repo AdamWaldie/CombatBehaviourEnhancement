@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-22",
+  "baseline": "984ed113",
+  "finding": "Owner idempotence retained only issued native shots. A refused serial left no receipt and could execute if a duplicate arrived after its task/safety gate changed. Rejection callbacks matched token/owner but not the current shot serial.",
+  "implementation": [
+    "Separate one last-refused token/serial/signature/time receipt; issued-shot receipt semantics unchanged.",
+    "Request classification chooses the highest observed issued/refused serial for the same token. Duplicate, stale and conflicting payloads do not fire or reject a newer pending request.",
+    "Refusal publication requires current local battery and exact current fire token. Old token refusals cannot overwrite a successor refusal receipt.",
+    "Rejection reply carries finite positive integral serial; server requires exact pending mission serial plus existing token/owner/phase checks before mutation.",
+    "Two fixed receipt lookups, no queue scan, worker, timer or native firing command added."
+  ],
+  "validation": {
+    "tests": 1489,
+    "compiledSQF": 401,
+    "focusedTests": 2,
+    "buildLog": ".qa/artillery-rejected-serial-build.log",
+    "independentLog": ".qa/artillery-rejected-serial-independent-verify.log",
+    "candidate": ".qa/candidates/artillery-rejected-serial-984ed113",
+    "fingerprint": "aeb24ed2ebc102e05b2903268050f52aaa80552985e0ba14afb1d71792429037",
+    "provenance": "Unsigned development build: baseline+intended edits+retained unrelated dirty state."
+  },
+  "limits": [
+    "Source/static contracts are not actual SQF/message-order execution.",
+    "Public receipts do not guarantee ordered replication to a new owner; delayed HC transfer and physical no-duplicate firing remain unverified.",
+    "A refusal is not firing evidence; actual shell event remains separate.",
+    "Audits PAUSED; no push/merge/publication; no parity or percentage change."
+  ],
+  "sourceHashes": {
+    "addons/support/functions/cortexArtilleryShot.sqf": "b7084d5f258b846bafbd140622a7b359b664b02d9bab4b04ac1a2da65aecc94b",
+    "addons/support/functions/cortexArtilleryRejected.sqf": "bdcd596d7ad710955b34f7dacda3d79b56f8dc4363476d0c7b68ff214806440c",
+    "releaseVerificationAndDeployment/test_artillery_shot_serial.py": "a1fdcd295cae6e04c56adf2326602d2afca8a3052d831513520c6b9481629ba0"
+  }
+}

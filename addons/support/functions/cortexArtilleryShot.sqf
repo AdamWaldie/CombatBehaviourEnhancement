@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Refused serials are retained separately from issued shots; later duplicate requests cannot fire.
  * Danger-fix expiry is part of shot identity and rechecked at final native issue; no renewal.
  * Current gunner availability, protected tasks/treatment, simulation and player/specialist
  * control are checked before safety work and again at the atomic native shot boundary.
@@ -29,12 +30,23 @@ if (!(_aim isEqualType []) || {!(count _aim in [2,3])}
     || {_aim findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
 private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration,_fireGeneration,_smokeGeneration,_dangerUntil];
 private _requestState={
-    private _receipt=_battery getVariable ["CBE_AIPass_ShotReceipt",[]];
+    private _receipt=[];
+    private _invalid=false;
+    {
+        private _candidate=_battery getVariable [_x,[]];
+        if (_candidate isNotEqualTo []) then {
+            if (!(_candidate isEqualType []) || {count _candidate != 4}
+                || {!((_candidate select 0) isEqualType "")}
+                || {!((_candidate select 1) isEqualType 0)} || {!finite (_candidate select 1)}) then {
+                _invalid=true;
+            } else {
+                if ((_candidate select 0) == _token && {_receipt isEqualTo []
+                    || {(_candidate select 1) > (_receipt select 1)}}) then {_receipt=_candidate};
+            };
+        };
+    } forEach ["CBE_AIPass_ShotReceipt","CBE_ArtilleryShot_RejectedReceipt"];
+    if (_invalid) exitWith {"INVALID"};
     if (_receipt isEqualTo []) exitWith {"NEW"};
-    if (!(_receipt isEqualType []) || {count _receipt != 4}
-        || {!((_receipt select 0) isEqualType "")}
-        || {!((_receipt select 1) isEqualType 0)} || {!finite (_receipt select 1)}) exitWith {"INVALID"};
-    if ((_receipt select 0) != _token) exitWith {"NEW"};
     if (_shotSerial < (_receipt select 1)) exitWith {"STALE"};
     if (_shotSerial == (_receipt select 1)) exitWith {
         ["CONFLICT","DUPLICATE"] select ((_receipt select 2) isEqualTo _signature)
@@ -46,7 +58,13 @@ private _requestState={
 private _request=call _requestState;
 if (_request != "NEW") exitWith {_request in ["DUPLICATE","STALE"]};
 private _reject = {
-    [_battery, _token, clientOwner] remoteExecCall ["CBE_fnc_CortexArtilleryRejected", 2];
+    // A refused serial is consumed without claiming a native shot. A duplicate
+    // cannot become executable later merely because treatment, pause or safety changed.
+    if (local _battery && {(_battery getVariable ["CBE_AIPass_FireToken",""]) == _token}
+        && {(call _requestState) == "NEW"}) then {
+        _battery setVariable ["CBE_ArtilleryShot_RejectedReceipt",[_token,_shotSerial,_signature,serverTime],true];
+    };
+    [_battery, _token, clientOwner,_shotSerial] remoteExecCall ["CBE_fnc_CortexArtilleryRejected", 2];
     false
 };
 private _fireGenerationName=switch (_purpose) do {

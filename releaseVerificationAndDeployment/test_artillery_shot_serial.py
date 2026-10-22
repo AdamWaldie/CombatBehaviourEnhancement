@@ -23,4 +23,15 @@ class ArtilleryShotSerial(unittest.TestCase):
         self.assertLess(commit.index('CBE_AIPass_ShotReceipt",[_token,_shotSerial,_signature,serverTime],true'),commit.index('doArtilleryFire'))
         self.assertEqual(s.count('_battery doArtilleryFire'),1)
         self.assertNotIn('CBE_AIPass_ShotReceipt",nil',s)
+        self.assertIn('forEach ["CBE_AIPass_ShotReceipt","CBE_ArtilleryShot_RejectedReceipt"]',state)
+        self.assertIn('(_candidate select 1) > (_receipt select 1)',state)
+        reject=s.split('private _reject =',1)[1].split('private _fireGenerationName=',1)[0]
+        self.assertIn('CBE_ArtilleryShot_RejectedReceipt",[_token,_shotSerial,_signature,serverTime],true',reject)
+        self.assertNotIn('setVariable ["CBE_AIPass_ShotReceipt"',reject)
+        self.assertIn('_token, clientOwner,_shotSerial]',reject)
+        response=(ROOT/'addons/support/functions/cortexArtilleryRejected.sqf').read_text(encoding='utf-8')
+        self.assertLess(response.index('_shotSerial != (_mission getOrDefault ["shotSerial",-1])'),
+                        response.index('_mission set ["remaining", 0]'))
+        self.assertIn('_shotSerial != floor _shotSerial',response)
+
 if __name__=='__main__': unittest.main()
