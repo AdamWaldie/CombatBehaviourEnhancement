@@ -6,6 +6,8 @@
  * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
  * Geometry and source keep their original separate engine expiries across that handoff.
  * Expired records may support a local reflex but cannot bootstrap fresh group evidence.
+ * Recycled knowledge samples carry DETECTED group awareness, never a new hit/near-round/
+ * firing-opportunity claim. The actor FSM retains its original cause and finite cycle budget.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
  * Repeat/JIP: Safe to repeat. A valid first observation may install the group's bounded contact
@@ -13,7 +15,8 @@
  * DangerRequest then coalesces each cause and generation on the current group owner. A locality
  * change ends the old engine FSM and fresh engine danger starts on the new owner.
  * Arguments: 0: affected soldier <OBJECT>, objNull; 1: engine records <ARRAY>, each
- * [cause number, ATL/ASL position, expiry number, source object], []; 2: selected response mode
+ * [cause NUMBER, ATL/ASL position ARRAY, expiry NUMBER, source OBJECT, optional recycle cycle NUMBER=0],
+ * [] by default. Cycle must be integral0..3; zero is a physical engine event. 2: selected response mode
  * <STRING>, ASSESS. FORCED records remain local observations and RELEASE records are discarded
  * before group planning.
  * Return Value: Boolean - true when at least one valid record was processed for a local reflex or
@@ -46,7 +49,9 @@ private _reflexOnly=0;
         private _cause=_x param [0,-1,[0]];
         private _position=+(_x param [1,[],[[]]]);
         private _expires=_x param [2,time,[0]];
-        if (finite _cause && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expires} && {_expires >= time - 0.25}) then {
+        private _cycle=_x param [4,0];
+        if (_cycle isEqualType 0 && {finite _cycle} && {_cycle == floor _cycle} && {_cycle >= 0} && {_cycle <= 3}
+            && {finite _cause} && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expires} && {_expires >= time - 0.25}) then {
             _processed=true;
             if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
             private _source=_x param [3,objNull,[objNull]];
@@ -68,7 +73,10 @@ private _reflexOnly=0;
                 if (_cause in [0,3,8]) then {_hostileEngage} else {!_knownFriendly || {_cause in [5,6,7]}}
             };
             if (count _position == 3 && {_groupRelevant} && {_expires > time}) then {
-                private _causeName=_causeNames select _cause;
+                // Recycling resamples native belief, not the physical event which started it.
+                // Preserve that event only in the actor response. A fresh real native callback
+                // remains cycle zero and keeps its full group priority.
+                private _causeName=if (_cycle > 0) then {"DETECTED"} else {_causeNames select _cause};
                 // The engine supplies the current record before its queued records. Select by
                 // expiry rather than iteration order so an older queued duplicate cannot replace
                 // the freshest geometry or erase a valid hostile identity during dense contact.

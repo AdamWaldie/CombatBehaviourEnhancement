@@ -98,7 +98,7 @@ if (_mode == 'VEHICLE') then {
     _stats set ['vehicleRecycleActors',_actors];
 };
 _group setVariable ['CBE_Danger_EngineStats',_stats];
-// Retain the cause which justified the response. Collapsing a continuing hit or near-round event
-// into DETECTED made the next group handoff lose its safety priority and could prematurely retire
-// a mounted response even though the same known hostile remained actionable.
+// Retain the original cause for this finite actor/domain response. The positive cycle count
+// marks resampled native belief: DangerEngineSubmit publishes it as DETECTED awareness rather
+// than inventing another physical hit/near round or firing opportunity for the group.
 [_cause,+_position,time+1.5,_source,_cycle+1]

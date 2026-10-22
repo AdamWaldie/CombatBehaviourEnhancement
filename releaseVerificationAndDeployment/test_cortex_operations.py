@@ -1416,6 +1416,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_actor distance2D _position >= 35',engine_recycle)
         self.assertIn('(side _group) getFriend (side _source) >= 0.6',engine_recycle)
         self.assertIn('[_cause,+_position,time+1.5,_source,_cycle+1]',engine_recycle)
+        self.assertIn('private _cycle=_x param [4,0];',engine)
+        self.assertIn('_cycle isEqualType 0 && {finite _cycle}',engine)
+        self.assertIn('if (_cycle > 0) then {"DETECTED"} else {_causeNames select _cause}',engine)
+        def group_cause(cause,cycle):
+            return 'DETECTED' if cycle>0 else cause
+        for cause in ('HIT','PROXIMITY','CANFIRE','SUPPRESSED'):
+            self.assertEqual(group_cause(cause,0),cause)
+            self.assertEqual(group_cause(cause,1),'DETECTED')
+        # A retained real hit expires at3. Belief samples cannot give it a fresh clock.
+        live=('HIT',3)
+        priority={'HIT':9,'DETECTED':2}
+        for now in (1,2.9,3.1):
+            candidate=(group_cause('HIT',1),now+1.5)
+            if now>=live[1] or priority[candidate[0]]>=priority[live[0]]:live=candidate
+            if now<3:self.assertEqual(live,('HIT',3))
+        self.assertEqual(live[0],'DETECTED')
         self.assertNotIn('[0,+_position,time+1.5,_source',engine_recycle)
         self.assertIn("case 'ENGAGE': {2}",engine_recycle)
         self.assertIn("case 'VEHICLE': {3}",engine_recycle)
