@@ -112,5 +112,17 @@
       "No in-engine, HC/JIP or measured performance validation; audits paused.",
       "Infantry locality resumption native-order receipt coverage remains a separate unresolved trace; do not claim complete handover parity."
     ]
+  },
+  "withdrawalNativeOrderAdoption20261022": {
+    "baseline": "5bd02b67",
+    "finding": "Infantry locality withdrawal resumption lacked the vehicle path native waypoint replacement guard.",
+    "implementation": "Publish infantry native receipt after successful route creation; update either withdrawal kind only after successful replan; require matching pre-cleanup receipt for both kinds on locality adoption. Existing calm cleanup removes the obsolete receipt.",
+    "validation": "Full1491 local tests, compilation/FSM/config/docs/SQF/package gates and independent package verification passed. Existing regression cases extended.",
+    "candidate": ".qa/candidates/withdrawal-order-adoption-5bd02b67",
+    "fingerprint": "63d347f1c151aa41a646b78178c5a500059a447b72dcf136f75fe01d20b6f6e9",
+    "limitations": [
+      "Unsigned dirty development snapshot including retained unrelated dirt; engineering metadata afterward.",
+      "No physical movement, HC/JIP, same-valued native order identity or measured performance proof. Audits paused."
+    ]
   }
 }

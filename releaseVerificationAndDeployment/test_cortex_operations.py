@@ -6209,6 +6209,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_operation set ["startedAt",time-_elapsed]',retreat)
         self.assertIn('"EPISODE_EXPIRED"',retreat)
         self.assertIn('(_withdrawalIntent select 4) <= serverTime+1',locality)
+        self.assertIn('setVariable ["CBE_Cortex_WithdrawalOrder",[_startedAt,',retreat)
+        self.assertLess(retreat.index('"MOVEMENT_REJECTED"'),retreat.index('setVariable ["CBE_Cortex_WithdrawalOrder"'))
+        self.assertIn('&& {_withdrawalOrderCurrent}',locality)
+        self.assertNotIn('!= "VEHICLE" || {_withdrawalOrderCurrent}',locality)
+        replan=tick.split('// Refresh only after a successful CBE replan',1)[1].split('_bestTravel = _travel',1)[0]
+        self.assertIn('CBE_fnc_NativeOrderReceipt',replan)
+        self.assertNotIn('VEHICLE_WITHDRAW',replan)
 
         self.assertIn('_intent set [5,_replans]',tick)
         self.assertIn('_intent set [6,_bestTravel]',tick)
@@ -6309,8 +6316,8 @@ class CortexOperations(unittest.TestCase):
         adoption_guard=locality.split('private _withdrawalOrder=',1)[1].split('private _transitionIntent',1)[0]
         self.assertIn('(_withdrawalOrder select 0) isEqualTo (_withdrawalIntent select 4)',adoption_guard)
         self.assertIn('(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',adoption_guard)
-        self.assertLess(locality.index('private _vehicleWithdrawalOrderCurrent='),locality.index('"OWNERSHIP_LOST"] call CBE_fnc_OperationCancel'))
-        self.assertIn('(_withdrawalIntent select 0) != "VEHICLE" || {_vehicleWithdrawalOrderCurrent}',locality)
+        self.assertLess(locality.index('private _withdrawalOrderCurrent='),locality.index('"OWNERSHIP_LOST"] call CBE_fnc_OperationCancel'))
+        self.assertIn('&& {_withdrawalOrderCurrent}',locality)
         vehicle_resume=locality.split('== "VEHICLE"',1)[1]
         self.assertIn('CortexGroupMove',vehicle_resume)
         self.assertIn('["VEHICLE_WITHDRAW",time+_remaining]',vehicle_resume)

@@ -9,6 +9,7 @@
  * durable clearance orders are never treated as inherited drill movement.
  * restores interrupted transient behaviour and resumes a bounded support assignment,
  * investigation, search, standalone manoeuvre or withdrawal after CBE or ACE migration. A Zeus hold or the
+ * Both withdrawal kinds require their unchanged pre-cleanup native-order receipt. The
  * matching infantry-morale/vehicle-withdrawal gate cancels restoration so migration cannot revive
  * superseded work or incorrectly couple the two withdrawal types.
  * Coordinated support captures observed spent recovery counts and unavailable actors before
@@ -50,7 +51,7 @@ private _withdrawalIntent = _group getVariable ["CBE_Cortex_WithdrawalIntent",[]
 // Compare before old-operation cancellation removes its exact temporary route. Intent alone
 // cannot authorize resumption after a mission script replaces the native order during transfer.
 private _withdrawalOrder=_group getVariable ["CBE_Cortex_WithdrawalOrder",[]];
-private _vehicleWithdrawalOrderCurrent=count _withdrawalIntent == 7 && {count _withdrawalOrder == 2}
+private _withdrawalOrderCurrent=count _withdrawalIntent == 7 && {count _withdrawalOrder == 2}
     && {(_withdrawalOrder select 0) isEqualTo (_withdrawalIntent select 4)}
     && {(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _transitionIntent = _group getVariable ["CBE_Cortex_TransitionIntent",[]];
@@ -414,7 +415,7 @@ private _withdrawalResumeEligible=count _withdrawalIntent == 7
     && {(_withdrawalIntent select 4) isEqualType 0} && {finite (_withdrawalIntent select 4)}
     && {(_withdrawalIntent select 4) >= 0} && {(_withdrawalIntent select 4) <= serverTime+1}
     && {serverTime-(_withdrawalIntent select 4) < 120}
-    && {(_withdrawalIntent select 0) != "VEHICLE" || {_vehicleWithdrawalOrderCurrent}}
+    && {_withdrawalOrderCurrent}
     && {[_group] call CBE_fnc_CortexIsEligible}
     && {_withdrawalGateOpen}
     && {!([_group] call CBE_fnc_CortexZeusHeld)};

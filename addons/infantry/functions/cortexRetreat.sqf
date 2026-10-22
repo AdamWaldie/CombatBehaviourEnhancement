@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Pulls a broken squad back, away from the enemy, under smoke.
+ * Successful routes publish native-order identity for pre-cleanup locality adoption checks.
  * Resume retains the original120-second server-time episode, with no minimum lease extension.
  * Expired/malformed resume intent refuses before teardown; route issue rechecks remaining time.
  * Concrete native tasks, queued care and native flight defer startup before geometry/support teardown.
@@ -222,6 +223,8 @@ _state set ["retreatProgress",[time,_bestTravel,_replans]];
 _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",round (_leader distance2D _origin),_replans],true];
 private _withdrawalIntent=["INFANTRY",_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel];
 _group setVariable ["CBE_Cortex_WithdrawalIntent",_withdrawalIntent,true];
+_group setVariable ["CBE_Cortex_WithdrawalOrder",[_startedAt,
+    [_group] call CBE_fnc_NativeOrderReceipt],true];
 // Only current native-confirmed group writes acquire restoration proof. The complete
 // footprint is rechecked atomically with these writes; a late native task keeps its policy.
 isNil {
