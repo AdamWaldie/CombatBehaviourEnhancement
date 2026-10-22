@@ -11380,7 +11380,7 @@ class CortexOperations(unittest.TestCase):
     def test_post_clear_hold_defers_temporary_motion_loss_without_stale_recall(self):
         branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
         issue=branch.split('// A newer individual order retires',1)[0]
-        for guard in ('simulationEnabled _x','!isObjectHidden _x'):
+        for guard in ('simulationEnabled _x','!isObjectHidden _x','!fleeing _x','ace_medical_ai_healQueue'):
             self.assertLess(issue.index(guard),issue.index('_x doFollow'))
         self.assertNotIn('_x doMove',issue)
         defer=branch.split('// A newer individual order retires',1)[1]
@@ -11390,6 +11390,14 @@ class CortexOperations(unittest.TestCase):
                       '!([_x] call CBE_fnc_CortexCombatEffective)',
                       'CortexExternalTakeover','CompatibilityExternalControl'):
             self.assertIn(guard,defer)
+        self.assertIn('fleeing _x',defer)
+        self.assertIn('ace_medical_ai_healQueue',defer)
+        # An unchanged exact hold survives temporary treatment/flight; replacement commands do not.
+        for medical,fleeing in ((True,False),(False,True),(True,True)):
+            may_follow=not medical and not fleeing
+            retain_exact_stop=medical or fleeing
+            self.assertFalse(may_follow)
+            self.assertTrue(retain_exact_stop)
         self.assertIn('_deferred pushBackUnique _x',defer)
         self.assertIn('_clearHold select 2,_deferred',defer)
         split=defer.split('if (!local _x',1)[1].split('if (local _x',1)[0]

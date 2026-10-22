@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-22",
+  "baseline": "5f7c2c1a",
+  "scope": "Post-clear native handback versus treatment and fleeing; CQB flow source comparison",
+  "finding": "GroupBrainStep could issue doFollow from an exact post-clear STOP while ACE treatment was queued or native fleeing active. CombatEffective and ActorMoveReserved do not reject either state. BuildingOperationStep and shutdown already guard both.",
+  "implementation": [
+    "Add treatment/flight refusal to existing post-clear doFollow admission.",
+    "Retain only unchanged exact STOP proof during temporary treatment/flight. New native commands or changed pose do not inherit stale recall.",
+    "No new worker, scan, destination, recovery budget or deadline. Existing generation/locality/external owner checks remain."
+  ],
+  "source_comparison": {
+    "LAMBS": "doAssaultCQB shares per-side building positions, requests movement with small random offset plus FORMATION PLANNED destination, schedules repeat after seven seconds, and can retire the first point through RND(0.95) or proximity. No-buildings path follows leader. tacticsCQB supplies shared building list and temporarily disables attack.",
+    "CBE": "Eligible squad admission capped at eight concurrent workers/topology; remaining actors can become exit-observation security. Physical visit collector and pair participation are distinct from point assignment. Successful finish issues one-shot positional holds, with native order handback on existing group brain. Natural successful clears can continue a plain unchanged MOVE route.",
+    "selected_intent": "Maintain continuous squad participation and bounded tactical ownership, with useful exterior security and post-clear continuation.",
+    "deliberate_departures": "Do not copy probabilistic point retirement as physical coverage, unowned delayed callbacks, blanket follow-to-interior-leader or competing formation destination writes. Source source-shape comparison does not prove CBE flow is equal or superior.",
+    "remaining": "Coherent entry, exterior isolation, repeat clearing, inaccessible modded nodes, casualty replacement and post-clear travel require physical validation; not resolved by this narrow handback fix."
+  },
+  "validation": {
+    "tests": 1489,
+    "full": ".qa/clear-handoff-task-build.log",
+    "result": "PASS complete offline pipeline",
+    "candidate": ".qa/candidates/clear-handoff-task-5f7c2c1a",
+    "independent": ".qa/clear-handoff-task-independent.log",
+    "fingerprint": "00df001d783a9b91ca5317bb31997544b98233ab0ec799a8e302d09db5b42376",
+    "provenance": "Unsigned baseline plus intended groupBrainStep/test/guide edits and retained unrelated dirt. Engineering metadata added afterward. Not a clean signed release.",
+    "limits": "No Arma run. Offline policy/source checks cannot establish physical handback, tactical quality or5%median/10%p95 performance."
+  },
+  "evidence": {
+    "addons/infantry/functions/groupBrainStep.sqf": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17",
+    "addons/infantry/functions/cortexActorMoveReserved.sqf": "1cbd4f0aaeb559971d794b5ea2ddd2099ea128d9913fc668fbd7cc304fdf3874",
+    "addons/infantry/functions/cortexCombatEffective.sqf": "2914f40449f6e189410fbba8ca908585904bfe6d6188adf7964065d358c69ced",
+    "addons/infantry/functions/buildingOperationStep.sqf": "98070682f8fa4d031b4e6112d241d17d410c0acd981ba2b5eb51aba29c223d88",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "c4840a915214814d11093470216b87f96e1b496f3f140cc70045be5a3dcebca4",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+    ".qa/lambs-2621-review/danger/functions/fnc_tacticsCQB.sqf": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d"
+  }
+}

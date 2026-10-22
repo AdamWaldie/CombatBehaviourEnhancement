@@ -5,6 +5,8 @@
  * Post-clear owned STOP handback uses native formation return, including the leader,
  * without replacing the new authored waypoint with a positional movement request.
  * An active replacement operation defers handback without deleting the original hold receipt.
+ * Queued ACE treatment and native fleeing also defer an unchanged owned STOP; no formation
+ * return may compete with them. A newer native command still retires the old receipt.
  * Deferred danger posture belongs to DangerPostureStep on the shared scheduler; it does not
  * depend on this tactical brain running and does not wake tactical planning.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
@@ -102,6 +104,7 @@ if (count _clearHold == 5) then {
                 if (local _x && {group _x == _group} && {!isPlayer _x}
                     && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned} && {isNull remoteControlled _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective}
+                    && {!fleeing _x} && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                     && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
                     && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
@@ -130,7 +133,8 @@ if (count _clearHold == 5) then {
                     && {[_x] call CBE_fnc_CortexActorMoveReserved
                         || {!simulationEnabled _x} || {isObjectHidden _x}
                         || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
-                        || {!([_x] call CBE_fnc_CortexCombatEffective)}}) then {
+                        || {!([_x] call CBE_fnc_CortexCombatEffective)}
+                        || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}) then {
                     _deferred pushBackUnique _x;
                 };
             } forEach (_clearHold select 3);
