@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Target identity respects native ignoreTarget policy; no ignore setting is changed.
+ * Native EnemyDetected selects personal knownByUnit witnesses within its rotating twelve-member
+ * sample; group-only knowledge is an approximate fallback, never personal sight proof.
  * Purpose: Maintain the bounded group contact observer that complements the engine danger FSM.
  * Locality / Authority: Group-owner local. The engine FSM supplies immediate causes; this observer
  * retains only engine-confirmed target identity without revealing targets or issuing movement.
@@ -112,15 +114,30 @@ private _handler=_group addEventHandler ["EnemyDetected",{
         };
     };
     _observingGroup setVariable ["CBE_Danger_SpotterCursor",(_sampleStart+_sampleCount) mod _memberCount];
-    private _knowerIndex=_spotters findIf {_x knowsAbout _target >= 1};
-    if (_knowerIndex < 0) exitWith {};
+    // knowsAbout can be shared group knowledge. Prefer a real personal native witness,
+    // sampled within the same twelve-member bound, rather than an unseeing leader.
+    if (_observingGroup knowsAbout _target < 1) exitWith {};
+    private _observer=objNull;
+    private _fallback=objNull;
+    private _personalSeen=-1;
+    private _ignored=false;
     private _leader=leader _observingGroup;
-    // Prefer the leader only when the leader actually owns native knowledge of this target. A
-    // wingman can trigger EnemyDetected while the leader is behind cover; asking that unknowing
-    // leader for getHideFrom returns no usable geometry and used to discard the immediate wake.
-    private _observer=if (_leader in _spotters
-        && {_leader knowsAbout _target >= 1}) then {_leader} else {_spotters select _knowerIndex};
-    if ((_observer targetKnowledge _target) param [7,false,[true]]) exitWith {};
+    {
+        private _knowledge=_x targetKnowledge _target;
+        if (_knowledge param [7,false,[true]]) then {_ignored=true};
+        if (_knowledge param [0,false,[true]]) then {
+            if (isNull _fallback || {_x == _leader}) then {_fallback=_x};
+            private _seenAt=(_knowledge param [2,-1,[0]]) max (_knowledge param [3,-1,[0]]);
+            if (_knowledge param [1,false,[true]] && {finite _seenAt} && {_seenAt > _personalSeen}) then {
+                _observer=_x;_personalSeen=_seenAt;
+            };
+        };
+    } forEach _spotters;
+    if (_ignored) exitWith {};
+    // Shared native belief remains a valid approximate alert when no sampled personal
+    // witness is available; it is not promoted into a new visual observation.
+    if (isNull _observer) then {_observer=_fallback};
+    if (isNull _observer) exitWith {};
     private _contacts=_observingGroup getVariable ["CBE_Danger_ObservedContacts",[]];
     _contacts=(_contacts select [((count _contacts)-8) max 0,8]) select {
         _x isEqualType [] && {count _x in [2,3]} && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType 0}

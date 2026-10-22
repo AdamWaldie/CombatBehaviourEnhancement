@@ -170,6 +170,20 @@ class PersonalKnowledgeObserverTests(unittest.TestCase):
                       '_ranked sort true','_enemies=_ranked apply {_x select 2}'):
             self.assertIn(proof,detail)
         self.assertNotIn('knowsAbout',detail)
+        coarse=text.split('private _candidates = [];',1)[1].split('private _enemies = [];',1)[0]
+        self.assertIn('_cachedWitnesses getOrDefault [_key,_leader]',coarse)
+        self.assertLess(coarse.index('_coarseObserver getHideFrom _enemy'),coarse.index('if (_distance <= _range)'))
+        setup=(ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text()
+        witness=setup.split('private _observer=objNull;',1)[1].split('private _contacts=',1)[0]
+        self.assertIn('_knowledge param [1,false,[true]]',witness)
+        self.assertIn('_seenAt > _personalSeen',witness)
+        self.assertIn('if (isNull _observer) then {_observer=_fallback}',witness)
+        # Shared leader knowledge must not displace an actual wingman observation.
+        rows=[('leader',False,12),('wingman',True,10),('other',True,9)]
+        personal=max((row for row in rows if row[1]),key=lambda row:row[2],default=None)
+        self.assertEqual(personal[0],'wingman')
+        self.assertIsNone(max((row for row in rows[:1] if row[1]),key=lambda row:row[2],default=None))
+
         self.assertLess(text.index('_candidates resize 8'),text.index('targetKnowledge _enemy'))
         for forbidden in ('getPosATL _enemy','getPosASL _enemy','getPosWorld _enemy',' reveal '):
             self.assertNotIn(forbidden,text)

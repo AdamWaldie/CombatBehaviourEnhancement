@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-22",
+  "baseline": "fd72e74e",
+  "scope": "Native personal observer selection and coarse belief admission",
+  "finding": [
+    "EnemyDetected selected an observer with unit knowsAbout, which can reflect shared group knowledge. A leader without personal sight could displace a sampled native personal detector.",
+    "CortexKnowledge prioritised cached observers only after coarse leader getHideFrom range/shortlist admission. Missing or stale leader geometry could reject a contact before the personal detail pass could refine it."
+  ],
+  "implementation": [
+    "Within the existing rotating <=12 sampled members, read native targetKnowledge and prefer freshest knownByUnit lastSeen/lastThreat. Preserve knownByGroup approximate fallback when no sampled personal witness exists. Native ignore policy vetoes publishing before cache/wake.",
+    "Build an <=8 target-keyed cache from already eligible retained observers. Coarse geometry uses that observer native getHideFrom before range admission; if unavailable, leader belief remains fallback.",
+    "Detailed targetKnowledge evaluation remains <=8 candidates by <=8 members, unchanged schemas/expiry. No reveal, exact live hostile transform, new handler, worker or world query."
+  ],
+  "validation": {
+    "tests": 1490,
+    "full": ".qa/native-witness-intake-build.log",
+    "result": "PASS full offline pipeline including HEMTT/FSM/SQF/config/docs/package; existing regression cases extended, no new test count",
+    "candidate": ".qa/candidates/native-witness-intake-fd72e74e",
+    "independent": ".qa/native-witness-intake-independent.log",
+    "fingerprint": "8ebd7a48adc96a30dab8c083d6905973924bd734f78fb7faafd42ec20a289ed8",
+    "provenance": "Unsigned baseline plus intended runtime/test/guide edits and retained unrelated dirt. Engineering metadata added afterward. Not a clean signed release.",
+    "limits": "Source contracts and illustrative observer-selection model do not execute native targetKnowledge/getHideFrom, prove actual contact/wake/behaviour, locality or measured performance."
+  },
+  "cost": "Up to12 targetKnowledge reads on a real native event replace group-shared knowsAbout observer qualification; one group confidence read. Existing knowledge loop builds <=8 witness keys and may read <=8 additional leader fallback beliefs. No detailed-pass expansion; actual cost unmeasured.",
+  "material_remaining": [
+    "Sampling can miss an out-of-window personal observer; group-only fallback is approximate awareness, not new visual proof.",
+    "Live wingman detection with leader in cover, mounted/air contacts, ignore policy, locality migration and performance remain unverified.",
+    "Movement/FSM/combined-arms/source parity and full production objective remain incomplete."
+  ],
+  "evidence": {
+    "addons/infantry/functions/dangerSetup.sqf": "0d2e428ab7f76337fd48928b3a3c5a160c6db1fe787c3433792f012ffcc9ab60",
+    "addons/infantry/functions/cortexKnowledge.sqf": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "a2119a6c6f54e9b47ef25bc969bdb857cc41cd6eccb43b471f90cd27e09c3457",
+    "releaseVerificationAndDeployment/test_combined_contact_payload.py": "d51be3b9e7f24e6812cb1f02633635351bbb4bb2af2b0f7b935faf1678119984",
+    "docs/Smart-AI-Pass.md": "20a8c1f99cdb20da9ddfe12ac1502c266f18c9cae54ecd2346072f56fb129b8b"
+  }
+}

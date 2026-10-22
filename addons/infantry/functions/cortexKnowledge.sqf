@@ -34,6 +34,9 @@
  * Array - [enemies, seenCount]. enemies is an array of
  * [enemy <OBJECT>, believedPosATL <ARRAY>, seenAge <NUMBER>, distance <NUMBER>, errorMargin <NUMBER>, nativeConfidence <NUMBER>],
  * nearest first. seenCount counts enemies seen within the last 5 seconds.
+ * Cached native witnesses qualify coarse geometry before range/shortlist rejection. Detailed
+ * personal-knowledge validation stays limited to eight targets by eight members. At most eight
+ * cached-witness misses may read leader fallback geometry; no exact enemy transform is queried.
  *
  * Example:
  * ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
@@ -72,11 +75,16 @@ if (_observed isEqualTo []) then {_group setVariable ["CBE_Danger_ObservedContac
 // evaluation bound. Large squads otherwise lost immediate contact whenever the detecting wingman
 // fell outside the arbitrary first-eight slice and the leader remained behind cover.
 private _witnesses=[];
+private _cachedWitnesses=createHashMap;
 {
     private _target=_x select 0;
     private _witness=_x param [2,objNull,[objNull]];
     if ([_witness] call CBE_fnc_CortexCombatEffective && {local _witness} && {group _witness == _group}
-        && {_witness knowsAbout _target >= 1}) then {_witnesses pushBackUnique _witness};
+        && {_witness knowsAbout _target >= 1}) then {
+        _witnesses pushBackUnique _witness;
+        private _key=netId _target;if (_key == "") then {_key=str _target};
+        _cachedWitnesses set [_key,_witness];
+    };
 } forEach _observed;
 private _allMembers = (units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
 private _members=([_leader]+_witnesses+(_allMembers-[_leader]-_witnesses))
@@ -98,7 +106,12 @@ private _candidates = [];
         if (_confidence >= 1) then {
             // Coarse shortlist only. Personal observer choice happens in the existing
             // bounded targetKnowledge pass, not through a group-level knowsAbout test.
-            private _position=_leader getHideFrom _enemy;
+            private _key=netId _enemy;if (_key == "") then {_key=str _enemy};
+            private _coarseObserver=_cachedWitnesses getOrDefault [_key,_leader];
+            private _position=_coarseObserver getHideFrom _enemy;
+            if (_position isEqualTo [0,0,0] && {_coarseObserver != _leader}) then {
+                _position=_leader getHideFrom _enemy;
+            };
             if (_position isNotEqualTo [0,0,0]) then {
                 // Range admission and coarse ranking consume the same belief-distance sample.
                 // Keep the native sort instead of adding a scripted per-candidate heap.
