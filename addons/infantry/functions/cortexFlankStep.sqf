@@ -317,7 +317,9 @@ if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // engine one scheduler step to settle the group mode before issuing the committed destination.
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
 private _groupSpeedLease = _drill getOrDefault ["groupSpeedMode",[]];
-private _policyReady=false;
+// Posture permission is not movement permission. A protected nonparticipant must not
+// veto healthy movers; only a native write attempted but unconfirmed needs settling.
+private _policyReady=true;
 private _modeSettling=false;
 isNil {
     if (!([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)) exitWith {};

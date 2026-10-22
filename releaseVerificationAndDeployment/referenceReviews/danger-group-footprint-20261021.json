@@ -149,5 +149,14 @@
       "Native physical handback, same-valued policy identity, locality overlap and measured performance remain unverified.",
       "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Audits paused."
     ]
+  },
+  "drillPolicyMovementSeparation20261022": {
+    "baseline": "6055e904",
+    "finding": "Previous native policy guard deferred the entire bound whenever footprint unavailable, incorrectly turning posture permission into movement permission.",
+    "correction": "Default policy readiness true; unavailable footprint skips group writes without stalling healthy per-actor movement. Only attempted/unconfirmed native writes or RED/YELLOW settling defer one finite step.",
+    "validation": "1491 tests plus full local build and independent verification passed; existing regression extended.",
+    "candidate": ".qa/candidates/drill-policy-movement-separation-6055e904",
+    "fingerprint": "202fb942c22a0d00c9bca3c6733538dde776306a61ab6dd111e85a786bffe4f2",
+    "limits": "Unsigned dirty development snapshot. No physical/HC/JIP/performance proof; audits paused. Supersedes prior whole-step deferral description."
   }
 }

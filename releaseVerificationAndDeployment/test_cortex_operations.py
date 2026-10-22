@@ -3535,6 +3535,10 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('_group setSpeedMode (_groupSpeedLease select 0)',cleanup)
         self.assertIn('restoreGroupSpeedMode',source('cortexCheckpoint'))
         self.assertIn('CBE_fnc_CortexGroupPostureTaskAvailable',step)
+        self.assertIn('private _policyReady=true;',step)
+        policy=step.split('private _policyReady=true;',1)[1].split('if (!_policyReady || {_modeSettling})',1)[0]
+        self.assertIn('if (!([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)) exitWith {};',policy)
+        self.assertEqual(policy.count('_policyReady=false'),2)
         self.assertLess(step.index('_group setSpeedMode "FULL"'),step.index('_drill set ["groupSpeedMode",[_priorSpeed,"FULL"]]'))
         self.assertIn('if (speedMode _group == "FULL")',step)
         end=source('cortexFlankEnd')

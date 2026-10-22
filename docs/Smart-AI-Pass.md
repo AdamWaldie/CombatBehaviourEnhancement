@@ -2568,3 +2568,5 @@ Infantry and vehicle withdrawal locality adoption both require the native waypoi
 During withdrawal execution, route replacement or completion also retires the episode before recovery, surrender selection or replanning. Cleanup uses external-order handback with remount and formation recall suppressed. A finished withdrawal route yields to the next native task; short travel does not authorize replacing that successor task.
 
 Tactical bounds now apply group combat/speed policy only while the complete native-task footprint permits it, and capture restoration pairs after native confirmation. Cleanup uses the same footprint. Blocked or unconfirmed restoration records up to two policy pairs in `CBE_Cortex_DrillPolicyUnresolved`; this is historical evidence, not an automatic retry or authority to overwrite later mission policy.
+
+The group-policy footprint controls policy writes only. A protected or incapacitated member does not by itself pause healthy actors in an existing tactical bound; individual movement admission still applies. Only a policy write actually attempted without native confirmation waits for the next finite step.
