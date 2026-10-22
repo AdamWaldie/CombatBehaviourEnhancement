@@ -135,5 +135,31 @@
     "minimumRequiredCase": "Preserve existing deterministic reaction cases. Add a distinct native-flight setup with real native casualties/courage policy, observe actual fleeing before evaluation, provide real native danger stimuli and record source/destination/travel, native movement yield, original expiry and physical replacement-order continuation. Do not assign solved flight metadata or call DangerFlight directly to claim FSM/physical acceptance.",
     "attribution": "If Arma already owns movement and no CBE fallback is admitted, report native flight continuity separately and the fallback unexercised. A successful native path is not proof that the CBE escape/rejoin branch ran.",
     "limits": "Read-only fixture review, no runtime or audit changes, no audit launched and no repeated unchanged build. Audits remain paused; full physical/performance acceptance remains incomplete."
+  },
+  "preparedNativeFlightAudit": {
+    "baseline": "5bb94c4c",
+    "focus": "nativeflight",
+    "status": "PREPARED_NOT_RUN",
+    "scope": "Isolated normal/server-owner fixture; ordinary all/reaction and HC batches unchanged. Explicit normal/no-HC launcher and staging gate.",
+    "stimulus": "Real native casualty loss and courage/allowFleeing policy, real enemy fire/FiredMan observation, native fleeing prerequisite; no solved variables, danger event injection, helper calls or AI relocation.",
+    "observations": "Two survivors sampled5Hz for35s after native fleeing. Unleased native routes reported separately. First CBE fallback per actor requires actual subsequent movement; fixed escape must approach recorded goal within original deadline. Immutable observed lease deadline checked. Missing fallback/lease exercise cannot pass its deadline/cleanup coverage. A later actual native waypoint must physically take survivors away; no cleanup/reset injection.",
+    "limits": [
+      "Untested native courage/fleeing stimulus and geometry require real calibration when audits resume.",
+      "Native movement success does not exercise CBE fallback; missing fallback remains a finding.",
+      "This case does not prove every quiet-rejoin/cover branch, mounted flight, HC/locality, JIP, continuous path safety or performance.",
+      "Audit runs remain paused; no Arma process or installed-game staging was started."
+    ],
+    "validation": {
+      "result": "Full1491 local offline gates/HEMTT/FSM/SQF/config/docs/package and independent verify passed. Existing22-case staging suite extended in-place and existing flight lifecycle contract extended, no new unit cases. First editing attempt stopped on a missing test anchor before tests were updated; corrected before full validation. Final review removed expired/unrelated-travel and vacuous deadline/cleanup success paths.",
+      "buildLog": ".qa/native-flight-fixture-build-reviewed.log",
+      "independentLog": ".qa/native-flight-fixture-independent-reviewed.log",
+      "stageLog": ".qa/native-flight-fixture-stage-reviewed.log",
+      "package": ".qa/candidates/native-flight-fixture-5bb94c4c",
+      "packageFingerprint": "cdb49de8322012a18bf408456f10713741363b46016c730ea557add563207535",
+      "preparedDirectory": ".qa/prepared-native-flight-5bb94c4c-reviewed",
+      "preparedHashIndex": ".qa/native-flight-fixture-prepared-sha256.json",
+      "provenance": "Product runtime unchanged from82594959; unsigned dirty development build includes unrelated retained dirt. QA source staged separately; review/handover metadata afterward."
+    },
+    "fixtureHash": "b5982740221b20273fbbcf6122c87ca5611b441f223589a06e74457ab28afe9a"
   }
 }

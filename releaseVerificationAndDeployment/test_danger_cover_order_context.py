@@ -75,6 +75,20 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertNotIn('setUnitPos',flight)
         self.assertNotIn('forceSpeed',flight)
         self.assertNotIn('CortexQueueJob',flight)
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runNativeFlight.sqf').read_text(encoding='utf-8')
+        for observed in ('_group allowFleeing 1','_x setDamage 1','fleeing _x','FiredMan',
+                         'NATIVEFLIGHT-fallback-exercised','NATIVEFLIGHT-original-deadlines',
+                         'NATIVEFLIGHT-replacement-physical','getPosASL _actor'):
+            self.assertIn(observed,fixture)
+        for shortcut in ('call CBE_fnc_DangerFlight','call CBE_fnc_DangerEngineAct',
+                         'setVariable ["CBE_Danger_FlightLease"','setVariable ["CBE_Danger_FlightResult"',
+                         'setPosATL','setPosASL','setPosWorld'):
+            self.assertNotIn(shortcut,fixture)
+        self.assertIn('_observedLeasedEscape && {_deadlinesStable}',fixture)
+        self.assertIn('time <= (_first select 4)',fixture)
+        self.assertIn('vectorDistance ((_rejoinOrigins select _index) select 0) >= 0.6',fixture)
+        self.assertIn('if (_validLease) then {+_lease} else {[]}',fixture)
+
         # Re-entry consumes the original allowance, and a replacement move cannot be recalled.
         deadline=112
         self.assertEqual(max(0,deadline-105),7)

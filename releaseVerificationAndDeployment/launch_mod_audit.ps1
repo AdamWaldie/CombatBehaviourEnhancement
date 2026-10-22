@@ -31,6 +31,7 @@ if ($Focus -in @('performancecontact','performancemixed') -and $BatchMode -ne 'h
 if ($Focus -eq 'indooractorshc' -and ($BatchMode -ne 'headless' -or $HeadlessClients -ne 2 -or !$HeadlessProvider)) {throw 'Individual indoor HC fixtures require BatchMode headless, HeadlessClients 2 and a real HeadlessProvider'}
 if ($Focus -in @('indooractors','indoornatural') -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Individual indoor normal fixtures require BatchMode normal and HeadlessClients 0'}
 if ($Focus -eq 'staticsolo' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Single-carrier static mechanics require a normal batch with no HCs'}
+if ($Focus -eq 'nativeflight' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Native fleeing mechanics require a normal batch with no HCs'}
 if ($Focus -eq 'illumination' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Infantry illumination mechanics require a normal batch with no HCs'}
 if ($Focus -eq 'convoynativestop' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Native convoy STOP handover requires a normal batch with no HCs'}
 if ($ServerOnly -and $Focus -ne 'dangerload') {throw 'ServerOnly is restricted to the dangerload loader diagnostic.'}

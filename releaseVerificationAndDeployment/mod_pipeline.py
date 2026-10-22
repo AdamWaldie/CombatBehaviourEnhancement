@@ -85,6 +85,8 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Individual indoor normal fixtures require a separate batch from HC migration')
     if focus == 'staticsolo' and batch_mode != 'normal':
         raise ValueError('Single-carrier static mechanics require a separate normal batch')
+    if focus == 'nativeflight' and batch_mode != 'normal':
+        raise ValueError('Native fleeing mechanics require a separate normal batch')
     if focus == 'illumination' and batch_mode != 'normal':
         raise ValueError('Infantry illumination mechanics require a separate normal batch')
     if focus == 'convoynativestop' and batch_mode != 'normal':

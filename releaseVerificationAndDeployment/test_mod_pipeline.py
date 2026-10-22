@@ -100,6 +100,10 @@ class PackagePipelineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'separate normal batch'):
             stage(self.folder,Path(self.temp.name)/'static-solo-hc','staticsolo',batch_mode='headless')
 
+        flight=stage(self.folder,Path(self.temp.name)/'nativeflight-normal','nativeflight',batch_mode='normal')
+        self.assertTrue((flight/'cortexQANativeFlight.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'nativeflight-hc','nativeflight',batch_mode='headless')
         illumination=stage(self.folder,Path(self.temp.name)/'illumination-normal','illumination',batch_mode='normal')
         self.assertTrue((illumination/'cortexQAIllumination.sqf').is_file())
         self.assertIn('"illumination"',(illumination/'cortexQAServer.sqf').read_text())
