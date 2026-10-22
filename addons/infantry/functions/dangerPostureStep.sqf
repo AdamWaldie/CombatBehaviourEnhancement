@@ -25,7 +25,9 @@ private _actor=_pendingPosture deleteAt 0;
 _group setVariable ["CBE_Danger_StancePendingActors",_pendingPosture];
 if (_actor isEqualType objNull && {!isNull _actor} && {local _actor} && {group _actor == _group}) then {
     private _proof=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
-    if (_proof isEqualTo [] && {(_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}) then {
+    // Speed and stance carry independent original restoration windows. An expired or
+    // malformed stance receipt cannot consume the speed retirement queue slot.
+    if ((_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []) then {
         ["RELEASE",_actor,true] call CBE_fnc_DangerAttackPace;
     };
     if (_proof isEqualType [] && {count _proof == 6}
@@ -37,8 +39,9 @@ if (_actor isEqualType objNull && {!isNull _actor} && {local _actor} && {group _
                 && {time >= ((_actor getVariable ["CBE_Danger_EngineResponse",[]]) param [3,-1,[0]])}) then {
                 [_actor,true] call CBE_fnc_DangerEngineRelease;
             } else {
-                _pendingPosture pushBack _actor;
-                _group setVariable ["CBE_Danger_StancePendingActors",_pendingPosture];
+                private _waiting=_group getVariable ["CBE_Danger_StancePendingActors",[]];
+                _waiting pushBackUnique _actor;
+                _group setVariable ["CBE_Danger_StancePendingActors",_waiting];
             };
         };
     };

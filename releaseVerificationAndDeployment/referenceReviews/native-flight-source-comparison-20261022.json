@@ -232,5 +232,14 @@
     "candidate": ".qa/candidates/native-attack-pace-epoch-960bba6f",
     "fingerprint": "0d0f9444665be56512299cc12a211a1dac03860b7a3af2c657ce6b850df32ffc",
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. No physical cap/HC/JIP/cleanup/balance/performance evidence; audits paused. Original unresolved-window and same-valued external-edit limits remain."
+  },
+  "independentPaceRetirement20261023": {
+    "baseline": "3c0b1fa6",
+    "finding": "Deferred worker attempted pace retirement directly only when stance proof was absent. Expired/malformed stance proof could consume the queue slot without servicing the independent speed window. A waiting stance also rewrote its pre-helper queue snapshot.",
+    "implementation": "Service any pending speed proof first, independently of stance shape/expiry. Requeue a waiting stance into the current live queue with pushBackUnique, preserving speed-helper requeue. Original per-setting expiry/authority and actual native writes remain in their existing helpers; no new worker or lifetime.",
+    "validation": "1491 tests/full build/independent verification passed; existing pace lifecycle regression extended.",
+    "candidate": ".qa/candidates/native-attack-pace-retirement-3c0b1fa6",
+    "fingerprint": "51bae0ad84a16b180e07c9924b662744365d1c8e573e89d4ea00a464eeca15df",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. Physical cleanup/native acknowledgements/HC/JIP/balance/performance unverified; audits paused. Original+30s unresolved-proof and same-valued external edit limits remain."
   }
 }

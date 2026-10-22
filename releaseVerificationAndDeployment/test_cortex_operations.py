@@ -1747,6 +1747,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"DANGER_ATTACK"',source('actorSettings'))
         self.assertIn('CBE_Danger_AttackPace',source('operationStart'))
         self.assertIn('CBE_fnc_DangerAttackPace',source('dangerPostureStep'))
+        retirement=source('dangerPostureStep')
+        self.assertNotIn('_proof isEqualTo [] &&',retirement)
+        self.assertLess(retirement.index('call CBE_fnc_DangerAttackPace'),retirement.index('if (_proof isEqualType []'))
+        self.assertIn('_waiting pushBackUnique _actor',retirement)
         self.assertIn('_cleanupRunning',pace)
         check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode != "RELEASE"',1)[0]
         self.assertIn('CBE_OperationGeneration',check)
