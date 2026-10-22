@@ -28,5 +28,18 @@
   },
   "source_protection": "Read-only archive/source checks; no protected originals modified, moved or pruned. No inferred fresh Workshop availability.",
   "validation": "Archive manifest/hash check and refreshed HBQ index check passed. No runtime source or packaged candidate changed; unchanged full build not repeated.",
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "buildoutEvidenceFreshness20261023": {
+    "baseline": "6cfd4048",
+    "stale_references": 235,
+    "unique_sources": 113,
+    "affected_family_count": 55,
+    "newline_only": 0,
+    "detail": ".qa/buildout-evidence-freshness-20261023.json",
+    "check_log": ".qa/buildout-evidence-freshness-check.log",
+    "result": "FAIL: Source changed; reassess build-out evidence: addons/infantry/functions/cortexSelectAvenue.sqf",
+    "change": "Existing build-out report visibly labelled historical. No ledger hash, score, denominator or assessment date renewed; no runtime edit. Existing evidence check remains strict and failing.",
+    "next": "Reassess affected capability execution and integration, beginning CORE/CONTACT/LIFECYCLE/SCHED then driving, against current source and retained reviews. Renew only reviewed references; do not blanket-refresh235 hashes. Missing private Workshop denominator remains separate.",
+    "limits": "Full runtime build candidate unchanged; no repeated full build for engineering freshness warning. Current estimates cannot be presented as verified-current build-out or physical acceptance."
+  }
 }

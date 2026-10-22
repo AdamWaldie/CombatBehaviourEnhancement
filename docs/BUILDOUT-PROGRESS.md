@@ -1,5 +1,7 @@
 # CBE build-out progress
 
+> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. Physical acceptance remains separate.
+
 Build-out measures implemented capability and integration. Acceptance, physical reliability and performance are separate criteria.
 
 These are provisional source-based estimates using explicit, equally weighted capabilities. They are not time/effort estimates or claims of working in-game quality. Scores: absent = 0; implemented subset with a named build gap = 0.5; scoped execution path wired = 1. Physical verification is not required for build credit.
