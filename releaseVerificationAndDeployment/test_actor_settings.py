@@ -16,12 +16,16 @@ class ActorSettingsTests(unittest.TestCase):
             self.assertNotIn(forbidden,s)
     def test_actual_owner_and_live_operation_before_application(self):
         s=core();apply=s.split('private _nextOwned=',1)[1]
-        for required in ('isNil {','!local _actor','!local _group','group _actor != _group',
+        for required in ('isNil {','!local _actor','!local _authorityGroup','_actualGroup != _authorityGroup',
                          'CBE_AIPass_Epoch','CortexActorMoveReserved','CortexExternalTakeover',
                          'CBE_OperationGeneration','"ownerEpoch"','!= "CANCELLED"','serverTime < _deadline'):
             self.assertLess(s.index(required),s.index('private _nextOwned='))
-        self.assertLess(s.index('count units _group > 64'),s.index('call CBE_fnc_CortexExternalTakeover'))
+        self.assertLess(s.index('count units _authorityGroup > 64'),s.index('call CBE_fnc_CortexExternalTakeover'))
         self.assertIn('call _write',apply)
+        self.assertIn('if (_crossGroupRelease) then {_actualGroup} else {_group}',s)
+        self.assertIn('_mode == "RELEASE" && {_scope == "DANGER_ATTACK"}',s)
+        self.assertIn('(_paceProof select 0) isEqualTo _context',s)
+        self.assertLess(s.index('keys _owned findIf {_x != "SPEED"}'),s.index('if (_mode == "RELEASE") exitWith'))
         garrison=s.split('if (_scope == "GARRISON") then {',1)[1].split('} else {',1)[0]
         for proof in ('_deadline == 0','CBE_Cortex_GarrisonSettingIssuer','CBE_AIPass_GarrisonGeneration','CBE_AIPass_GarrisonPos','CBE_AIPass_Garrison'):
             self.assertIn(proof,garrison)

@@ -1752,6 +1752,12 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(retirement.index('call CBE_fnc_DangerAttackPace'),retirement.index('if (_proof isEqualType []'))
         self.assertIn('_waiting pushBackUnique _actor',retirement)
         self.assertIn('_cleanupRunning',pace)
+        settings=source('actorSettings')
+        self.assertIn('_mode == "RELEASE" && {_scope == "DANGER_ATTACK"}',settings)
+        self.assertIn('(_paceProof select 0) isEqualTo _context',settings)
+        self.assertIn('keys _owned findIf {_x != "SPEED"}',settings)
+        self.assertIn('[_authorityGroup,_mode == "RELEASE",_actor]',settings)
+        self.assertIn('private _paceActors=(units _group) select [0,64]',source('dangerSetup'))
         check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode != "RELEASE"',1)[0]
         self.assertIn('CBE_OperationGeneration',check)
         self.assertIn('CBE_AIPass_Epoch',check)
@@ -6311,7 +6317,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _nearArrival=_arrivalPose vectorDistance (AGLToASL _arrivalTarget) < 5',room_speed)
         self.assertIn('[4,3] select (getSuppression _unit >= 0.2)',room_speed)
         self.assertNotIn('_unit distance2D _arrivalTarget < 5',room_speed)
-        self.assertIn('[_group,_mode == "RELEASE",_actor] call CBE_fnc_CortexExternalTakeover',actor_settings)
+        self.assertIn('[_authorityGroup,_mode == "RELEASE",_actor] call CBE_fnc_CortexExternalTakeover',actor_settings)
         self.assertIn('CortexActorMoveReserved',actor_settings)
         release=actor_settings.split('if (_mode == "RELEASE") exitWith {',1)[1].split('private _operation=',1)[0]
         self.assertIn('[_key,_native,_pair select 1] call _same',release)

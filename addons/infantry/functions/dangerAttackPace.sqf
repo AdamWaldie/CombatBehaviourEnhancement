@@ -44,16 +44,13 @@ if (_mode == "START" && {_proof isEqualTo []}) exitWith {
     _actor setVariable ["CBE_Danger_AttackPace",[_context,+_response,[_target,currentCommand _actor,expectedDestination _actor]],true];
     private _result=["APPLY",_actor,_context,createHashMapFromArray [["SPEED",_wanted]],"DANGER_ATTACK"] call CBE_fnc_ActorSettings;
     if (!(_result in ["APPLIED","PENDING"])) exitWith {_actor setVariable ["CBE_Danger_AttackPace",nil,true];false};
-    private _actors=_group getVariable ["CBE_Danger_AttackPaceActors",[]];
-    _actors pushBackUnique _actor;
-    _group setVariable ["CBE_Danger_AttackPaceActors",_actors,true];
     true
 };
 if (_proof isEqualTo []) exitWith {_mode == "RELEASE"};
 if (!(_proof isEqualType []) || {count _proof != 3}) exitWith {false};
 private _context=_proof select 0;
 if (!(_context isEqualType []) || {count _context != 5}
-    || {(_context select 0) != _group} || {!((_context select 4) isEqualType 0)}
+    || {_mode != "RELEASE" && {(_context select 0) != _group}} || {!((_context select 4) isEqualType 0)}
     || {!finite (_context select 4)}) exitWith {false};
 if (_mode == "CHECK") exitWith {
     private _native=_proof select 2;
@@ -69,12 +66,13 @@ if (_mode == "CHECK") exitWith {
 if (_mode != "RELEASE" || {serverTime >= (_context select 4)+30}) exitWith {false};
 // RELEASE does not adopt/replay speed. The actual new owner may remove only the old exact cap.
 private _releaseContext=+_context;
-_releaseContext set [3,_group getVariable ["CBE_AIPass_Epoch",0]];
-private _result=["RELEASE",_actor,_releaseContext] call CBE_fnc_ActorSettings;
+if ((_context select 0) == _group) then {
+    _releaseContext set [3,_group getVariable ["CBE_AIPass_Epoch",0]];
+};
+private _result=["RELEASE",_actor,_releaseContext,createHashMap,"DANGER_ATTACK"] call CBE_fnc_ActorSettings;
 if (_result in ["RELEASED","ABSENT"]) exitWith {
     _actor setVariable ["CBE_Danger_AttackPace",nil,true];
-    private _actors=_group getVariable ["CBE_Danger_AttackPaceActors",[]];
-    _actors=_actors-[_actor];_group setVariable ["CBE_Danger_AttackPaceActors",_actors,true];true
+    true
 };
 private _pending=_group getVariable ["CBE_Danger_StancePendingActors",[]];
 if (count _pending < 64 || {_actor in _pending}) then {

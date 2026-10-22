@@ -90,10 +90,12 @@ if (!_enabled) exitWith {
 };
 // Use the same typed lifetime gate as the engine waiter. Discovery cannot bless an old
 // epoch/operation merely because a returning owner still has the old local response variable.
-private _paceActors=_group getVariable ["CBE_Danger_AttackPaceActors",[]];
-if (_paceActors isEqualType []) then {
+// Joined actors carry their own old-group receipt; no separate public actor index is needed.
+// Discovery already owns this bounded group footprint; no world scan or new worker is added.
+private _paceActors=(units _group) select [0,64];
+if (_paceActors isNotEqualTo []) then {
     {
-        if (_x isEqualType objNull && {!isNull _x} && {local _x}
+        if (local _x && {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}
             && {!( ["CHECK",_x] call CBE_fnc_DangerAttackPace)}) then {
             ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
         };

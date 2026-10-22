@@ -23,6 +23,8 @@
  * Acquisition/check/adoption yield to native flight and queued care; exact release stays task-independent.
  * Current callers: CortexClearSettingsApply, CortexClearSettingsRelease, CortexGarrisonSettings, DangerAttackPace.
  * DANGER_ATTACK permits only SPEED under an exact local finite danger-response receipt.
+ * Exact pace-only RELEASE may retire that cap after group transfer on the actual new owner;
+ * the original issuer/deadline stays unchanged and the new group retains exclusion authority.
  * Example: ["APPLY",soldier1,[_group,"task-token",4,2,serverTime+30],createHashMapFromArray [["SPEED",4]]] call CBE_fnc_ActorSettings;
  */
 params [["_mode","APPLY",[""]],["_actor",objNull,[objNull]],
@@ -40,14 +42,22 @@ _result=call {
     };
     if !([_context] call _contextValid) exitWith {"REFUSED"};
     _context params ["_group","_issuer","_generation","_epoch","_deadline"];
-    if (isNull _group || {!local _group} || {group _actor != _group}
-        || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",-1])}
+    // Native attack pace may follow its actor through a completed group transfer. Only
+    // exact public pace proof permits RELEASE on the actual new group owner; never APPLY/ADOPT.
+    private _actualGroup=group _actor;
+    private _paceProof=_actor getVariable ["CBE_Danger_AttackPace",[]];
+    private _crossGroupRelease=_mode == "RELEASE" && {_scope == "DANGER_ATTACK"}
+        && {_actualGroup != _group} && {_paceProof isEqualType []} && {count _paceProof == 3}
+        && {(_paceProof select 0) isEqualTo _context};
+    private _authorityGroup=if (_crossGroupRelease) then {_actualGroup} else {_group};
+    if (isNull _authorityGroup || {!local _authorityGroup} || {_actualGroup != _authorityGroup}
+        || {!_crossGroupRelease && {_epoch != (_group getVariable ["CBE_AIPass_Epoch",-1])}}
         || {!(_actor isKindOf "CAManBase")} || {isPlayer _actor} || {!isNull objectParent _actor}
         || {!isNull remoteControlled _actor} || {!isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {!simulationEnabled _actor} || {isObjectHidden _actor}
         || {!([_actor] call CBE_fnc_CortexCombatEffective)}
-        || {[_actor] call CBE_fnc_CortexActorMoveReserved} || {count units _group > 64}
-        || {[_group,_mode == "RELEASE",_actor] call CBE_fnc_CortexExternalTakeover}) exitWith {"REFUSED"};
+        || {[_actor] call CBE_fnc_CortexActorMoveReserved} || {count units _authorityGroup > 64}
+        || {[_authorityGroup,_mode == "RELEASE",_actor] call CBE_fnc_CortexExternalTakeover}) exitWith {"REFUSED"};
     private _valueValid={
         params ["_key","_value"];
         if (_key == "STANCE") exitWith {_value isEqualType "" && {_value in ["AUTO","UP","MIDDLE","DOWN"]}};
@@ -80,6 +90,7 @@ _result=call {
     if (_lease isNotEqualTo [] && {(_oldContext select 0) != _group || {(_oldContext select 1) != _issuer}
         || {(_oldContext select 4) != _deadline}}) exitWith {"REFUSED"};
     if (keys _owned findIf {!([_x,[_x] call _read] call _valueValid)} >= 0) exitWith {"REFUSED"};
+    if (_crossGroupRelease && {keys _owned findIf {_x != "SPEED"} >= 0}) exitWith {"REFUSED"};
     if (_mode == "RELEASE") exitWith {
         if (_lease isEqualTo []) exitWith {"ABSENT"};
         if ((_oldContext select 2) != _generation) exitWith {"REFUSED"};

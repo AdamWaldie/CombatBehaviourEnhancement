@@ -241,5 +241,26 @@
     "candidate": ".qa/candidates/native-attack-pace-retirement-3c0b1fa6",
     "fingerprint": "51bae0ad84a16b180e07c9924b662744365d1c8e573e89d4ea00a464eeca15df",
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. Physical cleanup/native acknowledgements/HC/JIP/balance/performance unverified; audits paused. Original+30s unresolved-proof and same-valued external edit limits remain."
+  },
+  "paceGroupTransfer20261023": {
+    "baseline": "532083c2",
+    "finding": "A completed group transfer left pace proof bound to its original group. Both pace helper and ActorSettings refused retirement across group identity; a new group sparse index also could not discover the joined actor.",
+    "implementation": "Narrow DANGER_ATTACK RELEASE-only exception: actual actor and current-group owner, exact public pace context, unchanged original issuer/generation/deadline, and SPEED-only owned pairs. Current-group external/player/Zeus/specialist and actor safety/reservation/health gates remain authoritative. APPLY/CHECK/ADOPT cannot cross groups. Same-group epoch retirement unchanged.",
+    "discovery": "Existing DangerSetup uses at most64 current group members to locate own pace receipts. Removed unused public group pace index and its publication, avoiding stale transferred entries. No world scan, new worker, command replay or stance transfer.",
+    "validation": "Initial gate exposed existing source-contract assertions tied to original group variable. Updated existing tests to require actual authority group, exact pace proof and release-only speed restriction. Reviewed build passed; removed unused index and final1491 tests/full build/independent verification passed. No new cases.",
+    "candidate": ".qa/candidates/native-attack-pace-group-transfer-532083c2",
+    "fingerprint": "4b1fdf96546c671976531414e1e264e05d31368209d515736569b974790aee7e",
+    "logs": [
+      ".qa/native-attack-pace-group-transfer-build.log",
+      ".qa/native-attack-pace-group-transfer-build-reviewed.log",
+      ".qa/native-attack-pace-group-transfer-build-final.log",
+      ".qa/native-attack-pace-group-transfer-independent.log"
+    ],
+    "limits": [
+      "Unsigned dirty development snapshot retaining unrelated dirt; engineering metadata afterward.",
+      "Physical joined-group/HC/native-cap confirmation/balance/performance unverified. Audits paused.",
+      "Excluded/player-led/specialist/dormant/reserved/oversized groups may still refuse retirement; original expiry+30s preserves unresolved proof rather than overriding new authority. Same-valued external edits indistinguishable.",
+      "Build-out evidence freshness still fails; no hash/score renewal or percentage/parity claim."
+    ]
   }
 }
