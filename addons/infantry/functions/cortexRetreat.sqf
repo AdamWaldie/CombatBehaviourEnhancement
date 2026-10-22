@@ -1,6 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
  * Pulls a broken squad back, away from the enemy, under smoke.
+ * Concrete native tasks, queued care and native flight defer startup before geometry/support teardown.
+ * Incapacitated nonparticipants do not alone veto the healthy survivors' route. Group behaviour,
+ * combat and speed application commits under the same footprint and records only confirmed writes.
+ * Legacy support PATH handback requires its marker; bare holder lists never enable PATH or recall.
  *
  * The retreat point is CBE_AIPass_Morale_RetreatDistance (scaled by the behaviour profile's
  * retreatScale) from the leader. Five bounded escape candidates spread up to 60 degrees around the
@@ -51,7 +55,8 @@ if (isNull _group || {!local _group}
     || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}
     || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 if ((units _group) findIf {
-    alive _x && {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+    alive _x && {fleeing _x || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+        || {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}
 } >= 0) exitWith {false};
 // Use a local combat-effective anchor so leader loss or reassignment does not suppress an otherwise viable manoeuvre.
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
@@ -110,15 +115,22 @@ private _supportHeld=_state getOrDefault ["supportHeld",[]];
     if (_x getVariable ["CBE_Cortex_SupportPathHold",false]) then {_supportHeld pushBackUnique _x};
 } forEach units _group;
 {
-    if (local _x && {group _x == _group}) then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
-        if (local _x && {group _x == _group} && {!isPlayer _x}
-            && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
-            && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
+    // List membership is not PATH ownership. Only the actual legacy marker authorises
+    // handback; modern doStop holders are handled by their exact receipts below.
+    private _pathOwned=_x getVariable ["CBE_Cortex_SupportPathHold",false];
+    if (_pathOwned && {local _x} && {group _x == _group} && {!isPlayer _x}
+        && {isNull remoteControlled _x} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
         _x enableAI "PATH";
-        _x setVariable ["CBE_Cortex_SupportPathHold",nil,true];
-        // supportHeld is an explicit Cortex ownership record. A withdrawal replaces that
-        // hold with a group route, so every surviving member must rejoin the leader first.
-        _x doFollow _leader;
+        if (_x checkAIFeature "PATH") then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
+        if (_x checkAIFeature "PATH" && {_x checkAIFeature "MOVE"}
+            && {[_x] call CBE_fnc_CortexCombatEffective} && {!fleeing _x}
+            && {simulationEnabled _x} && {!isObjectHidden _x} && {isNull objectParent _x}
+            && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+            && {toUpperANSI currentCommand _x in ["","STOP","ATTACK","FIRE","SUPPRESS"]}) then {
+            _x doFollow _leader;
+        };
     };
 } forEach _supportHeld;
 {_state deleteAt _x} forEach ["supportHeld","supportBoundSequence","supportToken","responding","assaulting","respondingTo","respondUntil"];
@@ -177,17 +189,7 @@ _group enableAttack false;
 // RED grants the engine independent pursuit authority, which can replace the finite retreat
 // waypoint while the smoke layer still runs. YELLOW retains fire-at-will and formation movement.
 // Record both the previous and applied values so cleanup only restores a mode Cortex still owns.
-if (combatMode _group == "RED" && {!("retreatCombatMode" in _state)}) then {
-    _state set ["retreatCombatMode",["RED","YELLOW"]];
-    _group setCombatMode "YELLOW";
-};
-// A withdrawal must leave individual attack manoeuvres and combat formation planning.
-// Normal weapon engagement remains available; calm/release restores captured settings.
-if (behaviour _leader != "AWARE") then {
-    if !(_state getOrDefault ["behaviourChanged",false]) then {_state set ["baseBehaviour",behaviour _leader]};
-    _state set ["behaviourChanged",true];
-    _group setBehaviour "AWARE";
-};
+// Group policy commits after the route/episode bookkeeping below.
 
 private _origin = if (_resuming) then {+(_resume select 1)} else {getPosATL _leader};
 private _startedAt = if (_resuming) then {_resume select 4} else {serverTime};
@@ -202,13 +204,41 @@ _state set ["retreatProgress",[time,_bestTravel,_replans]];
 _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",round (_leader distance2D _origin),_replans],true];
 private _withdrawalIntent=["INFANTRY",_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel];
 _group setVariable ["CBE_Cortex_WithdrawalIntent",_withdrawalIntent,true];
-if (speedMode _group != "FULL") then {
-    if !(_state getOrDefault ["speedChanged", false]) then {_state set ["baseSpeed", speedMode _group]};
-    _state set ["speedChanged", true];
-    if ((_state getOrDefault ["retreatSpeedMode",[]]) isEqualTo []) then {
-        _state set ["retreatSpeedMode",[speedMode _group,"FULL"]];
+// Only current native-confirmed group writes acquire restoration proof. The complete
+// footprint is rechecked atomically with these writes; a late native task keeps its policy.
+isNil {
+    private _live=_group getVariable ["CBE_Operation",createHashMap];
+    if ((_live getOrDefault ["generation",-2]) == _generation
+        && {(_live getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_live getOrDefault ["cancelReason",""]) == ""}
+        && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+        && {leader _group == _leader}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+        && {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable}) then {
+        if (combatMode _group == "RED" && {!("retreatCombatMode" in _state)}) then {
+            _group setCombatMode "YELLOW";
+            if (combatMode _group == "YELLOW") then {_state set ["retreatCombatMode",["RED","YELLOW"]]};
+        };
+        if (behaviour _leader != "AWARE") then {
+            private _priorBehaviour=behaviour _leader;
+            _group setBehaviour "AWARE";
+            if (behaviour _leader == "AWARE") then {
+                if !(_state getOrDefault ["behaviourChanged",false]) then {_state set ["baseBehaviour",_priorBehaviour]};
+                _state set ["behaviourChanged",true];
+            };
+        };
+        if (speedMode _group != "FULL") then {
+            private _priorSpeed=speedMode _group;
+            _group setSpeedMode "FULL";
+            if (speedMode _group == "FULL") then {
+                if !(_state getOrDefault ["speedChanged",false]) then {_state set ["baseSpeed",_priorSpeed]};
+                _state set ["speedChanged",true];
+                if ((_state getOrDefault ["retreatSpeedMode",[]]) isEqualTo []) then {
+                    _state set ["retreatSpeedMode",[_priorSpeed,"FULL"]];
+                };
+            };
+        };
     };
-    _group setSpeedMode "FULL";
 };
 
 if (!_resuming) then {

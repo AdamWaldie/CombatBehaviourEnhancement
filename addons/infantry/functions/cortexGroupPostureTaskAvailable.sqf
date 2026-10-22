@@ -10,7 +10,7 @@
  * Arguments: 0 group <GROUP, grpNull>.
  * Return: BOOL - all living members support this narrow group-posture task boundary.
  * Current callers: DangerReact application/exact restoration, CortexGroupTick contact escalation
- * and CortexRestoreCalm group behaviour/combat/speed handback.
+ * CortexRetreat group policy application and CortexRestoreCalm behaviour/combat/speed handback.
  * Example: private _free=[group soldier1] call CBE_fnc_CortexGroupPostureTaskAvailable;
  */
 params [["_group",grpNull,[grpNull]]];

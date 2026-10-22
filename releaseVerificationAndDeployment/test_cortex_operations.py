@@ -3699,7 +3699,8 @@ class CortexOperations(unittest.TestCase):
         maintain=source('cortexSupportMaintain')
         self.assertIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',maintain)
         self.assertNotIn('_x != leader _group',maintain)
-        self.assertIn('supportHeld is the ownership record',maintain)
+        self.assertIn('private _pathOwned=_x getVariable ["CBE_Cortex_SupportPathHold",false]',maintain)
+        self.assertIn('if (_pathOwned && {local _x}',maintain)
         self.assertIn('group _x == _group',maintain)
         self.assertIn('CBE_Cortex_SupportPathHold',maintain)
         cover=maintain.split('if (_coordinating) then {',1)[1]
@@ -6090,7 +6091,9 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('call CBE_fnc_CortexFlankEnd'),text.index('set ["baseAttack"'))
         self.assertIn('_group enableAttack false',text)
         self.assertIn('_state set ["behaviourChanged",true]',text)
-        self.assertIn('_state set ["baseBehaviour",behaviour _leader]',text)
+        self.assertIn('_state set ["baseBehaviour",_priorBehaviour]',text)
+        self.assertLess(text.index('private _priorBehaviour=behaviour _leader'),text.index('_group setBehaviour "AWARE"'))
+        self.assertLess(text.index('if (behaviour _leader == "AWARE") then'),text.index('_state set ["baseBehaviour",_priorBehaviour]'))
 
     def test_retreat_keeps_fire_while_leasing_engine_pursuit_mode(self):
         retreat=source('cortexRetreat')
@@ -6098,6 +6101,16 @@ class CortexOperations(unittest.TestCase):
         checkpoint=source('cortexCheckpoint')
         self.assertIn('combatMode _group == "RED"',retreat)
         self.assertIn('_state set ["retreatCombatMode",["RED","YELLOW"]]',retreat)
+        admission=retreat.split('// Use a local combat-effective anchor',1)[0]
+        self.assertIn('fleeing _x',admission)
+        self.assertIn('ace_medical_ai_healQueue',admission)
+        self.assertNotIn('call CBE_fnc_CortexGroupPostureTaskAvailable',admission)
+        self.assertNotIn('CortexCombatEffective',admission)
+        policy=retreat.split('// Only current native-confirmed group writes',1)[1].split('if (!_resuming) then',1)[0]
+        self.assertIn('isNil {',policy)
+        self.assertIn('call CBE_fnc_CortexGroupPostureTaskAvailable',policy)
+        self.assertIn('if (combatMode _group == "YELLOW") then',policy)
+        self.assertIn('if (speedMode _group == "FULL") then',policy)
         self.assertIn('_group setCombatMode "YELLOW"',retreat)
         self.assertNotIn('_group setCombatMode "BLUE"',retreat)
         self.assertIn('combatMode _group == (_retreatModeLease select 1)',restore)
@@ -6120,6 +6133,10 @@ class CortexOperations(unittest.TestCase):
         support=retreat.split('private _supportHeld=',1)[1].split('{_state deleteAt _x}',1)[0]
         self.assertIn('_x enableAI "PATH"',support)
         self.assertIn('_x doFollow _leader',support)
+        self.assertIn('if (_pathOwned && {local _x}',support)
+        self.assertIn('!fleeing _x',support)
+        self.assertIn('CBE_fnc_CortexActorMoveReserved',support)
+        self.assertIn('if (_x checkAIFeature "PATH") then',support)
         self.assertIn('CBE_Cortex_SupportPathHold',support)
         self.assertIn('_state set ["movementLease",["INFANTRY_WITHDRAW",time+_remaining]]',retreat)
         self.assertLess(retreat.index('CortexGroupMove'),retreat.index('["INFANTRY_WITHDRAW",time+_remaining]'))

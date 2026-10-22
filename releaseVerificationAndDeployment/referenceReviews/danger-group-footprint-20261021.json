@@ -67,5 +67,38 @@
       "addons/infantry/functions/cortexRestoreCalm.sqf": "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713",
       "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "a111c8333976fe32c4ce4d95e0c00a5b0123af8522963c2e92ad2b8cddb042fb"
     }
+  },
+  "withdrawalApplicationFollowup20261022": {
+    "baseline": "aa891f7e",
+    "findings": [
+      "Withdrawal startup checked native command labels but omitted queued care and native fleeing. Its group behaviour/combat/speed writes did not share the complete posture footprint and recorded pairs before native confirmation.",
+      "Withdrawal and support maintenance cleared the legacy PATH marker before checking its ownership and enabled PATH for bare holder-list entries. Recall could replace newer movement or actor work."
+    ],
+    "implementation": [
+      "Startup retains its concrete native-task boundary and adds queued care/native flight before geometry or support teardown. It deliberately does not use the broader posture gate for movement admission: an incapacitated nonparticipant alone must not prevent healthy survivors withdrawing.",
+      "Group behaviour/combat/speed application uses one atomic current operation/epoch/state/leader/owner/complete posture-footprint check. Original values are sampled before the write; new restoration flags/pairs commit only after native readback confirms application.",
+      "Both legacy support PATH handback sites require the actual marker, clear it after confirmed PATH enablement, and withhold follow for native fleeing, queued care, unavailable/immobile actors, live reservations and concrete replacement commands. Modern holds retain their existing exact receipt executor; bare lists grant no PATH/recall authority."
+    ],
+    "validation": {
+      "pipeline": ".qa/withdrawal-native-policy-build-reviewed.log",
+      "tests": 1491,
+      "independent": ".qa/withdrawal-native-policy-independent.log",
+      "candidate": ".qa/candidates/withdrawal-native-policy-aa891f7e",
+      "fingerprint": "082cc704891f8df1ede133981e23bf9bfbe6cbe606cb125885e86e36cde5fc9d",
+      "result": "Full local offline/HEMTT/FSM/SQF/config/docs/package and independent verification passed. Existing regressions extended, no added cases. Initial old spelling assertion for behaviour capture failed; updated to verify prior capture before command and proof after acknowledgement. A reviewed intermediate overbroad movement-admission gate was corrected before final validation to preserve wounded-survivor capability.",
+      "provenance": "Unsigned dirty development snapshot, retained unrelated dirt included; later evidence/handover metadata excluded."
+    },
+    "cost": "Existing startup roster check gains two native predicates; group policy uses one bounded posture scan. Marker/recall checks replace unconditional writes. No worker/timer/global discovery added; runtime cost unmeasured.",
+    "limits": [
+      "No physical withdrawal, wounded survivor, legacy support handback, native acknowledgement timing, HC/JIP or measured performance proof.",
+      "Same-valued superseding legacy PATH/STOP policy remains ambiguous; this is not every hold or group writer audit.",
+      "Late protected tasks veto group policy writes after route acceptance; common operation/task ownership still requires physical validation.",
+      "Audits PAUSED; no launch/push/merge/CI/release/Steam or percentage rescore. Previously staged nativeflight mission has an older product package."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRetreat.sqf": "8862cf88b0ab7ecb8798d3419a8dba759395d7fd6006652ba73adbba6e01b98f",
+      "addons/support/functions/cortexSupportMaintain.sqf": "780eaf27715529f3cb0418ec577ca172e296ef87347fd3c15e99a39696d9861d",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "f184c554b47aa6378f62909bf4f31fcc7844b94f04175a4dbfc582354dbfa4ba"
+    }
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Legacy PATH handback requires the actual marker; modern holder lists grant no PATH or recall authority.
  * Cover STOP and native recalls yield to queued care and dormant actors. Exact hold
  * bookkeeping/restoration stays separate; treatment queues and original deadlines never change.
  * Current COVER capacity is sampled owner-locally at most every two seconds (or role change)
@@ -392,19 +393,20 @@ private _newMove=_moving && {(_state getOrDefault ["supportBoundSequence",-1]) <
 if (_newMove || {!_coordinating}) then {
     _state deleteAt "supportCoverIdentity";
     {
-        if (local _x && {group _x == _group}) then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
-        if (local _x && {group _x == _group} && {!isPlayer _x}
+        private _pathOwned=_x getVariable ["CBE_Cortex_SupportPathHold",false];
+        if (_pathOwned && {local _x} && {group _x == _group} && {!isPlayer _x}
             && {isNull (remoteControlled _x)} && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
             _x enableAI "PATH";
-            _x setVariable ["CBE_Cortex_SupportPathHold",nil,true];
-            // supportHeld is the ownership record. Combat can relabel our doStop
-            // as ATTACK or FIRE without cancelling it, so currentCommand == STOP
-            // is not a valid ownership check. Preserve commands which cannot be a
-            // combat-side effect of the hold. A new bound supplies its own target.
+            if (_x checkAIFeature "PATH") then {_x setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
+            // The legacy PATH marker is required, not list membership alone. Combat may
+            // relabel its hold; concrete replacement tasks and live actor routes still win.
             private _command=toUpperANSI currentCommand _x;
             if (_mayRestoreGroup && {!_coordinating} && {_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]}
-                && {simulationEnabled _x} && {!isObjectHidden _x}
+                && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
+                && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                 && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}) then {
                 _x doFollow leader _group;
             };
