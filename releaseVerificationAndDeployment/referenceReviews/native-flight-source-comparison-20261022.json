@@ -182,5 +182,25 @@
     "candidate": ".qa/candidates/vehicle-aa-threat-knowledge-bf825248",
     "fingerprint": "e6be169a55abccb2adbeb99f6c854cc24af2be296e1cb6da79150256a8b5e2b2",
     "limits": "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Physical air tactics/balance, HC/JIP and5%median/10%p95 unverified. Audits paused."
+  },
+  "nativeAttackPacingLifecycle20261023": {
+    "baseline": "df84dd41",
+    "status": "EXECUTION_GAP_CONFIRMED_NOT_IMPLEMENTED",
+    "source": "Retained LAMBS brainForced calls doAssaultSpeed for native ATTACK; CBE autonomous ATTACK remains combat-enabled but DangerEngineAct/Release contain no forceSpeed ownership.",
+    "currentBoundaries": [
+      "ActorSettings APPLY/CHECK/ADOPT permits only real OPERATION or GARRISON authority; RELEASE uses exact typed issuer/deadline/native-value pairs.",
+      "DangerEngineResponse has seven fields and uses time deadlines; ActorSettings contexts use serverTime deadlines. Do not mix clocks or append fields casually.",
+      "DangerPostureStep consumes only six-field stance proof and drops actors with no such proof; it cannot currently service speed-only cleanup.",
+      "OperationStart calls DangerEngineRelease only for actors with a stance lease, before generation publication. Speed-only state would be missed.",
+      "CortexFlankStep drives ASSAULT/ADVANCE/FLANK through one finite executor with group FULL; it does not provide native ATTACK actor pacing or actor forced-speed cleanup."
+    ],
+    "nextBatch": [
+      "Introduce a narrowly validated native ATTACK settings authority bound to exact local danger response, original deadline, group/epoch/generation and native task identity; never manufacture a common operation.",
+      "Retain stricter authored forcedSpeed baseline through ActorSettings and defer to existing operation/garrison/reservation, care, specialist and Zeus owners. Read only native-known target geometry for distance pacing.",
+      "Integrate exact speed release with danger end, original bounded deferred cleanup and OperationStart before generation changes, including speed-only actors and no stance lease. No new perpetual worker or independent movement controller.",
+      "Extend existing lifecycle regression and documentation coherently; full build only after runtime batch. Physical attack pace, native replacement/handover, cap restoration and overhead remain required when audits resume."
+    ],
+    "validation": "Read-only current-source trace plus parsed engineering JSON; no runtime changes, test increment, new package or parity credit.",
+    "limits": "Audits paused. Last runtime and candidate remain df84dd41 / .qa/candidates/morale-allied-support-718d6935. This is an implementation gap and integration boundary, not delivered pacing."
   }
 }
