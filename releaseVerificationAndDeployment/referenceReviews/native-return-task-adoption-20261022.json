@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-22",
+  "baseline": "0697e2a9",
+  "scope": "Already-issued native return task state across actual owner transfer",
+  "finding": "The command classifier could prove an original return frame while the generic adoption task whitelist rejected its recorded STOP/FOLLOW transition. This could strand pending return evidence during an actual edge despite unchanged native destination/frame.",
+  "changes": [
+    "Retains the already-computed native command state instead of discarding it after the Boolean eligibility check.",
+    "A return exception requires no active child, OWNED/PENDING/EXPIRED classification and an existing nativeReturn or temporary-path request receipt. It permits only the exact classifier-proven STOP/FOLLOW transition.",
+    "Unproven/changed STOP/FOLLOW and ACTION/medical/other protected tasks remain refused. All original cap/seat/route/edge/health/reservation/feature guards remain.",
+    "Adoption copies the original acknowledgement tuple unchanged; no return command, new ACK window, worker, movement budget or checkpoint is created."
+  ],
+  "validation": {
+    "full": ".qa/native-return-task-adoption-build.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates; existing task policy model/source guards extended, no new test cases",
+    "candidate": ".qa/candidates/native-return-task-adoption-0697e2a9",
+    "fingerprint": "114180eaace244ada927191b1cd5e5ed09a8438db3ef90ad22b28dede2b426bb",
+    "independent": ".qa/native-return-task-adoption-independent-verify.log",
+    "provenance": "Unsigned0697e2a9 plus intended source/doc edits and retained unrelated working-tree dirt. Engineering metadata completed later. Not a clean signed release.",
+    "limits": "No SQF execution/physical owner-transfer evidence; models and source checks do not establish engine ACK/task timing, onward travel or performance. Audits paused."
+  },
+  "cost": "Reuses the existing native classifier result; constant extra task/metadata comparisons at existing edge retries. No added world scan, worker or timer. Runtime overhead unmeasured.",
+  "remaining": [
+    "Same-value replacement commands remain ambiguous. Genuine edge/cap/seat/native proof is still required; elapsed time cannot establish handover.",
+    "Original hard deadline and ACK window remain finite. Actual staggered/repeated HC return transfer, stop/path cancellation and restoration are unverified.",
+    "Whole production readiness, external-controller handovers and5%median/10%p95 performance remain incomplete."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "e1dbff29d77b2e3f9205b7dcde49a0999ebd234ba208cdadccb2a031f6e80901",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "362ef4aba5bf3ef1e1b03839e00aa057cb7d3f571cf3761171bfac50d52ebeec",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "905c230083b94fa9974c89dc9995106960cff234d2d823b06fb687b189f365a0",
+    "docs/Smart-AI-Pass.md": "5e17669297df04631fc91edc10ef6888fd665617e43e339b73bded8a414ac98d"
+  },
+  "relation": "Completes a pending-return task-filter integration gap found after native-child-locality-adoption-20261022.json; physical acceptance remains outstanding."
+}

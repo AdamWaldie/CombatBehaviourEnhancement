@@ -172,6 +172,19 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertEqual(custody(False,96,80,100),'REFUSED')
         self.assertEqual(custody(True,96,80,102),'REFUSED')
         self.assertEqual(custody(True,96,-1,50),'REFUSED')
+        return_proof=adopt.split('private _adoptReturnProof=',1)[1].split('private _adoptState=',1)[0]
+        for proof in ('_adoptChildKey == ""','_adoptCommandState in ["OWNED","PENDING","EXPIRED"]',
+                      '"nativeReturn"','"bypassReturn"','"request"','currentCommand _x in ["STOP","FOLLOW"]'):
+            self.assertIn(proof,return_proof)
+        for forbidden in ('serverTime+','doMove','set ["nativeReturn"','set ["request"'):
+            self.assertNotIn(forbidden,return_proof)
+        def task_allowed(command,return_state,issued_return):
+            return command in ('','MOVE','WAIT') or (issued_return and return_state in ('OWNED','PENDING','EXPIRED') and command in ('STOP','FOLLOW'))
+        self.assertTrue(task_allowed('FOLLOW','PENDING',True))
+        self.assertTrue(task_allowed('STOP','PENDING',True))
+        self.assertFalse(task_allowed('FOLLOW','LOST',True))
+        self.assertFalse(task_allowed('FOLLOW','PENDING',False))
+        self.assertFalse(task_allowed('ACTION','PENDING',True))
 
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):

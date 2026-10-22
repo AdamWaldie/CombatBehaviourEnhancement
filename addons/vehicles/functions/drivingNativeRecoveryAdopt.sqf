@@ -8,6 +8,8 @@
  * One exact ordinary bypass/corridor child can
  * rebind with its parent; queued/pass/abort or conflicting children remain refused.
  * Path, phase, visited index and original deadlines survive without command replay;
+ * The exact issued-return frame may retain its original STOP/FOLLOW task during transfer,
+ * with its original acknowledgement tuple unchanged. Other protected tasks still refuse.
  * the old swept-segment sample is discarded. No geometry or completion is fabricated. Active driving resumes its existing FSM; disabled
  * driving invokes only the existing guarded release path, never tactical startup.
  * Repeat/JIP: Init/seat retries cannot create edge proof or renew any deadline. Rebinds only
@@ -180,9 +182,10 @@ isNil {
     };
     if (!_adoptChildValid) exitWith {};
     if (_adoptExpiredChild) then {_adoptResume=false};
-    private _adoptNative=false;
+    private _adoptNative=false;private _adoptCommandState="LOST";
     if (_adoptMode == "DESTINATION" || {"nativeReturn" in _adoptWork}) then {
-        _adoptNative=([_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"];
+        _adoptCommandState=[_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState;
+        _adoptNative=_adoptCommandState in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"];
     } else {
         if (_adoptMode == "SIMPLE_BACK" && {_adoptDriver != _adoptOperator}) then {
             private _adoptInfo=vehicleMoveInfo _adoptVehicle;
@@ -195,10 +198,17 @@ isNil {
                 && {(expectedDestination _adoptOperator) isEqualTo (_adoptWork getOrDefault ["command",[]])};
         };
     };
+    // Only the original issued return frame can retain its STOP/FOLLOW transition.
+    // This is observation provenance, never permission for an arbitrary protected task.
+    private _adoptReturnProof=_adoptChildKey == ""
+        && {_adoptCommandState in ["OWNED","PENDING","EXPIRED"]}
+        && {(_adoptWork getOrDefault ["nativeReturn",[]]) isNotEqualTo []
+            || {"bypassReturn" in _adoptWork && {(_adoptWork getOrDefault ["request",[]]) isNotEqualTo []}}};
     if (!_adoptNative || {[_adoptDriver,_adoptOperator] findIf {
         !(currentCommand _x in ["","MOVE","WAIT"])
             && {!(currentCommand _x == "STOP" && {_adoptWork getOrDefault ["simpleStopIssued",false]})}
             && {!(_adoptChildState in ["BYPASS","CORRIDOR"])}
+            && {!(_adoptReturnProof && {currentCommand _x in ["STOP","FOLLOW"]})}
     } >= 0}) exitWith {};
     private _adoptState=_adoptVehicle getVariable ["CBE_DrivingAssist_State",[]];
     private _adoptRestore=_adoptVehicle getVariable ["CBE_DrivingAssist_Restore",[]];
