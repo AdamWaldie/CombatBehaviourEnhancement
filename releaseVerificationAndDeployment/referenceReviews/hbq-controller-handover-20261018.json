@@ -120,5 +120,18 @@
   },
   "status": "REVIEWED_NOT_IMPLEMENTED_NOT_ACCEPTED",
   "whole_hbq_parity": false,
-  "remaining": "No public all-writer quiescence/queued-callback acknowledgement proved. An actual adapter and loaded-source physical tests remain required; ordinary markers/detection do not count."
+  "remaining": "No public all-writer quiescence/queued-callback acknowledgement proved. An actual adapter and loaded-source physical tests remain required; ordinary markers/detection do not count.",
+  "cbeInternalTacticalHandover20261022": {
+    "baseline": "e5e8d89f",
+    "finding": "CortexOwnershipLease retired ordinary driving brain but could grant tactical movement while controlled-vehicle cap release or temporary work remained.",
+    "change": "After existing driving finish and authority/expiry checks, bounded64-member unique currently controlled vehicle scan refuses nonlocal vehicles, outstanding speed/restore/cap, recovery/pass/corridor/bypass and active crew journals. Malformed records refuse. Terminal crew COMPLETE/CANCELLED/EXPIRED is retained historical evidence, not active work. Passenger-only carriers are excluded. No receipt erased, worker or world scan added.",
+    "validation": "1491 tests/full local build/independent package verification passed. Existing lease regression extended. Initial build also passed; review then excluded terminal crew evidence before final validated candidate.",
+    "candidate": ".qa/candidates/tactical-driving-handback-e5e8d89f",
+    "fingerprint": "444c32d79df2a327a7c5f464d6205264cd7aaddc6dd2ec5e918c56f6383987b9",
+    "limits": [
+      "Unsigned dirty development package retaining unrelated dirt; metadata afterward.",
+      "Absence of journals is not proof of native physical quiescence. External HBQ provider handover still needs real ACK; no compatibility expansion.",
+      "Actual tactical handback, split ownership, repeated transitions and performance remain unverified; audits paused."
+    ]
+  }
 }

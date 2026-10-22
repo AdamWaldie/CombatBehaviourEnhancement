@@ -10,6 +10,8 @@
  * A competing unexpired CBE owner is refused; external ownership is handled before acquisition. Repeated release is safe.
  * Acquiring finite movement synchronously retires the ordinary driving FSM and its unchanged
  * speed leases before the new tactical owner is published; later ordinary samples are refused.
+ * Pending controlled-vehicle driving journals/cap releases refuse acquisition. Absence of metadata
+ * is not proof of native physical quiescence; no cleanup receipt is erased to force handover.
  * Arguments: 0 group <GROUP>; 1 owner <STRING>; 2 acquire <BOOL>, true; 3 expiry <NUMBER>, serverTime + 30.
  * Return Value: Boolean - true when acquired/released, false for invalid locality or competing work.
  * Current callers: Finite CBE group movement start/end, discovery expiry and group release.
@@ -46,6 +48,29 @@ if (_acquire) exitWith {
     if (count _drivingBrain > 0) then {[_drivingBrain,"TACTICAL_HANDOVER"] call CBE_fnc_DrivingOperationFinish};
     if (!local _group || {_expires <= serverTime} || {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isNotEqualTo _lease}
         || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+    private _members=units _group;
+    if (count _members > 64) exitWith {false};
+    private _checked=[];
+    private _drivingPending=_members findIf {
+        private _vehicle=objectParent _x;
+        !isNull _vehicle && {!(_vehicle in _checked)}
+            && {driver _vehicle in _members || {effectiveCommander _vehicle in _members}}
+            && {
+                _checked pushBack _vehicle;
+                if (!local _vehicle) exitWith {true};
+                ["CBE_DrivingAssist_State","CBE_DrivingAssist_Restore","CBE_DrivingCapRelease_Work",
+                    "CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingCorridor_Work",
+                    "CBE_DrivingBypass_Work","CBE_DrivingCrew_Work"] findIf {
+                    private _pending=_vehicle getVariable [_x,[]];
+                    // Crew journals retain terminal evidence; they are not live work.
+                    // Native boarding/action admission remains the movement executor's check.
+                    if (_x == "CBE_DrivingCrew_Work" && {_pending isEqualType createHashMap}
+                        && {(_pending getOrDefault ["phase",""]) in ["COMPLETE","CANCELLED","EXPIRED"]}) exitWith {false};
+                    !(_pending isEqualType [] || {_pending isEqualType createHashMap}) || {count _pending > 0}
+                } >= 0
+            }
+    } >= 0;
+    if (_drivingPending) exitWith {false};
     _group setVariable ["CBE_Cortex_MovementLease",[_owner,_expires],true];
     true
 };

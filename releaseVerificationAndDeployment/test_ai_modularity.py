@@ -213,6 +213,16 @@ class AIModularityContracts(unittest.TestCase):
             self.assertIn(guard,lease)
         self.assertLess(lease.index('_expires <= serverTime'),lease.index('call CBE_fnc_DrivingOperationFinish'))
         self.assertGreaterEqual(lease.count('_expires <= serverTime'),2)
+        pending=lease.split('private _members=units _group;',1)[1].split('setVariable ["CBE_Cortex_MovementLease",[_owner,_expires]',1)[0]
+        self.assertIn('count _members > 64',pending)
+        self.assertIn('driver _vehicle in _members || {effectiveCommander _vehicle in _members}',pending)
+        self.assertIn('!local _vehicle',pending)
+        for state in ('CBE_DrivingCapRelease_Work','CBE_DrivingRecovery_Work','CBE_DrivingPass_Work',
+                      'CBE_DrivingCorridor_Work','CBE_DrivingBypass_Work','CBE_DrivingCrew_Work'):
+            self.assertIn(state,pending)
+        self.assertIn('if (_drivingPending) exitWith {false}',pending)
+        self.assertNotIn('setVariable',pending)
+        self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',pending)
 
         for contract in ['CBE_Cortex_MovementLease','CBE_Cortex_OwnershipBusyRefusals',
                          'serverTime','CBE_fnc_CortexExternalTakeover']:
