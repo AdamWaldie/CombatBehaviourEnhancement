@@ -229,5 +229,14 @@
     "candidate": ".qa/candidates/surrender-service-handover-1e8b32c3",
     "fingerprint": "32f1a6e063e61147da8149b3d3232e61f0b30bddae39bcacbc7d3dba4679b95d",
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt, notes afterward. Not proof of physical task/captive handover, complete command identity, balance, HC/JIP or overhead. Audits paused."
+  },
+  "clearanceFloorMembership20261023": {
+    "baseline": "89739921",
+    "finding": "Changed floor-wave coverage recomputed _cleared+_unreachable and performed linear array membership for every room, producing repeated allocations and quadratic membership work in an unscheduled clearance callback.",
+    "implementation": "Build one numeric room-index HashMap from cleared and unreachable indices per coverage refresh, then use key membership in the existing room pass. Original coverage-count cache, lowest-floor geometry, pair flow, pending claims and deadlines unchanged. No new scan, controller or setting.",
+    "validation": "Existing1491 tests/full local build and independent package verification passed. No additional source-shape test or synthetic engine-performance claim.",
+    "candidate": ".qa/candidates/clearance-floor-membership-89739921",
+    "fingerprint": "f498a05894c5c306d4522637361e4e142d0a14c31f386d2608abf6f0939d6702",
+    "limits": "Unsigned dirty snapshot with unrelated dirt; engineering notes afterward. Removes repeated source-level allocation/search, not measured frame-time proof or a physical clearance-flow fix. Audits paused; 5%median/10%p95 budget unverified."
   }
 }

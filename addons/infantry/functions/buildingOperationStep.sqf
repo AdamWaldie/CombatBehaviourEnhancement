@@ -2545,8 +2545,14 @@ private _delay=call {
     private _floorWave=_job getOrDefault ["unfinishedFloorWave",[-1,-1,1e12]];
     if ((_floorWave select 0) != count _cleared || {(_floorWave select 1) != count _unreachable}) then {
         private _lowestUnfinished=1e12;
+        // Build retired-room membership once for this changed coverage snapshot. Rebuilding
+        // and linearly searching the combined array for every room made this pass quadratic.
+        // Numeric room indices remain the keys; no target, visit or floor rule changes.
+        private _finishedRooms=createHashMap;
+        {_finishedRooms set [_x,true]} forEach _cleared;
+        {_finishedRooms set [_x,true]} forEach _unreachable;
         for "_roomIndex" from 0 to ((count _positions)-1) do {
-            if !(_roomIndex in (_cleared+_unreachable)) then {
+            if !(_roomIndex in _finishedRooms) then {
                 _lowestUnfinished=_lowestUnfinished min ((AGLToASL (_positions select _roomIndex)) select 2);
             };
         };
