@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reactive danger fixes retain the owner observation time and a10s expiry. Never compare
+ * reported belief with an unseen hostile transform; authenticated owner knowledge supplies the fix.
  * Automatic and explicit admission refuse visibly incapacitated, player-controlled or dormant
  * operating crew before reservation. Remote observations never replace owner-local task checks.
  * Delayed post-fire movement retains the request-time movement group/authored route;
@@ -19,7 +21,7 @@
  * which its effective commander already knows. It uses the same token, safety, warning and shot
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
- * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
+ * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: danger belief/counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
  * Counter missions retain the server cancellation generation through their queued shots.
  * Target coordinates must be finite ATL pairs/triples; error, rounds and numeric scoot
  * defaults must be finite before planning or reservation. Invalid input has no busy/cooldown effect.
@@ -82,7 +84,7 @@ if (_danger) then {
         || {!alive _battery} || {!alive _enemy} || {!(_battery isKindOf "StaticMortar")}
         || {isPlayer _commander} || {_commander knowsAbout _enemy <= 0}
         || {(side _crewGroup) getFriend (side _enemy) >= 0.6}
-        || {_target distance2D (getPosATL _enemy) > 75}
+        || {_observedAt < 0} || {_observedAt > serverTime+1} || {serverTime >= _observedAt+10}
         || {time < (_battery getVariable ["CBE_AIPass_NextDangerFire",-1])}
         || {!([_crewGroup] call CBE_fnc_CortexIsEligible)}
         || {!([_crewGroup,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
@@ -171,6 +173,7 @@ private _movementOrder=[_movementGroup,[_movementGroup] call CBE_fnc_NativeOrder
 private _mission = createHashMapFromArray [
     ["movementOrder",_movementOrder], ["battery", _battery], ["key", netId _battery], ["token", _token], ["fix", [+_target, _error max 0]], ["mode", _mode], ["purpose", _purpose],
     ["counterGeneration",_fireEpochs select 3],["shotSerial",0],
+    ["dangerUntil",if (_danger) then {_observedAt+10} else {-1}],
     ["fireGeneration",_fireEpochs select (if (_counter) then {3} else {[0,1] select _danger})],
     ["smokeGeneration",_fireEpochs select 2],
     ["spotter", _spotter], ["enemy", _enemy], ["requester",_requester], ["remaining", (round _rounds max 1) min 10], ["fired", 0], ["burstSize", (round _rounds max 1) min 10],

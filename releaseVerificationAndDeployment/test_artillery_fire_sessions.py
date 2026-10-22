@@ -28,7 +28,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('_counterExpired || {_fireExpired} || {_smokeExpired}',step)
     def test_owner_request_signature_and_native_gate_include_original_generations(self):
         shot=(ROOT/'addons/support/functions/cortexArtilleryShot.sqf').read_text(encoding='utf-8')
-        self.assertIn('_counterGeneration,_fireGeneration,_smokeGeneration]',shot)
+        self.assertIn('_counterGeneration,_fireGeneration,_smokeGeneration,_dangerUntil]',shot)
         gate=shot.split('private _fireSessionCurrent={',1)[1].split('private _danger=',1)[0]
         self.assertIn('_fireGeneration == (missionNamespace getVariable',gate)
         self.assertIn('_mode != "SMOKE"',gate)

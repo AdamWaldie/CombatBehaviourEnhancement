@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reactive mortar work cannot dispatch beyond its original danger-fix expiry.
  * Server-owned fire sequence. One observer query per burst; lethal HE bursts receive four red warning smoke shells.
  * Warning smoke surrounds the reported target, ten seconds before the first shot; later shots do not repeat it.
  * Smoke is globally created by the server and deleted after sixty seconds; no per-unit polling is added.
@@ -115,7 +116,8 @@ private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smo
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}
     || {!_danger && {!([_battery, _mission get "purpose"] call CBE_fnc_CortexArtilleryRole)}}
     || {if (_danger) then {
-        !([_crewGroup,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+        serverTime >= (_mission getOrDefault ["dangerUntil",-1])
+        || {!([_crewGroup,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
         || {!([_crewGroup,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
         || {!([_crewGroup,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
         || {[_crewGroup] call CBE_fnc_CortexExternalTakeover}
@@ -231,5 +233,5 @@ _mission set ["shotSerial",(_mission getOrDefault ["shotSerial",0])+1];
 _mission set ["phase", "PENDING"];
 _mission set ["due", time + 60];
 _mission set ["gunOwner", owner _battery];
-[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
+[_battery, _aim, _mission get "magazine", _mission get "purpose", _mission get "mode", _mission get "token",_mission getOrDefault ["counterGeneration",-1],_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1],_mission getOrDefault ["dangerUntil",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _battery];
 1

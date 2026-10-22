@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Danger-fix expiry is part of shot identity and rechecked at final native issue; no renewal.
  * Current gunner availability, protected tasks/treatment, simulation and player/specialist
  * control are checked before safety work and again at the atomic native shot boundary.
  * Executes exactly one checked shot on the current battery owner. The server observes the actual firing event.
@@ -11,6 +12,7 @@
  * 7 shot serial <NUMBER, -1>, required positive integer for every request.
  * 8 fire generation <NUMBER, -1>, required original purpose generation;
  * 9 smoke generation <NUMBER, -1>, required original generation for SMOKE.
+ * 10 danger fix expiry <NUMBER, -1>, required original server-time boundary for DANGER.
  * Exact duplicate and older serials are consumed without fire or rejection callbacks; a
  * conflicting same-serial payload refuses without cancelling the genuine pending command.
  * Final native issue rechecks current generation, live feature/ROE and crew/token atomically.
@@ -19,13 +21,13 @@
  * Current callers: ArtilleryMissionStep.
  * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token,-1,1,_supportGeneration,-1] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _gun];
  */
-params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]],["_fireGeneration",-1,[0]],["_smokeGeneration",-1,[0]]];
+params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]],["_fireGeneration",-1,[0]],["_smokeGeneration",-1,[0]],["_dangerUntil",-1,[0]]];
 if (remoteExecutedOwner != 2) exitWith {false};
 if (!finite _shotSerial || {_shotSerial < 1} || {_shotSerial != floor _shotSerial}) exitWith {false};
 // Malformed geometry cannot consume a shot receipt or reject a genuine pending shot.
 if (!(_aim isEqualType []) || {!(count _aim in [2,3])}
     || {_aim findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
-private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration,_fireGeneration,_smokeGeneration];
+private _signature=[+_aim,_magazine,_purpose,_mode,_counterGeneration,_fireGeneration,_smokeGeneration,_dangerUntil];
 private _requestState={
     private _receipt=_battery getVariable ["CBE_AIPass_ShotReceipt",[]];
     if (_receipt isEqualTo []) exitWith {"NEW"};
@@ -54,6 +56,7 @@ private _fireGenerationName=switch (_purpose) do {
 };
 private _fireSessionCurrent={
     finite _fireGeneration && {_fireGeneration >= 0}
+        && {_purpose != "DANGER" || {finite _dangerUntil && {serverTime < _dangerUntil}}}
         && {_fireGeneration == (missionNamespace getVariable [_fireGenerationName,0])}
         && {_mode != "SMOKE" || {finite _smokeGeneration && {_smokeGeneration >= 0}
             && {_smokeGeneration == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])}}}

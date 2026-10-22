@@ -9,7 +9,7 @@ class ArtilleryShotSerial(unittest.TestCase):
         self.assertIn('["shotSerial",0]',fire)
         self.assertEqual(step.count('_mission set ["shotSerial",'),1)
         self.assertIn('(_mission getOrDefault ["shotSerial",0])+1',step)
-        self.assertIn('_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot"',step)
+        self.assertIn('_mission get "shotSerial",_mission getOrDefault ["fireGeneration",-1],_mission getOrDefault ["smokeGeneration",-1],_mission getOrDefault ["dangerUntil",-1]] remoteExecCall ["CBE_fnc_CortexArtilleryShot"',step)
         self.assertLess(step.index('_mission set ["shotSerial",'),step.index('_mission set ["phase", "PENDING"]'))
     def test_duplicate_conflict_and_old_requests_do_not_reject_or_fire_again(self):
         s=(ROOT/'addons/support/functions/cortexArtilleryShot.sqf').read_text(encoding='utf-8')

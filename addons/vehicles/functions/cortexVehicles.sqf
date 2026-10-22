@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reactive mortar reports carry current native believed geometry and its server-time observation.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
@@ -676,7 +677,7 @@ if (_dangerDismount isNotEqualTo []) then {
                 // ammunition, range and friendly safety; this call never fires a shell directly.
                 // Recording the generation before dispatch prevents one danger event from queuing
                 // repeatedly while the server accepts or rejects the request.
-                if (_dangerProfile == "ARTILLERY" && {_dangerHostile} && {_freshGeneration}
+                if (_dangerProfile == "ARTILLERY" && {_dangerHostile} && {_dangerBeliefValid} && {_freshGeneration}
                     && {_vehicle isKindOf "StaticMortar"} && {!(_emplacementUnsafe || {_disabledUnsafe})}
                     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                     && {combatMode _group in ["YELLOW","RED"]}
@@ -684,7 +685,7 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {[] call _mayIssueVehicle}) then {
                     _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
                     _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
-                    [_vehicle,+_dangerPosition,25,"HE",1,false,"DANGER",objNull,_dangerSource] call CBE_fnc_CortexArtilleryFire;
+                    [_vehicle,+_dangerBelief,25,"HE",1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
                 };
                 if (_knownHostile && {_freshGeneration} && {!(_emplacementUnsafe || {_disabledUnsafe})}
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
