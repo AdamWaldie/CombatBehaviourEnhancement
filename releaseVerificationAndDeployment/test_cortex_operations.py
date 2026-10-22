@@ -7069,6 +7069,12 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index(guard), text.index('_group setBehaviour "COMBAT"'))
         self.assertNotIn('disableAI "AUTOCOMBAT"', text)
 
+        self.assertIn('private _nativeTaskActive = !([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)',text)
+        footprint=source('cortexGroupPostureTaskAvailable')
+        for protected in ('fleeing _x','unitCombatMode _x in ["BLUE","GREEN"]',
+                          '!isNull objectParent _x','ace_medical_ai_healQueue','count _members > 64'):
+            self.assertIn(protected,footprint)
+
     def test_stalled_bounds_cannot_complete_or_advance(self):
         text = source('cortexFlankStep')
         move = text.split('case "MOVE":')[1].split('case "PAUSE":')[0]

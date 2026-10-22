@@ -17,5 +17,31 @@
     "Audits paused; no Arma launch. Physical native timing, mixed-role behaviour, HC and performance unverified.",
     "This covers DangerReact group-mode writes, not every group writer or per-member baseline restoration.",
     "No source parity or buildout percentage rescore. Protected sources and unrelated dirt preserved."
-  ]
+  ],
+  "normalContactFollowup20261022": {
+    "baseline": "f51bb7a1",
+    "finding": "CortexGroupTick beginContact used an incomplete local native-task predicate before group setBehaviour COMBAT. Unlike DangerReact, fresh native contact could bypass fleeing, per-member hold-fire, mounted/nonlocal or other protected domains.",
+    "implementation": "Replace the duplicate predicate with existing CortexGroupPostureTaskAvailable; keep the established nativeTaskActive/assault guard and contact information path. The shared complete <=64 living-member footprint controls normal contact escalation too. No new worker or setting.",
+    "cost": "One existing first-contact roster check replaced by shared bounded roster check, rather than a second scan or global query. Runtime cost unmeasured.",
+    "validation": {
+      "fullOffline": ".qa/contact-posture-footprint-build.log",
+      "tests": 1491,
+      "focusedFinal": ".qa/contact-posture-footprint-focused.log",
+      "focusedTests": 610,
+      "detail": "Full local HEMTT/FSM/SQF/config/docs/package passed. Afterward removed only a newly added redundant Python boolean example; meaningful source wiring checks remain and final610-file-suite tests passed. Production source unchanged after full build.",
+      "independent": ".qa/contact-posture-footprint-independent.log",
+      "candidate": ".qa/candidates/contact-posture-footprint-f51bb7a1",
+      "fingerprint": "c0f26868f4d3dc4c92fd53d7316f4aae1f08b743ff1c090086f6eea2bf7b6e68",
+      "provenance": "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata follows packaging."
+    },
+    "limits": [
+      "No live native flight/contact, mixed-crew, HC/JIP, baseline handback or performance proof.",
+      "Scoped normal contact posture write, not proof that every group writer respects native ownership.",
+      "Audits PAUSED; no push/merge/CI/release/Steam, no percentage rescore."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexGroupTick.sqf": "7949eff46c7ad93313836116429239d8f0aa59fc41e56a005cc4e4d48389b738",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "9495c5322f35c0402da8b757e036c8441c23ca6dd69392d9c2fdbb132c61605b"
+    }
+  }
 }

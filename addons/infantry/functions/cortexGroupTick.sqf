@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Normal contact escalation shares the complete native group-posture task guard; native
+ * fleeing, mixed crew and individual protected policies cannot be bypassed by fresh knowledge.
  * Calm authored foot travel can request near unlocked doors through its existing tick,
  * independently of autonomous Contact decisions and without acquiring movement.
  * Natural contact escalation defers mission STEALTH while passive reports and native self-defence remain available.
@@ -1031,10 +1033,7 @@ private _enterContact = {
 };
 private _beginContact = {
     // Changing group behaviour also changes actors whose native tasks CBE does not own.
-    private _nativeTaskActive = (_alive findIf {
-        (_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo [] || {
-        toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
-    }) >= 0;
+    private _nativeTaskActive = !([_group] call CBE_fnc_CortexGroupPostureTaskAvailable);
     if !("baseBehaviour" in _state) then {
         _state set ["baseBehaviour", behaviour _leader];
         _state set ["baseSpeed", speedMode _group];
