@@ -172,5 +172,15 @@
     "fingerprint": "f0c44283c1b09dcc629e4723a17a787dcf027744c26d5200c8baa80bbbfdd6b2",
     "remaining": "AirAttackPlan non-infantry AA branch still reads hostile magazinesAllTurrets counts. Evaluate equipment/config potential threat there separately; no whole-mod knowledge fairness or physical claim.",
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Behaviour, balance, HC/JIP and5%median/10%p95 unverified; audits paused."
+  },
+  "vehicleAAThreatKnowledge20261022": {
+    "baseline": "bf825248",
+    "finding": "AirAttackPlan non-infantry AA threat planning read live hostile magazinesAllTurrets round counts.",
+    "implementation": "Class-armament potential estimate uses cached immutable class configuration, root/nested turret magazines and default pylon attachments. First inspection <=32 turret nodes, <=32 pylon slots, <=128 magazine entries and <=64 per node. Unknown/exhausted config budget is precautionary potential threat, not a safe negative. Existing native reported contact positions and own-aircraft live ammunition evaluation remain unchanged.",
+    "balanceLimits": "Vehicle type/equipment potential is not confirmed live weapon/ammunition/readiness. Runtime rearm/custom armament outside class configuration remains unknown. Empty or disarmed standard platforms may remain precautionary threats. No whole-mod intelligence-fairness claim.",
+    "validation": "1491 tests plus full local build and independent package verification passed. Initial existing air test required the old hostile inventory query and was updated to require bounded class facts. Review then added pylon-only configured armament before final build.",
+    "candidate": ".qa/candidates/vehicle-aa-threat-knowledge-bf825248",
+    "fingerprint": "e6be169a55abccb2adbeb99f6c854cc24af2be296e1cb6da79150256a8b5e2b2",
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Physical air tactics/balance, HC/JIP and5%median/10%p95 unverified. Audits paused."
   }
 }

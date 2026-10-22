@@ -69,6 +69,16 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('[_x select 0,true] call CBE_fnc_CortexCapabilities',vehicles)
         air=src('cortexAirAttackPlan')
         self.assertIn('[_contact,true] call CBE_fnc_CortexCapabilities',air)
+        self.assertNotIn('magazinesAllTurrets _contact',air)
+        self.assertIn('[typeOf _contact] call _vehicleAAFacts',air)
+        threat=air.split('private _vehicleAAFacts={',1)[1].split('private _aaPositions=',1)[0]
+        for bound in ('_nodes < 32','_magazinesSeen < 128','min 64','_vehicleThreatCache set'):
+            self.assertIn(bound,threat)
+        self.assertIn('[0,2] select _unknown',threat)
+        self.assertIn('TransportPylonsComponent',threat)
+        self.assertIn('_pylons select [0,32]',threat)
+        self.assertIn('getText (_x >> "attachment")',threat)
+        self.assertNotIn('magazinesAllTurrets',threat)
         self.assertNotIn('[_x,true] call CBE_fnc_CortexCapabilities',src('cortexMorale'))
         self.assertIn('_rounds > 0',text)
         self.assertIn('_magazine in _compatible',text)

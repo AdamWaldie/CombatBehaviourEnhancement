@@ -8676,7 +8676,7 @@ class CortexOperations(unittest.TestCase):
     def test_adaptive_air_attack_is_bounded_physical_and_zeus_safe(self):
         planner=source('cortexAirAttackPlan')
         for requirement in ['nearTargets ([8000,5000]','select [0,16]','CBE_Cortex_AirAmmoFacts',
-                            'magazinesAllTurrets','airLock','aiAmmoUsageFlags','STANDOFF','OFFSET','HOOK','STRAFE','BOMB','LATERAL',
+                            '_vehicleAAFacts','CBE_Cortex_AirVehicleAAFacts','airLock','aiAmmoUsageFlags','STANDOFF','OFFSET','HOOK','STRAFE','BOMB','LATERAL',
                             'INTERCEPT','_airToAir','airWeapon','airWeaponTurret','pylonWeapon','hardpoints','indirectHit']:
             self.assertIn(requirement,planner)
         for requirement in ['groundWeapon','groundTurret','_groundCandidates','_hasGun=_groundCandidates findIf {(_x select 4) == "GUN"}','shotbullet','shotshell',

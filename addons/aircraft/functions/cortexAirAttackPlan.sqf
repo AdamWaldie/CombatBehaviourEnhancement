@@ -232,6 +232,41 @@ private _lateralWeaponScore=-1;
     };
 } forEach fullCrew _aircraft;
 
+// Hostile class armament is potential threat, never an enemy ammunition count.
+// Immutable results cache per vehicle class; first inspection is bounded to32
+// turret nodes,32 default pylon slots and128 magazine entries, with at most64 entries from one node.
+private _vehicleThreatCache=missionNamespace getVariable ["CBE_Cortex_AirVehicleAAFacts",createHashMap];
+private _vehicleAAFacts={
+    params ["_class"];
+    if (_class in _vehicleThreatCache) exitWith {_vehicleThreatCache get _class};
+    private _stack=[configFile >> "CfgVehicles" >> _class];
+    private _nodes=0;private _magazinesSeen=0;private _potential=false;private _unknown=false;
+    while {_stack isNotEqualTo [] && {_nodes < 32} && {_magazinesSeen < 128} && {!_potential}} do {
+        private _node=_stack deleteAt ((count _stack)-1);_nodes=_nodes+1;
+        private _magazines=getArray (_node >> "magazines");
+        if (_nodes == 1) then {
+            private _pylons=configProperties [_node >> "Components" >> "TransportPylonsComponent" >> "Pylons","isClass _x",true];
+            if (count _pylons > 32) then {_unknown=true};
+            _magazines append (((_pylons select [0,32]) apply {getText (_x >> "attachment")}) select {_x != ""});
+        };
+        private _remaining=(128-_magazinesSeen) min 64;
+        if (count _magazines > _remaining) then {_unknown=true};
+        {
+            _magazinesSeen=_magazinesSeen+1;
+            if (([_x] call _ammoFacts) select 0) exitWith {_potential=true};
+        } forEach (_magazines select [0,_remaining]);
+        private _children=configProperties [_node >> "Turrets","isClass _x",true];
+        private _room=(32-_nodes-count _stack) max 0;
+        if (count _children > _room) then {_unknown=true};
+        _stack append (_children select [0,_room]);
+    };
+    if (_stack isNotEqualTo []) then {_unknown=true};
+    // An exhausted config budget is not evidence of no threat. Retain precautionary
+    // stand-off without presenting uninspected armament as a confirmed AA system.
+    private _classification=if (_potential) then {1} else {[0,2] select _unknown};
+    _vehicleThreatCache set [_class,_classification];
+    _classification
+};
 private _aaPositions=[];
 private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Plane"))) select [0,16];
 {
@@ -245,15 +280,13 @@ private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Pla
         if (_contact isKindOf "CAManBase") then {
             _antiAir="AA" in ([_contact,true] call CBE_fnc_CortexCapabilities);
         } else {
-            {
-                _x params ["_magazine","_turret","_rounds"];
-                if (_rounds > 0 && {([_magazine] call _ammoFacts) select 0}) exitWith {_antiAir=true};
-            } forEach magazinesAllTurrets _contact;
+            _antiAir=([typeOf _contact] call _vehicleAAFacts) != 0;
         };
         if (_antiAir) then {_aaPositions pushBack (+_reportedPosition)};
     };
 } forEach _known;
 missionNamespace setVariable ["CBE_Cortex_AirAmmoFacts",_ammoCache];
+missionNamespace setVariable ["CBE_Cortex_AirVehicleAAFacts",_vehicleThreatCache];
 
 private _airPos=getPosATL _aircraft;
 private _targetPos=getPosATL _target;
