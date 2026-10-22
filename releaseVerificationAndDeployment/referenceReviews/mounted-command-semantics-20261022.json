@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-22",
+  "baseline": "32f1a419",
+  "scope": "Mounted driver/commander native command and fixed-path restoration assumptions",
+  "status": "MATERIAL_ENGINE_ASSUMPTION_UNVERIFIED_NO_RUNTIME_CHANGE",
+  "findings": [
+    {
+      "source": "HBQ fn_refreshRoute.sqf:24-31,49-67",
+      "finding": "Its commentary reports that fixed paths could detach a separately commanded driver into DoNotPlan, and the commanded-vehicle restoration branch avoids waypoint recreation/fixed-path termination in favour of the current waypoint plus commander move. This is a preserved upstream observation, not verified CBE runtime evidence."
+    },
+    {
+      "source": "HBQ fn_driveAssist.sqf:2389-2468",
+      "finding": "The navigation-area branch nevertheless approaches through effectiveCommander doMove, crosses with setDriveOnPath and calls refreshRoute on completion/timeout. No distinct-commander exclusion was found in this branch. Upstream methods are internally in tension; neither blanket support nor blanket failure follows from one helper comment."
+    },
+    {
+      "source": "CBE current bypass/corridor return and DrivingRecoveryCommandState",
+      "finding": "CBE stops owned actors before fixed-path use, returns through commander move and requires both original-goal MOVE acknowledgements for temporary native return. A driver native destination planning mode does not by itself prove currentCommand or exact crew ACK transitions. Source-shaped tests do not settle whether this pattern is achievable on each vehicle/seat configuration."
+    }
+  ],
+  "officialReferences": [
+    {
+      "url": "https://community.bistudio.com/wiki/expectedDestination",
+      "supports": "Owner-local destination array contains destination, planningMode and forceReplan; VEHICLE PLANNED is documented for vehicle driver. It does not specify the two-seat task transitions required by CBE."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/setDriveOnPath",
+      "supports": "Fixed-path driving is not established by unitReady; normal AI requires stop/detachment, and other movement/doStop cancels fixed-path effect. This does not prove later crew route restoration."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/doMove",
+      "supports": "Native group formation can reassert after a unit finishes its move. The general command entry is not a guarantee of mounted two-seat acknowledgement behaviour."
+    }
+  ],
+  "retrieval": "Direct wiki opens returned403; official-domain indexed page content was available through web search. Talk-page comments about vehicle-versus-crew doMove were not used as authority for a runtime rewrite.",
+  "nextAction": "Do not add more speculative command writers or relax ACK authority based on source comments. When audits are authorised, compare actual car/APC/tank driver-as-commander versus distinct-commander frames before/after stop, fixed path, follow and one original-goal request; record both expectedDestination/currentCommand/formLeader and actual travel under real ownership changes. No launch is authorised now. Continue independent foundation work meanwhile.",
+  "validationLimits": "No runtime edit, build, physical proof, percentage rescore, whole-HBQ parity or acceptance. Last validated runtime/package remains32f1a419/native-return-task-adoption-0697e2a9 fingerprint114180eaace244ada927191b1cd5e5ed09a8438db3ef90ad22b28dede2b426bb.",
+  "evidence": {
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "362ef4aba5bf3ef1e1b03839e00aa057cb7d3f571cf3761171bfac50d52ebeec"
+  },
+  "sourceProtection": "HBQ controller hash still matches recorded index. All protected upstream files unchanged."
+}
