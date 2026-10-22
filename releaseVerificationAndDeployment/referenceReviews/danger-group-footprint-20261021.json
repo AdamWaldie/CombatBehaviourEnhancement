@@ -188,5 +188,14 @@
     "candidate": ".qa/candidates/morale-effective-strength-e1ee99ec",
     "fingerprint": "a4c49598d60690bdf4b74d884f6ebf66b4e640aa1b7a6497ec9779d524c386f7",
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. No physical casualty flow, surrender/balance, HC/JIP or measured performance proof. Audits paused."
+  },
+  "flankStrengthReadiness20261022": {
+    "baseline": "e3a7dfe2",
+    "finding": "Flank casualty-strength ratio counted only immediately task-eligible infantry, conflating temporary protected work with casualties even when minimum-ready/firepower requirements could be met. Reinforce already used effective health strength.",
+    "implementation": "Build combat-effective infantry strength once, derive current local task-ready roster from it, use physical effective infantry count for casualty ratio and retain current minimum-ready/mobility/native-task/owned-hold and live-ammunition/cover checks. No new helper, worker, task takeover or profile-weight change.",
+    "validation": "1491 tests/full local build/independent package verification passed. Existing roster contract now checks composed health and task admission; existing morale case also checks separate flank ratios.",
+    "candidate": ".qa/candidates/flank-strength-readiness-e3a7dfe2",
+    "fingerprint": "f87cd94c74b8e26b12af5d803c005536649081634cb6bd4c767ff03df5f75efc",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Physical manoeuvre capacity, balance, task overlap, HC/JIP and measured overhead unverified. Audits paused."
   }
 }

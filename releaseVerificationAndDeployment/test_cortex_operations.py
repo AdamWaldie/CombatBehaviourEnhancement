@@ -4284,6 +4284,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_suppression + ((getSuppression _x) max 0 min 1)',morale)
         self.assertNotIn('_suppression + getSuppression _x',morale)
         self.assertIn('0.2 * _suppression',morale)
+        flank=source('cortexFlankStart')
+        self.assertIn('private _onFoot = _strengthFoot select',flank)
+        self.assertIn('if (count _strengthFoot /',flank)
+        self.assertNotIn('if (count _onFoot /',flank)
+        self.assertIn('if (count _onFoot < (missionNamespace getVariable ["CBE_AIPass_Flank_MinGroupSize", 6]))',flank)
         self.assertIn('private _fighters=_alive select {[_x] call CBE_fnc_CortexCombatEffective}',morale)
         self.assertIn('private _count = count _fighters',morale)
         self.assertIn('CBE_AIPass_PeakSize", _livingCount]) max _livingCount',morale)
@@ -5002,6 +5007,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _closePosition=_manoeuvre findIf',assessment)
         for constructor in (assault,flank,advance):
             roster=constructor.split('private _onFoot',1)[1].split('};',1)[0]
+            if constructor == flank:
+                roster=constructor.split('private _strengthFoot=',1)[1].split('if (count _onFoot',1)[0]
             self.assertIn('CortexCombatEffective',roster)
             self.assertIn('CortexActorFireTaskAvailable',roster)
             self.assertIn('CortexHolderRecallOwned',roster)

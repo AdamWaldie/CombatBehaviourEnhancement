@@ -76,13 +76,17 @@ if ((_state getOrDefault ["moraleState", "STEADY"]) != "STEADY") exitWith {["MOR
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
-private _onFoot = (units _group) select {
-    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+// Physical fighting strength is not the immediately assignable task roster.
+// Treatment, reservations and native ownership may defer a healthy fighter without
+// making that soldier a casualty. Minimum-ready admission remains separate below.
+private _strengthFoot=(units _group) select {[_x] call CBE_fnc_CortexCombatEffective && {vehicle _x == _x}};
+private _onFoot = _strengthFoot select {
+    local _x && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < (missionNamespace getVariable ["CBE_AIPass_Flank_MinGroupSize", 6])) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
-if (count _onFoot / ((_group getVariable ["CBE_AIPass_PeakSize", count _onFoot]) max 1) < 0.6) exitWith {["CASUALTY_STRENGTH",[count _onFoot,_group getVariable ["CBE_AIPass_PeakSize",count _onFoot]]] call _refuse};
+if (count _strengthFoot / ((_group getVariable ["CBE_AIPass_PeakSize", count _strengthFoot]) max 1) < 0.6) exitWith {["CASUALTY_STRENGTH",[count _strengthFoot,_group getVariable ["CBE_AIPass_PeakSize",count _strengthFoot]]] call _refuse};
 private _targetIndex = _enemies findIf {
     (_x select 2) <= 15
     && {(_x select 3) >= (missionNamespace getVariable ["CBE_AIPass_Flank_MinRange", 60])}
