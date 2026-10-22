@@ -34,13 +34,27 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertLess(step.index('call CBE_fnc_CortexClearSettingsRelease'),step.index('// Native tasks keep movement ownership'))
 
     def test_pending_window_has_one_actor_per_existing_callback_without_renewal(self):
-        s=read('addons/infantry/functions/groupBrainStep.sqf')
-        block=s.split('// Finite post-clear settings retirement',1)[1].split('// A native STOP survives',1)[0]
+        block=read('addons/infantry/functions/cortexClearSettingsStep.sqf')
         self.assertEqual(block.count('call CBE_fnc_CortexClearSettingsRelease'),1)
-        self.assertIn('count _settingsMembers <= 64',block)
-        self.assertIn('_clearSettings select 0,_epoch,false',block)
-        self.assertIn('serverTime >= (_clearSettings select 2)',block)
+        self.assertIn('count _members > 64',block)
+        self.assertIn('_pending select 0,_pending select 1,false',block)
+        self.assertIn('serverTime >= (_pending select 2)',block)
         self.assertNotIn('serverTime+30',block)
+        self.assertNotIn('CBE_AIPass_Active',block)
+        self.assertNotIn('CortexIsPaused',block)
+        for command in ('doMove','doFollow','doStop','forceSpeed','setUnitPos'):
+            self.assertNotIn(command,block)
+        reconcile=read('addons/core/functions/schedulerReconcile.sqf')
+        scheduler=read('addons/core/functions/cortexSchedulerTick.sqf')
+        self.assertIn('case "SETTINGS_CLEANUP"',reconcile)
+        self.assertIn('CBE_ActorSettings_SchedulerActive',scheduler)
+        self.assertIn('_settingsRetired',scheduler)
+        stop=read('addons/core/functions/cortexStop.sqf')
+        carry=stop.split('private _clearPending=',1)[1].split('private _posturePending=',1)[0]
+        self.assertIn('(_clearPending select 1) == _postureOldEpoch',carry)
+        self.assertIn('_carriedClear set [1,',carry)
+        self.assertNotIn('set [2,',carry)
+        self.assertIn('CBE_fnc_CortexClearSettingsStep',carry)
         helper=read('addons/infantry/functions/cortexClearSettingsRelease.sqf')
         self.assertIn('if (_pending isEqualTo [] || {_retiredEpisode}) then',helper)
         self.assertNotIn('waitAndExecute',helper.split('params [[',1)[1])

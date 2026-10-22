@@ -10630,7 +10630,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call CBE_fnc_CortexQueueJob',release)
         self.assertIn('["subsystem","POSTURE_CLEANUP"]',release)
         scheduler=source('cortexSchedulerTick')
-        self.assertIn('if (_subsystem == "POSTURE_CLEANUP") then {_jobPaused=false}',scheduler)
+        self.assertIn('if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP"]) then {_jobPaused=false}',scheduler)
         self.assertIn('private _jobPaused = _paused && {!_skillsJob}',scheduler)
         self.assertIn('private _stale = !_enabled',scheduler)
         self.assertIn('(_state getOrDefault ["ownerEpoch", -1]) !=',scheduler)

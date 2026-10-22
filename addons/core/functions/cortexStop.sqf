@@ -282,6 +282,19 @@ if (!isNil "_civilianCreated") then {
     // weak-stance restoration, never an active danger response or tactical task.
     if (local _stoppingGroup && {!([_stoppingGroup] call CBE_fnc_CortexExternalTakeover)}
         && {!([_stoppingGroup] call CBE_fnc_CortexZeusHeld)}) then {
+        private _clearPending=_stoppingGroup getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+        if (_clearPending isEqualType [] && {count _clearPending == 4}
+            && {[0,1,2,3] findIf {!((_clearPending select _x) isEqualType 0)
+                || {!finite (_clearPending select _x)}} < 0}
+            && {(_clearPending select 0) == (_stoppingGroup getVariable ["CBE_AIPass_ClearGeneration",-1])}
+            && {(_clearPending select 1) == _postureOldEpoch} && {serverTime < (_clearPending select 2)}) then {
+            private _carriedClear=+_clearPending;
+            _carriedClear set [1,_stoppingGroup getVariable ["CBE_AIPass_Epoch",0]];
+            _stoppingGroup setVariable ["CBE_Cortex_ClearSettingsPending",_carriedClear,true];
+            [CBE_fnc_CortexClearSettingsStep,createHashMapFromArray [["group",_stoppingGroup],
+                ["ownerEpoch",_carriedClear select 1],["generation",_carriedClear select 0],
+                ["subsystem","SETTINGS_CLEANUP"]],0.25,"CLEAR_SETTINGS"] call CBE_fnc_CortexQueueJob;
+        };
         private _posturePending=_stoppingGroup getVariable ["CBE_Danger_StancePendingActors",[]];
         if (_posturePending isEqualType [] && {count _posturePending <= 64}) then {
             {

@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-22",
+  "baseline": "a8f41ff1",
+  "finding": "Deferred clearance speed/stance restoration was serviced only by the tactical group brain. Master-off removed that callback and advanced epoch, stranding the pending finite cleanup.",
+  "implementation": [
+    "One keyed SETTINGS_CLEANUP callback on existing shared scheduler, independent of tactical enable/pause; removes old group-brain retry loop.",
+    "At most64 group members filtered, one actor offered per .25s callback; original public30s deadline and round-robin cursor retained.",
+    "Controlled same-machine stop carries only exact matching pending generation/old epoch to new epoch. Existing validated locality adoption queues cleanup without renewing deadline.",
+    "Existing ActorSettings boundary still validates local actor/group, issuer/context, reservations and exact applied native setting before restoration. Active new operation/building/clearance blocks cleanup. No movement/target/task replay or new acquisition.",
+    "Expiry records WINDOW_EXPIRED and retires callback while actor canonical proof remains. Last cleanup retirement reconciles/removes scheduler runtime.",
+    "Garrison settings are outside this change and still have their separate pending mechanism."
+  ],
+  "validation": {
+    "tests": 1489,
+    "compiledSQF": 402,
+    "initialFocused": ".qa/clear-settings-shutdown-focused.log (moved callback assertion and source coverage failures)",
+    "firstFull": ".qa/clear-settings-shutdown-build.log (generated coverage report stale)",
+    "finalFull": ".qa/clear-settings-shutdown-build-final.log",
+    "independentLog": ".qa/clear-settings-shutdown-independent-verify.log",
+    "candidate": ".qa/candidates/clear-settings-shutdown-a8f41ff1",
+    "fingerprint": "0e5b19030245d3c190f9cf8257eeebbf0f70851be3588ab46cde7217e93a08a2",
+    "provenance": "Unsigned development build of baseline+intended edits+retained unrelated dirty state; not clean signed release.",
+    "coverage": "New executor added to existing CLEAR source mapping; report regenerated without changing acceptance statuses or build-out percentages."
+  },
+  "limits": [
+    "No physical shutdown/re-enable, native refusal, actor recovery, HC transfer or runtime performance acceptance.",
+    "Scheduler pressure can exhaust original window; no guaranteed eventual restoration.",
+    "Unrelated epoch changes/new owners require existing explicit adoption; pending metadata is not native authority.",
+    "Audits PAUSED; no push/merge/publication; protected references unchanged."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearSettingsStep.sqf": "8fe0beeb4b1987163259aed3fe983355ae2913a1120152a75fdeecd58742ba14",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "3d3c2d425ffe319d138268faa4e946ad1c7e5a14a322138bceb519997918a3a6",
+    "addons/infantry/functions/groupBrainStep.sqf": "4b1ccc09835cb22f74693f16a159def89c31074cfaabaf124ee7a63e578ede1b",
+    "addons/core/functions/cortexSchedulerTick.sqf": "b05a942323067c9bdb423ee9219b8f8c3fb02e2c18b70f576388018472e36a5f",
+    "addons/core/functions/schedulerReconcile.sqf": "a08bd369ff1cb582033ab772a563bee31d9e8a948e1a4fa4a9e4e2209e6a47e5",
+    "addons/core/functions/cortexStop.sqf": "75a2a4b1fab090e8f661e5e5f0c3501c7739125bdabb62ab0bb5203422be7cc6",
+    "addons/core/functions/cortexLocality.sqf": "122dbb24dbfc837de8a016c8808efe38c9ab839f018cf57a79f0aaf714973b93",
+    "addons/main/CfgFunctions.hpp": "6944ce6cd293ac3d5b5be09f2634eaf73ae8e4a3a7540ce24ec8a624e5e9082c"
+  }
+}

@@ -4,8 +4,8 @@
  * Locality/authority: Current group and actor owner; exact supplied clear generation/epoch.
  * Player, remote, mounted, reserved and specialist actors retain their settings/baselines.
  * Repeat/JIP: Captured metadata is consumed only after a safe restore or observed setting change.
- * Refused work may request one original30second group retry window on the existing group brain.
- * No new scheduler job, event handler, native movement, target or formation command is added.
+ * Refused work may request one original30second retry window on the shared restoration-only scheduler.
+ * One keyed cleanup callback survives tactical shutdown; no native movement, target or formation command.
  * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 clear generation NUMBER -1;
  * 3 owner epoch NUMBER -1;4 allow finite deferral BOOL true.
  * Return: BOOL settings retired or absent; false retains baseline without changing controls.
@@ -50,6 +50,17 @@ isNil {
         if (_pending isEqualTo [] || {_retiredEpisode}) then {
             _group setVariable ["CBE_Cortex_ClearSettingsPending",[_generation,_epoch,serverTime+30,0],true];
         };
+        private _cleanup=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+        if (_cleanup isEqualType [] && {count _cleanup == 4}
+            && {(_cleanup select 0) == _generation} && {(_cleanup select 1) == _epoch}
+            && {(_cleanup select 2) isEqualType 0} && {finite (_cleanup select 2)}
+            && {serverTime < (_cleanup select 2)}) then {
+            [CBE_fnc_CortexClearSettingsStep,createHashMapFromArray [["group",_group],
+                ["ownerEpoch",_epoch],["generation",_generation],["subsystem","SETTINGS_CLEANUP"]],
+                0.25,"CLEAR_SETTINGS"] call CBE_fnc_CortexQueueJob;
+            [] call CBE_fnc_SchedulerReconcile;
+        };
+
     };
 };
 _retired
