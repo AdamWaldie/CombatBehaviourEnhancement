@@ -136,8 +136,9 @@ if (_allOnFoot && {[_group,"CBE_AIPass_Surrender_Enable", true] call CBE_fnc_Cor
     private _side = side _group;
     // This runs only for a broken squad, but must still stay spatially bounded. Scanning every
     // group turns simultaneous morale checks into an O(groups squared) workload at scale.
+    // Respect the mission alliance matrix, not side identity: an allied squad is support too.
     private _friendsNear = (_leaderPos nearEntities ["Man",300]) findIf {
-        alive _x && {group _x != _group} && {side group _x == _side}
+        alive _x && {group _x != _group} && {_side getFriend (side group _x) >= 0.6}
             && {[_x] call CBE_fnc_CortexCombatEffective} && {!fleeing _x}
     } >= 0;
     if (!_friendsNear) exitWith {"SURRENDER"};

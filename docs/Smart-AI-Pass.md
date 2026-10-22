@@ -2591,3 +2591,6 @@ Flank admission keeps two separate checks: enough immediately task-eligible acto
 
 
 Surrender defers while a combat-effective local survivor is queued for medical care or performing a protected native service task, including casualty carrying, rearming or repair. The check runs before group-order cleanup and again before each soldier is disarmed. Native fleeing alone does not prevent surrender. This protects service work; it does not establish physical captive-handover acceptance.
+
+
+Nearby support for surrender decisions includes combat-effective, non-fleeing soldiers of another squad whose side is friendly under the mission alliance matrix. It is not restricted to the identical side. The existing 300 m search and close, recent enemy-contact requirements remain unchanged.

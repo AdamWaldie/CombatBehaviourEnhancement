@@ -2049,6 +2049,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_leaderPos nearEntities ["Man",300]',morale)
         self.assertNotIn('private _friendsNear = allGroups',morale)
         self.assertNotIn('allGroups findIf',morale)
+        self.assertIn('_side getFriend (side group _x) >= 0.6',morale)
+        self.assertNotIn('side group _x == _side',morale)
         surrender=morale.split('private _allOnFoot =',1)[1]
         self.assertIn('(_x select 2) <= 30 && {(_x select 3) < 60}',surrender)
         self.assertIn('["", "RETREAT"] select',surrender)

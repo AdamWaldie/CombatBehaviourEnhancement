@@ -238,5 +238,14 @@
     "candidate": ".qa/candidates/clearance-floor-membership-89739921",
     "fingerprint": "f498a05894c5c306d4522637361e4e142d0a14c31f386d2608abf6f0939d6702",
     "limits": "Unsigned dirty snapshot with unrelated dirt; engineering notes afterward. Removes repeated source-level allocation/search, not measured frame-time proof or a physical clearance-flow fix. Audits paused; 5%median/10%p95 budget unverified."
+  },
+  "moraleAlliedSupport20261023": {
+    "baseline": "718d6935",
+    "finding": "Surrender nearby-support test required identical side, so combat-effective allied squads from a different side were ignored despite the mission friendship matrix.",
+    "implementation": "Use directional group-side getFriend(candidate group side)>=0.6, consistent with the hostile contact boundary. Existing300m nearby Man query, other-group, combat-effective and non-fleeing requirements remain; no new scans or tuning.",
+    "validation": "1491 tests/full build/independent verification passed; existing morale support regression extended.",
+    "candidate": ".qa/candidates/morale-allied-support-718d6935",
+    "fingerprint": "a88c4d9736bfb6570ae6959f2b0f0839f0ae6413f859ccaf7a469814908da851",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. No physical alliance/balance or measured overhead proof. Audits paused. Native ATTACK speed parity remains open; current ActorSettings permits only real OPERATION/GARRISON scopes, never fabricate operation authority."
   }
 }
