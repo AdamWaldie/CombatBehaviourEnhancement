@@ -197,5 +197,19 @@
     "candidate": ".qa/candidates/flank-strength-readiness-e3a7dfe2",
     "fingerprint": "f87cd94c74b8e26b12af5d803c005536649081634cb6bd4c767ff03df5f75efc",
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Physical manoeuvre capacity, balance, task overlap, HC/JIP and measured overhead unverified. Audits paused."
+  },
+  "contactIdentityReview20261022": {
+    "baseline": "0993543a",
+    "scope": "Read-only trace of enemy strength/contact identity after friendly effective-strength fixes.",
+    "evidence": [
+      "dangerSetup replaces observed-cache rows by exact target object identity, retaining at most eight.",
+      "CortexKnowledge starts from native targets and adds observed identities with pushBackUnique; detailed output retains target identity and native believed geometry, at most eight contacts.",
+      "CortexMorale recent enemy count counts contact rows; armour checks use vehicle target and boolean pressure, not additive armour count."
+    ],
+    "finding": "Distinct crew and carrier identities are not collapsed into one platform. Whether native targets plus EnemyDetected produce these simultaneous rows in representative scenarios is not established by this static trace. Same-object duplicate inflation is not demonstrated.",
+    "decision": "No runtime edit. Do not blindly collapse all mounted contacts using current vehicle membership: that would change manpower semantics and could expose a mount/dismount transition not present in the observer belief. Do not claim armour pressure is multiplied; it is boolean.",
+    "next": "Resolve the hostile-strength policy and inspect existing native target/event evidence for crew/carrier co-occurrence before changing the bounded shortlist or morale denominator. Preserve per-target native knowledge and believed positions; do not add world scans.",
+    "validation": "Review JSON parsed; runtime unchanged from validated 0993543a checkpoint. No rebuild warranted for engineering notes.",
+    "limits": "No live evidence, tactical parity increment or build-out percentage change. Audits paused."
   }
 }
