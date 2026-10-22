@@ -124,5 +124,13 @@
       "Unsigned dirty development snapshot including retained unrelated dirt; engineering metadata afterward.",
       "No physical movement, HC/JIP, same-valued native order identity or measured performance proof. Audits paused."
     ]
+  },
+  "withdrawalRouteInterruption20261022": {
+    "baseline": "c85ba8e1",
+    "change": "Validate native route receipt before withdrawal recovery/surrender/replanning. Cancel only matching withdrawal generation; external-yield cleanup suppresses remount/formation recall. Completed native route hands back to successor task.",
+    "validation": "1491 tests and full local build plus independent package verification passed. No physical audit.",
+    "candidate": ".qa/candidates/withdrawal-route-interruption-c85ba8e1",
+    "fingerprint": "68244158f86230e0a36e32e8be5b358920a10804257f539dad0ce23c49ee7647",
+    "limits": "Unsigned dirty snapshot; physical/HC/JIP/performance and same-valued command identity unverified."
   }
 }

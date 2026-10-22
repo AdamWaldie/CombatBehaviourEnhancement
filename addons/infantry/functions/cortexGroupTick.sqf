@@ -19,6 +19,7 @@
  * manoeuvre authority. Casualty succession selects a living,
  * conscious local successor by rank before leader-dependent tactics; combat-effective leaders are preserved.
  *
+ * Withdrawal yields before recovery/replanning when its recorded native route changes or finishes.
  * REGROUP journals each actual native destination and authored route; retries yield to replacement
  * commands or service tasks. A committed move retires only that actor's completed-hold receipt.
  *
@@ -1837,8 +1838,7 @@ switch (_state get "phase") do {
     };
     case "RETREAT": {
         _delay = 3;
-        if ((["CBE_AIPass_Morale_Enable", true] call _get)
-            && {([_group, _state, _enemies] call CBE_fnc_CortexMorale) == "SURRENDER"}) exitWith {[_group] call CBE_fnc_CortexSurrender};
+
         // Withdrawal uses the same participant progress record as every other manoeuvre. One
         // lagging survivor gets a single physical follow-up but never holds the surviving element
         // in place or causes a fresh group-wide route churn.
@@ -1848,6 +1848,20 @@ switch (_state get "phase") do {
             ["withdrawOperationGeneration","vehicleOperationGeneration"] select (_withdrawKind == "VEHICLE_WITHDRAW"),-1];
         private _withdrawOwner=count _operation > 0 && {_withdrawKind in ["WITHDRAW","VEHICLE_WITHDRAW"]}
             && {(_operation getOrDefault ["generation",-2]) == _generation};
+        // A completed route hands back to the next native task; a replaced route belongs to
+        // its author. Neither permits old withdrawal recovery, surrender selection or replanning.
+        private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+        private _routeProof=_group getVariable ["CBE_Cortex_WithdrawalOrder",[]];
+        private _routeCurrent=count _episode == 7 && {count _routeProof == 2}
+            && {(_routeProof select 0) isEqualTo (_episode select 4)}
+            && {(_routeProof select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+        if (_withdrawOwner && {!_routeCurrent}) exitWith {
+            [_group,_generation,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_OperationCancel;
+            [_group,_state,false,true,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_CortexRestoreCalm;
+            _delay=1;
+        };
+        if ((["CBE_AIPass_Morale_Enable", true] call _get)
+            && {([_group, _state, _enemies] call CBE_fnc_CortexMorale) == "SURRENDER"}) exitWith {[_group] call CBE_fnc_CortexSurrender};
         private _operationState=if (count _operation > 0 && {!_withdrawOwner}) then {"REPLACED"} else {"ACTIVE"};
         if (_withdrawOwner) then {
             _operationState=[_group,_generation,3,15] call CBE_fnc_OperationStep;

@@ -6216,6 +6216,12 @@ class CortexOperations(unittest.TestCase):
         replan=tick.split('// Refresh only after a successful CBE replan',1)[1].split('_bestTravel = _travel',1)[0]
         self.assertIn('CBE_fnc_NativeOrderReceipt',replan)
         self.assertNotIn('VEHICLE_WITHDRAW',replan)
+        withdrawal=tick.split('case "RETREAT": {',1)[1]
+        self.assertLess(withdrawal.index('if (_withdrawOwner && {!_routeCurrent}) exitWith'),withdrawal.index('call CBE_fnc_OperationStep'))
+        self.assertLess(withdrawal.index('if (_withdrawOwner && {!_routeCurrent}) exitWith'),withdrawal.index('call CBE_fnc_CortexSurrender'))
+        self.assertIn('[_group,_state,false,true,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"]',withdrawal)
+        self.assertIn('(_routeProof select 0) isEqualTo (_episode select 4)',withdrawal)
+        self.assertIn('(_routeProof select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',withdrawal)
 
         self.assertIn('_intent set [5,_replans]',tick)
         self.assertIn('_intent set [6,_bestTravel]',tick)
