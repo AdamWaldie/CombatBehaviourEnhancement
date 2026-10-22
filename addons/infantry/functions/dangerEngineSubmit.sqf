@@ -8,6 +8,8 @@
  * Expired records may support a local reflex but cannot bootstrap fresh group evidence.
  * Recycled knowledge samples carry DETECTED group awareness, never a new hit/near-round/
  * firing-opportunity claim. The actor FSM retains its original cause and finite cycle budget.
+ * Cycle-zero physical hazards retain their original expiry plus five seconds locally, so a
+ * later group-only contact cannot immediately grant quiet flight rejoin. Recycles never renew it.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
  * Repeat/JIP: Safe to repeat. A valid first observation may install the group's bounded contact
@@ -43,6 +45,7 @@ private _latestSource=createHashMap;
 private _latestExpiry=createHashMap;
 private _latestSourceExpiry=createHashMap;
 private _processed=false;
+private _physicalUntil=-1;
 private _reflexOnly=0;
 {
     if (_x isEqualType [] && {count _x >= 3}) then {
@@ -53,6 +56,9 @@ private _reflexOnly=0;
         if (_cycle isEqualType 0 && {finite _cycle} && {_cycle == floor _cycle} && {_cycle >= 0} && {_cycle <= 3}
             && {finite _cause} && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expires} && {_expires >= time - 0.25}) then {
             _processed=true;
+            if (_cycle == 0 && {_cause in [1,2,4,9]}) then {
+                _physicalUntil=_physicalUntil max (_expires+5);
+            };
             if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
             private _source=_x param [3,objNull,[objNull]];
             private _knownFriendly=!isNull _source && {(side _group) getFriend (side _source) >= 0.6};
@@ -98,6 +104,12 @@ private _reflexOnly=0;
         };
     };
 } forEach (_records select [0,12]);
+if (_physicalUntil >= 0) then {
+    private _previous=_actor getVariable ["CBE_Danger_PhysicalUntil",-1];
+    if (_previous isEqualType 0 && {finite _previous}) then {_physicalUntil=_physicalUntil max _previous};
+    _actor setVariable ["CBE_Danger_PhysicalUntil",_physicalUntil];
+};
+
 
 // A reflex-only record must not start a persistent group brain. Bootstrap the existing tactical
 // owner only when at least one observation is relevant to group combat planning.

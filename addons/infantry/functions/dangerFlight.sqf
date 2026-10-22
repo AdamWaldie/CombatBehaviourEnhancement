@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Give an idle native-fleeing foot soldier one screened escape move under the
+ * Purpose: Give an idle native-fleeing foot soldier a native rejoin or screened escape under the
  * existing engine danger FSM. This is separate from casualty investigation and group cover.
  * Locality/authority: Actor and group owner only. Existing native routes, reservations,
  * operations, medical work, Zeus and external controllers retain priority.
@@ -10,9 +10,12 @@
  * per two seconds and per actor per fifteen seconds bounds repeated failed observations.
  * Arguments: 0 mode STRING START or RELEASE; 1 actor OBJECT objNull;
  * 2 native danger record ARRAY [], used only for START.
- * Return: NUMBER remaining FSM wait on START; zero on refusal or RELEASE.
+ * Return: NUMBER remaining FSM wait on a screened START; zero for native rejoin, refusal or RELEASE.
  * Callers: DangerEngineAct and DangerEngineRelease. CanContinue reads only the local lease.
  * Example: ["START",soldier1,[2,[100,200,0],time+1,objNull]] call CBE_fnc_DangerFlight;
+ * Quiet, distant group-only contact may hand an idle follower back to native formation once.
+ * Recent personal contact, physical hazards and suppression never grant that rejoin path.
+ * Native rejoin acquires no flight lease; its request is not acknowledgement or travel.
  * Arrival is a position result, not proof of effective cover or renewed morale. Failed exact
  * owned moves return to native formation; ambiguous/newer orders receive no cleanup command.
  */
@@ -100,8 +103,12 @@ private _cause=_record param [0,-1,[0]];
 if (!(_cause in [0,1,2,3,4,8,9]) || {!finite _expires} || {_expires <= time}
     || {count _threat != 3} || {_threat findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}) exitWith {0};
 private _source=_record param [3,objNull,[objNull]];
-if (!isNull _source && {(_actor targetKnowledge _source) param [7,false,[true]]}) exitWith {0};
-if (_cause in [0,3,8] && {isNull _source || {!alive _source}
+private _nativeKnowledge=if (isNull _source) then {[]} else {_actor targetKnowledge _source};
+if (_nativeKnowledge param [7,false,[true]]) exitWith {0};
+if (_cause in [0,3,8] && {isNull _source || {!alive _source} || {captive _source}
+    || {_source isKindOf "Logic"} || {_source isKindOf "HeadlessClient_F"}
+    || {_source getVariable ["ace_captives_isSurrendering",false]}
+    || {_source getVariable ["ace_captives_isHandcuffed",false]}
     || {(side _group) getFriend (side _source) >= 0.6}
     || {_actor knowsAbout _source < 1}}) exitWith {0};
 private _origin=getPosATL _actor;
@@ -109,6 +116,32 @@ if (_origin distance2D _threat < 3) exitWith {0};
 private _entry=call _context;
 _actor setVariable ["CBE_Danger_FlightAfter",time+15];
 _group setVariable ["CBE_Danger_FlightSearchAfter",time+2];
+// A follower with only distant group belief can rejoin without searching terrain or
+// taking a second movement lease. Current native personal observation vetoes that inference;
+// a quiet group report is not equivalent to the actor having visual contact itself.
+private _personalAt=(_nativeKnowledge param [2,-1,[0]]) max (_nativeKnowledge param [3,-1,[0]]);
+private _personalPressure=(_nativeKnowledge param [1,false,[true]])
+    && {_personalAt >= 0} && {time <= _personalAt+5};
+private _leader=leader _group;
+private _physicalUntil=_actor getVariable ["CBE_Danger_PhysicalUntil",-1];
+private _quietRejoin=_cause in [0,3,8] && {_origin distance2D _threat > 75}
+    && {!_personalPressure} && {getSuppression _actor < 0.2}
+    && {_physicalUntil isEqualType 0} && {finite _physicalUntil} && {time > _physicalUntil}
+    && {!isNull _leader} && {_leader != _actor} && {local _leader}
+    && {[_leader] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _leader}
+    && {simulationEnabled _leader} && {!isObjectHidden _leader}
+    && {_actor distance2D _leader > 8};
+if (_quietRejoin) exitWith {
+    if (call _available && {fleeing _actor} && {_entry isEqualTo (call _context)}
+        && {currentCommand _actor == ""} && {abs speed _actor < 0.5}
+        && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+        _actor doFollow _leader;
+        _actor setVariable ["CBE_Danger_FlightResult",["NATIVE_REJOIN_REQUESTED",time,getPosATL _leader,time,time]];
+    };
+    0
+};
 private _rayStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
 // Already screened actors keep their native position. Never force them out into another route.
 if ([_rayStart,(getPosASL _actor) vectorAdd [0,0,1],_actor,"COVER"]

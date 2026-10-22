@@ -101,5 +101,30 @@
     "fingerprint": "6ffe06701558424e6f07d830c2a86ecaff09e06de0e9587cfb7ecdb9193a198e",
     "sourceHash": "aba1795b17c705450b70133be43025e7828dbef1205ac2c4a35a5c1da055dc60",
     "provenance": "Unsigned dirty development snapshot; retained unrelated dirt included, later engineering metadata excluded."
+  },
+  "quietRejoinFollowup": {
+    "baseline": "e079cc52",
+    "sourceIntent": "Previously reviewed doFleeing far/unseen branch requests native leader follow. Merge useful reunion intent without forced posture/speed reset, live unseen enemy geometry or group-memory erasure.",
+    "implementation": "Idle native-fleeing follower may request native formation only for fresh engagement evidence with believed threat farther than75m, no recent personal native observation, suppression below0.2 and an available local on-foot leader farther than8m. Existing order/operation/reservation/medical/Zeus/external gates remain. No lease or worker is acquired by the rejoin; result is NATIVE_REJOIN_REQUESTED, not acknowledgement or travel.",
+    "physicalPressure": "EngineSubmit retains greatest original cycle-zero physical hazard expiry plus5seconds from the existing bounded intake pass, including reflex-only forced events. One actor-local metadata update per qualifying batch. Quiet rejoin refuses until it elapses; positive-cycle recycled belief never renews it. Invalid metadata refuses rejoin.",
+    "identity": "Engagement-only flight now rejects logic/HC, dead, friendly, captive, surrendering and handcuffed sources as well as native ignored targets. Friendly real physical hazards retain approximate escape eligibility.",
+    "cost": "Reuses the targetKnowledge sample already read for ignore policy. Native rejoin precedes terrain selection and uses existing per-group2second/per-actor15second attempt gates. No new scan/timer; runtime cost unmeasured.",
+    "limits": [
+      "No command acknowledgement, physical reunion, path reachability, controller migration or performance acceptance.",
+      "Leaders and already moving/planning/native-task actors remain native-owned.",
+      "This is partial on-foot source implementation, not complete flight/crew or LAMBS parity. Audits remain paused."
+    ],
+    "validation": {
+      "result": "Full1491 offline gates, HEMTT/FSM/SQF/config/docs/package and independent verify passed; existing lifecycle regression extended with original physical-expiry and rejoin refusal boundaries, no added cases. Final review included hostile-identity and recent-physical-pressure boundaries.",
+      "buildLog": ".qa/flight-native-rejoin-build-final.log",
+      "independentLog": ".qa/flight-native-rejoin-independent.log",
+      "candidate": ".qa/candidates/flight-native-rejoin-e079cc52",
+      "fingerprint": "d1f1689b56cd477643358d3b0e8ec41b6b8b79719a5d5665ac86de4611dec278",
+      "provenance": "Unsigned dirty development snapshot including retained unrelated dirt; engineering metadata follows packaging."
+    },
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "3fdb22f67c5d1c5764db3a1ac083902aec25559aa8adf4bb60dfe08765db8481",
+      "addons/infantry/functions/dangerEngineSubmit.sqf": "df9da216a0e5b9002e69694e96153934a3bec42dd5c0fab5af4d3c9e9880c1a6"
+    }
   }
 }

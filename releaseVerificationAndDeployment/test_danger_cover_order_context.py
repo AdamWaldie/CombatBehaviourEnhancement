@@ -43,6 +43,32 @@ class CoverOrderContextTests(unittest.TestCase):
         for proof in ('time >= (_flight select 1)','(_flight select 3) != (_response select 5)',
                       '(_flight select 4) != (_response select 4)','if (_flightInterrupted) exitWith {false}'):
             self.assertIn(proof,gate)
+        rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('private _rayStart=',1)[0]
+        self.assertIn('_actor doFollow _leader',rejoin)
+        self.assertIn('currentCommand _actor == ""',rejoin)
+        self.assertIn('_entry isEqualTo (call _context)',rejoin)
+        self.assertNotIn('setVariable ["CBE_Cortex_ActorMove"',rejoin)
+        self.assertNotIn('setVariable ["CBE_Danger_FlightLease"',rejoin)
+        for proof in ('_cause in [0,3,8]','_origin distance2D _threat > 75',
+                      '!_personalPressure','getSuppression _actor < 0.2','_leader != _actor'):
+            self.assertIn(proof,flight)
+        submit=(ROOT/'addons/infantry/functions/dangerEngineSubmit.sqf').read_text(encoding='utf-8')
+        self.assertIn('_cycle == 0 && {_cause in [1,2,4,9]}',submit)
+        self.assertIn('_physicalUntil=_physicalUntil max (_expires+5)',submit)
+        self.assertIn('time > _physicalUntil',flight)
+        for refusal in ('captive _source','ace_captives_isSurrendering','ace_captives_isHandcuffed','HeadlessClient_F'):
+            self.assertIn(refusal,flight)
+        # Replaying one original physical expiry cannot refresh it with processing time.
+        physical_until=max(101+5,99+5)
+        self.assertEqual(physical_until,106)
+        self.assertFalse(105>physical_until)
+        self.assertTrue(107>physical_until)
+        def quiet_rejoin(cause,distance,personal,suppression):
+            return cause in (0,3,8) and distance>75 and not personal and suppression<0.2
+        self.assertTrue(quiet_rejoin(0,100,False,0.1))
+        for row in ((2,100,False,0.1),(9,100,False,0.1),(0,75,False,0.1),
+                    (0,100,True,0.1),(0,100,False,0.2)):
+            self.assertFalse(quiet_rejoin(*row))
         self.assertIn('time+15',flight)
         self.assertIn('time+2',flight)
         self.assertNotIn('getPosATL _source',flight)
