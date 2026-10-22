@@ -9,8 +9,8 @@
  * A current brain may retain its already admitted vehicle goal through driver death
  * for the finite crew executor. Historical seat fields during this transition grant no
  * movement permission; confirmed replacement seats and original-goal ACK rebind them.
- * No crew locality adoption is inferred. Exact ordinary bypass children may retain the
- * parent route during PLAN/FOLLOW; this does not grant parent movement or renew its budget.
+ * No crew locality adoption is inferred. Exact ordinary bypass/corridor children may retain the
+ * parent route through their approach/crossing phases; this does not grant parent movement or renew its budget.
  * Arguments: 0 group GROUP grpNull.
  * Return: ARRAY [NATIVE_MOVE,group,vehicle,driver,operator,native frame,goal,epoch,clientOwner],
  * or[] when native intent/temporary leg is unknown. Same-value mission orders are indistinguishable.
@@ -68,11 +68,15 @@ if !(_nativeWork isEqualType createHashMap) exitWith {[]};
 private _nativePrior=_nativeWork getOrDefault ["route",[]];
 if !(_nativePrior isEqualType []) exitWith {[]};
 if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) != "NATIVE_MOVE"}) exitWith {[]};
-if (["CBE_DrivingCorridor_Work","CBE_DrivingPass_Work"]
+if (["CBE_DrivingPass_Work"]
     findIf {private _childProof=_nativeVehicle getVariable [_x,createHashMap];
         !(_childProof isEqualType createHashMap) || {count _childProof > 0}} >= 0) exitWith {[]};
 private _nativeChild=_nativeVehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if !(_nativeChild isEqualType createHashMap) exitWith {[]};
+private _nativeCorridor=_nativeVehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+if !(_nativeCorridor isEqualType createHashMap) exitWith {[]};
+if (count _nativeChild > 0 && {count _nativeCorridor > 0}) exitWith {[]};
+if (count _nativeCorridor > 0) then {_nativeChild=_nativeCorridor};
 if (count _nativeChild > 0 && {count _nativeWork == 0}) exitWith {[]};
 if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
     private _nativeBound=count _nativePrior == 9 && {(_nativePrior select 6) call _nativeVector}
@@ -92,7 +96,7 @@ if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) == "NATIVE_MOVE"}
     if ((_nativeWork getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"
         || {"nativeReturn" in _nativeWork}) exitWith {
         private _nativeState=[_nativeVehicle,_nativeWork] call CBE_fnc_DrivingRecoveryCommandState;
-        private _childCurrent=count _nativeChild == 0 || {
+        private _childCurrent=count _nativeChild == 0 || {_nativeState == "CORRIDOR"} || {
             (_nativeChild getOrDefault ["phase",""]) == "FOLLOW" && {_nativeState == "BYPASS"}
             || {(_nativeChild getOrDefault ["phase",""]) == "PLAN"
                 && {_nativeState == "OWNED"}
@@ -111,7 +115,7 @@ if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) == "NATIVE_MOVE"}
                 && {toUpperANSI (_nativeFrame select 0) == (_nativeChild getOrDefault ["driverTask","__MISSING__"])}
                 && {toUpperANSI (_nativeFrame select 2) == (_nativeChild getOrDefault ["operatorTask","__MISSING__"])}}
         };
-        if (_childCurrent && {_nativeState in ["OWNED","PENDING","EXPIRED","BYPASS"]}) then {+_nativePrior} else {[]}
+        if (_childCurrent && {_nativeState in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"]}) then {+_nativePrior} else {[]}
     };
     private _nativeInfo=vehicleMoveInfo _nativeVehicle;
     private _nativeSimple=_nativeDriver != _nativeOperator

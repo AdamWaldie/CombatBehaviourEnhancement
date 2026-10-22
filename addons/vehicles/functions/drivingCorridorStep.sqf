@@ -6,6 +6,8 @@
  * the actual controller, seats, authored route and area transform before issue/publication.
  * APPROACH-to-CROSS rechecks current work, entry pose, area, task and deadline atomically
  * with both native stops, fixed-path issue and CROSS command receipts.
+ * Native MOVE corridors require an existing REFRESH/FINAL parent and consume its shared
+ * alternate-path budget. Original goal, hard deadline and progress anchor are never renewed.
  * Purpose: Executes a finite current-controller APPROACH/CROSS episode through a registered area.
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
@@ -41,7 +43,8 @@ private _convoy=_controller == "CONVOY";
 private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
-if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {_inactive};
+private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+if (_nativeRoute && {_convoy}) exitWith {_inactive};
 private _driver=driver _vehicle;
 private _operator=effectiveCommander _vehicle;
 // A separate commander is an independent command boundary, not permission to bypass its task.
@@ -64,7 +67,7 @@ private _crewReady={
 // Before any alternate movement exists, only idle or route-matching native MOVE
 // commands authorize acquisition. STOP/FOLLOW/ATTACK and unowned CBE are not consent.
 private _nativeAdmissionReady={
-    private _destination=waypointPosition [_group,currentWaypoint _group];
+    private _destination=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,currentWaypoint _group]};
     [_driver,_operator] findIf {
         private _command=toUpperANSI currentCommand _x;
         private _target=(expectedDestination _x) param [0,[],[[]]];
@@ -127,6 +130,25 @@ private _mayWrite={
 };
 if (!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}) exitWith {_inactive};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+// Native temporary routes share the existing finite recovery alternate-path budget.
+// A corridor cannot create a recovery episode or replenish the obstacle-bypass attempt.
+private _corridorParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+private _corridorHard=_corridorParent getOrDefault ["hardDeadline",-1];
+private _corridorAnchor=_corridorParent getOrDefault ["progressAnchor",[]];
+private _corridorBinding=[_group,_route,_corridorHard,_corridorAnchor];
+private _corridorParentCurrent={
+    !_nativeRoute || {(_corridorParent getOrDefault ["group",grpNull]) == _group
+        && {(_corridorParent getOrDefault ["route",[]]) isEqualTo _route}
+        && {(_corridorParent getOrDefault ["driver",objNull]) == _driver}
+        && {(_corridorParent getOrDefault ["operator",objNull]) == _operator}
+        && {(_corridorParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+        && {(_corridorParent getOrDefault ["commandMode","DESTINATION"]) == "DESTINATION"}
+        && {!(_corridorParent getOrDefault ["releasePending",false])}
+        && {_corridorHard isEqualType 0} && {finite _corridorHard} && {serverTime < _corridorHard}
+        && {_corridorAnchor isEqualType []} && {count _corridorAnchor == 3}
+        && {_corridorAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _corridorParent}}
+};
 // The commander owns the approach, not an arbitrary replacement driver MOVE.
 // Native propagation may retain the driver's recorded destination or publish the
 // exact entry goal. Any other driver destination revokes this temporary approach.
@@ -151,11 +173,11 @@ if !(call _mayWrite) exitWith {
 private _waypoint=[_group,currentWaypoint _group];
 private _statements=waypointStatements _waypoint;
 private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-private _plain=waypointType _waypoint == "MOVE" && {_condition == "true"}
+private _plain=_nativeRoute || {waypointType _waypoint == "MOVE" && {_condition == "true"}
     && {((_statements param [1,""]) splitString (toString [32,9,13,10])) isEqualTo []}
     && {waypointScript _waypoint == ""} && {(waypointTimeout _waypoint param [2,0]) <= 0}
     && {isNull waypointAttachedVehicle _waypoint} && {isNull waypointAttachedObject _waypoint}
-    && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []};
+    && {(synchronizedWaypoints _waypoint) isEqualTo []} && {(synchronizedTriggers _waypoint) isEqualTo []}};
 if (!_plain) exitWith {
     [_vehicle,_group,"GATED_ORDER",false] call CBE_fnc_DrivingCorridorRelease;_inactive
 };
@@ -166,6 +188,9 @@ if (count _work > 0 && {(_work getOrDefault ["group",grpNull]) != _group}) then 
 if (count _work > 0) exitWith {
     private _area=_work get "area";private _definition=_work get "definition";
     private _reason="";
+    if (_nativeRoute && {!(call _corridorParentCurrent)
+        || {(_work getOrDefault ["recoveryParent",[]]) isNotEqualTo _corridorBinding}
+        || {!((_corridorParent getOrDefault ["bypassSpent",false]) isEqualTo true)}}) then {_reason="RECOVERY_PARENT_CHANGED"};
     if ((_work get "group") != _group || {(_work get "route") isNotEqualTo _route}
         || {(_work get "driver") != _driver} || {(_work get "operator") != _operator}
         || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
@@ -187,7 +212,8 @@ if (count _work > 0) exitWith {
     }}) then {_reason="AREA_CHANGED"};
     if (_reason isEqualTo "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
     if (_reason isNotEqualTo "") exitWith {
-        [_vehicle,_group,_reason,_reason != "COMMAND_CHANGED"] call CBE_fnc_DrivingCorridorRelease;_inactive
+        [_vehicle,_group,_reason,!(_reason in ["COMMAND_CHANGED","RECOVERY_PARENT_CHANGED"]),
+            _nativeRoute && {_reason == "RECOVERY_PARENT_CHANGED"}] call CBE_fnc_DrivingCorridorRelease;_inactive
     };
     // Adoption changes only bookkeeping. It cannot restart the original command or clock.
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
@@ -299,7 +325,9 @@ if (count _work > 0) exitWith {
 private _passage=_group getVariable ["CBE_Convoy_CorridorPassage",createHashMap];
 if (_convoy && {count _passage > 0} && {(_passage get "revision") == (_configuration param [0,-1])}
     && {serverTime < (_passage get "deadline")}) exitWith {_inactive};
-private _destination=waypointPosition _waypoint;
+if (_nativeRoute && {!(call _corridorParentCurrent)
+    || {!((_corridorParent getOrDefault ["bypassSpent",false]) isEqualTo false)}}) exitWith {_inactive};
+private _destination=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition _waypoint};
 // Do not replace a newer individual MOVE merely because its group route is unchanged.
 if !(call _nativeAdmissionReady) exitWith {_inactive};
 // Geometry may yield in scheduled execution. Keep both original native seat receipts.
@@ -402,6 +430,8 @@ isNil {
         && {!isNull _area}
         && {(_area getVariable ["CBE_DrivingCorridor_Task",[]]) isEqualTo _definition}
         && {[getPosWorld _area,vectorDir _area,vectorUp _area] isEqualTo _transform}) then {
+        if (_nativeRoute && {!(call _corridorParentCurrent)
+            || {!((_corridorParent getOrDefault ["bypassSpent",false]) isEqualTo false)}}) exitWith {};
         _operator doMove (_points select 0);
         _work=createHashMapFromArray [["group",_group],["controller",_controllerReceipt],["driver",_driver],["operator",_operator],
             ["route",_route],["area",_area],["definition",_definition],["transform",_transform],
@@ -410,6 +440,14 @@ isNil {
             ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
             ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
             ["command",+(expectedDestination _operator)],["driverCommand",+(expectedDestination _driver)]];
+        if (_nativeRoute) then {
+            _work set ["recoveryParent",+_corridorBinding];
+            _work set ["deadline",(serverTime+120) min _corridorHard];
+            _work set ["hardDeadline",_corridorHard];
+            private _spent=createHashMapFromArray ((keys _corridorParent) apply {[_x,_corridorParent get _x]});
+            _spent set ["bypassSpent",true];
+            _vehicle setVariable ["CBE_DrivingRecovery_Work",_spent,true];
+        };
         _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
         _admitted=true;
     };

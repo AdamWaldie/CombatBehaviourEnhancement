@@ -96,6 +96,13 @@ if (!isNull _nativeBypassGroup && {isNull _expectedGroup || {_expectedGroup == _
     && {((_nativeBypass getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) then {
     [_vehicle,_nativeBypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
 };
+private _nativeCorridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+private _nativeCorridorGroup=_nativeCorridor getOrDefault ["group",grpNull];
+if (!isNull _nativeCorridorGroup && {isNull _expectedGroup || {_expectedGroup == _nativeCorridorGroup}}
+    && {(_nativeCorridor getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
+    && {((_nativeCorridor getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) then {
+    [_vehicle,_nativeCorridorGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingCorridorRelease;
+};
 private _recoveryPending=false;
 private _recovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") == _expectedGroup}}) then {

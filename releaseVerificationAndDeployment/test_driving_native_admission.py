@@ -44,7 +44,22 @@ class NativeAdmissionTests(unittest.TestCase):
         for name in ('drivingGateOpenServer','drivingGateCloseServer'):
             self.assertIn('call CBE_fnc_DrivingGateRouteMatches',read(name))
         self.assertIn('"NATIVE_MOVE") exitWith {[false,false]}',read('drivingQueueAutoStep'))
-        self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read('drivingCorridorStep'))
+        corridor=read('drivingCorridorStep')
+        self.assertIn('if (_nativeRoute && {_convoy})',corridor)
+        self.assertIn('call _corridorParentCurrent',corridor)
+        self.assertIn('_work set ["hardDeadline",_corridorHard]',corridor)
+        self.assertIn('_work set ["recoveryParent",+_corridorBinding]',corridor)
+        self.assertIn('_spent set ["bypassSpent",true]',corridor)
+        self.assertIn('then {+(_route select 6)}',corridor)
+        corridor_release=read('drivingCorridorRelease')
+        for proof in ('serverTime < _nativeHard','currentCommand _driver == "STOP"',
+                      'currentCommand _operator == "STOP"','isEqualTo _nativeParent',
+                      '(serverTime+2) min _nativeHard','["bypassReturn",["CORRIDOR"',
+                      'private _returnGoal=+(_route select 6)'):
+            self.assertIn(proof,corridor_release)
+        shutdown=read('drivingAssistRelease')
+        self.assertLess(shutdown.index('_nativeCorridorGroup,"DRIVING_RELEASED"'),
+                        shutdown.index('_recovery get "group","DRIVING_RELEASED"'))
         bypass=read('drivingBypassStep')
         self.assertIn('if (_nativeRoute && {_controller != "ORDINARY"})',bypass)
         self.assertIn('(!_nativeRoute || {_parentBound})',bypass)
@@ -55,7 +70,7 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('isEqualTo _nativeParent',handback)
         self.assertIn('then {+(_route select 6)}',handback)
         self.assertIn('(serverTime+2) min _hard',handback)
-        self.assertIn('_nativeState in ["OWNED","PENDING","EXPIRED","BYPASS"]',native)
+        self.assertIn('_nativeState in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"]',native)
         self.assertIn('_nativeState == "BYPASS"',native)
         self.assertIn('"recoveryParent"',native)
         self.assertIn('"bypassReturn" in _nativeWork',native)
@@ -63,6 +78,11 @@ class NativeAdmissionTests(unittest.TestCase):
         child=classifier.split('private _child=',1)[1].split('private _request=',1)[0]
         self.assertIn('_childDeadline <= _hard',child)
         self.assertNotIn('serverTime <',child)
+        for proof in ('_until <= _hard','_phase in ["APPROACH","CROSS"]',
+                      'count _child == 0','_driverGoal vectorDistance _entry <= 0.25',
+                      '"CORRIDOR"} else {"LOST"}'):
+            self.assertIn(proof,child)
+        self.assertIn('_nativeState == "CORRIDOR"',native)
         self.assertIn('serverTime < _nativeHard',handback)
         shutdown=read('drivingAssistRelease')
         self.assertLess(shutdown.index('_nativeBypassGroup,"DRIVING_RELEASED"'),

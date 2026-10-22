@@ -9,7 +9,7 @@
  * renewal or physical progress inference. SIMPLE_BACK retains its separate input/turn contract.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 journal <HASHMAP, empty>.
  * Return: STRING - OWNED (exact receipt/issued goal), PENDING (original unchanged state),
- * EXPIRED (same state after original wait), LOST (changed/unknown identity), or BYPASS
+ * EXPIRED (same state after original wait), LOST (changed/unknown identity), or BYPASS/CORRIDOR
  * (exact child command, including expired work awaiting cleanup; retention only,
  * never parent movement permission). Executors enforce the unchanged deadlines.
  * Distinct native drivers retain their original destination proof; intermediate changes are
@@ -75,6 +75,40 @@ if ((_work getOrDefault ["bypassSpent",false]) isEqualTo true
     && {_operatorNative isEqualTo (_child getOrDefault ["command",[]])}
     && {toUpperANSI currentCommand _driver == (_child getOrDefault ["driverTask","__MISSING__"])}
     && {toUpperANSI currentCommand _operator == (_child getOrDefault ["operatorTask","__MISSING__"])}) exitWith {"BYPASS"};
+// A native corridor is another temporary child of the same finite alternate-path
+// episode. Identity can outlive its deadline for cleanup; this grants no new motion.
+private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+if !(_corridor isEqualType createHashMap) exitWith {"LOST"};
+if (count _corridor > 0) exitWith {
+    private _phase=_corridor getOrDefault ["phase",""];
+    private _until=_corridor getOrDefault ["deadline",-1];
+    private _entry=(_corridor getOrDefault ["points",[]]) param [0,[],[[]]];
+    private _driverGoal=_driverNative param [0,[],[[]]];
+    private _driverCurrent=_driverNative isEqualTo (_corridor getOrDefault ["driverCommand",[]]);
+    if (!_driverCurrent && {_phase == "APPROACH"}) then {
+        _driverCurrent=count _entry == 3 && {count _driverGoal == 3}
+            && {_entry findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_driverGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_driverGoal vectorDistance _entry <= 0.25};
+    };
+    if (count _child == 0 && {(_work getOrDefault ["bypassSpent",false]) isEqualTo true}
+        && {(_work getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+        && {!(_work getOrDefault ["releasePending",false])}
+        && {_hard isEqualType 0} && {finite _hard}
+        && {_until isEqualType 0} && {finite _until} && {_until <= _hard}
+        && {_phase in ["APPROACH","CROSS"]}
+        && {(_corridor getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
+        && {(_corridor getOrDefault ["group",grpNull]) == _group}
+        && {(_corridor getOrDefault ["route",[]]) isEqualTo (_work getOrDefault ["route",[]])}
+        && {(_corridor getOrDefault ["driver",objNull]) == _driver}
+        && {(_corridor getOrDefault ["operator",objNull]) == _operator}
+        && {(_corridor getOrDefault ["recoveryParent",[]]) isEqualTo
+            [_group,_work getOrDefault ["route",[]],_hard,_work getOrDefault ["progressAnchor",[]]]}
+        && {_operatorNative isEqualTo (_corridor getOrDefault ["command",[]])}
+        && {_driverCurrent}
+        && {[_driver,_operator] findIf {!(currentCommand _x in
+            (["","MOVE","WAIT"]+([[],["STOP"]] select (_phase == "CROSS"))))} < 0}) then {"CORRIDOR"} else {"LOST"}
+};
 private _request=_work getOrDefault ["request",[]];
 if (_request isEqualTo []) exitWith {
     if (_driverNative isEqualTo (_work getOrDefault ["driverCommand",[]])

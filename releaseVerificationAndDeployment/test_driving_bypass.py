@@ -163,7 +163,7 @@ class DrivingBypassTests(unittest.TestCase):
                       '_recoveryWork getOrDefault ["hardDeadline",-2]',
                       '_recoveryWork getOrDefault ["progressAnchor",[]]',
                       'call CBE_fnc_DrivingRecoveryCommandState',
-                      '["OWNED","PENDING","BYPASS"]','&& {!_keepBypassBudget}'):
+                      '["OWNED","PENDING","BYPASS","CORRIDOR"]','&& {!_keepBypassBudget}'):
             self.assertIn(guard,pause)
         self.assertNotIn('set ["hardDeadline"',pause)
         self.assertNotIn('set ["bypassSpent"',pause)

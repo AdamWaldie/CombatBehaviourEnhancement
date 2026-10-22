@@ -17,7 +17,9 @@
  * Repeat/JIP: Retires public work once; retains a bounded 120-second context cooldown and terminal
  * diagnostic. No movement is replayed to joining clients or over a changed command/seat/route.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 group <GROUP, grpNull>; 2 reason <STRING, RELEASED>;
- * 3 resume <BOOL, true> - permit unchanged plain authored MOVE handback, never force it.
+ * 3 resume <BOOL, true> - permit unchanged authored/native MOVE handback, never force it.
+ * Native return retains its original recovery parent, requires both observed STOP tasks
+ * and uses the existing finite both-seat original-goal acknowledgement journal.
  * 4 stopOnly <BOOL, false> - retire an exact owned path without waking a route (lead replacement).
  * Return Value: BOOL - whether this matching episode was retired, not physical success.
  * Current callers: DrivingCorridorStep, DrivingAssistRelease, ConvoyCrewLocal and ConvoyReleaseLocal.
@@ -97,11 +99,53 @@ private _owned=_nativePathFree && {!isNull _driver} && {!isNull _operator} && {l
             "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
             "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
 } forEach [_driver,_operator];
+private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+private _nativeParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+private _nativeHard=_nativeParent getOrDefault ["hardDeadline",-1];
+private _nativeParentCurrent=!_nativeRoute || {!_convoy
+    && {_nativeHard isEqualType 0} && {finite _nativeHard}
+    && {(_work getOrDefault ["recoveryParent",[]]) isEqualTo
+        [_group,_route,_nativeHard,_nativeParent getOrDefault ["progressAnchor",[]]]}
+    && {(_nativeParent getOrDefault ["driver",objNull]) == _driver}
+    && {(_nativeParent getOrDefault ["operator",objNull]) == _operator}
+    && {(_nativeParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+    && {(_nativeParent getOrDefault ["bypassSpent",false]) isEqualTo true}
+    && {!(_nativeParent getOrDefault ["releasePending",false])}};
 // The owned doStop cancels fixed steering; native-ready is not a path-completion receipt.
-if (_owned && {_resume || {_stopOnly}}) then {
+if (_owned && {_nativeParentCurrent} && {_resume || {_stopOnly}}) then {
     [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
     doStop _driver;
     if (_operator != _driver) then {doStop _operator};
+    if (_nativeRoute) then {
+        // Stop acknowledgement is command proof only, not physical rest or passage.
+        private _cap=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [0,-1,[0]];
+        if (_resume && {serverTime < _nativeHard} && {count waypoints _group <= 1}
+            && {currentCommand _driver == "STOP"} && {currentCommand _operator == "STOP"}
+            && {finite _cap} && {_cap >= 0} && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}
+            && {vehicle leader _group == _vehicle}
+            && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent}
+            && {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isEqualTo _work}) then {
+            if (_driver != _operator) then {_driver doFollow _operator};
+            private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+                currentCommand _operator,+(expectedDestination _operator)];
+            private _returnGoal=+(_route select 6);
+            _operator doMove _returnGoal;
+            if (driver _vehicle == _driver && {effectiveCommander _vehicle == _operator}
+                && {count waypoints _group <= 1}
+                && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent}
+                && {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isEqualTo _work}) then {
+                private _returned=createHashMapFromArray ((keys _nativeParent) apply {[_x,_nativeParent get _x]});
+                _returned set ["driverCommand",if (_driver == _operator) then {+(expectedDestination _driver)} else {+(_returnBefore select 1)}];
+                _returned set ["command",+(expectedDestination _operator)];
+                _returned set ["cap",_cap];
+                _returned set ["request",[+_returnGoal,(serverTime+2) min _nativeHard,_returnBefore]];
+                // Shared temporary-path return marker: the existing classifier requires
+                // both seats at the original goal and retains the original request window.
+                _returned set ["bypassReturn",["CORRIDOR",_work get "context"]];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_returned,true];
+            };
+        };
+    } else {
     private _index=currentWaypoint _group;
     if (_resume && {_index > 0} && {_index < count waypoints _group}
         && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
@@ -118,7 +162,11 @@ if (_owned && {_resume || {_stopOnly}}) then {
             };
         };
     };
+    };
 };
+// Native command callbacks must not let old retirement delete a successor episode.
+if (!local _vehicle || {!local _group}
+    || {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isNotEqualTo _work}) exitWith {false};
 private _key=_work get "context";
 private _cooldown=(_vehicle getVariable ["CBE_DrivingCorridor_Cooldown",[]]) select {
     (_x select 1) > serverTime && {(_x select 0) isNotEqualTo _key}

@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-22",
+  "baseline": "50e68150",
+  "scope": "Conditional owner-local native MOVE corridor through an existing finite recovery parent",
+  "status": "IMPLEMENTED_OFFLINE_ONLY_CONDITIONAL_ADMISSION",
+  "sourceIntent": "HBQ navigation-area intent integrated into the existing CBE lead-vehicle controller, not a second controller or a whole-HBQ parity claim. The protected reference sources were not modified.",
+  "changes": [
+    "Native corridor admission requires current REFRESH/FINAL DESTINATION recovery parent, matching route/seats and original unexpired hard deadline/progress anchor. It cannot fabricate a waypoint or create a new recovery episode.",
+    "Corridor and static bypass share the existing bypassSpent alternate-path allowance. Approach/crossing deadlines are capped by the original parent hard deadline; capture/return cannot replenish the budget.",
+    "Route-reader-free CORRIDOR command classification retains parent identity during APPROACH/CROSS, including expired exact commands for cleanup only. Approach protects original/entry driver destination and exact commander receipt; crossing protects both destinations and task eligibility. Simultaneous conflicting child work refuses.",
+    "The existing driving callback recognizes CORRIDOR as child retention, blocks competing ordinary parent recovery and preserves the spent parent across corridor/traffic waits. No new FSM/PFH/timer/world query.",
+    "Native return observes both owned STOP tasks and unchanged original parent/child, then issues the original goal once through the existing two-second request journal capped by parent expiry. The shared bypassReturn marker carries a CORRIDOR-tagged context and uses the existing both-seat MOVE ACK classifier.",
+    "Shutdown retires a matching native corridor before its recovery parent. Expired/mismatched parent cannot authorize onward motion; exact expired-parent stop-only cleanup still checks old command ownership. Successor episode identity is rechecked before final metadata retirement."
+  ],
+  "validation": {
+    "focusedFailed": ".qa/native-corridor-focused.log",
+    "focusedUpdated": ".qa/native-corridor-focused-final.log",
+    "failureDisposition": "Initial failures were three old BYPASS-only/native-corridor-exclusion source contracts. After extending them, one further BYPASS-only exact string was corrected. Original cap/route/expiry guards remain asserted.",
+    "full": ".qa/native-corridor-build.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT, FSM/config/SQF/documentation/package gates",
+    "candidate": ".qa/candidates/native-corridor-50e68150",
+    "fingerprint": "8d27a7ea3e7ef1228b48cf23e1aa17eed9efabda4c2d7f3fcbebe21c2e024595",
+    "independent": ".qa/native-corridor-independent-verify.log",
+    "provenance": "Unsigned development candidate:50e68150 plus these intended runtime/doc edits and retained unrelated working-tree dirt. Not a clean signed release. Later engineering metadata does not change packaged runtime.",
+    "limits": "Static contracts/models do not execute SQF. Physical normal/provider-HC passage, native STOP/return timing, collisions, same-value replacement, replication and frame-time cost remain unverified. Audits paused; no Arma launch."
+  },
+  "remaining": [
+    "Native corridors still defer without a live REFRESH/FINAL parent. This is not unconditional native-route parity.",
+    "Passing and automatic multi-owner queue recovery still reject native routes.",
+    "Native child locality adoption and immediate STOP/two-seat ACK behaviour are not physically established; no synthetic ACK, forced completion or replay is added.",
+    "Production goal, tactical efficacy and 5% median/10% p95 budget remain incomplete."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "cfa8ad7cf694c322f8d3e00f67c47782dc6727f85e325f7886bd7e8b43a3f36c",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "58d9f5a0086f562e17a95953c3c7a758002288b8fc4ac7429df11462e9efbf3a",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "bcf96936e1abeb42d4a3a352b40521ba1217a6eb2978aac65e855ded228b548e",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "cf82882b6725c72bef39026f3f5a7c794e30e748dc389c1b715545f410e275b4",
+    "releaseVerificationAndDeployment/test_driving_bypass.py": "4dda6313af0a293550ba6098efda5c00fc6ee0eb566064504cea57163921b8c3",
+    "releaseVerificationAndDeployment/test_driving_recovery_cap_authority.py": "134dc4065a5a9374f4efdbf55e0fa651b615e039aae37fe57ed3b8a6e754166c",
+    "docs/Smart-AI-Pass.md": "64f7f1956cbae97060c9d613190a09ba5c1d45c6ba9bfd477010fe64be6a8aee"
+  },
+  "relation": "Extends native-temporary-route-gap-20261022.json and native-bypass-lifecycle-20261022.json using corridor-approach-driver-20261022.json authority repair. Original historical reviews retained."
+}
