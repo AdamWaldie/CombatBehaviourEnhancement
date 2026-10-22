@@ -1213,6 +1213,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_actor setUnitPosWeak _prior',engine_release)
         forced_block=engine_act.split('// Forced orders and vehicle crews',1)[1].split('if (_mode == "IMMEDIATE")',1)[0]
         self.assertNotIn('setUnitPos ',forced_block)
+        self.assertIn('!(_dangerEnabled isEqualType true)',engine_continue)
+        self.assertIn('!(_disabled isEqualType [])',engine_continue)
+        self.assertLess(engine_continue.index('!(_dangerEnabled isEqualType true)'),engine_continue.index('!_dangerEnabled'))
+        self.assertLess(engine_continue.index('!(_disabled isEqualType [])'),engine_continue.index('"ALL" in _disabled'))
+        # Same typed enable/exclusion contract as the shared feature gate; invalid
+        # mission data must not reach native FSM Boolean/membership operators.
+        def danger_enabled(enabled,disabled):
+            return isinstance(enabled,bool) and enabled and isinstance(disabled,list) and 'ALL' not in disabled and 'CBE_AIPass_Danger_Enable' not in disabled
+        self.assertTrue(danger_enabled(True,[]))
+        for enabled,disabled in ((False,[]),('true',[]),(1,[]),(0,[]),(True,{}),(True,False),(True,['ALL']),(True,['CBE_AIPass_Danger_Enable'])):
+            self.assertFalse(danger_enabled(enabled,disabled))
         self.assertIn('_records select [0,48]',engine_select)
         self.assertIn('private _priorities=[2,1,9,4,3,6,3,5,8,7,0]',engine_select)
         self.assertIn('_rank >= 0 && {count _position in [2,3]}',engine_select)

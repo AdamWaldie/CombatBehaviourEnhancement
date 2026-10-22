@@ -4,7 +4,9 @@
  * This gate intentionally avoids squad scans, terrain work and config inspection because the engine
  * may evaluate it repeatedly during the response's sub-two-second observation window.
  * Locality / Authority: Runs where the affected AI soldier is local and reads only live gates and
- * explicit actor/group and occupied-platform ownership markers. It issues no command and changes no state.
+ * explicit actor/group and occupied-platform ownership markers. Non-boolean danger
+ * switches and non-array exclusions refuse before negation/membership, matching the
+ * shared feature gate without adding a group scan or state write. It issues no command and changes no state.
  * Repeat/JIP: Stateless and repeat-safe. A new locality starts a fresh engine danger FSM.
  * Arguments: 0: affected soldier <OBJECT>, objNull; 1: initial observation <BOOL>, false.
  * Initial observation permits native task classification only. A current FORCED response may wait
@@ -19,13 +21,14 @@ if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObject
     || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor}) exitWith {false};
 private _group=group _actor;
+private _dangerEnabled=missionNamespace getVariable ["CBE_AIPass_Danger_Enable",true];
 if (isNull _group || {!local _group}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
-    || {!(missionNamespace getVariable ["CBE_AIPass_Danger_Enable",true])}
+    || {!(_dangerEnabled isEqualType true)} || {!_dangerEnabled}
     || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
 
 private _disabled=_group getVariable ["CBE_AIPass_DisabledFeatures",[]];
-if ("ALL" in _disabled || {"CBE_AIPass_Danger_Enable" in _disabled}
+if (!(_disabled isEqualType []) || {"ALL" in _disabled} || {"CBE_AIPass_Danger_Enable" in _disabled}
     || {_group getVariable ["CBE_AI_Exclude",false]}
     || {_group getVariable ["CBE_AIPass_Exclude",false]}
     || {_actor getVariable ["CBE_AI_Exclude",false]}
