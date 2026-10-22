@@ -2594,3 +2594,5 @@ Surrender defers while a combat-effective local survivor is queued for medical c
 
 
 Nearby support for surrender decisions includes combat-effective, non-fleeing soldiers of another squad whose side is friendly under the mission alliance matrix. It is not restricted to the identical side. The existing 300 m search and close, recent enemy-contact requirements remain unchanged.
+
+Native autonomous ATTACK may receive a short speed cap during an ENGAGE or IMMEDIATE danger response: 4 m/s normally, 3 under suppression, reduced by 1 for the leader and within 5 m of the native-believed target, with a minimum of 1; STEALTH requests 1. Stricter mission caps remain. Native destinations and fire stay untouched. Operation ownership, protected tasks and actor reservations defer application. Exact settings retire at danger end or before operation start; pending restoration has the original expiry plus 30 seconds. Locality changes retire public proof without replay. Physical pacing, handover and overhead remain unverified.

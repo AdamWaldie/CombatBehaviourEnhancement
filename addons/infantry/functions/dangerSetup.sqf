@@ -88,6 +88,19 @@ if (!_enabled) exitWith {
         if (local _x) then {[_x] call CBE_fnc_DangerEngineRelease; _x setVariable ["CBE_Danger_EventCadence",nil]};
     } forEach units _group;
 };
+// A new owner retires public speed proof; it never replays the old actor response.
+{
+    private _pace=_x getVariable ["CBE_Danger_AttackPace",[]];
+    if (local _x && {_pace isEqualType []} && {count _pace == 3}) then {
+        private _context=_pace select 0;
+        if (_context isEqualType [] && {count _context == 5}
+            && {(_context select 3) != (_group getVariable ["CBE_AIPass_Epoch",0])
+                || {(_pace select 1) isNotEqualTo (_x getVariable ["CBE_Danger_EngineResponse",[]])}
+                || {serverTime >= (_context select 4)}}) then {
+            ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
+        };
+    };
+} forEach ((_group getVariable ["CBE_Danger_AttackPaceActors",[]]) select [0,64]);
 if (_groupHandlers isNotEqualTo []) exitWith {};
 
 private _handler=_group addEventHandler ["EnemyDetected",{

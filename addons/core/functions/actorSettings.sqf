@@ -21,7 +21,8 @@
  * Native stance rule names are normalised before enum validation and exact receipt comparisons.
  * A settings acknowledgement never grants movement, target or physical-progress authority.
  * Acquisition/check/adoption yield to native flight and queued care; exact release stays task-independent.
- * Current callers: CortexClearSettingsApply, CortexClearSettingsRelease and CortexGarrisonSettings.
+ * Current callers: CortexClearSettingsApply, CortexClearSettingsRelease, CortexGarrisonSettings, DangerAttackPace.
+ * DANGER_ATTACK permits only SPEED under an exact local finite danger-response receipt.
  * Example: ["APPLY",soldier1,[_group,"task-token",4,2,serverTime+30],createHashMapFromArray [["SPEED",4]]] call CBE_fnc_ActorSettings;
  */
 params [["_mode","APPLY",[""]],["_actor",objNull,[objNull]],
@@ -125,6 +126,16 @@ _result=call {
                 && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}
                 && {serverTime < _deadline};
         };
+    };
+    if (_scope == "DANGER_ATTACK" && {_mode in ["APPLY","CHECK"]}) then {
+        private _pace=_actor getVariable ["CBE_Danger_AttackPace",[]];
+        _taskOwned=_pace isEqualType [] && {count _pace == 3}
+            && {(_pace select 0) isEqualTo _context}
+            && {(_pace select 1) isEqualTo (_actor getVariable ["CBE_Danger_EngineResponse",[]])}
+            && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation}
+            && {serverTime < _deadline} && {currentCommand _actor == "ATTACK"}
+            && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+            && {keys _requested findIf {_x != "SPEED"} < 0};
     };
     if (!_taskOwned) exitWith {"REFUSED"};
     if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"REFUSED"};

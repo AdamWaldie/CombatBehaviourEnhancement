@@ -61,6 +61,9 @@ if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWi
 if (behaviour _actor == "CARELESS" || {!_initial && {fleeing _actor
     || {toUpperANSI (currentCommand _actor) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}} && {(_response param [0,"",[""]]) != "FORCED"}}) exitWith {false};
 
+if ((_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []
+    && {!( ["CHECK",_actor] call CBE_fnc_DangerAttackPace)}) exitWith {false};
+
 // A flight move belongs to this finite FSM, not to a separate recurring controller.
 // Read only its actor-local receipt here; authored waypoint comparison stays at cleanup.
 private _flight=_actor getVariable ["CBE_Danger_FlightLease",[]];

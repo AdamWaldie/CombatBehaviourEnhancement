@@ -1738,6 +1738,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('case "EXPLOSION": {2.5}',reaction)
         self.assertNotIn("_responseDurations=createHashMapFromArray",reaction)
 
+        pace=source('dangerAttackPace')
+        self.assertIn('CBE_fnc_ActorSettings',pace)
+        self.assertIn('_actor getHideFrom _target',pace)
+        self.assertNotIn('getPosATL _target',pace)
+        self.assertNotIn(' doMove ',pace)
+        self.assertIn('(_context select 4)+30',pace)
+        self.assertIn('"DANGER_ATTACK"',source('actorSettings'))
+        self.assertIn('CBE_Danger_AttackPace',source('operationStart'))
+        self.assertIn('CBE_fnc_DangerAttackPace',source('dangerPostureStep'))
+        self.assertIn('_cleanupRunning',pace)
+
     def test_native_group_contacts_survive_a_leader_cover_blind_spot(self):
         knowledge=source('cortexKnowledge')
         setup=source('dangerSetup')

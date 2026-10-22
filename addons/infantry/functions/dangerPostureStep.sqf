@@ -25,6 +25,9 @@ private _actor=_pendingPosture deleteAt 0;
 _group setVariable ["CBE_Danger_StancePendingActors",_pendingPosture];
 if (_actor isEqualType objNull && {!isNull _actor} && {local _actor} && {group _actor == _group}) then {
     private _proof=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
+    if (_proof isEqualTo [] && {(_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}) then {
+        ["RELEASE",_actor,true] call CBE_fnc_DangerAttackPace;
+    };
     if (_proof isEqualType [] && {count _proof == 6}
         && {(_proof select 2) isEqualType 0} && {finite (_proof select 2)}) then {
         if (time >= (_proof select 2)+30) then {

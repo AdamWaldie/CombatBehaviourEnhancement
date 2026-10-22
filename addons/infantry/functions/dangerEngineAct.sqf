@@ -248,4 +248,5 @@ if (_mode == "VEHICLE") then {
 _group setVariable ["CBE_Danger_EngineStats",_stats];
 _actor setVariable ["CBE_Danger_EngineResponse",[_mode,_cause,time,time+_delay,
     _group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_group]];
+["START",_actor] call CBE_fnc_DangerAttackPace;
 _delay

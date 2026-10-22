@@ -202,5 +202,26 @@
     ],
     "validation": "Read-only current-source trace plus parsed engineering JSON; no runtime changes, test increment, new package or parity credit.",
     "limits": "Audits paused. Last runtime and candidate remain df84dd41 / .qa/candidates/morale-allied-support-718d6935. This is an implementation gap and integration boundary, not delivered pacing."
+  },
+  "nativeAttackPacingImplementation20261023": {
+    "baseline": "8a9b76cb",
+    "status": "IMPLEMENTED_PHYSICAL_ACCEPTANCE_PENDING",
+    "implementation": "DangerAttackPace START/CHECK/RELEASE uses the existing danger FSM and shared ActorSettings DANGER_ATTACK speed-only scope. Current native ATTACK, known hostile belief and no competing common operation/settings owner required. Original response expiry converted once to server deadline; no renewal, destination or firing command. Speed4/3 under suppression, leader/near-belief5m each minus1, minimum1, STEALTH1; authored stricter caps preserved.",
+    "lifecycle": "Engine CanContinue drains changed target/command/destination/response/expiry; EngineRelease independently retires speed before stance. Speed-only pending cleanup uses existing group posture queue, original expiry+30s, no replacement worker. Public issuer proof permits actual new owner to RELEASE unchanged cap through existing ActorSettings without APPLY/ADOPT; DangerSetup retires mismatched owner/response/expired proof. OperationStart releases participant caps before generation capture and refuses participants with unresolved proof.",
+    "bounds": "Existing max64 actor/settings boundary, one known native target query, no world search or new movement controller. Pending cleanup runs one actor per shared callback. Public proof and sparse actor index publish only start/retirement.",
+    "validation": "Initial full gate failed generated FEATURE_STATUS mismatch after helper registration; regenerated from coverage and reran.1491 tests, full HEMTT/SQF/FSM/config/docs/package gates and independent candidate verification passed. Existing lifecycle regression extended without new case.",
+    "candidate": ".qa/candidates/native-attack-pace-8a9b76cb",
+    "fingerprint": "aa547d0e5040e3b970265720edf821ed4e8d5662d4a7a3df75604c97559e9f69",
+    "logs": [
+      ".qa/native-attack-pace-build.log",
+      ".qa/native-attack-pace-build-reviewed.log",
+      ".qa/native-attack-pace-independent.log"
+    ],
+    "limits": [
+      "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata afterward.",
+      "No physical native pace, HC/JIP, task interruption, native cap confirmation, balance or5%median/10%p95 evidence. Audits paused.",
+      "Same-valued external speed edits remain indistinguishable. Restoration blocked beyond original+30s retains proof and can refuse later pacing/participant admission; no unowned reset or successful handback claim.",
+      "Scope is autonomous native ATTACK during ENGAGE/IMMEDIATE danger, not full LAMBS parity or continuous assault controller."
+    ]
   }
 }

@@ -23,6 +23,7 @@
 
 params [["_actor",objNull,[objNull]],["_cleanupRunning",false,[true]]];
 if (isNull _actor) exitWith {false};
+["RELEASE",_actor,_cleanupRunning] call CBE_fnc_DangerAttackPace;
 // This marker describes the currently executing engine-FSM action. Keeping it after Finished made
 // diagnostics report a response which no longer existed and let a later owner inherit stale state.
 // Clear it even when there was no stance to restore or locality changed during the response.
