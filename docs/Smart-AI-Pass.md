@@ -2520,3 +2520,9 @@ Expiry during transfer cannot restart the manoeuvre. An exact expired bypass/cor
 Expired-parent custody is additionally bounded to five seconds after the original hard deadline, even when a fresh owner edge arrives later. This is a cleanup cutoff derived from the original episode, not a renewed movement deadline or an indefinitely reusable receipt. Older matching values cannot reacquire custody.
 
 Transfer during an already-issued native return can retain the exact recorded STOP/FOLLOW transition when the read-only native classifier still proves the original return frame. This applies only without an active child and with the existing return/request receipt; arbitrary STOP/FOLLOW or other protected tasks remain refused. The original acknowledgement tuple is copied unchanged, no return is replayed and no fresh grace period is granted. Physical return/owner timing remains unverified.
+
+### Current danger event retention
+
+The engine danger FSM reserves two slots in its existing twelve-record group batch: one for the current entry event and one for the strongest selected event. The remaining ten come from the existing bounded queue tail. This prevents a stronger queued hit or repeated ambient events from dropping a different current contact before group intake sees it. Entry position is copied and its original cause, source and expiry remain unchanged. The entry slot clears after submission, so later recycle passes cannot replay it. Existing eligibility, knowledge, expiry and response-priority checks still decide whether an observation is actionable.
+
+The queue stays bounded to48 records and group submission to12. No new observation query, actor command, worker or wake path is added. Offline data checks demonstrate retention and the bound; physical danger response, event timing, HC behaviour and performance remain unverified.

@@ -1291,7 +1291,29 @@ class CortexOperations(unittest.TestCase):
             self.assertNotIn(forbidden,engine_act)
         self.assertIn('_queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]',engine_fsm)
         self.assertIn('_window=_queue select [((count _queue)-48) max 0,48]',engine_fsm)
-        self.assertIn('_records=_window select [((count _window)-11) max 0,11]',engine_fsm)
+        self.assertIn('_records=_window select [((count _window)-10) max 0,10]',engine_fsm)
+        self.assertIn('_cbeEntryRecord=[_dangerCause,+_dangerPos,_dangerUntil,_dangerCausedBy]',engine_fsm)
+        self.assertIn('_records pushBackUnique _cbeEntryRecord',engine_fsm)
+        self.assertIn('_cbeEntryRecord=[]; _queue=[]',engine_fsm)
+        # Native queue ordering need not be inferred: the current entry is explicitly
+        # prepended by this FSM and could otherwise fall outside the submitted tail.
+        current=[0,[10,20,0],30,'contact']
+        strongest=[2,[1,2,0],29,'hit']
+        window=[current,strongest]+[[1,[i,0,0],28,'fire'] for i in range(46)]
+        old=window[-11:]+[strongest]
+        self.assertNotIn(current,old)
+        def batch(window,entry,selected):
+            records=window[-10:]
+            for record in (entry,selected):
+                if record and record not in records:records.append(record)
+            return records
+        records=batch(window,current,strongest)
+        self.assertIn(current,records);self.assertIn(strongest,records)
+        self.assertLessEqual(len(records),12)
+        self.assertEqual(current,[0,[10,20,0],30,'contact'])
+        for size in range(49):
+            self.assertLessEqual(len(batch(window[:size],current,strongest)),12)
+        self.assertNotIn(current,batch(window[1:],[],strongest))
         self.assertIn('_records pushBackUnique _selected',engine_fsm)
         self.assertLess(engine_fsm.index('_selected=[_window]'),engine_fsm.index('_queue=[]; _mode='))
         self.assertIn('_queue=[]',engine_fsm)

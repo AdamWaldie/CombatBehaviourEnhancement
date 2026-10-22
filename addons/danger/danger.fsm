@@ -128,7 +128,7 @@ class FSM
                 {
                         name = "Start_Danger";
                         itemno = 0;
-                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [((count _queue)-47) max 0,47]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _cbeEntryRecord=[_dangerCause,+_dangerPos,_dangerUntil,_dangerCausedBy]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [((count _queue)-47) max 0,47]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -162,7 +162,7 @@ class FSM
                 {
                         name = "Init";
                         itemno = 3;
-                        init = /*%FSM<STATEINIT""">*/"_window=_queue select [((count _queue)-48) max 0,48]; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-11) max 0,11]; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _queue=[]; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_window=_queue select [((count _queue)-48) max 0,48]; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-10) max 0,10]; if (_cbeEntryRecord isNotEqualTo []) then {_records pushBackUnique _cbeEntryRecord}; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _cbeEntryRecord=[]; _queue=[]; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {

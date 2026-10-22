@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-22",
+  "baseline": "281cf53c",
+  "scope": "Current engine danger entry retention across bounded group-intake batching",
+  "sourceIntent": "LAMBS brain evaluates the queued danger causes and selects a priority response. CBE retains its bounded linear selection and single shared group owner; this fixes a CBE intake loss rather than copying an upstream script or claiming whole LAMBS parity.",
+  "finding": "Start_Danger explicitly prepends the current entry. Init selected only the last11 records plus the strongest. With a longer queue and a different stronger record, the current event could be absent when the queue was cleared. The counterexample follows directly from CBE array operations and does not assume native engine queue ordering.",
+  "changes": [
+    "Snapshot original current entry cause, copied position, expiry and source into one FSM-local record.",
+    "Group intake uses the prior bounded queue tail10 plus unique current entry and strongest selection, at most12 records. Strongest priority selection/window48 remain unchanged.",
+    "Clear the entry snapshot after the first submission, so recycle passes do not replay it. Preserve current eligibility, knowledge, ignoreTarget and finite-expiry filters; data retention is not a tactical action or guaranteed response.",
+    "Editable danger.bifsm and runtime danger.fsm contain matching changed state code. No additional actor command, observation query, worker, sorting pass or group-wake path."
+  ],
+  "validation": {
+    "initial": ".qa/danger-entry-retention-build.log",
+    "failureDisposition": "Existing editable/runtime FSM parity caught the graph not yet updated. Synced both changed states; parity assertion preserved.",
+    "final": ".qa/danger-entry-retention-build-final.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates. Existing regression models old lost-entry counterexample, distinct/duplicate retention and <=12 capacity across0..48 sizes. No new test cases.",
+    "candidate": ".qa/candidates/danger-entry-retention-281cf53c",
+    "fingerprint": "be0b7ccac5ed483036fedb07e735a922ba4c7c62d32f2a427ca56403d8f76532",
+    "independent": ".qa/danger-entry-retention-independent-verify.log",
+    "provenance": "Unsigned281cf53c plus intended FSM/editor/doc edits and retained unrelated working-tree dirt. Later engineering metadata not product source. Not a clean signed release.",
+    "limits": "Python array model/source/graph checks do not execute the native engine FSM or prove real danger delivery, group reaction, HC operation or performance. Audits paused."
+  },
+  "cost": "Same evaluated48-record window and12-record submit cap. One copied entry, two bounded unique insertions, no additional world query or tactical scheduler. Raw native queue append ordering is not inferred. Runtime cost unmeasured.",
+  "remaining": [
+    "Other nonselected/nonentry causes can still fall outside bounded tail; this does not guarantee all native events reach group planning.",
+    "Physical immediate danger/confirmed contact coexistence, event interruption, repeat/locality and5%median/10%p95 runtime evidence remain unverified.",
+    "Mounted-command assumptions in mounted-command-semantics-20261022.json stay open; no speculative driver rewrite. Full production goal incomplete."
+  ],
+  "evidence": {
+    "addons/danger/danger.fsm": "d0d6f952bec35d9fd02aed22ee0ee7634685246d72a093fb08b45afc618bfffa",
+    "tools/fsm/danger.bifsm": "43e6f9b9e0753402c5d6ab7e8c0dca59709bea16af0b6f6b911c9c7126385f2d",
+    "addons/infantry/functions/dangerEngineSelect.sqf": "f7492e5f3563116b4901dabc66916f27ea1c639d914bc981709fd5136458e480",
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "b99feb124f4a42bb7ea0a7212f21d721f9ae1aae956aefc855312965fe9f4401",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "f8bdaee84c71443e580f0328c26e67fc5cb60281b1a908c76b4ded07c3ec23ff",
+    ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+    "docs/Smart-AI-Pass.md": "338e759672f5eeb133cd197d065333ef271d52f2d8bb34f9c68c4330b8a3ab5d"
+  },
+  "sourceProtection": "LAMBS private reference unchanged; no upstream raw code/assets added to product."
+}
