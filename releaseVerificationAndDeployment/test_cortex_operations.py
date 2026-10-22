@@ -3525,7 +3525,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_tactical_bounds_use_an_owned_full_speed_lease(self):
         step=source('cortexFlankStep')
-        self.assertIn('_drill set ["groupSpeedMode",[speedMode _group,"FULL"]]',step)
+        self.assertIn('_drill set ["groupSpeedMode",[_priorSpeed,"FULL"]]',step)
         self.assertIn('_group setSpeedMode "FULL"',step)
         self.assertIn('speedMode _group != (_groupSpeedLease select 1)',step)
         self.assertIn('"SPEED_CHANGED" call _end',step)
@@ -3534,6 +3534,12 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('speedMode _group == (_groupSpeedLease select 1)',cleanup)
             self.assertIn('_group setSpeedMode (_groupSpeedLease select 0)',cleanup)
         self.assertIn('restoreGroupSpeedMode',source('cortexCheckpoint'))
+        self.assertIn('CBE_fnc_CortexGroupPostureTaskAvailable',step)
+        self.assertLess(step.index('_group setSpeedMode "FULL"'),step.index('_drill set ["groupSpeedMode",[_priorSpeed,"FULL"]]'))
+        self.assertIn('if (speedMode _group == "FULL")',step)
+        end=source('cortexFlankEnd')
+        self.assertIn('private _policyAvailable=_mayRestore && {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable}',end)
+        self.assertIn('CBE_Cortex_DrillPolicyUnresolved',end)
 
     def test_coordinated_bound_uses_matching_role_objective_before_personal_contact(self):
         text = source('cortexFlankStep')

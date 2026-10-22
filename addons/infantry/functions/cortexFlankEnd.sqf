@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Group policy restoration respects native tasks; unresolved pairs are historical evidence only.
  * Native STOP cleanup requires a matching current-drill HOLD receipt; MOVE cleanup requires
  * the actual requested destination. Unknown/changed tasks remain untouched. Restoring owned
  * feature settings does not authorize movement recall. Native flight and queued care
@@ -98,12 +99,25 @@ private _mayRestoreActor={
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
 };
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
-if (_mayRestore && {count _groupModeLease == 2} && {combatMode _group == (_groupModeLease select 1)}) then {
-    _group setCombatMode (_groupModeLease select 0);
-};
 private _groupSpeedLease = _drill getOrDefault ["groupSpeedMode",[]];
+private _policyAvailable=_mayRestore && {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable};
+private _unresolvedPolicies=[];
+if (_mayRestore && {count _groupModeLease == 2} && {combatMode _group == (_groupModeLease select 1)}) then {
+    if (_policyAvailable) then {_group setCombatMode (_groupModeLease select 0)};
+    if (!_policyAvailable || {combatMode _group != (_groupModeLease select 0)}) then {
+        _unresolvedPolicies pushBack ["COMBAT",+_groupModeLease];
+    };
+};
 if (_mayRestore && {count _groupSpeedLease == 2} && {speedMode _group == (_groupSpeedLease select 1)}) then {
-    _group setSpeedMode (_groupSpeedLease select 0);
+    if (_policyAvailable) then {_group setSpeedMode (_groupSpeedLease select 0)};
+    if (!_policyAvailable || {speedMode _group != (_groupSpeedLease select 0)}) then {
+        _unresolvedPolicies pushBack ["SPEED",+_groupSpeedLease];
+    };
+};
+// Historical evidence only, never a retry queue or authority for a later write.
+if (_unresolvedPolicies isNotEqualTo []) then {
+    _group setVariable ["CBE_Cortex_DrillPolicyUnresolved",
+        [serverTime,_endingEpoch,_endingGeneration,_reason,_unresolvedPolicies],true];
 };
 {
     _x params ["_unit", "_feature"];

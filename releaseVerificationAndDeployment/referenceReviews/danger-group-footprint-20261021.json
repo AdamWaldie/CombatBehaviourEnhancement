@@ -132,5 +132,22 @@
     "candidate": ".qa/candidates/withdrawal-route-interruption-c85ba8e1",
     "fingerprint": "68244158f86230e0a36e32e8be5b358920a10804257f539dad0ce23c49ee7647",
     "limits": "Unsigned dirty snapshot; physical/HC/JIP/performance and same-valued command identity unverified."
+  },
+  "drillPolicyFootprint20261022": {
+    "baseline": "36570401",
+    "sourceComparison": "LAMBS brainForced ATTACK invokes doAssaultSpeed with actor suppression/leadership/range-dependent forceSpeed; CBE native attack has no equivalent individual speed lease. Existing CBE tactical bound group FULL speed is separate, not parity.",
+    "sourceHashes": {
+      ".qa\\lambs-2621-review\\danger\\functions\\fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+      ".qa\\lambs-2621-review\\main\\functions\\UnitAction\\fnc_doAssaultSpeed.sqf": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105"
+    },
+    "change": "FlankStep group combat/speed application uses complete native-task posture footprint and records only native-confirmed writes. Existing finite step defers without new worker. FlankEnd checks same footprint and retains up to two blocked/unconfirmed policy pairs as historical CBE_Cortex_DrillPolicyUnresolved, not retry authority.",
+    "validation": "1491 tests and full local build plus independent package verification passed; initial product-doc upstream reference boundary finding corrected. Existing tests extended.",
+    "candidate": ".qa/candidates/drill-policy-footprint-36570401",
+    "fingerprint": "0eece597c0fb2577b00fb701d668ef5f87435466f2a30c9307140a247d9e8a1f",
+    "limits": [
+      "Individual assault-speed parity remains unimplemented; no raw upstream copy.",
+      "Native physical handback, same-valued policy identity, locality overlap and measured performance remain unverified.",
+      "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Audits paused."
+    ]
   }
 }

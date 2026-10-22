@@ -56,6 +56,7 @@
  * squad still provide deliberate supporting fire. Movers watch the known threat direction.
  * Native COMBAT behaviour remains available throughout movement. CBE owns route and role selection,
  * while the engine owns moment-to-moment posture, target engagement and obstacle avoidance.
+ * Native-task footprint guards group policy; only confirmed writes acquire restoration proof.
  * The manoeuvre group receives a finite FULL-speed lease so inherited NORMAL or LIMITED travel
  * does not make short tactical bounds crawl. Cleanup restores the prior speed only while Cortex
  * still owns FULL; a later Zeus or script speed change cancels the drill and survives cleanup.
@@ -315,19 +316,32 @@ if (_operationEndReason != "") exitWith {_operationEndReason call _end};
 // YELLOW preserves fire-at-will while discouraging independent RED pursuit subgroups. Give the
 // engine one scheduler step to settle the group mode before issuing the committed destination.
 private _groupModeLease = _drill getOrDefault ["groupCombatMode",[]];
-if (_groupModeLease isEqualTo [] && {combatMode _group == "RED"}) exitWith {
-    _drill set ["groupCombatMode",["RED","YELLOW"]];
-    _group setCombatMode "YELLOW";
-    0.25
+private _groupSpeedLease = _drill getOrDefault ["groupSpeedMode",[]];
+private _policyReady=false;
+private _modeSettling=false;
+isNil {
+    if (!([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)) exitWith {};
+    _policyReady=true;
+    if (_groupModeLease isEqualTo [] && {combatMode _group == "RED"}) then {
+        _group setCombatMode "YELLOW";
+        if (combatMode _group == "YELLOW") then {
+            _drill set ["groupCombatMode",["RED","YELLOW"]];
+            _groupModeLease=_drill get "groupCombatMode";
+        } else {_policyReady=false};
+        _modeSettling=true;
+    };
+    if (!_modeSettling && {_groupSpeedLease isEqualTo []} && {speedMode _group != "FULL"}) then {
+        private _priorSpeed=speedMode _group;
+        _group setSpeedMode "FULL";
+        if (speedMode _group == "FULL") then {
+            _drill set ["groupSpeedMode",[_priorSpeed,"FULL"]];
+            _groupSpeedLease=_drill get "groupSpeedMode";
+        } else {_policyReady=false};
+    };
 };
+if (!_policyReady || {_modeSettling}) exitWith {0.25};
 if (_groupModeLease isNotEqualTo [] && {combatMode _group != (_groupModeLease select 1)}) exitWith {
     "ROE_CHANGED" call _end
-};
-private _groupSpeedLease = _drill getOrDefault ["groupSpeedMode",[]];
-if (_groupSpeedLease isEqualTo [] && {speedMode _group != "FULL"}) then {
-    _drill set ["groupSpeedMode",[speedMode _group,"FULL"]];
-    _group setSpeedMode "FULL";
-    _groupSpeedLease = _drill get "groupSpeedMode";
 };
 if (_groupSpeedLease isNotEqualTo [] && {speedMode _group != (_groupSpeedLease select 1)}) exitWith {
     "SPEED_CHANGED" call _end
