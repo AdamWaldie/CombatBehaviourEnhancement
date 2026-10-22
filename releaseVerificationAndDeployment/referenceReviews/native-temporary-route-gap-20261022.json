@@ -46,5 +46,50 @@
       "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb"
     },
     "validation": "Read-only source reconciliation. Runtime unchanged; reuse exact clearance-pace-dab5d3e3 candidate, no repeat full build or audit. No whole-HBQ parity/percentage claim."
+  },
+  "nativeQueueExecutionTrace20261022": {
+    "baseline": "398f0b5c",
+    "status": "CONFIRMED_MULTI_OWNER_PROTOCOL_GAP_NOT_ENABLED",
+    "consumers": [
+      {
+        "file": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+        "finding": "Explicit NATIVE_MOVE exclusion before proposal lifecycle."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "finding": "Observed eligibility requires a current plain authored MOVE waypoint, not just crew expectedDestination."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingPassCanConsent.sqf",
+        "finding": "Owner consent explicitly excludes NATIVE_MOVE and requires plain authored route semantics."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingQueueContext.sqf",
+        "finding": "Canonical context obtains route by DrivingRouteReceipt for each crew row. Native route helper requires actual group/vehicle/crew locality, so a remote observer cannot fabricate that receipt from public generation or destination."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingNativeRouteReceipt.sqf",
+        "finding": "Existing route-reader-free SIMPLE_BACK classification can retain admitted native identity under exact crew/destination/simple-command checks. This is not authenticated queue agreement or new reverse authority."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+        "finding": "Existing nativeReturn original-goal observation is reusable only with exact parent lifetime and command ownership. Broker completion/token expiry alone cannot authorise return."
+      }
+    ],
+    "requiredImplementation": [
+      "Extend proposal/owner-consent/broker transport coherently with actual-owner authenticated native goal/seat/epoch/generation evidence; preserve remote observational limits.",
+      "Bind every temporary reverse/hold/cross leg and release to its exact agreement and original native receipt; no waypoint manufacture or recursion through route readers.",
+      "Observe original-goal return through existing finite parent deadline without refreshing spent budgets. Late replies, replacement commands, treatment, flight and split ownership must retire authority."
+    ],
+    "validation": "Read-only execution trace and JSON parsing only; runtime unchanged. No repeat build/audit and no functionality claim.",
+    "hashes": {
+      "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+      "addons/vehicles/functions/drivingQueueContext.sqf": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "4ab876f1f89385fc7af8c9e8a9a1d9803a421d2204c8245bdd4b08690bd412a7",
+      "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "0572339c7446bdc9886a7b6a0ee0b3d03622bb6519aa865653dc7ca844229b4d"
+    }
   }
 }
