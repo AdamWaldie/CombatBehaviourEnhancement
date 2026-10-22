@@ -34,8 +34,12 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertLess(step.index('call CBE_fnc_CortexClearSettingsRelease'),step.index('// Native tasks keep movement ownership'))
 
     def test_pending_window_has_one_actor_per_existing_callback_without_renewal(self):
-        block=read('addons/infantry/functions/cortexClearSettingsStep.sqf')
+        block=read('addons/core/functions/actorSettingsCleanupStep.sqf')
         self.assertEqual(block.count('call CBE_fnc_CortexClearSettingsRelease'),1)
+        self.assertIn('_kind == "GARRISON"',block)
+        self.assertIn('serverTime < (_window select 1)',block)
+        self.assertIn('CBE_fnc_CortexGarrisonSettings',block)
+        self.assertNotIn('serverTime+',block)
         self.assertIn('count _members > 64',block)
         self.assertIn('_pending select 0,_pending select 1,false',block)
         self.assertIn('serverTime >= (_pending select 2)',block)
@@ -54,7 +58,7 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertIn('(_clearPending select 1) == _postureOldEpoch',carry)
         self.assertIn('_carriedClear set [1,',carry)
         self.assertNotIn('set [2,',carry)
-        self.assertIn('CBE_fnc_CortexClearSettingsStep',carry)
+        self.assertIn('CBE_fnc_ActorSettingsCleanupStep',carry)
         helper=read('addons/infantry/functions/cortexClearSettingsRelease.sqf')
         self.assertIn('if (_pending isEqualTo [] || {_retiredEpisode}) then',helper)
         self.assertNotIn('waitAndExecute',helper.split('params [[',1)[1])

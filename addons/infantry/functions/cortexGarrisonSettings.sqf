@@ -4,12 +4,12 @@
  * Locality/authority: Actual group/actor owner. Live public garrison issuer admits acquisition;
  * original actor issuer admits cleanup only, including after order removal or owner adoption.
  * Repeat/JIP: Baselines are captured by ActorSettings before writes, never from legacy mirrors.
- * Refused release retains proof and one original30second retirement window on the existing brain.
+ * Refused release retains proof and one original30second retirement window on the shared restoration-only scheduler.
  * No movement, watch, new worker or retry deadline renewal is issued here.
  * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 mode STRING APPLY (CHECK, RELEASE, RECOVER);
  * 3 requested HASHMAP empty;4 allow deferral BOOL true.
  * Return: ActorSettings status STRING, REFUSED when authority is absent.
- * Current callers: CortexGarrisonApplyLocal, CortexGarrisonRelease and GroupBrainStep.
+ * Current callers: CortexGarrisonApplyLocal, CortexGarrisonRelease, ActorSettingsCleanupStep and GroupBrainStep (duck recovery only).
  * Example: [soldier1,group soldier1,"APPLY",createHashMapFromArray [["SPEED",4]]] call CBE_fnc_CortexGarrisonSettings;
  */
 params [["_actor",objNull,[objNull]],["_group",grpNull,[grpNull]],
@@ -71,6 +71,12 @@ if (_mode == "RELEASE" || {_known && {_actorIssuer != _issuer || {_retiring}}}) 
                     if (_pending isEqualType [] && {count _pending < 64} && {!(_actor in _pending)}) then {
                         _pending pushBack _actor;
                         _group setVariable ["CBE_Cortex_GarrisonSettingsPending",_pending,true];
+                    };
+                    if (_pending isEqualType [] && {count _pending <= 64} && {_actor in _pending}) then {
+                        [CBE_fnc_ActorSettingsCleanupStep,createHashMapFromArray [["group",_group],
+                            ["ownerEpoch",_epoch],["generation",_epoch],["kind","GARRISON"],
+                            ["subsystem","SETTINGS_CLEANUP"]],0.25,"GARRISON_SETTINGS"] call CBE_fnc_CortexQueueJob;
+                        [] call CBE_fnc_SchedulerReconcile;
                     };
                 };
             };

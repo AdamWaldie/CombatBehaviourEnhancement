@@ -41,11 +41,15 @@ private _settings=false;
             };
             case "SETTINGS_CLEANUP": {
                 private _settingsGroup=_state getOrDefault ["group",grpNull];
-                private _settingsPending=_settingsGroup getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+                private _garrisonCleanup=(_state getOrDefault ["kind","CLEAR"]) == "GARRISON";
+                private _settingsPending=_settingsGroup getVariable [["CBE_Cortex_ClearSettingsPending",
+                    "CBE_Cortex_GarrisonSettingsPending"] select _garrisonCleanup,[]];
                 private _retain=!isNull _settingsGroup && {local _settingsGroup}
                     && {!(_state getOrDefault ["cancelled",false])}
                     && {(_state getOrDefault ["ownerEpoch",-1]) == (_settingsGroup getVariable ["CBE_AIPass_Epoch",0])}
-                    && {_settingsPending isEqualType []} && {count _settingsPending == 4};
+                    && {_settingsPending isEqualType []}
+                    && {if (_garrisonCleanup) then {count _settingsPending > 0 && {count _settingsPending <= 64}}
+                        else {count _settingsPending == 4}};
                 if (_retain) then {_settings=true};
                 _retain
             };

@@ -55,7 +55,7 @@ isNil {
             && {(_cleanup select 0) == _generation} && {(_cleanup select 1) == _epoch}
             && {(_cleanup select 2) isEqualType 0} && {finite (_cleanup select 2)}
             && {serverTime < (_cleanup select 2)}) then {
-            [CBE_fnc_CortexClearSettingsStep,createHashMapFromArray [["group",_group],
+            [CBE_fnc_ActorSettingsCleanupStep,createHashMapFromArray [["group",_group],
                 ["ownerEpoch",_epoch],["generation",_generation],["subsystem","SETTINGS_CLEANUP"]],
                 0.25,"CLEAR_SETTINGS"] call CBE_fnc_CortexQueueJob;
             [] call CBE_fnc_SchedulerReconcile;

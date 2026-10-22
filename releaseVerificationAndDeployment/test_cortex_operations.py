@@ -6283,9 +6283,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_ready) exitWith {};',adapter)
         self.assertIn('(_window select 0) isNotEqualTo _actorIssuer',adapter)
         self.assertNotIn('CBA_fnc_waitAndExecute',adapter)
-        brain=source('groupBrainStep')
-        self.assertIn('_garrisonSettings deleteAt 0',brain)
-        self.assertIn('serverTime < (_window select 1)',brain)
+        cleanup=source('actorSettingsCleanupStep')
+        self.assertIn('_pendingGarrison deleteAt 0',cleanup)
+        self.assertIn('serverTime < (_window select 1)',cleanup)
+        self.assertIn('_actor,_group,"RELEASE",createHashMap,false',cleanup)
+        self.assertNotIn('serverTime+30',cleanup)
         self.assertNotIn('setVariable ["CBE_Cortex_GarrisonForcedSpeed",nil',release)
 
     def test_vehicle_movement_owns_its_waypoint_until_physical_completion(self):

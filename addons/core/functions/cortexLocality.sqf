@@ -250,12 +250,20 @@ if (_clearSettings isEqualType [] && {count _clearSettings == 4}) then {
         _adoptedSettings set [0,_group getVariable ["CBE_AIPass_ClearGeneration",0]];
         _adoptedSettings set [1,_group getVariable ["CBE_AIPass_Epoch",0]];
         _group setVariable ["CBE_Cortex_ClearSettingsPending",_adoptedSettings,true];
-        [CBE_fnc_CortexClearSettingsStep,createHashMapFromArray [["group",_group],
+        [CBE_fnc_ActorSettingsCleanupStep,createHashMapFromArray [["group",_group],
             ["ownerEpoch",_adoptedSettings select 1],["generation",_adoptedSettings select 0],
             ["subsystem","SETTINGS_CLEANUP"]],0.25,"CLEAR_SETTINGS"] call CBE_fnc_CortexQueueJob;
         [] call CBE_fnc_SchedulerReconcile;
     } else {_group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true]};
 };
+        private _garrisonCleanup=_group getVariable ["CBE_Cortex_GarrisonSettingsPending",[]];
+        if (_garrisonCleanup isEqualType [] && {count _garrisonCleanup > 0} && {count _garrisonCleanup <= 64}) then {
+            private _cleanupEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+            [CBE_fnc_ActorSettingsCleanupStep,createHashMapFromArray [["group",_group],
+                ["ownerEpoch",_cleanupEpoch],["generation",_cleanupEpoch],["kind","GARRISON"],
+                ["subsystem","SETTINGS_CLEANUP"]],0.25,"GARRISON_SETTINGS"] call CBE_fnc_CortexQueueJob;
+        };
+[] call CBE_fnc_SchedulerReconcile;
 // Retire inherited simple driving before the new owner resumes the durable escape route.
 private _reverseCleanup=_group getVariable ["CBE_VehicleReverse",[]];
 if (count _reverseCleanup == 9) then {
