@@ -243,7 +243,7 @@ private _known=(_pilot nearTargets ([8000,5000] select !(_aircraft isKindOf "Pla
     if (_validReport && {!isNull _contact} && {alive _contact} && {_side getFriend side _contact < 0.6}) then {
         private _antiAir=false;
         if (_contact isKindOf "CAManBase") then {
-            _antiAir="AA" in ([_contact] call CBE_fnc_CortexCapabilities);
+            _antiAir="AA" in ([_contact,true] call CBE_fnc_CortexCapabilities);
         } else {
             {
                 _x params ["_magazine","_turret","_rounds"];

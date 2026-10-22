@@ -970,7 +970,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 private _priority = switch (true) do {
                     case (_warningPriority): {-2};
                     case (_freshAir && {_airDefence}): {-1};
-                    case (_enemy isKindOf "CAManBase" && {"AT" in ([_enemy] call CBE_fnc_CortexCapabilities)}): {0};
+                    case (_enemy isKindOf "CAManBase" && {"AT" in ([_enemy,true] call CBE_fnc_CortexCapabilities)}): {0};
                     case (_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"}): {1};
                     default {2};
                 };
@@ -1083,7 +1083,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _standoff = missionNamespace getVariable ["CBE_AIPass_Vehicles_StandoffDistance", 250];
         private _atIndex = _enemies findIf {
             (_x select 0) isKindOf "CAManBase" && {(_x select 2) <= 30} && {(_vehicle distance2D (_x select 1)) < _standoff * 0.6}
-            && {"AT" in ([_x select 0] call CBE_fnc_CortexCapabilities)}
+            && {"AT" in ([_x select 0,true] call CBE_fnc_CortexCapabilities)}
         };
         if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
             && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}

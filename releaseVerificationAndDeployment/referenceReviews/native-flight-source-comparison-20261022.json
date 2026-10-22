@@ -161,5 +161,16 @@
       "provenance": "Product runtime unchanged from82594959; unsigned dirty development build includes unrelated retained dirt. QA source staged separately; review/handover metadata afterward."
     },
     "fixtureHash": "b5982740221b20273fbbcf6122c87ca5611b441f223589a06e74457ab28afe9a"
+  },
+  "launcherThreatKnowledge20261022": {
+    "baseline": "08538a77",
+    "finding": "CortexCapabilities correctly checked usable friendly launcher ammunition, but hostile infantry consumers in vehicle ranking/standoff and air threat planning reused that live inventory inspection.",
+    "implementation": "Optional potential flag defaults false. Friendly capacity keeps live magazinesAmmoFull round counts. Potential equipment mode classifies compatible configured ammunition only, sharing immutable ammo facts and live mission overrides, without reading hostile reserves. Three hostile infantry consumers explicitly select potential mode. Existing contact/reported-position gates unchanged.",
+    "balance": "An empty enemy launcher remains a potential threat; no confirmed firing capability claim. Secondary weapon identity still comes from existing contact object, not a new per-observer equipment memory system.",
+    "validation": "1491 tests/full local build/independent verify passed; existing capability test extended.",
+    "candidate": ".qa/candidates/launcher-threat-knowledge-08538a77",
+    "fingerprint": "f0c44283c1b09dcc629e4723a17a787dcf027744c26d5200c8baa80bbbfdd6b2",
+    "remaining": "AirAttackPlan non-infantry AA branch still reads hostile magazinesAllTurrets counts. Evaluate equipment/config potential threat there separately; no whole-mod knowledge fairness or physical claim.",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Behaviour, balance, HC/JIP and5%median/10%p95 unverified; audits paused."
   }
 }
