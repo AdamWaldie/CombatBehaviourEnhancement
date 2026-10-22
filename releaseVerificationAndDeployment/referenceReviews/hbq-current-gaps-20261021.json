@@ -39,5 +39,26 @@
     "Audits paused; no physical or performance evidence added.",
     "Historical reports remain dated snapshots, not current outstanding-work lists.",
     "No implementation percentage, whole-HBQ parity or acceptance credit."
-  ]
+  ],
+  "currentReconciliation20261022": {
+    "baseline": "486d1880",
+    "status": "HISTORICAL_GAP_SUPERSEDED_BY_CURRENT_IMPLEMENTATION",
+    "current": "DrivingRouteReceipt delegates absent authored waypoints to DrivingNativeRouteReceipt. Exact admitted native goals, recovery parent and conditional ordinary native bypass/corridor paths now exist. Release uses original native goal and finite return observation. These are built paths, not physical proof.",
+    "evidenceReviews": [
+      "native-bypass-lifecycle-20261022.json",
+      "native-corridor-lifecycle-20261022.json",
+      "native-return-task-adoption-20261022.json"
+    ],
+    "confirmedRemaining": "DrivingQueueAutoStep explicitly refuses NATIVE_MOVE. Native multi-owner queue negotiation remains a separate build gap; do not broaden by deleting its guard without broker/crew/return lifecycle review. Native passing not reassessed in full.",
+    "hashes": {
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb"
+    },
+    "validation": "Read-only source reconciliation. Runtime unchanged; reuse exact clearance-pace-dab5d3e3 candidate, no repeat full build or audit. No whole-HBQ parity/percentage claim."
+  }
 }
