@@ -10,7 +10,8 @@
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 journal <HASHMAP, empty>.
  * Return: STRING - OWNED (exact receipt/issued goal), PENDING (original unchanged state),
  * EXPIRED (same state after original wait), LOST (changed/unknown identity), or BYPASS
- * (exact active child command; retention only, never parent movement permission).
+ * (exact child command, including expired work awaiting cleanup; retention only,
+ * never parent movement permission). Executors enforce the unchanged deadlines.
  * Distinct native drivers retain their original destination proof; intermediate changes are
  * not inferred to be ours merely because the commander's target was acknowledged.
  * Current callers: DrivingAssistStart and DrivingRecoveryRelease.
@@ -59,9 +60,9 @@ private _childDeadline=_child getOrDefault ["deadline",-1];
 if ((_work getOrDefault ["bypassSpent",false]) isEqualTo true
     && {(_work getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
     && {!(_work getOrDefault ["releasePending",false])}
-    && {_hard isEqualType 0} && {finite _hard} && {serverTime < _hard}
+    && {_hard isEqualType 0} && {finite _hard}
     && {_childDeadline isEqualType 0} && {finite _childDeadline}
-    && {serverTime < _childDeadline} && {_childDeadline <= _hard}
+    && {_childDeadline <= _hard}
     && {(_child getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
     && {(_child getOrDefault ["phase",""]) == "FOLLOW"}
     && {(_child getOrDefault ["group",grpNull]) == _group}
@@ -87,6 +88,27 @@ if (!(_goal isEqualType []) || {count _goal != 3}
     || {!(_before isEqualType [])} || {count _before != 4}
     || {!((_before select 0) isEqualType "")} || {!((_before select 2) isEqualType "")}
     || {!((_before select 1) isEqualType [])} || {!((_before select 3) isEqualType [])}) exitWith {"LOST"};
+// A native bypass returns both operating actors to the original MOVE. A commander's
+// ACK alone cannot retire the temporary journal while its distinct driver still follows
+// or holds STOP. Observe both original goals within the same original request window.
+if ("bypassReturn" in _work && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
+    private _atOriginalGoal={
+        params ["_actor","_native"];
+        private _point=_native param [0,[],[[]]];
+        currentCommand _actor == "MOVE" && {count _point == 3}
+            && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_point vectorDistance _goal <= 0.25}
+    };
+    private _driverAck=[_driver,_driverNative] call _atOriginalGoal;
+    private _operatorAck=[_operator,_operatorNative] call _atOriginalGoal;
+    if (_driverAck && {_operatorAck}) exitWith {"OWNED"};
+    private _driverWaiting=_driverAck || {_driverNative isEqualTo (_before select 1)
+        && {currentCommand _driver in [_before select 0,"MOVE"]}};
+    private _operatorWaiting=_operatorAck || {_operatorNative isEqualTo (_before select 3)
+        && {currentCommand _operator in [_before select 2,"MOVE"]}};
+    if (!_driverWaiting || {!_operatorWaiting}) exitWith {"LOST"};
+    ["PENDING","EXPIRED"] select (serverTime > _until)
+};
 private _position=_operatorNative param [0,[],[[]]];
 if (currentCommand _operator in ["","MOVE"] && {count _position == 3}
     && {_position vectorDistance _goal <= 0.25}

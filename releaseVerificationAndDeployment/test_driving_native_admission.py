@@ -44,8 +44,42 @@ class NativeAdmissionTests(unittest.TestCase):
         for name in ('drivingGateOpenServer','drivingGateCloseServer'):
             self.assertIn('call CBE_fnc_DrivingGateRouteMatches',read(name))
         self.assertIn('"NATIVE_MOVE") exitWith {[false,false]}',read('drivingQueueAutoStep'))
-        for name in ('drivingCorridorStep','drivingBypassStep'):
-            self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read(name))
+        self.assertIn('"NATIVE_MOVE") exitWith {_inactive}',read('drivingCorridorStep'))
+        bypass=read('drivingBypassStep')
+        self.assertIn('if (_nativeRoute && {_controller != "ORDINARY"})',bypass)
+        self.assertIn('(!_nativeRoute || {_parentBound})',bypass)
+        self.assertIn('then {+(_route select 6)}',bypass)
+        handback=read('drivingBypassRelease')
+        self.assertIn('currentCommand _driver == "STOP"',handback)
+        self.assertIn('currentCommand _operator == "STOP"',handback)
+        self.assertIn('isEqualTo _nativeParent',handback)
+        self.assertIn('then {+(_route select 6)}',handback)
+        self.assertIn('(serverTime+2) min _hard',handback)
+        self.assertIn('_nativeState in ["OWNED","PENDING","EXPIRED","BYPASS"]',native)
+        self.assertIn('_nativeState == "BYPASS"',native)
+        self.assertIn('"recoveryParent"',native)
+        self.assertIn('"bypassReturn" in _nativeWork',native)
+        classifier=read('drivingRecoveryCommandState')
+        child=classifier.split('private _child=',1)[1].split('private _request=',1)[0]
+        self.assertIn('_childDeadline <= _hard',child)
+        self.assertNotIn('serverTime <',child)
+        self.assertIn('serverTime < _nativeHard',handback)
+        shutdown=read('drivingAssistRelease')
+        self.assertLess(shutdown.index('_nativeBypassGroup,"DRIVING_RELEASED"'),
+                        shutdown.index('_recovery get "group","DRIVING_RELEASED"'))
+        self.assertIn('_nativeRoute && {_reason == "RECOVERY_PARENT_CHANGED"}',bypass)
+        native_ack=classifier.split('// A native bypass returns both',1)[1].split('private _position=',1)[0]
+        self.assertIn('if (_driverAck && {_operatorAck})',native_ack)
+        self.assertIn('serverTime > _until',native_ack)
+        # Partial acknowledgement remains pending, never grants a fresh clock or success.
+        def state(driver_ack,operator_ack,driver_same,operator_same,now,until):
+            if driver_ack and operator_ack:return 'OWNED'
+            if not (driver_ack or driver_same) or not (operator_ack or operator_same):return 'LOST'
+            return 'EXPIRED' if now>until else 'PENDING'
+        self.assertEqual(state(False,True,True,False,1,2),'PENDING')
+        self.assertEqual(state(True,True,False,False,1,2),'OWNED')
+        self.assertEqual(state(False,True,True,False,3,2),'EXPIRED')
+        self.assertEqual(state(False,True,False,False,1,2),'LOST')
 
 
     def test_native_recovery_adoption_requires_real_edge_and_preserves_spent_episode(self):

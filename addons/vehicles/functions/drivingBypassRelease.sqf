@@ -22,7 +22,9 @@
  * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
  * A successor queue binding forbids native cleanup and survives metadata retirement.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
- * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored-route handback.
+ * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored/native-route handback.
+ * Native return requires the original parent, both observed STOP tasks and its unexpired
+ * hard deadline. It requests the original goal once with the existing finite journal.
  * 4 stopOnly <BOOL, false> stops exact-owned work without route recall;
  * 5 expected revision <NUMBER, -1> optionally limits convoy cleanup to its original revision.
  * Return Value: BOOL - matching episode retired, never proof of actual passage.
@@ -94,7 +96,17 @@ isNil {
             && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
                 "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
     } forEach [_driver,_operator];
-    if (_owned) then {
+    private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+    private _nativeParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    private _nativeBinding=_work getOrDefault ["recoveryParent",[]];
+    private _nativeHard=_nativeParent getOrDefault ["hardDeadline",-1];
+    private _nativeParentCurrent=!_nativeRoute || {!_convoy && {!_queue}
+        && {_nativeHard isEqualType 0} && {finite _nativeHard}
+        && {_nativeBinding isEqualTo [_group,_route,_nativeHard,_nativeParent getOrDefault ["progressAnchor",[]]]}
+        && {(_nativeParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+        && {(_nativeParent getOrDefault ["bypassSpent",false]) isEqualTo true}
+        && {!(_nativeParent getOrDefault ["releasePending",false])}};
+    if (_owned && {_nativeParentCurrent}) then {
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
         doStop _driver;if (_operator != _driver) then {doStop _operator};
         if (_queue && {!_queueMayResume} && {_resume} && {!_stopOnly}
@@ -110,14 +122,22 @@ isNil {
             };
         };
         private _index=currentWaypoint _group;
-        if (_resume && {_queueMayResume} && {_index > 0} && {_index < count waypoints _group}
+        private _returnRouteCurrent=if (_nativeRoute) then {
+            // The owned stop intentionally invalidates the child command classifier.
+            // Observe that stop and the unchanged exact parent instead of minting a route.
+            serverTime < _nativeHard && {count waypoints _group <= 1} && {currentCommand _driver == "STOP"}
+                && {currentCommand _operator == "STOP"}
+                && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+        } else {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route};
+        if (_resume && {_queueMayResume} && {_nativeRoute || {_index > 0 && {_index < count waypoints _group}}}
             && {_convoy || {vehicle leader _group == _vehicle}}
-            && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+            && {_returnRouteCurrent}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
             if (_driver != _operator) then {_driver doFollow _operator};
             private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
                 currentCommand _operator,+(expectedDestination _operator)];
-            private _returnGoal=waypointPosition [_group,_index];
+            private _returnGoal=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,_index]};
             _operator doMove _returnGoal;
             private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             private _parentBinding=_work getOrDefault ["recoveryParent",[]];
@@ -133,7 +153,11 @@ isNil {
                 && {!(_parent getOrDefault ["releasePending",false])}
                 && {finite _cap} && {_cap >= 0} && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}
                 && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
-                && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}) then {
+                && {if (_nativeRoute) then {
+                    (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent
+                        && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+                        && {count waypoints _group <= 1}
+                } else {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}}) then {
                 private _returned=createHashMapFromArray ((keys _parent) apply {[_x,_parent get _x]});
                 // A distinct driver retains its pre-commander-write receipt. An unrelated
                 // driver order cannot become ours just because the commander acknowledged.

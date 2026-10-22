@@ -2480,3 +2480,13 @@ Native casualty route retention is provenance for the existing crew executor. It
 
 
 A vacancy after a previously confirmed driver starts a distinct finite crew episode, including when that driver object has been removed. Failed, cancelled and expired vacancy attempts keep their terminal state for the same vacancy. This avoids both suppressing a later real crew loss and repeatedly restarting a failed attempt.
+
+### Native scripted movement and obstacle bypass
+
+An owner-local scripted MOVE without an authored waypoint may use the ordinary static-obstacle bypass after a REFRESH or FINAL recovery episode is established. The bypass retains that episode's original destination, hard deadline, progress anchor and spent attempt. Existing obstacle geometry, ordered physical checkpoints, traffic caps, crew eligibility and mission/Zeus ownership checks remain in force. It creates no waypoint and adds no scheduler.
+
+On exact owned cleanup, the executor stops its temporary path. Native onward movement requires observed STOP for both operating seats and the unchanged live parent; it requests the original destination once through the existing acknowledgement journal, bounded by two seconds and the original hard deadline. An expired child can retain command identity for cleanup, but cannot extend its lifetime or obtain onward movement after parent expiry. A newer order, treatment, flight or external controller revokes movement cleanup. Identical replacement orders remain indistinguishable. Corridor tasks, passing and automatic queue recovery still exclude native scripted routes.
+
+This path has offline validation only. Physical passage, stop acknowledgement timing, repeated handback, locality changes and runtime cost remain unverified while audits are paused.
+
+Native bypass return acknowledgement requires both operating actors to report MOVE at the original goal. A commander-only acknowledgement leaves the original journal pending; a changed driver order rejects it. This acknowledgement is command provenance, not proof of physical onward travel.

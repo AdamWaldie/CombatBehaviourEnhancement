@@ -36,6 +36,8 @@
  * Full ordered checkpoint visit and actual tail clearance alone complete. Invalid geometry,
  * command/owner changes, obstacle crew/engine/attachment changes and deadline expiry retain failure; no elapsed-time or ready success.
  * Current callers: DrivingAssistStart and ConvoyTick. Convoy followers retain predecessor trails.
+ * Native scripted MOVE requires an existing REFRESH/FINAL parent; the original goal,
+ * hard deadline, progress anchor and spent bypass budget survive the temporary path.
  * Neither path acceptance nor this API is physical QA.
  * Example: [_group,_vehicle,_brain,_solid,_mayRecoverRoute] call CBE_fnc_DrivingBypassStep;
  */
@@ -50,7 +52,8 @@ private _queueAgreement=_vehicle getVariable ["CBE_DrivingQueue_Consent",createH
 private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
-if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {_inactive};
+private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+if (_nativeRoute && {_controller != "ORDINARY"}) exitWith {_inactive};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {
@@ -69,6 +72,7 @@ private _seatsAvailable={
 };
 // This executor must enforce authored intent itself before it can be shared by another controller.
 private _plainRoute={
+    if (_nativeRoute) exitWith {count waypoints _group <= 1};
     private _index=currentWaypoint _group;
     if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
     private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;
@@ -90,7 +94,7 @@ private _nativeAdmissionReady={
     private _admissionInput=vehicleMoveInfo _vehicle;
     if (toUpperANSI (_admissionInput param [0,""]) in ["BACK","FORWARD","FAST","SLOW","DIRECTBYCOMANDER","SIMPLE","CONVOY"]
         || {toUpperANSI (_admissionInput param [1,""]) in ["LEFT","RIGHT"]}) exitWith {false};
-    private _destination=waypointPosition [_group,currentWaypoint _group];
+    private _destination=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,currentWaypoint _group]};
     [_driver,_operator] findIf {
         private _command=toUpperANSI currentCommand _x;
         private _target=(expectedDestination _x) param [0,[],[[]]];
@@ -201,10 +205,10 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_Bypa
         private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         private _parentBound=!_convoy && {!_queue} && {!(_parent isEqualType createHashMap) || {count _parent > 0}};
         private _parentBinding=if (_parentBound) then {[_parent] call _recoveryBinding} else {[]};
-        private _parentReady=!_parentBound || {_parentBinding isNotEqualTo []
+        private _parentReady=(!_nativeRoute || {_parentBound}) && {!_parentBound || {_parentBinding isNotEqualTo []
             && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo false}
             && {!(_parent getOrDefault ["releasePending",false])}
-            && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}};
+            && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}}};
         private _deadline=if (_queue) then {_queueAgreement get "expires"} else {serverTime+90};
         if (_parentBound && {_parentReady}) then {_deadline=_deadline min (_parentBinding select 2)};
         if (_parentReady && {_cooldown findIf {(_x select 0) isEqualTo _context && {(_x select 1) > serverTime}} < 0}
@@ -262,7 +266,11 @@ if (_reason == "" && {(_work get "phase") == "PLAN"} && {!(call _nativeAdmission
 if (_reason == "" && {!([_obstacle] call _obstacleAvailable)
     || {[getPosWorld _obstacle,vectorDir _obstacle,vectorUp _obstacle] isNotEqualTo (_work get "transform")}}) then {_reason="OBSTACLE_CHANGED"};
 if (_reason == "" && {serverTime >= (_work get "deadline")}) then {_reason="TIMEOUT"};
-if (_reason != "") exitWith {[_vehicle,_group,_reason,!(_reason in ["COMMAND_CHANGED","RECOVERY_PARENT_CHANGED"])] call CBE_fnc_DrivingBypassRelease;_inactive};
+if (_reason != "") exitWith {
+    [_vehicle,_group,_reason,!(_reason in ["COMMAND_CHANGED","RECOVERY_PARENT_CHANGED"]),
+        _nativeRoute && {_reason == "RECOVERY_PARENT_CHANGED"}] call CBE_fnc_DrivingBypassRelease;
+    _inactive
+};
 if ((_work get "phase") == "PLAN") exitWith {
     if (count _observed != 9 || {(_observed select 1) != _obstacle} || {(_observed select 8) isNotEqualTo (_work get "transform")}) exitWith {
         [_vehicle,_group,"OBSERVATION_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive
@@ -294,10 +302,10 @@ if ((_work get "phase") == "PLAN") exitWith {
         } else {[_vehicle,_group,_proposal select 1] call CBE_fnc_DrivingBypassRelease;_inactive}
     };
     private _points=_proposal select 2;private _asl=_proposal select 3;
-    private _destination=ATLToASL waypointPosition [_group,currentWaypoint _group];
+    private _destination=ATLToASL (if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,currentWaypoint _group]});
     private _forward=vectorDir _vehicle;_forward set [2,0];_forward=vectorNormalized _forward;
     private _exit=_asl select ((count _asl)-1);
-    if ((_destination vectorDiff _exit) vectorDotProduct _forward < _columnLength+(waypointCompletionRadius [_group,currentWaypoint _group] max 20)+10) exitWith {
+    if ((_destination vectorDiff _exit) vectorDotProduct _forward < _columnLength+(if (_nativeRoute) then {20} else {waypointCompletionRadius [_group,currentWaypoint _group] max 20})+10) exitWith {
         [_vehicle,_group,"DESTINATION_CLEARANCE"] call CBE_fnc_DrivingBypassRelease;_inactive
     };
     if (!(call _mayWrite) || {!([_obstacle] call _obstacleAvailable)} || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}

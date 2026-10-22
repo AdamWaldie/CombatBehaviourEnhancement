@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native bypass retirement precedes its recovery parent so original route proof remains available.
  * Internal arguments: 2 cap-only BOOL false; 3 offered ARRAY [] of
  * [state,baseline,group,issuing epoch,original server deadline,driver,commander,issuer,custodian].
  * Unconfirmed ordinary cap restoration retains exact state/baseline and a finite cap-only
@@ -86,6 +87,15 @@ if (count _pass > 0 && {isNull _expectedGroup || {(_pass get "group") == _expect
     [_vehicle,_pass get "group","DRIVING_RELEASED",true] call CBE_fnc_DrivingPassFinish;
 };
 [_vehicle,_expectedGroup] call CBE_fnc_DrivingPassAgreementRelease;
+// A native bypass needs its original recovery parent to prove both path retirement
+// and one finite original-goal return. Retire that child before removing the parent.
+private _nativeBypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+private _nativeBypassGroup=_nativeBypass getOrDefault ["group",grpNull];
+if (!isNull _nativeBypassGroup && {isNull _expectedGroup || {_expectedGroup == _nativeBypassGroup}}
+    && {(_nativeBypass getOrDefault ["controller",[]]) isEqualTo ["ORDINARY",-1]}
+    && {((_nativeBypass getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) then {
+    [_vehicle,_nativeBypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
+};
 private _recoveryPending=false;
 private _recovery=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
 if (count _recovery > 0 && {isNull _expectedGroup || {(_recovery get "group") == _expectedGroup}}) then {
