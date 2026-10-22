@@ -1,6 +1,6 @@
 # CBE build-out progress
 
-> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. Physical acceptance remains separate.
+> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. The SCHED section below was separately reassessed on 2026-10-23; the other historical assessments are not renewed. Physical acceptance remains separate.
 
 Build-out measures implemented capability and integration. Acceptance, physical reliability and performance are separate criteria.
 
@@ -141,13 +141,13 @@ Calculation: 2 implemented capability units / 4 scoped units. Acceptance is not 
 
 ## SCHED: Scheduler and distance tiers
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `2a51c419 + reviewed hold-only scheduler fix`; reviewed 2026-10-23; confidence: low.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Shared due-job queue and callback budget | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexQueueJob](../addons/core/functions/cortexQueueJob.sqf); [cortexSchedulerTick](../addons/core/functions/cortexSchedulerTick.sqf) |
-| Pause/distance/cooldown policy | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexCooldown](../addons/infantry/functions/cortexCooldown.sqf); [cortexIsPaused](../addons/infantry/functions/cortexIsPaused.sqf) |
-| Runtime reconciliation and retirement | 1 / 1 | Scoped production path is wired in the referenced implementation. [schedulerReconcile](../addons/core/functions/schedulerReconcile.sqf) |
+| Shared due-job queue and callback budget | 1 / 1 | Keyed due-job admission preserves supplied owner epoch, coalesces current generation work and maintains the earliest wake. Tick rotates retained jobs and checks elapsed callback budget between jobs; individual SQF callbacks are not preempted. No measured frame-time claim. [cortexQueueJob](../addons/core/functions/cortexQueueJob.sqf); [cortexSchedulerTick](../addons/core/functions/cortexSchedulerTick.sqf) |
+| Pause/distance/cooldown policy | 1 / 1 | GroupTick selects near/mid/far delays from cached player positions and finite danger promotion; GroupBrainStep publishes the chosen next wake. ENDEX/SafeStart defer tactics, while finite handback categories retain their narrow cleanup role. Named cooldowns use original local time deadlines. [cortexCooldown](../addons/infantry/functions/cortexCooldown.sqf); [cortexIsPaused](../addons/infantry/functions/cortexIsPaused.sqf); [cortexGroupTick](../addons/infantry/functions/cortexGroupTick.sqf); [groupBrainStep](../addons/infantry/functions/groupBrainStep.sqf) |
+| Runtime reconciliation and retirement | 1 / 1 | Reconcile retains only enabled owner-local runtimes and finite cleanup categories, installs one shared CBA handler and removes it when none remain. Tick now admits hold-cleanup-only work as well as posture/settings categories; terminal cleanup invokes reconciliation. Physical shutdown/HC retirement and measured overhead remain unverified. [schedulerReconcile](../addons/core/functions/schedulerReconcile.sqf); [cortexSchedulerTick](../addons/core/functions/cortexSchedulerTick.sqf) |
 
 Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 

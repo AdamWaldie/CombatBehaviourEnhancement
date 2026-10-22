@@ -218,7 +218,7 @@
           "capability": "Shared due-job queue and callback budget",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Keyed due-job admission preserves supplied owner epoch, coalesces current generation work and maintains the earliest wake. Tick rotates retained jobs and checks elapsed callback budget between jobs; individual SQF callbacks are not preempted. No measured frame-time claim.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -227,7 +227,7 @@
             },
             {
               "path": "addons/core/functions/cortexSchedulerTick.sqf",
-              "sha256": "e45cd0675bb7a67865cf043a7d24121f6070b6e05b29348682eb6069427b5ecf"
+              "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
             }
           ]
         },
@@ -235,7 +235,7 @@
           "capability": "Pause/distance/cooldown policy",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "GroupTick selects near/mid/far delays from cached player positions and finite danger promotion; GroupBrainStep publishes the chosen next wake. ENDEX/SafeStart defer tactics, while finite handback categories retain their narrow cleanup role. Named cooldowns use original local time deadlines.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -245,6 +245,14 @@
             {
               "path": "addons/infantry/functions/cortexIsPaused.sqf",
               "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "81dea8cb721ee478ca6842cd260fd6f0f6242d8ce5280e153d925c6874295bb5"
+            },
+            {
+              "path": "addons/infantry/functions/groupBrainStep.sqf",
+              "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
             }
           ]
         },
@@ -252,19 +260,23 @@
           "capability": "Runtime reconciliation and retirement",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Reconcile retains only enabled owner-local runtimes and finite cleanup categories, installs one shared CBA handler and removes it when none remain. Tick now admits hold-cleanup-only work as well as posture/settings categories; terminal cleanup invokes reconciliation. Physical shutdown/HC retirement and measured overhead remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/schedulerReconcile.sqf",
-              "sha256": "fcd7ec6a6f6e6a06d3d73452907622718b37fbf7e17b916077f51b5bdcac5e1c"
+              "sha256": "a90aed26ee4185b376ff0b7f607e175980f4221d42cf7258697f6ad209ee9c69"
+            },
+            {
+              "path": "addons/core/functions/cortexSchedulerTick.sqf",
+              "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
             }
           ]
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "2a51c419 + reviewed hold-only scheduler fix"
     },
     {
       "id": "PROFILE",

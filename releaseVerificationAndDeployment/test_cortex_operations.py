@@ -11610,6 +11610,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('case "HOLD_CLEANUP"',scheduler)
         self.assertIn('case "HOLD_CLEANUP"',reconcile)
         self.assertIn('if (_holdsRetired)',scheduler)
+        enable_gate=scheduler.split('private _jobs =',1)[0]
+        self.assertIn('CBE_ClearHold_SchedulerActive',enable_gate)
         deadline=30
         attempted=set()
         for now,medical in ((1,True),(2,False),(3,False),(29,False),(30,False)):

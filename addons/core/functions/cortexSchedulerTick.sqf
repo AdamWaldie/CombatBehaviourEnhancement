@@ -49,7 +49,8 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     && {!(missionNamespace getVariable ["CBE_Convoy_SchedulerActive", false])}
     && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}
     && {!(missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive", false])}
-    && {!(missionNamespace getVariable ["CBE_ActorSettings_SchedulerActive", false])}) exitWith {};
+    && {!(missionNamespace getVariable ["CBE_ActorSettings_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_ClearHold_SchedulerActive", false])}) exitWith {};
 private _jobs = missionNamespace getVariable ["CBE_AIPass_Jobs", []];
 private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 private _now = time;

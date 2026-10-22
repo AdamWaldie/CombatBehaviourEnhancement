@@ -41,5 +41,17 @@
     "change": "Existing build-out report visibly labelled historical. No ledger hash, score, denominator or assessment date renewed; no runtime edit. Existing evidence check remains strict and failing.",
     "next": "Reassess affected capability execution and integration, beginning CORE/CONTACT/LIFECYCLE/SCHED then driving, against current source and retained reviews. Renew only reviewed references; do not blanket-refresh235 hashes. Missing private Workshop denominator remains separate.",
     "limits": "Full runtime build candidate unchanged; no repeated full build for engineering freshness warning. Current estimates cannot be presented as verified-current build-out or physical acceptance."
+  },
+  "schedulerReassessment20261023": {
+    "baseline": "2a51c419",
+    "runtimeFinding": "Reconcile retains HOLD_CLEANUP and installs shared handler, but tick initial active-runtime gate omitted CBE_ClearHold_SchedulerActive. Hold-only work therefore returned before queue processing.",
+    "runtimeFix": "Include hold scheduler flag in initial gate. Existing pause exception, local group/epoch/deadline checks, budget and final-job reconciliation remain. Existing hold lifecycle regression extended.",
+    "reviewedScope": "SCHED three existing criteria reviewed: keyed due/wake/coalescing, pause/cached-distance/cooldown policy, enabled runtime/finite cleanup handler lifecycle. Added actual distance-policy evidence GroupTick/GroupBrainStep. No score, scope or weight change; confidence low, physical performance separate.",
+    "evidenceStatus": "SCHED hashes renewed only after review. Remaining233 stale references/111unique sources/54families; no other family or Workshop denominator renewed. Global buildout_progress.py --check still FAILS first at cortexSelectAvenue.sqf. Partial SCHED report section updated while historical warning retained.",
+    "detail": ".qa/buildout-evidence-freshness-20261023-scheduler.json",
+    "validation": "1491 tests/full local build/independent package verification passed; SCHED-only hashes verified. Global freshness failure logged .qa/buildout-evidence-freshness-scheduler-check.log.",
+    "candidate": ".qa/candidates/scheduler-hold-only-2a51c419",
+    "fingerprint": "1852574c50704bc59cbd1c68a5a222bf17c712b68db4cce17f304a9454180f8f",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No physical shutdown/HC/JIP/cleanup or5%median/10%p95 proof; audits paused."
   }
 }
