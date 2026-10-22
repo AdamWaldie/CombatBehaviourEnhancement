@@ -35,5 +35,28 @@
       "path": "addons/vehicles/functions/drivingOperationStart.sqf",
       "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
     }
-  ]
+  ],
+  "crossOwnerDestinationBoundary20261022": {
+    "baseline": "f3969b87",
+    "status": "LOCAL_ARGUMENT_CONTRACT_MISMATCH_PHYSICAL_EFFECT_UNVERIFIED",
+    "engineReference": {
+      "url": "https://community.bistudio.com/wiki/expectedDestination",
+      "checked": "2026-10-22",
+      "contract": "Local argument required."
+    },
+    "trace": [
+      "DrivingQueueContext invokes expectedDestination for all crew, including remote participants, while describing read-only-anywhere observational context.",
+      "DrivingQueueProposalCurrent compares full eleven-field actor rows for actual local participants, including original field9 destination, against the initiator-sampled context.",
+      "AgreementOwner VERIFY invokes current owner validation and ACK cannot populate canonical destinations; existing server ACK payload contains token/acceptance/rear envelopes, not owner-local destination patches."
+    ],
+    "impact": "Multi-owner authored queue consent is not established by local static contracts or same-owner cases. A remote-sampled destination cannot be certified by later exact comparison as reliable owner-provided provenance. Do not claim proven runtime failure without engine observation. Native MOVE adds further owner-local route constraints.",
+    "requiredCorrection": "Gather authenticated per-owner local destination/task/route rows before freezing canonical queue context. Finalize/reconfirm the complete immutable context before any COMMIT, hold, BACK or crossing. Bind refresh to same request serial, original deadline and current ownership; do not delete destination comparison, substitute empty data or assume remote reads reliable.",
+    "hashes": {
+      "addons/vehicles/functions/drivingQueueContext.sqf": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "f24f809bd2f16e0dfef54fda8dcdde3f05983b78113e0927ed40933e344e9c4b",
+      "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013"
+    },
+    "validation": "Read-only source/API contract trace and JSON parsing. No runtime code, new package, acceptance or performance claim. Audits paused."
+  }
 }
