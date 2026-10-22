@@ -6265,6 +6265,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call CBE_fnc_CortexClearSettingsRelease',clear_job)
         actor_settings=source('actorSettings')
         self.assertIn('call CBE_fnc_ActorSettings',clear_settings)
+        room_speed=source('buildingOperationStep')
+        self.assertIn('private _nearArrival=_arrivalPose vectorDistance (AGLToASL _arrivalTarget) < 5',room_speed)
+        self.assertIn('[4,3] select (getSuppression _unit >= 0.2)',room_speed)
+        self.assertNotIn('_unit distance2D _arrivalTarget < 5',room_speed)
         self.assertIn('[_group,_mode == "RELEASE",_actor] call CBE_fnc_CortexExternalTakeover',actor_settings)
         self.assertIn('CortexActorMoveReserved',actor_settings)
         release=actor_settings.split('if (_mode == "RELEASE") exitWith {',1)[1].split('private _operation=',1)[0]

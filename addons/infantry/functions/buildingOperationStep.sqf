@@ -3378,7 +3378,12 @@ private _delay=call {
                                 if (_unitIssue && {!(_unit in (_job get "started"))}) then {
                                     [_unit,_job,4,"PREPARE"] call CBE_fnc_CortexClearSettingsApply;
                                 };
-                                private _clearStepSpeed=[4,2] select (_unit distance2D _arrivalTarget < 5);
+                                // Floor separation matters: a point overhead is not a reached doorway.
+                                // Pressure lowers approach pace without introducing a second speed writer.
+                                private _nearArrival=_arrivalPose vectorDistance (AGLToASL _arrivalTarget) < 5;
+                                private _clearStepSpeed=if (_nearArrival) then {2} else {
+                                    [4,3] select (getSuppression _unit >= 0.2)
+                                };
                                 private _settingsStatus=if (_unit in (_job get "started") || {_unitIssue}) then {
                                     [_unit,_job,_clearStepSpeed] call CBE_fnc_CortexClearSettingsApply
                                 } else {"REFUSED"};

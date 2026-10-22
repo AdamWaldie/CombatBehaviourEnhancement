@@ -168,5 +168,15 @@
     "candidate": ".qa/candidates/actor-speed-mission-cap-8207c4d6",
     "fingerprint": "cb46aa56c50f220155c5d3d2303bab7d5317da4590540221426a50d89a1665cb",
     "limits": "Unsigned dirty snapshot with retained unrelated dirt. No physical native speed/cleanup, HC/JIP or performance validation; audits paused."
+  },
+  "clearancePaceIntegration20261022": {
+    "baseline": "dab5d3e3",
+    "finding": "Clearance already had 4/2 m/s distance pacing through ActorSettings; its 2D distance treated overhead floor destinations as close.",
+    "sourceContribution": "Retain suppression-sensitive pacing intent from reviewed doAssaultSpeed, integrated into existing CBE room execution rather than a new native ATTACK speed controller. No claim of complete native assault parity.",
+    "implementation": "Near-arrival uses actual ASL three-dimensional separation<5m, request2m/s. Outside: request3m/s at suppression>=0.2, otherwise4m/s. Existing settings/native task/operation/mission-cap guards and cleanup unchanged. Threshold is gameplay policy, not doctrine or measured optimum.",
+    "validation": "1491 tests/full local build/independent package verify passed; existing clearance settings test extended.",
+    "candidate": ".qa/candidates/clearance-pace-dab5d3e3",
+    "fingerprint": "eced8ca41cbddf0f5d37116bcfb47845c2af0d3d9b3444b703e2a6247e354f98",
+    "limits": "Unsigned dirty development snapshot; source metadata afterward. Physical entry/stairs/flow, speed ACK, HC/JIP, balance and performance unverified. Audits paused."
   }
 }

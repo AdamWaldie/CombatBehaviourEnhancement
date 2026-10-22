@@ -2572,3 +2572,5 @@ Tactical bounds now apply group combat/speed policy only while the complete nati
 The group-policy footprint controls policy writes only. A protected or incapacitated member does not by itself pause healthy actors in an existing tactical bound; individual movement admission still applies. Only a policy write actually attempted without native confirmation waits for the next finite step.
 
 Temporary on-foot settings preserve a stricter original mission speed cap. CQB or garrison speed requests can slow an actor, but cannot raise an existing cap or turn a mission stop into movement. Repeated updates use the first captured baseline; cleanup retains the existing exact-value checks. This does not grant movement authority or prove route travel.
+
+Clearance pace uses the actual three-dimensional distance to the committed destination: 2 m/s within 5 m, otherwise 4 m/s or 3 m/s while suppression is at least 0.2. A destination on another floor does not trigger the close-distance cap solely because it is overhead. These are requested speed ceilings through the existing settings lease, subject to stricter mission caps; they are not measured travel speeds.
