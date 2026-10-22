@@ -79,6 +79,7 @@ private _next = [];
 private _rescheduled = [];
 private _postureRetired=false;
 private _settingsRetired=false;
+private _holdsRetired=false;
 private _earliest = -1;
 {
     _x params ["_dueAt", "_job", "_state"];
@@ -96,6 +97,7 @@ private _earliest = -1;
             case "CONVOY": {"CBE_Convoy_SchedulerActive"};
             case "AIRCRAFT": {"CBE_Aircraft_SchedulerActive"};
             case "POSTURE_CLEANUP": {"CBE_Danger_PostureSchedulerActive"};
+            case "HOLD_CLEANUP": {"CBE_ClearHold_SchedulerActive"};
             case "SETTINGS_CLEANUP": {"CBE_ActorSettings_SchedulerActive"};
             default {"CBE_AIPass_Active"};
         };
@@ -108,7 +110,7 @@ private _earliest = -1;
         // Removing an already-owned stance is handback, not a new tactical action.
         // This category retains the owner stale gate and shared budget; its finite handback
         // runtime can outlive tactical shutdown.
-        if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP"]) then {_jobPaused=false};
+        if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP","HOLD_CLEANUP"]) then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
         private _callbackCanSuspend=canSuspend;
@@ -118,6 +120,8 @@ private _earliest = -1;
             && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_postureRetired=true};
         if (_subsystem == "SETTINGS_CLEANUP"
             && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_settingsRetired=true};
+        if (_subsystem == "HOLD_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_holdsRetired=true};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
         private _queueLatency=(_now-_dueAt) max 0;
         _state set ["lastCallbackMs",_callbackMs];
@@ -206,3 +210,5 @@ if (_settingsRetired && {missionNamespace getVariable ["CBE_ActorSettings_Schedu
             ((_x select 2) getOrDefault ["subsystem",""]) == "SETTINGS_CLEANUP"}) >= 0};
     if (!_settingsLeft) then {[] call CBE_fnc_SchedulerReconcile};
 };
+
+if (_holdsRetired) then {[] call CBE_fnc_SchedulerReconcile};

@@ -92,6 +92,12 @@ if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason ==
         && {(_clearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
         private _anchor=leader _group;
+        private _deferredClear=[];
+        private _issuedClear=[];
+        private _priorAttempts=_group getVariable ["CBE_Cortex_ClearHoldRetireAttempts",[]];
+        private _priorAttemptActors=if (count _priorAttempts == 3 && {(_priorAttempts select 0) == (_clearHold select 0)}) then {
+            _priorAttempts select 2
+        } else {[]};
         private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
         {
             if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
@@ -101,10 +107,41 @@ if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason ==
                 && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-                && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}) then {
+                && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+                && {!(_x in _priorAttemptActors)}) then {
+                _issuedClear pushBackUnique _x;
                 _x doFollow _anchor;
             };
+            if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
+                && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}) then {
+                _deferredClear pushBackUnique _x;
+            };
         } forEach (_clearHold select 3);
+        if (_deferredClear isNotEqualTo []) then {
+            private _retainedHold=+_clearHold;
+            _retainedHold set [3,_deferredClear];
+            _retainedHold set [4,(_clearHold select 4) select {(_x select 0) in (_deferredClear apply {netId _x})}];
+            _group setVariable ["CBE_Cortex_ClearHold",_retainedHold,true];
+            private _window=_group getVariable ["CBE_Cortex_ClearHoldRetire",[]];
+            if (!(count _window == 4 && {(_window select [0,2]) isEqualTo (_clearHold select [0,2])}
+                && {(_window select 3) == clientOwner})) then {
+                private _retireUntil=serverTime+30;
+                if (_window isEqualType [] && {count _window == 4}
+                    && {(_window select 2) isEqualType 0} && {finite (_window select 2)}) then {
+                    _retireUntil=_retireUntil min (_window select 2);
+                };
+                _group setVariable ["CBE_Cortex_ClearHoldRetire",[_clearHold select 0,_clearHold select 1,_retireUntil,clientOwner],true];
+            };
+            private _activeWindow=_group getVariable ["CBE_Cortex_ClearHoldRetire",[]];
+            private _oldAttempts=_group getVariable ["CBE_Cortex_ClearHoldRetireAttempts",[]];
+            private _attempts=if (count _oldAttempts == 3
+                && {(_oldAttempts select [0,2]) isEqualTo [_clearHold select 0,_activeWindow select 2]}) then {
+                +(_oldAttempts select 2)
+            } else {[]};
+            {_attempts pushBackUnique _x} forEach _issuedClear;
+            _group setVariable ["CBE_Cortex_ClearHoldRetireAttempts",[_clearHold select 0,_activeWindow select 2,_attempts],true];
+        };
     };
 };
 // New curator intent invalidates pending operation work even when no common record

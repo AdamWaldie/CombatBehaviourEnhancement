@@ -10702,7 +10702,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call CBE_fnc_CortexQueueJob',release)
         self.assertIn('["subsystem","POSTURE_CLEANUP"]',release)
         scheduler=source('cortexSchedulerTick')
-        self.assertIn('if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP"]) then {_jobPaused=false}',scheduler)
+        self.assertIn('if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP","HOLD_CLEANUP"]) then {_jobPaused=false}',scheduler)
         self.assertIn('private _jobPaused = _paused && {!_skillsJob}',scheduler)
         self.assertIn('private _stale = !_enabled',scheduler)
         self.assertIn('(_state getOrDefault ["ownerEpoch", -1]) !=',scheduler)
@@ -11430,6 +11430,35 @@ class CortexOperations(unittest.TestCase):
         for guard in ['CORTEX_STOPPED','!_externalTakeover','CBE_AIPass_ClearGeneration','CBE_AIPass_Epoch','currentCommand _x == "STOP"','CBE_fnc_CompatibilityExternalControl','CBE_Cortex_ActorMove']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _anchor'))
+    def test_shutdown_hold_retirement_is_finite_and_not_tactical(self):
+        cleanup=source('clearHoldCleanupStep')
+        stop=source('cortexStop')
+        scheduler=source('cortexSchedulerTick')
+        reconcile=source('schedulerReconcile')
+        for token in ('serverTime >= (_window select 2)','CBE_Cortex_ClearHoldRetire','CBE_fnc_BuildingActorHoldOwned',
+                      'CBE_fnc_CortexExternalTakeover','ace_medical_ai_healQueue','!fleeing _actor',
+                      'CBE_fnc_CortexActorMoveReserved','!(_actor in _attempted)','_actors deleteAt 0'):
+            self.assertIn(token,cleanup)
+        self.assertEqual(cleanup.count('_actor doFollow _leader'),1)
+        self.assertNotIn('doMove',cleanup)
+        self.assertNotIn('serverTime+30',cleanup)
+        self.assertIn('_retireWindow set [1,_retireHold select 1]',stop)
+        self.assertIn('_retireUntil=_retireUntil min (_window select 2)',source('cortexReleaseGroup'))
+        self.assertIn('CBE_Cortex_ClearHoldRetireAttempts',source('cortexReleaseGroup'))
+        self.assertIn('CBE_fnc_ClearHoldCleanupStep',stop)
+        self.assertIn('case "HOLD_CLEANUP"',scheduler)
+        self.assertIn('case "HOLD_CLEANUP"',reconcile)
+        self.assertIn('if (_holdsRetired)',scheduler)
+        deadline=30
+        attempted=set()
+        for now,medical in ((1,True),(2,False),(3,False),(29,False),(30,False)):
+            issue=now<deadline and not medical and 'actor' not in attempted
+            if issue:attempted.add('actor')
+            if now==1:self.assertFalse(issue)
+            if now==2:self.assertTrue(issue)
+            if now>=3:self.assertFalse(issue)
+        self.assertEqual(len(attempted),1)
+
     def test_completed_clear_hold_adoption_changes_receipt_without_replaying_movement(self):
         text=source('cortexLocality')
         branch=text.split('private _clearHold=',1)[1].split('// Retire inherited simple driving',1)[0]

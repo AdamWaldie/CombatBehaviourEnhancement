@@ -280,6 +280,24 @@ if (!isNil "_civilianCreated") then {
     private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     private _postureOldEpoch=_stoppingGroup getVariable ["CBE_AIPass_Epoch",0];
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // Carry only this same owner's finite terminal-hold retirement across the controlled stop edge.
+    private _retireHold=_stoppingGroup getVariable ["CBE_Cortex_ClearHold",[]];
+    private _retireWindow=_stoppingGroup getVariable ["CBE_Cortex_ClearHoldRetire",[]];
+    if (local _stoppingGroup && {count _retireHold == 5} && {count _retireWindow == 4}
+        && {(_retireHold select [0,2]) isEqualTo (_retireWindow select [0,2])}
+        && {(_retireHold select 1) == _postureOldEpoch} && {(_retireWindow select 3) == clientOwner}
+        && {serverTime < (_retireWindow select 2)}
+        && {!([_stoppingGroup] call CBE_fnc_CortexExternalTakeover)}) then {
+        _retireHold=+_retireHold;_retireWindow=+_retireWindow;
+        _retireHold set [1,_stoppingGroup getVariable ["CBE_AIPass_Epoch",0]];
+        _retireWindow set [1,_retireHold select 1];
+        _stoppingGroup setVariable ["CBE_Cortex_ClearHold",_retireHold,true];
+        _stoppingGroup setVariable ["CBE_Cortex_ClearHoldRetire",_retireWindow,true];
+        [CBE_fnc_ClearHoldCleanupStep,createHashMapFromArray [["group",_stoppingGroup],
+            ["ownerEpoch",_retireHold select 1],["generation",_retireHold select 0],
+            ["window",+_retireWindow],["attempted",(_stoppingGroup getVariable ["CBE_Cortex_ClearHoldRetireAttempts",[]]) param [2,[]]],["subsystem","HOLD_CLEANUP"]],
+            0.25,"CLEAR_HOLD_RETIRE"] call CBE_fnc_CortexQueueJob;
+    };
     // This same-machine shutdown owns this epoch edge. Carry only exact deferred
     // weak-stance restoration, never an active danger response or tactical task.
     if (local _stoppingGroup && {!([_stoppingGroup] call CBE_fnc_CortexExternalTakeover)}

@@ -609,6 +609,9 @@ private _delay=call {
             // Record only actors this finish actually stopped. A diverted or service actor
             // must never inherit a later formation recall from a hold it did not receive.
             _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_NativeOrderReceipt,+_settled,+_settledPosts],true];
+            // A newly completed episode has new physical hold proof, not a renewed old retirement.
+            _group setVariable ["CBE_Cortex_ClearHoldRetire",nil,true];
+            _group setVariable ["CBE_Cortex_ClearHoldRetireAttempts",nil,true];
         };
             };
             };

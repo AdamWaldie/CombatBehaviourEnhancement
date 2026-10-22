@@ -1478,6 +1478,7 @@
         "addons/infantry/functions/cortexClearRelease.sqf",
         "addons/infantry/functions/cortexClearSettingsRelease.sqf",
         "addons/core/functions/actorSettingsCleanupStep.sqf",
+        "addons/core/functions/clearHoldCleanupStep.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
         "addons/infantry/functions/combatPairs.sqf",
         "addons/infantry/functions/combatPairsPublish.sqf",

@@ -21,6 +21,7 @@ private _generation = missionNamespace getVariable ["CBE_AI_LightingGeneration",
 private _earliest = -1;
 private _posture=false;
 private _settings=false;
+private _holds=false;
 {
     private _retained = (missionNamespace getVariable [_x, []]) select {
         private _state = _x select 2;
@@ -37,6 +38,14 @@ private _settings=false;
                     && {(_state getOrDefault ["ownerEpoch",-1]) == (_postureGroup getVariable ["CBE_AIPass_Epoch",0])}
                     && {_postureActors isEqualType []} && {count _postureActors > 0} && {count _postureActors <= 64};
                 if (_retain) then {_posture=true};
+                _retain
+            };
+            case "HOLD_CLEANUP": {
+                private _holdGroup=_state getOrDefault ["group",grpNull];
+                private _retain=!isNull _holdGroup && {local _holdGroup}
+                    && {(_state getOrDefault ["ownerEpoch",-1]) == (_holdGroup getVariable ["CBE_AIPass_Epoch",0])}
+                    && {!(_state getOrDefault ["done",false])};
+                if (_retain) then {_holds=true};
                 _retain
             };
             case "SETTINGS_CLEANUP": {
@@ -65,8 +74,9 @@ private _settings=false;
 missionNamespace setVariable ["CBE_AIPass_NextJobDue", _earliest];
 missionNamespace setVariable ["CBE_Danger_PostureSchedulerActive",_posture];
 missionNamespace setVariable ["CBE_ActorSettings_SchedulerActive",_settings];
+missionNamespace setVariable ["CBE_ClearHold_SchedulerActive",_holds];
 private _handle = missionNamespace getVariable "CBE_AIPass_SchedulerHandle";
-if (_tactics || {_skills} || {_convoy} || {_aircraft} || {_posture} || {_settings}) then {
+if (_tactics || {_skills} || {_convoy} || {_aircraft} || {_posture} || {_settings} || {_holds}) then {
     if (isNil "_handle") then {
         missionNamespace setVariable ["CBE_AIPass_SchedulerHandle",
             [{[] call CBE_fnc_CortexSchedulerTick}, 0] call CBA_fnc_addPerFrameHandler];
@@ -77,4 +87,4 @@ if (_tactics || {_skills} || {_convoy} || {_aircraft} || {_posture} || {_setting
         missionNamespace setVariable ["CBE_AIPass_SchedulerHandle", nil];
     };
 };
-_tactics || {_skills} || {_convoy} || {_aircraft} || {_posture} || {_settings}
+_tactics || {_skills} || {_convoy} || {_aircraft} || {_posture} || {_settings} || {_holds}
