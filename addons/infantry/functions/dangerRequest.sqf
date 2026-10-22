@@ -10,14 +10,24 @@
  * Approximate updates retain, but never renew, the original two-second hostile identity expiry.
  * Arguments: 0: observer <OBJECT>, objNull; 1: cause <STRING>, GUNFIRE;
  * 2: approximate ATL position <ARRAY>, []; 3: engine-confirmed hostile source <OBJECT>, objNull.
+ * 4: original local geometry expiry <NUMBER, -1>; 5: original identity expiry <NUMBER, -1>.
+ * -1 means a fresh callback without an engine deadline; supplied expiries can only shorten
+ * the two-second intake bound. Expired geometry refuses before cadence; expired identity
+ * cannot acquire a new source lease. Existing independently valid witness proof may survive.
  * Return Value: Boolean - whether the observation was accepted.
  * Current callers: CBE engine danger intake and the group EnemyDetected observer.
  * Example: [leader _group,"HIT",getPosATL leader _group] call CBE_fnc_DangerRequest;
  */
 
-params [["_actor",objNull,[objNull]],["_cause","GUNFIRE",[""]],["_position",[],[[]]],["_source",objNull,[objNull]]];
+params [["_actor",objNull,[objNull]],["_cause","GUNFIRE",[""]],["_position",[],[[]]],["_source",objNull,[objNull]],
+    ["_geometryExpiry",-1],["_identityExpiry",-1]];
 if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
     || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
+// Native queue delivery cannot give an old observation a fresh two-second life.
+// -1 is reserved for a genuinely fresh callback with no supplied engine deadline.
+if ([_geometryExpiry,_identityExpiry] findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0 && {_x != -1}}} >= 0) exitWith {false};
+private _eventUntil=if (_geometryExpiry == -1) then {time+2} else {(time+2) min _geometryExpiry};
+if (_eventUntil <= time) exitWith {false};
 // Reject throttled duplicates before the more expensive group ownership scan. Rejected
 // eligibility does not consume cadence; only an accepted observation advances it below.
 private _cadence=_actor getVariable ["CBE_Danger_EventCadence",createHashMap];
@@ -53,8 +63,8 @@ private _index=_events findIf {
 // reveal or target assignment; objNull remains the normal value for approximate hazards and reports.
 private _hostileSource=objNull;
 private _sourceObserver=_actor;
-private _sourceUntil=time+2;
-if (!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
+private _sourceUntil=if (_identityExpiry == -1) then {_eventUntil} else {_eventUntil min _identityExpiry};
+if (_sourceUntil > time && {!isNull _source} && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
     && {!(_source getVariable ["ace_captives_isSurrendering",false]) && {!(_source getVariable ["ace_captives_isHandcuffed",false])}} && {(side _group) getFriend (side _source) < 0.6}
     && {_actor knowsAbout _source > 0} && {!_sourceIgnored}) then {_hostileSource=_source};
 if (isNull _hostileSource && {_index >= 0}) then {
@@ -78,7 +88,7 @@ if (isNull _hostileSource && {_index >= 0}) then {
 // vehicle danger into a foot response (or the reverse) whenever the selected anchor occupies a
 // different domain. A separate source observer preserves the native witness when a newer
 // approximate event inherits a still-live hostile identity from the previous coalesced record.
-private _event=[_cause,+_position,time,time+2,_hostileSource,_actor,_sourceObserver,_sourceUntil];
+private _event=[_cause,+_position,time,_eventUntil,_hostileSource,_actor,_sourceObserver,_sourceUntil];
 if (_index >= 0) then {_events set [_index,_event]} else {_events pushBack _event};
 // Keep the queue bounded while preserving both fresh witnesses and its strongest hazard.
 // Only overflow needs priority work: the normal coalesced path retains its cheap write.

@@ -4,6 +4,8 @@
  * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Position normalisation copies caller geometry; two-coordinate observations never mutate the queue.
  * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
+ * Geometry and source keep their original separate engine expiries across that handoff.
+ * Expired records may support a local reflex but cannot bootstrap fresh group evidence.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
  * Repeat/JIP: Safe to repeat. A valid first observation may install the group's bounded contact
@@ -65,7 +67,7 @@ private _reflexOnly=0;
             private _groupRelevant=if (_mode in ['FORCED','RELEASE'] || {_cause == 10}) then {false} else {
                 if (_cause in [0,3,8]) then {_hostileEngage} else {!_knownFriendly || {_cause in [5,6,7]}}
             };
-            if (count _position == 3 && {_groupRelevant}) then {
+            if (count _position == 3 && {_groupRelevant} && {_expires > time}) then {
                 private _causeName=_causeNames select _cause;
                 // The engine supplies the current record before its queued records. Select by
                 // expiry rather than iteration order so an older queued duplicate cannot replace
@@ -106,7 +108,8 @@ private _accepted=false;
 private _acceptedCauses=[];
 if (_groupReady) then {
     {
-        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull]] call CBE_fnc_DangerRequest) then {
+        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull],
+            _latestExpiry get _x,_latestSourceExpiry getOrDefault [_x,-1]] call CBE_fnc_DangerRequest) then {
             _accepted=true;
             _acceptedCauses pushBack _x;
         };

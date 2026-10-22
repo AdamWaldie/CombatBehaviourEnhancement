@@ -1131,7 +1131,33 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _sourceObserver=_actor;',request)
         self.assertIn('private _priorObserver=_prior param [6,_prior param [5,objNull,[objNull]],[objNull]];',request)
         self.assertIn('_priorObserver knowsAbout _priorSource > 0',request)
-        self.assertIn('private _event=[_cause,+_position,time,time+2,_hostileSource,_actor,_sourceObserver,_sourceUntil];',request)
+        self.assertIn('private _event=[_cause,+_position,time,_eventUntil,_hostileSource,_actor,_sourceObserver,_sourceUntil];',request)
+        self.assertIn('_latestExpiry get _x,_latestSourceExpiry getOrDefault [_x,-1]',engine)
+        self.assertIn('_groupRelevant} && {_expires > time}',engine)
+        self.assertIn('if (_eventUntil <= time) exitWith {false}',request)
+        self.assertLess(request.index('if (_eventUntil <= time)'),request.index('_cadence set'))
+        self.assertIn('_sourceUntil > time && {!isNull _source}',request)
+        self.assertIn('_eventUntil min _identityExpiry',request)
+        self.assertIn('["_geometryExpiry",-1],["_identityExpiry",-1]',request)
+        self.assertIn('findIf {!(_x isEqualType 0) || {!finite _x}',request)
+        import math
+        def intake(now,geometry=-1,identity=-1):
+            if any(type(value) not in (int,float) or not math.isfinite(value) for value in (geometry,identity)):return None
+            if geometry<0 and geometry!=-1 or identity<0 and identity!=-1:return None
+            until=now+2 if geometry==-1 else min(now+2,geometry)
+            if until<=now:return None
+            source=until if identity==-1 else min(until,identity)
+            return until,source
+        self.assertEqual(intake(10,10.05,10.04),(10.05,10.04))
+        self.assertEqual(intake(10.02,10.05,10.04),(10.05,10.04))
+        self.assertIsNone(intake(10.1,10.05,10.04))
+        self.assertEqual(intake(10),(12,12))
+        self.assertEqual(intake(10,15,10.5),(12,10.5))
+        self.assertLess(intake(10,11,9)[1],10)
+        self.assertIsNone(intake(10,-0.5))
+        for invalid in ('future',False,None,float('nan'),float('inf')):
+            self.assertIsNone(intake(10,invalid))
+            self.assertIsNone(intake(10,11,invalid))
         self.assertIn('count _x in [4,5,6,7,8]',selection)
         self.assertIn('private _actor=_event param [5,objNull,[objNull]];',action)
         self.assertIn('group _actor != _group',action)
