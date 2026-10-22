@@ -15,6 +15,7 @@
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
  * The separate finite point executor may admit an identified own-group casualty investigation.
  * Posture itself creates no movement, target or firing lease.
+ * FORCED may delegate idle on-foot native flight to DangerFlight under this same finite FSM.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: mode <STRING>, ASSESS; 2: selected record <ARRAY>, [].
  * Return Value: Number - short observation deadline in seconds.
  * Current callers: Engine-loaded infantry danger FSM action states.
@@ -50,6 +51,9 @@ private _baseDelay=switch (_mode) do {
 // A small local offset prevents an entire squad from changing stance on the same frame while
 // retaining a strict upper bound and no recurring work.
 private _delay=_baseDelay + random 0.25;
+if (_mode == "FORCED") then {
+    _delay=_delay max (["START",_actor,_record] call CBE_fnc_DangerFlight);
+};
 private _cause=_record param [0,-1,[0]];
 private _desiredStance="";
 private _operation=_group getVariable ["CBE_Operation",createHashMap];

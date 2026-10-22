@@ -397,6 +397,7 @@
         "addons/infantry/functions/dangerActionSelect.sqf",
         "addons/infantry/functions/dangerEngineCanContinue.sqf",
         "addons/infantry/functions/dangerEngineAct.sqf",
+        "addons/infantry/functions/dangerFlight.sqf",
         "addons/infantry/functions/dangerEngineRelease.sqf",
         "addons/infantry/functions/dangerEngineRecycle.sqf",
         "addons/infantry/functions/dangerVehicleProfile.sqf",

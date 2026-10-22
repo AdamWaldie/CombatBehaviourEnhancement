@@ -4,7 +4,8 @@
  * This gate intentionally avoids squad scans, terrain work and config inspection because the engine
  * may evaluate it repeatedly during the response's sub-two-second observation window.
  * Locality / Authority: Runs where the affected AI soldier is local and reads only live gates and
- * explicit actor/group and occupied-platform ownership markers. Non-boolean danger
+ * explicit actor/group and occupied-platform ownership markers. Active flight reads its
+ * local destination and reservation too, ending on replacement or the original deadline. Non-boolean danger
  * switches and non-array exclusions refuse before negation/membership, matching the
  * shared feature gate without adding a group scan or state write. It issues no command and changes no state.
  * Repeat/JIP: Stateless and repeat-safe. A new locality starts a fresh engine danger FSM.
@@ -59,6 +60,27 @@ if (!_initial && {count _response != 7
 if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []) exitWith {false};
 if (behaviour _actor == "CARELESS" || {!_initial && {fleeing _actor
     || {toUpperANSI (currentCommand _actor) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}} && {(_response param [0,"",[""]]) != "FORCED"}}) exitWith {false};
+
+// A flight move belongs to this finite FSM, not to a separate recurring controller.
+// Read only its actor-local receipt here; authored waypoint comparison stays at cleanup.
+private _flight=_actor getVariable ["CBE_Danger_FlightLease",[]];
+private _flightInterrupted=!_initial && {_flight isNotEqualTo []} && {
+    !(_flight isEqualType []) || {count _flight != 7}
+    || {!((_flight select 0) isEqualType [])} || {count (_flight select 0) != 3}
+    || {(_flight select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {(_flight select 2) != _group} || {(_flight select 3) != (_response select 5)}
+    || {(_flight select 4) != (_response select 4)}
+    || {!((_flight select 1) isEqualType 0)} || {!finite (_flight select 1)}
+    || {!((_flight select 6) isEqualType 0)} || {!finite (_flight select 6)}
+    || {time >= (_flight select 1)} || {!fleeing _actor}
+    || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
+    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo
+        ["DANGER_FLIGHT",_flight select 0,_flight select 1]}
+    || {if (currentCommand _actor == "MOVE") then {
+        ((expectedDestination _actor) select 0) vectorDistance (_flight select 0) > 0.25
+    } else {currentCommand _actor != "" || {time >= (_flight select 6)+0.5}}}
+};
+if (_flightInterrupted) exitWith {false};
 
 // A carrier reservation can begin after this response was classified. Interrupt that old
 // response, but let an already classified FORCED state keep its bounded wait instead of

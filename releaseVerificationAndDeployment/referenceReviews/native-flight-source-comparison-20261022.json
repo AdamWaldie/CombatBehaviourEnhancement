@@ -1,7 +1,7 @@
 {
   "date": "2026-10-22",
   "baseline": "dd8c9b68",
-  "scope": "Source-functional forced-danger flight comparison; no runtime change or physical parity claim",
+  "scope": "Original source-functional comparison plus finite on-foot implementation follow-up; no physical parity claim",
   "upstream": {
     "dispatch": "brainForced invokes doFleeing when native fleeing is true.",
     "foot": "doFleeing clears group building memory, finds nearby enemy, may stop/prone under overhead cover, otherwise searches terrain/buildings and moves to cover; distant/unseen branch recalls leader and resets stance. It can write strong posture, forceSpeed and ACE lastFired.",
@@ -9,13 +9,13 @@
     "departs": "Do not copy unconditional strong posture, full speed reset, global group-memory erasure, live unseen enemy geometry or blind delayed crew actions over mission/Zeus/medical ownership."
   },
   "currentCBE": {
-    "forced": "Mode classifies native flight as FORCED. CanContinue allows its original finite wait; Act does not issue a fleeing destination. Recycle has no FORCED continuation. Existing ownership guards yield to native flight.",
+    "forced": "FORCED now delegates one idle on-foot native-flight escape to DangerFlight under the existing engine FSM. Existing native command/planning/motion, common operations, reservations, medical, Zeus and external control defer admission. No mounted flight implementation.",
     "withdrawal": "Morale and Retreat implement group pressure/overmatch withdrawal through a separate finite operation. This is not evidence of individual fleeing-cover/rejoin parity.",
     "capacityDistinction": "Capabilities reads usable inventory/health. TacticalAssess separately filters current fire-task availability. Replacing morale inventory capability with temporary fire-task availability could spuriously classify a busy launcher as permanently absent; no such change made."
   },
   "openMaterialGap": {
-    "status": "SOURCE_FUNCTIONAL_DIFFERENCE_PHYSICAL_BEHAVIOUR_UNKNOWN",
-    "description": "CBE has no explicit actor-level counterpart to LAMBS doFleeing cover/rejoin path. Yielding to native flight may be correct ownership policy but does not prove equivalent movement or exclude a stalled native-flee state under the replacement danger FSM.",
+    "status": "PARTIAL_SOURCE_IMPLEMENTATION_PHYSICAL_BEHAVIOUR_UNVERIFIED",
+    "description": "A finite screened escape path now exists for otherwise idle fleeing foot soldiers. Native-versus-CBE travel, actual command acknowledgement, useful cover, route reachability, interrupted cleanup and performance remain unverified. Existing native routes, unavailable cover and mounted flight remain outside this path. This does not establish full doFleeing cover/rejoin or crew-domain parity.",
     "minimumEvidence": "When audits are authorised, compare a known fleeing actor under native versus CBE danger FSM: actual destination changes, travel/cover, task replacement and recovery. Until then no assertion that native engine movement fills this gap.",
     "implementationConstraints": "Any demonstrated missing response must use existing finite owner-local actor execution with original deadline, witnessed stagnation, known threat geometry, native task and Zeus interruption, exact cleanup and no perpetual duplicate controller. Mounted flight remains a separate crew-domain design."
   },
@@ -59,6 +59,36 @@
       "addons/infantry/functions/dangerCoverStep.sqf": "f404ea583f70c2ffe463514b40085f015c81a191738ac50ec83620beea78659b",
       "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
       "addons/infantry/functions/indoorActorOperation.sqf": "e196c40a7a844a5781ab82700b9925e6643b45186afbefcb603f8f46261e1f4d"
+    }
+  },
+  "implementationFollowup": {
+    "baseline": "44a6014a",
+    "owner": "Existing engine danger FSM; no new FSM instance or scheduler worker",
+    "entry": "Fresh native event geometry and idle on-foot fleeing actor only; native and authored motion owners retain priority. Current solid screening defers movement; selected endpoint is re-screened even when generic cover validation is disabled.",
+    "bounds": "One group search per2seconds, each actor per15seconds. Nearby radius18m; original travel deadline4..12seconds, retained on repeated observations. Typed finite local receipt and unchanged epoch/operation/native waypoint context required.",
+    "interruption": "Cheap CanContinue compares actor reservation, native command/destination, native fleeing, MOVE/PATH and original generation/deadline. Native command acknowledgement grace is0.5seconds; no reissue is performed.",
+    "cleanup": "Release independently retires flight before stance cleanup. Physical3D arrival leaves the native position alone. A failed exact owned MOVE may request native formation only with unchanged full authored receipt and eligible local leader. It never changes posture, speed, allowFleeing, group memory or medical state.",
+    "limits": [
+      "Native command request is not acknowledgement or actual movement.",
+      "Same-valued replacement orders are indistinguishable.",
+      "No cross-owner command adoption; actor-local proof does not authorize a new owner.",
+      "No broader flight/crew parity or physical/performance claim. Audits remain paused."
+    ],
+    "validation": {
+      "tests": 1491,
+      "result": "Full local offline pipeline, HEMTT/FSM/SQF/config/docs/package gates and independent verify passed. Existing regression file extended with one distinct flight lifecycle case.",
+      "failedGate": "Initial build stopped at player-documentation reference-name check; wording corrected before the passing build. Final receipt review was included in the final full build.",
+      "buildLog": ".qa/finite-native-flight-build-reviewed.log",
+      "independentLog": ".qa/finite-native-flight-independent.log",
+      "candidate": ".qa/candidates/finite-native-flight-44a6014a",
+      "fingerprint": "08846b378b115e1ff99f3818cd93b23ef5c3bab1c17c1a0d1349fa176013445d",
+      "provenance": "Unsigned dirty development snapshot: baseline plus intended source edits and retained unrelated dirt. Review/handover metadata follows packaging."
+    },
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "3d5db2dc681ce8fa6f5852f5c57f7870bc4b0990ab1b23102d92c1078a09d0eb",
+      "addons/infantry/functions/dangerEngineAct.sqf": "0a51be86bc27df88e578966c4e0350812eb53f254d5198e40b0ecce700dc8b13",
+      "addons/infantry/functions/dangerEngineCanContinue.sqf": "007047de7ab571ec6c7e2a7677921f67e37184fe326e5d0dc89a92199202d917",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "5f04a81d423f5c06c9ed52ffd3f833d3e29cd3a7564abf951517fdd4c400167f"
     }
   }
 }

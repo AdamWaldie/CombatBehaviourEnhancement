@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Cleanup coalesces by group object and epoch, independent of mutable callsigns.
  * Terminal release retires its pending queue slot immediately, without a stance command.
- * Native fleeing defers restoration through the original bounded pending-stance path.
+ * Native fleeing defers stance restoration through the original bounded pending-stance path.
+ * Any exact owned finite flight move is retired independently through DangerFlight first.
  * Purpose: Release CBE's finite weak danger stance without overwriting a newer owner.
  * Locality / Authority: Runs where the AI soldier is local when the engine danger FSM finishes.
  * Repeat/JIP: Repeat-safe and machine-local. Always clears the completed response marker. Restores
@@ -26,6 +27,7 @@ if (isNull _actor) exitWith {false};
 // diagnostics report a response which no longer existed and let a later owner inherit stale state.
 // Clear it even when there was no stance to restore or locality changed during the response.
 _actor setVariable ["CBE_Danger_EngineResponse",nil];
+["RELEASE",_actor] call CBE_fnc_DangerFlight;
 private _lease=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
 if (count _lease != 6) exitWith {false};
 private _evidence={
