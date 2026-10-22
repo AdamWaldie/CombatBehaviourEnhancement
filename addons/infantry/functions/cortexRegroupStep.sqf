@@ -15,12 +15,14 @@
  * more than 25 m. If survivors make no progress for CBE_AIPass_Regroup_StuckSeconds, or the
  * timeout passes, the move is retried once and then abandoned without a remote merge. If the host
  * becomes invalid, the step returns to EVALUATE.
- * An external takeover retires the merge and releases only Cortex-owned STOP/ATTACK/FIRE holds.
+ * External takeover or authored-order replacement retires the merge. Terminal native recall
+ * requires a participant still executing MOVE at the last destination this job requested.
+ * Participant membership alone never grants STOP/ATTACK/FIRE or replacement-order ownership.
  * A newer direct movement, boarding, action or scripted command is preserved.
  * A current shared operation retires remnant regroup; cleanup cannot recall its participants.
  * Hosts on other machines are never used, so a merge never moves a unit's locality.
  * Unconscious ACE casualties stay where they are.
- * Locality and authority: runs on the group owner's scheduler. doMove and joinSilent are issued for
+ * Locality and authority: runs on the group owner's scheduler. Group movement and joinSilent are issued for
  * local units only. Nothing is broadcast by CBE.
  *
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
@@ -39,14 +41,20 @@
 
 params [["_state", createHashMap, [createHashMap]]];
 private _group = _state getOrDefault ["group", grpNull];
-// A feature gate changing must still release CBE's own temporary STOP hold, but an
-// active Zeus or specialist controller owns the next order. Keep that distinction
-// inside the shared finish path because it may execute after a delayed retry.
+// Feature disablement can retire only this job's still-matching native movement.
+// No STOP was issued by the group move, and roster membership is not a hold receipt.
+// Keep generation/order proof in the shared finish path used by delayed retries.
+if (!isNull _group && {local _group} && {!("nativeOrderReceipt" in _state)}) then {
+    _state set ["nativeOrderReceipt",[_group] call CBE_fnc_NativeOrderReceipt];
+};
 private _mayRestoreHeld = {
     params ["_candidate"];
     !isNull _candidate
         && {local _candidate}
         && {!([_candidate] call CBE_fnc_CortexExternalTakeover)}
+        && {(_state getOrDefault ["ownerEpoch",-1]) == (_candidate getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_state getOrDefault ["operationGeneration",-1]) == (_candidate getVariable ["CBE_OperationGeneration",0])}
+        && {([_candidate] call CBE_fnc_NativeOrderReceipt) isEqualTo (_state getOrDefault ["nativeOrderReceipt",[]])}
 };
 private _finish = {
     if (!isNull _group) then {
@@ -54,10 +62,17 @@ private _finish = {
             private _operation=_group getVariable ["CBE_Operation",createHashMap];
             private _participants=_operation getOrDefault ["participants",[]];
             {
-                if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!(_x in _participants)}
-                    && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}) then {
-                    private _command = toUpperANSI currentCommand _x;
-                    if (_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]) then {
+                private _target=_state getOrDefault ["target",[]];
+                if ([_x] call CBE_fnc_CortexCombatEffective && {local _x} && {group _x == _group}
+                    && {!isPlayer _x} && {!(_x in _participants)} && {isNull objectParent _x}
+                    && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                    && {isNull remoteControlled _x}
+                    && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                    && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                    && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                    && {currentCommand _x == "MOVE"} && {count _target == 3}) then {
+                    private _destination=(expectedDestination _x) param [0,[]];
+                    if (count _destination == 3 && {_destination vectorDistance _target <= 0.25}) then {
                         _x doFollow (leader group _x);
                     };
                 };
@@ -79,6 +94,9 @@ if ((_state get "operationGeneration")
     != (_group getVariable ["CBE_OperationGeneration",0])) exitWith {
     _state set ["held",[]]; call _finish
 };
+if (([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_state get "nativeOrderReceipt")) exitWith {
+    _state set ["held",[]];call _finish
+};
 // Remnant merging is opportunistic and subordinate to a committed group operation. Retiring
 // the old merge also leaves its actors' newer finite movement reservations untouched.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {call _finish};
@@ -91,7 +109,8 @@ private _movers = (units _group) select {
 if (_movers isEqualTo []) exitWith {call _finish};
 if ((units _group) findIf {alive _x && {
     _x getVariable ["ACE_isUnconscious", false] || {lifeState _x == "INCAPACITATED"}
-    || {toUpperANSI (currentCommand _x) in ["HEAL", "REPAIR", "REFUEL", "REARM", "GET IN", "GET OUT", "ACTION", "SCRIPTED", "SUPPORT"]}
+    || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+    || {toUpperANSI (currentCommand _x) in ["HEAL", "REPAIR", "REFUEL", "REARM", "GET IN", "GET OUT", "ACTION", "SCRIPTED", "SUPPORT", "JOIN", "HEAL SOLDIER", "PATCH SOLDIER", "FIRST AID", "HEAL SELF", "CARRY SOLDIER", "DROP CARRIED", "ASSEMBLE", "DISASSEMBLE", "TAKE BAG", "DROP BAG"]}
 }} >= 0 || {_group getVariable ["CBE_AIPass_ClearBuilding", false]}
     || {(_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []}
     || {(_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []}) exitWith {call _finish};
@@ -210,13 +229,12 @@ if (time - (_state get "lastProgress") >= (missionNamespace getVariable ["CBE_AI
     || {time - (_state get "moveStarted") >= _timeout}) exitWith {
     if ((_state getOrDefault ["moveRetries",0]) == 0 && {time-(_state get "moveStarted") < _timeout}) exitWith {
         if (!alive leader _group) then {_group selectLeader (_remaining select 0)};
-        _group move (getPosATL _hostLeader);
+        private _retryTarget=getPosATL _hostLeader;
+        _group move _retryTarget;
+        _state set ["target",+_retryTarget];
         _state set ["moveRetries",1];
         _state set ["lastProgress",time];
         3
-    };
-    if ([_group] call _mayRestoreHeld) then {
-        {_x doFollow leader _group} forEach _remaining;
     };
     diag_log format ["[CBE] Regroup stalled group=%1 host=%2 remaining=%3",_group,_host,_farthest];
     call _finish

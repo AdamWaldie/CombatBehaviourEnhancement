@@ -411,22 +411,33 @@ private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missio
         // group between the broad release above and this delayed-job cleanup, so never use a
         // stale regroup/clear record to issue formation or behaviour commands over that owner.
         private _canRestoreGroup=local _group && {[_group,false,false,true] call CBE_fnc_CortexIsEligible};
-        if (_canRestoreGroup && {!isNull (_group getVariable ["CBE_AIPass_RegroupHost", grpNull])}) then {
-            {
-                if (alive _x && {local _x}) then {_x doFollow leader _group};
-            } forEach units _group;
+        if (_canRestoreGroup && {!isNull (_group getVariable ["CBE_AIPass_RegroupHost", grpNull])}
+            && {(_state getOrDefault ["phase",""]) == "MOVE"}
+            && {(_state getOrDefault ["ownerEpoch",-2])+1 == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_state getOrDefault ["operationGeneration",-1]) == (_group getVariable ["CBE_OperationGeneration",0])}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_state getOrDefault ["nativeOrderReceipt",[]])}) then {
+            private _target=_state getOrDefault ["target",[]];
+            if (count _target == 3) then {
+                {
+                    if (local _x && {group _x == _group} && {!isPlayer _x}
+                        && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
+                        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                        && {isNull remoteControlled _x} && {currentCommand _x == "MOVE"}
+                        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}) then {
+                        private _destination=(expectedDestination _x) param [0,[]];
+                        if (count _destination == 3 && {_destination vectorDistance _target <= 0.25}) then {
+                            _x doFollow leader _group;
+                        };
+                    };
+                } forEach (_state getOrDefault ["held",[]]);
+            };
         };
         _group setVariable ["CBE_AIPass_Dropping", nil];
-        if (_canRestoreGroup && {"team" in (_x select 2)} && {_group getVariable ["CBE_AIPass_ClearBuilding", false]}) then {
-            private _clearJob = _x select 2;
-            {if (alive _x && {local _x}) then {_x doFollow leader _group}} forEach (_clearJob getOrDefault ["team", []]);
-            if ("baseBehaviour" in _clearJob && {behaviour leader _group == "COMBAT"}) then {
-                _group setBehaviour (_clearJob get "baseBehaviour");
-            };
-            _group setVariable ["CBE_AIPass_ClearBuilding", nil, true];
-            _group setVariable ["CBE_AIPass_ClearOrder", nil, true];
-            _group setVariable ["CBE_AIPass_ClearApplied", nil];
-        };
+        // Current building jobs queue the FSM brain, not a legacy team-bearing callback.
+        // CortexClearRelease above owns exact current clearance cleanup. Queued historical
+        // metadata cannot authorise formation/behaviour writes or erase a successor's order.
         _group setVariable ["CBE_AIPass_GarrisonApplied", nil];
         _group setVariable ["CBE_AIPass_DefendApplied", nil];
         private _aircraft = (_x select 2) getOrDefault ["aircraft", objNull];

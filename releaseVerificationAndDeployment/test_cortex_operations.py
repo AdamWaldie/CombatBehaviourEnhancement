@@ -940,7 +940,7 @@ class CortexOperations(unittest.TestCase):
         remnant=source('cortexRegroupStep')
         self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) > 0',remnant)
         self.assertIn('!(_x in _participants)',remnant)
-        self.assertIn('(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []',remnant)
+        self.assertIn('call CBE_fnc_CortexActorMoveReserved',remnant)
         grenade_diagnostics=source('aiGetDiagnostics')
         self.assertIn('wait-grenade-decisions-%1',grenade_diagnostics)
         self.assertIn('CBE_Cortex_ThrowDecision',grenade_diagnostics)
@@ -4740,8 +4740,9 @@ class CortexOperations(unittest.TestCase):
         selection=stop.split('[_x,true,\"CORTEX_STOPPED\"] call CBE_fnc_CortexReleaseGroup',1)[0]
         self.assertIn('(_x getVariable [\"CBE_Cortex_ClearHold\",[]]) isNotEqualTo []',selection)
         self.assertIn('private _canRestoreGroup=local _group && {[_group,false,false,true] call CBE_fnc_CortexIsEligible};',stop)
-        self.assertIn('if (_canRestoreGroup && {!isNull (_group getVariable ["CBE_AIPass_RegroupHost", grpNull])}) then {',stop)
-        self.assertIn('if (_canRestoreGroup && {"team" in (_x select 2)}',stop)
+        self.assertIn('if (_canRestoreGroup && {!isNull (_group getVariable ["CBE_AIPass_RegroupHost", grpNull])}',stop)
+        self.assertNotIn('private _clearJob = _x select 2;',stop)
+        self.assertIn('forEach (_state getOrDefault ["held",[]])',stop)
         self.assertLess(stop.index('private _canRestoreGroup='),stop.index('doFollow leader _group'))
 
     def test_external_takeover_uses_one_cached_member_scan(self):
@@ -6934,15 +6935,41 @@ class CortexOperations(unittest.TestCase):
         finish=regroup.split('private _finish = {',1)[1].split('if (isNull _group',1)[0]
         self.assertIn('_state getOrDefault ["held",[]]',finish)
         self.assertIn('currentCommand _x',finish)
-        self.assertIn('["","STOP","ATTACK","FIRE","SUPPRESS"]',finish)
+        self.assertIn('currentCommand _x == "MOVE"',finish)
+        self.assertIn('_destination vectorDistance _target <= 0.25',finish)
         self.assertIn('_x doFollow (leader group _x)',finish)
         self.assertIn('_state set ["held",+_movers]',regroup)
         self.assertIn('_held deleteAt (_held find _x)',regroup)
-        self.assertNotIn('"MOVE"',finish)
+        self.assertNotIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',finish)
         self.assertNotIn('"GET IN"',finish)
         self.assertIn('_group selectLeader (_movers select 0)',regroup)
         self.assertIn('_group move _target',regroup)
         self.assertNotIn('{doStop _x; _x doMove _target} forEach _movers',regroup)
+
+        regroup=source('cortexRegroupStep')
+        queued=source('cortexRegroupOnKill')
+        stop=source('cortexStop')
+        self.assertIn('["nativeOrderReceipt",[_group] call CBE_fnc_NativeOrderReceipt]',queued)
+        self.assertIn('isNotEqualTo (_state get "nativeOrderReceipt")',regroup)
+        finish=regroup.split('private _finish = {',1)[1].split('if (isNull _group',1)[0]
+        for token in ('currentCommand _x == "MOVE"','_destination vectorDistance _target <= 0.25',
+                      'ace_medical_ai_healQueue','!fleeing _x','CortexActorMoveReserved','operationGeneration'):
+            self.assertIn(token,finish if token!='operationGeneration' else regroup.split('private _finish = {',1)[0])
+        self.assertNotIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',finish)
+        self.assertNotIn('{_x doFollow leader _group} forEach _remaining',regroup)
+        self.assertIn('_state set ["target",+_retryTarget]',regroup)
+        self.assertIn('CBE_AIPass_Epoch',stop)
+        self.assertNotIn('"baseBehaviour" in _clearJob',stop)
+        def owns(command,destination,original,authored_same=True,medical=False,fleeing=False):
+            return command=='MOVE' and destination==original and authored_same and not medical and not fleeing
+        self.assertTrue(owns('MOVE',1,1))
+        for command in ('STOP','ATTACK','FIRE','FOLLOW','HEAL'):
+            self.assertFalse(owns(command,1,1))
+        self.assertFalse(owns('MOVE',2,1))
+        self.assertFalse(owns('MOVE',1,1,False))
+        self.assertFalse(owns('MOVE',1,1,medical=True))
+        self.assertFalse(owns('MOVE',1,1,fleeing=True))
+
 
     def test_remnant_regroup_never_replaces_an_external_order_during_cleanup(self):
         regroup=source('cortexRegroupStep')
@@ -6953,8 +6980,8 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(finish.index('if ([_group] call _mayRestoreHeld) then {'),
                         finish.index('_x doFollow (leader group _x)'))
         stalled=regroup.split('if (time - (_state get "lastProgress")',1)[1]
-        self.assertLess(stalled.index('if ([_group] call _mayRestoreHeld) then {'),
-                        stalled.index('doFollow leader _group'))
+        self.assertNotIn('doFollow',stalled)
+        self.assertIn('call _finish',stalled)
 
     def test_cover_stance_bounds_rays_and_rotates_units(self):
         text=source('cortexStance')

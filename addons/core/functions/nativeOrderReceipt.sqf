@@ -11,7 +11,7 @@
  * This reads authored values only; it never evaluates conditions or executes statements.
  * Only current-node metadata is read; native handle enumeration scales with route length.
  * Current callers: CortexGarrison, CortexClearBuilding, BuildingOperationStep, GroupBrainStep,
- * CortexOrderDispatch, CortexOrderLocal, CortexGrenadeCheck, CortexDrillStart,
+ * CortexRegroupOnKill/Step, CortexStop, CortexOrderDispatch, CortexOrderLocal, CortexGrenadeCheck, CortexDrillStart,
  * CortexDrillResume, CortexFlankStep, CortexSupportApply and CortexSupportMaintain.
  * Example: private _receipt = [group soldier1] call CBE_fnc_NativeOrderReceipt;
  */

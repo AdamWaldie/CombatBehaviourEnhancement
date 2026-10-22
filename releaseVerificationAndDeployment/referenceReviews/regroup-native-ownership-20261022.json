@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-22",
+  "baseline": "f9f95343",
+  "scope": "Regroup native-order and terminal movement ownership; obsolete queued-clear fallback removal",
+  "finding": [
+    "Survivor regroup recorded participants as held although its producer issued group move, not doStop. Finish admitted STOP/ATTACK/FIRE/SUPPRESS without destination proof; stalled and shutdown branches recalled broad rosters independently.",
+    "Regroup did not snapshot authored waypoint identity before the casualty settle delay. Retry movement did not update its recorded target.",
+    "Current building queue submits the FSM brain. CortexStop retained a legacy team/baseBehaviour fallback that could issue formation/behaviour writes and erase current clearance state from historical queued metadata. Actual clearance release already runs earlier."
+  ],
+  "implementation": [
+    "Capture the native authored order at casualty queueing; direct callers capture it at first local assessment. Refuse a changed receipt before subsequent movement/merge.",
+    "Finish requires current owner epoch and operation generation, original authored order, an effective local participant, no medical/flight/reservation/external task, and MOVE destination matching the last issued target within0.25m.",
+    "Record the actual stuck-retry target. Use one guarded finish instead of a duplicate broad stalled recall.",
+    "Shutdown restricts regroup recall to the actual held list, controlled preceding owner epoch, same operation generation, unchanged authored order and exact current destination.",
+    "Remove obsolete queued-clear team/baseBehaviour command and state-erasure fallback. Current CortexClearRelease and finite hold retirement remain authoritative."
+  ],
+  "validation": {
+    "tests": 1490,
+    "full": ".qa/regroup-native-ownership-build-final.log",
+    "result": "PASS complete offline pipeline; existing cases extended, no increase in test count",
+    "candidate": ".qa/candidates/regroup-native-ownership-f9f95343",
+    "independent": ".qa/regroup-native-ownership-independent.log",
+    "fingerprint": "39a2bfbd96c6260f6a794df4d90acb54293f4b09983a8c72d2f2ad4c84f9031d",
+    "provenance": "Unsigned f9f95343 plus intended runtime/test/guide edits and retained unrelated dirt. Engineering metadata added afterward. Not a clean signed release.",
+    "limits": "Source contracts and Python policy checks do not execute SQF or prove native group-move destinations, formation return, survivor merge, locality or performance."
+  },
+  "cost": "Existing member loops retained; authored current-waypoint receipt at queue/decision/finish. No new worker, per-frame scan or recovery loop. Native metadata/query cost not measured.",
+  "material_remaining": [
+    "Native group movement can use formation destinations different from the requested point. Such ambiguity refuses terminal recall; physical native continuation is unproven.",
+    "A same-valued replacement MOVE at the same destination is not distinguishable by this receipt.",
+    "This is not a complete conversion of survivor regroup to the common operation FSM; actual task handovers and lifecycle parity remain incomplete.",
+    "Cross-owner hold retirement, physical CQB/combined-arms/controller handovers and5%median/10%p95 measured overhead remain outstanding."
+  ],
+  "evidence": {
+    "addons/core/functions/cortexStop.sqf": "748257dd85e7491d8b742d518d592c19c68d344eccad64f3b5ad76c96c1ea2a8",
+    "addons/core/functions/nativeOrderReceipt.sqf": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6",
+    "addons/infantry/functions/cortexRegroupOnKill.sqf": "cc60451081565b371e2e5ee4052539791b133f2124c4e9cb138113b674d6d8eb",
+    "addons/infantry/functions/cortexRegroupStep.sqf": "124a55f9dd50c27e82b56bb178b192cdadf34d3771c92921ba8aea90f596bb8a",
+    "addons/infantry/functions/buildingOperationQueue.sqf": "9e8a744784b00c2219161d27867027e8b9cac2ff4bc56b9d857429be3e4b464f",
+    "addons/infantry/functions/cortexClearRelease.sqf": "73aab91078a19c48c48df45751503e96941e8b3f24edacebad49ef3601a2714e",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "dc072dbe44bcaf48f37c8d362273f05027624334bc550dc602a71cec4a0770ab",
+    "docs/Smart-AI-Pass.md": "75e6badbd3de7ce42ea7dd95e89d53ac43b1ef99675f6f6bddc2e8511ee92101"
+  }
+}
