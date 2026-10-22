@@ -90,5 +90,16 @@
       "addons/infantry/functions/dangerEngineCanContinue.sqf": "007047de7ab571ec6c7e2a7677921f67e37184fe326e5d0dc89a92199202d917",
       "addons/infantry/functions/dangerEngineRelease.sqf": "5f04a81d423f5c06c9ed52ffd3f833d3e29cd3a7564abf951517fdd4c400167f"
     }
+  },
+  "fastPathFollowup": {
+    "baseline": "81876f72",
+    "change": "Empty RELEASE and empty non-fleeing START return before group lookup, receipt validation and helper setup. Nonlocal actors return immediately. Existing active or malformed leases still reach the typed validation path; no deadline/ownership rule changed.",
+    "validation": "Full1491 local offline gates/HEMTT/FSM/SQF/config/docs/package and independent verify passed; existing regression extended without adding cases. No measured runtime timing or physical claim. Audits remain paused.",
+    "buildLog": ".qa/flight-fast-path-build.log",
+    "independentLog": ".qa/flight-fast-path-independent.log",
+    "candidate": ".qa/candidates/flight-fast-path-81876f72",
+    "fingerprint": "6ffe06701558424e6f07d830c2a86ecaff09e06de0e9587cfb7ecdb9193a198e",
+    "sourceHash": "aba1795b17c705450b70133be43025e7828dbef1205ac2c4a35a5c1da055dc60",
+    "provenance": "Unsigned dirty development snapshot; retained unrelated dirt included, later engineering metadata excluded."
   }
 }

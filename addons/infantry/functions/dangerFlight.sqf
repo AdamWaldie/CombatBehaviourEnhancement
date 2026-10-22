@@ -4,6 +4,7 @@
  * existing engine danger FSM. This is separate from casualty investigation and group cover.
  * Locality/authority: Actor and group owner only. Existing native routes, reservations,
  * operations, medical work, Zeus and external controllers retain priority.
+ * Empty release and non-fleeing start return before receipt validation or helper allocation.
  * Repeat/JIP: One local seven-field lease keeps its original deadline, at most twelve seconds.
  * No worker, waypoint, reveal, posture/speed reset or remote replay. One search per group
  * per two seconds and per actor per fifteen seconds bounds repeated failed observations.
@@ -17,8 +18,11 @@
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],["_record",[],[[]]]];
 if (isNull _actor || {!(_mode in ["START","RELEASE"])}) exitWith {0};
-private _group=group _actor;
+if (!local _actor) exitWith {0};
 private _lease=_actor getVariable ["CBE_Danger_FlightLease",[]];
+// Most danger completions never owned a flight move. Keep that ordinary path minimal.
+if (_lease isEqualTo [] && {_mode == "RELEASE" || {!fleeing _actor}}) exitWith {0};
+private _group=group _actor;
 private _validLease=_lease isEqualType [] && {count _lease == 7}
     && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 3}
     && {(_lease select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
