@@ -3,7 +3,10 @@
  * Purpose: Rebind one exact native driving recovery episode at a real locality edge.
  * Locality/authority: Internal current group/vehicle/crew owner only. Metadata adoption
  * requires an original five-second group/vehicle edge proposal, exact cap/seats/native leg,
- * unexpired original recovery clocks. Active driving resumes its existing FSM; disabled
+ * unexpired original recovery clocks. One exact ordinary bypass/corridor child can
+ * rebind with its parent; queued/pass/abort or conflicting children remain refused.
+ * Path, phase, visited index and original deadlines survive without command replay;
+ * the old swept-segment sample is discarded. No geometry or completion is fabricated. Active driving resumes its existing FSM; disabled
  * driving invokes only the existing guarded release path, never tactical startup.
  * Repeat/JIP: Init/seat retries cannot create edge proof or renew any deadline. Rebinds only
  * issuer epoch/owner; original goal, stage, baseline, progress anchor and spent budget survive.
@@ -25,10 +28,20 @@ isNil {
         || {(_adoptRoute param [0,"",[""]]) != "NATIVE_MOVE"}) exitWith {};
     _adoptGroup=_adoptWork getOrDefault ["group",grpNull];
     if (!(_adoptGroup isEqualType grpNull) || {"queueBinding" in _adoptWork}
-        || {["CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work","CBE_DrivingPass_Work","CBE_DrivingAbort_Hold"] findIf {
+        || {["CBE_DrivingPass_Work","CBE_DrivingAbort_Hold"] findIf {
             private _child=_adoptVehicle getVariable [_x,createHashMap];
             !(_child isEqualType createHashMap) || {count _child > 0}
         } >= 0}) exitWith {};
+    private _adoptChildKey="";private _adoptChild=createHashMap;private _adoptChildValid=true;
+    {
+        private _candidate=_adoptVehicle getVariable [_x,createHashMap];
+        if (!(_candidate isEqualType createHashMap)) exitWith {_adoptChildValid=false};
+        if (count _candidate > 0) then {
+            if (_adoptChildKey != "") exitWith {_adoptChildValid=false};
+            _adoptChildKey=_x;_adoptChild=_candidate;
+        };
+    } forEach ["CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"];
+    if (!_adoptChildValid) exitWith {};
     private _adoptDriver=driver _adoptVehicle;private _adoptOperator=effectiveCommander _adoptVehicle;
     if (isNull _adoptOperator) then {_adoptOperator=_adoptDriver};
     if (isNull _adoptGroup || {!local _adoptGroup}
@@ -91,9 +104,74 @@ isNil {
     if (!(_adoptBaseline isEqualType []) || {count _adoptBaseline != 1}
         || {!((_adoptBaseline select 0) isEqualType 0)} || {!finite (_adoptBaseline select 0)} || {(_adoptBaseline select 0) < -1}) exitWith {};
     private _adoptMode=_adoptWork getOrDefault ["commandMode","DESTINATION"];
+    private _adoptChildState="";
+    if (_adoptChildKey != "") then {
+        _adoptChildValid=call {
+            private _childUntil=_adoptChild getOrDefault ["deadline",-1];
+            private _childPhase=_adoptChild getOrDefault ["phase",""];
+            if (_adoptMode != "DESTINATION" || {"nativeReturn" in _adoptWork}
+                || {!((_adoptWork getOrDefault ["bypassSpent",false]) isEqualTo true)}
+                || {_adoptWork getOrDefault ["releasePending",false]}
+                || {!((_adoptWork getOrDefault ["kind",""]) in ["REFRESH","FINAL"])}
+                || {!(_childUntil isEqualType 0)} || {!finite _childUntil} || {serverTime >= _childUntil}
+                || {_childUntil > (_adoptWork get "hardDeadline")}
+                || {(_adoptChild getOrDefault ["controller",[]]) isNotEqualTo ["ORDINARY",-1]}
+                || {(_adoptChild getOrDefault ["group",grpNull]) != _adoptGroup}
+                || {(_adoptChild getOrDefault ["route",[]]) isNotEqualTo _adoptRoute}
+                || {(_adoptChild getOrDefault ["driver",objNull]) != _adoptDriver}
+                || {(_adoptChild getOrDefault ["operator",objNull]) != _adoptOperator}
+                || {(_adoptChild getOrDefault ["recoveryParent",[]]) isNotEqualTo
+                    [_adoptGroup,_adoptRoute,_adoptWork get "hardDeadline",_adoptWork get "progressAnchor"]}) exitWith {false};
+            private _childInput=vehicleMoveInfo _adoptVehicle;
+            if (toUpperANSI (_childInput param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"]
+                || {toUpperANSI (_childInput param [1,"",[""]]) in ["LEFT","RIGHT"]}) exitWith {false};
+            _adoptChildState=[_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState;
+            private _childContext=_adoptChild getOrDefault ["context",[]];
+            if (_adoptChildKey == "CBE_DrivingBypass_Work") then {
+                private _obstacle=_adoptChild getOrDefault ["obstacle",objNull];
+                if (_childContext isNotEqualTo [_adoptGroup,_adoptRoute,_obstacle,_adoptDriver,_adoptOperator,["ORDINARY",-1]]
+                    || {!(_childPhase in ["PLAN","FOLLOW"])}) exitWith {_adoptChildState="LOST"};
+                if (_childPhase == "PLAN") then {
+                    if (_adoptChildState != "OWNED"
+                        || {(expectedDestination _adoptDriver) isNotEqualTo (_adoptChild getOrDefault ["driverCommand",[]])}
+                        || {(expectedDestination _adoptOperator) isNotEqualTo (_adoptChild getOrDefault ["command",[]])}
+                        || {toUpperANSI currentCommand _adoptDriver != (_adoptChild getOrDefault ["driverTask","__MISSING__"])}
+                        || {toUpperANSI currentCommand _adoptOperator != (_adoptChild getOrDefault ["operatorTask","__MISSING__"])}) then {_adoptChildState="LOST"};
+                } else {if (_adoptChildState != "BYPASS") then {_adoptChildState="LOST"}};
+            } else {
+                if (_childContext isNotEqualTo [_adoptChild getOrDefault ["area",objNull],
+                    _adoptChild getOrDefault ["definition",[]],_adoptChild getOrDefault ["transform",[]],_adoptRoute,["ORDINARY",-1]]
+                    || {!(_childPhase in ["APPROACH","CROSS"])} || {_adoptChildState != "CORRIDOR"}
+                    || {(_adoptChild getOrDefault ["hardDeadline",-1]) isNotEqualTo (_adoptWork get "hardDeadline")}) then {_adoptChildState="LOST"};
+            };
+            if (_adoptChildState == "LOST") exitWith {false};
+            if (_childPhase != "PLAN") then {
+                private _childPoints=_adoptChild getOrDefault ["points",[]];
+                if (!(_childPoints isEqualType []) || {count _childPoints < 2} || {count _childPoints > 24}
+                    || {_childPoints findIf {!(_x call _adoptVector)} >= 0}) then {_adoptChildState="LOST"};
+                if (_adoptChildKey == "CBE_DrivingBypass_Work") then {
+                    private _index=_adoptChild getOrDefault ["index",-1];
+                    if (!(_index isEqualType 0) || {!finite _index} || {_index != floor _index}
+                        || {_index < 0} || {_index > count _childPoints}
+                        || {!((_adoptChild getOrDefault ["far",[]]) call _adoptVector)}
+                        || {!((_adoptChild getOrDefault ["forward",[]]) call _adoptVector)}
+                        || {["radius","height"] findIf {private _value=_adoptChild getOrDefault [_x,-1];
+                            !(_value isEqualType 0) || {!finite _value} || {_value <= 0}} >= 0}) then {_adoptChildState="LOST"};
+                } else {
+                    private _asl=_adoptChild getOrDefault ["asl",[]];
+                    if (!(_asl isEqualType []) || {count _asl < 2} || {count _asl > 20}
+                        || {_asl findIf {!(_x call _adoptVector)} >= 0}
+                        || {!((_adoptChild getOrDefault ["far",[]]) call _adoptVector)}
+                        || {!((_adoptChild getOrDefault ["travel",[]]) call _adoptVector)}) then {_adoptChildState="LOST"};
+                };
+            };
+            _adoptChildState != "LOST"
+        };
+    };
+    if (!_adoptChildValid) exitWith {};
     private _adoptNative=false;
     if (_adoptMode == "DESTINATION" || {"nativeReturn" in _adoptWork}) then {
-        _adoptNative=([_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED"];
+        _adoptNative=([_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"];
     } else {
         if (_adoptMode == "SIMPLE_BACK" && {_adoptDriver != _adoptOperator}) then {
             private _adoptInfo=vehicleMoveInfo _adoptVehicle;
@@ -109,6 +187,7 @@ isNil {
     if (!_adoptNative || {[_adoptDriver,_adoptOperator] findIf {
         !(currentCommand _x in ["","MOVE","WAIT"])
             && {!(currentCommand _x == "STOP" && {_adoptWork getOrDefault ["simpleStopIssued",false]})}
+            && {!(_adoptChildState in ["BYPASS","CORRIDOR"])}
     } >= 0}) exitWith {};
     private _adoptState=_adoptVehicle getVariable ["CBE_DrivingAssist_State",[]];
     private _adoptRestore=_adoptVehicle getVariable ["CBE_DrivingAssist_Restore",[]];
@@ -126,10 +205,33 @@ isNil {
     _adoptNextRoute set [7,_adoptEpoch];_adoptNextRoute set [8,clientOwner];
     private _adoptNext=createHashMapFromArray (keys _adoptWork apply {[_x,_adoptWork get _x]});
     _adoptNext set ["route",_adoptNextRoute];_adoptNext set ["nativeAdoptedFrom",[+_adoptRoute,+_adoptSource]];
-    if (!_adoptResume) then {_adoptNext set ["releasePending",true]};
+    if (!_adoptResume && {_adoptChildKey == ""}) then {_adoptNext set ["releasePending",true]};
     private _adoptNextState=[_adoptWork get "cap",0,time,_adoptGroup,+(_adoptWork get "origin"),
         time-(serverTime-(_adoptWork get "started")),_adoptStage,time+((_adoptWork get "deadline")-serverTime),
         "ADOPTED_NATIVE_RECOVERY",_adoptNextRoute,_adoptKind == "REVERSE"];
+    private _adoptNextChild=createHashMap;
+    if (_adoptChildKey != "") then {
+        _adoptNextChild=createHashMapFromArray (keys _adoptChild apply {[_x,_adoptChild get _x]});
+        _adoptNextChild set ["route",_adoptNextRoute];
+        _adoptNextChild set ["recoveryParent",[_adoptGroup,_adoptNextRoute,
+            _adoptWork get "hardDeadline",+(_adoptWork get "progressAnchor")]];
+        private _nextContext=+(_adoptChild get "context");
+        _nextContext set [[1,3] select (_adoptChildKey == "CBE_DrivingCorridor_Work"),_adoptNextRoute];
+        _adoptNextChild set ["context",_nextContext];
+        if (_adoptChildKey == "CBE_DrivingCorridor_Work") then {_adoptNextChild set ["epoch",_adoptEpoch]};
+        // A historical segment must not sweep unobserved checkpoints after transfer.
+        _adoptNextChild deleteAt "capture";
+    };
+    private _adoptFinalOperator=effectiveCommander _adoptVehicle;
+    if (isNull _adoptFinalOperator) then {_adoptFinalOperator=driver _adoptVehicle};
+    if (!local _adoptVehicle || {!local _adoptGroup}
+        || {driver _adoptVehicle != _adoptDriver} || {_adoptFinalOperator != _adoptOperator}
+        || {(_adoptGroup getVariable ["CBE_AIPass_Epoch",0]) != _adoptEpoch}
+        || {(_adoptVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _adoptWork}
+        || {_adoptChildKey != "" && {(_adoptVehicle getVariable [_adoptChildKey,createHashMap]) isNotEqualTo _adoptChild}}
+        || {abs (getForcedSpeed _adoptVehicle-(_adoptWork get "cap")) > 0.1}) exitWith {};
+    // One local transaction; public parent/child delivery is not assumed ordered.
+    if (_adoptChildKey != "") then {_adoptVehicle setVariable [_adoptChildKey,_adoptNextChild,true]};
     _adoptVehicle setVariable ["CBE_DrivingRecovery_Work",_adoptNext,true];
     _adoptVehicle setVariable ["CBE_DrivingAssist_State",_adoptNextState];
     _adoptVehicle setVariable ["CBE_DrivingAssist_Restore",+_adoptBaseline];

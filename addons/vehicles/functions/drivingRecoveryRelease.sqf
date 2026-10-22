@@ -143,6 +143,19 @@ if (_splitOwner || {_nativeIssuerWaiting}) exitWith {
     if (!_splitExpired) then {[_vehicle] call CBE_fnc_DrivingRecoveryCleanup;};
     false
 };
+// Shutdown can follow an already-issued temporary-path forward return. Preserve the
+// original request as observation-only cleanup; do not classify it as a rear command,
+// issue another move, or invent a later acknowledgement/deadline.
+if (_resume && {_reason == "DRIVING_RELEASED"} && {"bypassReturn" in _work}
+    && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}
+    && {(_work getOrDefault ["request",[]]) isNotEqualTo []}
+    && {([_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED"]}) then {
+    _work set ["nativeReturn",+(_work get "request")];
+    _work deleteAt "request";
+    _work set ["releasePending",true];
+    _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+};
 // A native-route return was already issued. Observe only; never replay that doMove.
 if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
     private _returnState=[_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState;
@@ -174,6 +187,7 @@ if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
         && {(_returnBrain getOrDefault ["route",[]]) isEqualTo _returnRoute}
         && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _work}) exitWith {
         _work deleteAt "nativeReturn";_work deleteAt "releasePending";_work deleteAt "releaseUnresolved";
+        _work deleteAt "bypassReturn";
         _work set ["kind","FINAL"];_work set ["commandMode","DESTINATION"];
         _work set ["deadline",_work get "hardDeadline"];
         _work set ["driverCommand",+(expectedDestination driver _vehicle)];

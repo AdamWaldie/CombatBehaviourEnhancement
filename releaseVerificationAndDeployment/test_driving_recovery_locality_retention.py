@@ -19,7 +19,7 @@ class RecoveryLocalityRetentionTests(unittest.TestCase):
         self.assertNotIn('serverTime+',gate)
     def test_split_owner_path_retains_original_journal_without_native_write_or_clock_renewal(self):
         text=source()
-        branch=text.split('if (_splitOwner || {_nativeIssuerWaiting}) exitWith {',1)[1].split('// A native-route return',1)[0]
+        branch=text.split('if (_splitOwner || {_nativeIssuerWaiting}) exitWith {',1)[1].split('// Shutdown can follow an already-issued',1)[0]
         for proof in ('_splitNativeCurrent','releasePending',
                       '"DEFERRED_LOCALITY"','"UNRESOLVED_LOCALITY"','"LOCALITY_PROOF_LOST"',
                       'getOrDefault ["hardDeadline",-1]','serverTime >= _splitUntil','false'):

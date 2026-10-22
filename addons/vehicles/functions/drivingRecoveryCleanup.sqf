@@ -4,7 +4,7 @@
  * its cap-only callback never replays reverse, route, corridor, pass or bypass cleanup.
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
- * Purpose: Observes exact pending reverse, ordinary-cap and released-cap queue-abort receipts after tactical workers stop.
+ * Purpose: Observes exact pending reverse/issued native return, ordinary-cap and released-cap queue-abort receipts after tactical workers stop.
  * Abort safety observations are throttled per receipt; all ticket types share the four-ticket service bound.
  * Locality / Authority: Local calls only, on the current vehicle owner. Existing release
  * guards alone authorize native handback and cap restoration; this service issues no rear leg.
@@ -27,7 +27,7 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn"] apply {_work getOrDefault [_x,[]]}
     };
     private _abortSignature={
         params ["_hold"];
@@ -37,7 +37,7 @@ isNil {
     if (!isNull _vehicle && {local _vehicle}) then {
         private _work=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         if (_work getOrDefault ["releasePending",false] && {!(_work getOrDefault ["releaseUnresolved",false])}
-            && {(_work getOrDefault ["kind",""]) == "REVERSE"}
+            && {(_work getOrDefault ["kind",""]) == "REVERSE" || {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []}}
             && {(_work getOrDefault ["commandMode","DESTINATION"]) in ["DESTINATION","SIMPLE_BACK"]}) then {
             private _proof=[_work] call _signature;
             private _existing=_vehicle getVariable ["CBE_DrivingRecovery_CleanupTicket",""];

@@ -22,6 +22,13 @@ class NativeAdmissionTests(unittest.TestCase):
         observer=cleanup.split('private _returnRetired=',1)[1].split('_current=_target getVariable',1)[0]
         self.assertIn('"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease',observer)
         self.assertIn('if (_returnRetired) then',observer)
+        promotion=release.split('// Shutdown can follow an already-issued',1)[1].split('// A native-route return',1)[0]
+        self.assertIn('_work set ["nativeReturn",+(_work get "request")]',promotion)
+        self.assertNotIn('serverTime+',promotion)
+        self.assertNotIn('doMove',promotion)
+        self.assertIn('== "REVERSE" || {(_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []}',cleanup)
+        self.assertIn('"bypassReturn"',cleanup.split('private _signature=',1)[1].split('private _abortSignature=',1)[0])
+        self.assertIn('[_returnGoal,_returnUntil,_returnBefore] call _temporaryReturnState',read('drivingRecoveryCommandState'))
 
         self.assertIn('NATIVE_ROUTE_OBSERVED',observation)
         self.assertIn('releaseUnresolved',observation)
@@ -118,7 +125,7 @@ class NativeAdmissionTests(unittest.TestCase):
         cleanup=dispatch.split('} else {',1)[1]
         self.assertIn('CBE_fnc_DrivingAssistRelease',cleanup)
         self.assertNotIn('DrivingOperationStart',cleanup)
-        self.assertIn('if (!_adoptResume) then {_adoptNext set ["releasePending",true]}',adopt)
+        self.assertIn('if (!_adoptResume && {_adoptChildKey == ""}) then {_adoptNext set ["releasePending",true]}',adopt)
         for forbidden in ('doMove','doStop','doFollow','forceSpeed','sendSimpleCommand',
                           'set ["hardDeadline"','set ["deadline"','serverTime+','waitAndExecute','execFSM'):
             self.assertNotIn(forbidden,adopt.split('params [[',1)[1])
@@ -139,6 +146,18 @@ class NativeAdmissionTests(unittest.TestCase):
         for key in ('hardDeadline','deadline','started','progressAnchor','kind','baseline','bypassSpent'):
             self.assertEqual(next_journal[key],original[key])
         self.assertEqual(next_journal['route'][:7],original['route'][:7])
+        for proof in ('_adoptChildKey != ""','_adoptChildState in ["BYPASS","CORRIDOR"]',
+                      '_childUntil > (_adoptWork get "hardDeadline")','count _childPoints > 24',
+                      '_adoptNextChild set ["route",_adoptNextRoute]',
+                      '_adoptNextChild set ["recoveryParent"','_adoptNextChild deleteAt "capture"',
+                      '(_adoptVehicle getVariable [_adoptChildKey,createHashMap]) isNotEqualTo _adoptChild',
+                      '["CBE_DrivingPass_Work","CBE_DrivingAbort_Hold"]'):
+            self.assertIn(proof,adopt)
+        child={'phase':'FOLLOW','deadline':80,'points':[[0,0,0],[10,0,0]],'index':1,
+               'route':original['route'],'capture':[[1,0,0],20,[8,7]],'recoveryParent':['old']}
+        carried=dict(child);carried['route']=next_journal['route'];carried.pop('capture')
+        for key in ('phase','deadline','points','index'):self.assertEqual(carried[key],child[key])
+        self.assertNotIn('capture',carried)
 
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):

@@ -30,6 +30,28 @@ if (isNull _group || {isNull _driver} || {isNull _operator}
     || {_operator != (_work getOrDefault ["operator",objNull])}) exitWith {"LOST"};
 private _driverNative=expectedDestination _driver;
 private _operatorNative=expectedDestination _operator;
+// A native bypass returns both operating actors to the original MOVE. A commander's
+// ACK alone cannot retire the temporary journal while its distinct driver still follows
+// or holds STOP. Observe both original goals within the same original request window.
+private _temporaryReturnState={
+    params ["_goal","_until","_before"];
+    private _atOriginalGoal={
+        params ["_actor","_native"];
+        private _point=_native param [0,[],[[]]];
+        currentCommand _actor == "MOVE" && {count _point == 3}
+            && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_point vectorDistance _goal <= 0.25}
+    };
+    private _driverAck=[_driver,_driverNative] call _atOriginalGoal;
+    private _operatorAck=[_operator,_operatorNative] call _atOriginalGoal;
+    if (_driverAck && {_operatorAck}) exitWith {"OWNED"};
+    private _driverWaiting=_driverAck || {_driverNative isEqualTo (_before select 1)
+        && {currentCommand _driver in [_before select 0,"MOVE"]}};
+    private _operatorWaiting=_operatorAck || {_operatorNative isEqualTo (_before select 3)
+        && {currentCommand _operator in [_before select 2,"MOVE"]}};
+    if (!_driverWaiting || {!_operatorWaiting}) exitWith {"LOST"};
+    ["PENDING","EXPIRED"] select (serverTime > _until)
+};
 private _nativeReturn=_work getOrDefault ["nativeReturn",[]];
 if (_nativeReturn isNotEqualTo []) exitWith {
     if (!(_nativeReturn isEqualType []) || {count _nativeReturn != 3}) exitWith {"LOST"};
@@ -40,6 +62,9 @@ if (_nativeReturn isNotEqualTo []) exitWith {
         || {!(_returnBefore isEqualType [])} || {count _returnBefore != 4}
         || {!((_returnBefore select 0) isEqualType "")} || {!((_returnBefore select 2) isEqualType "")}
         || {!((_returnBefore select 1) isEqualType [])} || {!((_returnBefore select 3) isEqualType [])}) exitWith {"LOST"};
+    if ("bypassReturn" in _work && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
+        [_returnGoal,_returnUntil,_returnBefore] call _temporaryReturnState
+    };
     private _operatorGoal=_operatorNative param [0,[],[[]]];
     private _driverSame=_driver == _operator || {_driverNative isEqualTo (_returnBefore select 1)
         && {currentCommand _driver in [_returnBefore select 0,"MOVE"]}};
@@ -122,26 +147,8 @@ if (!(_goal isEqualType []) || {count _goal != 3}
     || {!(_before isEqualType [])} || {count _before != 4}
     || {!((_before select 0) isEqualType "")} || {!((_before select 2) isEqualType "")}
     || {!((_before select 1) isEqualType [])} || {!((_before select 3) isEqualType [])}) exitWith {"LOST"};
-// A native bypass returns both operating actors to the original MOVE. A commander's
-// ACK alone cannot retire the temporary journal while its distinct driver still follows
-// or holds STOP. Observe both original goals within the same original request window.
 if ("bypassReturn" in _work && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
-    private _atOriginalGoal={
-        params ["_actor","_native"];
-        private _point=_native param [0,[],[[]]];
-        currentCommand _actor == "MOVE" && {count _point == 3}
-            && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-            && {_point vectorDistance _goal <= 0.25}
-    };
-    private _driverAck=[_driver,_driverNative] call _atOriginalGoal;
-    private _operatorAck=[_operator,_operatorNative] call _atOriginalGoal;
-    if (_driverAck && {_operatorAck}) exitWith {"OWNED"};
-    private _driverWaiting=_driverAck || {_driverNative isEqualTo (_before select 1)
-        && {currentCommand _driver in [_before select 0,"MOVE"]}};
-    private _operatorWaiting=_operatorAck || {_operatorNative isEqualTo (_before select 3)
-        && {currentCommand _operator in [_before select 2,"MOVE"]}};
-    if (!_driverWaiting || {!_operatorWaiting}) exitWith {"LOST"};
-    ["PENDING","EXPIRED"] select (serverTime > _until)
+    [_goal,_until,_before] call _temporaryReturnState
 };
 private _position=_operatorNative param [0,[],[[]]];
 if (currentCommand _operator in ["","MOVE"] && {count _position == 3}

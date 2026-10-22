@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-22",
+  "baseline": "86b5f8f5",
+  "scope": "Native recovery parent plus one ordinary temporary child at genuine locality edge",
+  "status": "IMPLEMENTED_OFFLINE_ONLY",
+  "changes": [
+    "Existing five-second real group/vehicle edge, actual local seats/group/vehicle, original route/frame/owner epoch, exact confirmed parent cap and unexpired parent/child deadlines gate adoption. One exact bypass PLAN/FOLLOW or corridor APPROACH/CROSS is admitted; pass/abort/queue and conflicting children refuse.",
+    "Child route/context/recoveryParent and parent route rebind in one local unscheduled metadata transaction, with final unchanged-source/cap/seat/epoch checks. Original baseline, goal, deadline, hard deadline, progress anchor, spent allowance, path, phase and visited index survive. No native move/path/speed command is replayed.",
+    "Old swept-segment capture is removed so transfer cannot interpolate unobserved checkpoint travel. Bounded path inputs are validated before existing executor resumes; current geometry/objects are rechecked there.",
+    "Disabled driving acquires cleanup-only custody and invokes existing release, without starting tactical FSM. Child proof remains usable until its path retires before the parent.",
+    "A DRIVING_RELEASED temporary forward return is promoted from its existing request into observation-only nativeReturn using the same original request tuple. Existing four-ticket cleanup now observes such returns for forward parents too. Shared both-seat ACK policy applies and its marker is included in the ticket signature. No new return command or later ACK window.",
+    "Unconfirmed expiry retains unresolved evidence; observed return or superseding native order retires through existing exact cleanup. Public parent/child ordering is not presumed atomic across machines."
+  ],
+  "validation": {
+    "focusedInitial": ".qa/native-child-adoption-focused.log",
+    "driving": ".qa/native-child-adoption-driving.log",
+    "priorFull": ".qa/native-child-adoption-build.log",
+    "failedFull": ".qa/native-child-adoption-build-final.log",
+    "failureDisposition": "Driving failure captured the locality no-write assertion past its actual branch into the newly added local-only promotion; its boundary was corrected while preserving every forbidden operation check. Later full failure was the old exact cleanup signature; updated to require the added ACK-policy field. Initial focused pass preceded manual discovery of the cleanup-only pending-return gap, fixed before final package.",
+    "finalFull": ".qa/native-child-adoption-build-verified.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates; no added test cases",
+    "candidate": ".qa/candidates/native-child-adoption-86b5f8f5",
+    "fingerprint": "edef910df749da1bd6145cc2f89d12153af1114db711805b656f23955605774f",
+    "independent": ".qa/native-child-adoption-independent-verify.log",
+    "provenance": "Unsigned development package:86b5f8f5 plus intended source/doc edits and retained unrelated working-tree dirt. Engineering metadata completed later; not a clean signed release.",
+    "limits": "Source checks and illustrative Python preservation/ACK models are not SQF execution or physical locality proof. No Arma audit run."
+  },
+  "cost": "Bounded native/metadata validation at existing edge retries, up to24 child path and20 corridor ASL vectors. No added world scan, geometry cast, worker or recurring timer. Pending return shares existing four-ticket service. Runtime/network cost unmeasured.",
+  "remaining": [
+    "Physical normal/provider-HC staggered and repeated owner transfers, old-owner quiescence, native path persistence, STOP/ACK timing, collisions and onward travel are unverified.",
+    "Delivery beyond original edge/deadline, changed crew/cap/orders, unsupported children and conflicting state refuse; no timeout-as-adoption fallback.",
+    "Same-value external commands remain observationally indistinguishable; external-controller compatibility handovers remain a separate required incomplete area.",
+    "Native corridors still require a recovery parent; native passing/automatic queues remain unsupported. Production readiness and5% median/10%p95 performance remain incomplete."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "ca08fa9ddeea9a785b14dd769f255a9fc66c9ecdfd49a07418cf8fb93d12d214",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "d68c852e46366700f7ec3bfa7d7aa0162843ee4aace166de2cf394aed9b10ec4",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "362ef4aba5bf3ef1e1b03839e00aa057cb7d3f571cf3761171bfac50d52ebeec",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "0572339c7446bdc9886a7b6a0ee0b3d03622bb6519aa865653dc7ca844229b4d",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "a839d0823545603e7686d723bea6debf976feaf98fa02b903a0b2f12e6722580",
+    "releaseVerificationAndDeployment/test_driving_recovery_cleanup.py": "dba76ec1dbd620bc5de0db202ecad6c09e6ecf0c47c3f98e19aebc5640b03927",
+    "releaseVerificationAndDeployment/test_driving_recovery_locality_retention.py": "f05e002c7068ee3ce6d063242f67e4e7da6d3d4fa695a29b361625f8e6c56f1e",
+    "docs/Smart-AI-Pass.md": "1d5d9aa7c27eea7956845d8d965b925616740ddbec549308466f559376941223"
+  },
+  "relation": "Implements the explicit child-adoption gap recorded in temporary-path-cap-journal-20261022.json after the confirmed-cap prerequisite. Historical reviews retained, no whole-HBQ parity claim."
+}
