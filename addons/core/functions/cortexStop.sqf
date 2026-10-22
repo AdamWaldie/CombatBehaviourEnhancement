@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Same-owner released queue-abort STOP cleanup may adopt this controlled epoch edge after exact baseline/native validation; no movement is issued here.
  * Finite individual indoor tasks retire their exact-owned native legs before other group cleanup.
+ * A terminal post-clear hold remains cleanup work even after the active task/state is gone.
  * Stops Cortex on this machine and hands every affected group back to its own orders.
  *
  * Removes tactical event handlers and discards tactical jobs. Exact finite stance cleanup
@@ -251,7 +252,8 @@ if (!isNil "_civilianCreated") then {
     if (local _x && {count (_x getVariable ["CBE_AIPass_State", createHashMap]) > 0 || {_x getVariable ["CBE_AIPass_Managed", false]} || {(_x getVariable ["CBE_Cortex_Remount",[]]) isNotEqualTo []}
         || {(_x getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
         || {(_x getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
-        || {_x getVariable ["CBE_AIPass_ClearBuilding",false]}}) then {
+        || {_x getVariable ["CBE_AIPass_ClearBuilding",false]}
+        || {(_x getVariable ["CBE_Cortex_ClearHold",[]]) isNotEqualTo []}}) then {
         [_x,true,"CORTEX_STOPPED"] call CBE_fnc_CortexReleaseGroup;
     };
     if (local _x) then {

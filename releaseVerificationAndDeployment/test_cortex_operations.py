@@ -4737,6 +4737,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_cortex_stop_does_not_recall_external_groups_from_delayed_jobs(self):
         stop=source('cortexStop')
+        selection=stop.split('[_x,true,\"CORTEX_STOPPED\"] call CBE_fnc_CortexReleaseGroup',1)[0]
+        self.assertIn('(_x getVariable [\"CBE_Cortex_ClearHold\",[]]) isNotEqualTo []',selection)
         self.assertIn('private _canRestoreGroup=local _group && {[_group,false,false,true] call CBE_fnc_CortexIsEligible};',stop)
         self.assertIn('if (_canRestoreGroup && {!isNull (_group getVariable ["CBE_AIPass_RegroupHost", grpNull])}) then {',stop)
         self.assertIn('if (_canRestoreGroup && {"team" in (_x select 2)}',stop)
