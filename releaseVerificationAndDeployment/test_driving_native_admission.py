@@ -158,6 +158,20 @@ class NativeAdmissionTests(unittest.TestCase):
         carried=dict(child);carried['route']=next_journal['route'];carried.pop('capture')
         for key in ('phase','deadline','points','index'):self.assertEqual(carried[key],child[key])
         self.assertNotIn('capture',carried)
+        for proof in ('_adoptParentExpired && {_adoptChildKey == ""}',
+                      '_childUntil < 0','_adoptExpiredChild=_adoptParentExpired || {serverTime >= _childUntil}',
+                      'if (_adoptExpiredChild) then {_adoptResume=false}'):
+            self.assertIn(proof,adopt)
+        self.assertIn('serverTime >= (_adoptWork get "hardDeadline")+5',adopt)
+        def custody(edge_live,parent_until,child_until,now):
+            if not edge_live or child_until<0 or child_until>parent_until or now>=parent_until+5:return 'REFUSED'
+            return 'CLEANUP_ONLY' if now>=min(parent_until,child_until) else 'RESUME'
+        self.assertEqual(custody(True,96,80,50),'RESUME')
+        self.assertEqual(custody(True,96,80,81),'CLEANUP_ONLY')
+        self.assertEqual(custody(True,96,80,100),'CLEANUP_ONLY')
+        self.assertEqual(custody(False,96,80,100),'REFUSED')
+        self.assertEqual(custody(True,96,80,102),'REFUSED')
+        self.assertEqual(custody(True,96,-1,50),'REFUSED')
 
     def test_both_seats_require_idle_or_route_matching_move_before_acquisition(self):
         for name in ('drivingBypassStep','drivingCorridorStep'):

@@ -3,7 +3,9 @@
  * Purpose: Rebind one exact native driving recovery episode at a real locality edge.
  * Locality/authority: Internal current group/vehicle/crew owner only. Metadata adoption
  * requires an original five-second group/vehicle edge proposal, exact cap/seats/native leg,
- * unexpired original recovery clocks. One exact ordinary bypass/corridor child can
+ * original recovery clocks. Expired exact children receive cleanup-only custody,
+ * never execution or a new deadline, while the original edge proof is still live.
+ * One exact ordinary bypass/corridor child can
  * rebind with its parent; queued/pass/abort or conflicting children remain refused.
  * Path, phase, visited index and original deadlines survive without command replay;
  * the old swept-segment sample is discarded. No geometry or completion is fabricated. Active driving resumes its existing FSM; disabled
@@ -19,6 +21,7 @@ params [["_adoptVehicle",objNull,[objNull]]];
 if (remoteExecutedOwner > 0 || {isNull _adoptVehicle} || {!local _adoptVehicle}) exitWith {false};
 private _adoptAccepted=false;
 private _adoptResume=false;
+private _adoptExpiredChild=false;
 private _adoptGroup=grpNull;
 isNil {
     private _adoptWork=_adoptVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
@@ -97,7 +100,11 @@ isNil {
         || {!((_adoptWork getOrDefault ["progressAnchor",[]]) call _adoptVector)}
         || {["started","deadline","hardDeadline","cap"] findIf {
             private _value=_adoptWork getOrDefault [_x,[]];!(_value isEqualType 0) || {!finite _value}} >= 0}) exitWith {};
-    if ((_adoptWork get "deadline") < 0 || {serverTime >= (_adoptWork get "hardDeadline")} || {(_adoptWork get "deadline") > (_adoptWork get "hardDeadline")}
+    private _adoptParentExpired=serverTime >= (_adoptWork get "hardDeadline");
+    // Cleanup custody also has a fixed age bound from the original episode, not
+    // just a fresh owner edge. Ancient matching cap/task values cannot reclaim it.
+    if (_adoptParentExpired && {serverTime >= (_adoptWork get "hardDeadline")+5}) exitWith {};
+    if ((_adoptWork get "deadline") < 0 || {_adoptParentExpired && {_adoptChildKey == ""}} || {(_adoptWork get "deadline") > (_adoptWork get "hardDeadline")}
         || {(_adoptWork get "started") > serverTime} || {(_adoptWork get "cap") < 0}
         || {abs (getForcedSpeed _adoptVehicle-(_adoptWork get "cap")) > 0.1}) exitWith {};
     private _adoptBaseline=_adoptWork getOrDefault ["baseline",[]];
@@ -113,7 +120,7 @@ isNil {
                 || {!((_adoptWork getOrDefault ["bypassSpent",false]) isEqualTo true)}
                 || {_adoptWork getOrDefault ["releasePending",false]}
                 || {!((_adoptWork getOrDefault ["kind",""]) in ["REFRESH","FINAL"])}
-                || {!(_childUntil isEqualType 0)} || {!finite _childUntil} || {serverTime >= _childUntil}
+                || {!(_childUntil isEqualType 0)} || {!finite _childUntil} || {_childUntil < 0}
                 || {_childUntil > (_adoptWork get "hardDeadline")}
                 || {(_adoptChild getOrDefault ["controller",[]]) isNotEqualTo ["ORDINARY",-1]}
                 || {(_adoptChild getOrDefault ["group",grpNull]) != _adoptGroup}
@@ -122,6 +129,9 @@ isNil {
                 || {(_adoptChild getOrDefault ["operator",objNull]) != _adoptOperator}
                 || {(_adoptChild getOrDefault ["recoveryParent",[]]) isNotEqualTo
                     [_adoptGroup,_adoptRoute,_adoptWork get "hardDeadline",_adoptWork get "progressAnchor"]}) exitWith {false};
+            // Expiry revokes execution, not exact custody needed to retire the old path.
+            // The original real-locality-edge window must still be live.
+            _adoptExpiredChild=_adoptParentExpired || {serverTime >= _childUntil};
             private _childInput=vehicleMoveInfo _adoptVehicle;
             if (toUpperANSI (_childInput param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"]
                 || {toUpperANSI (_childInput param [1,"",[""]]) in ["LEFT","RIGHT"]}) exitWith {false};
@@ -169,6 +179,7 @@ isNil {
         };
     };
     if (!_adoptChildValid) exitWith {};
+    if (_adoptExpiredChild) then {_adoptResume=false};
     private _adoptNative=false;
     if (_adoptMode == "DESTINATION" || {"nativeReturn" in _adoptWork}) then {
         _adoptNative=([_adoptVehicle,_adoptWork] call CBE_fnc_DrivingRecoveryCommandState) in ["OWNED","PENDING","EXPIRED","BYPASS","CORRIDOR"];
