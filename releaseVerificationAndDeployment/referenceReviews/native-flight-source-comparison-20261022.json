@@ -126,5 +126,14 @@
       "addons/infantry/functions/dangerFlight.sqf": "3fdb22f67c5d1c5764db3a1ac083902aec25559aa8adf4bb60dfe08765db8481",
       "addons/infantry/functions/dangerEngineSubmit.sqf": "df9da216a0e5b9002e69694e96153934a3bec42dd5c0fab5af4d3c9e9880c1a6"
     }
+  },
+  "auditCoverageGap": {
+    "baseline": "82594959",
+    "fixture": "releaseVerificationAndDeployment/cortexQA/runReactions.sqf",
+    "sha256": "7ad007699ab08c04fbba281dff727aa9bac16e85de0bb1049c9e3332bbd6ea76",
+    "finding": "runReactions _newGroup applies allowFleeing0 to all its created groups, with no override or native-flight result/lease observation. Scripted retreat/surrender and civilian flee in this file are not native fleeing coverage.",
+    "minimumRequiredCase": "Preserve existing deterministic reaction cases. Add a distinct native-flight setup with real native casualties/courage policy, observe actual fleeing before evaluation, provide real native danger stimuli and record source/destination/travel, native movement yield, original expiry and physical replacement-order continuation. Do not assign solved flight metadata or call DangerFlight directly to claim FSM/physical acceptance.",
+    "attribution": "If Arma already owns movement and no CBE fallback is admitted, report native flight continuity separately and the fallback unexercised. A successful native path is not proof that the CBE escape/rejoin branch ran.",
+    "limits": "Read-only fixture review, no runtime or audit changes, no audit launched and no repeated unchanged build. Audits remain paused; full physical/performance acceptance remains incomplete."
   }
 }
