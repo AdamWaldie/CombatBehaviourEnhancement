@@ -220,5 +220,14 @@
     "candidate": ".qa/candidates/surrender-contact-freshness-b4527536",
     "fingerprint": "146cd9c8e9b9b4d07c0737c30db4efa4104184d5fec74f5354a82f755d144a9d",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Contact age uses native lastSeen/lastThreat semantics, not guaranteed current visual contact. Physical balance/HC/JIP/performance remain unverified. Audits paused."
+  },
+  "surrenderServiceHandover20261023": {
+    "baseline": "1e8b32c3",
+    "finding": "Surrender checked group eligibility and health/locality, but did not protect queued treatment or native service tasks before releasing group orders and disarming survivors.",
+    "implementation": "A read-only native service check defers the whole surrender before cleanup when a local combat-effective foot survivor is busy. Rechecked before each disarm. Covers pending ACE care and existing protected service command vocabulary. Native flight is deliberately allowed; ordinary CBE reservations still release through existing cleanup. No new worker, sensing or settings.",
+    "validation": "1491 tests/full build plus independent package verification passed. Existing surrender lifecycle case extended; no new cases.",
+    "candidate": ".qa/candidates/surrender-service-handover-1e8b32c3",
+    "fingerprint": "32f1a6e063e61147da8149b3d3232e61f0b30bddae39bcacbc7d3dba4679b95d",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt, notes afterward. Not proof of physical task/captive handover, complete command identity, balance, HC/JIP or overhead. Audits paused."
   }
 }

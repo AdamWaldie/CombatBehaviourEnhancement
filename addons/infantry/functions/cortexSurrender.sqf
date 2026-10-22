@@ -6,7 +6,9 @@
  * loaded magazines kept), then surrenders through ACE Captives when it is loaded, so players can
  * take him prisoner, or through vanilla setCaptive and the surrender animation otherwise. Surrendered
  * units are excluded from every further CBE AI change (CBE_AI_Exclude and CBE_AIPass_Exclude).
- * Rechecks surrender permission and releases Cortex orders before handing control to captives.
+ * Rechecks surrender permission; protected native service tasks or queued treatment defer the whole
+ * handover before Cortex orders release. Each survivor is checked again before weapon removal.
+ * Native fleeing alone does not veto this survival response.
  * Repeat/JIP: excluded surrendering units are not processed twice; physical state is engine replicated.
  * Locality and authority: call where the group is local; exclusion flags are broadcast once per unit
  * so every machine skips them.
@@ -29,6 +31,23 @@ if (isNull _group || {!local _group}
     || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {!([_group,"CBE_AIPass_Surrender_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {0};
 if ((units _group) findIf {local _x && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}} < 0) exitWith {0};
+// A terminal captive handover must not disarm a medic, casualty carrier or service actor.
+// Refuse before releasing group work, so a busy survivor does not cause a partial surrender
+// followed by teardown of the remaining soldiers' task. Native flight itself is not a service
+// task: broken fleeing survivors may still surrender. CBE reservations release below as before.
+private _serviceBusy={
+    params ["_survivor"];
+    (_survivor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+        || {toUpperANSI currentCommand _survivor in [
+            "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",
+            "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"
+        ]}
+};
+if ((units _group) findIf {
+    local _x && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {[_x] call _serviceBusy}
+} >= 0) exitWith {0};
 // Release movement and stance ownership before ACE starts its surrender state.
 // Otherwise the next ineligible-group cleanup can overwrite the captive's posture.
 if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []) then {[_group] call CBE_fnc_CortexGarrisonRelease};
@@ -39,7 +58,8 @@ private _surrendered = 0;
 private _aceCaptives = !isNil "ace_captives_fnc_setSurrendered";
 {
     private _unit = _x;
-    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {vehicle _unit == _unit}) then {
+    if ([_unit] call CBE_fnc_CortexCombatEffective && {local _unit} && {vehicle _unit == _unit}
+        && {!([_unit] call _serviceBusy)}) then {
         private _loadout = getUnitLoadout _unit;
         private _holder = createVehicle ["GroundWeaponHolder", getPosATL _unit, [], 0.5, "CAN_COLLIDE"];
         {

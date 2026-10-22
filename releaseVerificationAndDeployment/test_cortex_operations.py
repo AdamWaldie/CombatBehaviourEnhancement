@@ -6045,6 +6045,11 @@ class CortexOperations(unittest.TestCase):
         for release in ['CortexGarrisonRelease','CortexDefendRelease','CortexClearRelease','CortexReleaseGroup']:
             self.assertLess(text.index(release),text.index('call ace_captives_fnc_setSurrendered'))
         self.assertIn('CBE_fnc_CortexCombatEffective',text)
+        preflight=text.split('// Release movement and stance ownership',1)[0]
+        for marker in ['ace_medical_ai_healQueue','CARRY SOLDIER','SCRIPTED','call _serviceBusy']:
+            self.assertIn(marker,preflight)
+        self.assertIn('&& {!([_unit] call _serviceBusy)}',text)
+        self.assertNotIn('fleeing _',text)
 
     def test_grenade_evasion_admission_and_cleanup_require_strict_ownership(self):
         text=source('cortexGrenadeCheck')
