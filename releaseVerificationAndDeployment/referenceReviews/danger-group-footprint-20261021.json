@@ -158,5 +158,15 @@
     "candidate": ".qa/candidates/drill-policy-movement-separation-6055e904",
     "fingerprint": "202fb942c22a0d00c9bca3c6733538dde776306a61ab6dd111e85a786bffe4f2",
     "limits": "Unsigned dirty development snapshot. No physical/HC/JIP/performance proof; audits paused. Supersedes prior whole-step deferral description."
+  },
+  "actorSpeedMissionCap20261022": {
+    "baseline": "8207c4d6",
+    "finding": "ActorSettings already provides finite owner/issuer/epoch/deadline stance and speed leases to clearance and garrison, but its requested SPEED could exceed an authored original forcedSpeed, including zero.",
+    "change": "Clamp SPEED to original baseline when baseline>=0 and request unlimited or faster. Repeated updates use original pair baseline; only adjusted request maps are copied, caller maps remain unchanged. Existing changed-native/context/release guards retained. No new actor controller.",
+    "sourceRelation": "LAMBS doAssaultSpeed uses native ATTACK pacing; CBE still lacks that individual behaviour. Existing ActorSettings supports common-operation/garrison scopes, not arbitrary native ATTACK. Do not fabricate a common operation or claim parity.",
+    "validation": "1491 tests and full local build plus independent package verification passed. Existing settings regression extended.",
+    "candidate": ".qa/candidates/actor-speed-mission-cap-8207c4d6",
+    "fingerprint": "cb46aa56c50f220155c5d3d2303bab7d5317da4590540221426a50d89a1665cb",
+    "limits": "Unsigned dirty snapshot with retained unrelated dirt. No physical native speed/cleanup, HC/JIP or performance validation; audits paused."
   }
 }

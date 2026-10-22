@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Speed requests preserve stricter original mission caps, including zero and unlimited requests.
+ * Caller request maps are not mutated; updates use the original baseline, not the last temporary cap.
  * First stance acquisition composes typed routine cover and exact danger-stance proof.
  * It may consume an exact current danger-stance receipt, preserving
  * its original baseline. No native task or reservation is bypassed for this handover.
@@ -142,6 +144,17 @@ _result=call {
     };
     if (count _requested < 1) exitWith {"REFUSED"};
     if (keys _requested findIf {!([_x,[_x] call _read] call _valueValid)} >= 0) exitWith {"REFUSED"};
+    // A behavioural speed request may slow an actor but cannot lift an authored cap.
+    // Preserve the first native baseline across repeated room/stance updates. Copy the
+    // request only when adjustment is needed; callers may reuse their own HashMap.
+    if ("SPEED" in _requested) then {
+        private _baselineSpeed=if ("SPEED" in _owned) then {(_owned get "SPEED") select 0} else {["SPEED"] call _read};
+        private _wantedSpeed=_requested get "SPEED";
+        if (_baselineSpeed >= 0 && {_wantedSpeed == -1 || {_wantedSpeed > _baselineSpeed}}) then {
+            _requested=createHashMapFromArray (keys _requested apply {[_x,_requested get _x]});
+            _requested set ["SPEED",_baselineSpeed];
+        };
+    };
     // The usual room tick keeps the same controls. Ownership/native checks above already
     // confirmed them: avoid copying receipt maps, writing controls or publishing metadata.
     if (_lease isNotEqualTo [] && {keys _requested findIf {

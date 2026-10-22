@@ -2570,3 +2570,5 @@ During withdrawal execution, route replacement or completion also retires the ep
 Tactical bounds now apply group combat/speed policy only while the complete native-task footprint permits it, and capture restoration pairs after native confirmation. Cleanup uses the same footprint. Blocked or unconfirmed restoration records up to two policy pairs in `CBE_Cortex_DrillPolicyUnresolved`; this is historical evidence, not an automatic retry or authority to overwrite later mission policy.
 
 The group-policy footprint controls policy writes only. A protected or incapacitated member does not by itself pause healthy actors in an existing tactical bound; individual movement admission still applies. Only a policy write actually attempted without native confirmation waits for the next finite step.
+
+Temporary on-foot settings preserve a stricter original mission speed cap. CQB or garrison speed requests can slow an actor, but cannot raise an existing cap or turn a mission stop into movement. Repeated updates use the first captured baseline; cleanup retains the existing exact-value checks. This does not grant movement authority or prove route travel.

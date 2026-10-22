@@ -42,6 +42,11 @@ class ActorSettingsTests(unittest.TestCase):
         update=s.split('private _nextOwned=',1)[1]
         self.assertIn('_pair set [1,_requested get _x]',update)
         self.assertNotIn('_pair set [0,',update)
+        speed=s.split('if ("SPEED" in _requested) then {',1)[1].split('// The usual room tick',1)[0]
+        self.assertIn('(_owned get "SPEED") select 0',speed)
+        self.assertIn('_baselineSpeed >= 0 && {_wantedSpeed == -1 || {_wantedSpeed > _baselineSpeed}}',speed)
+        self.assertLess(speed.index('_requested=createHashMapFromArray'),speed.index('_requested set ["SPEED",_baselineSpeed]'))
+        self.assertLess(s.index('exitWith {"CHANGED"}'),s.index('private _baselineSpeed='))
         self.assertNotIn('_deadline=serverTime',s)
         self.assertEqual(s.count('serverTime+1'),1)
         self.assertIn('serverTime < _releaseAt',s)
