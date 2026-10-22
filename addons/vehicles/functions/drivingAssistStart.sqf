@@ -114,6 +114,8 @@
  * 0: group <GROUP> - local AI group commanding the vehicle.
  * 1: operation brain <HASHMAP, empty> - internal current-owner executor receipt.
  * Return Value: Nothing.
+ * Confirmed cap publication also updates an exact bypass/corridor parent journal while
+ * child destinations differ; no baseline, clock, anchor or spent allowance is renewed.
  * Exact active bypass-child commands retain only their parent budget; ordinary parent
  * route recovery stays blocked until the child retires. Native return has one finite
  * acknowledgement window capped by the unchanged parent hard deadline.
@@ -1327,8 +1329,9 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (count _liveRecovery > 0 && {(_liveRecovery get "group") == _group}
                     && {(_liveRecovery get "route") isEqualTo _routeIdentity}
                     && {(_liveRecovery get "driver") == _driver} && {(_liveRecovery get "operator") == _movementOperator}
-                    && {(expectedDestination _driver) isEqualTo (_liveRecovery get "driverCommand")}
-                    && {(expectedDestination _movementOperator) isEqualTo (_liveRecovery get "command")}
+                    && {((expectedDestination _driver) isEqualTo (_liveRecovery get "driverCommand")
+                        && {(expectedDestination _movementOperator) isEqualTo (_liveRecovery get "command")})
+                        || {([_vehicle,_liveRecovery] call CBE_fnc_DrivingRecoveryCommandState) in ["BYPASS","CORRIDOR"]}}
                     && {!(_liveRecovery getOrDefault ["releasePending",false])}
                     && {(_liveRecovery get "cap") != _capMps}) then {
                     private _updatedRecovery=createHashMapFromArray (keys _liveRecovery apply {[_x,_liveRecovery get _x]});

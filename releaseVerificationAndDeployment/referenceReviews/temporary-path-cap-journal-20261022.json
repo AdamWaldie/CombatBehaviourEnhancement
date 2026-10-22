@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "baseline": "9de58e88",
+  "scope": "Confirmed cap evidence during exact temporary driving child",
+  "finding": "The final parent-journal cap update required parent destinations. Active bypass/corridor destinations intentionally differ, so a confirmed current CBE cap could remain absent from the public original recovery journal. Active-child native adoption is independently explicitly refused.",
+  "changes": [
+    "Existing final cap publication now accepts exact BYPASS/CORRIDOR command classification as an alternative to direct parent destination equality.",
+    "Current group/route/seats/brain/epoch, no pending release and confirmed getForcedSpeed readback remain prerequisites. It changes only parent cap while copying the remaining journal unchanged.",
+    "No new speed command, scheduler, deadline, baseline, original goal, progress-anchor reset or spent-budget reset. No child adoption authority added."
+  ],
+  "validation": {
+    "initial": ".qa/temporary-cap-journal-build.log",
+    "initialDisposition": "Passed static gates but manual source review found CODE-vs-BOOL grouping on OR LHS. Corrected before preserving any candidate. Initial build is superseded and is not runtime correctness evidence.",
+    "final": ".qa/temporary-cap-journal-build-final.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates; existing regression extended to reject malformed grouping and retain original evidence fields",
+    "candidate": ".qa/candidates/temporary-cap-journal-9de58e88",
+    "fingerprint": "b24b0907577a8d9be57a1a73fae865c89b44afc4ceea1d18190dfcc88b7f05eb",
+    "independent": ".qa/temporary-cap-journal-independent-verify.log",
+    "provenance": "Unsigned development candidate:9de58e88 plus intended source/doc edits and retained unrelated working-tree dirt. Later engineering metadata is not a runtime change. Not a clean signed release.",
+    "limits": "No SQF execution, physical cap/handback/locality or performance evidence. Static success did not detect the first grouping error. Audits paused."
+  },
+  "remaining": [
+    "DrivingNativeRecoveryAdopt explicitly refuses active bypass/corridor/pass/abort children. A full atomic child+parent transfer, exact fresh owner/seat/task/cap validation and original window preservation are still required before supporting it.",
+    "Public journal replication is not guaranteed ordered. Updated cap evidence alone does not establish quiescence or adoption.",
+    "Physical production readiness and measured5% median/10%p95 budget remain unverified."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "58432e0c13f5db2d4a0869e4e92e996106ce172c52e1fa7bfd020bb9fb3e873d",
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "1213a22e9cac9b7417f261b5c01dc74567a3d44210bd6da00ac15df80368d070",
+    "releaseVerificationAndDeployment/test_driving_recovery_cap_authority.py": "5ea2b260e704db6bac96d338de1fdfbb4260857e1b2963fee39a95517a0c9ea1",
+    "docs/Smart-AI-Pass.md": "0662c5e8bfe2270950b32e5f42ca4ffeb436e2f0df3c622c3a26e1c94a13ea38"
+  },
+  "intent": "Foundation repair for truthful owner-local handback/adoption evidence, not an external-controller compatibility implementation or HBQ parity claim.",
+  "cost": "Additional bounded native command/destination reads when classifying a child cap change; no world scan or added callback. Runtime overhead unmeasured."
+}

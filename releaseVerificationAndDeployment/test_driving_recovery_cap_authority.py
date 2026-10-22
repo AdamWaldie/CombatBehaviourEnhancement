@@ -50,6 +50,23 @@ class RecoveryCapAuthorityTests(unittest.TestCase):
 
         self.assertIn('private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree}',release)
         self.assertIn('private _retainAcrossLocality=_resume && {_destinationControlFree}',release)
+        publication=text.split('private _liveRecovery=',1)[1].split('if (_crewBoardingHold)',1)[0]
+        self.assertIn('call CBE_fnc_DrivingRecoveryCommandState) in ["BYPASS","CORRIDOR"]',publication)
+        self.assertNotIn('&& {{',publication)  # Boolean LHS, not a CODE value passed to OR.
+        for proof in ('(_liveRecovery get "route") isEqualTo _routeIdentity',
+                      '(_liveRecovery get "driver") == _driver',
+                      '(_liveRecovery get "operator") == _movementOperator',
+                      'releasePending','_updatedRecovery set ["cap",_capMps]'):
+            self.assertIn(proof,publication)
+        boundary=text.split('// Scheduled observations and cleanup above',1)[1].split('private _liveRecovery=',1)[0]
+        self.assertIn('abs ((getForcedSpeed _vehicle)-_capMps) > 0.1',boundary)
+        for forbidden in ('set ["baseline"','set ["hardDeadline"','set ["progressAnchor"','set ["bypassSpent"'):
+            self.assertNotIn(forbidden,publication)
+        # A child can replace only the cap field after confirmed native readback.
+        parent={'cap':4,'baseline':[-1],'hardDeadline':96,'progressAnchor':[0,0,0],'bypassSpent':True}
+        updated=dict(parent);updated['cap']=2
+        self.assertEqual({k:v for k,v in updated.items() if k!='cap'},
+                         {k:v for k,v in parent.items() if k!='cap'})
 
     def test_operator_fallback_matches_capture_without_accepting_replacement_commander(self):
         release=source('drivingRecoveryRelease')
