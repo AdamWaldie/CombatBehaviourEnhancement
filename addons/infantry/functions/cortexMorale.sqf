@@ -4,7 +4,9 @@
  * Fresh close armour is assessed independently of older pressure contacts, so contact ordering
  * cannot hide immediate overmatch. Only existing native-belief contacts are consumed.
  *
- * Weighted pressure: casualties against peak strength (45%), average
+ * Living roster and combat-effective strength are distinct: unconscious/incapacitated/captive
+ * members do not count as fighters. Temporary service tasks or flight alone are not casualties.
+ * Weighted pressure: unavailable fighters against peak living strength (45%), average
  * suppression (20%), losing the leader it started the fight with (10%), being outnumbered by enemies
  * seen in the last 30 s (15%), known armour within 400 m with no anti-tank gunner in the squad (20%)
  * and average wounds (10%). Average courage skill offsets it, so AI Rebalance profiles and mission
@@ -47,9 +49,11 @@ private _alive = (units _group) select {alive _x};
 // Infantry break/retreat/surrender issues group orders. Mounted safety belongs to the vehicle
 // and passenger controllers; lack of a carried launcher does not mean an armed crew is overmatched.
 if (_alive findIf {!isNull objectParent _x} >= 0) exitWith {""};
-private _count = count _alive;
+private _livingCount=count _alive;
+private _fighters=_alive select {[_x] call CBE_fnc_CortexCombatEffective};
+private _count = count _fighters;
 if (_count == 0) exitWith {""};
-private _peak = (_group getVariable ["CBE_AIPass_PeakSize", _count]) max _count;
+private _peak = (_group getVariable ["CBE_AIPass_PeakSize", _livingCount]) max _livingCount;
 private _courage = 0;
 private _suppression = 0;
 private _wounds = 0;
@@ -59,15 +63,15 @@ private _wounds = 0;
     // Native -1 means unavailable/disabled, not negative combat pressure. Bound script-set
     // or addon-modified samples too, preserving the documented 20% suppression weight.
     if (local _x) then {_suppression = _suppression + ((getSuppression _x) max 0 min 1)};
-} forEach _alive;
+} forEach _fighters;
 _courage = _courage / _count;
 _suppression = _suppression / _count;
 _wounds = _wounds / _count;
 private _contactLeader = _state getOrDefault ["contactLeader", leader _group];
-private _leaderLost = [0, 1] select (!alive _contactLeader && {leader _group != _contactLeader});
+private _leaderLost = [0, 1] select (!([_contactLeader] call CBE_fnc_CortexCombatEffective));
 private _recent = {(_x select 2) <= 30} count _enemies;
 private _outnumbered = (((_recent / _count) - 1) max 0) min 2;
-private _hasAT = _alive findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _hasAT = _fighters findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 // General pressure may retain a30s armour memory. Immediate overmatch needs its own
 // fresh contact: the first stale tank must not mask a later freshly observed one.
 // One pass over the existing bounded knowledge list, no additional sensing or sort.

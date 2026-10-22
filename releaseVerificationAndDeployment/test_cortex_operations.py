@@ -4284,6 +4284,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_suppression + ((getSuppression _x) max 0 min 1)',morale)
         self.assertNotIn('_suppression + getSuppression _x',morale)
         self.assertIn('0.2 * _suppression',morale)
+        self.assertIn('private _fighters=_alive select {[_x] call CBE_fnc_CortexCombatEffective}',morale)
+        self.assertIn('private _count = count _fighters',morale)
+        self.assertIn('CBE_AIPass_PeakSize", _livingCount]) max _livingCount',morale)
+        self.assertIn('} forEach _fighters;',morale)
+        self.assertIn('!([_contactLeader] call CBE_fnc_CortexCombatEffective)',morale)
+        self.assertNotIn('healQueue',morale)
         # Native disabled/unavailable is -1; out-of-range scripted pressure must not
         # invert or exceed the existing contribution. This is not an in-engine result.
         for value,expected in [(-1,0),(0,0),(0.5,0.1),(1,0.2),(3,0.2)]:

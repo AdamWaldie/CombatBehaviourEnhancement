@@ -178,5 +178,15 @@
     "candidate": ".qa/candidates/clearance-pace-dab5d3e3",
     "fingerprint": "eced8ca41cbddf0f5d37116bcfb47845c2af0d3d9b3444b703e2a6247e354f98",
     "limits": "Unsigned dirty development snapshot; source metadata afterward. Physical entry/stairs/flow, speed ACK, HC/JIP, balance and performance unverified. Audits paused."
+  },
+  "moraleEffectiveStrength20261022": {
+    "baseline": "e1ee99ec",
+    "finding": "Morale used alive roster headcount as current strength, so unconscious/incapacitated/captive members could dilute casualty/outnumbering pressure. Contact leadership loss required death plus a replacement leader.",
+    "change": "Keep peak living roster denominator, count combat-effective fighters as current strength, average courage/wounds/suppression over fighters and treat unavailable contact leader as leadership pressure. Conscious wounded soldiers remain fighters. Native treatment work/fleeing alone does not change combat fitness. No effective fighter returns no new tactical action. Existing weights/profiles/hysteresis/authority unchanged.",
+    "roleTrace": "Active FlankStep already filters queued care/flight/reservations and repairs buddy roles before RebalanceRoles; do not duplicate CQB repair through that helper. RebalanceRoles actual production caller is FlankStep, despite broad historical header.",
+    "validation": "1491 tests/full local build and independent verification passed. Existing morale regression extended; no new case count.",
+    "candidate": ".qa/candidates/morale-effective-strength-e1ee99ec",
+    "fingerprint": "a4c49598d60690bdf4b74d884f6ebf66b4e640aa1b7a6497ec9779d524c386f7",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. No physical casualty flow, surrender/balance, HC/JIP or measured performance proof. Audits paused."
   }
 }
