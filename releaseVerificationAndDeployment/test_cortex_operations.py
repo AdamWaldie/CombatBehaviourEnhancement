@@ -1748,6 +1748,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Danger_AttackPace',source('operationStart'))
         self.assertIn('CBE_fnc_DangerAttackPace',source('dangerPostureStep'))
         self.assertIn('_cleanupRunning',pace)
+        check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode != "RELEASE"',1)[0]
+        self.assertIn('CBE_OperationGeneration',check)
+        self.assertIn('CBE_AIPass_Epoch',check)
+        self.assertIn('["CHECK",_x] call CBE_fnc_DangerAttackPace',source('dangerSetup'))
 
     def test_native_group_contacts_survive_a_leader_cover_blind_spot(self):
         knowledge=source('cortexKnowledge')

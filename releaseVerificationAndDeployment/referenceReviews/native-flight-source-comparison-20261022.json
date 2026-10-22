@@ -223,5 +223,14 @@
       "Same-valued external speed edits remain indistinguishable. Restoration blocked beyond original+30s retains proof and can refuse later pacing/participant admission; no unowned reset or successful handback claim.",
       "Scope is autonomous native ATTACK during ENGAGE/IMMEDIATE danger, not full LAMBS parity or continuous assault controller."
     ]
+  },
+  "nativeAttackPacingEpochReview20261023": {
+    "baseline": "960bba6f",
+    "finding": "Pace CHECK compared response/native task/expiry but did not itself bind current operation generation and owner epoch. Engine waiter had an outer guard, while discovery separately inspected public context and its deadline. The shared predicate was insufficient as a complete current-identity check.",
+    "implementation": "CHECK now compares both context generation and epoch to current group identity. Discovery uses the same typed CHECK gate before requesting RELEASE, with bounded typed actor-index iteration. No new application, deadline or owner adoption; actual new-owner release still uses original issuer/baseline through existing ActorSettings.",
+    "validation": "1491 tests/full build and independent package verification passed; existing pace lifecycle regression extended.",
+    "candidate": ".qa/candidates/native-attack-pace-epoch-960bba6f",
+    "fingerprint": "0d0f9444665be56512299cc12a211a1dac03860b7a3af2c657ce6b850df32ffc",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. No physical cap/HC/JIP/cleanup/balance/performance evidence; audits paused. Original unresolved-window and same-valued external-edit limits remain."
   }
 }

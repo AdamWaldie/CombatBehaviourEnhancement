@@ -59,6 +59,8 @@ if (_mode == "CHECK") exitWith {
     private _native=_proof select 2;
     if (!(_native isEqualType []) || {count _native != 3}) exitWith {false};
     serverTime < (_context select 4)
+        && {(_context select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+        && {(_context select 3) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {(_actor getVariable ["CBE_Danger_EngineResponse",[]]) isEqualTo (_proof select 1)}
         && {currentCommand _actor == "ATTACK"}
         && {(getAttackTarget _actor) isEqualTo (_native select 0)}
