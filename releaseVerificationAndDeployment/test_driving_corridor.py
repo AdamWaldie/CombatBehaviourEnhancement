@@ -49,6 +49,26 @@ class CorridorFoundationTests(unittest.TestCase):
                       '_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true]'):
             self.assertIn(write,transition)
         self.assertNotIn('lineIntersectsSurfaces',transition)
+        release=(ROOT/'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text(encoding='utf-8')
+        helper=s.split('private _approachDriverReady={',1)[1].split('\n};',1)[0]
+        release_helper=release.split('private _approachDriverReady={',1)[1].split('\n};',1)[0]
+        self.assertEqual(helper,release_helper)
+        for proof in ('_recorded isEqualTo []','_driverNative isEqualTo _recorded',
+                      '_driverGoal vectorDistance _entryGoal <= 0.25','finite _x'):
+            self.assertIn(proof,helper)
+        self.assertEqual(s.count('call _approachDriverReady'),3)
+        self.assertIn('call _approachDriverReady',release.split('private _owned=',1)[1].split('// The owned doStop',1)[0])
+        admission=s.split('_operator doMove (_points select 0);',1)[1]
+        self.assertIn('["driverCommand",+(expectedDestination _driver)]',admission)
+        # A replacement destination is not protected merely because its command is MOVE.
+        def driver_current(recorded,current,entry):
+            if not recorded:return False
+            return current==recorded or math.dist(current[0],entry)<=0.25
+        old=[[10,20,0],'LEADER PLANNED',False]
+        self.assertTrue(driver_current(old,old,[30,20,0]))
+        self.assertTrue(driver_current(old,[[30,20,0],'LEADER PLANNED',False],[30,20,0]))
+        self.assertFalse(driver_current(old,[[80,20,0],'LEADER PLANNED',False],[30,20,0]))
+        self.assertFalse(driver_current([],old,[30,20,0]))
     def test_convoy_tail_uses_interpolated_support_before_passage_credit(self):
         s=(ROOT/'addons/vehicles/functions/convoyCorridorStep.sqf').read_text(encoding='utf-8')
         floor=s.split('private _expectedFloor=[];',1)[1].split('if (abs _projection',1)[0]

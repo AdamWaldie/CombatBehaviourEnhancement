@@ -2490,3 +2490,9 @@ On exact owned cleanup, the executor stops its temporary path. Native onward mov
 This path has offline validation only. Physical passage, stop acknowledgement timing, repeated handback, locality changes and runtime cost remain unverified while audits are paused.
 
 Native bypass return acknowledgement requires both operating actors to report MOVE at the original goal. A commander-only acknowledgement leaves the original journal pending; a changed driver order rejects it. This acknowledgement is command provenance, not proof of physical onward travel.
+
+### Corridor approach driver orders
+
+Registered navigation corridors preserve independent driver orders during approach as well as crossing. Admission records the driver destination after requesting the commander's entry leg. Later approach steps, the fixed-path commit and cleanup require that recorded destination or native propagation to the exact entry goal, alongside the existing native-task, ownership and crew checks. A different driver MOVE ends the old episode without recalling or stopping either actor. The original approach/crossing deadlines remain unchanged; no query, timer or movement worker is added.
+
+A replacement order at the identical entry goal remains indistinguishable from native propagation. Offline checks cover the guard and its call sites; actual commander/driver propagation, interruption timing, normal/HC operation and performance remain unverified. Native scripted-route corridor admission is still unavailable.

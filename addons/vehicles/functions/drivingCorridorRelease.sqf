@@ -5,6 +5,8 @@
  * Purpose: Retires one controller-owned corridor episode and hands back only its unchanged command.
  * Locality / Authority: Vehicle/group owner only. Exact driver, native destination, route and
  * external/tactical ownership checks protect every stop and route-resume command.
+ * Approach cleanup requires the recorded driver destination or exact entry-goal propagation;
+ * a different driver MOVE revokes recall even when the commander is unchanged.
  * Crossing ownership includes both seat receipts. A separate same-vehicle driver rejoins only
  * its unchanged owned commander before native-route wakeup; other actors/features are untouched.
  * New individual reservations prevent movement cleanup; actor leases remain untouched.
@@ -34,6 +36,22 @@ if (count _work == 0 || {(_work getOrDefault ["group",grpNull]) != _group}) exit
 private _driver=_work getOrDefault ["driver",objNull];
 private _operator=_work getOrDefault ["operator",objNull];
 private _route=_work getOrDefault ["route",[]];
+// The commander owns the approach, not an arbitrary replacement driver MOVE.
+// Native propagation may retain the driver's recorded destination or publish the
+// exact entry goal. Any other driver destination revokes this temporary approach.
+private _approachDriverReady={
+    private _recorded=_work getOrDefault ["driverCommand",[]];
+    if (_recorded isEqualTo []) exitWith {false};
+    private _driverNative=expectedDestination _driver;
+    if (_driverNative isEqualTo _recorded) exitWith {true};
+    private _entryGoal=(_work getOrDefault ["points",[]]) param [0,[],[[]]];
+    private _driverGoal=_driverNative param [0,[],[[]]];
+    count _entryGoal == 3 && {count _driverGoal == 3}
+        && {_entryGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_driverGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_driverGoal vectorDistance _entryGoal <= 0.25}
+};
+
 private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
 private _convoy=(_controller param [0,""]) == "CONVOY";
 private _currentConvoy=_group getVariable ["CBE_Convoy_Brain",createHashMap];
@@ -56,6 +74,7 @@ private _owned=_nativePathFree && {!isNull _driver} && {!isNull _operator} && {l
     && {(_work getOrDefault ["phase",""]) != "CROSS" || {
         (expectedDestination _driver) isEqualTo (_work getOrDefault ["driverCommand",[]])
     }}
+    && {(_work getOrDefault ["phase",""]) != "APPROACH" || {call _approachDriverReady}}
     && {_convoy || {_transition} || {[_group] call CBE_fnc_DrivingMovementAvailable}}
     && {!_successor || {_transition}}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}

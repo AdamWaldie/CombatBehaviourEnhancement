@@ -10,7 +10,9 @@
  * Locality / Authority: Called only by the current ordinary/convoy brain, for its lead vehicle.
  * Shares existing speed/traffic writers; never edits waypoints, transfers locality or enables AI.
  * Separate commander/driver seats require symmetric local task eligibility. Native commander
- * approach hands to an owned two-actor stop/fixed path; crossing watches both command receipts.
+ * approach hands to an owned two-actor stop/fixed path; both phases watch driver destination
+ * provenance. Approach permits its recorded destination or exact entry-goal propagation,
+ * never a different replacement MOVE. Crossing watches both exact command receipts.
  * New acquisition requires both actors idle or route-matching MOVE; native STOP, FOLLOW,
  * ATTACK and unowned CBE remain authoritative. APPROACH permits its owned arrival wait but
  * rejects a new STOP/other native task before taking fixed steering. CROSS owns its own doStop.
@@ -125,6 +127,22 @@ private _mayWrite={
 };
 if (!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}) exitWith {_inactive};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+// The commander owns the approach, not an arbitrary replacement driver MOVE.
+// Native propagation may retain the driver's recorded destination or publish the
+// exact entry goal. Any other driver destination revokes this temporary approach.
+private _approachDriverReady={
+    private _recorded=_work getOrDefault ["driverCommand",[]];
+    if (_recorded isEqualTo []) exitWith {false};
+    private _driverNative=expectedDestination _driver;
+    if (_driverNative isEqualTo _recorded) exitWith {true};
+    private _entryGoal=(_work getOrDefault ["points",[]]) param [0,[],[[]]];
+    private _driverGoal=_driverNative param [0,[],[[]]];
+    count _entryGoal == 3 && {count _driverGoal == 3}
+        && {_entryGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_driverGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_driverGoal vectorDistance _entryGoal <= 0.25}
+};
+
 if !(call _mayWrite) exitWith {
     [_vehicle,_group,"OWNER_OR_ORDER_CHANGED",false] call CBE_fnc_DrivingCorridorRelease;
     _inactive
@@ -159,7 +177,7 @@ if (count _work > 0) exitWith {
         _reason="COMMAND_CHANGED";
     };
     if (_reason isEqualTo "" && {(_work getOrDefault ["phase",""]) == "APPROACH"}
-        && {!(call _approachTasksReady)}) then {_reason="COMMAND_CHANGED"};
+        && {!(call _approachTasksReady) || {!(call _approachDriverReady)}}) then {_reason="COMMAND_CHANGED"};
     if (_reason isEqualTo "" && {(_work getOrDefault ["controller",[]]) isNotEqualTo _controllerReceipt}) then {
         _reason="CONTROLLER_CHANGED";
     };
@@ -184,13 +202,14 @@ if (count _work > 0) exitWith {
             && {abs (((getPosASL _vehicle) select 2)-(_entry select 2)) <= 2}
             && {(vectorNormalized _forward) vectorDotProduct (_work get "travel") >= 0.85}
             && {call _mayWrite} && {call _approachTasksReady}
+            && {call _approachDriverReady}
             && {(expectedDestination _operator) isEqualTo (_work get "command")}) then {
             // Admission and the exact command/receipt transition share one unscheduled
             // boundary. Scheduled approach observations cannot override a newer area/order.
             isNil {
                 private _now=getPosASL _vehicle;
                 private _direction=vectorDir _vehicle;_direction set [2,0];
-                if (!(call _mayWrite) || {!(call _approachTasksReady)}
+                if (!(call _mayWrite) || {!(call _approachTasksReady)} || {!(call _approachDriverReady)}
                     || {(_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap]) isNotEqualTo _work}
                     || {(_work getOrDefault ["phase",""]) != "APPROACH"}
                     || {serverTime >= (_work get "deadline")}
@@ -390,7 +409,7 @@ isNil {
             ["points",_points],["asl",_asl],["travel",_axis vectorMultiply (-_side)],
             ["far",(getPosASL _area) vectorDiff (_axis vectorMultiply ((_definition select 1)*_side))],
             ["tailDeadline",_tailDeadline],["phase","APPROACH"],["deadline",serverTime+120],["hardDeadline",serverTime+120+(_definition select 1)+45],
-            ["command",+(expectedDestination _operator)]];
+            ["command",+(expectedDestination _operator)],["driverCommand",+(expectedDestination _driver)]];
         _vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
         _admitted=true;
     };
