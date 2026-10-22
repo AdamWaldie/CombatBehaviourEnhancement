@@ -2049,6 +2049,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_leaderPos nearEntities ["Man",300]',morale)
         self.assertNotIn('private _friendsNear = allGroups',morale)
         self.assertNotIn('allGroups findIf',morale)
+        surrender=morale.split('private _allOnFoot =',1)[1]
+        self.assertIn('(_x select 2) <= 30 && {(_x select 3) < 60}',surrender)
+        self.assertIn('["", "RETREAT"] select',surrender)
 
     def test_fresh_heavy_armour_overmatch_withdraws_without_suicidal_manoeuvre(self):
         """A rifle squad without usable AT must leave close armour to the finite withdrawal owner."""

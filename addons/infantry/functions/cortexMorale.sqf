@@ -22,7 +22,7 @@
  * An authored HOLD or SENTRY waypoint remains authoritative. Shaken squads seek a screened lateral
  * position rather than starting flank, assault or advance drills. Broken squads retreat; with
  * CBE_AIPass_Surrender_Enable, a broken squad no larger than the profile's surrenderSurvivors, with
- * an enemy believed within 60 m and no friendly squad within 300 m, surrenders instead.
+ * an enemy believed within 60 m from the last 30 s and no friendly squad within 300 m, surrenders instead.
  * Native suppression samples are bounded to 0..1; the unavailable/disabled -1 sentinel
  * contributes no pressure rather than an artificial morale bonus.
  * Morale inputs come from state the pass already holds; there are no allUnits scans.
@@ -122,12 +122,14 @@ if (_current != _previous && {missionNamespace getVariable ["CBE_AIPass_Debug", 
 };
 if (_current != "BROKEN") exitWith {""};
 
+// Stale close contact memory cannot authorise terminal surrender. Reuse the pressure
+// contact window; absent recent close opposition, retain the existing withdrawal fallback.
 // The surrender executor deliberately handles only soldiers on foot. A mounted crew or passenger
 // group must continue through the common withdrawal path instead of selecting an impossible terminal
 // action and then skipping its movement step every tick.
 private _allOnFoot = _alive findIf {vehicle _x != _x} < 0;
 if (_allOnFoot && {[_group,"CBE_AIPass_Surrender_Enable", true] call CBE_fnc_CortexFeatureEnabled} && {_count <= (_profile get "surrenderSurvivors")}
-    && {_enemies findIf {(_x select 3) < 60} >= 0}) then {
+    && {_enemies findIf {(_x select 2) <= 30 && {(_x select 3) < 60}} >= 0}) then {
     private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _anchor) then {_anchor=leader _group};
     private _leaderPos = getPosATL _anchor;

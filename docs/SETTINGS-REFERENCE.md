@@ -113,7 +113,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | Variable | Label | Type | Default | Range / choices | Activation | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
 | `CBE_AIPass_Morale_Enable` | Morale and retreat | CHECKBOX | true | [] | NEXT_OPERATION | Squads under heavy losses and fire break and fall back under smoke. |
-| `CBE_AIPass_Surrender_Enable` | Surrender | CHECKBOX | true | [] | NEXT_OPERATION | One or two broken survivors surrender only when an enemy is within 60 m and no friendly squad is within 300 m (ACE Captives when loaded). |
+| `CBE_AIPass_Surrender_Enable` | Surrender | CHECKBOX | true | [] | NEXT_OPERATION | One or two broken survivors surrender only when an enemy was observed within the last 30 seconds and is believed within 60 m, and no friendly squad is within 300 m (ACE Captives when loaded). |
 | `CBE_AIPass_Morale_RetreatDistance` | Retreat distance (m) | SLIDER | 200 | [50, 500, 0] | NEXT_OPERATION | How far a broken squad falls back. |
 
 ### 06 Survivor recovery

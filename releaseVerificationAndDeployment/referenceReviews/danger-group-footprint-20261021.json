@@ -211,5 +211,14 @@
     "next": "Resolve the hostile-strength policy and inspect existing native target/event evidence for crew/carrier co-occurrence before changing the bounded shortlist or morale denominator. Preserve per-target native knowledge and believed positions; do not add world scans.",
     "validation": "Review JSON parsed; runtime unchanged from validated 0993543a checkpoint. No rebuild warranted for engineering notes.",
     "limits": "No live evidence, tactical parity increment or build-out percentage change. Audits paused."
+  },
+  "surrenderContactFreshness20261023": {
+    "baseline": "b4527536",
+    "finding": "Broken on-foot squad surrender admission used contact distance alone, permitting an arbitrarily stale native-belief contact within60m to authorise a terminal action. Existing pressure count already used30seconds.",
+    "implementation": "Require same contact row age<=30seconds and believed distance<60m. Reuses current bounded knowledge list; no new sensing, scan, worker, profile threshold or setting. Existing finite withdrawal fallback and friendly-support check unchanged.",
+    "validation": "1491 tests and complete local build passed; preserved candidate independently verified. Existing morale surrender test extended, no case-count increase. Setting tooltip/reference updated.",
+    "candidate": ".qa/candidates/surrender-contact-freshness-b4527536",
+    "fingerprint": "146cd9c8e9b9b4d07c0737c30db4efa4104184d5fec74f5354a82f755d144a9d",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Contact age uses native lastSeen/lastThreat semantics, not guaranteed current visual contact. Physical balance/HC/JIP/performance remain unverified. Audits paused."
   }
 }
