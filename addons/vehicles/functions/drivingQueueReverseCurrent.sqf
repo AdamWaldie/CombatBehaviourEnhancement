@@ -100,6 +100,28 @@ private _valid=true;private _localCount=0;
     private _vehicle=_vehicles select _forEachIndex;
     private _moving=_vehicle == (_binding select 0);
     private _held=_forEachIndex in _heldIndices;
+    // Shared context never contains remote destinations. Only this actual owner's
+    // immutable consent receipt can populate original/native comparison fields.
+    if (_localRows && {local _vehicle}) then {
+        private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _orders=_consent getOrDefault ["ownerOrders",[]];
+        if ((_consent getOrDefault ["token",""]) != _token
+            || {(_consent getOrDefault ["context",[]]) isNotEqualTo _context}
+            || {!(_orders isEqualType [])} || {count _orders != 2}
+            || {_orders findIf {!(_x isEqualType []) || {count _x != 3}
+                || {!((_x select 0) isEqualType objNull)} || {!local (_x select 0)}
+                || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}} >= 0}
+            || {(_orders apply {_x select 0}) isNotEqualTo [driver _vehicle,effectiveCommander _vehicle]}) exitWith {_valid=false};
+        _row=+_row;_old=+_old;
+        {
+            private _slot=_forEachIndex+2;
+            private _actual=+(_row select _slot);private _original=+(_old select _slot);
+            _actual set [9,+(expectedDestination (_x select 0))];
+            _original set [9,+(_x select 2)];
+            _row set [_slot,_actual];_old set [_slot,_original];
+        } forEach _orders;
+    };
+    if (!_valid) exitWith {};
     if (!(_old isEqualType []) || {count _old != 6}
         || {(_row select [0,2]) isNotEqualTo (_old select [0,2])}) exitWith {_valid=false};
     {
@@ -111,7 +133,8 @@ private _valid=true;private _localCount=0;
             if ((_actor select [0,8]) isNotEqualTo (_original select [0,8])
                 || {(_actor select 10) isNotEqualTo (_original select 10)}
                 || {toUpperANSI (_actor select 8) != (_rootWork getOrDefault [_taskKey,"__MISSING__"])}
-                || {(_actor select 9) isNotEqualTo (_rootWork getOrDefault [_goalKey,[]])}
+                || {_localRows && {local _vehicle}
+                    && {(_actor select 9) isNotEqualTo (_rootWork getOrDefault [_goalKey,[]])}}
                 || {(_rootWork getOrDefault ["group",grpNull]) != (_actor select 2)}
                 || {(_rootWork getOrDefault ["route",[]]) isNotEqualTo (_original select 10)}
                 || {(_rootWork getOrDefault [["driver","operator"] select (_x == 3),objNull]) != (_actor select 0)}) then {_valid=false};
@@ -121,10 +144,10 @@ private _valid=true;private _localCount=0;
                 && {serverTime <= (_agreement getOrDefault ["crossingIssueUntil",-1])}
                 && {(_actor select [0,8]) isEqualTo (_original select [0,8])}
                 && {(_actor select 10) isEqualTo (_original select 10)} && {toUpperANSI (_actor select 8) == "STOP"}) then {
-                private _goal=(_actor select 9) param [0,[]];
-                _pendingStop=_goal isEqualType [] && {count _goal == 3}
-                    && {_goal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-                    && {_goal distance2D (getPosATL _vehicle) <= 3};
+                // Remote STOP is only a bounded phase observation under the server's
+                // existing issue window. It certifies no destination or native ownership;
+                // the root owner still checks its exact issued path before movement ACK.
+                _pendingStop=true;
             };
             if (_actor isNotEqualTo _original && {!_pendingStop}) then {_valid=false};
         };

@@ -22,7 +22,15 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('count _vehicles > 4',body)
         self.assertIn('arrayIntersect _vehicles',body)
         self.assertNotIn('clientOwner',body)
-        self.assertIn('expectedDestination _actor',body)
+        self.assertNotIn('expectedDestination _actor',body)
+        self.assertIn('currentCommand _actor,[],',body)
+        owner=(ROOT/'addons/vehicles/functions/drivingQueueAgreementOwner.sqf').read_text()
+        self.assertIn('["ownerOrders",[driver _x,effectiveCommander _x] apply',owner)
+        self.assertLess(owner.index('["ownerOrders"'),owner.index('["ACK",[_token,_accepted'))
+        for name in ('drivingQueueProposalCurrent','drivingQueueReverseCurrent'):
+            current=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            self.assertIn('getOrDefault ["ownerOrders",[]]',current)
+            self.assertIn('!local (_x select 0)',current)
         self.assertIn('call CBE_fnc_DrivingOwnerReceipt',body)
         self.assertIn('if (!_receiptsReady) exitWith {[]}',body)
         self.assertIn('call CBE_fnc_DrivingRouteReceipt',body)
@@ -308,6 +316,10 @@ class QueueProposalTests(unittest.TestCase):
                       '_cap > 8/3.6','_pathSegmentsValid'):
             self.assertIn(proof,motion)
         self.assertIn('count _crossPoses != count _vehicles',motion)
+        remote_stop=motion.split('private _pendingStop=false;',1)[1].split('if (_actor isNotEqualTo _original',1)[0]
+        self.assertNotIn('expectedDestination',remote_stop)
+        self.assertNotIn('_actor select 9',remote_stop)
+        self.assertIn('crossingIssueUntil',remote_stop)
         self.assertIn('vectorDistance (_frozenPose select 0) > 0.25',motion)
         # A crossing is bound to a contiguous short-segment path, not just any
         # nearby future point. Root identity/route remains separate from own STOP.

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Actual-owner rechecks private ownerOrders after consent; shared destination slots are not proof.
  * Purpose: Checks queue roster/role topology and optionally each actual local owner row.
  * Locality/authority: Read-only anywhere; localRows requires real local crew/group/brain and native-route eligibility. Snapshot topology is not owner consent.
  * Repeat/JIP: No state/commands/handlers; re-read before every deferred protocol action.
@@ -80,6 +81,18 @@ for "_i" from 0 to (_n-1) do {
     _groups pushBack _group;
     if (_localRows && {local _vehicle}) then {
         _localCount=_localCount+1;
+        private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        if (count _consent > 0 && {(_consent getOrDefault ["context",[]]) isEqualTo _context}) then {
+            private _orders=_consent getOrDefault ["ownerOrders",[]];
+            if (!(_orders isEqualType []) || {count _orders != 2}
+                || {_orders findIf {!(_x isEqualType []) || {count _x != 3}
+                    || {!((_x select 0) isEqualType objNull)} || {!local (_x select 0)}
+                    || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}} >= 0}) exitWith {_valid=false};
+            if ((_orders apply {_x select 0}) isNotEqualTo [driver _vehicle,effectiveCommander _vehicle]
+                || {_orders findIf {currentCommand (_x select 0) != (_x select 1)
+                    || {(expectedDestination (_x select 0)) isNotEqualTo (_x select 2)}} >= 0}) exitWith {_valid=false};
+        };
+        if (!_valid) exitWith {};
         // Shared read-only ordinary-route admission only: no passing token/ACK is reused.
         private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
         private _pass=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];

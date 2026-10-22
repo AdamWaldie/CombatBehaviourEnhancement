@@ -9,8 +9,10 @@
  * Native move/turn is captured for actual-owner deferred validation, never remote ownership proof.
  * Remote group epoch/generation comes from owner-stamped driving status, never this
  * observer's private epoch. Missing identity refuses the whole context until publication.
+ * Destination slot is deliberately empty in shared observations; actual-owner consent
+ * captures private ownerOrders before ACK. Remote observations grant no native-task proof.
  * Actor receipt=[actor,owner,group,groupOwner,epoch,public driving generation,player,remote,
- * native command,expectedDestination,authored route]. Pose=[world position,direction,up].
+ * native command,empty destination slot,authored route]. Pose=[world position,direction,up].
  * Current callers: DrivingQueueProposal and DrivingQueueProposalCurrent.
  * Example: private _rows=[[_front,_yielding,_rear]] call CBE_fnc_DrivingQueueContext;
  */
@@ -28,7 +30,7 @@ private _actorReceipt={
     if (_identity isEqualTo []) exitWith {_receiptsReady=false;[]};
     [_actor,owner _actor,_group,_identity select 0,_identity select 1,
         _identity select 2,isPlayer _actor,
-        remoteControlled _actor,currentCommand _actor,+(expectedDestination _actor),
+        remoteControlled _actor,currentCommand _actor,[],
         [_group] call CBE_fnc_DrivingRouteReceipt]
 };
 private _rows=_vehicles apply {

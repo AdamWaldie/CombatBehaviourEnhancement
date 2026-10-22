@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Private ownerOrders capture local native destinations before ACK; duplicates retain exact proof.
  * Purpose: Validates actual-owner queue-role consent and receives matching server results.
  * Locality/authority: Only authenticated server remote calls. Each owner validates its own crew/native orders/current brain plus canonical topology; public markers never count as ACK.
  * Repeat/JIP: Exact token/serial/context/roles/original expiry; duplicate agreed delivery does not renew or replay.
@@ -455,7 +456,10 @@ if (_mode == "VERIFY") exitWith {
         } < 0;
         {_x setVariable ["CBE_DrivingQueue_Consent",createHashMapFromArray [["token",_token],
             ["serial",_serial],["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],
-            ["context",_context],["rearRequirements",_rearRequirements],["deadline",_deadline],["expires",_expires],["phase","PENDING"]]]} forEach _owned;
+            ["context",_context],["rearRequirements",_rearRequirements],["deadline",_deadline],["expires",_expires],["phase","PENDING"],
+            ["ownerOrders",[driver _x,effectiveCommander _x] apply {
+                [_x,currentCommand _x,+(expectedDestination _x)]
+            }]]]} forEach _owned;
         if (!_pendingDuplicate) then {[_pendingKey] call _scheduleExpiry};
     } else {
         [_token,_expires] call CBE_fnc_DrivingQueueTokenClosed;

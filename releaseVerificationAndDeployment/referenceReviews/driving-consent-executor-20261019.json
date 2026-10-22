@@ -58,5 +58,29 @@
       "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013"
     },
     "validation": "Read-only source/API contract trace and JSON parsing. No runtime code, new package, acceptance or performance claim. Audits paused."
+  },
+  "ownerDestinationImplementation20261022": {
+    "baseline": "66af5b94",
+    "implementation": [
+      "Shared queue actor rows preserve existing shape with empty destination slot; no remote expectedDestination read.",
+      "Actual-owner VERIFY captures private ownerOrders before ACK. Token/serial/canonical context and existing server agreement remain the authority; no new remote mode or network round. RESULT/phase copies retain private receipt; duplicates compare current values before same-proof capture.",
+      "Deferred local proposal/hold checks compare native task and destination to the private owner receipt. Initial proposal remains current eligibility only, not movement authority.",
+      "Active reverse/crossing inserts actual and original destination data only on local owner rows, from exact same-token/context private consent. Server/remote observations do not certify destination.",
+      "Bounded remote STOP transition is phase observation under existing issue window/public identity and pose checks, not native destination ACK; exact root path checks stay owner-local."
+    ],
+    "validation": "1491 tests and full local build plus independent package verify passed. Existing queue tests extended. Initial build passed; final review removed the residual remote STOP-goal read and final candidate supersedes initial copy.",
+    "candidate": ".qa/candidates/queue-owner-destinations-66af5b94-reviewed",
+    "fingerprint": "59eec0bc95f6bece3e9339b91c8e8af61ba7e3480165b592e0d76e33e8a37d5c",
+    "hashes": {
+      "addons/vehicles/functions/drivingQueueContext.sqf": "bd1c6dd70a9197affbbd4cbae35a8b9a9aee6027b6de6ca512414220b0a0128a",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "8377649876558b009f027499bec23ae75089252f9e25faf2ae4715c679427fa4",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "3fbae0a29dcd6e33e3b293ff11d373c2ea1aaa318a03ae1b7d6b865cdbf145a6",
+      "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "90fd684723aedf8df77f3e44cbcd74ab9e97b636d341a987c110cdd25392c954"
+    },
+    "limits": [
+      "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata afterward.",
+      "No physical multi-owner/HC timing, destination replacement, native path cancellation/handback or performance proof. Audits paused.",
+      "Native MOVE queue negotiation remains excluded; this is prerequisite authored queue ownership correction."
+    ]
   }
 }
