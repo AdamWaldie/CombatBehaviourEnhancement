@@ -288,6 +288,14 @@ class QueueProposalTests(unittest.TestCase):
         self.assertLess(parent_rear-dependency_front,0)
 
         motion=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
+        for boundary in (commit,motion):
+            self.assertIn('fleeing _x',boundary)
+            self.assertIn('ace_medical_ai_healQueue',boundary)
+        self.assertLess(commit.index('ace_medical_ai_healQueue'),commit.index('sendSimpleCommand "BACK"'))
+        self.assertLess(commit.index('ace_medical_ai_healQueue'),commit.index('sendSimpleCommand "STOP"'))
+        local_boundary=motion.split('if (_localRows && {local _vehicle}) then {',1)[1]
+        self.assertIn('!local _x',local_boundary)
+        self.assertIn('exitWith {_valid=false}',local_boundary)
         for proof in ('count _vehicles > 4','count _vehicles-1','serverTime >= _expires',
                       '_actor isNotEqualTo _original','_rear < -0.25','((_rearRequirements select _forEachIndex) select 0)+0.5',
                       '"queueBinding",[]','simpleAcknowledged','completedFSM','CortexActorMoveReserved'):

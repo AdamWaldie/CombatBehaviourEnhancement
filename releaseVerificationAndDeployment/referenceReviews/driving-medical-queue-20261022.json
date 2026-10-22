@@ -29,5 +29,22 @@
     "addons/vehicles/functions/drivingBypassStep.sqf": "f7293584e9abf6f39d1b087c4e8f7bf25deb325fb7acc8e717767fc27a6a3187",
     "addons/vehicles/functions/drivingCorridorRelease.sqf": "49a4bfe811544fe063db464c18e26a63cc765c2d6274ebdbd0561c7e1f35926a",
     "addons/vehicles/functions/drivingCorridorStep.sqf": "82084c45bdde46a1300a0aabac26c3fbeba418a3b27418e29d80cab434526f65"
+  },
+  "activeQueueFollowup": {
+    "baseline": "117c4bfc",
+    "finding": "Active queue reverse/crossing local rows and reverse ISSUE/STOP did not carry all initial consent flight/treatment vetoes. Unchanged native task labels alone could retain apparent authority.",
+    "change": "Owner-local active row checks both actual crew for locality, fleeing and queued ACE care. ReverseCommit checks care alongside existing flight gate before BACK/STOP. Metadata/remote observations grant no native task authority.",
+    "validation": "1491 tests/full local build/independent package verification passed; existing queue test extended.",
+    "candidate": ".qa/candidates/queue-native-task-boundary-117c4bfc",
+    "fingerprint": "9f6b628ed7809816e7d6ab5f0f00735e601b0e2b47fdfcab04ea7f40d729735c",
+    "hashes": {
+      "addons\\vehicles\\functions\\drivingQueueReverseCurrent.sqf": "9cf23d6d4de0bfbc341ee3674b4490a379fe414838e731f2def091d8d73e6300",
+      "addons\\vehicles\\functions\\drivingQueueReverseCommit.sqf": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b"
+    },
+    "limits": [
+      "Native MOVE queue negotiation remains excluded; this prerequisite fix does not implement it.",
+      "Already-issued native BACK/path cancellation, handback, HC/JIP and performance remain unverified; audits paused.",
+      "Unsigned dirty development snapshot retaining unrelated dirt; engineering metadata afterward."
+    ]
   }
 }

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Actual-owner active rows defer to crew flight and queued treatment, independent of task labels.
  * Purpose: Observe an acknowledged queue reverse or bound crossing path without weakening admission.
  * CROSSING requires explicit root binding and a frozen path installed by every owner.
  * Only its exact QUEUE path journal can substitute owned root task receipts.
@@ -201,6 +202,12 @@ private _valid=true;private _localCount=0;
     };
     if (!_valid) exitWith {};
     if (_localRows && {local _vehicle}) then {
+        // Active reverse/crossing may retain MOVE/STOP while native flight or queued
+        // treatment takes over. Remote observation never substitutes for this owner check.
+        if ([driver _vehicle,effectiveCommander _vehicle] findIf {
+            isNull _x || {!local _x} || {fleeing _x}
+                || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+        } >= 0) exitWith {_valid=false};
         _localCount=_localCount+1;
         private _group=group driver _vehicle;
         private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];

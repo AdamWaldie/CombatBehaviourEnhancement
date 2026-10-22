@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Queued native care vetoes BACK/STOP issuance before native command labels change.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Purpose: Commit one granted queue leaf BACK or its exact native STOP/settled hold.
  * Locality/authority: Local actual vehicle/group/crew owner only, authenticated private
@@ -57,7 +58,8 @@ if (isNull _driver || {isNull _operator} || {_driver == _operator}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     || {[_driver,_operator] findIf {
-        !local _x || {fleeing _x} || {group _x != _group} || {isPlayer _x} || {!isNull remoteControlled _x}
+        !local _x || {fleeing _x}
+            || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []} || {group _x != _group} || {isPlayer _x} || {!isNull remoteControlled _x}
             || {!simulationEnabled _x} || {isObjectHidden _x} || {!(_x checkAIFeature "MOVE")}
             || {!(_x checkAIFeature "PATH")} || {!([_x] call CBE_fnc_CortexCombatEffective)}
             || {[_x] call CBE_fnc_CortexActorMoveReserved}
