@@ -43,5 +43,29 @@
       "addons/infantry/functions/cortexGroupTick.sqf": "7949eff46c7ad93313836116429239d8f0aa59fc41e56a005cc4e4d48389b738",
       "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "9495c5322f35c0402da8b757e036c8441c23ca6dd69392d9c2fdbb132c61605b"
     }
+  },
+  "terminalCalmFollowup20261022": {
+    "baseline": "6ee96e4e",
+    "finding": "CortexRestoreCalm still restored group behaviour, retreat combat mode and retreat speed through separate exact-value-only writes. Native fleeing, service/medical work and other protected members could begin after application and be overwritten by teardown. Unconfirmed writes then lost their original pairs when state cleared.",
+    "implementation": "Combine these three restoration decisions into one short isNil commit before remount admission. Reuse the existing complete <=64-member native posture footprint once. Preserve legacy exact-value/changed-state conditions, SAFE-to-AWARE contact semantics and external-yield rules. Native-blocked or unconfirmed components retain original prior/applied pairs in CBE_Cortex_CalmPolicyUnresolved with server time, current epoch/generation and reason. No automatic retry, queue or late-write permission. Later empty cleanup leaves the latest unresolved evidence intact.",
+    "validation": {
+      "result": "Full1491 offline/HEMTT/FSM/SQF/config/docs/package and independent verification passed. Existing contact ownership regression extended in-place; no added test cases.",
+      "pipeline": ".qa/calm-policy-native-footprint-build.log",
+      "independent": ".qa/calm-policy-native-footprint-independent.log",
+      "candidate": ".qa/candidates/calm-policy-native-footprint-6ee96e4e",
+      "fingerprint": "6106b29780f3b38cd81f0685296996e2e27d09135a2585a825711e7bd5b495ad",
+      "provenance": "Unsigned dirty development snapshot with unrelated retained dirt; later review/handover metadata excluded."
+    },
+    "cost": "One bounded roster check for the grouped native policy commit; no global scan, geometry, timer or worker. Runtime timing unmeasured.",
+    "limits": [
+      "Latest unresolved receipt is evidence, not proof of current ownership or an instruction to retry automatically. Same-valued superseding policy remains ambiguous.",
+      "No demonstrated eventual native settings handback, per-member baseline restoration, all-writer coverage, HC/JIP or performance proof.",
+      "Audits remain PAUSED. Previously staged nativeflight mission contains an earlier product candidate and must be restaged for a future authorised run.",
+      "No push/merge/CI/release/Steam or source/feature percentage rescore."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "a111c8333976fe32c4ce4d95e0c00a5b0123af8522963c2e92ad2b8cddb042fb"
+    }
   }
 }

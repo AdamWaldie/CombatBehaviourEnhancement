@@ -4,6 +4,9 @@
  * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
  * Returns a group to CALM and releases the engagement controls it still owns.
+ * Group behaviour/combat/speed restoration shares one atomic native-task footprint gate.
+ * Blocked or unconfirmed pairs survive in the latest CalmPolicyUnresolved evidence receipt;
+ * no automatic retry or late restoration authority is inferred from it.
  * Live independent actor-movement reservations survive generic cleanup; only their
  * feature owner may retire them. Unknown/malformed reservations cannot authorize recall.
  * Ends an active drill synchronously before consuming its restoration data; queued
@@ -149,9 +152,7 @@ if (_movementOwner != "") then {[_group,_movementOwner,false] call CBE_fnc_Corte
 // The external handover owns that setting, just as it owns replacement movement and ROE.
 if (!_yieldToExternal && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
 private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
-if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group == (_retreatModeLease select 1)}) then {
-    _group setCombatMode (_retreatModeLease select 0);
-};
+// The three group policy components restore together below, before remount admission.
 // Search movement never disables PATH. Do not enable a mission-disabled feature while
 // returning a search team. During an ordinary handback its Cortex MOVE is explicitly
 // retired; during a Zeus takeover a MOVE may already be the curator's replacement order.
@@ -248,17 +249,49 @@ if (!isNull _orientVehicle && {local _orientVehicle}) then {
         _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
     };
 };
-if (!_yieldToExternal && {_state getOrDefault ["behaviourChanged", false]} && {behaviour _leader in ["COMBAT", "AWARE"]}) then {
-    private _base = _state getOrDefault ["baseBehaviour", "AWARE"];
-    // After a real firefight a squad stays alert rather than slinging weapons, as the engine does.
-    if (_base == "SAFE" && {_state getOrDefault ["hadContact", false]}) then {_base = "AWARE"};
-    _group setBehaviour _base;
-};
+// Group policy cleanup is a short atomic commit, not three scattered native writes.
+// Native settings which still equal CBE's application may nevertheless belong to a new
+// task. Preserve those pairs as unresolved evidence rather than overriding that task or
+// claiming restoration. This receipt does not grant any automatic late-write authority.
+private _unresolvedPolicies=[];
 private _retreatSpeedLease=_state getOrDefault ["retreatSpeedMode",[]];
-if (!_yieldToExternal && {count _retreatSpeedLease == 2}
-    && {speedMode _group == (_retreatSpeedLease select 1)}
-    && {(_retreatSpeedLease select 0) != (_retreatSpeedLease select 1)}) then {
-    _group setSpeedMode (_retreatSpeedLease select 0);
+isNil {
+    private _policyAvailable=[_group] call CBE_fnc_CortexGroupPostureTaskAvailable;
+    if (!_yieldToExternal && {count _retreatModeLease == 2} && {combatMode _group == (_retreatModeLease select 1)}
+        && {(_retreatModeLease select 0) != (_retreatModeLease select 1)}) then {
+        if (_policyAvailable) then {_group setCombatMode (_retreatModeLease select 0)};
+        if (combatMode _group != (_retreatModeLease select 0)) then {
+            _unresolvedPolicies pushBack ["COMBAT_MODE",_retreatModeLease select 0,_retreatModeLease select 1,
+                ["NATIVE_TASK","UNCONFIRMED"] select _policyAvailable];
+        };
+    };
+    if (!_yieldToExternal && {_state getOrDefault ["behaviourChanged", false]} && {behaviour _leader in ["COMBAT", "AWARE"]}) then {
+        private _base = _state getOrDefault ["baseBehaviour", "AWARE"];
+        // After a real firefight retain alertness rather than returning to SAFE.
+        if (_base == "SAFE" && {_state getOrDefault ["hadContact", false]}) then {_base = "AWARE"};
+        private _applied=behaviour _leader;
+        if (_base != _applied) then {
+            if (_policyAvailable) then {_group setBehaviour _base};
+            if (behaviour _leader != _base) then {
+                _unresolvedPolicies pushBack ["BEHAVIOUR",_base,_applied,
+                    ["NATIVE_TASK","UNCONFIRMED"] select _policyAvailable];
+            };
+        };
+    };
+    if (!_yieldToExternal && {count _retreatSpeedLease == 2}
+        && {speedMode _group == (_retreatSpeedLease select 1)}
+        && {(_retreatSpeedLease select 0) != (_retreatSpeedLease select 1)}) then {
+        if (_policyAvailable) then {_group setSpeedMode (_retreatSpeedLease select 0)};
+        if (speedMode _group != (_retreatSpeedLease select 0)) then {
+            _unresolvedPolicies pushBack ["SPEED_MODE",_retreatSpeedLease select 0,_retreatSpeedLease select 1,
+                ["NATIVE_TASK","UNCONFIRMED"] select _policyAvailable];
+        };
+    };
+};
+if (_unresolvedPolicies isNotEqualTo []) then {
+    _group setVariable ["CBE_Cortex_CalmPolicyUnresolved",[serverTime,
+        _group getVariable ["CBE_AIPass_Epoch",0],_group getVariable ["CBE_OperationGeneration",0],
+        _reason,_unresolvedPolicies],true];
 };
 {
     _x params ["_unit", "_vehicle"];

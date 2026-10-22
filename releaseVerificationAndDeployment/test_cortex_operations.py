@@ -7070,6 +7070,18 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('disableAI "AUTOCOMBAT"', text)
 
         self.assertIn('private _nativeTaskActive = !([_group] call CBE_fnc_CortexGroupPostureTaskAvailable)',text)
+        restore=source('cortexRestoreCalm')
+        commit=restore.split('private _unresolvedPolicies=[];',1)[1].split('_x params ["_unit", "_vehicle"]',1)[0]
+        self.assertIn('isNil {',commit)
+        self.assertEqual(commit.count('call CBE_fnc_CortexGroupPostureTaskAvailable'),1)
+        for command in ('_group setCombatMode (_retreatModeLease select 0)',
+                        '_group setBehaviour _base','_group setSpeedMode (_retreatSpeedLease select 0)'):
+            self.assertIn('if (_policyAvailable) then {'+command,commit)
+        self.assertIn('CBE_Cortex_CalmPolicyUnresolved',commit)
+        for component in ('"COMBAT_MODE"','"BEHAVIOUR"','"SPEED_MODE"'):
+            self.assertIn(component,commit)
+        self.assertNotIn('CortexQueueJob',commit)
+
         footprint=source('cortexGroupPostureTaskAvailable')
         for protected in ('fleeing _x','unitCombatMode _x in ["BLUE","GREEN"]',
                           '!isNull objectParent _x','ace_medical_ai_healQueue','count _members > 64'):
