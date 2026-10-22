@@ -36,5 +36,29 @@
     "No full LAMBS review/parity or percentage claim.",
     "Audits PAUSED; physical/performance acceptance incomplete.",
     "Protected references unchanged; no source scripts executed."
-  ]
+  ],
+  "executionTraceFollowup": {
+    "baseline": "c51e7527",
+    "scope": "Read-only forced-flight execution and reuse analysis; no movement implementation or runtime claim",
+    "fsm": "DangerEngineMode classifies fleeing as FORCED; Check_self invokes DangerEngineAct; its finite deadline reaches Check_self_2/Check_queue and End_Forced invokes DangerEngineRelease. FORCED has no movement branch or positive recycle budget.",
+    "cleanup": "DangerEngineRelease clears the response marker and defers owned stance restoration while native fleeing persists. This is posture cleanup, not escape travel or native movement acknowledgement.",
+    "reuseConstraints": [
+      "DangerCoverStep refuses fleeing actors before admission. It has one group cover lease and only recalls an exact owned failed approach when the leased actor is no longer fleeing; removing the veto would change ownership and cannot represent independent flight for multiple soldiers.",
+      "PointActorOperation and IndoorActorOperation exclude fleeing in admission and cleanup. They implement investigation, not flight; dispatching forced flight through these executors would be a semantic and ownership change.",
+      "LAMBS doFleeing operates on foot and mounted actors differently. Its unconditional posture reset, group-memory erasure, unseen enemy geometry and delayed crew actions are not safe replacements for these CBE guards."
+    ],
+    "nextDecision": "Do not weaken existing investigation/cover ownership gates to claim flight parity. A distinct finite actor-flight execution path needs original deadline and native-order proof, passive yield to existing native movement, generation/locality/Zeus/medical interruption and exact cleanup. Native-versus-CBE physical destination/travel comparison remains required to establish whether and where native movement stalls.",
+    "validation": "Paths and current hashes verified; existing runtime source unchanged. No repeat build, audit launch or feature credit.",
+    "hashes": {
+      "addons/danger/danger.fsm": "d0d6f952bec35d9fd02aed22ee0ee7634685246d72a093fb08b45afc618bfffa",
+      "addons/infantry/functions/dangerEngineMode.sqf": "0aee5da201a87aa55ff7437b4de6d9ed3073e5b9492e496db6c54f1cb92047fc",
+      "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+      "addons/infantry/functions/dangerEngineCanContinue.sqf": "71a009cc758ddb4d5fd79061e929450c28cd0f5a422df52b6bb73b34e1c5739e",
+      "addons/infantry/functions/dangerEngineRecycle.sqf": "2c0bc9f50f84c2a3f5320c33cfbcf9a21639c911ba0262157115c519239cdcee",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "3415a04e84ce8983a791ca344e788a96847967bbbf624e783d5adc139644d2c6",
+      "addons/infantry/functions/dangerCoverStep.sqf": "f404ea583f70c2ffe463514b40085f015c81a191738ac50ec83620beea78659b",
+      "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
+      "addons/infantry/functions/indoorActorOperation.sqf": "e196c40a7a844a5781ab82700b9925e6643b45186afbefcb603f8f46261e1f4d"
+    }
+  }
 }
