@@ -306,5 +306,20 @@
       ".qa/native-flight-planning-budget-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering notes afterward. Physical path/late ACK/cancellation/rejoin/HC/JIP and overhead unverified. Deadline timeout plus receipt deletion does not prove pending engine request quiescence; identical replacement native intent remains ambiguous. No full flight/mounted parity or eventual handback claim; audits paused. No score/hash renewal."
+  },
+  "flightPendingJournal20261023": {
+    "baseline": "6ecf6f3c",
+    "finding": "Flight RELEASE deleted its original journal/reservation when doMove still had not acknowledged, allowing routine admission after expiry while the engine request might remain pending.",
+    "implementation": "Exact unchanged pre-request native state with matching group/order/reservation retains immutable flight journal and reports CANCEL_PENDING. Existing bounded64-member DangerSetup pass independently reconciles expired or finished-response flight, without clearing a successor response. CortexActorMoveReserved respects unresolved journal after ordinary marker expiry. Original deadline+30 bounds follow commands; late exact-goal acknowledgement remains UNRESOLVED_DEADLINE without a native write. No request replay, new worker, world scan, timer or original deadline renewal.",
+    "edge": "An empty native command whose old destination already equals requested goal remains pending; only a MOVE label with requested goal can qualify acknowledgement.",
+    "validation": "1491 existing tests/full final offline pipeline with HEMTT/config/SQF/FSM/docs/package plus independent copied-candidate verification passed. Existing flight regression extended; no new case. Initial build also passed before same-goal idle edge was corrected; final covers actual runtime.",
+    "candidate": ".qa/candidates/native-flight-pending-journal-6ecf6f3c",
+    "fingerprint": "4462e5c2a5d712d18162aecb65aa076838a0856c198d6d645f78e1fbf1db9bf2",
+    "logs": [
+      ".qa/native-flight-pending-journal-build.log",
+      ".qa/native-flight-pending-journal-build-final.log",
+      ".qa/native-flight-pending-journal-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. Retained metadata can block admission indefinitely after cleanup window/shutdown. No guaranteed native quiescence, follow-command ACK or physical return. Owner migration, identical replacement intent, balance and5%median/10%p95 remain unverified; audits paused. No percentage increase."
   }
 }

@@ -111,7 +111,7 @@
           "capability": "Owner epoch and actor reservations",
           "weight": 1,
           "built": 1,
-          "implemented": "Reviewed 2026-10-23 at 1f08c452 plus locality-policy fix: locality retires machine-local executors/handlers, advances the owner epoch and resumes supported semantic intent only on the actual gained owner. Supported recovery/withdrawal journals retain original budgets and order fences. The actor reservation predicate is owner-local, admits empty or fully typed expired leases and preserves malformed/unknown markers. Complete native/provider handback remains a separate partial criterion.",
+          "implemented": "Reviewed 2026-10-23 at 1f08c452 plus locality-policy fix: locality retires machine-local executors/handlers, advances the owner epoch and resumes supported semantic intent only on the actual gained owner. Supported recovery/withdrawal journals retain original budgets and order fences. The actor reservation predicate is owner-local, admits empty or fully typed expired leases and preserves malformed/unknown markers. Complete native/provider handback remains a separate partial criterion. Reviewed 6ecf6f3c plus pending-flight fix: an unresolved native-flight journal blocks routine admission after its ordinary reservation expiry; only feature-owned reconciliation can retire it. This adds no movement authority.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -120,11 +120,11 @@
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
-              "sha256": "1cbd4f0aaeb559971d794b5ea2ddd2099ea128d9913fc668fbd7cc304fdf3874"
+              "sha256": "509767bbe967418c8772b733a1763e955e8627668b78ec223b52ece1bb7cb002"
             }
           ],
           "reviewed_at": "2026-10-23",
-          "source_commit": "1f08c452 + locality-policy fix"
+          "source_commit": "6ecf6f3c + pending-flight fix"
         },
         {
           "capability": "All-owner handback integration",

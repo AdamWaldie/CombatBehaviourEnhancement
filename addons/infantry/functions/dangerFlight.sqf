@@ -7,12 +7,13 @@
  * Empty release and non-fleeing start return before receipt validation or helper allocation.
  * Repeat/JIP: One local eight-field lease keeps its original deadline, at most twelve seconds.
  * Unchanged pre-request native planning may consume the original travel budget, never a new grace.
+ * Pending cancellation retains immutable proof and is inspected by existing sparse DangerSetup.
  * No worker, waypoint, reveal, posture/speed reset or remote replay. One search per group
  * per two seconds and per actor per fifteen seconds bounds repeated failed observations.
  * Arguments: 0 mode STRING START or RELEASE; 1 actor OBJECT objNull;
  * 2 native danger record ARRAY [], used only for START.
  * Return: NUMBER remaining FSM wait on a screened START; zero for native rejoin, refusal or RELEASE.
- * Callers: DangerEngineAct and DangerEngineRelease. CanContinue reads only the local lease.
+ * Callers: DangerEngineAct, DangerEngineRelease and sparse DangerSetup cleanup. CanContinue reads only the local lease.
  * Example: ["START",soldier1,[2,[100,200,0],time+1,objNull]] call CBE_fnc_DangerFlight;
  * Quiet, distant group-only contact may hand an idle follower back to native formation once.
  * Recent personal contact, physical hazards and suppression never grant that rejoin path.
@@ -64,6 +65,27 @@ if (_mode == "RELEASE") exitWith {
         private _reservation=["DANGER_FLIGHT",_goal,_deadline];
         private _sameReservation=(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _reservation;
         private _arrived=(getPosASL _actor) vectorDistance (AGLToASL _goal) <= 2;
+        private _before=_lease select 7;
+        private _sameContext=_group == _oldGroup && {!isNull _group} && {local _group}
+            && {[ _epoch,_generation,_route] isEqualTo (call _context)};
+        private _pending=_sameReservation && {_sameContext}
+            && {currentCommand _actor in [_before select 0,"MOVE"]}
+            && {(expectedDestination _actor) isEqualTo (_before select 1)}
+            && {formLeader _actor isEqualTo (_before select 2)}
+            && {currentCommand _actor != "MOVE"
+                || {((expectedDestination _actor) select 0) vectorDistance _goal > 0.25}};
+        // The engine may still consume the original doMove. Empty metadata is not cancellation.
+        if (_pending) exitWith {
+            _actor setVariable ["CBE_Danger_FlightResult",[
+                ["CANCEL_PENDING","UNRESOLVED_DEADLINE"] select (time >= _deadline+30),
+                time,+_goal,_issued,_deadline]];
+        };
+        if (!_arrived && {_sameReservation} && {_sameContext} && {time >= _deadline+30}
+            && {currentCommand _actor == "MOVE"}
+            && {((expectedDestination _actor) select 0) vectorDistance _goal <= 0.25}) exitWith {
+            // Acknowledgement after the original cleanup window grants no late follow command.
+            _actor setVariable ["CBE_Danger_FlightResult",["UNRESOLVED_DEADLINE",time,+_goal,_issued,_deadline]];
+        };
         private _owns=_sameReservation && {_group == _oldGroup} && {call _available}
             && {[ _epoch,_generation,_route] isEqualTo (call _context)}
             && {currentCommand _actor == "MOVE"}

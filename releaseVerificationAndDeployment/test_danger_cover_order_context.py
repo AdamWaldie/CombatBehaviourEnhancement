@@ -49,6 +49,13 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertIn('formLeader _actor isEqualTo (_before select 2)',gate)
         self.assertIn('!(_acknowledged || {_pending})',gate)
         self.assertNotIn('(_flight select 6)+0.5',gate)
+        self.assertLess(cleanup.index('if (_pending) exitWith'),cleanup.index('setVariable ["CBE_Danger_FlightLease",nil]'))
+        self.assertIn('time >= _deadline+30',cleanup)
+        self.assertIn('"CANCEL_PENDING","UNRESOLVED_DEADLINE"',cleanup)
+        discovery=(ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text(encoding='utf-8')
+        self.assertIn('["RELEASE",_x] call CBE_fnc_DangerFlight',discovery)
+        reserved=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text(encoding='utf-8')
+        self.assertLess(reserved.index('CBE_Danger_FlightLease'),reserved.index('private _expired='))
         rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('private _rayStart=',1)[0]
         self.assertIn('_actor doFollow _leader',rejoin)
         self.assertIn('currentCommand _actor == ""',rejoin)

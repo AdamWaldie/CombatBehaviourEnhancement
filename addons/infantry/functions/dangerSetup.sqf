@@ -8,6 +8,7 @@
  * retains only engine-confirmed target identity without revealing targets or issuing movement.
  * Repeat/JIP: Repeat-safe. Machine-local handler identifiers are removed on disable or locality
  * handover, and the new owner rebuilds the observer from fresh native contact events.
+ * Existing bounded discovery also reconciles pending owner-local flight requests without reissuing them.
  * Arguments: 0: group <GROUP>, grpNull; 1: cleanup <BOOL>, false.
  * Return Value: Nothing.
  * Current callers: CBE discovery, locality reconciliation and shutdown.
@@ -98,6 +99,13 @@ if (_paceActors isNotEqualTo []) then {
         if (local _x && {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}
             && {!( ["CHECK",_x] call CBE_fnc_DangerAttackPace)}) then {
             ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
+        };
+        private _flightProof=_x getVariable ["CBE_Danger_FlightLease",[]];
+        if (local _x && {_flightProof isEqualType []} && {count _flightProof == 8}
+            && {(_flightProof select 1) isEqualType 0} && {finite (_flightProof select 1)}
+            && {time >= (_flightProof select 1)
+                || {(_x getVariable ["CBE_Danger_EngineResponse",[]]) isEqualTo []}}) then {
+            ["RELEASE",_x] call CBE_fnc_DangerFlight;
         };
     } forEach (_paceActors select [0,64]);
 };
