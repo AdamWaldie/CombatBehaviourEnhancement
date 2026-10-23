@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * True resume gives its episode-bound lane pairs precedence over lagging general buddy
+ * metadata. Pair identity never bypasses current participant or actor admission.
  * Version4 exit journals retain server-time progress/motion clocks and the ASL motion
  * anchor. Adoption observes the existing leg; it never issues it or renews stall grace.
  * Locality resume reconstructs exit distance and same-floor settlement in ASL; saved
@@ -596,7 +598,8 @@ while {_remaining isNotEqualTo []} do {
 // a trailing security partner and its own claimed room route. Shared queue and failure evidence prevent
 // lanes from crowding the same room.
 private _pairs=[];
-[{_pairs=[_group,_team] call CBE_fnc_CombatPairs}] call _commitPreparation;
+private _pairPreference=if (_useResumeRoster) then {_resumePairs} else {[]};
+[{_pairs=[_group,_team,true,_pairPreference] call CBE_fnc_CombatPairs}] call _commitPreparation;
 private _pairRoutes=_pairs apply {[]};
 private _pending=+_routeOrder;
 private _pairStates=[];

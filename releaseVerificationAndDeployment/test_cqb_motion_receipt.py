@@ -61,6 +61,13 @@ class MotionReceiptTests(unittest.TestCase):
                          'isNotEqualTo _resumeUnavailable','isNotEqualTo _resumeRosterContext'):
             self.assertIn(snapshot,commit)
         self.assertLess(text.index('"RESUME_ROSTER_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
+        self.assertIn('private _pairPreference=if (_useResumeRoster) then {_resumePairs} else {[]}',text)
+        self.assertIn('[_group,_team,true,_pairPreference] call CBE_fnc_CombatPairs',text)
+        pairs=read('combatPairs.sqf')
+        self.assertLess(pairs.index('forEach (_preferred select [0,16])'),pairs.index('forEach (_previous select [0,16])'))
+        self.assertIn('count _preferred > 16',pairs)
+        self.assertIn('select {_x in _remaining}',pairs)
+        self.assertLess(pairs.index('CBE_fnc_CortexCombatEffective'),pairs.index('forEach (_preferred'))
     def test_durable_roster_survives_common_operation_cancel_and_is_episode_bound(self):
         text=read('cortexClearBuilding.sqf')
         for proof in ('private _useRosterJournal=_resume',

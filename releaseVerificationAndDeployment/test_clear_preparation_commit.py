@@ -26,7 +26,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertIn('[{_group setVariable ["CBE_Cortex_'+field+'"',text)
         for field in ('ClearEarlyExits','ClearEgress','ClearFollowBudget','ClearStageBudget'):
             self.assertIn('if (!_resume) then {[{_group setVariable ["CBE_Cortex_'+field+'",nil,true]}] call _commitPreparation};',text)
-        self.assertIn('[{_pairs=[_group,_team] call CBE_fnc_CombatPairs}] call _commitPreparation;',text)
+        self.assertIn('[{_pairs=[_group,_team,true,_pairPreference] call CBE_fnc_CombatPairs}] call _commitPreparation;',text)
         self.assertIn('[{_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY"',text)
 
     def test_operation_edits_preserve_current_map_and_actor_marker_rechecks_native_leg(self):

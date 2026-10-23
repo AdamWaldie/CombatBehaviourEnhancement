@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "698b3278",
+  "scope": "Episode-bound clearance lane partner preference during true resume",
+  "finding": "Clearance admission reads resumePairs from the matched CLEAR operation/episode roster and prioritises its participants, but later CombatPairs rebuilt actual pairs from CBE_CombatPairs alone. A lagging general registry can therefore preserve older intact pair combinations even when all intended participants survived the resume admission.",
+  "counterexample": "With eligible roster A,B,C,D, matched clearance lanes A+B/C+D and lagging general pairs A+C/B+D, participant ordering alone cannot prevent the old helper preserving A+C/B+D.",
+  "implementation": "CombatPairs gains optional fourth preferred-pair array, default empty and bounded to16rows. Before the existing general-registry pass, only intact preferred pairs wholly within already-qualified remaining actors are retained. All other actor eligibility, orphan repair, nearest selection, out-of-scope preservation and publication stay unchanged. CortexClearBuilding passes its matched resumePairs only when useResumeRoster is true, inside the existing commitPreparation gate. Ordinary/new-clear callers retain empty preference.",
+  "authority": "Metadata preference only, no native command/target/route, no changed eligibility or new recruitment. Existing building/transform/hard-deadline/visit-context roster binding and RESUME_ROSTER_CHANGED admission checks remain. No pair preference can return actors outside the supplied eligible set.",
+  "cost": "At most16 extra preferred rows on explicit use; no world query, ray, worker, timer or scan of unsupplied actors. Normal default preference loop is empty. Runtime/performance budget unmeasured.",
+  "remaining": "Does not establish ordered public snapshots, latest-roster replication, full entry/sweep route-state adoption or physical normal/HC continuity. New-member floor/entry receipts remain mandatory. Master build-out figures not renewed.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "sha256": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+    }
+  ],
+  "validation": {
+    "focused": 9,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "newCases": 0,
+    "independentVerification": true,
+    "note": "Existing resume contract extended; two guarded call-signature assertions updated after initial full failure. Final pipeline passed."
+  },
+  "candidate": ".qa/candidates/clear-resume-pairs-698b3278",
+  "fingerprint": "707c0205a292342ca295a0a17146d8f39998bc0ac57e518be1da862520d9d06e",
+  "logs": [
+    ".qa/clear-resume-pairs-final-build.log",
+    ".qa/clear-resume-pairs-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on698b3278 plus implementation and unrelated pre-existing dirt; private review/handover postdate build.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

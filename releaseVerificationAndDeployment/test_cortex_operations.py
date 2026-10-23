@@ -2938,7 +2938,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _allPositions = _building buildingPos -1',text)
         self.assertIn('lineIntersectsSurfaces',text)
         self.assertIn('private _pairs=[];',text)
-        self.assertIn('[{_pairs=[_group,_team] call CBE_fnc_CombatPairs}] call _commitPreparation;',text)
+        self.assertIn('[{_pairs=[_group,_team,true,_pairPreference] call CBE_fnc_CombatPairs}] call _commitPreparation;',text)
         self.assertIn('private _pairs=[];',source('combatPairs'))
         self.assertNotIn('private _pairs=_team apply {[_x]}',text)
         self.assertIn('private _team = +_available',text)
