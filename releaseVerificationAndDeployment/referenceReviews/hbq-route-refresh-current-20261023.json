@@ -57,5 +57,31 @@
       "addons/infantry/functions/cortexGroupMove.sqf": "5c596e7f5c0910b526aa1e3e323b1c1da04d71424f27919ad1be46e0964c9f65",
       "addons/infantry/functions/cortexCombinedGroundStep.sqf": "c09a67383c23c74e3e83f436798f53aaf826ecee0e1453ff28ea23970d55a3a8"
     }
+  },
+  "commandedFixedPathReconciliation20261023": {
+    "baseline": "90dbc49d",
+    "scope": "Selective static execution trace of authored-gate approach and temporary-path return; no runtime changes or renewed whole-HBQ review.",
+    "approachFinding": "No missing safety-cap admission found: mayIssueDriving uses the current route receipt, while nativeWaiting and plain-MOVE recoveryOrderFree are separate. Scripted/timed/synchronised waypoint identity does not by itself turn off approach safety caps. Do not remove protection of authored gates to solve an unproved approach failure.",
+    "sourceDifference": "HBQ refreshRoute explicitly avoids fixed paths for a vehicle whose effective commander differs from its driver, citing DoNotPlan/native planning trouble. CBE bypass FOLLOW, corridor CROSS and passing legs do issue setDriveOnPath with distinct seats after exact admission. Source testimony is a physical comparison requirement, not proof that CBE fails or grounds to remove those capabilities.",
+    "actualReturnPaths": [
+      "CorridorRelease checks exact current seats, route, destination and protected tasks; an owned doStop precedes authored commander doMove or eligible mounted-leader follow. It then deletes corridor work. Native-MOVE corridor return can instead update the existing original recovery parent request. No independent pending authored-corridor STOP/return observation is retained here.",
+      "BypassRelease has an explicit pending STOP lifecycle for QUEUE work. Ordinary authored return can update a matching unexpired recovery parent, but that is conditional on the original binding, cap and spent recovery. Convoy return and an authored return lacking that qualifying parent do not gain the same receipt merely because doMove was issued.",
+      "PassFinish already retains exact pending STOP, measured linear/angular rest and original-deadline return observation through DrivingRecoveryCleanup. Do not report that mechanism as absent or implement a second pass handback worker."
+    ],
+    "confirmedBuildGap": "Corridor authored-route retirement does not retain a distinct issued-return observation or report its eventual native acknowledgement. This is an observability/lifecycle gap, not evidence that the native cancellation/return command failed. True travel and separate-commander planning remain unverified.",
+    "nextImplementationBoundary": "Compose any required authored temporary-path return observation with the existing bounded cleanup service, preserving original seats/route/controller generation, native command and cap baseline, newer-order interruption and original deadline. No waypoint cloning, enableAI reset, path replay, new recurring movement owner or timeout-as-success. Determine whether separate STOP acknowledgement is required by actual command semantics before imposing an artificial stop/rest on every successful handback.",
+    "validation": "Read-only source trace and protected refreshRoute hash check. Production sources unchanged; no full build repeated. Last code candidate remains clear-entry-recovery-transfer-b0942bbd, unsigned dirty development snapshot; no physical or performance credit.",
+    "hashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "0f2e7bac266838958c6d6143dfd912da4d7e95d59bb93e733f1ecbc58819e924",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "6318acb95c9071364e589c956135fbb78d05ff4d12600b5bee4410070970e07b",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "be835772be2a8b042848d30d8cc2452f71063cb3d7ea37e2d828ed2b522d24d2",
+      "addons/vehicles/functions/drivingPassStep.sqf": "60da1dfe4a4318945c7dd02f6d1821a2efa157eceeb914d7a6b0e521e8d03c6c",
+      "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "eef1378ba062f55db15a60f064b85137025ec367c9400e5f79e14e6affe2db8c"
+    }
   }
 }
