@@ -253,6 +253,18 @@ class ConvoyLeadGapMetricTests(unittest.TestCase):
         self.assertIn('if (_gap > _target*2)',source)
         self.assertIn('((_gap-_target*2)/((_target*0.2) max 3)) min 1',source)
         self.assertIn('_catchup=_catchup+(_paced-_catchup)*_pacingBlend',source)
+        self.assertIn('(_gap-_catchupThreshold)*0.4',source)
+        # The lead cap must not jump by the accumulated deadband at first admission.
+        # This models the spacing request only, not physical acceleration or braking.
+        for target in (10,30,50,100):
+            threshold=target+max(target*.05,1)
+            def request(gap):
+                return 50 if gap<=threshold else max(50-min((gap-threshold)*.4,8),5)
+            self.assertEqual(request(threshold),50)
+            self.assertLess(abs(request(threshold+.001)-request(threshold-.001)),.001)
+            self.assertEqual(request(threshold+20),42)
+            self.assertEqual(request(threshold+100),42)
+
         # Independent endpoint requirements: the blend must preserve the reserve at
         # entry, reach actual-speed pacing at the tolerance edge, and have no jump.
         for target in (10,30,50,100):

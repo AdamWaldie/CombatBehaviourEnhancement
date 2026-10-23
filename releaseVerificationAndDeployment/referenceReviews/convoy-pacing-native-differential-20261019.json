@@ -32,5 +32,9 @@
     "Current normal-client mixed step-off/restart with per-owner control sample, actual motion, requested/applied cap, native command and destination.",
     "Separate native route replanning/endpoint braking from retained geometry, close-gap braking and traffic holds.",
     "Full HBQ source parity and measured overhead remain incomplete; this is a selected traffic-intent comparison."
-  ]
+  ],
+  "leadOnsetCorrection20261023": {
+    "review": "convoy-pacing-onset-20261023.json",
+    "finding": "A separate exact discontinuity at the initial lead reserve threshold is corrected using the existing gain and bounds. This does not identify the physical mixed-column root cause or justify broad gain tuning. Current native endpoint lifecycle remains implemented and physically unverified."
+  }
 }

@@ -828,7 +828,9 @@ if (!_contact) then {
             // Within the spacing band, reserve speed from cruise rather than from
             // instantaneous follower speed. Feeding acceleration lag back into the
             // leader here ratchets the whole convoy down on every small gap change.
-            private _catchup=(_maximum - (((_gap-_target)*0.4) min 8)) max 5;
+            // Reserve starts at zero at its admission threshold. Measuring error from
+            // the target instead creates a cap step equal to the whole deadband.
+            private _catchup=(_maximum - (((_gap-_catchupThreshold)*0.4) min 8)) max 5;
             // Ordinary outer-band error must not feed each follower's transient
             // acceleration lag back into the lead. That ratchets a mobile column
             // down to walking speed. Actual-speed pacing is reserved for a

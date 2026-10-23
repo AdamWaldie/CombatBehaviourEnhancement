@@ -1,0 +1,55 @@
+{
+  "baseline": "03587213",
+  "scope": "Continuous onset of convoy lead catch-up reserve",
+  "finding": "At gap>target+max(target*0.05,1), reserve used (gap-target)*0.4. At target50/cruise50, crossing52.5m therefore stepped requested lead cap from50 to about49km/h even with turn0 and no other cap. This is analytic evidence, not the physical stop/start root cause.",
+  "change": "Measure the same proportional reserve from its admission threshold. Retain gain0.4, reserve cap8, minimum5, severe-stretch blend, actual-speed pacing, downstream obstacle/contact/arrival/closing constraints and existing callback. No new state/timer/controller or safety removal.",
+  "samples": [
+    {
+      "gap": 52.499,
+      "old": 50,
+      "new": 50
+    },
+    {
+      "gap": 52.5,
+      "old": 50,
+      "new": 50
+    },
+    {
+      "gap": 52.501,
+      "old": 48.9996,
+      "new": 49.9996
+    },
+    {
+      "gap": 60,
+      "old": 46.0,
+      "new": 47.0
+    },
+    {
+      "gap": 72.5,
+      "old": 42,
+      "new": 42.0
+    },
+    {
+      "gap": 100,
+      "old": 42,
+      "new": 42
+    }
+  ],
+  "reference": "HBQ driveAssist1017-1028 distinguishes following room/physical stop and mass-aware braking. This correction is CBE lead pacing; no claim HBQ provides an identical convoy controller. Protected source unchanged.",
+  "hash": "697112376f16892204c59692cbc5ab1b61b796fac9bfbd81cdb529bb6ab39d43",
+  "validation": {
+    "focusedExistingTests": 20,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "build": ".qa/convoy-pacing-onset-build.log",
+    "independent": ".qa/convoy-pacing-onset-independent.log",
+    "candidate": ".qa/candidates/convoy-pacing-onset-03587213",
+    "fingerprint": "0dd84ef8dfed7cb00adcf68b416098f3da7a2aa9c2e98df9cb372bb835344155",
+    "provenance": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward."
+  },
+  "limits": [
+    "Historical mixed-column positive caps while stopped still implicate native execution as a separate unresolved candidate; no present root cause or success established.",
+    "No physical mixed step-off/restart/spacing/braking/HC or median/p95 overhead acceptance.",
+    "Audits paused; no launch, push, merge, CI dispatch or publishing."
+  ]
+}
