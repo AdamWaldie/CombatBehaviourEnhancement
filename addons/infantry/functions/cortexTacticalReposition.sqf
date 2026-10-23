@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Purpose: Commits one short terrain-screened reposition when the current contact cannot support a useful assault, flank or advance.
  * Locality / Authority: Runs only on the current group owner after normal CBE eligibility checks. Zeus, players, authored HOLD/SENTRY orders, specialist owners and newer CBE operations take precedence.
  * A routine group-waypoint fallback yields to any live or malformed actor reservation;
@@ -68,10 +69,10 @@ if (_reason == "ARMOUR_OVERMATCH" && {_distance <= 120}) exitWith {
 
 // This fallback writes a group-wide waypoint. It cannot reserve only the remaining
 // actors, so preserve finite actor work rather than stealing a grenade/AT/indoor leg.
-// INIT and REPLAN are as much native path work as PLANNING. Preserve all three
+// Initialization/data wait, planning and delayed re-search remain native path work. Preserve them
 // before this routine fallback spends geometry or acquires a group movement lease.
 // The close-armour withdrawal above retains its urgent survival priority.
-if ((units _group) findIf {alive _x && {getUnitState _x in ["INIT","PLANNING","REPLAN"]
+if ((units _group) findIf {alive _x && {getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]
     || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}}} >= 0) exitWith {false};
 private _toward=_origin getDir _threatPos;
 private _away=_threatPos getDir _origin;

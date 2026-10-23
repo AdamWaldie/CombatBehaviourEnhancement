@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Purpose: One finite native infantry UGL illumination action, without dummy targets or inventory edits.
  * Weapon handback requires native selection readback. Unconfirmed original/applied selection
  * proof survives action retirement and blocks recapturing the launcher as a fresh baseline.
@@ -107,7 +108,7 @@ if (count _work == 0) exitWith {
     {
         _actor=_x;
         if (!(call _authority) || {_actor == leader _group} || {abs speed _actor > 0.5}
-            || {!unitReady _actor} || {getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]}
+            || {!unitReady _actor} || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]}
             || {[_actor] call CBE_fnc_CortexActorMoveReserved}
             || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}
             || {!(_actor checkAIFeature "FIREWEAPON")} || {!(_actor checkAIFeature "TARGET")}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
  * Puts the squad's best anti-tank gunner onto a known armoured vehicle, clear of backblast.
  *
@@ -12,7 +13,7 @@
  * morale (CBE_fnc_CortexMorale), which can make it withdraw.
  * Locality and authority: call where the group is local. Actor-local player/remote/external
  * ownership and native service actions refuse selection and are rechecked before writes.
- * FIREWEAPON-disabled actors, queued ACE treatment and native INIT/PLANNING/REPLAN defer
+ * FIREWEAPON-disabled actors, queued ACE treatment and native INIT/INITFAILED/PLANNING/REPLAN/DELAY defer
  * selection and new writes. This does not change native permissions or the medical queue.
  * Backblast uses the shared firing-safety allegiance policy: allied sides, civilians and
  * protected captives behind the gunner refuse. The existing6m actor query caps at64 candidates.
@@ -66,7 +67,7 @@ private _actorAvailable={
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {_actor checkAIFeature "FIREWEAPON"}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-        && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
+        && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",

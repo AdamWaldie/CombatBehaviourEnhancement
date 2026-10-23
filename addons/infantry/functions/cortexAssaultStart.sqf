@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Eligible persistent buddies stay together where element capacity permits; depleted
  * two/three-person elements retain their minimum mover/cover capacity over pair cohesion.
  * Initial role capacity excludes protected native tasks and live actor reservations through
@@ -98,7 +99,7 @@ if (count _onFoot < 2) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _r
 // Native route creation/replanning belongs to the engine until it leaves those states.
 // Small elements cannot spare another independent mover, so defer their whole admission.
 private _smallElement=count _onFoot < 4;
-if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x in ["INIT","PLANNING","REPLAN"]}
+if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
     || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}} >= 0}) exitWith {
     ["SMALL_ELEMENT_UNAVAILABLE",[count _onFoot]] call _refuse
 };

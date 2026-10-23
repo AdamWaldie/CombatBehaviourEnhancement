@@ -235,16 +235,16 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertNotIn('_row set [3,',body)
         self.assertIn('_position vectorDistance (_row select 5) >= 2',body)
         self.assertIn('serverTime-(_row select 6) >= 12',body)
-        self.assertIn('toUpperANSI getUnitState _actor in ["INIT","PLANNING","REPLAN"]',body)
+        self.assertIn('toUpperANSI getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',body)
         self.assertIn('_stalled && {!_planning}',body)
         # Only an actual native planning state can defer a no-motion exhaustion,
         # and no planning state can outlive the original seat deadline.
         def wait_for_boarding(now,deadline,last_motion,state):
-            return now < deadline and (now-last_motion < 12 or state in ('INIT','PLANNING','REPLAN'))
-        for state in ('INIT','PLANNING','REPLAN'):
+            return now < deadline and (now-last_motion < 12 or state in ('INIT','INITFAILED','PLANNING','REPLAN','DELAY'))
+        for state in ('INIT','INITFAILED','PLANNING','REPLAN','DELAY'):
             self.assertTrue(wait_for_boarding(20,60,0,state))
             self.assertFalse(wait_for_boarding(60,60,0,state))
-        for state in ('BUSY','WAIT','INITFAILED','DELAY','STOPPED',''):
+        for state in ('BUSY','WAIT','STOPPED',''):
             self.assertFalse(wait_for_boarding(20,60,0,state))
         self.assertTrue(wait_for_boarding(8,60,0,'BUSY'))
 

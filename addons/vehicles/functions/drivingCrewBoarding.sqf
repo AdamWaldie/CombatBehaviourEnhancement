@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing ends cooperation without cancelling the boarding order.
  * Pending ACE care ends native-boarding cooperation without clearing its queue or renewing seat deadlines.
  * Purpose: Offers a finite vehicle wait for an already-ordered operating crew member.
@@ -9,7 +10,7 @@
  * Repeat/JIP: Public per-seat deadlines survive owner/brain replacement on the same authored
  * route. Expired attempts cannot renew until physical boarding or assignment removal/change.
  * Twelve seconds without measured two-metre actor motion ends the wait unless native
- * INIT/PLANNING/REPLAN is pending. That search may use only the original60-second limit;
+ * INIT/INITFAILED/PLANNING/REPLAN/DELAY is pending. That search may use only the original60-second limit;
  * it does not update motion evidence or renew any clock. Native boarding is never cancelled.
  * Progress anchors/clocks survive migration; no lifetime renews.
  * Changed route starts distinct work. No native command, handler or movement job is replayed.
@@ -104,8 +105,9 @@ private _next=[];
             private _stalled=serverTime-(_row select 6) >= 12;
             // Native search can be stationary while still preparing its GET IN route.
             // Preserve that plan only inside the existing original seat deadline.
-            // BUSY/WAIT/failed plans do not count as measured movement or restart grace.
-            private _planning=_stalled && {toUpperANSI getUnitState _actor in ["INIT","PLANNING","REPLAN"]};
+            // Data preparation and delayed search are not failed routes. None counts as
+            // measured movement or restarts the original seat deadline.
+            private _planning=_stalled && {toUpperANSI getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]};
             if (_stalled && {!_planning}) then {_row set [4,true]} else {_wait=true};
         };
         _next pushBack _row;

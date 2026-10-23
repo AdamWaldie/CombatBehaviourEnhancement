@@ -1284,5 +1284,39 @@
       ".qa/danger-native-data-wait-independent.log"
     ],
     "limits": "No in-game danger/physical-threat/movement/performance proof or whole-source parity claim. Native data wait may still fail. Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Scores unrenewed; audits PAUSED."
+  },
+  "remainingNativeDataWaitPaths20261024": {
+    "base": "2e16125e",
+    "scope": "Remaining existing three-state native planner classifications, traced for their actual admission/observer semantics before change.",
+    "primarySource": "https://community.bistudio.com/wiki/getUnitState",
+    "change": "Include INITFAILED/DELAY in existing fire-control, anti-armour, small-element assault, fallback reposition, illumination and naval foot-egress admission guards. Extend existing native GET IN stalled-planning observation to both states within its original60second seat deadline. No fresh clock, actor motion claim, boarding/seat command, query or controller.",
+    "boundaries": "Urgent close-armour withdrawal remains above the fallback reposition guard. Existing BUSY/WAIT no-motion boarding exhaustion remains unchanged; neither counts as movement or renews expiry. No broad task-mode ownership inference or automatic assignment-based crew recall.",
+    "evidenceHashes": {
+      "addons\\core\\functions\\cortexFireControl.sqf": "dd9219e66d935dfd156f77a56aa7f7735653cbe8474e4a40d965d039c855bf8d",
+      "addons\\infantry\\functions\\cortexAntiArmour.sqf": "26a22fb50a812b22ca7c46af343e46865dbc6279bf6d5b1b1edf2c50f631fe26",
+      "addons\\infantry\\functions\\cortexAssaultStart.sqf": "e77335053e5da646715f0f109c6fd2310b2e328a3e8697b132cccde87c6c72a9",
+      "addons\\infantry\\functions\\cortexTacticalReposition.sqf": "a4c2488bbf74b3754b4fdd91506295007abd0ab0ff6cfcf74e8b72166f36898a",
+      "addons\\infantry\\functions\\cortexIlluminationStep.sqf": "7f99dfcca44bebb7e5d4a0c396d326efa8c908c19d6491b12cb613fe6da106f9",
+      "addons\\vehicles\\functions\\cortexNavalEgressActor.sqf": "223337a47dbc0567abe4a5018613e9689596c6adf16234ab56443253d605b906",
+      "addons\\vehicles\\functions\\drivingCrewBoarding.sqf": "d1a7976b929ecf2f4897069be4038febb90c824f969c43bc82f41b535e9cd133"
+    },
+    "validation": {
+      "existingCrewCases": 17,
+      "existingOperationCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/native-data-wait-final-paths-2e16125e",
+    "fingerprint": "05776cddde289790efc592b3957d2a067859ba93b2c461ed075e8b48f75aba66",
+    "logs": [
+      ".qa/native-data-wait-final-paths-crew.log",
+      ".qa/native-data-wait-final-paths-operations.log",
+      ".qa/native-data-wait-final-paths-build.log",
+      ".qa/native-data-wait-final-paths-independent.log"
+    ],
+    "limits": "No in-game planner, boarding, fire-control, small-team, amphibious or performance acceptance. Native search can still fail. Unsigned dirty development includes unrelated pre-existing dirt; private review/notes postdate package. Scores and whole-source parity unrenewed; audits PAUSED."
   }
 }

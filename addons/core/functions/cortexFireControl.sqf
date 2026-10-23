@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Fleeing actors receive no injected target/fire/suppression; the shared task gate repeats at issue.
  * Native CANFIRE accepts current eight-field observations only while their original identity
  * witness and source expiry remain valid; legacy six/seven-field records use their event expiry.
@@ -13,7 +14,7 @@
  * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
- * Native INIT/PLANNING/REPLAN, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
+ * Native INIT/INITFAILED/PLANNING/REPLAN/DELAY, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
  * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
@@ -127,7 +128,7 @@ private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x} && {!fleeing _x}
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-        && {!(getUnitState _x in ["INIT","PLANNING","REPLAN"])}
+        && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         && {abs (speed _x) < 0.5}
         && {behaviour _x != "STEALTH"}
         && {isNull remoteControlled _x}

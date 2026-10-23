@@ -488,7 +488,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
 
     def test_routine_group_reposition_cannot_steal_an_actor_leg(self):
         s=(ROOT/'addons/infantry/functions/cortexTacticalReposition.sqf').read_text()
-        guard=s.index('if ((units _group) findIf {alive _x && {getUnitState _x in ["INIT","PLANNING","REPLAN"]')
+        guard=s.index('if ((units _group) findIf {alive _x && {getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]')
         self.assertLess(s.index('call CBE_fnc_CortexRetreat'),guard)
         self.assertLess(guard,s.index('call CBE_fnc_CortexFindCover'))
         self.assertLess(guard,s.index('call CBE_fnc_CortexOwnershipLease'))

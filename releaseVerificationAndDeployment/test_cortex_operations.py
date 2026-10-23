@@ -4634,9 +4634,9 @@ class CortexOperations(unittest.TestCase):
             self.assertNotIn(forbidden,selected)
         roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
         self.assertIn('[_x] call _primaryBulletSelected',roster)
-        self.assertIn('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])',roster)
+        self.assertIn('!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])',roster)
         self.assertIn('behaviour _x != "STEALTH"',roster)
-        self.assertLess(fire.index('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])'),fire.index('_unit doTarget'))
+        self.assertLess(fire.index('!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])'),fire.index('_unit doTarget'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('magazinesAmmoFull _unit'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('_unit doSuppressiveFire'))
         suppression = fire.split('// Disciplined suppression', 1)[1]
@@ -4906,7 +4906,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexCombatEffective', text)
         available=text.split('private _actorAvailable={',1)[1].split('private _now =',1)[0]
         for guard in ('_actor checkAIFeature "FIREWEAPON"','ace_medical_ai_healQueue',
-                      'getUnitState _actor in ["INIT","PLANNING","REPLAN"]'):
+                      'getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]'):
             self.assertIn(guard,available)
         self.assertGreaterEqual(text.count('[_gunner] call _actorAvailable'),3)
         rear=text.split('private _rearActors=',1)[1].split('// Holding/clearing owns the destination',1)[0]
@@ -5340,10 +5340,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _minimumCover=[2,1] select _smallElement',start)
         self.assertIn('SMALL_ELEMENT_UNAVAILABLE',start)
         self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',start)
-        self.assertIn('getUnitState _x in ["INIT","PLANNING","REPLAN"]',start)
+        self.assertIn('getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',start)
         self.assertIn('count _coverElement < _minimumCover',start)
         reposition=source('cortexTacticalReposition')
-        self.assertIn('getUnitState _x in ["INIT","PLANNING","REPLAN"]',reposition)
+        self.assertIn('getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',reposition)
         self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',reposition)
         step=source('cortexFlankStep')
         end=source('cortexFlankEnd')

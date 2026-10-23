@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Purpose: Own one same-group naval passenger's finite foot egress after physical disembarkation.
  * Locality/authority: Actor and group owner only. Existing naval operation, token, original
  * deadline, native route and individual task authority are required before RecoveryStep issues
@@ -53,7 +54,7 @@ if (_journal isEqualTo []) exitWith {
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
         || {[] call CBE_fnc_CortexIsPaused}
         || {!([_group,"CBE_AIPass_NavalAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
-        || {!(toUpperANSI currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"])} || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
+        || {!(toUpperANSI currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"])} || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
         || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {"WAIT"};
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
