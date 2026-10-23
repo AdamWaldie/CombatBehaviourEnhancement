@@ -381,5 +381,21 @@
       "addons/infantry/functions/dangerCoverStep.sqf": "7fa2615a40f56c0ffa3ec9f542d6580fbe34ddc9bc21050967eda3fe0ef8a5cf",
       "addons/infantry/functions/indoorActorNodeSelect.sqf": "fbd2ce31fd66cb4e584dd3255e4d9acbf229d1c8f480566356e252d484699653"
     }
+  },
+  "mountedNativePolicyHandoverFollowup": {
+    "baseline": "e57855ca",
+    "scope": "Native operating-crew flight versus CBE unload-retention policy; not a complete mounted fleeing/abandonment implementation.",
+    "existingBehaviour": "Both policy helpers already restored their captured policy on immobilisation. That path required no replacement. Changed external values and foreign leases already veto restoration/reacquisition.",
+    "gap": "A mobile platform could retain CBE unload suppression while its actual driver or effective commander was natively fleeing. Scripted danger abandonment independently defers native-fleeing actors, so that actor predicate did not relinquish the separate engine policy.",
+    "implemented": "Both existing ACQUIRE paths now observe at most driver/effectiveCommander and invoke their unchanged exact RELEASE path when either flees. Captured mission policy is restored only while the current value still equals CBE applied policy; no force-disembark, suppression, fuel or crew assignment command. Cargo panic alone does not release the carrier-wide lease.",
+    "integration": "Original group/epoch or convoy revision, local vehicle authority, external mutation block, changed-value checks and pending assigned GET IN admission remain. After flight ends, ordinary acquisition can resume under the same existing checks. No new controller, worker, public state schema or time window.",
+    "sourceDistinction": "LAMBS mounted doFleeing includes conditional crew replacement and probabilistic abandonment with its own native suppression/order commands. This CBE change yields to current native flight without copying those commands or claiming full mounted source parity.",
+    "cost": "At most two current operating actor flight reads per admitted policy check, no crew/world discovery added.",
+    "validation": "Existing policy regression extended without new test cases.610 focused/1491 full offline tests, HEMTT409SQF/9PBO and independent candidate verification passed. Candidate .qa/candidates/native-crew-flight-policy-e57855ca fingerprint e3d28ac39cd306cd17b97b91812a96a5cf0c56f4252f5117f3c60232abdfc01f, unsigned dirty development snapshot including unrelated dirt. Notes/review postdate build.",
+    "limits": "Policy restoration is not proof that native AI exits, escapes safely, remains aboard or later resumes its authored route. Those physical outcomes and convoy balance/performance remain unverified; audits paused.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "44cbf1547ef9397c289eeeec51e5d923eab5239d75716312cb7485cdcec00258",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "86a995aa187f9042368fc8d9346afc47894189591839b860cac74a4edbfb5160"
+    }
   }
 }

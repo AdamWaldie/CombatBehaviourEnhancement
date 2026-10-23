@@ -8068,10 +8068,16 @@ class CortexOperations(unittest.TestCase):
         convoy_policy=source('convoyUnloadPolicy')
         convoy_tick=source('convoyTick')
         for retention in (policy,convoy_policy):
-            disabled=retention.split('if (!canMove _vehicle) exitWith {',1)[1].split('// First acquisition alone',1)[0]
+            disabled=retention.split('if (!canMove _vehicle || {_nativeCrewFlight}) exitWith {',1)[1].split('// First acquisition alone',1)[0]
             self.assertIn('if (count _lease == 5)',disabled)
             self.assertIn('"RELEASE"',disabled)
             self.assertNotIn('moveOut',disabled)
+            flight=retention.split('private _nativeCrewFlight=',1)[1].split('// First acquisition alone',1)[0]
+            self.assertIn('[driver _vehicle,effectiveCommander _vehicle] findIf',flight)
+            self.assertIn('!isNull _x && {fleeing _x}',flight)
+            for forbidden in ('forEach crew','orderGetIn','doGetOut','setSuppression','forceSpeed','setFuel'):
+                self.assertNotIn(forbidden,flight)
+
         self.assertLess(convoy_tick.index('// Reconcile retention before mobility filtering'),
                         convoy_tick.index('private _mobile ='))
         vehicles=source('cortexVehicles')
