@@ -399,6 +399,9 @@ _brain set ["geometryTracks",_geometryTracks];
         private _mayRecoverRoute = {
             call _mayIssueDriving && {vehicle leader _group isEqualTo _vehicle} && {!(call _nativeWaiting)}
                 && {call _recoveryOrderFree} && {!_crewBoardingHold} && {!_queueHold}
+                // A consenting participant keeps its native intent until exact withdrawal.
+                // Unknown metadata also refuses recovery; expiry cleanup owns retirement.
+                && {(_vehicle getVariable ["CBE_DrivingPass_Consent",[]]) isEqualTo []}
         };
         private _nativeRouteIntent={
             private _command=toUpperANSI currentCommand _movementOperator;
@@ -815,7 +818,8 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            private _passingHeadway=if (_crewBoardingHold || {_queueHold} || {_queueNativeActive} || {_queueCrossing}) then {-1} else {
+            private _passingHeadway=if (_crewBoardingHold || {_queueHold} || {_queueNativeActive} || {_queueCrossing}
+                || {(_vehicle getVariable ["CBE_DrivingPass_Consent",[]]) isNotEqualTo []}) then {-1} else {
                 ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call CBE_fnc_DrivingPassAdmission
             };
             if (_passingHeadway isEqualType 0 && {finite _passingHeadway} && {_passingHeadway >= 0}) then {

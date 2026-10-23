@@ -19,6 +19,12 @@ class QueuePassExclusion(unittest.TestCase):
         self.assertIn('[_vehicle,"QUEUE"] call CBE_fnc_DrivingPassCanConsent',text)
         self.assertIn('CBE_DrivingPass_Consent',text)
         self.assertIn('|| {_passBusy}',text)
+        assist=source('drivingAssistStart.sqf')
+        recovery=assist.split('private _mayRecoverRoute = {',1)[1].split('private _nativeRouteIntent=',1)[0]
+        self.assertIn('getVariable ["CBE_DrivingPass_Consent",[]]) isEqualTo []',recovery)
+        discovery=assist.split('private _passingHeadway=',1)[1].split('call CBE_fnc_DrivingPassAdmission',1)[0]
+        self.assertIn('getVariable ["CBE_DrivingPass_Consent",[]]) isNotEqualTo []',discovery)
+
         for caller in ('drivingPassAdmission.sqf','drivingPassAgreementOwner.sqf',
                        'drivingPassBegin.sqf','drivingPassPrepare.sqf'):
             self.assertNotIn(',"QUEUE"] call CBE_fnc_DrivingPassCanConsent',source(caller))

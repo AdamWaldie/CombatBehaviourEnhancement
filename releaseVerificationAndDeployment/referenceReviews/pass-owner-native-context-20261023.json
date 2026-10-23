@@ -58,5 +58,18 @@
       ".qa/pass-owner-native-proof-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Actual cross-owner consent, passive revocation latency/transport, native path handback, locality transitions, traffic balance and 5%median/10%p95 overhead remain unverified. Ordinary callback revocation is not synchronous all-owner permission at each root steering instruction. No tracker renewal. Audits paused."
+  },
+  "consentRecoveryComposition20261023": {
+    "baseline": "5d47860e",
+    "finding": "Actual-owner passive proof could pass at the start of ordinary driving callback, then same callback could acquire corridor/bypass/recovery or fresh passing preparation. Passive consent has no active pass work, so existing work-only exclusions did not protect it.",
+    "implementation": "Shared mayRecoverRoute requires empty pass consent at each consuming boundary. Outstanding or unknown consent also defers automatic OBSERVE admission; existing preparation executor/active pass Step remain separate. Ordinary route following and safety caps continue; exact consent withdrawal/expiry reopens recovery. No worker, scan or deadline added.",
+    "validation": "1491 existing tests/full offline HEMTT/FSM/SQF/config/docs/package build and independent candidate verification passed. Existing exclusion regression extended; no new cases.",
+    "candidate": ".qa/candidates/pass-consent-recovery-exclusion-5d47860e",
+    "fingerprint": "acd1e6b1c6ad31be2a372e37a9211e444e8b03ea8482aa26eac00d3f7401e3c5",
+    "logs": [
+      ".qa/pass-consent-recovery-exclusion-build.log",
+      ".qa/pass-consent-recovery-exclusion-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Actual passive motion/revocation/expiry/recovery resumption and measured performance unverified. No tracker renewal. Audits paused."
   }
 }
