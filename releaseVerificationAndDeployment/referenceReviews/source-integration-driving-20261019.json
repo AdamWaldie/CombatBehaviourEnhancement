@@ -1002,5 +1002,31 @@
     "audits": "PAUSED",
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "cornerCurrentPathReconciliation20261023": {
+    "baseline": "17ac15fa",
+    "historical_correction": "Earlier cornerGrindingReconciliation20261020 and bypassParentBudget20261020 gap strings are historical, not a reliable statement that current low-side diagnosis or native composition is absent.",
+    "reviewed_path": [
+      "Ordinary callback qualifies near-contact sampling only under current owned REFRESH, stage1, at least3seconds original dwell, measured rest, SAFE/AWARE/low suppression, no competing child/crew/queue/pass and current route authority.",
+      "GeometryCap adds12 low diagonal/front-quarter/mid-side probes at bottom+0.3/0.6 only for qualified stationary observation. Static eligible source on exactly one sampled side becomes zero-gap obstacle; both-sided or exhausted source classification does not assert one-sided freedom.",
+      "Fresh obstacle/hull approach diagnosis distinguishes ROOM/BACKOFF. RearPlan can demand measured required room up to24m within current speed/stop envelope; falls back only through existing bounded rear observations and rechecks transforms.",
+      "Native back-off issues through original owner/route/crew/command/damage/pose/finite recovery guards. Generic bypass can acquire only when approach room exists, retains one parent binding and spent flag, caps deadline to parent, and validates full-body native path geometry. No lateral force/velocity push added."
+    ],
+    "source_sha256": {
+      "drivingAssistStart": "b8ea1d30b18acde3e4fcfdf89d10a1904c469b27247dfde9d4af7789844e3882",
+      "drivingGeometryCap": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d",
+      "drivingBypassApproach": "1ce99c9cfb1a516968d40253dbcae1b7795e80d68b2f0d7db5f3f90f0337964b",
+      "drivingRearPlan": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6",
+      "drivingBypassStep": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+      "drivingBypassPlan": "76fe4a472cb5fb9e22d01c33cdf359b28a4c50a5bbd007695f86b28d56c3486a"
+    },
+    "disposition": "Qualified sensing/back-off/native-alternative composition is implemented in current source; do not build a duplicate diagnostic or movement controller. This does not prove every low corner can be released. Source physics push remains deliberately rejected.",
+    "remaining": [
+      "Physically demonstrate sustained one-sided contact, initial back-off, same-budget native alternative and eventual original-order travel.",
+      "Check blocked rear, bilateral contact, real traffic/mission roadblock and unreachable native route retain failure without repeated budget reset.",
+      "Measure qualified ray cost and complete normal/HC locality and handback cases when audits resume.",
+      "Native-MOVE queue admission, external controller quiescence/resume and complete Workshop comparison denominator remain separate open work."
+    ],
+    "validation": "62 existing targeted static cases passed: geometry16, rear monitor15, bypass31. No runtime edit, new cases or unchanged full build. These are source contracts, not engine collision/path acceptance. Last successful runtime package remains actor-eligibility-roster-cost-74cd0c54. Broad source outputs were partial; this is a bounded path reconciliation, not whole-HBQ rereview. Audits paused."
   }
 }
