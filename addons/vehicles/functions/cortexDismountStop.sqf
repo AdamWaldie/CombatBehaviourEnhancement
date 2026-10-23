@@ -4,7 +4,9 @@
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Purpose: Apply and retire an exact crew/native-order-owned passenger safe-stop speed cap.
  * Locality/authority: Actual vehicle and crew-group owner only. Both original operating actors
- * must remain local, available, in their original seats and on their captured native tasks.
+ * must remain local, available and in their original seats. ACQUIRE continuation additionally
+ * requires captured native tasks/order; RELEASE only restores an unchanged owned cap and
+ * does not require obsolete movement intent to remain current. No route or task is issued.
  * Repeat/JIP: Public proof can be observed by a new actual owner without renewing the baseline.
  * Ordinary plain speed caps retire before acquisition; active recovery and outstanding
  * pass/queue consent refuse nested ownership. Consent cannot be treated as quiescent cap state.
@@ -47,9 +49,11 @@ isNil {
         && {(_proof select 0) isEqualType grpNull} && {(_proof select 0) != _group}) exitWith {};
     private _dismountQueue=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
     private _dismountPass=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
+    private _dismountAgreement=_vehicle getVariable ["CBE_DrivingPass_Agreement",[]];
     // Outstanding protocol proof must retire through its owner, never beneath a new stop.
     private _protocolFree=_dismountQueue isEqualType createHashMap && {count _dismountQueue == 0}
-        && {_dismountPass isEqualType []} && {_dismountPass isEqualTo []};
+        && {_dismountPass isEqualType []} && {_dismountPass isEqualTo []}
+        && {_dismountAgreement isEqualType []} && {_dismountAgreement isEqualTo []};
     private _driver=driver _vehicle;
     private _commander=effectiveCommander _vehicle;
     private _available=_protocolFree && {local _group} && {!isNull _driver} && {!isNull _commander}
@@ -64,9 +68,10 @@ isNil {
                 || {!simulationEnabled _x} || {isObjectHidden _x}
                 || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
         } < 0};
-    private _native=if (_available) then {[_group] call CBE_fnc_NativeOrderReceipt} else {[]};
-    private _matches=_typed && {_available}
-        && {_driver == (_proof select 1)} && {_commander == (_proof select 2)}
+    private _native=if (_available && {_mode == "ACQUIRE"}) then {[_group] call CBE_fnc_NativeOrderReceipt} else {[]};
+    private _crewMatches=_typed && {_available}
+        && {_driver == (_proof select 1)} && {_commander == (_proof select 2)};
+    private _matches=_crewMatches
         && {_native isEqualTo (_proof select 3)}
         && {currentCommand _driver == (_proof select 4)}
         && {expectedDestination _driver isEqualTo (_proof select 5)}
@@ -105,7 +110,9 @@ isNil {
     };
     if (_mode == "ACQUIRE" && {_matches} && {getForcedSpeed _vehicle == 0}) exitWith {_result=true};
     if (_saved isEqualTo [] && {_proof isEqualTo []}) exitWith {_result=true};
-    if (_mode == "RELEASE" && {_restore} && {_matches}
+    // Returning an unchanged cap is settings cleanup, not permission to replay the old route.
+    // A newer native order must not strand the same ordinary crew at our former zero cap.
+    if (_mode == "RELEASE" && {_restore} && {_crewMatches}
         && {getForcedSpeed _vehicle == (_saved select 1)}) then {
         if ((_saved select 0) != (_saved select 1)) then {_vehicle forceSpeed (_saved select 0)};
         _result=getForcedSpeed _vehicle == (_saved select 0);

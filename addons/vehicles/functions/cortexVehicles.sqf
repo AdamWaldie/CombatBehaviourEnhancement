@@ -16,7 +16,8 @@
  * damaged vehicle back behind smoke. A targetless hit, explosion or suppression may invoke only
  * the safe-stop and passenger-exit path; target work, movement and reporting remain unavailable.
  *
- * Dismount safe-stop application and retirement share exact crew/native-order proof (CortexDismountStop).
+ * Dismount safe-stop acquisition uses exact crew/native-order proof; retirement returns only an unchanged
+ * owned cap under the original eligible crew, without replaying movement (CortexDismountStop).
  * Dismount records ownership before issuing exit commands, then cancels outstanding boarding orders.
  * Exit handlers can therefore identify the initiating controller without racing bookkeeping.
  * Crew owners publish a bounded, expiring approximate contact report for separate onboard groups.

@@ -10934,6 +10934,19 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_DrivingQueue_Consent',text)
         self.assertIn('CBE_DrivingPass_Consent',text)
         self.assertIn('private _available=_protocolFree',text)
+        self.assertIn('CBE_DrivingPass_Agreement',text)
+        self.assertIn('_dismountAgreement isEqualType []',text)
+        self.assertIn('_dismountAgreement isEqualTo []',text)
+        release=text.split('if (_mode == "RELEASE" && {_restore}',1)[1].split('if (!_result)',1)[0]
+        self.assertIn('&& {_crewMatches}',release)
+        self.assertNotIn('&& {_matches}',release)
+        self.assertIn('getForcedSpeed _vehicle == (_saved select 1)',release)
+        crew=text.split('private _crewMatches=',1)[1].split('private _matches=',1)[0]
+        for guard in ('_typed','_available','_driver == (_proof select 1)','_commander == (_proof select 2)'):
+            self.assertIn(guard,crew)
+        self.assertNotIn('_native',crew)
+        for command in ('doMove','doFollow','setDestination','setCurrentWaypoint'):
+            self.assertNotIn(command,release)
         consent=source('drivingPassCanConsent')
         self.assertLess(consent.index('CBE_Cortex_DismountStopReceipt'),consent.index('vehicleMoveInfo _vehicle'))
         for name in ['drivingAssistStart','drivingAssistRelease']:
