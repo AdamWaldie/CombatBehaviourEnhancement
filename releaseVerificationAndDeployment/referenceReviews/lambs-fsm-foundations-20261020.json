@@ -1169,5 +1169,40 @@
     },
     "evidence": ".qa/posture-cleanup-pause-build.log; .qa/posture-cleanup-pause-independent.log",
     "limits": "No in-engine pause/HC/nativecare/burst/performance acceptance; original window still bounded and addon disable remains normal shutdown."
+  },
+  "stealthClearancePace20261023": {
+    "baseline": "934e1413",
+    "source": {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultSpeed.sqf",
+      "sha256": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105",
+      "intent": "doAssaultSpeed uses1m/s under STEALTH; other assault pacing reflects suppression, leader/morale and near-target distance. This is a full read of the small speed helper, not renewed whole-LAMBS parity."
+    },
+    "gap": "CBE DangerAttackPace already retained stealth1m/s, but shared clearance settings requested normal2/3/4m/s despite CortexClearBuilding preserving live behaviour/combat mode. Entry/recovery callers also use the clearance adapter, so a room-only fix would be incomplete.",
+    "implementation": "CortexClearSettingsApply APPLY constrains finite requested speed>1 or unrestricted -1 to1 while actor behaviour is STEALTH. Lower requested speeds remain lower; malformed negative/nonfinite input remains subject to canonical typed validation. Existing ActorSettings keeps a lower original mission cap, exact current ownership/baseline/deadline and restoration. CHECK/ADOPT/PREPARE add no native pacing, and normal non-stealth pressure/arrival policy is unchanged.",
+    "integration": "Existing single settings writer serves clearance entry, room movement and recovery. No direct forceSpeed, behaviour/ROE mutation, new timer/controller/setting/module or extra geometry. Returning from STEALTH uses the ordinary requested policy only while CBE still owns its applied setting.",
+    "cost": "Constant mode/behaviour/finite/range checks at existing adapter cadence. Unchanged canonical settings keep existing no-write fast path; no new worker/query. Actual runtime cost unmeasured.",
+    "validation": {
+      "focusedExistingSettingsTests": 10,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/clear-stealth-pace-final-build.log",
+      "initialFailure": ".qa/clear-stealth-pace-build.log",
+      "candidate": ".qa/candidates/clear-stealth-pace-934e1413",
+      "independent": ".qa/clear-stealth-pace-independent.log",
+      "fingerprint": "9ba9e6d9132129a558d2c174cf2c8950b04baf813c38b55ced5cccd115774ffe"
+    },
+    "initialFailureDisposition": "Product reference-boundary test caught upstream name in lifecycle prose. Removed source branding from product documentation; provenance retained here. Final complete build passes, no test weakened or new case added.",
+    "limits": [
+      "Physical stealth entry/room/egress, transitions under pressure, lower mission caps, owner transfer and exact restoration remain unverified.",
+      "Original operation lifetime is not extended for slower travel. Balance and accessibility under stealth still require physical evidence.",
+      "Unsigned dirty development candidate includes unrelated pre-existing dirt; private review/continuation notes postdate packaging.",
+      "No whole source parity, physical acceptance, performance or build-out score renewed. Audits paused."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexClearSettingsApply.sqf": "1d8ecad947c707470cd26d1987d61d63d06bcbf8f0dbc35064f1799a242c58d8",
+      "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
+      "releaseVerificationAndDeployment/test_actor_settings.py": "040ffd5f078108bf1fb3c2b941354248121f617edd0af13ecfc84ccb5c03d03c"
+    }
   }
 }

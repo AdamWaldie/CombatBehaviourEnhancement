@@ -119,6 +119,16 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertLess(s.index('_canonical isEqualTo [] &&'),s.index('call CBE_fnc_ActorSettings'))
         self.assertIn('_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job',s)
         self.assertIn('CBE_AIPass_Active',s)
+        pace=s.split('// Preserve the task',1)[1].split('_result=[_mode,_actor,',1)[0]
+        for rule in ('_mode == "APPLY"','behaviour _actor == "STEALTH"','finite _speed',
+                     '_speed == -1 || {_speed > 1}','_speed=1'):
+            self.assertIn(rule,pace)
+        for command in ('forceSpeed','setBehaviour','setCombatMode','setVariable'):
+            self.assertNotIn(command,pace)
+        # Canonical settings retain the lower original mission cap after tactical pacing.
+        self.assertIn('_wantedSpeed > _baselineSpeed',core())
+        self.assertIn('_requested set ["SPEED",_baselineSpeed]',core())
+
         release=src('addons/infantry/functions/cortexClearSettingsRelease.sqf')
         self.assertLess(release.index('_status == "RELEASED"'),release.index('"CBE_Cortex_ClearForcedSpeed",'))
         self.assertNotIn('forceSpeed',release.split('params [[',1)[1])

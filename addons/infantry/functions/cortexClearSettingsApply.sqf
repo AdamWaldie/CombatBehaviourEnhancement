@@ -4,6 +4,8 @@
  * Locality/authority: Actual group/actor owner and current CLEAR operation, visit, route and job.
  * Repeat/JIP: Keeps the original issuer/baselines/deadline. ADOPT updates metadata only, never a
  * native setting or movement. Partial mirrors are retained, not imported as authority.
+ * APPLY caps live STEALTH clearance pace at1m/s through the same canonical speed lease;
+ * a lower mission-owned cap remains lower. CHECK/ADOPT/PREPARE never replay pacing.
  * Arguments: 0 actor OBJECT objNull; 1 job HASHMAP empty; 2 speed NUMBER4;
  * 3 mode STRING APPLY (CHECK, ADOPT or PREPARE).
  * Return: ActorSettings status STRING; only APPLIED/OWNED/ADOPTED acknowledge settings, not movement.
@@ -64,6 +66,10 @@ isNil {
             _result="PREPARED";
         };
     };
+    // Preserve the task's live stealth intent without adding another speed writer.
+    // -1 is the native unrestricted sentinel; malformed values still reach typed validation.
+    if (_mode == "APPLY" && {behaviour _actor == "STEALTH"} && {finite _speed}
+        && {_speed == -1 || {_speed > 1}}) then {_speed=1};
     _result=[_mode,_actor,[_group,_issuer,_generation,_epoch,_deadline],
         createHashMapFromArray [["STANCE","UP"],["SPEED",_speed]]] call CBE_fnc_ActorSettings;
     if (_result in ["APPLIED","ADOPTED","PENDING"]) then {
