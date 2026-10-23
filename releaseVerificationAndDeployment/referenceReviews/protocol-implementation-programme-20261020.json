@@ -144,7 +144,8 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
-      }
+      },
+      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented."
     },
     {
       "workshopId": "3822504009",

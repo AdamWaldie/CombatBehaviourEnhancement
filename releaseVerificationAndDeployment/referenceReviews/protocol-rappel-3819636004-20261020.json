@@ -108,5 +108,25 @@
     "implementation": "Both lease admission and fast mutation predicate now read shared CompatibilityExternalControl on airframe before lease permission. No provider-specific flags duplicated in flight layer; lease release remains exact identity only. Existing air-attack and landing/braking paths use FlightLeaseValid to stop/retire their own commands.",
     "validation": "1479 existing tests/full HEMTT build passed; no runtime handover/performance proof.",
     "remaining": "Finite per-actor cargo insertion, stable flight ownership, provider slot/physical completion/abort and normal/HC handover remain incomplete. This is a takeover safeguard, not completed rappelling."
+  },
+  "providerQuiescenceContract20261023": {
+    "baseline": "dea4a20a",
+    "scope": "Targeted actual per-actor reservation/worker/cleanup trace in both installed provider variants; original files unchanged.",
+    "sourceHashes": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+      ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+    },
+    "observedContract": [
+      "AR_Rappel_From_Heli reserves a server-local AR_Rappelling_Player_index slot and publishes actor AR_Is_Rappelling before starting the actor-owner worker. It returns no structured acceptance/completion receipt.",
+      "The server slot-retirement worker polls actor flag/death every2s, without an original task deadline. Actor flag clear does not prove the server slot has retired.",
+      "Actor worker destroys ropes/devices, clears public AR_Is_Rappelling and AR_Rappelling_Vehicle, then sleeps2s and unconditionally calls allowDamage true. The bundle variant has the same ordering.",
+      "Earlier landing/fall branches also write allowDamage true. A current true damage readback or elapsed2s after flag clear cannot prove the final scheduled worker has executed; scheduler delay and indistinguishable intervening script writes remain.",
+      "The bulk API additionally runs its own unbounded helicopter/group controller. Using it would evade CBE flight ownership and finite-operation requirements."
+    ],
+    "impact": "Current read-only runtime-marker compatibility yields during active rope state only; it is not a complete provider-cleanup acknowledgement. No CBE rappel executor is present. Do not advertise a working insertion module or infer completed handback from flag false.",
+    "requiredImplementation": "Retain the requested finite cargo insertion feature. Implement controlled rope execution with explicit actual-owner acceptance, original task deadline, exact mission damage baseline, completion after all cleanup, and no stale delayed writes; or use a provider API revision that supplies those guarantees. Mere dependency detection, arbitrary grace time or a wrapper around the current bulk API is insufficient. Preserve group identity, actual stable flight and ground/roof arrival requirements.",
+    "validation": "Current source re-read and SHA256 confirmation; no runtime changes, build repetition or audit launch. Existing reference-boundary check validates final engineering notes only.",
+    "physicalAcceptance": false,
+    "goalStatus": "Incomplete; other offline foundation/source work remains possible. Audits paused."
   }
 }
