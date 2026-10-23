@@ -345,7 +345,14 @@ class QueueProposalTests(unittest.TestCase):
             self.assertNotIn(forbidden,identity)
         bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
         self.assertIn('_work set ["queueNativeIntent"',bypass)
-        self.assertIn('_nativeRoute && {_controller != "ORDINARY"}',bypass)
+        self.assertIn('_nativeRoute && {!(_controller in ["ORDINARY","QUEUE"])}',bypass)
+        self.assertIn('private _queueNativeBound=_nativeRoute && {_queue}',bypass)
+        bound=bypass.split('private _queueNativeBound=',1)[1].split('private _deadline=',1)[0]
+        for proof in ('getOrDefault ["ownerRoute",[]]) isEqualTo _route','count (_queueAgreement getOrDefault ["crossingBinding",[]]) == 4','call _queueCurrent'):
+            self.assertIn(proof,bound)
+        for name in ('drivingQueueAutoStep','drivingPassCanConsent'):
+            self.assertIn('"NATIVE_MOVE") exitWith', (ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
+
 
         remote_stop=motion.split('private _pendingStop=false;',1)[1].split('if (_actor isNotEqualTo _original',1)[0]
         self.assertNotIn('expectedDestination',remote_stop)

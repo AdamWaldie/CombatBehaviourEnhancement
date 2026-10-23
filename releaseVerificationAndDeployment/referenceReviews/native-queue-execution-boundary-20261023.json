@@ -107,5 +107,19 @@
     ],
     "remaining": "Capture/recognition infrastructure only: native non-ORDINARY bypass entry guard remains, so normal current protocol cannot yet create a native queue crossing. Integrate acquisition against private consent original route instead of ordinary parent, plus stop/original-goal return pending acknowledgement and exact deadline cleanup before enabling native proposal/consent/auto guards.",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue execution or physical cleanup/locality/performance acceptance. Read-only route identity is not a crossing/stop/return grant. No tracker score renewal. Audits paused."
+  },
+  "crossingAcquisition20261023": {
+    "baseline": "0906a1fa",
+    "implementation": "Internal BypassStep native controller types limited to ORDINARY/QUEUE. Queue native acquisition requires exact private consent ownerRoute, four-field crossing binding and current all-owner queue validator; may use that provenance instead of ordinary recovery parent. Ordinary native routes still require original parent and spent-budget checks. No new worker/timer/native command.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial pipeline failed old universal native-nonORDINARY refusal assertion; existing native admission case now verifies separate queue proof plus retained ordinary parent. Moving queue case checks native top-level exclusions remain. No new cases.",
+    "candidate": ".qa/candidates/queue-native-crossing-acquisition-0906a1fa",
+    "fingerprint": "c2ff93c7a82234bf29c1ca27b07141d208e226fa5093ead8e4f9a31e0c927e55",
+    "logs": [
+      ".qa/queue-native-crossing-acquisition-build.log",
+      ".qa/queue-native-crossing-acquisition-build-reviewed.log",
+      ".qa/queue-native-crossing-acquisition-independent.log"
+    ],
+    "remaining": "Native top-level proposal/consent/auto exclusions still prevent executable native queue negotiation. BypassRelease requires ordinary native parent; queue native stop/return needs original-intent proof, exact pending command acknowledgement, original deadline and owner-local cleanup. Do not enable before integrating that path.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Internal acquisition support is not delivered native queue behaviour. No physical authored-queue regression/native queue/HC/JIP/performance proof. No tracker score renewal. Audits paused."
   }
 }

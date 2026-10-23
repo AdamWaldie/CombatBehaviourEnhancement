@@ -36,7 +36,8 @@
  * Full ordered checkpoint visit and actual tail clearance alone complete. Invalid geometry,
  * command/owner changes, obstacle crew/engine/attachment changes and deadline expiry retain failure; no elapsed-time or ready success.
  * Current callers: DrivingAssistStart and ConvoyTick. Convoy followers retain predecessor trails.
- * Native scripted MOVE requires an existing REFRESH/FINAL parent; the original goal,
+ * Ordinary native scripted MOVE requires an existing REFRESH/FINAL parent;
+ * a queue root instead requires its private original ownerRoute and current crossing consent. the original goal,
  * hard deadline, progress anchor and spent bypass budget survive the temporary path.
  * Neither path acceptance nor this API is physical QA.
  * Example: [_group,_vehicle,_brain,_solid,_mayRecoverRoute] call CBE_fnc_DrivingBypassStep;
@@ -53,7 +54,7 @@ private _configuration=_brain getOrDefault ["configuration",[]];
 private _controllerReceipt=[_controller,if (_convoy) then {_configuration param [0,-1]} else {-1}];
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
-if (_nativeRoute && {_controller != "ORDINARY"}) exitWith {_inactive};
+if (_nativeRoute && {!(_controller in ["ORDINARY","QUEUE"])}) exitWith {_inactive};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 private _seatsAvailable={
     [_driver,_operator] findIf {
@@ -205,7 +206,12 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_Bypa
         private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
         private _parentBound=!_convoy && {!_queue} && {!(_parent isEqualType createHashMap) || {count _parent > 0}};
         private _parentBinding=if (_parentBound) then {[_parent] call _recoveryBinding} else {[]};
-        private _parentReady=(!_nativeRoute || {_parentBound}) && {!_parentBound || {_parentBinding isNotEqualTo []
+        private _queueNativeBound=_nativeRoute && {_queue}
+            && {(_queueAgreement getOrDefault ["ownerRoute",[]]) isEqualTo _route}
+            && {(_queueAgreement getOrDefault ["crossingBinding",[]]) isEqualType []}
+            && {count (_queueAgreement getOrDefault ["crossingBinding",[]]) == 4}
+            && {call _queueCurrent};
+        private _parentReady=(!_nativeRoute || {_parentBound} || {_queueNativeBound}) && {!_parentBound || {_parentBinding isNotEqualTo []
             && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo false}
             && {!(_parent getOrDefault ["releasePending",false])}
             && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}}};

@@ -68,8 +68,10 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertLess(shutdown.index('_nativeCorridorGroup,"DRIVING_RELEASED"'),
                         shutdown.index('_recovery get "group","DRIVING_RELEASED"'))
         bypass=read('drivingBypassStep')
-        self.assertIn('if (_nativeRoute && {_controller != "ORDINARY"})',bypass)
-        self.assertIn('(!_nativeRoute || {_parentBound})',bypass)
+        self.assertIn('if (_nativeRoute && {!(_controller in ["ORDINARY","QUEUE"])})',bypass)
+        self.assertIn('(!_nativeRoute || {_parentBound} || {_queueNativeBound})',bypass)
+        self.assertIn('(_queueAgreement getOrDefault ["ownerRoute",[]]) isEqualTo _route',bypass)
+        self.assertIn('!_parentBound || {_parentBinding isNotEqualTo []',bypass)
         self.assertIn('then {+(_route select 6)}',bypass)
         handback=read('drivingBypassRelease')
         self.assertIn('currentCommand _driver == "STOP"',handback)
