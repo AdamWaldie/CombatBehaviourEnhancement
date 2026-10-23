@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Passenger stop/continuation proof retains the full current native waypoint identity;
+ * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Purpose: Apply and retire an exact crew/native-order-owned passenger safe-stop speed cap.
  * Locality/authority: Actual vehicle and crew-group owner only. Both original operating actors
  * must remain local, available, in their original seats and on their captured native tasks.
@@ -94,7 +96,7 @@ isNil {
             currentCommand _commander,expectedDestination _commander];
         _vehicle setVariable ["CBE_Cortex_DismountStopReceipt",_proof,true];
         _vehicle setVariable ["CBE_Cortex_DismountStopOrder",[_group getVariable ["CBE_OperationGeneration",0],
-            [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
+            +_native],true];
         _saved=[_previous,0];
         _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",_saved,true];
         if (_previous != 0) then {_vehicle forceSpeed 0};

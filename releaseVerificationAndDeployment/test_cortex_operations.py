@@ -9388,6 +9388,17 @@ class CortexOperations(unittest.TestCase):
                      'effectiveCommander _vehicle in units _group','CBE_fnc_CortexDismountStop',
                      '[_group,groupOwner _group,serverTime+30]']:
             self.assertIn(item,vehicles)
+        tick=source('cortexGroupTick')
+        onboard=source('cortexOnboardContact')
+        cap=source('cortexDismountStop')
+        self.assertIn('(_continuation select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',tick)
+        self.assertIn('(_continuation select 3) isEqualTo ([_passengerGroup] call CBE_fnc_NativeOrderReceipt)',vehicles)
+        for producer,marker in ((vehicles,'+_dismounted,'),(onboard,'+_owned,')):
+            receipt=producer.split(marker,1)[1].split('],true]',1)[0]
+            self.assertIn('[_group] call CBE_fnc_NativeOrderReceipt',receipt)
+        self.assertIn('[_group getVariable ["CBE_OperationGeneration",0],\n            +_native]',cap)
+        crew=vehicles.split('&& {_crewProof isEqualTo',1)[1].split('&& {!_movementOwned}',1)[0]
+        self.assertIn('CBE_fnc_NativeOrderReceipt',crew)
         release=source('cortexReleaseGroup')
         stop=source('cortexStop')
         for text in [release,stop]:

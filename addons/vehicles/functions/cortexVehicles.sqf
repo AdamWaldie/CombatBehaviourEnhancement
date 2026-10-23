@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Passenger stop/continuation proof retains the full current native waypoint identity;
+ * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Reactive mortar reports carry current native believed geometry and its server-time observation.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
@@ -443,7 +445,7 @@ private _dismountAtThreat = {
                 _dismounted pushBack [_unit,_vehicle];
                 _group setVariable ["CBE_Cortex_DismountContinuation",[serverTime+60,
                     _group getVariable ["CBE_OperationGeneration",0],+_dismounted,
-                    [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
+                    [_group] call CBE_fnc_NativeOrderReceipt],true];
             };
             _state set ["dismounted", _dismounted];
             if ([] call _mayIssueVehicle && {toUpperANSI (currentCommand _unit) != "GET OUT"}) then {
@@ -482,9 +484,9 @@ private _dismountAtThreat = {
                     && {(_continuation select 2) isEqualType []} && {(_continuation select 3) isEqualType []}
                     && {serverTime < (_continuation select 0)} && {(_continuation select 0) <= serverTime+60}
                     && {(_continuation select 1) == (_passengerGroup getVariable ["CBE_OperationGeneration",0])}
-                    && {(_continuation select 3) isEqualTo [currentWaypoint _passengerGroup,waypointPosition [_passengerGroup,currentWaypoint _passengerGroup]]}
+                    && {(_continuation select 3) isEqualTo ([_passengerGroup] call CBE_fnc_NativeOrderReceipt)}
                     && {_crewProof isEqualTo [_group getVariable ["CBE_OperationGeneration",0],
-                        [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]]}
+                        [_group] call CBE_fnc_NativeOrderReceipt]}
                     && {!_movementOwned} && {!([_passengerGroup] call CBE_fnc_CortexExternalTakeover)}
                     && {[_passengerGroup,"CBE_AIPass_VehicleRemount_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                     && {((_continuation select 2) select [0,8]) findIf {

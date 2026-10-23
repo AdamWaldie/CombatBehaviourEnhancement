@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Passenger stop/continuation proof retains the full current native waypoint identity;
+ * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Normal contact escalation shares the complete native group-posture task guard; native
  * fleeing, mixed crew and individual protected policies cannot be bypassed by fresh knowledge.
  * Calm authored foot travel can request near unlocked doors through its existing tick,
@@ -796,7 +798,7 @@ if (count _continuation == 4 && {(_continuation select 0) isEqualType 0}
     && {(_continuation select 3) isEqualType []}) then {
     private _validContinuation=serverTime < (_continuation select 0)
         && {(_continuation select 1) == (_group getVariable ["CBE_OperationGeneration",0])}
-        && {(_continuation select 3) isEqualTo [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]}
+        && {(_continuation select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
         && {[] call _mayIssueMovement}
         && {["CBE_AIPass_Vehicles_Enable",true] call _get}
         && {["CBE_AIPass_VehicleRemount_Enable",true] call _get};
