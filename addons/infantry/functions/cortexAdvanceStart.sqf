@@ -47,6 +47,9 @@
  * 0: group <GROUP>
  * 1: state <HASHMAP>
  * 2: enemies <ARRAY> - from CBE_fnc_CortexKnowledge
+ * 3: optional explicit foot element <ARRAY of OBJECT, max64>. Only that roster supplies
+ * movers, cover and replacements. Uses fresh contact rather than a mounted group route;
+ * never changes native leadership or creates a group waypoint. Existing FSM owns cleanup.
  *
  * Return Value:
  * Boolean - true when an advance started
@@ -59,7 +62,8 @@
  * Current caller: CBE_fnc_CortexTacticalStart.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]]];
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_element",[],[[]]]];
+private _elementScoped=count _this > 3;
 private _refuse={
     params ["_reason",["_detail",[]]];
     private _previous=_group getVariable ["CBE_Cortex_AdvanceRefusal",[]];
@@ -68,6 +72,7 @@ private _refuse={
     };
     false
 };
+if (_elementScoped && {count _element > 64}) exitWith {["ELEMENT_TOO_LARGE"] call _refuse};
 // A live support assignment owns group movement until release; do not split its
 // responders into a competing local drill when they acquire contact.
 if (_state getOrDefault ["responding", false] || {_state getOrDefault ["assaulting", false]}) exitWith {["SUPPORT_OWNS_MOVEMENT"] call _refuse};
@@ -80,8 +85,10 @@ private _contactAge=time-(_state getOrDefault ["phaseStart",time]);
 private _minimumContact=missionNamespace getVariable ["CBE_AIPass_Advance_MinContactSeconds", 0];
 if (_contactAge < _minimumContact) exitWith {["CONTACT_DELAY",[_contactAge,_minimumContact]] call _refuse};
 // Use a local combat-effective anchor so leader loss or reassignment does not suppress an otherwise viable manoeuvre.
-private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
+private _leader = if (_elementScoped) then {[_group,_element] call CBE_fnc_CortexGroupAnchor}
+    else {[_group] call CBE_fnc_CortexGroupAnchor};
+if (isNull _leader && {!_elementScoped}) then {_leader=leader _group};
+if (isNull _leader) exitWith {["NO_ELEMENT_ANCHOR"] call _refuse};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
 if (_enemies isEqualTo []) exitWith {["NO_TARGET"] call _refuse};
 if (((_enemies select 0) select 3) < 60) exitWith {["TARGET_TOO_CLOSE",[(_enemies select 0) select 3]] call _refuse};
@@ -91,6 +98,9 @@ if (_hasAuthoredObjective && {
     waypointDescription [_group, _index] == "CBE AI PASS"
     || {!(waypointType [_group, _index] in ["MOVE", "SAD", "DESTROY"])}
 }) exitWith {["AUTHORED_OBJECTIVE_TYPE",[waypointType [_group,_index],waypointDescription [_group,_index]]] call _refuse};
+// A landed foot element cannot inherit the boat crew's destination as a ground objective.
+// The unchanged authored receipt remains its interruption boundary; use fresh contact only.
+if (_elementScoped) then {_hasAuthoredObjective=false};
 // A group whose ordinary movement order has completed should not become inert in a live firefight.
 // Use only fresh engine knowledge and keep the objective inside this finite drill; do not manufacture
 // a persistent waypoint that would outlive contact or compete with a later Zeus order.
@@ -105,6 +115,7 @@ private _onFoot = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {!_elementScoped || {_x in _element}}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
@@ -165,7 +176,8 @@ _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 _state set ["drill", createHashMapFromArray [
     ["token",_token],["target",(_enemies select 0) select 0],
     ["teams",[_element,_coverElement]],["teamSizes",[count _element,count _coverElement]],["teamTurn",0],
-    ["type", "ADVANCE"],["buddyBounds",_buddyBounds], ["units", _onFoot], ["desiredStrength",count _onFoot], ["points", _points], ["index", 0], ["stage", ""],
+    ["type", "ADVANCE"],["buddyBounds",_buddyBounds], ["units", _onFoot],
+    ["elementScoped",_elementScoped],["elementRoster",if (_elementScoped) then {+_element} else {[]}], ["desiredStrength",count _onFoot], ["points", _points], ["index", 0], ["stage", ""],
     ["enemyPos", (_enemies select 0) select 1], ["disabled", []], ["spots", []], ["started", time], ["lastStep",time],
     ["boundStart", time], ["pauseUntil", 0]
 ]];

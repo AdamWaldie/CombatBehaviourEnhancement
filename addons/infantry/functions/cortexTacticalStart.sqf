@@ -22,7 +22,7 @@
  * 3: flank enabled <BOOL> - authoritative live feature gate (default true)
  * 4: advance enabled <BOOL> - authoritative live feature gate (default true)
  * 5: assault enabled <BOOL> - authoritative live feature gate (default true)
- * 6: optional ground element <ARRAY of OBJECT>; actor-only close assault, no group fallback.
+ * 6: optional ground element <ARRAY of OBJECT>; actor-only assault/advance, no group fallback.
  * Element distances use existing believed contact positions relative to the foot anchor.
  * No hidden contact transform, native leader change or separate worker is introduced.
  *
@@ -96,7 +96,11 @@ private _started=false;
             _started=_args call CBE_fnc_CortexAssaultStart
         };
         case "FLANK": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexFlankStart};
-        case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAdvanceStart};
+        case "ADVANCE": {
+            private _args=[_group,_state,_orderedEnemies];
+            if (_elementScoped) then {_args pushBack _element};
+            _started=_args call CBE_fnc_CortexAdvanceStart
+        };
         case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call CBE_fnc_CortexTacticalReposition};
     };
     if (_started) exitWith {_intent=_x};

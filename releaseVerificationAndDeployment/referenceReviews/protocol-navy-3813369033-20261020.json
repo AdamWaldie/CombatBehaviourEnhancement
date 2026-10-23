@@ -107,5 +107,14 @@
     "validation": "1491 full offline tests/410SQF/9PBO and independent verify. Candidate .qa/candidates/element-scope-migration-5f5bf6d3 fingerprint4a61970414a7d0f47d036c57be8ed00262ba40edbb89094aeecc0875223e2b42. No physical HC migration or performance evidence.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "landedElementAdvance20261023": {
+    "baseCommit": "64d99e83",
+    "implementation": "Optional explicit ground roster now reaches existing CortexAdvanceStart through TacticalAssess/Start. Assessment admits only scoped ASSAULT/ADVANCE, selecting advance only when already offered by the tactical decision; no FLANK/reposition/group fallback. Scoped advance uses a foot anchor, validates authored order type and requires fresh reported contact as objective instead of the boat route. Normal whole-squad authored-objective behaviour remains. Existing fire-team executor, finite bounds, ammunition/role/terrain/native gates, movement lease, cleanup and checkpoint scope are reused. No new worker/FSM/group split/native leader switch/waypoint.",
+    "reserveCorrection": "Both scoped assault and advance retain the original admitted element as reserve roster, not just actors available on the initial start. Current authority/task/health checks still govern actual refill; unrelated crew remain outside that original roster. Ordinary drills avoid unused duplicate element rosters.",
+    "remaining": "One finite landed-element manoeuvre, not sustained independent naval ground command. CQB continuation and physical behaviour, native subformation/handback, HC migration and performance remain unverified/incomplete. No whole-source parity claim.",
+    "validation": "1491 full offline tests/410SQF/9PBO and independent verifier. Candidate .qa/candidates/ground-element-advance-64d99e83 fingerprintef746c6f64c0687e4da51e404035a0169b9a9febeaaba1ce7748d71181ab20bb. Unsigned dirty development snapshot, notes/review postdate package.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

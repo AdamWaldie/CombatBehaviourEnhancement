@@ -2081,8 +2081,12 @@ class CortexOperations(unittest.TestCase):
     def test_manoeuvre_starts_use_a_surviving_local_anchor_instead_of_requiring_the_leader(self):
         for name in ['cortexAdvanceStart','cortexFlankStart','cortexRetreat','cortexCoordinatedAssault']:
             text=source(name)
-            self.assertIn('private _leader = [_group] call CBE_fnc_CortexGroupAnchor;',text)
-            self.assertIn('if (isNull _leader) then {_leader=leader _group};',text)
+            if name == 'cortexAdvanceStart':
+                self.assertIn('else {[_group] call CBE_fnc_CortexGroupAnchor}',text)
+                self.assertIn('if (isNull _leader && {!_elementScoped}) then {_leader=leader _group}',text)
+            else:
+                self.assertIn('private _leader = [_group] call CBE_fnc_CortexGroupAnchor;',text)
+                self.assertIn('if (isNull _leader) then {_leader=leader _group};',text)
             self.assertNotIn('private _leader = leader _group;',text)
     def test_combined_ground_manoeuvre_uses_common_operation_lifecycle(self):
         combined=source('cortexCombinedArmsLocal')
@@ -5217,7 +5221,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_started=_args call CBE_fnc_CortexAssaultStart',selector)
         self.assertIn('if (_elementScoped) then {_args pushBack _element}',selector)
         self.assertIn('!_elementScoped',selector)
-        self.assertIn('private _forwardOrder=_waypointIndex < count waypoints _group',assessment)
+        self.assertIn('private _forwardOrder=!_elementScoped && {_waypointIndex < count waypoints _group}',assessment)
         self.assertIn('"FORTIFIED_OR_DISTANT_CONTACT"',assessment)
         self.assertIn('"OPEN_APPROACH"',assessment)
         self.assertIn('"COVERED_APPROACH"',assessment)
@@ -10644,6 +10648,15 @@ class CortexOperations(unittest.TestCase):
                        '"LANDED"','CBE_fnc_CortexTacticalStart','_groundActors','if (_groundStarted) exitWith {true}'):
             self.assertIn(marker,ground)
         self.assertIn('["elementScoped",_elementScoped]',source('cortexAssaultStart'))
+        self.assertIn('["elementRoster",if (_elementScoped) then {+_element} else {[]}]',source('cortexAssaultStart'))
+        advance=source('cortexAdvanceStart')
+        for marker in ('["elementScoped",_elementScoped]','["elementRoster",if (_elementScoped) then {+_element} else {[]}]',
+                       '[_group,_element] call CBE_fnc_CortexGroupAnchor',
+                       'if (_elementScoped) then {_hasAuthoredObjective=false}', '_x in _element'):
+            self.assertIn(marker,advance)
+        self.assertNotIn('call CBE_fnc_CortexGroupMove',advance)
+        self.assertIn('_started=_args call CBE_fnc_CortexAdvanceStart',source('cortexTacticalStart'))
+
         checkpoint=source('cortexCheckpoint')
         self.assertIn('"elementScoped","elementRoster"',checkpoint)
         resume=source('cortexDrillResume')
@@ -11016,7 +11029,8 @@ class CortexOperations(unittest.TestCase):
         assess=source('cortexTacticalAssess')
         start=source('cortexTacticalStart')
         self.assertIn('if (!_hasFoot || {_hasCrew && {!_elementScoped}}) exitWith',assess)
-        self.assertIn('_elementScoped && {_intent != "ASSAULT"}',assess)
+        self.assertIn('_x in ["ASSAULT","ADVANCE"]',assess)
+        self.assertIn('private _forwardOrder=!_elementScoped',assess)
         self.assertIn('_x in _element',assess)
         self.assertLess(assess.index('"VEHICLE_DOMAIN"'),assess.index('"INSUFFICIENT_FIREPOWER"'))
         self.assertLess(assess.index('"VEHICLE_DOMAIN"'),assess.index('"MORALE_SHAKEN"'))

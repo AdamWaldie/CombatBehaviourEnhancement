@@ -16,7 +16,7 @@
  * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
  * This immediate readiness gate does not cancel existing work, defensive repositioning or native orders.
  * Optional argument6 is an explicit ground element: only its actors count and only actor-only
- * close assault may be proposed. Group route/flank/reposition alternatives remain unavailable.
+ * assault/advance may be proposed. Group route/flank/reposition alternatives remain unavailable.
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
@@ -73,7 +73,7 @@ if (_moraleState == "SHAKEN") exitWith {
 };
 
 private _waypointIndex=currentWaypoint _group;
-private _forwardOrder=_waypointIndex < count waypoints _group
+private _forwardOrder=!_elementScoped && {_waypointIndex < count waypoints _group}
     && {waypointDescription [_group,_waypointIndex] != "CBE AI PASS"}
     && {waypointType [_group,_waypointIndex] in ["MOVE","SAD","DESTROY"]}
     && {_leader distance2D waypointPosition [_group,_waypointIndex] > 80};
@@ -258,10 +258,16 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
         };
     };
 };
-// Explicit ground elements admit only the actor-only assault executor. Every other
-// candidate can create a group destination and must retain the mounted-domain safeguard.
-if (_elementScoped && {_intent != "ASSAULT"}) exitWith {
-    _result set ["reason","ELEMENT_NO_CLOSE_ASSAULT"];_result
+// Only executors carrying the explicit actor roster may cross the mixed-crew boundary.
+// A proposed flank may offer advance as its safe alternative; never substitute reposition.
+if (_elementScoped) then {
+    if (_intent != "ASSAULT" && {"ADVANCE" in _candidates}) then {
+        _intent="ADVANCE";_reason="ELEMENT_CONTACT_ADVANCE";
+    };
+    _candidates=_candidates select {_x == _intent && {_x in ["ASSAULT","ADVANCE"]}};
+};
+if (_elementScoped && {_candidates isEqualTo []}) exitWith {
+    _result set ["reason","ELEMENT_NO_SAFE_MANOEUVRE"];_result
 };
 // Smoothed group morale cannot establish immediate command readiness. Defer only a new
 // offensive proposal; leave protective repositioning and ordinary engine orders untouched.

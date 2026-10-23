@@ -152,7 +152,7 @@ _group setVariable ["CBE_Cortex_DrillFailure",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["target",_target],["type","ASSAULT"],["units",_onFoot],
-    ["elementScoped",_elementScoped],["elementRoster",+_onFoot],
+    ["elementScoped",_elementScoped],["elementRoster",if (_elementScoped) then {+_element} else {[]}],
     ["desiredStrength",count _onFoot],["teams",[_assaultElement,_coverElement]],
     ["teamSizes",[count _assaultElement,count _coverElement]],["teamTurn",0],
     ["points",_points],["index",0],["stage",""],["enemyPos",+_enemyPos],

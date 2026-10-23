@@ -11,8 +11,8 @@
  * individual generation-owned egress attempts only after actual detach, so the boat group
  * is never assigned a land waypoint. Original landing membership survives departure from fullCrew.
  * Successful combined-group egress retains one 45-second semantic foot-element handover,
- * bound to the current native route/owner. It can start only the existing actor-only close
- * assault; no group land route, leader switch, group split or new job is introduced.
+ * bound to the current native route/owner. It can start only the existing actor-only
+ * assault/advance; no group land route, leader switch, group split or new job is introduced.
  * Existing sparse actor discovery reaps pending native cleanup; no new worker is installed.
  * Disembark requests require current actor task/assignment authority and a low-motion boat.
  *
@@ -116,7 +116,7 @@ if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
     if (_operation isNotEqualTo []) then {[_group,_state,"EXTERNAL"] call CBE_fnc_CortexNavalRelease};
     false
 };
-// A landed mixed-group foot element may use the existing actor-only assault executor.
+// A landed mixed-group foot element may use the existing actor-only assault/advance executors.
 // The original native route and owner epoch bind admission; the boat never gets a land waypoint.
 private _groundStarted=false;
 private _groundElement=_group getVariable ["CBE_Cortex_NavalGroundElement",[]];
@@ -130,7 +130,8 @@ if (count _groundElement == 6) then {
         && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _groundRoute};
     if (!_groundCurrent) then {_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true]} else {
         if (_enemies isNotEqualTo [] && {count (_state getOrDefault ["drill",createHashMap]) == 0}) then {
-            if ([_group,_state,_enemies,false,false,
+            if ([_group,_state,_enemies,false,
+                [_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled,
                 [_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled,_groundActors]
                 call CBE_fnc_CortexTacticalStart) then {
                 _group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
