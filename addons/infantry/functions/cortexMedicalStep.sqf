@@ -11,6 +11,8 @@
  * one native doMove owner and is refreshed only after measured no-progress or an empty command.
  * Authored travel refuses admission; HOLD/SENTRY permits in-place aid only. The captured full native
  * waypoint receipt must match before success and later treatment; changed or missing proof cancels.
+ * Admission preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid only the medic's last requested
+ * approach destination can explain MOVE; a patient MOVE or a different destination yields.
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP> - current Cortex group state.
@@ -89,7 +91,7 @@ if (_aid isNotEqualTo []) exitWith {
     if (_dangerActive) exitWith {["CANCELLED","COMBAT_RESUMED"] call _finish};
     _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
     // Missing legacy proof cannot adopt whatever mission order is current now.
-    if (count _aid != 8 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
+    if (count _aid != 9 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
         ["CANCELLED","ORDER_CHANGED"] call _finish
     };
     // Treatment may legitimately make no spatial progress, but it still needs the same
@@ -113,8 +115,17 @@ if (_aid isNotEqualTo []) exitWith {
     // not treated as unrelated work here. Explicit other services and reservations yield.
     private _newActorTask=[_medic,_casualty] findIf {
         private _reserved=[_x] call CBE_fnc_CortexActorMoveReserved;
-        _reserved || {currentCommand _x in ["GET IN","GET OUT","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        _reserved || {currentCommand _x in ["ATTACK","FIRE","SUPPRESS","GET IN","GET OUT","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
     } >= 0;
+    // Only the medic received our approach MOVE. A patient MOVE or a different medic
+    // destination is a new task, not a reason to refresh the old treatment approach.
+    private _requestedApproach=_aid select 8;
+    if (currentCommand _casualty == "MOVE"
+        || {currentCommand _medic == "MOVE" && {
+            private _destination=(expectedDestination _medic) param [0,[]];
+            count _requestedApproach != 3 || {count _destination != 3}
+                || {_destination vectorDistance _requestedApproach > 0.25}
+        }}) then {_newActorTask=true};
     if (_newActorTask) exitWith {["CANCELLED","ACTOR_TASK_CHANGED"] call _finish};
     if (damage _casualty < (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
         missionNamespace setVariable ["CBE_AIPass_MedicalAssists",(missionNamespace getVariable ["CBE_AIPass_MedicalAssists",0])+1];
@@ -154,7 +165,9 @@ if (_aid isNotEqualTo []) exitWith {
         if (!_inTreatmentRange) then {
             if (_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"}
                 && {currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}}) then {
-                _medic doMove getPosATL _casualty;
+                private _approach=getPosATL _casualty;
+                _medic doMove _approach;
+                _aid set [8,+_approach];
                 _aid set [4,time];
             };
         } else {
@@ -185,7 +198,7 @@ if (_authoredOrder && {!_stationaryOrder}) exitWith {false};
 private _members=(units _group) select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
     alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(currentCommand _x in ["MOVE","ATTACK","FIRE","SUPPRESS","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {!(_x getVariable ["ACE_isUnconscious",false])}
 };
@@ -224,10 +237,12 @@ if ((_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sel
     && {!(_medic checkAIFeature "MOVE") || {!(_medic checkAIFeature "PATH")}}) exitWith {
     [_group,_generation,"MOVEMENT_DISABLED"] call CBE_fnc_OperationCancel; false
 };
+private _approach=[];
 if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
-    _medic doMove getPosATL _casualty;
+    _approach=getPosATL _casualty;
+    _medic doMove _approach;
 } else {
     _medic action ["HealSoldier",_casualty];
 };
-_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time,+_medicalOrder],true];
+_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time,+_medicalOrder,+_approach],true];
 true

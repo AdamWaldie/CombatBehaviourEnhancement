@@ -2687,3 +2687,5 @@ Finite tactical movement waits for surviving local queue consent, passing consen
 
 
 Medical aid preserves authored travel: a live mission waypoint other than HOLD/SENTRY prevents automatic aid admission. HOLD/SENTRY allows treatment only when the pair is already within native treatment reach; it never authorises leaving the station to pursue the patient. The operation captures the full current native waypoint receipt and cancels on replacement before reporting success or issuing another treatment command. Missing legacy proof also cancels. These checks do not establish ownership of every direct per-unit command or prove a native treatment action has stopped.
+
+Medical selection also preserves current native movement and combat commands. During aid the patient is never commanded to move: a new patient MOVE or either actor's ATTACK/FIRE/SUPPRESS makes aid yield. A medic MOVE must still target the last CBE approach request before another approach or treatment can be issued. Identical-destination edits and generic native ACTION/HEAL ownership cannot be attributed by these checks; cancellation is not proof that an existing native action has stopped.

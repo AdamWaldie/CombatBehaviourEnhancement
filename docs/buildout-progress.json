@@ -659,7 +659,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
+              "sha256": "3e285062f64778c3bc566cefa4cc30bc750306cb300dc107d1739e966b984fa0"
             }
           ]
         },
@@ -672,7 +672,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
+              "sha256": "3e285062f64778c3bc566cefa4cc30bc750306cb300dc107d1739e966b984fa0"
             }
           ]
         },
@@ -680,12 +680,12 @@
           "capability": "Current-task cancellation and owned release",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Aid now captures the full native waypoint receipt, checks it before success and later commands, and rejects missing legacy proof. Authored travel refuses admission; HOLD/SENTRY allows only already-in-range aid and cancels if reach is lost. Shared release/cancel retires captured operation policy without renewing live danger expiry.",
-          "remaining_build_gap": "Complete provenance for newer direct per-unit MOVE/ATTACK/ACTION commands remains unresolved; waypoint identity does not identify those writers or prove native treatment quiescence. Physical order handover and treatment behaviour remain unverified separately.",
+          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Aid now captures the full native waypoint receipt, checks it before success and later commands, and rejects missing legacy proof. Authored travel refuses admission; HOLD/SENTRY allows only already-in-range aid and cancels if reach is lost. Shared release/cancel retires captured operation policy without renewing live danger expiry. Admission also preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid a patient MOVE, combat command or medic MOVE with a destination different from the last requested approach cancels before success or reissue; the existing aid record carries the approach target.",
+          "remaining_build_gap": "Generic ACTION/HEAL ownership and identical-destination external writes remain indistinguishable from native aid. Cancellation records do not prove native treatment or approach quiescence; physical treatment and per-unit handover still need validation. Do not report complete external-controller handover from these checks.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
+              "sha256": "3e285062f64778c3bc566cefa4cc30bc750306cb300dc107d1739e966b984fa0"
             },
             {
               "path": "addons/core/functions/operationRelease.sqf",
@@ -700,7 +700,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "dbf09a34 + medical authored-order receipt fix"
+      "source_commit": "880bd063 + medical native movement provenance fix"
     },
     {
       "id": "CONTACT",
