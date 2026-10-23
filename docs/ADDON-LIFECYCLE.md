@@ -1459,3 +1459,8 @@ Explicit clearance release recognises an exact live MOVE to its saved job destin
 ### Garrison refill preserves disabled pathfinding
 
 An unassigned spare with mission-disabled PATH is not recruited as a walking garrison replacement. Previously it could reserve a vacant post despite being unable to approach it. Exterior promotion remains separate: a CBE-owned disabled-PATH guard at a verified post can be released only with the existing physical exit-cover checks. Refill never enables a spare's mission-disabled pathfinding and grants no arrival from selection. The change adds one feature query to the existing bounded candidate pass, with no worker or retry. Physical vacancy turnover, preserved exterior coverage and performance remain unverified while audits are paused.
+
+
+### Garrison vacancy observation cost
+
+The settled refill callback reads each living member's interior assignment once before examining candidate posts. This replaces up to64x64 repeated assignment-variable reads with at most64 reads in the vacancy pass; up to4096 building/position comparisons remain. An empty candidate list exits before collecting occupancy. Living incapacitated members still reserve posts, exterior assignments do not occupy interior slots, and the same building and distance-below1m checks select vacancies. The snapshot exists only inside the current callback; candidate readiness and movement authority retain their existing checks. This is a structural reduction in script/native reads, not measured frame-time improvement or proof of the5% median/10% p95 budget. Audits remain paused.

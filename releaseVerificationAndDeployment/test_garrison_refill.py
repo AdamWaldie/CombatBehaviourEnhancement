@@ -13,6 +13,13 @@ class GarrisonRefillTests(unittest.TestCase):
         self.assertIn('_assignment isEqualTo []',spare)
         self.assertIn('_actor checkAIFeature "PATH"',spare)
         self.assertNotIn('enableAI',s)
+        vacancy=s.split('private _vacancy=[];',1)[1].split('private _eligible=',1)[0]
+        self.assertIn('_occupiedPosts findIf',vacancy)
+        self.assertNotIn('getVariable ["CBE_AIPass_GarrisonPos"',vacancy)
+        self.assertIn('(_x select 1) vectorDistance (_candidate select 0) < 1',vacancy)
+        occupancy=s.split('private _occupiedPosts=[];',1)[1].split('private _vacancy=[];',1)[0]
+        self.assertIn('} forEach _living;',occupancy)
+        self.assertIn('(_assignment param [4,"INTERIOR"]) == "INTERIOR"',occupancy)
         self.assertNotIn('setPosATL',s)
         self.assertNotIn('call CBE_fnc_CortexGarrison;',s)
     def test_pending_marker_is_updated_by_existing_job_and_cleared_on_release(self):

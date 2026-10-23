@@ -29,6 +29,16 @@ private _living=_members select {alive _x};
 private _roster=(_group getVariable ["CBE_Cortex_GarrisonRoster",_members]) select {!isNull _x && {alive _x} && {group _x == _group}};
 if (count _living/((_order param [2,1]) max 1) <= (missionNamespace getVariable ["CBE_AIPass_Garrison_BreakFraction",0.5])) exitWith {false};
 private _candidates=(_group getVariable ["CBE_Cortex_GarrisonCandidates",[]]) select [0,64];
+if (_candidates isEqualTo []) exitWith {false};
+// The group scheduler calls this unscheduled. Read each living assignment once for
+// this vacancy pass; no snapshot survives the callback or authorizes later commands.
+private _occupiedPosts=[];
+{
+    private _assignment=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
+    if (_assignment isNotEqualTo [] && {(_assignment param [4,"INTERIOR"]) == "INTERIOR"}) then {
+        _occupiedPosts pushBack [_assignment param [2,objNull],+(_assignment select 0)];
+    };
+} forEach _living;
 private _vacancy=[];
 {
     private _candidate=_x;
@@ -36,11 +46,9 @@ private _vacancy=[];
     private _transform=_candidate param [3,[]];
     if (!isNull _building && {alive _building}
         && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
-        && {_living findIf {
-            private _assignment=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
-            _assignment isNotEqualTo [] && {(_assignment param [4,"INTERIOR"]) == "INTERIOR"}
-                && {(_assignment param [2,objNull]) == _building}
-                && {(_assignment select 0) vectorDistance (_candidate select 0) < 1}
+        && {_occupiedPosts findIf {
+            (_x select 0) == _building
+                && {(_x select 1) vectorDistance (_candidate select 0) < 1}
         } < 0}) exitWith {_vacancy=+_candidate};
 } forEach _candidates;
 if (_vacancy isEqualTo []) exitWith {false};
