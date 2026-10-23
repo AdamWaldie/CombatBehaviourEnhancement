@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Native flight and queued care grant no ordinary recall authority.
+ * Native flight, queued care and mission-disabled MOVE/PATH grant no ordinary recall authority.
  * Purpose: Recognises an investigation/search MOVE actually issued by CBE for safe handback.
  * Locality/Authority: Read-only on current group/actor owner; refuses external, Zeus, service,
  * mounted, dormant, queued-treatment or reserved actors and active clearance. Actual route and 3D native destination must match.
@@ -17,6 +17,7 @@ if (isNull _group || {!local _group} || {isNull _actor} || {!local _actor} || {g
     || {fleeing _actor}
     || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["MOVE","","STOP"])}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}

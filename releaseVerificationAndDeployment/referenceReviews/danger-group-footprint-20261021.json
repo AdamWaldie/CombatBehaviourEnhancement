@@ -290,5 +290,18 @@
       ".qa/grenade-native-fire-policy-independent.log"
     ],
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Native release after already accepted forceWeaponFire, physical hold-fire/flight transitions, repeated assault continuation, HC/JIP and performance unverified. No projectile cancellation/control claim, complete parity or percentage increase. Audits paused."
+  },
+  "searchRecallMovementFeatures20261023": {
+    "baseline": "c2c28896",
+    "finding": "CortexHolderRecallOwned checked MOVE/PATH, but CortexSearchMoveOwned could return ownership for an exact old search MOVE after either native feature was disabled. CortexRestoreCalm could then issue follow over the authored disabled-feature state. Search never owns those feature switches.",
+    "implementation": "Read-only search ownership predicate now requires both native MOVE and PATH before receipt/destination work. Existing local/group/Zeus/native-task/fleeing/care/reservation/route proofs remain. No feature enable, native command, new job, scan, retry or deadline added.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing search-ownership regression extended; no new case.",
+    "candidate": ".qa/candidates/search-recall-movement-features-c2c28896",
+    "fingerprint": "f16d13235af38971a1b0e94db8959d87a9d49af79e975d7239f0e7f2bf78c429",
+    "logs": [
+      ".qa/search-recall-movement-features-build.log",
+      ".qa/search-recall-movement-features-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Native follow/disabled-feature transitions, physical authored-order continuation, HC/JIP and performance remain unverified. No eventual handback, complete parity or percentage claim. Audits paused."
   }
 }
