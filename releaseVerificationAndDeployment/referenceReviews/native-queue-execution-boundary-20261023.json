@@ -121,5 +121,20 @@
     ],
     "remaining": "Native top-level proposal/consent/auto exclusions still prevent executable native queue negotiation. BypassRelease requires ordinary native parent; queue native stop/return needs original-intent proof, exact pending command acknowledgement, original deadline and owner-local cleanup. Do not enable before integrating that path.",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Internal acquisition support is not delivered native queue behaviour. No physical authored-queue regression/native queue/HC/JIP/performance proof. No tracker score renewal. Audits paused."
+  },
+  "nativeReturnJournal20261023": {
+    "baseline": "49c15ae9",
+    "implementation": "BypassRelease recognises exact queueNativeIntent independently of ordinary recovery parent. After existing explicit completion and two-seat STOP observations, native goal return records kind QUEUE_RETURN in existing recovery observation service with original queue deadline, both operating actors, exact cap, original goal/pre-request native frame and queue binding. CommandState requires both original-goal MOVE acknowledgements for queueReturn as for native bypassReturn. Pending/expired return is observed without replay; unresolved proof retains original deadline. Successful queue-return observation retires instead of converting into a new FINAL ordinary recovery allowance. Cleanup signature includes queueReturn binding to fence successor tokens. No new function/worker/timer or invented ordinary parent.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial build passed; cleanup token-signature extension then failed old source assertion, updated existing assertion retains all original signature fields plus queueReturn; reviewed build passed. Existing moving/cleanup cases extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-return-journal-49c15ae9",
+    "fingerprint": "f4d360f32def3286cad4a1977e124419984c805616dc71b1357c781a1c8f10e9",
+    "logs": [
+      ".qa/queue-native-return-journal-build.log",
+      ".qa/queue-native-return-journal-build-final.log",
+      ".qa/queue-native-return-journal-build-reviewed.log",
+      ".qa/queue-native-return-journal-independent.log"
+    ],
+    "remaining": "Native top-level proposal/consent/auto exclusions remain. Unacknowledged initial doStop must retain exact path/stop journal rather than retire it. Aborted queue STOP/original-goal safety handback remains authored-only in DrivingAbortHandback; integrate native receipt recognition and pending return there before enabling. Audit split locality/adoption and cap restoration.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Command acknowledgement is not physical travel. Driver FOLLOW->native MOVE propagation, stop timing, pending/late native return and overhead unverified. No native queue feature completion or score renewal. Audits paused."
   }
 }

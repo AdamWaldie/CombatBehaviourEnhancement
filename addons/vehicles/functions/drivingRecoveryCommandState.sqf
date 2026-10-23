@@ -62,7 +62,7 @@ if (_nativeReturn isNotEqualTo []) exitWith {
         || {!(_returnBefore isEqualType [])} || {count _returnBefore != 4}
         || {!((_returnBefore select 0) isEqualType "")} || {!((_returnBefore select 2) isEqualType "")}
         || {!((_returnBefore select 1) isEqualType [])} || {!((_returnBefore select 3) isEqualType [])}) exitWith {"LOST"};
-    if ("bypassReturn" in _work && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
+    if (("bypassReturn" in _work || {"queueReturn" in _work}) && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
         [_returnGoal,_returnUntil,_returnBefore] call _temporaryReturnState
     };
     private _operatorGoal=_operatorNative param [0,[],[[]]];
@@ -147,7 +147,7 @@ if (!(_goal isEqualType []) || {count _goal != 3}
     || {!(_before isEqualType [])} || {count _before != 4}
     || {!((_before select 0) isEqualType "")} || {!((_before select 2) isEqualType "")}
     || {!((_before select 1) isEqualType [])} || {!((_before select 3) isEqualType [])}) exitWith {"LOST"};
-if ("bypassReturn" in _work && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
+if (("bypassReturn" in _work || {"queueReturn" in _work}) && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
     [_goal,_until,_before] call _temporaryReturnState
 };
 private _position=_operatorNative param [0,[],[[]]];

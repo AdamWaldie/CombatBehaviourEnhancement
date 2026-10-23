@@ -345,6 +345,20 @@ class QueueProposalTests(unittest.TestCase):
             self.assertNotIn(forbidden,identity)
         bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
         self.assertIn('_work set ["queueNativeIntent"',bypass)
+        release=(ROOT/'addons/vehicles/functions/drivingBypassRelease.sqf').read_text(encoding='utf-8')
+        for proof in ('private _queueNativeCurrent=', '["kind","QUEUE_RETURN"]',
+                      '["nativeReturn",[+_returnGoal,_nativeHard,_returnBefore]]',
+                      'call CBE_fnc_DrivingRecoveryCleanup'):
+            self.assertIn(proof,release)
+        command=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text(encoding='utf-8')
+        self.assertIn('"bypassReturn" in _work || {"queueReturn" in _work}',command)
+        retire=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('(_work getOrDefault ["kind",""]) != "QUEUE_RETURN"',retire)
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text(encoding='utf-8')
+        signature=cleanup.split('private _signature={',1)[1].split('private _abortSignature=',1)[0]
+        self.assertIn('"queueReturn"',signature)
+
+
         self.assertIn('_nativeRoute && {!(_controller in ["ORDINARY","QUEUE"])}',bypass)
         self.assertIn('private _queueNativeBound=_nativeRoute && {_queue}',bypass)
         bound=bypass.split('private _queueNativeBound=',1)[1].split('private _deadline=',1)[0]

@@ -17,6 +17,8 @@
  * PLAN owns no movement and cannot stop native actors. Exact ordinary-parent child cleanup
  * may journal its newly issued native route request within two seconds/original parent expiry;
  * this carries the spent budget without renewing the episode or copying the fixed path. Local handles/code are never published.
+ * Native queue return uses an explicit QUEUE_RETURN observation journal through the original
+ * queue deadline; no ordinary recovery parent is fabricated and no return command is replayed.
  * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
  * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
  * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
@@ -100,7 +102,13 @@ isNil {
     private _nativeParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
     private _nativeBinding=_work getOrDefault ["recoveryParent",[]];
     private _nativeHard=_nativeParent getOrDefault ["hardDeadline",-1];
-    private _nativeParentCurrent=!_nativeRoute || {!_convoy && {!_queue}
+    private _queueNativeCurrent=_nativeRoute && {_queue}
+        && {(_work getOrDefault ["queueNativeIntent",[]]) isEqualTo
+            [_route,[_group] call CBE_fnc_DrivingOwnerReceipt,_queueBinding]}
+        && {count _nativeParent == 0} && {count _queueBinding == 4}
+        && {(_work getOrDefault ["deadline",-1]) isEqualTo (_queueBinding select 1)};
+    if (_queueNativeCurrent) then {_nativeHard=_work get "deadline"};
+    private _nativeParentCurrent=!_nativeRoute || {_queueNativeCurrent} || {!_convoy && {!_queue}
         && {_nativeHard isEqualType 0} && {finite _nativeHard}
         && {_nativeBinding isEqualTo [_group,_route,_nativeHard,_nativeParent getOrDefault ["progressAnchor",[]]]}
         && {(_nativeParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
@@ -139,6 +147,28 @@ isNil {
                 currentCommand _operator,+(expectedDestination _operator)];
             private _returnGoal=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,_index]};
             _operator doMove _returnGoal;
+            // Queue return is an issued-command journal, not an invented ordinary
+            // recovery parent or a fresh retry budget. Existing cleanup observes it.
+            if (_queueNativeCurrent && {local _vehicle} && {local _group}
+                && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+                && {serverTime < _nativeHard}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+                && {count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0}) then {
+                private _returnCap=getForcedSpeed _vehicle;
+                private _returnAssist=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+                if (finite _returnCap && {(_returnAssist param [3,grpNull]) == _group}
+                    && {abs ((_returnAssist param [0,-1e9])-_returnCap) <= 0.1}) then {
+                    _vehicle setVariable ["CBE_DrivingRecovery_Work",createHashMapFromArray [
+                        ["group",_group],["route",+_route],["driver",_driver],["operator",_operator],
+                        ["kind","QUEUE_RETURN"],["commandMode","DESTINATION"],["queueReturn",+_queueBinding],
+                        ["started",serverTime],["deadline",_nativeHard],["hardDeadline",_nativeHard],
+                        ["cap",_returnCap],["baseline",+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])],
+                        ["driverCommand",+(_returnBefore select 1)],["command",+(expectedDestination _operator)],
+                        ["nativeReturn",[+_returnGoal,_nativeHard,_returnBefore]],["releasePending",true]
+                    ],true];
+                    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+                };
+            };
             private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             private _parentBinding=_work getOrDefault ["recoveryParent",[]];
             private _hard=_parent getOrDefault ["hardDeadline",-1];
