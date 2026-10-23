@@ -99,5 +99,13 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "elementScopeMigration20261023": {
+    "baseCommit": "5f5bf6d3",
+    "fault": "Standalone CortexCheckpoint uses a fixed drill payload field list. Omitted elementScoped/elementRoster would reconstruct the newly scoped assault as an ordinary drill on replacement owner, permitting wider refill and boat-leader formation return.",
+    "fix": "Serialize scope flag and original roster; skip redundant roster for ordinary false-scoped drills. CortexDrillResume validates boolean scope and nonempty object roster<=64 containing every saved participant before any settling lease or deferred callback. Missing/malformed/widened scoped intent refuses, rather than inferring whole-group authority. Legacy unscoped checkpoints retain normal semantics; native command proof and clocks unchanged.",
+    "validation": "1491 full offline tests/410SQF/9PBO and independent verify. Candidate .qa/candidates/element-scope-migration-5f5bf6d3 fingerprint4a61970414a7d0f47d036c57be8ed00262ba40edbb89094aeecc0875223e2b42. No physical HC migration or performance evidence.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

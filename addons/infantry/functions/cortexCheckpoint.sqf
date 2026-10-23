@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Ground-element scope and original roster accompany standalone drill intent; migration must
+ * not widen a landed infantry element into its whole mixed crew/passenger group.
  * Coordinated checkpoints retain exact acknowledged MOVE observations and original progress clocks, without replay authority.
  * Publishes restoration data and bounded post-contact movement intent after an unscheduled AI job.
  * A missing or stale public phase is repaired through CortexSetPhase with an explicit continuity
@@ -57,6 +59,8 @@ if (count _drill > 0) then {
         private _payload=[];
         {
             private _value=_drill get _x;
+            // Ordinary drills need no duplicate64-actor roster in every checkpoint.
+            if (_x == "elementRoster" && {(_drill getOrDefault ["elementScoped",false]) isEqualTo false}) then {_value=nil};
             if (!isNil "_value") then {
                 // At most three nested array levels: positions, teams and route records.
                 if (_value isEqualType []) then {
@@ -65,7 +69,7 @@ if (count _drill > 0) then {
                 _payload pushBack [_x,_value];
             };
         } forEach ["type","buddyBounds","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
-            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundQuorumUntil","boundWaypoint","authoredOrder"];
+            "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundQuorumUntil","boundWaypoint","authoredOrder","elementScoped","elementRoster"];
         // Carry passive HOLD provenance only. No MOVE replay, acknowledgement grace,
         // local callback or FSM handle becomes portable command authority.
         private _holdProof=[];

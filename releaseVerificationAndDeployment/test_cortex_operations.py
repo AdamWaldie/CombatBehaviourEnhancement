@@ -10644,6 +10644,14 @@ class CortexOperations(unittest.TestCase):
                        '"LANDED"','CBE_fnc_CortexTacticalStart','_groundActors','if (_groundStarted) exitWith {true}'):
             self.assertIn(marker,ground)
         self.assertIn('["elementScoped",_elementScoped]',source('cortexAssaultStart'))
+        checkpoint=source('cortexCheckpoint')
+        self.assertIn('"elementScoped","elementRoster"',checkpoint)
+        resume=source('cortexDrillResume')
+        for marker in ('_elementScoped isEqualType true','count _elementRoster > 64',
+                       '_units findIf {!(_x in _elementRoster)}'):
+            self.assertIn(marker,resume)
+        self.assertLess(resume.index('private _elementScoped='),resume.index('call CBE_fnc_CortexOwnershipLease'))
+
         self.assertIn('_fitSquad=_fitSquad select {_x in _elementRoster}',source('cortexFlankStep'))
         self.assertIn('[_group,_members] call CBE_fnc_CortexGroupAnchor',source('cortexFlankEnd'))
 

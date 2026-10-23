@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Explicit ground-element intent retains its original roster across owner migration. Missing,
+ * malformed or widened scoped rosters refuse before acquiring a movement lease; ordinary legacy
+ * drill checkpoints without a scope flag retain their existing whole-group semantics.
  * Purpose: Reconstructs an unfinished standalone flank, advance or assault on its new owner.
  * Locality/authority: Current group owner only, after CortexLocality releases previous-owner leases.
  * Repeat/JIP: Source generation is consumed once. JIP observes checkpoints without starting work.
@@ -41,6 +44,14 @@ if (_gate == "" || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
 private _points=_drill getOrDefault ["points",[]];
 private _index=_drill getOrDefault ["index",-1];
 private _units=_drill getOrDefault ["units",[]];
+// Scope is semantic intent, not owner-local movement proof. Validate before a settling lease
+// or deferred resume callback can be created, and never infer a wider replacement roster.
+private _elementScoped=_drill getOrDefault ["elementScoped",false];
+if (!(_elementScoped isEqualType true)) exitWith {false};
+private _elementRoster=_drill getOrDefault ["elementRoster",[]];
+if (_elementScoped && {!(_units isEqualType []) || {!(_elementRoster isEqualType [])} || {count _elementRoster == 0}
+    || {count _elementRoster > 64} || {_elementRoster findIf {!(_x isEqualType objNull)} >= 0}
+    || {_units findIf {!(_x in _elementRoster)} >= 0}}) exitWith {false};
 private _savedStage=_drill getOrDefault ["stage",""];
 if (count _points == 0 || {count _points > 64} || {_index < 0} || {_index >= count _points}
     || {count _units > 64} || {_savedStage in ["START","MOVE"] && {_deadline >= 0 && {serverTime >= _deadline}}}) exitWith {false};
