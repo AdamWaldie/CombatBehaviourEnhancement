@@ -96,5 +96,43 @@
     "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
     "candidate": ".qa/candidates/pass-inherited-medical-5f1ca7b6",
     "fingerprint": "0dde6ce665cb3c78dfaaf95e00fad2fcc90ef416c61b4ebc4ff940bbf113d68c"
+  },
+  "sharedPathRejectionCost20261023": {
+    "baseline": "056bec5d",
+    "source": {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "selectedLines": "2130-2144",
+      "intent": "Source overtaking solid-path/edge probes stop after a blocking ray. Selected branch read/hash verified, not a renewed full driveAssist comparison."
+    },
+    "confirmed": "CBE DrivingPathGeometry retained the full remaining3-support or9-body sample loop even after reason was already a permanent rejection. A longitudinal-slope rejection also proceeded through body casts, which could overwrite the reason while acceptance remained false.",
+    "implementation": "Three loop-entry exits stop remaining support samples, remaining body heights and remaining lateral body offsets once reason is nonempty. Outer point/segment rejection, all thresholds, accepted-path coverage, exact ray counter and false return remain. Known longitudinal slope retains its reason without body queries.",
+    "sharedConsumers": [
+      "DrivingCorridorGeometry",
+      "DrivingPassGeometry",
+      "DrivingBypassPlan",
+      "DrivingBypassStep",
+      "ConvoyTick"
+    ],
+    "cost": "Up to2 discarded support rays avoided after an initial support rejection; up to8 remaining body rays avoided after an initial obstruction, or all9 after known longitudinal rejection (height sample count may be smaller). Clear-path maximum budgets are unchanged. No frame-time or 5percent/10percent budget claim.",
+    "validation": {
+      "existingCorridorTests": 25,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/path-rejection-earlyout-build.log",
+      "candidate": ".qa/candidates/path-rejection-earlyout-056bec5d",
+      "independent": ".qa/path-rejection-earlyout-independent.log",
+      "fingerprint": "0dc80e88a9b9f718046bb64820cc630a13a449bf1adcca40ecc39919f3c9b558"
+    },
+    "limits": [
+      "Read-only query optimization, no steering/access/safety coverage improvement or continuous swept-hull guarantee.",
+      "No native path/route/owner/retry/deadline mutation. Physical passage and measured median/p95 performance remain unverified.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/notes postdate package. No scores renewed; audits paused."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/drivingPathGeometry.sqf": "b176442ea4ccdcdfea9222a1ed77a5487699ea4647c7f0936acd778b30244281",
+      "releaseVerificationAndDeployment/test_driving_corridor.py": "f019c6906216c2a9f34c2bfdbe00f47b8b6939ec3ad1e32d0f4d0ab3d04afe94"
+    }
   }
 }

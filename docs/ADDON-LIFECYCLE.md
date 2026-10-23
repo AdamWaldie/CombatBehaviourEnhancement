@@ -1558,3 +1558,6 @@ Combat gunner replacement now accepts the same finite known-hostile danger gener
 
 
 Building-clearance speed acquisition now follows live STEALTH intent through its existing canonical settings adapter: requested movement pace is capped at1m/s, including an unrestricted request, while lower mission-owned caps remain lower. Normal non-stealth approach/room pressure and arrival pacing remain unchanged. CHECK/ADOPT/PREPARE do not apply a new speed; owner transfer, original baseline and exact finite restoration stay with ActorSettings. This unifies clearance pacing with existing danger-attack pacing without a second speed writer, behaviour/combat-mode change, timer or settings surface. Physical stealth approach/entry/exit and pacing balance remain unverified.
+
+
+The shared driving path validator stops further support or body rays as soon as the proposal is rejected. A known longitudinal-slope rejection issues no body rays; an obstruction stops remaining height and edge samples. Clear proposals still receive the complete existing support, slope and body checks, and the returned ray count records only issued casts. This applies to existing bypass, corridor, passing and convoy callers without changing routes, permissions or retry budgets. It reduces discarded query work; no measured frame-time or safety-coverage improvement is claimed.

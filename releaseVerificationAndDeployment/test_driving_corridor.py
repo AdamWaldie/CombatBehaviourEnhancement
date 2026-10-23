@@ -140,6 +140,16 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2}', body)
         self.assertIn('"AREA_CHANGED"', body)
         self.assertIn('"HULL_TOO_WIDE"', body)
+        path=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text()
+        support=path.split('private _supports=[];',1)[1].split('if (count _supports == 3)',1)[0]
+        self.assertLess(support.index('if (_reason != "") exitWith {}'),support.index('lineIntersectsSurfaces'))
+        body_samples=path.split('private _bodyHeights=',1)[1]
+        self.assertEqual(body_samples.count('if (_reason != "") exitWith {}'),2)
+        self.assertLess(body_samples.index('if (_reason != "") exitWith {}'),body_samples.index('lineIntersectsSurfaces'))
+        self.assertIn('forEach _bodyHeights',body_samples)
+        self.assertIn('forEach [-_halfWidth,0,_halfWidth]',body_samples)
+        self.assertIn('[false,_reason,[],[],_rays]',path)
+
     def test_declared_sampling_bound_holds_across_allowed_lengths(self):
         for half_length in range(5, 46):
             segments = math.ceil(2 * (half_length + 30) / 8)
