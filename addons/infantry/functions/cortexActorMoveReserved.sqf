@@ -3,7 +3,8 @@
  * Purpose: Read whether a finite actor movement reservation prevents routine task admission.
  * Locality/authority: Read-only on the actor owner; remote/nonlocal actors refuse admission.
  * Repeat/JIP: No mutation or expiry renewal. Empty markers are free; unknown/malformed markers
- * remain reserved. An unresolved flight journal also blocks admission after its ordinary marker expires.
+ * remain reserved. Unresolved flight/naval-egress journals also block admission after the
+ * ordinary marker expires; only their exact cleanup may retire pending native proof.
  * Only a fully typed finite three-field lease without that journal can expire on its local clock.
  * Arguments: 0 actor <OBJECT>, objNull.
  * Return: BOOL, true for reserved/unknown/nonlocal actor; false only for empty or valid expired lease.
@@ -18,6 +19,7 @@ if (isNull _actor || {!local _actor}) exitWith {true};
 // An expired ordinary marker cannot admit a new task over an unconfirmed native flight request.
 // Only that feature's exact cleanup retires its journal; this predicate grants no native command.
 if ((_actor getVariable ["CBE_Danger_FlightLease",[]]) isNotEqualTo []) exitWith {true};
+if ((_actor getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []) exitWith {true};
 private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (_lease isEqualTo []) exitWith {false};
 private _expired=_lease isEqualType [] && {count _lease == 3}

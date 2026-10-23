@@ -403,6 +403,7 @@ class CfgFunctions {
             class CortexVehicles {file = "\z\cbe\addons\vehicles\functions\cortexVehicles.sqf";};
             class CortexNavalAssault {file = "\z\cbe\addons\vehicles\functions\cortexNavalAssault.sqf";};
             class CortexNavalRelease {file = "\z\cbe\addons\vehicles\functions\cortexNavalRelease.sqf";};
+            class CortexNavalEgressActor {file = "\z\cbe\addons\vehicles\functions\cortexNavalEgressActor.sqf";};
             class CortexTacticalStart {file = "\z\cbe\addons\infantry\functions\cortexTacticalStart.sqf";};
             class CortexAssaultStart {file = "\z\cbe\addons\infantry\functions\cortexAssaultStart.sqf";};
             class CortexAdvanceStart {file = "\z\cbe\addons\infantry\functions\cortexAdvanceStart.sqf";};

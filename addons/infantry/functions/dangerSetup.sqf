@@ -100,6 +100,9 @@ if (_paceActors isNotEqualTo []) then {
             && {!( ["CHECK",_x] call CBE_fnc_DangerAttackPace)}) then {
             ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
         };
+        if (local _x && {(_x getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []}) then {
+            ["REAP",_x] call CBE_fnc_CortexNavalEgressActor;
+        };
         private _flightProof=_x getVariable ["CBE_Danger_FlightLease",[]];
         if (local _x && {_flightProof isEqualType []} && {count _flightProof == 8}
             && {(_flightProof select 1) isEqualType 0} && {finite (_flightProof select 1)}

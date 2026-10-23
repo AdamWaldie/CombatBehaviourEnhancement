@@ -655,6 +655,7 @@
       "production_sources": [
         "addons/aircraft/functions/cortexAircraftEligible.sqf",
         "addons/vehicles/functions/cortexNavalAssault.sqf",
+        "addons/vehicles/functions/cortexNavalEgressActor.sqf",
         "addons/vehicles/functions/cortexNavalRelease.sqf",
         "addons/vehicles/functions/cortexVehicles.sqf",
         "addons/vehicles/functions/cortexVehicleCrewAvailable.sqf",

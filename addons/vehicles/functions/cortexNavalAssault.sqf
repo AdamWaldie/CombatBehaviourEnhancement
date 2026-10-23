@@ -8,7 +8,10 @@
  * setDriveOnPath, teleport, repair, unflip or a global group/unit scan. Crew and operating gunners
  * remain aboard. A separate passenger group owns and unloads only its members, then receives one
  * finite dry-ground egress. For a legacy combined crew/passenger group, cargo receives short
- * individual egress moves so the boat group is never assigned a land waypoint.
+ * individual generation-owned egress attempts only after actual detach, so the boat group
+ * is never assigned a land waypoint. Original landing membership survives departure from fullCrew.
+ * Existing sparse actor discovery reaps pending native cleanup; no new worker is installed.
+ * Disembark requests require current actor task/assignment authority and a low-motion boat.
  *
  * Player, Zeus, specialist and neutral external-control ownership is respected through the common takeover
  * boundary and movement lease. Zeus input releases the operation through
@@ -55,6 +58,33 @@ if (!_enabled) exitWith {
     false
 };
 
+// Boarding intent and protected actor work remain authoritative during disembarkation too.
+private _cargoAvailable={
+    params ["_unit","_boat"];
+    local _unit && {group _unit == _group} && {!isPlayer _unit}
+        && {[_unit] call CBE_fnc_CortexCombatEffective} && {objectParent _unit == _boat}
+        && {assignedVehicle _unit == _boat} && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {isNull remoteControlled _unit}
+        && {isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
+        && {toUpperANSI currentCommand _unit != "STOP"}
+        && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}
+};
+private _operationCurrent={
+    params ["_wantedGeneration","_wantedIntent"];
+    private _currentOperationRecord=_group getVariable ["CBE_Operation",createHashMap];
+    (_currentOperationRecord getOrDefault ["generation",-2]) == _wantedGeneration
+        && {(_currentOperationRecord getOrDefault ["intent",""]) == _wantedIntent}
+        && {(_currentOperationRecord getOrDefault ["phase",""]) != "CANCELLED"}
+        && {(_currentOperationRecord getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+};
+private _boatStopped={
+    params ["_boat"];
+    private _linear=vectorMagnitude velocity _boat;
+    private _angular=vectorMagnitude angularVelocity _boat;
+    finite _linear && {finite _angular} && {_linear < 0.5} && {_angular < 0.1}
+};
 private _operation=_state getOrDefault ["navalOperation",[]];
 // Local state belongs to the old owner. Reconstruct the semantic episode from the public token;
 // never replay its previous waypoint or extend its original deadline.
@@ -101,6 +131,10 @@ if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWit
         [_group,_state,"OPERATION_REFUSED"] call CBE_fnc_CortexNavalRelease;
         false
     };
+    if (!([_landingGeneration,"NAVAL_LANDING"] call _operationCurrent)) exitWith {
+        [_group,_state,"OPERATION_CHANGED"] call CBE_fnc_CortexNavalRelease;
+        false
+    };
     private _movement=_state getOrDefault ["movementLease",[]];
     private _egressReady=(_movement param [0,""]) == "NAVAL_LANDING";
     if (!_egressReady) then {
@@ -144,6 +178,7 @@ if (!_commandsBoat) exitWith {
         _group setVariable ["CBE_Cortex_NavalStatus",["EMBARKED",_landing,_expires],true];
         true
     };
+    if (_phase != "DISEMBARK" || {!([_boat] call _boatStopped)}) exitWith {_phase == "DISEMBARK"};
     private _cargo=(fullCrew [_boat,"",false]) select {
         private _unit=_x select 0;
         private _seat=_x select 1;
@@ -151,9 +186,11 @@ if (!_commandsBoat) exitWith {
     };
     {
         private _unit=_x select 0;
-        [_unit] orderGetIn false;
-        unassignVehicle _unit;
-        doGetOut _unit;
+        if ([_unit,_boat] call _cargoAvailable) then {
+            [_unit] orderGetIn false;
+            unassignVehicle _unit;
+            doGetOut _unit;
+        };
     } forEach _cargo;
     private _passengerOperation=[_token,_boat,"PASSENGER",_egress,_expires];
     _state set ["navalOperation",_passengerOperation];
@@ -188,6 +225,10 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
         [_group,_state,"OPERATION_REFUSED"] call CBE_fnc_CortexNavalRelease;
         false
     };
+    if (!([_crewGeneration,"NAVAL_ASSAULT"] call _operationCurrent)) exitWith {
+        [_group,_state,"OPERATION_CHANGED"] call CBE_fnc_CortexNavalRelease;
+        false
+    };
     if (_phase == "APPROACH" && {(_boat distance2D _landing) <= 45}) then {
         if (local _boat) then {
             if ((_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]]) isEqualTo []) then {
@@ -205,22 +246,69 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
         alive _unit && {_unit != effectiveCommander _boat}
             && {_seat == "cargo" || {_seat == "turret" && {_x select 4}}}
     };
+    private _egressPending=false;private _egressFailed=false;
     if ((_plan select 8) == "DISEMBARK") then {
-        // Combined crew/cargo groups cannot receive a land waypoint without beaching their boat.
-        {
-            private _unit=_x select 0;
-            if (group _unit == _group) then {
-                [_unit] orderGetIn false;
-                unassignVehicle _unit;
-                doGetOut _unit;
-                _unit doMove (_egress getPos [4+(_forEachIndex mod 4)*3,90+_forEachIndex*35]);
+        // Preserve landing membership after passengers leave fullCrew. Original token/expiry
+        // survive handover; actor request receipts prevent replay on a replacement owner.
+        private _cohort=_group getVariable ["CBE_Cortex_NavalEgress",[]];
+        if (count _cohort != 3 || {(_cohort select 0) != _token}) then {
+            private _cargo=(fullCrew [_boat,"",false]) select {
+                private _unit=_x select 0;private _seat=_x select 1;
+                alive _unit && {group _unit == _group}
+                    && {_seat == "cargo" || {_seat == "turret" && {_x select 4}}}
             };
-        } forEach ((fullCrew [_boat,"",false]) select {
-            private _seat=_x select 1;
-            _seat == "cargo" || {_seat == "turret" && {_x select 4}}
-        });
+            if (count _cargo > 64) exitWith {_egressPending=true};
+            private _entries=[];
+            {
+                _entries pushBack [_x select 0,_egress getPos [4+(_forEachIndex mod 4)*3,90+_forEachIndex*35],"ACTIVE"];
+            } forEach _cargo;
+            _cohort=[_token,_expires,_entries];
+            _group setVariable ["CBE_Cortex_NavalEgress",_cohort,true];
+        };
+        if (count _cohort != 3 || {(_cohort select 0) != _token}) exitWith {_egressPending=true};
+        _cohort=+_cohort;
+        _cohort set [2,(_cohort select 2) apply {+_x}];
+        private _route=[_group] call CBE_fnc_NativeOrderReceipt;
+        private _changed=false;private _surviving=0;private _admissions=0;
+        {
+            _x params ["_unit","_goal","_entryPhase"];
+            if (alive _unit) then {
+                _surviving=_surviving+1;
+                if (_entryPhase == "INTERRUPTED") then {_egressFailed=true} else {
+                    if (group _unit != _group || {!isNull objectParent _unit && {objectParent _unit != _boat}}) then {
+                        _x set [2,"INTERRUPTED"];_changed=true;_egressFailed=true;
+                    } else {
+                        if (objectParent _unit == _boat) then {
+                            _egressPending=true;
+                            if ([_boat] call _boatStopped && {[_unit,_boat] call _cargoAvailable}) then {
+                                [_unit] orderGetIn false;
+                                unassignVehicle _unit;
+                                doGetOut _unit;
+                            };
+                        } else {
+                            // No foot command before actual detach and native GET OUT completion.
+                            private _proof=_unit getVariable ["CBE_Cortex_NavalEgressMove",[]];
+                            private _result=_unit getVariable ["CBE_Cortex_NavalEgressResult",[]];
+                            if (_proof isNotEqualTo [] || {count _result >= 2 && {(_result select 0) == _token}} || {_admissions < 2}) then {
+                                private _status=["STEP",_unit,[_token,_boat,_goal,_expires,_crewGeneration,_route]]
+                                    call CBE_fnc_CortexNavalEgressActor;
+                                if (_proof isEqualTo [] && {(_unit getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []}) then {_admissions=_admissions+1};
+                                if (_status in ["ACTIVE","WAIT","UNRESOLVED"]) then {_egressPending=true};
+                                if (_status in ["INTERRUPTED","RELEASED","NONE"]) then {_egressFailed=true};
+                            } else {_egressPending=true};
+                        };
+                    };
+                };
+            };
+        } forEach (_cohort select 2);
+        if ((_cohort select 2) isNotEqualTo [] && {_surviving == 0}) then {_egressFailed=true};
+        if (_changed) then {_group setVariable ["CBE_Cortex_NavalEgress",_cohort,true]};
     };
-    if ((_plan select 8) == "DISEMBARK" && {_remaining < 0}) then {
+    if ((_plan select 8) == "DISEMBARK" && {_remaining < 0} && {!_egressPending} && {_egressFailed}) exitWith {
+        [_group,_state,"EGRESS_INCOMPLETE"] call CBE_fnc_CortexNavalRelease;
+        false
+    };
+    if ((_plan select 8) == "DISEMBARK" && {_remaining < 0} && {!_egressPending}) then {
         if (local _boat) then {
             private _saved=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
             private _ownedStop=_saved param [1,-2];

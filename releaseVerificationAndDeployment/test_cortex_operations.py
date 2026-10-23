@@ -10606,8 +10606,35 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"EXPIRED"] call CBE_fnc_CortexNavalRelease',expiry)
         self.assertNotIn('CortexGroupMove',expiry)
         self.assertNotIn('if (count _durable == 5 && {serverTime >=',naval)
-        self.assertIn('if ((_plan select 8) == "DISEMBARK" && {_remaining < 0})',naval)
+        self.assertIn('if ((_plan select 8) == "DISEMBARK" && {_remaining < 0} && {!_egressPending})',naval)
         self.assertNotIn('if (_remaining < 0 || {serverTime >= _expires})',naval)
+        self.assertNotIn('_unit doMove (_egress',naval)
+        self.assertIn('CBE_Cortex_NavalEgress',naval)
+        self.assertIn('_admissions < 2',naval)
+        self.assertIn('_admissions=_admissions+1',naval)
+        self.assertIn('[_landingGeneration,"NAVAL_LANDING"] call _operationCurrent',naval)
+        self.assertIn('[_crewGeneration,"NAVAL_ASSAULT"] call _operationCurrent',naval)
+        owner=naval.split('private _operationCurrent={',1)[1].split('private _boatStopped=',1)[0]
+        for proof in ('"generation"','"intent"','"CANCELLED"','"ownerEpoch"'):
+            self.assertIn(proof,owner)
+
+
+        self.assertIn('if (objectParent _unit == _boat)',naval)
+        self.assertIn('"STEP",_unit,[_token,_boat,_goal,_expires,_crewGeneration,_route]',naval)
+        self.assertIn('"EGRESS_INCOMPLETE"] call CBE_fnc_CortexNavalRelease',naval)
+        actor=source('cortexNavalEgressActor')
+        self.assertIn('isNull objectParent _actor',actor)
+        self.assertIn('[_group,_generation,_actor,_goal] call CBE_fnc_RecoveryStep',actor)
+        self.assertNotIn('_actor doMove',actor)
+        self.assertIn('"STOP_PENDING"',actor)
+        self.assertIn('doStop _actor',actor)
+        self.assertIn('serverTime >= _expires+30',actor)
+        self.assertNotIn('serverTime+30',actor)
+        self.assertIn('(_plan select 7) != _expires',actor)
+        self.assertIn('"CBE_Cortex_NavalEgressMove"',source('cortexActorMoveReserved'))
+        self.assertIn('["REAP",_x] call CBE_fnc_CortexNavalEgressActor',source('dangerSetup'))
+        self.assertLess(release.index('call CBE_fnc_CortexNavalEgressActor'),release.index('call CBE_fnc_OperationCancel'))
+
         admission=naval.split('private _landingCrew=',1)[1].split('private _contact=',1)[0]
         self.assertIn('count _landingCrew > 64',admission)
         self.assertIn('alive _passenger',admission)

@@ -9,6 +9,8 @@
  * Repeat/JIP: public plan tokens, exact saved forced-speed values and the owned zero cap make
  * repeated or late cleanup harmless. Route cleanup requires the matching generation, and a later
  * controller's speed survives release. No unit is boarded, moved or teleported during release.
+ * Exact acknowledged foot-egress moves may receive one STOP request before operation retirement;
+ * unresolved receipts remain for existing sparse actor discovery, without a fresh deadline.
  *
  * Arguments:
  * 0: group <GROUP>
@@ -40,6 +42,20 @@ if (_operation isEqualTo []) then {
 };
 private _token=_operation param [0,""];
 private _boat=_operation param [1,objNull];
+// Retire only this landing token's actor requests before removing the common operation/route.
+// Pending native cleanup retains actor proof for existing sparse discovery; no late replay.
+private _cohort=_group getVariable ["CBE_Cortex_NavalEgress",[]];
+if (count _cohort == 3 && {(_cohort select 0) == _token}) then {
+    {
+        private _actor=_x select 0;
+        private _proof=_actor getVariable ["CBE_Cortex_NavalEgressMove",[]];
+        if (local _actor && {count _proof == 11} && {(_proof select 0) == _group}
+            && {(_proof select 1) == _token}) then {
+            ["RELEASE",_actor] call CBE_fnc_CortexNavalEgressActor;
+        };
+    } forEach ((_cohort select 2) select [0,64]);
+    _group setVariable ["CBE_Cortex_NavalEgress",nil,true];
+};
 if (!isNull _boat) then {
     private _plan=_boat getVariable ["CBE_Cortex_NavalPlan",[]];
     if (count _plan == 9 && {_token != ""} && {(_plan select 0) == _token}
