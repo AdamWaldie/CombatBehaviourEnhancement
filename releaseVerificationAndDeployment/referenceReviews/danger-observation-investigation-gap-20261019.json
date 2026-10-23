@@ -70,5 +70,18 @@
     "addons/infantry/functions/dangerStep.sqf": "ea99366d9107e6c639537ab996246c4eb14795062c2ae6d2b88f6183afbff9e1",
     "addons/infantry/functions/cortexGroupTick.sqf": "050deee4a403d426947122dda90b8514e4ca1561e393a14426f3430b5b7f86f7"
   },
-  "currentValidation": "JSON parsed; superseding files exist; seven current source hashes verified. No runtime source changed; unchanged passing full build was not repeated."
+  "currentValidation": "JSON parsed; superseding files exist; seven current source hashes verified. No runtime source changed; unchanged passing full build was not repeated.",
+  "pointReleaseIntegration20261023": {
+    "baseline": "789141ce",
+    "finding": "Shared CortexReleaseGroup and authenticated Zeus RELEASE explicitly finished automatic indoor actors but omitted finite point investigations. RELEASE result also replaced prior success with later garrison/defend refusal.",
+    "implementation": "Both existing actor loops call PointActorOperation FINISH when its brain/order exists, preserving its immutable native request journal, replacement-order protection and CANCEL_PENDING result. No new reset, route command or worker. Garrison/defend release calls always execute before combining their result with earlier success.",
+    "validation": "1491 tests/full local build and independent package verification passed; existing actor lifecycle regression extended without new cases.",
+    "candidate": ".qa/candidates/point-investigation-release-789141ce",
+    "fingerprint": "a65499cdc3ca4f4ee3cdc3199d5dd9b77ab3bc9db41729cda5d63b19e776d8ef",
+    "logs": [
+      ".qa/point-investigation-release-build.log",
+      ".qa/point-investigation-release-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. FINISH acceptance is not proof pending native MOVE is quiescent; physical replacement/Zeus/HC/JIP/overhead unverified. Audits paused. Global build-out freshness failure remains; no source-parity/score claim."
+  }
 }

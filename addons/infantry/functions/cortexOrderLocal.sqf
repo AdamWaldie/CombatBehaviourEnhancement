@@ -73,14 +73,25 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
             // Inspect every current member so reordered membership cannot hide an admitted actor.
             {
+                private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+                if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+                    private _retiredPoint=["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+                    _released=_released || {_retiredPoint};
+                };
                 private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
                 if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
                     private _retired=["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
                     _released=_released || {_retired};
                 };
             } forEach units _group;
-            if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {_released = [_group] call CBE_fnc_CortexGarrisonRelease};
-            if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {_released = [_group] call CBE_fnc_CortexDefendRelease};
+            if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {
+                private _garrisonReleased=[_group] call CBE_fnc_CortexGarrisonRelease;
+                _released=_released || {_garrisonReleased};
+            };
+            if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {
+                private _defendReleased=[_group] call CBE_fnc_CortexDefendRelease;
+                _released=_released || {_defendReleased};
+            };
             _released
         };
         case "EXCLUDE": {

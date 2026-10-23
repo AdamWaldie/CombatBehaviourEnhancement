@@ -122,6 +122,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         for name in ('cortexLocality','cortexStop'):
             self.assertIn('CBE_fnc_IndoorActorOperation',(ROOT/f'addons/core/functions/{name}.sqf').read_text())
         self.assertIn('CBE_fnc_IndoorActorOperation',(ROOT/'addons/infantry/functions/cortexReleaseGroup.sqf').read_text())
+        for name in ('cortexReleaseGroup','cortexOrderLocal'):
+            release=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
+            self.assertIn('["FINISH",_x,_point] call CBE_fnc_PointActorOperation',release)
+            self.assertIn('CBE_PointActor_Order',release)
+        orders=(ROOT/'addons/infantry/functions/cortexOrderLocal.sqf').read_text()
+        self.assertIn('_released=_released || {_garrisonReleased}',orders)
+        self.assertIn('_released=_released || {_defendReleased}',orders)
+
     def test_arrival_is_not_a_room_clear_and_has_finite_failure(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         for guard in ('_height <= 1','_segment isEqualTo []','_roof isNotEqualTo []',

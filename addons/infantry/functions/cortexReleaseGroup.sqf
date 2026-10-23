@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Finite indoor actors release only their exact journal-owned native legs before group cleanup.
+ * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
  * Final post-clear recall yields to native flight, queued care and dormancy.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
@@ -51,6 +51,10 @@ params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", 
 if (isNull _group) exitWith {};
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 {
+    private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+    if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+        ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+    };
     private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
     if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
         ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;

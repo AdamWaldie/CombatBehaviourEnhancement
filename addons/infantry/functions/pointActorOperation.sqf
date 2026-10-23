@@ -13,7 +13,8 @@
  * A bounded actual-death identity receipt can corroborate a missing source or detached corpse group.
  * Other modes: QUEUE/STEP/FINISH/TRANSFER/REAP use the current brain; TRANSFER may use journal alone.
  * Return: BOOL for admission/cleanup, NUMBER -1 for one queued STEP.
- * Current callers: DangerEngineAct, pointActor FSM, CortexDiscover/Locality/Stop.
+ * Current callers: DangerEngineAct, pointActor FSM, CortexDiscover/Locality/Stop,
+ * CortexReleaseGroup and authenticated CortexOrderLocal RELEASE.
  * Example: ["START",soldier1,createHashMapFromArray [["body",casualty1],
  * ["observed",getPosATL casualty1]]] call CBE_fnc_PointActorOperation;
  * A VISITED result proves a position visit, never medical treatment or room safety.
