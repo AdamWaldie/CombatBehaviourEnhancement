@@ -83,5 +83,33 @@
       "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1",
       "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "eef1378ba062f55db15a60f064b85137025ec367c9400e5f79e14e6affe2db8c"
     }
+  },
+  "authoredCorridorReturnImplementation20261023": {
+    "baseline": "24e0d68e",
+    "implemented": "Authored commander-MOVE return records its original corridor deadline, route, two seats, before-command frame, context and owner/controller identity separately from retiring work. DrivingRecoveryCleanup registers deduplicated CORRIDOR_RETURN tickets within its existing four-ticket callback. The internal observeOnly branch of DrivingCorridorRelease has no movement or cap commands and reuses DrivingRecoveryCommandState for both-seat original-goal acknowledgement. Results distinguish PENDING, ACKNOWLEDGED, LOST, EXPIRED and group OWNER_CHANGED.",
+    "authority": "Machine-local observation only; no new movement owner, public replay, settings restoration, stop/rest requirement, native MOVE request or deadline renewal. Current route, owner epoch/controller and successor corridor checks protect attribution. Lost vehicle locality drops the old service ticket without replay/adoption. Identical native orders remain indistinguishable.",
+    "cost": "One additional finite ticket per outstanding authored corridor return, sharing at most four serviced tickets per existing 0.25-second callback. Route/seat/command reads, no world scans or geometry. Runtime cost and latency under queue load remain unmeasured.",
+    "validation": {
+      "existingCorridorTests": 25,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/corridor-return-observation-build.log",
+      "candidate": ".qa/candidates/corridor-return-observation-24e0d68e",
+      "independent": ".qa/corridor-return-observation-independent.log",
+      "fingerprint": "6ac764f77e9846bed8da206f4b027d27dae86b3e93132f360495c66ee7b08d13"
+    },
+    "limits": [
+      "Acknowledgement is command identity only, not physical route travel or a solution to HBQ separate-commander planning concerns.",
+      "Follower-only formation handback and native-route corridor return retain their existing distinct paths; this does not add pending STOP recovery or guarantee eventual return.",
+      "Observation is machine-local and does not adopt on owner transfer. Missing native acknowledgement terminates unresolved without command replay.",
+      "Unsigned dirty development candidate includes pre-existing unrelated dirt. Review and continuation notes postdate package; no scores or whole-HBQ parity renewed. Audits paused."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "6e9837d83bf2fadf8adf7c18303fc1c1c53ebba085447736cb605f7740410448",
+      "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "3765d2ec425ae8c53963c789d9c0cd2ead1ba4f0d51bdc9befdac76557056bb7",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "9a9dc7ee38259b178c34f4993ee9b312047aec36ee429b84cbdbd90eca1cc5e1",
+      "releaseVerificationAndDeployment/test_driving_corridor.py": "2d24eb4b2f38f2a5ea616586f51efa04ccae614905ed67bbb113600151cbf4c7"
+    }
   }
 }

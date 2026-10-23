@@ -5,6 +5,8 @@
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Observes exact pending reverse/issued native return, ordinary-cap and released-cap queue-abort receipts after tactical workers stop.
+ * Authored corridor return observations share the same service without movement/cap authority.
+ * Their original deadline is never renewed, and locality loss never replays a return.
  * Pending passing STOP shares the same service and original episode deadline; no command replay.
  * Pending queue STOP uses the same four-ticket service, exact original request and deadline.
  * It observes without reissuing STOP; terminal unresolved proof receives no more tickets.
@@ -27,6 +29,21 @@ isNil {
     private _registry=localNamespace getVariable ["CBE_DrivingRecovery_Cleanup",createHashMap];
     private _queue=localNamespace getVariable ["CBE_DrivingRecovery_CleanupQueue",[]];
     private _head=localNamespace getVariable ["CBE_DrivingRecovery_CleanupHead",0];
+    if (!isNull _vehicle && {local _vehicle}) then {
+        private _return=_vehicle getVariable ["CBE_DrivingCorridor_Return",createHashMap];
+        if (count _return > 0) then {
+            private _existing=_vehicle getVariable ["CBE_DrivingCorridorReturn_CleanupTicket",""];
+            private _record=_registry getOrDefault [_existing,[]];
+            if (_record isEqualTo [] || {!((_record select 1) isEqualTo _return)}) then {
+                private _serial=1+(localNamespace getVariable ["CBE_DrivingRecovery_CleanupSerial",0]);
+                localNamespace setVariable ["CBE_DrivingRecovery_CleanupSerial",_serial];
+                private _id=str _serial;
+                _registry set [_id,[_vehicle,_return,"CORRIDOR_RETURN"]];
+                _vehicle setVariable ["CBE_DrivingCorridorReturn_CleanupTicket",_id];
+                _queue pushBack _id;
+            };
+        };
+    };
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
@@ -151,7 +168,24 @@ isNil {
                 if (_kind == "CAP") then {_ticketVariable="CBE_DrivingCapRelease_CleanupTicket"};
                 if (_kind == "QUEUE_STOP") then {_ticketVariable="CBE_DrivingQueueStop_CleanupTicket"};
                 if (_kind == "PASS_STOP") then {_ticketVariable="CBE_DrivingPassStop_CleanupTicket"};
+                if (_kind == "CORRIDOR_RETURN") then {_ticketVariable="CBE_DrivingCorridorReturn_CleanupTicket"};
                 private _matching=false;
+                if (_kind == "CORRIDOR_RETURN") then {
+                    _matching=!isNull _target && {local _target}
+                        && {(_target getVariable [_ticketVariable,""]) == _id}
+                        && {(_target getVariable ["CBE_DrivingCorridor_Return",createHashMap]) isEqualTo _proof};
+                    if (_matching) then {
+                        private _returnGroup=_proof get "group";
+                        if (isNull _returnGroup || {!local _returnGroup}) then {
+                            _target setVariable ["CBE_DrivingCorridor_ReturnResult",["OWNER_CHANGED",serverTime,_proof get "context"]];
+                            _target setVariable ["CBE_DrivingCorridor_Return",nil];
+                            _matching=false;
+                        } else {
+                            _matching=!([_target,_returnGroup,"OBSERVE_RETURN",false,false,true]
+                                call CBE_fnc_DrivingCorridorRelease);
+                        };
+                    };
+                } else {
                 if (_kind == "PASS_STOP") then {
                     private _pass=_target getVariable ["CBE_DrivingPass_Work",createHashMap];
                     private _passGroup=_pass getOrDefault ["group",grpNull];
@@ -254,6 +288,7 @@ isNil {
                             && {!(_current getOrDefault ["releaseUnresolved",false])}
                             && {([_current] call _signature) isEqualTo _proof};
                     };
+                };
                 };
                 };
                 };

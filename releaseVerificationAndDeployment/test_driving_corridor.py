@@ -27,6 +27,25 @@ class CorridorFoundationTests(unittest.TestCase):
                        'CBE_DrivingCorridor_Result",','CBE_DrivingCorridor_Work",nil,true'):
             self.assertIn(effect,transaction)
         self.assertTrue(s.rstrip().endswith('_retired'))
+        observer=transaction.split('if (_observeOnly) exitWith {',1)[1].split('private _work=',1)[0]
+        for forbidden in ('doMove','doFollow','doStop','forceSpeed','setDriveOnPath',
+                          'serverTime+','CBA_fnc_waitAndExecute'):
+            self.assertNotIn(forbidden,observer)
+        for proof in ('call CBE_fnc_DrivingRecoveryCommandState','serverTime >= (_return get "deadline")',
+                      'call CBE_fnc_DrivingOwnerReceipt','CBE_AIPass_Epoch',
+                      'count _liveCorridor == 0','"ACKNOWLEDGED"','"EXPIRED"'):
+            self.assertIn(proof,observer)
+        issued=transaction.split('private _returnBefore=[currentCommand _driver',1)[1]
+        authored=issued.split('private _returnUntil=_work get "deadline";',1)[1]
+        self.assertIn('["corridorReturn",true]',authored)
+        self.assertIn('["deadline",_returnUntil]',authored)
+        self.assertNotIn('serverTime+',authored.split('// Native command callbacks',1)[0])
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text()
+        self.assertIn('(_head+4) min count _queue',cleanup)
+        self.assertIn('[_vehicle,_return,"CORRIDOR_RETURN"]',cleanup)
+        self.assertIn('"OBSERVE_RETURN",false,false,true',cleanup)
+        classifier=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
+        self.assertIn('"corridorReturn" in _work',classifier)
         owned=transaction.split('private _owned=',1)[1].split('// The owned doStop',1)[0]
         self.assertIn('["","MOVE","WAIT"]+',owned)
         self.assertIn('[[],["STOP"]]',owned)

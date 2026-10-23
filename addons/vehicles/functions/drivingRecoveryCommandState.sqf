@@ -14,7 +14,7 @@
  * never parent movement permission). Executors enforce the unchanged deadlines.
  * Distinct native drivers retain their original destination proof; intermediate changes are
  * not inferred to be ours merely because the commander's target was acknowledged.
- * Current callers: DrivingAssistStart and DrivingRecoveryRelease.
+ * Current callers: DrivingAssistStart, DrivingRecoveryRelease and read-only DrivingCorridorRelease observation.
  * Example: private _state=[truck1,truck1 getVariable ["CBE_DrivingRecovery_Work",createHashMap]] call CBE_fnc_DrivingRecoveryCommandState;
  */
 params [["_vehicle",objNull,[objNull]],["_work",createHashMap,[createHashMap]]];
@@ -62,7 +62,7 @@ if (_nativeReturn isNotEqualTo []) exitWith {
         || {!(_returnBefore isEqualType [])} || {count _returnBefore != 4}
         || {!((_returnBefore select 0) isEqualType "")} || {!((_returnBefore select 2) isEqualType "")}
         || {!((_returnBefore select 1) isEqualType [])} || {!((_returnBefore select 3) isEqualType [])}) exitWith {"LOST"};
-    if ("passReturn" in _work || {("bypassReturn" in _work || {"queueReturn" in _work})
+    if ("passReturn" in _work || {"corridorReturn" in _work} || {("bypassReturn" in _work || {"queueReturn" in _work})
         && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}}) exitWith {
         [_returnGoal,_returnUntil,_returnBefore] call _temporaryReturnState
     };
@@ -148,7 +148,7 @@ if (!(_goal isEqualType []) || {count _goal != 3}
     || {!(_before isEqualType [])} || {count _before != 4}
     || {!((_before select 0) isEqualType "")} || {!((_before select 2) isEqualType "")}
     || {!((_before select 1) isEqualType [])} || {!((_before select 3) isEqualType [])}) exitWith {"LOST"};
-if ("passReturn" in _work || {("bypassReturn" in _work || {"queueReturn" in _work})
+if ("passReturn" in _work || {"corridorReturn" in _work} || {("bypassReturn" in _work || {"queueReturn" in _work})
         && {((_work getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}}) exitWith {
     [_goal,_until,_before] call _temporaryReturnState
 };

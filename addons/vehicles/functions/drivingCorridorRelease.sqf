@@ -21,18 +21,53 @@
  * Native return retains its original recovery parent, requires both observed STOP tasks
  * and uses the existing finite both-seat original-goal acknowledgement journal.
  * 4 stopOnly <BOOL, false> - retire an exact owned path without waking a route (lead replacement).
- * Return Value: BOOL - whether this matching episode was retired, not physical success.
+ * 5 observeOnly <BOOL, false> - internal read-only return observation; never issues commands.
+ * Authored commander-MOVE returns retain a machine-local original-deadline observation in the
+ * existing four-ticket cleanup service. Both-seat acknowledgement is command evidence only,
+ * never physical travel. Supersession, owner loss or expiry cannot replay the return.
+ * Return Value: BOOL - matching episode/observation retired, not physical success.
  * Current callers: DrivingCorridorStep, DrivingAssistRelease, ConvoyCrewLocal and ConvoyReleaseLocal.
  * Example: [truck1,group driver truck1,"AREA_CHANGED"] call CBE_fnc_DrivingCorridorRelease;
  */
 params [["_vehicle",objNull,[objNull]],["_group",grpNull,[grpNull]],
-    ["_reason","RELEASED",[""]],["_resume",true,[true]],["_stopOnly",false,[true]]];
+    ["_reason","RELEASED",[""]],["_resume",true,[true]],["_stopOnly",false,[true]],["_observeOnly",false,[true]]];
 private _retired=false;
 // At most two actors and32 cooldown rows: command retirement and metadata deletion
 // cannot suspend between reading the original work and retiring that exact episode.
 isNil {
     _retired=call {
 if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle} || {!local _vehicle} || {isNull _group} || {!local _group}) exitWith {false};
+// This branch observes an already-issued return only. It cannot stop, follow, move,
+// restore a cap, extend a deadline or borrow a successor corridor's command proof.
+if (_observeOnly) exitWith {
+    private _return=_vehicle getVariable ["CBE_DrivingCorridor_Return",createHashMap];
+    if (count _return == 0 || {(_return get "group") != _group}) exitWith {true};
+    private _status="LOST";
+    private _returnController=_return get "controller";
+    private _liveCorridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+    private _controllerCurrent=if ((_returnController select 0) == "CONVOY") then {
+        private _convoyBrain=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+        ((_convoyBrain getOrDefault ["configuration",[]]) param [0,-2]) == (_returnController select 1)
+    } else {([_group] call CBE_fnc_DrivingOwnerReceipt) isEqualTo (_return get "owner")};
+    if (_controllerCurrent && {(_return get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {count _liveCorridor == 0}
+        && {local (_return get "driver")} && {local (_return get "operator")}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_return get "route")}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) then {
+        // Reuse the exact two-seat temporary-return classifier without adopting its
+        // journal into recovery or granting any recovery/cap/route authority.
+        _status=[_vehicle,_return] call CBE_fnc_DrivingRecoveryCommandState;
+        if (serverTime >= (_return get "deadline")) then {_status="EXPIRED"};
+    };
+    if (_status == "PENDING") exitWith {false};
+    if (_status == "OWNED") then {_status="ACKNOWLEDGED"};
+    if ((_vehicle getVariable ["CBE_DrivingCorridor_Return",createHashMap]) isEqualTo _return) then {
+        _vehicle setVariable ["CBE_DrivingCorridor_ReturnResult",[_status,serverTime,_return get "context"]];
+        _vehicle setVariable ["CBE_DrivingCorridor_Return",nil];
+    };
+    true
+};
 private _work=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
 if (count _work == 0 || {(_work getOrDefault ["group",grpNull]) != _group}) exitWith {false};
 private _driver=_work getOrDefault ["driver",objNull];
@@ -155,7 +190,22 @@ if (_owned && {_nativeParentCurrent} && {_resume || {_stopOnly}}) then {
             // Rejoin only the same-vehicle owned commander before its unchanged native route.
             // A mounted driver must never be recalled toward an on-foot or remote leader.
             if (_driver != _operator && {vehicle _operator == _vehicle}) then {_driver doFollow _operator};
+            private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+                currentCommand _operator,+(expectedDestination _operator)];
+            private _returnGoal=waypointPosition [_group,_index];
             _operator doMove waypointPosition [_group,_index];
+            // No second command or fresh grace period: retain the issued original goal
+            // separately from corridor work, which is now retiring. It owns no speed cap.
+            private _returnUntil=_work get "deadline";
+            _vehicle setVariable ["CBE_DrivingCorridor_Return",createHashMapFromArray [
+                ["group",_group],["route",+_route],["driver",_driver],["operator",_operator],
+                ["commandMode","DESTINATION"],["corridorReturn",true],
+                ["nativeReturn",[+_returnGoal,_returnUntil,_returnBefore]],
+                ["deadline",_returnUntil],["owner",[_group] call CBE_fnc_DrivingOwnerReceipt],
+                ["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+                ["controller",+_controller],["context",_work get "context"]
+            ]];
+            _vehicle setVariable ["CBE_DrivingCorridor_ReturnResult",["PENDING",serverTime,_work get "context"]];
         } else {
             if (leader _group != _driver && {vehicle leader _group isKindOf "LandVehicle"}) then {
                 _driver doFollow leader _group;
@@ -176,6 +226,9 @@ _cooldown pushBack [_key,serverTime+120];
 _vehicle setVariable ["CBE_DrivingCorridor_Cooldown",_cooldown,true];
 _vehicle setVariable ["CBE_DrivingCorridor_Result",[_reason,serverTime,_work get "area",_work get "phase"],true];
 _vehicle setVariable ["CBE_DrivingCorridor_Work",nil,true];
+if (count (_vehicle getVariable ["CBE_DrivingCorridor_Return",createHashMap]) > 0) then {
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+};
 true
     };
     false
