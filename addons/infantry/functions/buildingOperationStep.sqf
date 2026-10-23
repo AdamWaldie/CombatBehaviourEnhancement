@@ -854,7 +854,7 @@ private _delay=call {
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
-    // Native INIT/REPLAN are still active planner work, not an ended path. Preserve
+    // Native initialization/data wait and delayed re-search are planner work, not an ended path. Preserve
     // them only under the same exact MOVE receipt and original thirty-second issue age.
     // One receipt-based observation policy for recovery and alternative entry. An issue is
     // not native acknowledgement; neither branch may replace the same fresh request twice.
@@ -867,7 +867,7 @@ private _delay=call {
             || {serverTime < _planningRequestAt}) exitWith {false};
         private _requestAge=serverTime-_planningRequestAt;
         _requestAge < 2 || {_requestAge < 30 && {[_actor] call _ownsCurrentMove}
-            && {getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]}}
+            && {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]}}
     };
     // Keep building authority and generic retry admission in the same native-write transaction.
     private _recoverClearActor={
@@ -3679,11 +3679,11 @@ private _delay=call {
                         // deliberately hold cover, so treating any pair member as stopped churns a working clear.
                         private _commandEnded=currentCommand _point in ["","STOP"];
                         private _retryDelay=[12,4] select _commandEnded;
-                        // Native planning/busy is not an ended request. Preserve a matching
+                        // Native planning/data wait/delayed search is not an ended request. Preserve a matching
                         // path for a bounded allowance rather than restarting it every12s.
                         // This changes no progress clock, attempt count or episode deadline.
                         if (!_commandEnded && {[_point] call _ownsCurrentMove}
-                            && {getUnitState _point in ["INIT","PLANNING","REPLAN","BUSY"]}) then {
+                            && {getUnitState _point in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]}) then {
                             _retryDelay=30;
                         };
                         if (_now-_lastProgress > _retryDelay && {[_point] call _actorTaskFree}) then {

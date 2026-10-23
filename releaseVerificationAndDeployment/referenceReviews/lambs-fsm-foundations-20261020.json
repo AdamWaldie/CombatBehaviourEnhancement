@@ -1229,5 +1229,29 @@
     ],
     "limits": "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/handover postdate package. No live Arma run, physical acceptance, measured performance, score renewal or whole-source parity claim.",
     "audits": "PAUSED"
+  },
+  "clearNativePlannerDataWait20261024": {
+    "base": "d894f447",
+    "finding": "Existing clearance planning allowances recognized INIT/PLANNING/REPLAN/BUSY but not INITFAILED or DELAY. Official engine documentation identifies INITFAILED as missing planner data and DELAY as repeat search, not an established inaccessible node.",
+    "primarySource": "https://community.bistudio.com/wiki/getUnitState",
+    "change": "Add INITFAILED and DELAY to the two existing exact-owned-MOVE allowance branches: original request-age wait for partner recovery/alternative entry, and room-mover retry timing. Keep original30second bounds, current target/ownership and ended-command guards; no progress/attempt/deadline reset or extra engine query.",
+    "limits": "This does not establish physical path support, room accessibility, eventual native completion or improved performance. DELAY can still fail; finite allowances end as before. No source parity or score renewal.",
+    "evidenceHash": "d19dcb86265b1e78363d39deeb28949769b15260c2ba22903342a6594ed354b8",
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-native-data-wait-d894f447",
+    "fingerprint": "fcc50f552d38de82e32944d23c6c598fc4cbdf568f6e85b8ac1631991e0076fc",
+    "logs": [
+      ".qa/clear-native-data-wait-entry.log",
+      ".qa/clear-native-data-wait-observer.log",
+      ".qa/clear-native-data-wait-build.log",
+      ".qa/clear-native-data-wait-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED."
   }
 }

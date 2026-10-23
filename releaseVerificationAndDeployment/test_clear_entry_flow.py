@@ -18,7 +18,7 @@ class ClearEntryFlowTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]
         for guard in ('movementRequestTimes','(_planningRequest select 0) isNotEqualTo _target','_requestAge < 30',
-                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["INIT","PLANNING","REPLAN","BUSY"]','_requestAge < 2'):
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]','_requestAge < 2'):
             self.assertIn(guard,observation)
         self.assertNotIn(' set [',observation)
         self.assertNotIn('doMove',observation)
