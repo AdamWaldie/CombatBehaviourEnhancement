@@ -808,6 +808,7 @@
         "addons/vehicles/functions/drivingPassCanConsent.sqf",
         "addons/vehicles/functions/drivingPassAgreementRequest.sqf",
         "addons/vehicles/functions/drivingPassAgreementRelease.sqf",
+        "addons/vehicles/functions/drivingPassTokenClosed.sqf",
         "addons/vehicles/functions/drivingPassBegin.sqf",
         "addons/vehicles/functions/drivingPassStep.sqf",
         "addons/vehicles/functions/drivingPassFinish.sqf",

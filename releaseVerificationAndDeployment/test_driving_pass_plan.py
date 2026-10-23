@@ -139,6 +139,14 @@ class DrivingPassPlanTests(unittest.TestCase):
         owner=(ROOT/'addons/vehicles/functions/drivingPassAgreementOwner.sqf').read_text()
         self.assertIn('[_old select 2,_old select 3] select ((_old select 4) == "AGREED")',owner)
         self.assertIn('if (!_valid) then {_accepted=false}',owner)
+        self.assertLess(owner.index('if ([_token] call CBE_fnc_DrivingPassTokenClosed)'),owner.index('private _live='))
+        self.assertIn('[_token,_expires] call CBE_fnc_DrivingPassTokenClosed',owner)
+        closed=(ROOT/'addons/vehicles/functions/drivingPassTokenClosed.sqf').read_text(encoding='utf-8')
+        for guard in ('count _closed > 64','count _closed < 64','_live >= 64','min _closeUntil','serverTime+50','_blockedUntil max _closeUntil','serverTime < _blockedUntil'):
+            self.assertIn(guard,closed)
+        retire=(ROOT/'addons/vehicles/functions/drivingPassAgreementRelease.sqf').read_text(encoding='utf-8')
+        self.assertLess(retire.index('call CBE_fnc_DrivingPassTokenClosed'),retire.index('"CBE_DrivingPass_Consent",nil'))
+
         self.assertIn('(_agreement select 0) == _token',owner)
         server=(ROOT/'addons/vehicles/functions/drivingPassAgreementServer.sqf').read_text()
         release=server.split('if (_mode == "RELEASE") exitWith {',1)[1].split('if (_mode == "ACK")',1)[0]

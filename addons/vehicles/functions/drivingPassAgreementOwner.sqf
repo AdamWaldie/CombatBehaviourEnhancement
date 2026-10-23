@@ -19,8 +19,14 @@ if (remoteExecutedOwner != 2 || {!(_mode in ["VERIFY","RESULT"])}
 _payload params ["_token","_vehicles","_context","_deadline","_expires","_serial"];
 // Terminal metadata belongs to the original consenting machine, not today's topology.
 if (_mode == "RESULT" && {(_payload select 6) in ["REFUSED","RELEASED"]}) exitWith {
+    [_token,_expires] call CBE_fnc_DrivingPassTokenClosed;
     {if (!isNull _x) then {[_x,grpNull,_token] call CBE_fnc_DrivingPassAgreementRelease}} forEach _vehicles;
     true
+};
+// Retired tokens cannot be readmitted by delayed VERIFY or AGREED delivery.
+if ([_token] call CBE_fnc_DrivingPassTokenClosed) exitWith {
+    ["RELEASE",[_token]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
+    false
 };
 private _scheduleExpiry={
     params ["_targets","_receipt"];
@@ -110,6 +116,7 @@ private _phase=_payload select 6;
                 };
             };
         } else {
+            [_token,_expires] call CBE_fnc_DrivingPassTokenClosed;
             _x setVariable ["CBE_DrivingPass_Consent",nil];
             private _agreement=_x getVariable ["CBE_DrivingPass_Agreement",[]];
             if (count _agreement == 5 && {(_agreement select 0) == _token}) then {_x setVariable ["CBE_DrivingPass_Agreement",nil]};

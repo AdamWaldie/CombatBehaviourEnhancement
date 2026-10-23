@@ -65,5 +65,20 @@
       ".qa/pass-consent-terminal-expiry-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Metadata retirement is not native quiescence or speed/route restoration. Physical deletion/migration/cancellation/expiry/stop-resume and performance remain unverified. Audits paused. No tracker score or hash renewal."
+  },
+  "passRetiredTokens20261023": {
+    "baseline": "eb6ed853",
+    "finding": "Passive participant can receive delayed VERIFY after exact consent cancellation but before original deadline. Clearing the receipt alone does not remember withdrawal.",
+    "implementation": "Registered DrivingPassTokenClosed mirrors the existing queue intent with separate pass namespace: bounded64 original-expiry closures, exact original-owner release records closure before clearing, authenticated terminal delivery records even before receipt installation, owner admission refuses closed tokens. Overflow keeps a scalar refusal through any unrecorded token original expiry, so earlier entry expiry cannot reopen it. No recurring scan, deadline renewal, native command or external controller.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package build and independent verification passed. Existing consent regression extended, no new cases. Initial full build passed before saturation fence correction; final log covers corrected source.",
+    "candidate": ".qa/candidates/pass-retired-token-eb6ed853",
+    "fingerprint": "51264cb650964cec36ef376f0c950fb2253872da186bbf3e69fde254f22cd48d",
+    "logs": [
+      ".qa/pass-retired-token-build.log",
+      ".qa/pass-retired-token-build-final.log",
+      ".qa/pass-retired-token-independent.log"
+    ],
+    "remaining": "Existing DrivingQueueTokenClosed has no equivalent overflow-until scalar. Its full-journal rejection can end when an earlier token expires even though an unrecorded retired token has later expiry; review/fix next. Native-MOVE queue integration remains excluded.",
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; notes afterward. No physical delayed-message/owner-migration/handback or performance proof. No tracker score/hash renewal; global evidence remains stale. Audits paused."
   }
 }

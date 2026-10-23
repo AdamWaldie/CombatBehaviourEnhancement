@@ -61,6 +61,8 @@ if (_bound && {[2,3] findIf {
         || {(_actorReceipt select 4) isNotEqualTo _expectedEpoch}
         || {(_actorReceipt select 10) isNotEqualTo _expectedGeneration}
 } >= 0}) exitWith {false};
+private _closeUntil=if (_consent isNotEqualTo []) then {_consent select 3} else {_agreement select 3};
+[_token,_closeUntil] call CBE_fnc_DrivingPassTokenClosed;
 // Retire only matching local observations. A newer token/request must survive stale cleanup.
 if (_consent isNotEqualTo [] && {(_vehicle getVariable ["CBE_DrivingPass_Consent",[]]) isEqualTo _consent}) then {
     _vehicle setVariable ["CBE_DrivingPass_Consent",nil];
