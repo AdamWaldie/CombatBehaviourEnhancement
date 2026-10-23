@@ -1,0 +1,61 @@
+{
+  "baseline": "9afb6843",
+  "scope": "Native-MOVE queue execution boundaries, beyond admission guards",
+  "source_sha256": {
+    "drivingQueueAutoStep": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb",
+    "drivingQueueProposal": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+    "drivingQueueContext": "bd1c6dd70a9197affbbd4cbae35a8b9a9aee6027b6de6ca512414220b0a0128a",
+    "drivingQueueReverseCurrent": "90fd684723aedf8df77f3e44cbcd74ab9e97b636d341a987c110cdd25392c954",
+    "drivingQueueReverseCommit": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+    "drivingPassCanConsent": "42d31db92301d92bc35132ea0046d244110e392b517458b49f76725ff17087f0",
+    "drivingNativeRouteReceipt": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+    "drivingBypassStep": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+    "drivingBypassRelease": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+    "drivingOwnerReceipt": "3eb10f581675f8b8dac3bd69c33ef1637eeffa812c72609e3354f93e1a0894d6"
+  },
+  "confirmed_boundaries": [
+    {
+      "boundary": "Automatic and observed admission",
+      "sources": [
+        "DrivingQueueAutoStep native route refusal",
+        "DrivingQueueProposal observedEligible valid plain MOVE waypoint requirement",
+        "DrivingPassCanConsent shared QUEUE path native route refusal"
+      ],
+      "required": "Explicit native intent alternative with unchanged full current-owner command/route proof; preserve plain authored gate policy."
+    },
+    {
+      "boundary": "Shared cross-owner identity",
+      "sources": [
+        "DrivingQueueContext route slot uses DrivingRouteReceipt",
+        "DrivingNativeRouteReceipt returns[] for remote group",
+        "DrivingOwnerReceipt exposes owner/epoch/generation, not native goal"
+      ],
+      "required": "Canonical shared native-intent identity independent of remote destinations, matched against private actual-owner route/commands before ACK and every consuming phase. Public observation must not become movement authority."
+    },
+    {
+      "boundary": "Current reverse proof already implemented",
+      "sources": [
+        "DrivingQueueReverseCurrent rebuilds local row slot9 from expectedDestination only after local vehicle and private ownerOrders validation",
+        "Original slot9 restored from ownerOrders for comparison"
+      ],
+      "required": "Do not misdiagnose empty shared destination slots as a current reverse bug. Preserve this existing reconstruction; no patch justified there."
+    },
+    {
+      "boundary": "Crossing root provenance",
+      "sources": [
+        "DrivingBypassStep rejects NATIVE_MOVE for non-ORDINARY controller",
+        "NativeRouteReceipt requires existing ordinary recovery parent for temporary child",
+        "DrivingBypassRelease nativeParentCurrent requires !queue and original REFRESH/FINAL parent"
+      ],
+      "required": "A native queue crossing needs its own original-intent/token/phase/expiry-bound provenance, safe native route-reader recognition without recursion, and exact pending stop/return cleanup. A queue grant cannot borrow unrelated ordinary recovery ownership."
+    }
+  ],
+  "implementation_batch_contract": [
+    "Keep shared canonical identity separate from actual-owner full route/native destination proof. Existing broker phase/consent and original expiry remain mandatory.",
+    "Extend actual-owner admission and private consent route capture together with context/plan consumers; do not enable auto admission until all executor/cleanup paths support the schema.",
+    "Root crossing and yielded participant return must preserve original native goal and both operating crew tasks; maintain exact pending acknowledgement/expired unresolved proof through same deadline without route replay.",
+    "Maintain no second worker, no mission waypoint creation/deletion, no crew reassignment, no physics shortcut; one original jam attempt/budget survives cancellation and owner changes.",
+    "Validate ordinary authored queues unchanged and native queues through owner loss, split crew locality, refusal, explicit cancellation, blocked geometry and original-goal handback. Physical acceptance remains paused."
+  ],
+  "limits": "Read-only bounded source trace; no runtime changes, new tests or unchanged full build. Several broad command outputs were truncated; this is a boundary trace, not a full implementation or whole-HBQ review. Last runtime candidate remains actor-eligibility-roster-cost-74cd0c54. No percentage/acceptance claim."
+}
