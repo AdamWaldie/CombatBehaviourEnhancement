@@ -17,6 +17,7 @@
  * Example: ["START",soldier1,[2,[100,200,0],time+1,objNull]] call CBE_fnc_DangerFlight;
  * Quiet, distant group-only contact may hand an idle follower back to native formation once.
  * Recent personal contact, physical hazards and suppression never grant that rejoin path.
+ * Quiet rejoin prefers the current usable native formation anchor, with squad-leader fallback.
  * Native rejoin acquires no flight lease; its request is not acknowledgement or travel.
  * Arrival is a position result, not proof of effective cover or renewed morale. Failed exact
  * owned moves return to the saved native subformation while its formation identity remains
@@ -158,7 +159,11 @@ _group setVariable ["CBE_Danger_FlightSearchAfter",time+2];
 private _personalAt=(_nativeKnowledge param [2,-1,[0]]) max (_nativeKnowledge param [3,-1,[0]]);
 private _personalPressure=(_nativeKnowledge param [1,false,[true]])
     && {_personalAt >= 0} && {time <= _personalAt+5};
-private _leader=leader _group;
+// Quiet rejoin retains a usable native subformation rather than flattening it.
+// A self-led detached follower or a lost anchor still has the ordinary squad fallback.
+private _leader=formLeader _actor;
+if (isNull _leader || {_leader == _actor} || {group _leader != _group}
+    || {!([_leader] call CBE_fnc_CortexCombatEffective)}) then {_leader=leader _group};
 private _physicalUntil=_actor getVariable ["CBE_Danger_PhysicalUntil",-1];
 private _quietRejoin=_cause in [0,3,8] && {_origin distance2D _threat > 75}
     && {!_personalPressure} && {getSuppression _actor < 0.2}

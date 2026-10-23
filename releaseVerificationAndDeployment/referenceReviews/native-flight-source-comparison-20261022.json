@@ -483,5 +483,30 @@
       "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf": "911524da625b26bb4f4491b7e6abc0ed2cd71291be8643b52d5d8cf2e6c275d4",
       "releaseVerificationAndDeployment/test_cortex_operations.py": "4e17f38609e15230e19d9be501ef9752ddc9c9ec5d39cb80d81afcf683b79005"
     }
+  },
+  "quietRejoinFormationAnchor20261023": {
+    "base": "e28b5ded",
+    "source": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doFleeing.sqf",
+    "sourceSha256": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+    "sourceIntent": "Quiet fleeing branch returns to native leader formation to avoid a stuck fleeing loop. Source also resets posture; CBE does not borrow that reset authority.",
+    "finding": "CBE quiet danger rejoin still used squad leader unconditionally, flattening valid current native subformations even though flight cleanup already preserves its saved anchor.",
+    "change": "Prefer current formLeader for the one eligible quiet rejoin request. Null/self/departed/ineffective anchors fall back to squad leader. Existing local/live/foot/simulation/visibility anchor checks, distant native contact, low suppression, no recent personal/physical pressure and actor/operation/ownership checks remain.",
+    "limits": "No lease, pair publication, extra world query, timer or worker. Not acknowledged follow, measured reunion, Protocol pair parity or physical acceptance. No score renewal.",
+    "implementationSha256": "16fc66d5c12318aac2f558c6762e22a0cc0f89fab268fa90a8c3575108c4f399",
+    "checks": {
+      "focusedExistingCases": 2,
+      "fullCases": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/quiet-rejoin-anchor-e28b5ded",
+    "fingerprint": "216e4b5aa7fccfe22fae9a6533bfee43052daf606f62ddcc391ae829d68c722f",
+    "logs": [
+      ".qa/quiet-rejoin-anchor-focused.log",
+      ".qa/quiet-rejoin-anchor-build.log",
+      ".qa/quiet-rejoin-anchor-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot includes unrelated dirt; review/handover postdate build. Audits PAUSED; runtime and performance unverified."
   }
 }

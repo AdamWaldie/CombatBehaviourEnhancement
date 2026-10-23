@@ -76,6 +76,10 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertLess(reserved.index('CBE_Danger_FlightLease'),reserved.index('private _expired='))
         rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('private _rayStart=',1)[0]
         self.assertIn('_actor doFollow _leader',rejoin)
+        rejoin_anchor=flight.split('private _leader=formLeader _actor;',1)[1].split('private _physicalUntil=',1)[0]
+        for proof in ('_leader == _actor','group _leader != _group',
+                      '[_leader] call CBE_fnc_CortexCombatEffective','_leader=leader _group'):
+            self.assertIn(proof,rejoin_anchor)
         self.assertIn('currentCommand _actor == ""',rejoin)
         self.assertIn('_entry isEqualTo (call _context)',rejoin)
         self.assertNotIn('setVariable ["CBE_Cortex_ActorMove"',rejoin)
