@@ -5,6 +5,7 @@
  * Purpose: Retires a previous owner's exact issued pass leg; never resumes its pass work.
  * Locality/authority: Current vehicle and crew/group owner only. Matching native destinations,
  * authored route, seats and free actor/controller authority guard native route handback.
+ * Same-owner pending STOP belongs to its original observer even after its brain retires.
  * Repeat/JIP: One public command receipt, no executable work or timer replay. Split locality
  * waits for the existing discovery sweep. Expiry never authorizes renewed passing. An identical
  * native STOP without an observed group event remains ambiguous and needs physical QA.
@@ -40,7 +41,16 @@ private _live=_sameSeats && {!isNull _group} && {_oldOwner == clientOwner} && {_
     && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
     && {(_work getOrDefault ["token",""]) == _token}
     && {(_work getOrDefault ["generation",-1]) == _generation};
-if (_live) exitWith {false};
+// Brain shutdown does not make its still-owned STOP journal an inherited path.
+// Let the existing receipt observer finish it without repeating STOP or route issue.
+private _pendingOwned=_sameSeats && {!isNull _group} && {_oldOwner == clientOwner}
+    && {(_work getOrDefault ["token",""]) == _token}
+    && {(_work getOrDefault ["epoch",-1]) == _epoch}
+    && {(_work getOrDefault ["generation",-1]) == _generation}
+    && {(_work getOrDefault ["handback",[]]) isNotEqualTo []}
+    && {(_work getOrDefault ["handbackOwner",[]]) isEqualTo [clientOwner,_epoch,_generation]}
+    && {(_work get "handbackOwner") isEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)};
+if (_live || {_pendingOwned}) exitWith {false};
 private _stop=_vehicle getVariable ["CBE_DrivingPass_Interrupted",[]];
 private _interrupted=_stop isEqualType [] && {count _stop == 5}
     && {(_stop select [0,3]) isEqualTo [_token,_epoch,_generation]};

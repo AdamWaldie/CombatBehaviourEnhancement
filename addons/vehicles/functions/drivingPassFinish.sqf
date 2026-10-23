@@ -8,6 +8,8 @@
  * destinations, live simulation, external controller/Zeus state and the unchanged authored route
  * protect every stop/handback; detectable newer orders/controllers survive.
  * Full original work/brain/task/Zeus proof is re-read after stop before route recall.
+ * After the original brain retires, exact owner/epoch/generation proof alone permits its existing cleanup;
+ * a new owner or executor never inherits that permission.
  * Pending STOP retains original work/deadline/cap and is observed by the existing bounded cleanup.
  * Both operating actors must acknowledge STOP and measured rest before one authored-goal return.
  * Return acknowledgement uses the existing recovery journal, not another movement controller.
@@ -46,7 +48,10 @@ private _owned={
         && {(_stop select [0,3]) isEqualTo [_work get "token",_work get "epoch",_work get "generation"]};
     !(_work getOrDefault ["interrupted",false]) && {!_interrupted} && {local _vehicle} && {local _group} && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {(_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work}
-    && {(_work get "generation") == (_brain getOrDefault ["generation",-1])}
+    && {(_work get "generation") == (_brain getOrDefault ["generation",-1])
+        || {count _brain == 0 && {(_work getOrDefault ["handback",[]]) isNotEqualTo []}
+            && {(_work getOrDefault ["handbackOwner",[]]) isEqualTo [clientOwner,_work get "epoch",_work get "generation"]}
+            && {(_work get "handbackOwner") isEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)}}}
     && {driver _vehicle == _driver} && {(effectiveCommander _vehicle) in [_operator,objNull]}
     && {[_driver] call _actorFree} && {[_operator] call _actorFree}
     && {group _driver == _group} && {group _operator == _group}
@@ -62,6 +67,7 @@ private _owned={
         private _state=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
         private _cap=_work getOrDefault ["handbackCap",-1e9];
         _cap isEqualType 0 && {finite _cap} && {_cap >= 0}
+            && {(_work getOrDefault ["handbackOwner",[]]) isEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)}
             && {(_state param [3,grpNull]) == _group} && {(_state param [0,-2]) == _cap}
             && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}
             && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_work getOrDefault ["handbackBaseline",[]])}
@@ -78,6 +84,7 @@ if (call _owned && {_work get "issued"}) then {
             && {(_state param [3,grpNull]) == _group} && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}) then {
             private _next=createHashMapFromArray (keys _work apply {[_x,_work get _x]});
             _next set ["handback",[_reason,_resume]];
+            _next set ["handbackOwner",[_group] call CBE_fnc_DrivingOwnerReceipt];
             _next set ["handbackBaseline",+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])];
             // Stop this exact path once. Zero is a safety cap, not STOP acknowledgement.
             [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
@@ -121,6 +128,7 @@ if (call _owned && {_work get "issued"}) then {
                     _vehicle setVariable ["CBE_DrivingRecovery_Work",createHashMapFromArray [
                         ["group",_group],["route",+(_work get "route")],["driver",_driver],["operator",_operator],
                         ["kind","PASS_RETURN"],["commandMode","DESTINATION"],["passReturn",_work get "token"],
+                        ["passReturnOwner",+(_work get "handbackOwner")],
                         ["started",_work get "started"],["deadline",_until],["hardDeadline",_until],
                         ["cap",_work get "handbackCap"],["baseline",+(_work get "handbackBaseline")],
                         ["driverCommand",+(_before select 1)],["command",+(expectedDestination _operator)],

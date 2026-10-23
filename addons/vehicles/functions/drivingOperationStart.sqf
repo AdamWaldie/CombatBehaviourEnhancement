@@ -5,6 +5,7 @@
  * At most one ended-worker restart per owner/route is allowed. A failed startup or
  * second executor loss remains terminal rather than retrying every discovery.
  * Purpose: Starts one route-scoped ordinary driving FSM; registered convoys retain their own writer.
+ * Exact pending passing STOP/return gates a new generation without renewing its deadline.
  * Exact released abort cleanup gates new generation/cap admission until handback or original expiry;
  * incoming owner proposals come only from the actual group-locality edge.
  * Seat-only casualty handover can start for local crew in a remote vehicle. Driving still requires
@@ -39,11 +40,39 @@ private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 if (_route isEqualTo []) exitWith {false};
 // Released abort cleanup must settle before a new generation/cap can overwrite its proof.
 // Split locality may wait only within the original edge window; no new timer is installed.
-private _abortPending=false;private _abortSeen=[];
+private _abortPending=false;private _passPending=false;private _abortSeen=[];
 {
     private _abortVehicle=vehicle _x;
     if (_abortVehicle != _x && {!(_abortVehicle in _abortSeen)}) then {
         _abortSeen pushBack _abortVehicle;
+        // Reuse this existing vehicle traversal. Pending passing cleanup owns its
+        // original cap/order even when its tactical brain has already retired.
+        private _pass=_abortVehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+        if ((_pass getOrDefault ["group",grpNull]) == _group
+            && {(_pass getOrDefault ["handback",[]]) isNotEqualTo []}) then {
+            private _request=_pass get "handback";
+            if (local _abortVehicle && {_request isEqualType []} && {count _request == 2}
+                && {(_request select 0) isEqualType ""} && {(_request select 1) isEqualType true}) then {
+                [_abortVehicle,_group,_request select 0,_request select 1] call CBE_fnc_DrivingPassFinish;
+            };
+            _pass=_abortVehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+            if ((_pass getOrDefault ["group",grpNull]) == _group
+                && {(_pass getOrDefault ["handback",[]]) isNotEqualTo []}) then {_passPending=true};
+        };
+        private _passReturn=_abortVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+        if ((_passReturn getOrDefault ["group",grpNull]) == _group
+            && {(_passReturn getOrDefault ["passReturn",""]) != ""}
+            && {(_passReturn getOrDefault ["nativeReturn",[]]) isNotEqualTo []}) then {
+            if (local _abortVehicle) then {
+                private _retired=[_abortVehicle,_group,"DEFERRED_HANDBACK"] call CBE_fnc_DrivingRecoveryRelease;
+                if (_retired) then {[_abortVehicle,_group] call CBE_fnc_DrivingAssistRelease};
+            };
+            _passReturn=_abortVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            if ((_passReturn getOrDefault ["group",grpNull]) == _group
+                && {(_passReturn getOrDefault ["passReturn",""]) != ""}
+                && {(_passReturn getOrDefault ["route",[]]) isEqualTo _route}
+                && {(_passReturn getOrDefault ["nativeReturn",[]]) isNotEqualTo []}) then {_passPending=true};
+        };
         private _hold=_abortVehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
         if (_hold isEqualType createHashMap && {"releasedCap" in _hold}
             && {(_hold getOrDefault ["group",grpNull]) == _group}) then {
@@ -63,7 +92,7 @@ private _abortPending=false;private _abortSeen=[];
         };
     };
 } forEach units _group;
-if (_abortPending) exitWith {false};
+if (_abortPending || {_passPending}) exitWith {false};
 private _current=_group getVariable ["CBE_Driving_Brain",createHashMap];
 private _yieldSnapshot=+(_group getVariable ["CBE_DrivingRecovery_Yield",[]]);
 private _accepted=false;

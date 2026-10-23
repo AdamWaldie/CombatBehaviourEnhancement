@@ -143,7 +143,12 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('(_priorDrivingStatus select 4) != clientOwner',locality)
         self.assertIn('serverTime+5',locality)
         start=(ROOT/'addons/vehicles/functions/drivingOperationStart.sqf').read_text()
-        self.assertLess(start.index('if (_abortPending) exitWith'),start.index('private _generation='))
+        self.assertLess(start.index('if (_abortPending || {_passPending}) exitWith'),start.index('private _generation='))
+        pending_pass=start.split('private _pass=_abortVehicle',1)[1].split('private _hold=',1)[0]
+        self.assertIn('call CBE_fnc_DrivingPassFinish',pending_pass)
+        self.assertIn('call CBE_fnc_DrivingRecoveryRelease',pending_pass)
+        self.assertIn('isEqualTo _route',pending_pass)
+        self.assertNotIn('serverTime+',pending_pass)
         self.assertIn('(_transfer select 1) == _epoch',start)
         self.assertIn('serverTime < _until',start)
         self.assertIn('serverTime < (_transfer select 2)',handback)

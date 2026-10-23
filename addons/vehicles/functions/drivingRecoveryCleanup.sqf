@@ -30,7 +30,7 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn","passReturn"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn","passReturn","passReturnOwner"] apply {_work getOrDefault [_x,[]]}
     };
     private _abortSignature={
         params ["_hold"];
@@ -40,7 +40,7 @@ isNil {
     private _passSignature={
         params ["_work"];
         ["group","route","driver","operator","token","epoch","generation","deadline",
-            "command","driverCommand","handback","handbackTasks","handbackCap","handbackBaseline"]
+            "command","driverCommand","handback","handbackOwner","handbackTasks","handbackCap","handbackBaseline"]
             apply {_work getOrDefault [_x,[]]}
     };
     if (!isNull _vehicle && {local _vehicle}) then {

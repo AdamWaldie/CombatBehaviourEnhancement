@@ -161,6 +161,13 @@ if (_resume && {_reason == "DRIVING_RELEASED"} && {"bypassReturn" in _work}
 // A native-route return was already issued. Observe only; never replay that doMove.
 if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
     private _returnState=[_vehicle,_work] call CBE_fnc_DrivingRecoveryCommandState;
+    // Authored route receipts contain no owner epoch. A new executor/order must not
+    // inherit a pending passing return simply because its old goal has not changed yet.
+    if ("passReturn" in _work && {(_work getOrDefault ["passReturnOwner",[]]) isNotEqualTo
+        ([_group] call CBE_fnc_DrivingOwnerReceipt)
+        || {(_work getOrDefault ["route",[]]) isNotEqualTo ([_group] call CBE_fnc_DrivingRouteReceipt)}}) then {
+        _returnState="LOST";
+    };
     // An observed command reply does not own a replaced speed cap.
     private _returnCap=_work getOrDefault ["cap",-1e9];
     if (!(_returnCap isEqualType 0) || {!finite _returnCap}
