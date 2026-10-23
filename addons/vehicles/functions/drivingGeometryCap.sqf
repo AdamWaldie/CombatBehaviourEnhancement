@@ -8,7 +8,8 @@
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested m/s <NUMBER, 20>, clamped 0..35;
  * 2 server recheck <BOOL, false> - read-only remote-vehicle sampling allowed on server;
  * 3 measured curvature <ARRAY, []> optional finite inverse-metre value from local track;
- * optional second BOOL permits stopped prediction only for fresh native-path evidence.
+ * optional second BOOL permits stopped prediction only for fresh native-path evidence;
+ * optional third ARRAY contains three fresh ASL path stations at0/3/6m for support observation.
  * Empty retains instantaneous native-yaw fallback for independent server/script rechecks.
  * 4 near-contact probe BOOL false; a current stationary pose permits twelve low diagonal/side
  * probes. Callers must qualify failed ordinary recovery before enabling them. Gates, actors,
@@ -17,14 +18,19 @@
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
  * Work: nine straight or at most27 turning rays, plus at most12 qualified near-contact rays;
+ * a fresh native grade transition adds at most9 support casts and6 low forward casts within6m.
  * each returns <=4hits. Nominal braking horizon <=600m. No new discovery query or timer.
- * Gate classification is cached only within this call: up to156 hit objects/up to32 config checks
+ * Gate classification is cached only within this call: up to180 hit objects/up to32 config checks
  * each for ambiguous barrier names and native Wall/Fence classes. Static walls and
  * H-barriers are not assumed to be animated gates; house doors gain no generic fallback.
  * Current forward motion and model-space yaw predict at most 2.5 seconds of curved travel,
  * clamped to 70 degrees; the remaining horizon follows the final tangent. Rigid hull offsets
  * rotate with each predicted pose. Unsupported/stationary yaw falls back to straight sensing.
- * Bodies use current absolute pitch/elevation. Gentle upward support is excluded from generic
+ * Existing hull rows retain current absolute pitch/elevation. Fresh native path stations may add
+ * a six-metre support-relative low row when grade diverges by more than0.3m. Each width/station
+ * needs one unambiguous upward surface within0.4m of native path elevation; no terrain fallback,
+ * support cache or clearance permission. Missing, multiple or steep surfaces refuse the extra row.
+ * Gentle upward support is excluded from generic
  * blocking. Downward-facing underside hits remain solid constraints; occupied/active land-vehicle and pedestrian hulls retain their dedicated observers.
  * Stationary engine-off unoccupied land hulls also feed finite bypass planning; their independent
  * traffic cap remains active. Per-call classification inspects at most 16 land hulls and avoids
@@ -53,7 +59,7 @@ private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
 if (!finite _yaw || {_velocity <= 1}) then {_yaw=0};
 private _bendLength=(_velocity*2.5) max 8 min _horizon;
 private _curvature=if (_velocity > 1) then {_yaw/_velocity} else {0};
-if (count _measured in [1,2] && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
+if (count _measured in [1,2,3] && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
     _curvature=if (_velocity > 1 || {_measured param [1,false,[true]]}) then {_measured select 0} else {0};
 };
 private _maxCurvature=(70/57.2957795)/_bendLength;
@@ -97,6 +103,53 @@ private _samples=[];
         };
     } forEach [_left,(_left+_right)*0.5,_right];
 } forEach _heights;
+// Add observations only where a fresh native path departs from rigid pitch. Keep
+// the original hull rows: these short low rows never erase an overhead constraint.
+private _supportPath=_measured param [2,[],[[]]];
+if (count _supportPath == 3 && {_supportPath findIf {!(_x isEqualType []) || {count _x != 3}
+    || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0}) then {
+    private _supportEnd=_supportPath select 2;
+    private _modelEnd=_vehicle worldToModel (ASLToAGL _supportEnd);
+    private _modelStart=_vehicle worldToModel (ASLToAGL (_supportPath select 0));
+    if (abs ((_modelEnd select 2)-(_modelStart select 2)) > 0.3
+        && {(_modelEnd select 1) > 1} && {(_supportPath select 0) distance2D getPosASL _vehicle <= 3}
+        && {(_supportPath select 0) distance2D _supportEnd <= 7}) then {
+        private _supportRows=[];private _supported=true;
+        {
+            private _width=_x;private _row=[];
+            for "_station" from 0 to 2 do {
+                private _point=+(_supportPath select _station);
+                private _tangent=(_supportPath select ((_station+1) min 2)) vectorDiff
+                    (_supportPath select ((_station-1) max 0));
+                _tangent set [2,0];
+                if (vectorMagnitude _tangent < 0.1) exitWith {_supported=false};
+                _tangent=vectorNormalized _tangent;
+                _point=_point vectorAdd ([_tangent select 1,-(_tangent select 0),0] vectorMultiply _width);
+                // A short vertical window cannot silently fall through an elevated deck
+                // to distant terrain. Multiple plausible upward levels are ambiguous.
+                private _surfaces=lineIntersectsSurfaces [_point vectorAdd [0,0,0.75],
+                    _point vectorAdd [0,0,-0.75],_vehicle,objNull,true,4,"GEOM","NONE"];
+                _rays=_rays+1;
+                private _levels=_surfaces select {((_x select 1) select 2) >= 0.7
+                    && {abs (((_x select 0) select 2)-(_point select 2)) <= 0.4}};
+                if (count _levels != 1) exitWith {_supported=false};
+                _row pushBack (((_levels select 0) select 0) vectorAdd [0,0,0.45]);
+            };
+            if (!_supported) exitWith {};
+            _supportRows pushBack _row;
+        } forEach [_left,(_left+_right)*0.5,_right];
+        if (_supported) then {
+            {
+                private _row=_x;
+                for "_station" from 1 to 2 do {
+                    private _startGap=((getPosASL _vehicle distance2D (_supportPath select (_station-1)))-_front) max 0;
+                    private _endGap=((getPosASL _vehicle distance2D (_supportPath select _station))-_front) max _startGap;
+                    _samples pushBack [_row select (_station-1),_row select _station,_startGap,_endGap,0];
+                };
+            } forEach _supportRows;
+        };
+    };
+};
 private _leftContact=[];private _rightContact=[];private _probeBudget=true;private _probeObjects=createHashMap;
 if (_nearContact) then {
     private _linear=vectorMagnitude velocity _vehicle;private _angular=vectorMagnitude angularVelocity _vehicle;

@@ -64,12 +64,12 @@
   "currentReconciliation20261023": {
     "baseline": "01e25ab2",
     "superseded": "Historical native queue exclusion is now removed through existing DEFAULT-OFF initiation; see native-queue-execution-boundary-20261023.json nativeAdmission20261023. Actual owner private original route and two-seat return ACK are implemented, not physically accepted.",
-    "confirmedRemaining": "Native passing remains authored-only. Current PassFinish also lacks deferred stop/return acknowledgement for authored passing; full current authority recheck corrected in pass-recall-authority candidate. Refer hbq-pass-recall-authority-20261023.json. Terrain-relative versus deck-support observation remains a separate confirmed source-method difference in hbq-curved-observation-20261016.json gradeDeckReview.",
+    "confirmedRemaining": "Native passing is integrated default-off with finite STOP/return and real-edge cleanup; see native-passing-integration-20261023.json. Physical propagation and travel remain unverified. Grade/deck observation now has a bounded six-metre support extension, not whole-horizon parity; see grade-support-observation-20261023.json.",
     "limits": "Selective reconciliation, not complete renewed HBQ review, whole-mod percentage or physical proof. No blanket hash renewal."
   },
   "passingHandbackReconciliation20261023": {
     "baseline": "2f79c14d",
     "current": "Authored passing now retains original-deadline STOP proof and a separate two-seat original-goal return journal through existing bounded cleanup. See pass-deferred-handback-20261023.json. This supersedes the previously confirmed missing deferred path, not physical acceptance.",
-    "remaining": "Native passing remains disabled. Pending passing ownership migration/inherited public leg retirement and actual STOP/return propagation need review and physical evidence. Grade/deck support projection remains separately unimplemented."
+    "remaining": "Native passing is integrated default-off; genuine transfer timing and actual STOP/return propagation still need physical evidence. Grade/deck support projection is implemented only within a fresh native six-metre window; longer transitions and runtime cost remain open."
   }
 }

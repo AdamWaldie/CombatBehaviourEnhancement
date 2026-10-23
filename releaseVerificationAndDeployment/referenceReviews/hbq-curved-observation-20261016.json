@@ -97,7 +97,12 @@
     ],
     "performance": "Any added support observation must have an explicit per-callback query/hit budget and measured overhead. No new world queries were added in this review.",
     "implementationAccepted": false,
-    "physicalAcceptance": false
+    "physicalAcceptance": false,
+    "currentImplementation": {
+      "date": "2026-10-23",
+      "review": "grade-support-observation-20261023.json",
+      "status": "Fresh native paths now supply exact0/3/6m stations. On a >0.3m departure from current pitch, GeometryCap adds support-relative low rows only with one upward surface within0.4m of path height at all nine width/station samples. Existing rigid hull and underside constraints remain. This is a short-range implementation, not whole-horizon grade/deck parity or physical acceptance."
+    }
   },
   "roadApproachBearingFollowUp20261020": {
     "baseline": "432a5a10",

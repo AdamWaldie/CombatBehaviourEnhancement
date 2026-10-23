@@ -1,0 +1,29 @@
+{
+  "baseline": "f278f014",
+  "scope": "Short-range support-relative obstacle observation at native grade transitions",
+  "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+  "sourceLines": "431-454",
+  "sourceIntent": "Keep low obstacle rays near support rather than vehicle-origin elevation; source converts endpoints through ground-relative AGLToASL. CBE does not copy a terrain-only projection across elevated decks.",
+  "implementation": "Existing actual-owner native watch emits three exact stations over6m after freshness/command/floor/forward checks. Geometry only adds low rows on >0.3m pitch divergence. At most9 vertical casts require one upward GEOM surface within0.4m of native elevation, in a1.5m vertical window. All three widths/stations must succeed before6 supplemental low rays. Existing upper/lower hull and downward-normal blocking stay intact. No cache, scheduler, movement command or physics shortcut.",
+  "hashes": {
+    "addons/vehicles/functions/drivingGeometryCap.sqf": "887ddcf6d5f01b92b27cc1a11d03952e2642bdbb74e79487a1fa4208d4a514ee",
+    "addons/vehicles/functions/drivingNativePathWatch.sqf": "a1adfa7c20a624755c027572d8cb09044bc38910d265e8687b7c64bff67778eb"
+  },
+  "validation": {
+    "focusedExistingGeometryTests": 16,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "build": ".qa/grade-support-build-fixed.log",
+    "independent": ".qa/grade-support-independent.log",
+    "candidate": ".qa/candidates/grade-support-f278f014",
+    "fingerprint": "754361cae3383f20697c348d6971d9816ef6cc4fca78572a2b2e0573a7712078",
+    "provenance": "Unsigned dirty development snapshot preserving unrelated dirt; engineering review notes afterward."
+  },
+  "remaining": [
+    "Physical slope/crest/dip/elevated deck and overhead obstacle behaviour unverified; no whole-horizon grade parity.",
+    "Native path elevations are hints; collision LOD support may be absent, ambiguous or inaccurate and then the extra rows are refused.",
+    "At most15 additional short casts on qualifying transitions; measured median/p95 runtime cost remains unverified.",
+    "Audits remain paused; no launch, push, CI, release or upload."
+  ],
+  "additionalCorrection": "Full gate caught previous native-passing review note legacy product name; corrected note only, retaining safety checks."
+}

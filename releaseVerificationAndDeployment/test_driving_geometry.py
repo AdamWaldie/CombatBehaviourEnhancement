@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 class DrivingGeometryTests(unittest.TestCase):
     def test_geometry_is_one_bounded_live_observation_without_helpers(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text().split('params [[',1)[1]
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         for required in ('true,4,"GEOM","NONE"','[_left,(_left+_right)*0.5,_right]',
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
                          '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
@@ -22,6 +22,22 @@ class DrivingGeometryTests(unittest.TestCase):
             self.assertIn(required,s)
         self.assertEqual(2*2*3,12)
         self.assertEqual(3*3*3+12,39)
+        self.assertEqual(3*3*3+12+3*3+3*2,54)
+        for required in ('count _supportPath == 3','> 0.3','count _levels != 1',
+                         '_point vectorAdd [0,0,0.75]','_point vectorAdd [0,0,-0.75]',
+                         '<= 0.4','if (_supported) then','vectorAdd [0,0,0.45]'):
+            self.assertIn(required,s)
+        self.assertNotIn('getTerrainHeight',s)
+        # Wrong-floor terrain, roofs/undersides and multiple plausible levels cannot
+        # provide a low-row support profile. This is analytic filtering, not PhysX proof.
+        def support(path_z, surfaces):
+            candidates=[z for z,normal_z in surfaces if normal_z>=0.7 and abs(z-path_z)<=0.4]
+            return candidates[0] if len(candidates)==1 else None
+        self.assertEqual(support(10,[(10,1),(0,1)]),10)
+        self.assertIsNone(support(10,[(0,1)]))
+        self.assertIsNone(support(10,[(10,-1)]))
+        self.assertIsNone(support(10,[(9.9,1),(10.1,1)]))
+        self.assertIsNone(support(10,[(10,0.5)]))
         for forbidden in ('createVehicle','allMissionObjects','allDead','spawn','waitUntil','setVariable',
                           'setVelocity','doMove','forceSpeed','animateSource','animationSourcePhase'):
             self.assertNotIn(forbidden,s)
@@ -85,7 +101,7 @@ class DrivingGeometryTests(unittest.TestCase):
                        'count _stations-1','_front*sin _angle','_width*sin _angle',
                        '_segmentStart+_fraction*(_segmentEnd-_segmentStart)','_from vectorDistance _to'):
             self.assertIn(marker,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         self.assertNotIn('setAngularVelocity',s)
         self.assertNotIn('setVariable',s.split('params [[',1)[1])
 
@@ -139,6 +155,10 @@ class DrivingGeometryTests(unittest.TestCase):
         # A single sparse segment also spans the desired lookahead; interpolation is required.
         self.assertLess(6,20)
         self.assertIn('_path select [0,64]',s)
+        self.assertIn('_supportPath=[+_nearPoint]',s)
+        self.assertIn('(3-_walked)/_length',s)
+        self.assertIn('_walked >= 6 && {count _supportPath == 2}',s)
+        self.assertIn('true,_supportPath]',s)
 
     def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()
