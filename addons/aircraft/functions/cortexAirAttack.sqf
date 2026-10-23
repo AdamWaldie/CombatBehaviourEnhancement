@@ -128,7 +128,7 @@ private _finish={
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
         // by name remains correct when Zeus added or removed other waypoints and shifted indices.
         private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
-        if (!isNull _finishGroup && {_ownedWaypointName != ""}) then {
+        if (!isNull _finishGroup && {local _finishGroup} && {_ownedWaypointName != ""}) then {
             private _ownedWaypointIndex=(waypoints _finishGroup) findIf {waypointName _x == _ownedWaypointName};
             if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
                     private _snapshot=_finishGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
@@ -161,10 +161,24 @@ private _finish={
             private _handoverPilot=driver _aircraft;
             private _handoverGroup=group _handoverPilot;
             private _snapshot=_handoverGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
+            private _handoverHold=_handoverGroup getVariable ["CBE_AIPass_ZeusHold",[]];
+            // Vehicle locality alone does not authorize group orders. Only the current waypoint
+            // takeover may replay its snapshot; generic release and direct edits have no route.
+            private _replayZeus=!isNull _handoverPilot && {local _handoverPilot}
+                && {_handoverGroup == _finishGroup} && {local _handoverGroup}
+                && {count _snapshot == 7} && {count _handoverHold == 2}
+                && {(_snapshot select 0) isEqualTo (_handoverHold select 0)}
+                && {(_handoverGroup getVariable ["CBE_AIPass_ZeusControlKind",""]) == "WAYPOINT"}
+                && {[_handoverGroup] call CBE_fnc_CortexZeusHeld};
+            if (_replayZeus) then {
             private _handoverPosition=+(_snapshot param [1,[]]);
             private _handoverWaypoints=waypoints _handoverGroup;
             private _authoredWaypointOffset=_handoverWaypoints findIf {
                 count _handoverPosition >= 2 && {waypointPosition _x distance2D _handoverPosition <= 2}
+                    && {waypointType _x == (_snapshot select 4)}
+                    && {waypointBehaviour _x == (_snapshot select 2)}
+                    && {waypointSpeed _x == (_snapshot select 3)}
+                    && {waypointCombatMode _x == (_snapshot select 6)}
             };
             // Re-select the exact curator waypoint and immediately apply its own movement semantics.
             // This is a one-time replay of authenticated Zeus intent, not a Cortex route. Without
@@ -172,12 +186,9 @@ private _finish={
             // Use the actual waypoint handle:
             // deletion reindexes native waypoints, so use the handle from this fresh lookup,
             // rather than retaining an index captured before cleanup.
-            private _authoredWaypoint=if (_authoredWaypointOffset >= 0) then {
-                _handoverWaypoints select _authoredWaypointOffset
-            } else {
-                [_handoverGroup,_snapshot param [5,currentWaypoint _handoverGroup]]
-            };
-            if ((_authoredWaypoint select 1) >= 0) then {
+            // No index fallback: removal can leave that index pointing at a different order.
+            if (_authoredWaypointOffset >= 0) then {
+                private _authoredWaypoint=_handoverWaypoints select _authoredWaypointOffset;
                 // flyInHeight persists after its owning MOVE waypoint is deleted. The completed
                 // handover audit showed the helicopter still climbing to Cortex's old hint, then
                 // hovering despite facing Zeus' selected MOVE point. Replace that stale hint once
@@ -206,7 +217,6 @@ private _finish={
                     && {count _handoverPosition >= 2}) then {
                     _handoverGroup move _handoverPosition;
                 };
-            };
             _aircraft setVariable ["CBE_Cortex_AirHandoverLease",nil,true];
             _aircraft setVariable ["CBE_Cortex_AirHandoverRecovery",nil,true];
             _aircraft setVariable ["CBE_Cortex_AirHandoverResult",[
@@ -214,6 +224,8 @@ private _finish={
                 behaviour _handoverPilot,unitCombatMode _handoverPilot,currentCommand _handoverPilot,
                 "ZEUS_IMMEDIATE_HANDOVER",expectedDestination _handoverPilot
             ],true];
+            };
+            };
         };
         // On an ordinary finite end, retire only the exact hostile CBE assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
