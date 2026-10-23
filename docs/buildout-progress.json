@@ -540,7 +540,7 @@
           "capability": "Envelope-gated correction",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Owner-local shared-scheduler sampling compares speed loss, ASL climb and nose-up attitude against configured speed/altitude thresholds. It refuses landing orders, active landing/attack/missile work, unavailable or controlled pilots, external group takeover, ground contact, sling load and unusable aircraft. The step launches a finite correction rather than a permanent per-aircraft sampling script.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -553,7 +553,7 @@
           "capability": "Bounded local flight correction",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "A scheduled correction retains aircraft generation, pilot/group and waypoint signature, acquires priority-100 flight ownership and exits on timeout or lost eligibility. It applies mass-scaled addForce impulses with elapsed simulation time capped at 0.1 seconds, bounded acceleration and excess-climb removal; an approach-distance envelope may also brake horizontal travel. Terrain-height samples at 100/300/500 metres guard downward correction; they do not prove obstacle or swept-airframe clearance. No waypoint, flight height or attitude is replaced; physical safety and effectiveness remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -566,7 +566,7 @@
           "capability": "Shared scheduler and flight lease release",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Repeat-safe creation/locality handlers queue the existing shared AIRCRAFT job; generation changes retire old sampling and prevent old workers clearing successor active state. Exact controller/token/current-owner release cannot clear a different CBE flight lease. Higher-priority landing, attack and missile controllers can replace braking; correction checks its live lease before impulses. Lease release is bookkeeping, not proof that native flight motion or an external provider has become quiescent.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -575,14 +575,22 @@
             },
             {
               "path": "addons/aircraft/functions/flightLeaseRelease.sqf",
-              "sha256": "a8dc5aec2bf3ea443f9767cf61b2e07eb4e21323c02c8f0028c8c2a651ced1aa"
+              "sha256": "ec592b3c842a2554562a3975091533a8aea2e16a276b98af9c2fb009e9a14955"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseAcquire.sqf",
+              "sha256": "7518c078119d17119b6244d94863d678da1db8f5c8015b78b8bb4d8f3adc6005"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseValid.sqf",
+              "sha256": "1f82e03e9fb96f88604e308329a3f5eced747f671a489f8d90e7c5d6bc48cdb5"
             }
           ]
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "fa42c0b2; DECEL execution and exact flight lease review"
     },
     {
       "id": "REGROUP",
