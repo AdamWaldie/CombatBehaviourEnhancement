@@ -326,7 +326,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "2a51c419 + reviewed hold-only scheduler fix"
+      "source_commit": "a2f2c7ce; SCHED-only semantic review, including hold-only scheduler entry"
     },
     {
       "id": "PROFILE",
