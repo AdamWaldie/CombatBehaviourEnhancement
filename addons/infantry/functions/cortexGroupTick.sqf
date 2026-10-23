@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Tactical-route and withdrawal retries preserve native STOP; these callers have no owned-stop receipt.
  * Existing finite group movement ownership survives an idle vehicle-layer result. Free actors
  * may still propose bounded indoor work through the existing explicit disjoint-roster boundary;
  * whole-group movement and clearance remain exclusive.
@@ -528,7 +529,7 @@ if (_movementOwner == "TACTICAL_REPOSITION" && {count _movementLease == 2} && {t
                         && {!(_x in _unavailable)} && {abs speed _x <= 0.5}
                         && {isNull objectParent _x} && {!isPlayer _x} && {isNull remoteControlled _x}
                         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-                        && {currentCommand _x in ["","MOVE","ATTACK","FIRE","SUPPRESS","STOP"]}
+                        && {currentCommand _x in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
                         && {_move isEqualTo [] || {_move isEqualType [] && {count _move == 3}
                             && {(_move param [2,1e12,[0]]) <= time}}}
                         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
@@ -1917,6 +1918,9 @@ switch (_state get "phase") do {
                 private _straggler=(_operation getOrDefault ["participants",[]]) findIf {
                     private _recoveryRecord=_recovery getOrDefault [netId _x,[]];
                     alive _x && {local _x} && {isNull objectParent _x}
+                        // This route follower has no individual CBE hold receipt. A STOP
+                        // belongs to the current native order, not the straggler retry.
+                        && {toUpperANSI currentCommand _x != "STOP"}
                         && {!(_x in _unavailable)}
                         && {!(_recoveryRecord isEqualType [] && {count _recoveryRecord >= 2} && {(_recoveryRecord select 0) > 0})}
                         && {_x distance2D _leader > 35} && {speed _x < 1}

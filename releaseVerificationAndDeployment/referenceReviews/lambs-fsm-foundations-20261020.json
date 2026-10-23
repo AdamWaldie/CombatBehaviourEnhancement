@@ -1204,5 +1204,30 @@
       "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
       "releaseVerificationAndDeployment/test_actor_settings.py": "040ffd5f078108bf1fb3c2b941354248121f617edd0af13ecfc84ccb5c03d03c"
     }
+  },
+  "routeRecoveryNativeStop20261023": {
+    "base": "be30db59",
+    "finding": "Tactical reposition explicitly admitted native STOP into stuck selection; withdrawal straggler selection also admitted STOP. Neither route caller holds an individual stop receipt. Shared RecoveryStep intentionally permits proven owned holds from clearance/drill callers, so a blanket shared veto would break that distinct use.",
+    "change": "Remove STOP from tactical-reposition candidate commands and reject STOP in withdrawal candidate selection before the shared retry. No shared retry policy, budget, timer, operation lifetime or clearance hold proof changed.",
+    "implementationHashes": {
+      "addons\\infantry\\functions\\cortexGroupTick.sqf": "02dd1aa26cecaad4f95852d83b3b8e2ea63dfb88905b8b3ad6c67763601b5eb7",
+      "addons\\infantry\\functions\\recoveryStep.sqf": "74684a9813990b432d0335ca5125ae83e9cbef16833def66895af6058c4af527"
+    },
+    "validation": {
+      "existingFocusedCases": 610,
+      "fullCases": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/route-recovery-stop-be30db59",
+    "fingerprint": "464b1e2f28e6b02f1904b25b50b3e231fe1ed216b6154d99535394b0ae42b54b",
+    "logs": [
+      ".qa/route-recovery-stop-focused.log",
+      ".qa/route-recovery-stop-build.log",
+      ".qa/route-recovery-stop-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/handover postdate package. No live Arma run, physical acceptance, measured performance, score renewal or whole-source parity claim.",
+    "audits": "PAUSED"
   }
 }

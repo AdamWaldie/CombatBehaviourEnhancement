@@ -938,6 +938,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_currentOperation set ["recoveryAttempts",_used]',recovery)
         self.assertIn('_actor in (_currentOperation getOrDefault ["participants",[]])',recovery)
         self.assertLess(recovery.index('currentCommand _actor'),recovery.index('_recovery set [_key'))
+        reposition_retry=source('cortexGroupTick').split('private _stuck=_members findIf {',1)[1].split('if (_stuck >= 0)',1)[0]
+        self.assertIn('currentCommand _x in ["","MOVE","ATTACK","FIRE","SUPPRESS"]',reposition_retry)
+        self.assertNotIn('"SUPPRESS","STOP"',reposition_retry)
+        withdrawal_retry=source('cortexGroupTick').split('private _straggler=(_operation getOrDefault ["participants",[]]) findIf {',1)[1].split('if (_straggler >= 0)',1)[0]
+        self.assertIn('toUpperANSI currentCommand _x != "STOP"',withdrawal_retry)
         support_handoff=source('cortexStaticSupport').split('if (count _lease >= 7) exitWith',1)[1].split('if (_leaseEpisode',1)[0]
         self.assertIn('_actor in (_operation getOrDefault ["participants",[]])',support_handoff)
         self.assertIn('[true] call _release',support_handoff)
