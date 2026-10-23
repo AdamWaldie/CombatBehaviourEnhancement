@@ -60,5 +60,28 @@
     "performanceMeasured": false,
     "scoresChanged": false,
     "audits": "PAUSED"
+  },
+  "laneContinuationTrace20261024": {
+    "base": "7fdebe27",
+    "scope": "Current lane rebuild and shared pending-room allocation; no renewed family score or physical claim.",
+    "confirmed": [
+      "CortexClearBuilding initializes pairRoutes as empty arrays, pending as reconstructed remaining routeOrder and each pairState with cursor0, mover0, time progress/start clocks and entry defaults.",
+      "BuildingOperationStep mutates lane route claims by removing a room from pending and appending it to the lane route. Shared visits/unreachable history do not preserve that partition.",
+      "Lane state has initial13fields and runtime fields13bestDistance/14bestTarget. Index3 lastProgress and6 startAt are machine-local time; directly publishing/adopting them would use another owner clock.",
+      "Cursor0, approachingEntry1, positionSlots2, progress3, retry4, lastTarget5, startAt6, moverSlot7, previousPosition8, entrance9, triedEntrances10, roomCount11, entered12 and optional distance13/target14 are interdependent with pair identity and its claimed route.",
+      "Partner ClearEntryRecovery receipt separately retains original server progress time, spent retry, target and ASL anchor; it is not a whole-lane snapshot.",
+      "BuildingActorMotion adoption compares actual current native MOVE/HOLD and matching episode; that protects command ownership but does not restore room claim allocation or original pending request timing."
+    ],
+    "consequence": "Do not restore a cursor/timer alone into the freshly empty route and reconstructed pending queue. That could skip or redirect room work, renew stalled-leg handling or attribute one actor slot to another.",
+    "requiredIntegration": "An episode/transform-scoped coherent roster/routes/states/pending snapshot, typed indices/vectors/booleans and original shared-clock timing; preserve current actor-native issue proof and original hard deadline. Partial/missing/out-of-order delivery must not become fresh movement or fabricated physical entry. Publication cadence/payload cost needs explicit bounds before integration.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\cortexClearBuilding.sqf": "117b435d861e1d18d8e8868a76a88c79bdf4e5747775d4944774d8d576091aa2",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "24ecb3ba699a1ee63a87fa27ff151c63f7fa7584123ae204b5fa1f6c1d9a5a21",
+      "addons\\infantry\\functions\\buildingActorMotion.sqf": "da8f35a8f60d028dde6afe2eb6419fb35afbf09d9a8253f2ea5466221c97917a"
+    },
+    "validation": "Read-only current source trace and JSON/hash validation. Production unchanged; no repeated full build or audit. Retain prior exact runtime candidate quiet-rejoin-anchor-e28b5ded; review is later than that candidate.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }
