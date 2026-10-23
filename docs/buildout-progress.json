@@ -659,7 +659,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
+              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
             }
           ]
         },
@@ -672,7 +672,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
+              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
             }
           ]
         },
@@ -680,23 +680,27 @@
           "capability": "Current-task cancellation and owned release",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Shared release/cancel restores matching owned policy and retires only the captured operation; a still-live danger context retains its original response expiry. This does not yet cover every authored order replacement.",
-          "remaining_build_gap": "Medical runs before the ordinary authored-order check and does not capture/compare a native waypoint receipt. Complete admission and continuation protection for authored mission travel, including stationary treatment, remains to implement; generic OperationStep is progress tracking, not that receipt guard.",
+          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Aid now captures the full native waypoint receipt, checks it before success and later commands, and rejects missing legacy proof. Authored travel refuses admission; HOLD/SENTRY allows only already-in-range aid and cancels if reach is lost. Shared release/cancel retires captured operation policy without renewing live danger expiry.",
+          "remaining_build_gap": "Complete provenance for newer direct per-unit MOVE/ATTACK/ACTION commands remains unresolved; waypoint identity does not identify those writers or prove native treatment quiescence. Physical order handover and treatment behaviour remain unverified separately.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
+              "sha256": "6ae998647c70945ccdaaf82cba55c96f0192fe1b705efa48a00fbc32b9b337bd"
             },
             {
               "path": "addons/core/functions/operationRelease.sqf",
               "sha256": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8"
+            },
+            {
+              "path": "addons/core/functions/nativeOrderReceipt.sqf",
+              "sha256": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6"
             }
           ]
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "1546e011 + medical actor availability fix"
+      "source_commit": "dbf09a34 + medical authored-order receipt fix"
     },
     {
       "id": "CONTACT",

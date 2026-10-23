@@ -9,6 +9,8 @@
  * Repeat / JIP: The public operation generation and small aid record are rechecked every group tick. A new owner
  * cancels the old operation rather than resuming a stale treatment command. Approach movement has
  * one native doMove owner and is refreshed only after measured no-progress or an empty command.
+ * Authored travel refuses admission; HOLD/SENTRY permits in-place aid only. The captured full native
+ * waypoint receipt must match before success and later treatment; changed or missing proof cancels.
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP> - current Cortex group state.
@@ -61,12 +63,18 @@ if (!_medicalEnabled || {_medicalInterrupted}) exitWith {
 // Ownership can change after the tick-level eligibility check and immediately before an engine
 // command. Recheck at each movement or treatment write so Zeus and specialist controllers never
 // receive a stale CBE command from this finite operation.
+private _medicalOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+private _waypointIndex=currentWaypoint _group;
+private _authoredOrder=_waypointIndex > 0 && {_waypointIndex < count waypoints _group};
+private _stationaryOrder=_authoredOrder && {waypointType [_group,_waypointIndex] in ["HOLD","SENTRY"]};
+
 private _mayIssueMedical = {
     params ["_medic","_casualty"];
     !([_group] call CBE_fnc_CortexExternalTakeover)
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {!([_group] call CBE_fnc_CompatibilityExternalControl)}
         && {[_medic] call _actorEligible} && {[_casualty] call _actorEligible}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _medicalOrder}
 };
 
 private _aid=_group getVariable ["CBE_Cortex_MedicalAid",[]];
@@ -80,6 +88,10 @@ if (_aid isNotEqualTo []) exitWith {
     // that response instead of waiting for another medical interval.
     if (_dangerActive) exitWith {["CANCELLED","COMBAT_RESUMED"] call _finish};
     _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
+    // Missing legacy proof cannot adopt whatever mission order is current now.
+    if (count _aid != 8 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
+        ["CANCELLED","ORDER_CHANGED"] call _finish
+    };
     // Treatment may legitimately make no spatial progress, but it still needs the same
     // generation/owner proof as approach movement before counting success or issuing HealSoldier.
     private _currentAidOperation=_group getVariable ["CBE_Operation",createHashMap];
@@ -114,6 +126,9 @@ if (_aid isNotEqualTo []) exitWith {
     private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);
     private _inTreatmentRange=_distance <= 4
         && {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) <= 1.5};
+    if (_stationaryOrder && {!_inTreatmentRange}) exitWith {
+        ["CANCELLED","STATION_RANGE_LOST"] call _finish
+    };
     // At treatment range the medic's lack of displacement is expected: the native HealSoldier action can work
     // in place. The shared progress monitor is only meaningful while this finite operation is
     // physically approaching its casualty, otherwise it would incorrectly cancel a working aid.
@@ -163,6 +178,10 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {(_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
     || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}) exitWith {false};
 
+// Authored travel remains authoritative. A stationary HOLD/SENTRY permits only aid
+// already in reach; it does not grant permission to pull a sentry off its position.
+if (_authoredOrder && {!_stationaryOrder}) exitWith {false};
+
 private _members=(units _group) select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
     alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
@@ -185,7 +204,8 @@ private _best=1e9;
         private _distance=(getPosASL _medic) vectorDistance (getPosASL _x);
         private _canApproach=(_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"})
             || {_distance <= 4 && {abs (((getPosASL _medic) select 2)-((getPosASL _x) select 2)) <= 1.5}};
-        if (_medic != _x && {_distance < _best} && {_canApproach} && {_distance <= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Range",80])}) then {
+        if (_medic != _x && {_distance < _best} && {_canApproach}
+            && {!_stationaryOrder || {_distance <= 4 && {abs (((getPosASL _medic) select 2)-((getPosASL _x) select 2)) <= 1.5}}} && {_distance <= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Range",80])}) then {
             _best=_distance;
             _pair=[_medic,_x];
         };
@@ -209,5 +229,5 @@ if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sele
 } else {
     _medic action ["HealSoldier",_casualty];
 };
-_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time],true];
+_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time,+_medicalOrder],true];
 true

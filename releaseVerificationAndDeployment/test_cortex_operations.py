@@ -2270,6 +2270,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_inTreatmentRange) then {',medical)
         self.assertIn('private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);',medical)
         self.assertIn('native HealSoldier action can work',medical)
+        self.assertIn('count _aid != 8 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
+        self.assertIn('time,time,_best,time,+_medicalOrder],true]',medical)
+        self.assertIn('if (_authoredOrder && {!_stationaryOrder}) exitWith {false};',medical)
+        self.assertIn('!_stationaryOrder || {_distance <= 4',medical)
+        self.assertIn('if (_stationaryOrder && {!_inTreatmentRange}) exitWith',medical)
+        self.assertLess(medical.index('count _aid != 8'),medical.index('if (damage _casualty <'))
+        permission=medical.split('private _mayIssueMedical = {',1)[1].split('private _aid=',1)[0]
+        self.assertIn('CBE_fnc_NativeOrderReceipt) isEqualTo _medicalOrder',permission)
         for forbidden in ['setDamage', 'setPos', 'joinSilent', 'addWaypoint']:
             self.assertNotIn(forbidden,medical)
         self.assertIn('CBE_fnc_CortexMedicalStep',tick)
