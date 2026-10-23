@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Locality resume reconstructs exit distance and same-floor settlement in ASL; saved
+ * native destinations stay AGL. No physical arrival or renewed retry is inferred from transfer.
  * Native fleeing retains movement authority through admission, execution and cleanup.
  * Group attack permission is acquired through OperationAttackPolicy; a refused or changed
  * policy ends admission rather than allowing unowned autonomous attack delegation.
@@ -755,7 +757,7 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
             private _live=(expectedDestination _actor) param [0,[]];
             private _atTarget=count _target == 3
                 && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1}
-                && {abs (((getPosATL _actor) select 2)-(_target select 2)) <= 1.5};
+                && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 1.5};
             private _ownsLeg=currentCommand _actor == "MOVE" && {count _leg == 3}
                 && {count _live == 3} && {_live vectorDistance _leg <= 0.25};
             private _holdsArrival=_arrived && {_atTarget} && {currentCommand _actor in ["","STOP"]};
@@ -765,7 +767,7 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
                 _assignments pushBack [_actor,+_target,_holdsArrival];
                 _moves set [netId _actor,+_leg];
                 private _routeTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
-                _records pushBack [_actor,(getPosATL _actor) vectorDistance _routeTarget,time,
+                _records pushBack [_actor,(getPosASL _actor) vectorDistance (AGLToASL _routeTarget),time,
                     (_retries max 0) min 1,+_checkpoint,time,getPosASL _actor];
             } else {_failed=true};
         } else {_failed=true};

@@ -1529,3 +1529,8 @@ Immediate danger evasion now includes a short native lateral tactical dodge for 
 
 
 Clearance casualty replacement now uses the shared combat-element identity preference inside its existing rotating sixteen-reserve window. It prefers a registered buddy of the healthy receiving member, then an intact reserve pair, with distance order as fallback. Already-promoted actors are removed from the candidate window before the next slot. Failed VIEW-probe rotation remains after preference ordering so a blocked preferred actor cannot monopolise confirmation. Existing reserve/task readiness, physically established substitute exit coverage, final promotion proof, fresh entry receipts and original deadlines remain mandatory. This improves roster continuity; it does not prove coherent physical pair entry or remove whole-pair replacement gaps.
+
+
+Clearance room travel, motion progress, exit retry distances and locality-resumed exit settlement now compare absolute ASL positions consistently. Native targets retain AGL and saved actor poses retain ATL; each uses its corresponding ASL conversion when measured. Relative terrain height under different points can no longer create false progress or a false vertical distance in these paths. Existing floor-aware arrival, exact command receipts, retry counters and deadlines remain. This corrects coordinate interpretation, not native building navigation or historical VR failures; physical slope/multistorey/transfer behavior remains unverified.
+
+Coordinate detail: native building/movement targets use AGLToASL; saved getPosATL actor-motion samples use ATLToASL. Those formats coincide on land but differ over water, so the motion baseline retains its explicit terrain-relative conversion.

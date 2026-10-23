@@ -106,6 +106,20 @@ class ClearEntryFlowTests(unittest.TestCase):
         floor=20; terrain_actor=16; terrain_target=18
         self.assertGreater(abs((floor-terrain_actor)-(floor-terrain_target)),1.5)
         self.assertEqual(abs(floor-floor),0)
+        for comparison in ('(getPosASL _point) vectorDistance (AGLToASL _target)',
+                           '(getPosASL _point) vectorDistance (ATLToASL _moverPrevious)',
+                           '(getPosASL _x) vectorDistance (ATLToASL _old)',
+                           '(getPosASL _unit) vectorDistance (AGLToASL _progressTarget)',
+                           '(getPosASL _unit) vectorDistance (AGLToASL _retryTarget)'):
+            self.assertIn(comparison,s)
+        admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _routeTarget)',admission)
+        self.assertNotIn('abs (((getPosATL _actor) select 2)-(_target select 2))',admission)
+        # Crossing terrain cells can fake a metre of movement while the body moves only20cm.
+        relative_motion=(0.2**2+((floor-terrain_actor)-(floor-terrain_target))**2)**0.5
+        absolute_motion=(0.2**2+(floor-floor)**2)**0.5
+        self.assertGreater(relative_motion,1)
+        self.assertLess(absolute_motion,1)
         # Equal relative heights can conceal genuinely different absolute floors.
         relative_height=1
         self.assertEqual(abs(relative_height-relative_height),0)

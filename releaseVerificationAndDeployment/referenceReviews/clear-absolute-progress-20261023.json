@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "517bcf4c",
+  "scope": "Clearance room/egress progress and locality-resume coordinate consistency",
+  "finding": "Arrival checks already use absolute floor/body geometry, but room best-distance, mover motion, supporting motion, exit retry distances and resumed exit progress used direct getPosATL vector distances against points from different terrain cells. Resumed arrived-exit validation also retained a terrain-relative height comparison. Changing terrain under two points can inflate distance/motion or reject same-floor settlement.",
+  "implementation": "Use getPosASL for live actor measurements. Convert native AGL room/exit targets with AGLToASL and saved getPosATL actor-motion samples with ATLToASL. Apply the same metric at initial exit records, checkpoint transition, retry target, best-distance/progress updates and locality reconstruction. Preserve native destinations/previous-pose format, native command identity comparisons, journals, one-metre thresholds, retry counters and original deadlines.",
+  "officialReferences": [
+    {
+      "url": "https://community.bistudio.com/wiki/buildingPos",
+      "meaning": "Native building positions return PositionAGL."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/ATLToASL",
+      "meaning": "Saved getPosATL positions require ATLToASL."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/Position",
+      "meaning": "AGL and ATL coincide over land but differ over water."
+    }
+  ],
+  "validation": {
+    "focused": 13,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "independentVerification": true,
+    "newCases": 0,
+    "notes": "Existing floor test extended with an unequal-terrain false-motion example and source integration checks. Two older exact ATL-expression assertions updated to require ASL at the same one-metre threshold. Final sealed build includes explicit ATL-vs-AGL distinction."
+  },
+  "cost": "Conversions inside existing bounded progress checks. No additional geometry/world/roster scan, worker, timer or callback. Runtime cost unmeasured.",
+  "limitations": "Corrects distance interpretation, not native pathfinding/building access. No claim that this explains historical flat VR failures. Physical slope/multistorey/shoreline/owner-transfer/repeated-entry behavior remains unverified.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "d76ceeb06e75f06256656d5401b0c6656f1f7c79c01226f88c22758f7044403a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "af9ed37491af5fe2c1d0fc99f11d1136ab6c5fdd5d3b28dd57e9154168f0577e"
+    }
+  ],
+  "candidate": ".qa/candidates/clear-absolute-progress-517bcf4c",
+  "fingerprint": "a2aa4193768292b5e209370370208a338dfdafc9d2f17843c43515e3d77189e5",
+  "logs": [
+    ".qa/clear-absolute-progress-sealed-build.log",
+    ".qa/clear-absolute-progress-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on517bcf4c plus implementation and unrelated pre-existing dirt. Private review/handover and one documentation format clarification postdate package; production sources unchanged after build.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

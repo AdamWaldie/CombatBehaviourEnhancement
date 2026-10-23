@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Room/exit distance and motion progress use absolute ASL geometry. Native points remain AGL;
+ * saved actor poses remain ATL. Both are converted at comparison; terrain-cell height
+ * changes cannot become progress or a different floor. No receipt schema or deadline changes.
  * Current visible on-foot workers occupy space even when native tasks revoke movement authority.
  * Native fleeing retains movement authority through admission, execution and cleanup.
  * Room exhaustion requires failures from every currently capable lane; inactive lane
@@ -1189,7 +1192,7 @@ private _delay=call {
                 if (count _target == 3 && {[_unit] call _actorAvailable}
                     && {[_unit] call _exitMovementOwned} && {call _mayIssueMovement}) then {
                     (_job get "egressAssignments") pushBack [_unit,+_target,false];
-                    (_job get "egressProgress") pushBack [_unit,(getPosATL _unit) vectorDistance _target,time,0];
+                    (_job get "egressProgress") pushBack [_unit,(getPosASL _unit) vectorDistance (AGLToASL _target),time,0];
                     _unit doMove _target;
                     [_unit,_target] call _rememberMove;
                 } else {
@@ -1311,13 +1314,13 @@ private _delay=call {
                                     _record set [4,[]];
                                     _unit doMove _target;
                                     [_unit,_target] call _rememberMove;
-                                    _record set [1,(getPosATL _unit) vectorDistance _target];
+                                    _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _target)];
                                     _record set [2,time];
                                     _checkpoint=[];
                                 };
                             };
                             private _progressTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
-                            private _remaining=(getPosATL _unit) vectorDistance _progressTarget;
+                            private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _progressTarget);
                             if ((_record select 1)-_remaining >= 0.5) then {
                                 _record set [1,_remaining];
                                 _record set [2,time];
@@ -1344,7 +1347,7 @@ private _delay=call {
                                 if (_ranked isNotEqualTo []) then {
                                     _retryTarget=+(_exitRooms select ((_ranked select 0) select 1));
                                     _record set [4,+_retryTarget];
-                                    _record set [1,(getPosATL _unit) vectorDistance _retryTarget];
+                                    _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _retryTarget)];
                                     _record set [2,time];
                                 };
                                 _unit doMove _retryTarget;
@@ -1422,7 +1425,7 @@ private _delay=call {
         _job set ["egressDeadlineServer",serverTime+45];
         _job set ["egressStartedServer",serverTime];
         _job set ["egressProgress",_egressAssignments apply {
-            [_x select 0,(getPosATL (_x select 0)) vectorDistance (_x select 1),time,0]
+            [_x select 0,(getPosASL (_x select 0)) vectorDistance (AGLToASL (_x select 1)),time,0]
         }];
         _group setVariable ["CBE_Cortex_ClearEgressRetries",[],true];
         _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
@@ -3269,7 +3272,7 @@ private _delay=call {
                     private _bestTarget=_state param [14,[],[[]]];
                     if (_bestTarget isNotEqualTo _target) then {
                         _bestTarget=+_target;
-                        _bestDistance=(getPosATL _point) vectorDistance _target;
+                        _bestDistance=(getPosASL _point) vectorDistance (AGLToASL _target);
                     };
                     private _supportTarget=[];
                     private _partner=_pair select ((_moverIndex+1) mod count _pair);
@@ -3580,11 +3583,11 @@ private _delay=call {
                     // counting that movement hid doorway stalls and prevented recovery indefinitely.
                     private _moverSlot=_moverIndex mod count _pair;
                     private _moverPrevious=_lastPositions param [_moverSlot,getPosATL _point];
-                    private _moved=(getPosATL _point) vectorDistance _moverPrevious >= 1;
+                    private _moved=(getPosASL _point) vectorDistance (ATLToASL _moverPrevious) >= 1;
                     if (_approachingEntry && {!_moved}) then {
                         _moved=_pair findIf {
                             private _old=_lastPositions param [_pair find _x,getPosATL _x];
-                            (getPosATL _x) vectorDistance _old >= 1
+                            (getPosASL _x) vectorDistance (ATLToASL _old) >= 1
                         } >= 0;
                     };
                     if (_moved) then {
@@ -3592,7 +3595,7 @@ private _delay=call {
                         // Walking can be legitimate navigation without approaching this node.
                         // Only new best approach progress renews retry and operation budgets;
                         // circles must eventually reach the bounded retry/recovery path.
-                        private _targetDistance=(getPosATL _point) vectorDistance _target;
+                        private _targetDistance=(getPosASL _point) vectorDistance (AGLToASL _target);
                         if (_bestDistance-_targetDistance >= 1) then {
                             _bestDistance=_targetDistance;
                             _lastProgress=_now;
