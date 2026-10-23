@@ -11,6 +11,7 @@
  * Native MOVE, actual actor motion and INIT/PLANNING/REPLAN retain mobile posture as scripted movers do.
  * This includes engine ATTACK travel, whose command label does not identify an idle rifleman.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
+ * A single eligible overhead ray prevents prone rolls beneath roofs/cover.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
  * The separate finite point executor may admit an identified own-group casualty investigation.
@@ -108,7 +109,11 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     && {currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {primaryWeapon _actor != ""} && {currentWeapon _actor == primaryWeapon _actor}
-    && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}) then {
+    && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}
+    // Native roll needs open overhead space. Keep indoor/covered actors on posture only.
+    // One short-circuited ray after eligibility/cooldown, never a roster/world scan.
+    && {private _evasionEye=eyePos _actor;
+        !(lineIntersects [_evasionEye,_evasionEye vectorAdd [0,0,7],_actor])}) then {
     private _point=_record param [1,[],[[]]];
     private _action=selectRandom ["EvasiveLeft","EvasiveRight"];
     if (count _point >= 2 && {_actor distance2D _point >= 3}) then {
