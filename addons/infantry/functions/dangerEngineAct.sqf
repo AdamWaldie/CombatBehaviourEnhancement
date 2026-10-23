@@ -33,7 +33,10 @@ if (isNull _group || {!local _group}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {!([_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!([_group,false,true,false,_actor] call CBE_fnc_CortexIsEligible)}
-    || {[] call CBE_fnc_CortexIsPaused}) exitWith {0};
+    || {[] call CBE_fnc_CortexIsPaused}
+    // Classification and action are separate engine FSM states. A mission may replace the
+    // behaviour between them; CARELESS never grants a final evasion/glance/posture request.
+    || {behaviour _actor == "CARELESS"}) exitWith {0};
 // Recheck actor-level authority at the command boundary; group eligibility alone does not
 // cover a specialist actor sharing an otherwise ordinary group.
 // ACE queues treatment before the native command becomes HEAL; pending care owns this actor.

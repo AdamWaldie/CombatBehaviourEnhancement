@@ -1439,3 +1439,8 @@ Clearance and garrison now share ActorSettingsCleanupStep on the same SETTINGS_C
 Aircraft attack cleanup edits its named temporary waypoint only on the current group owner. Vehicle locality alone does not authorize group commands. The one-time Zeus route replay requires the original group and pilot to be local, an active waypoint hold, and a seven-field snapshot bound to that hold token. A fresh waypoint lookup must match its position, type, behaviour, speed and combat mode. Missing or superseded snapshots and removed waypoints cause no replay, height command or immediate-handover result; cleanup never falls back to a possibly reused waypoint index. Generic external-controller release does not itself grant Zeus route authority.
 
 This adds no worker or scan: the existing finite cleanup searches the current waypoint list once. It does not prove cross-owner route retirement or physical aircraft travel. Dedicated-client/HC handover and performance remain unverified while audits are paused.
+
+
+### Danger action-state behaviour replacement
+
+The engine danger FSM classifies a response in Init and executes it in a later action state. DangerEngineAct rechecks CARELESS before evasion, observation, posture, or attack-pace requests; changing to this authored behaviour between states therefore returns zero delay without a final CBE reaction. Classification and Waiting retain their existing release checks. The shared action helper covers the engine-loaded FSM without adding a second controller or repeating terrain/roster work. Existing owned cleanup still runs. Physical state-transition timing remains unverified while audits are paused.

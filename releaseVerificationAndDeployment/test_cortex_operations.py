@@ -1415,6 +1415,10 @@ class CortexOperations(unittest.TestCase):
         self.assertGreater(float(re.search(r'priority = ([0-9.]+)',released).group(1)),4)
 
         self.assertIn('_mode != "FORCED" && {currentCommand _actor',engine_act)
+        self.assertIn('behaviour _actor == "CARELESS"}) exitWith {0}',engine_act)
+        self.assertLess(engine_act.index('behaviour _actor == "CARELESS"'),engine_act.index('_actor playActionNow'))
+        self.assertLess(engine_act.index('behaviour _actor == "CARELESS"'),engine_act.index('_actor glanceAt'))
+        self.assertLess(engine_act.index('behaviour _actor == "CARELESS"'),engine_act.index('_actor setUnitPosWeak'))
         self.assertIn('(_carrierTask select 0) in ["STATIC_DEPLOY","STATIC_PACK","STATIC_SUPPORT"]',engine_continue)
         self.assertIn('time < (_carrierTask select 2)',engine_continue)
         self.assertIn('(_response param [0,"",[""]]) != "FORCED"',engine_continue)
