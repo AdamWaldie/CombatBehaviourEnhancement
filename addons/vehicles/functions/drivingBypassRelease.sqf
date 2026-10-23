@@ -20,6 +20,8 @@
  * Native queue return uses an explicit QUEUE_RETURN observation journal through the original
  * queue deadline; no ordinary recovery parent is fabricated and no return command is replayed.
  * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
+ * Pending queue stops keep their exact cap/baseline and use the existing bounded cleanup service.
+ * Only an unchanged owned positive cap may be lowered to zero while awaiting STOP.
  * An unacknowledged queue stop retains STOP_PENDING with its original deadline; repeat
  * observation never reissues doStop. Expiry retains unresolved proof, not route-return authority.
  * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
@@ -84,6 +86,12 @@ isNil {
         && {group _driver == _group} && {group _operator == _group}
         && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
         && {_nativePathFree}
+        && {!_stopPending || {private _stopCap=_work getOrDefault ["queueStopCap",-1e9];
+            private _stopState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+            _stopCap isEqualType 0 && {finite _stopCap} && {_stopCap >= 0}
+                && {(_stopState param [3,grpNull]) == _group} && {(_stopState param [0,-2]) == _stopCap}
+                && {abs ((getForcedSpeed _vehicle)-_stopCap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_work getOrDefault ["queueStopBaseline",[]])}}}
         && {(expectedDestination _operator) isEqualTo (_work get "command")}
         && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
         && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])
@@ -131,14 +139,31 @@ isNil {
             if (!_stopPending) then {
                 _pendingStop set ["queueStopRequest",[_reason,_resume,_stopOnly,_expectedRevision]];
                 _pendingStop set ["phase","STOP_PENDING"];
+                private _stopState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+                _pendingStop set ["queueStopCap",_stopState param [0,-1e9]];
+                _pendingStop set ["queueStopBaseline",+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])];
+            };
+            // Only lower the same ordinary cap. A newer mission/provider cap wins.
+            private _stopState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+            private _stopCap=_pendingStop getOrDefault ["queueStopCap",-1e9];
+            if (_stopCap isEqualType 0 && {finite _stopCap} && {_stopCap > 0}
+                && {(_stopState param [3,grpNull]) == _group} && {(_stopState param [0,-2]) == _stopCap}
+                && {abs ((getForcedSpeed _vehicle)-_stopCap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_pendingStop get "queueStopBaseline")}) then {
+                _vehicle forceSpeed 0;
+                _stopState set [0,0];_pendingStop set ["queueStopCap",0];
+                _vehicle setVariable ["CBE_DrivingAssist_State",_stopState];
+                _vehicle setVariable ["CBE_DrivingAssist_Traffic",[0,_vehicle,-1,time,0]];
             };
             if (serverTime >= (_work get "deadline")) then {_pendingStop set ["queueStopUnresolved",true]};
-            if ((_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work) then {
+            if (_pendingStop isNotEqualTo _work
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}) then {
                 _vehicle setVariable ["CBE_DrivingBypass_Work",_pendingStop,true];
                 _vehicle setVariable ["CBE_DrivingBypass_Result",[
                     ["STOP_PENDING","STOP_UNRESOLVED"] select (_pendingStop getOrDefault ["queueStopUnresolved",false]),
                     serverTime,_work get "obstacle",_work get "index"],true];
             };
+            [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
             _retainStop=true;
         };
         if (!_retainStop) then {

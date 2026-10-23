@@ -85,6 +85,16 @@ class DrivingDeferredCapReleaseTests(unittest.TestCase):
         self.assertIn('setVariable ["CBE_DrivingCap_Issuer",[+_currentIdentity',adopter)
 
         self.assertIn('CBE_DrivingCapRelease_CleanupTicket',cleanup)
+        self.assertIn('CBE_DrivingQueueStop_CleanupTicket',cleanup)
+        stop_service=cleanup.split('if (_kind == "QUEUE_STOP") then {',2)[2].split('if (_kind == "CAP") then {',1)[0]
+        self.assertIn('call CBE_fnc_DrivingBypassRelease',stop_service)
+        self.assertIn('queueStopUnresolved',stop_service)
+        self.assertNotIn('doStop',stop_service)
+        pending_release=text.split('// Child release can create pending STOP',1)[1].split('private _capPending=false',1)[0]
+        self.assertIn('STOP_PENDING',pending_release)
+        self.assertIn('nativeReturn',pending_release)
+        self.assertIn('exitWith',pending_release)
+        self.assertNotIn('forceSpeed',pending_release)
         self.assertIn('[_target,_proof select 2,true,_proof] call CBE_fnc_DrivingAssistRelease',cleanup)
         self.assertIn('serverTime < (_cap select 4)',cleanup)
         self.assertIn('UNRESOLVED_DEADLINE',cleanup)

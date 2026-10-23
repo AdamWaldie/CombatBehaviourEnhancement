@@ -5,6 +5,7 @@
  * [state,baseline,group,issuing epoch,original server deadline,driver,commander,issuer,custodian].
  * Unconfirmed ordinary cap restoration retains exact state/baseline and a finite cap-only
  * cleanup receipt. Retries never rerun child controllers or renew the original 30-second window.
+ * Pending queue STOP and newly issued native return retain cap proof before final restoration.
  * Queue crossing paths also retire through exact BypassRelease ownership before cap restoration; convoy work remains separately owned.
  * Unknown recovery command modes retain their cap/baseline and journal. Destination and
  * SIMPLE_BACK cleanup use their own exact native ownership proof before cap restoration.
@@ -140,6 +141,18 @@ if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypass
     && {((_bypass getOrDefault ["controller",["ORDINARY",-1]]) param [0,""]) in ["ORDINARY","QUEUE"]}) then {
     [_vehicle,_bypassGroup,"DRIVING_RELEASED"] call CBE_fnc_DrivingBypassRelease;
 };
+};
+// Child release can create pending STOP or a native-return journal after the earlier
+// recovery pass. Neither permits restoring speed underneath its issued command.
+private _afterBypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+private _afterReturn=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+if (!_capOnly && {((_afterBypass getOrDefault ["phase",""]) == "STOP_PENDING"
+    && {(_afterBypass getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
+    && {isNull _expectedGroup || {(_afterBypass getOrDefault ["group",grpNull]) == _expectedGroup}})
+    || {(_afterReturn getOrDefault ["releasePending",false])
+        && {(_afterReturn getOrDefault ["nativeReturn",[]]) isNotEqualTo []}
+        && {isNull _expectedGroup || {(_afterReturn getOrDefault ["group",grpNull]) == _expectedGroup}}}}) exitWith {
+    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
 };
 private _capPending=false;
 // Final cap restoration and receipt retirement are one transaction. Earlier helpers do not

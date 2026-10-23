@@ -162,5 +162,19 @@
     ],
     "remaining": "Native proposal/consent/auto exclusions remain. Review full native queue lifecycle composition before admission: queued crossing ownership, pending STOP service after tactical worker shutdown, expired STOP cap/provenance, native goal return and locality loss. Native hold does not adopt a different owner/epoch. Physical traffic crossing, two-seat return propagation, original-order travel and cap restoration remain unverified.",
     "limits": "Unsigned dirty development snapshot including unrelated dirt; engineering notes afterward. No physical acceptance, performance measurement, feature completion claim or tracker score renewal. Audits paused."
+  },
+  "pendingStopShutdown20261023": {
+    "baseline": "831666f5",
+    "finding": "AssistRelease could restore the cap after BypassRelease created STOP_PENDING or a new native return after its earlier recovery pass. Pending STOP relied on the tactical callback remaining alive.",
+    "implementation": "Queue pending stop captures original ordinary cap/baseline. Exact original route/crew/task and unchanged cap proof permits lowering owned positive cap to zero; successor cap revokes native cleanup. Retained STOP_PENDING registers deduplicated QUEUE_STOP in existing four-ticket recovery service using exact route/seats/controller/deadline/native command/binding/request/cap/baseline signature. Service observes stored request through BypassRelease without stop replay, then routes retired work through AssistRelease. Original expiry marks unresolved and stops tickets. AssistRelease final guard retains pending queue stop or newly issued native-return cap proof before baseline restoration. No new timer/controller/function. Unchanged unresolved work is not republished on each observation.",
+    "validation": "3 existing focused deferred-cap tests and1491 full tests/HEMTT/FSM/SQF/config/docs/package passed. Independent copied-package verification passed. Existing regression extended, no new cases.",
+    "candidate": ".qa/candidates/queue-stop-shutdown-cleanup-831666f5",
+    "fingerprint": "a03a1a32bf2fd8b1e591d0c43088a099a954daf0038321af4cc42302fb310a4e",
+    "logs": [
+      ".qa/queue-stop-shutdown-cleanup-build.log",
+      ".qa/queue-stop-shutdown-cleanup-independent.log"
+    ],
+    "remaining": "Native queue top-level exclusions retained. Review live protocol admission and all-owner route snapshot composition before removing. STOP expectedDestination semantics, native FOLLOW/MOVE acknowledgement propagation, shutdown/locality loss, successor caps and actual original-order travel require physical validation when audits authorized.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Static observations do not prove physical stop/handback or performance budget. No score renewal. Audits paused."
   }
 }
