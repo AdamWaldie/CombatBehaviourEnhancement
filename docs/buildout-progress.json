@@ -17,45 +17,63 @@
           "capability": "Ground avenue rejection",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Up to eight supplied avenues are ranked after water/slope/step rejection and sampled supporting-fire corridor admission; a start inside its own lane can depart laterally but not re-enter. Vehicle callers use stricter terrain thresholds and optional actual platform screening envelope. AdvanceStart consumes the selected legs before committing its operation. This is bounded proposal selection, not physical traversal or whole-terrain feasibility proof.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
-              "sha256": "a6c65d2b6083096683928a12d832d28a70d2ce771683a598ab43a79ce338634b"
+              "sha256": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8"
+            },
+            {
+              "path": "addons/infantry/functions/cortexAdvanceStart.sqf",
+              "sha256": "f430a804fa52828e97ee7ccdf4f9ee0b8a2387efa63df219ab5ea30446ce96d8"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
         },
         {
           "capability": "Vehicle path/hull terrain checks",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "DrivingPathGeometry validates 2..24 ASL guide stations, segment bounds, static support, cross/longitudinal slope and three-height body rays; moving/vehicle support and body obstruction refuse. DrivingPassGeometry consumes the result before returning its path slice. This is discrete sampled proposal geometry, not continuous hull sweep, native steering feasibility or safe physical travel.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
               "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPassGeometry.sqf",
+              "sha256": "c41144a8c6e0bb17ef7747fa364ba3c545ff8876510441c356f6402e29e58b16"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
         },
         {
           "capability": "Aircraft relief-aware route planning",
           "weight": 1,
           "built": 0.5,
-          "implemented": "An implemented subset exists; the named remainder is still open.",
-          "remaining_build_gap": "General through-terrain attack/ground operation composition remains incomplete.",
+          "implemented": "The air planner samples live join/ingress/attack/egress relief across three lateral lines, rejects an unsafe early join, applies a bounded uniform lift and publishes corrected stage heights/clearance. CortexAirAttack consumes those heights and terrain viability in its finite flight/delivery path.",
+          "remaining_build_gap": "The selected route may be rejected when required relief exceeds the lift envelope; no general alternative three-dimensional terrain-route search is implemented here. Existing native engine routing is not claimed as a scripted solution or measured clearance.",
           "evidence": [
             {
               "path": "addons/aircraft/functions/cortexAirAttackPlan.sqf",
-              "sha256": "6b6307ed8484726b2755101e2f1eda7d1c0c53024fe3b1158859ea207b9b1b6a"
+              "sha256": "64ec4845e41a0972f15e85f17c93271fb154cbe0909915a1c7f46f5bfdf316b1"
+            },
+            {
+              "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+              "sha256": "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
         }
       ],
-      "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "confidence": "medium",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
     },
     {
       "id": "TERRAIN-BATTLE",
@@ -73,20 +91,24 @@
           "capability": "Master/exclusion admission",
           "weight": 1,
           "built": 1,
-          "implemented": "Reviewed 2026-10-23 at af03e459: shared eligibility retains living-player, Zeus, declared specialist/external owner, side/faction/class and feature-owner exclusions. FeatureEnabled rejects empty names, non-boolean settings and malformed disable lists; group/vehicle exclusions cannot enable a global false setting. This scoped admission path is wired; not a whole-controller handover claim.",
+          "implemented": "Current shared eligibility retains group-wide player/remote/Zeus/declared ownership checks through ExternalTakeover. Actor reflex context then narrows per-unit specialist/faction/vehicle filters without allocating a second living roster; group command callers retain full membership filtering. FeatureEnabled remains byte-identical to its prior reviewed evidence. This is scoped admission, not provider handback.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexIsEligible.sqf",
-              "sha256": "3f768dcac017c4c612a3653ef673638e8f8b9006c12aeb4f790026f2ac984cfa"
+              "sha256": "0262517b13525442a95594d80006dae07d4de05e0611e24da8f799ffcea77b98"
             },
             {
               "path": "addons/infantry/functions/cortexFeatureEnabled.sqf",
               "sha256": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c"
+            },
+            {
+              "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
+              "sha256": "4c3fb384f6d8b959048e9f0e5bf842728b7a543b5574b0396ba720aa2ae018fa"
             }
           ],
           "reviewed_at": "2026-10-23",
-          "source_commit": "af03e459"
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
         },
         {
           "capability": "Danger and group FSM dispatch",
@@ -130,8 +152,8 @@
           "capability": "All-owner handback integration",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Reviewed 2026-10-23 at aa9c91af plus dismount-stop fix: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature cleanup. Calm restoration separates owned PATH from recall and records blocked group policy without late retry authority. Dismount speed acquisition and all three retirement paths now share exact typed crew/native-order proof; repeated refusal remains unresolved, not success. Reviewed dd2b71d1 plus composition fix: stop retirement precedes CBE route teardown; plain ordinary caps must retire before stop acquisition, and active recovery or stop proof prevents nested speed controllers.",
-          "remaining_build_gap": "Terminally refused or unconfirmed dismount stops may remain physically stopped; evidence grants no late restoration authority. Split locality, ambiguous identical replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete.",
+          "implemented": "Existing group/calm release remains byte-identical to its last reviewed evidence. Dismount-stop acquisition now refuses outstanding pass/queue consent and unfinished recovery, retires only plain ordinary caps before baseline capture, and rechecks the original crew/native order. Shutdown releases that proof before other driving cleanup and clears only matching local airborne episode state. Exact baseline readback is required; failed retirement records unresolved evidence rather than claiming restored motion.",
+          "remaining_build_gap": "Terminally refused or unconfirmed dismount stops may remain physically stopped; evidence grants no late restoration authority. Split locality, indistinguishable replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete. Current rappel source clears active markers before delayed damage writes; active-marker compatibility is not complete provider handback.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
@@ -143,7 +165,7 @@
             },
             {
               "path": "addons/vehicles/functions/cortexDismountStop.sqf",
-              "sha256": "4de8fc7e95d7c69bcef12dfa8288be1945f5bf1312b01c5ed117c4b97fda1b65"
+              "sha256": "082a42997e6d94d817394fab8feaba5882157251e0542f9f2851dd8b7c7ae881"
             },
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
@@ -151,16 +173,16 @@
             },
             {
               "path": "addons/core/functions/cortexStop.sqf",
-              "sha256": "59873e64e0bd542356f6c2d561da538adce5ef0a15b5cd4f11b77d18cacdc54a"
+              "sha256": "a29164454b31e270f1819834fdf873369422ce12055efeee2c514be0a9a32524"
             }
           ],
           "reviewed_at": "2026-10-23",
-          "source_commit": "dd2b71d1 + dismount-stop composition fix"
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "dd2b71d1 + dismount-stop composition fix (criterion checkpoints below)",
+      "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb",
       "review_note": "Four declared CORE criteria reassessed; handback remains0.5 despite shared dismount-stop proof fix. Terminal refusal, native ambiguity and provider handover remain named gaps. Scores/weights/scope unchanged; not physical acceptance or Workshop parity."
     },
     {
