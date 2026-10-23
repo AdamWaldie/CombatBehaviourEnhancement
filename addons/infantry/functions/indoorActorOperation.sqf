@@ -15,6 +15,8 @@
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
  * Existing discovery may REAP an ended current FSM through exact FINISH cleanup.
  * REAP never restarts investigation, renews its deadline or classifies a node as unreachable.
+ * Cleanup may return an unchanged owned leg only before its original server deadline plus30s;
+ * later discovery retires exact metadata without issuing a new native movement command.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
  * Native/Zeus/specialist tasks, native ignored or surrendered/restrained contacts and overlapping operations preempt this controller. Proven disjoint
  * infantry rosters may coexist when they own no group waypoint. No firing is forced.
@@ -197,7 +199,8 @@ if (_mode == "FINISH") exitWith {
         || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}}) exitWith {false};
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
     private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-    private _ownsLeg=_issued && {_oldGroup == _group} && {call _releaseAvailable}
+    private _ownsLeg=_issued && {serverTime < _deadline+30}
+        && {_oldGroup == _group} && {call _releaseAvailable}
         && {_reservation isEqualTo _lease || {_migration && {_reservation isEqualTo []}}}
         && {(_group getVariable ["CBE_OperationGeneration",0]) == _operation}
         && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}

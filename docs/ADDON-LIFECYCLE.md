@@ -1517,3 +1517,6 @@ Individual hostile-building investigation now reuses persistent buddy metadata w
 
 
 Indoor preflight also refuses an empty common operation while a movement lease, drill or responding/assaulting claim remains active. This covers the deferred locality-resume settling interval before the participant roster is rebuilt. Local state leases use time; public movement leases use serverTime. Malformed nonempty leases refuse admission; expired well-formed leases alone do not. No lease is changed or renewed. Valid current participant-scoped operations retain disjoint actor admission. Physical migration and entry remain unverified; audits are paused.
+
+
+Individual indoor investigation cleanup has a final native-command cutoff at its original server deadline plus thirty seconds, shared by normal finish, locality transfer and later discovery of an ended FSM. Before the cutoff, only the existing exact unchanged movement receipt permits return to the native route/leader. Afterward cleanup can retire its own metadata but issues no new doMove/doFollow. It does not restart the investigation or refresh the deadline. This bounds stale callback authority; it is not an acknowledgement protocol or physical proof of movement handback.

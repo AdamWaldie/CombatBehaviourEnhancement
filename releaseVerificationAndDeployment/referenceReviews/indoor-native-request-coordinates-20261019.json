@@ -33,5 +33,22 @@
     "manifestCommit": "86fb9f46af55aee5c45f4590c3d61351779d7377",
     "manifestDirty": true,
     "physicalAcceptance": false
+  },
+  "terminalAuthority20261023": {
+    "baseCommit": "cb723373",
+    "finding": "CortexDiscover REAP can invoke FINISH after the worker FSM ends. FINISH validates the original native leg and saved finite deadline but previously did not use that deadline to bound a later doMove/doFollow return command. A matching native destination could therefore grant command authority long after the investigation episode.",
+    "implementation": "Native cleanup command authority now ends at the saved original server deadline plus30seconds, consistent with the finite naval-egress retirement window. All previous exact destination, group operation, actor and external-owner checks remain. Metadata retirement remains available after the cutoff; no new timer, worker, deadline renewal or native command is added.",
+    "limitations": "No native return-command acknowledgement protocol. An already-running unchanged native leg may remain after late metadata retirement. Does not prove smooth exit, formation or reliable physical handback. Whole clearance already uses separate exterior settlement and optional unchanged-route continuation; no broad claim of resolving historical wedge screenshots.",
+    "validation": "32 focused/1491 full offline cases pass,411SQF compiled,9PBOs built; independent candidate verification passed. Existing test extended; no new cases.",
+    "candidate": ".qa/candidates/indoor-retirement-cb723373",
+    "fingerprint": "c83bc966a686e4651b73541824ba2db6885db43c6283b5e6780ad44b513b205a",
+    "logs": [
+      ".qa/indoor-retirement-build.log",
+      ".qa/indoor-retirement-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot from cb723373 plus implementation and unrelated pre-existing dirt; private review and handover postdate build.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

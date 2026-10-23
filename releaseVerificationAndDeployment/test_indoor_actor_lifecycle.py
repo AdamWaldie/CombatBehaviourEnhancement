@@ -117,6 +117,11 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '_reservation isEqualTo _lease || {_migration && {_reservation isEqualTo []}}'):
             self.assertIn(guard,finish)
         self.assertIn('call _releaseAvailable',finish)
+        self.assertIn('serverTime < _deadline+30',finish)
+        self.assertLess(finish.index('serverTime < _deadline+30'),finish.index('_actor doMove waypointPosition _waypoint;'))
+        self.assertNotIn('_deadline=serverTime',finish)
+        self.assertNotIn('_brain set ["deadline"',finish)
+        self.assertIn('_actor setVariable ["CBE_IndoorActor_Order",nil,true]',finish)
         self.assertNotIn('call _available',finish)
         self.assertIn('isNotEqualTo "INDOOR_INVESTIGATE"',finish)
         self.assertIn('_lease call _copyArray',s)
