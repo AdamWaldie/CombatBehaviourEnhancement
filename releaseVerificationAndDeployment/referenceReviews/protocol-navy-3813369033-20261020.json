@@ -67,5 +67,17 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "groundCommandTrace20261023": {
+    "baseCommit": "c578655b",
+    "confirmedPaths": [
+      "CortexGroupTick calls CortexNavalAssault before state selection, then later CortexVehicles and CortexTacticalStart. The mounted native group leader remains the generic brain leader.",
+      "CortexTacticalAssess computes _hasCrew from actual driver/gunner/commander seats and returns VEHICLE_DOMAIN whenever operating crew coexist with infantry. This is an intentional defence against group destinations moving vehicles onto land, not missing native enemy knowledge.",
+      "CortexAssaultStart already builds _onFoot and separate assault/cover elements, creates no group waypoint and passes explicit participants/pairElements to OperationStart. CortexFlankStart separately refuses mounted group anchors.",
+      "CortexFlankStep uses CortexGroupAnchor in recovery/rally paths; that helper prefers an eligible native group leader. CortexFlankEnd also retains formation handback semantics. Reusing assault admission alone would leave boat-based recovery/handback.",
+      "OperationStep already tracks participantProgress separately and only uses leader fallback when participantsRequired is false. Changing its generic progress anchor alone would not resolve the tactical domain gate or recovery anchor."
+    ],
+    "nextImplementation": "Provide an explicit admitted ground-element context through existing tactical assessment, actor manoeuvre and recovery/cleanup. Keep vessel crew outside that element, preserve the original group/native mission route and new-order authority, and use a living current element member for rally/casualty succession. Do not remove the blanket mixed-group gate globally or redirect CortexGroupAnchor for unrelated operations. Avoid a duplicate permanent controller or unconditional native selectLeader/group split.",
+    "limits": "This trace narrows the required implementation. No runtime code changed, no parity credit, no physical acceptance and no extra full build of unchanged runtime."
   }
 }
