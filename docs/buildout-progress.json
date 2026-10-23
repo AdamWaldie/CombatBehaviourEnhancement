@@ -3335,7 +3335,7 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Concurrent pair lanes, separate connected entry proposals, actual individual visits, trailing/follow-through roles and bounded partner recovery are wired. True resume now gives matched lane pairs precedence over general buddy metadata.",
-          "remaining_build_gap": "Entry/sweep resume rebuilds lane cursor/mover/progress and does not retain the per-actor entryRecovery observation/retry record. This is a concrete continuity gap beyond the preserved pair identities and room visits.",
+          "remaining_build_gap": "Entry/sweep resume still rebuilds lane cursor, mover and lane progress. The per-actor partner entryRecovery observation and spent retry now retain the original server-time progress clock and ASL motion anchor through a matching group/visit-context receipt; this does not provide a complete ordered lane snapshot or guarantee delivery before owner resume.",
           "evidence": [
             {
               "path": "addons/infantry/functions/combatPairs.sqf",
@@ -3362,7 +3362,7 @@
           "weight": 1,
           "built": 0.5,
           "implemented": "Casualty promotion uses a rotating candidate window, receiving-buddy/intact-pair preference, failed VIEW-probe fairness and current substitute exit-cover proof. Atomic promotion updates pair/common participants; a surviving interior mover is not rallied outside.",
-          "remaining_build_gap": "Complete whole-pair entry/relief continuity is unfinished: replacement lanes retain fresh-entry requirements while entry/sweep recovery observations rebuild on owner resume. No complete clearance reinforcement operation spans another squad.",
+          "remaining_build_gap": "Complete whole-pair entry/relief continuity is unfinished: replacement lanes retain fresh-entry requirements while lane cursor/mover/sweep progress still rebuild on owner resume. The separate per-actor partner entry-recovery observation/retry is retained when its matching public receipt is available. No complete clearance reinforcement operation spans another squad.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
@@ -3472,7 +3472,7 @@
       "confidence": "medium",
       "reviewed_at": "2026-10-23",
       "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c",
-      "review_note": "Reassessed all nine CLEAR capability contracts and current scoped execution paths. Six of nine equally weighted build units retained (~67%); no score/weight increase from test or commit counts. Fixed implementations replace obsolete gap text, including shutdown-independent settings cleanup and exit progress/pair-identity transfer. Entry/sweep state, post-clear security, ordered snapshots and unresolved native handback remain concrete build gaps. Only CLEAR evidence renewed; no physical acceptance, source-parity or performance credit and no renewal of the historical overall index."
+      "review_note": "Reassessed all nine CLEAR capability contracts and current scoped execution paths. Six of nine equally weighted build units retained (~67%); no score/weight increase from test or commit counts. Fixed implementations replace obsolete gap text, including shutdown-independent settings cleanup and exit progress/pair-identity transfer. Entry/sweep state, post-clear security, ordered snapshots and unresolved native handback remain concrete build gaps. Only CLEAR evidence renewed; no physical acceptance, source-parity or performance credit and no renewal of the historical overall index. Supplemental wording correction at1d08731c (2026-10-23): re-read BuildingOperationStep partner ClearEntryRecovery read/validate/merge/publish path against clear-entry-recovery-transfer-20261023.json. Corrected two obsolete remaining-gap statements only. Existing scores, dated source hashes and review boundary remain unrenewed; no whole-family reassessment or physical evidence."
     },
     {
       "id": "UI",
