@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "b0942bbd",
+  "scope": "Portable actor partner-entry recovery observation and spent retry",
+  "finding": "entryRecovery lived only in the machine-local building job. Resume rebuilt the map, so an unentered partner could lose its previous no-progress clock and consumed recovery flag even though the original clearance hard deadline remained. The same record is also read by later follow-through exhaustion decisions.",
+  "implementation": "Retain one CBE_Cortex_ClearEntryRecovery receipt on the existing actor: group, visit episode, five-field distance/server-time progress/spent retry/native target/ASL motion anchor. Existing step restores valid matching observations when no local entry record exists. Observed spent true is monotonic into the local copy. Use serverTime at progress update and both12/24second decisions, including follow-through. Unknown headers or malformed matching records defer the lane under the existing hard deadline rather than becoming a fresh budget. Publish only changed snapshots under actual group/actor locality, current brain, clear generation, owner epoch and visit context.",
+  "authority": "Observation/attempt-budget history only. It supplies no route, command ownership, physical entry or room clearance receipt. Different group/episode records are not adopted; one historical receipt per actor is overwritten by later actual episodes. No delayed callback, handler, worker, actor lookup or group serializer.",
+  "cost": "Fixed typed five-field checks and two vector validations in the existing unentered-partner path; changed-only public actor snapshots can add replication at the existing callback cadence. No added world/roster query or geometry. Runtime/JIP/replication cost unmeasured.",
+  "remaining": "Missing/delayed/out-of-order public data still lacks an ordered admission/acknowledgement protocol. Full lane cursor/mover/route/progress reconstruction remains incomplete. No claim of exactly-once physical recovery across arbitrary replication. Historical/foreign observations do not grant movement.",
+  "evidence": {
+    "path": "addons/infantry/functions/buildingOperationStep.sqf",
+    "sha256": "11356b29ef28e84a743bd0faef5add2b720d324c4bd8a850d019261ca423edb8"
+  },
+  "validation": {
+    "entryFlow": 13,
+    "partnerCommit": 4,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "newCases": 0,
+    "independentVerification": true,
+    "note": "Extended existing receipt contract; updated the existing local-clock baseline/retarget-motion scope assertion after initial failure. Final full build passed."
+  },
+  "candidate": ".qa/candidates/clear-entry-recovery-transfer-b0942bbd",
+  "fingerprint": "fbf8934dce922326c5fe9579347ff6bd17d2107098f2f668d2f70c2915c2353a",
+  "logs": [
+    ".qa/clear-entry-recovery-transfer-final-build.log",
+    ".qa/clear-entry-recovery-transfer-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot from b0942bbd plus working implementation and unrelated pre-existing dirt. Private review/handover postdate build.",
+  "buildoutNote": "CLEAR was source-assessed at4c13c3de in b0942bbd. This newer buildingOperationStep changes that cited hash and addresses the actor entry-record gap; broader lane state remains incomplete. No blanket evidence refresh or percentage increase performed.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

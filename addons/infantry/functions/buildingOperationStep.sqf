@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Partner entry recovery retains actor-local public observation/spent-budget receipts bound
+ * to group and clearance episode. Server-time observations survive owner/slot changes;
+ * malformed matching proof defers the lane instead of granting a fresh retry. No command replay.
  * Egress progress/motion clocks use serverTime and survive owner transfer with their
  * absolute motion anchor and best distance. Version4 journal rows preserve this evidence
  * without replaying movement, resetting stall grace or extending the original exit deadline.
@@ -2764,7 +2767,27 @@ private _delay=call {
                         private _key=netId _partner;
                         private _entryPosition=getPosASL _partner;
                         private _distance=_entryPosition vectorDistance (AGLToASL _entryTarget);
-                        private _receipt=+(_entryRecovery getOrDefault [_key,[_distance,_now,false,+_entryTarget]]);
+                        private _entryContext=_job get "visitContext";
+                        private _savedEntry=_partner getVariable ["CBE_Cortex_ClearEntryRecovery",[]];
+                        private _savedHeader=_savedEntry isEqualType [] && {count _savedEntry == 3}
+                            && {(_savedEntry select 0) isEqualType grpNull}
+                            && {(_savedEntry select 1) isEqualType []} && {count (_savedEntry select 1) == 4};
+                        if (_savedEntry isNotEqualTo [] && {!_savedHeader}) then {continue};
+                        private _savedCurrent=_savedHeader
+                            && {(_savedEntry select 0) isEqualTo _group} && {(_savedEntry select 1) isEqualTo _entryContext};
+                        private _savedRecord=if (_savedCurrent) then {_savedEntry select 2} else {[]};
+                        private _savedValid=_savedRecord isEqualType [] && {count _savedRecord == 5}
+                            && {[0,1] findIf {!((_savedRecord select _x) isEqualType 0) || {!finite (_savedRecord select _x)} || {(_savedRecord select _x) < 0}} < 0}
+                            && {(_savedRecord select 1) <= serverTime+1} && {(_savedRecord select 1) <= (_job get "hardDeadline")}
+                            && {(_savedRecord select 2) isEqualType true}
+                            && {[3,4] findIf {private _vector=_savedRecord select _x;
+                                !(_vector isEqualType []) || {count _vector != 3}
+                                    || {_vector findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0};
+                        if (_savedCurrent && {!_savedValid}) then {continue};
+                        private _entryBaseline=if (_savedValid) then {_savedRecord} else {[_distance,serverTime,false,+_entryTarget,+_entryPosition]};
+                        private _receipt=+(_entryRecovery getOrDefault [_key,_entryBaseline]);
+                        // A spent retry is monotonic among observed copies in this episode.
+                        if (_savedValid && {_savedRecord select 2}) then {_receipt set [2,true]};
                         private _entryMotionAnchor=_receipt param [4,[],[[]]];
                         private _entryMotionValid=count _entryMotionAnchor == 3
                             && {_entryMotionAnchor findIf {!(_x isEqualType 0) || {!finite _x}} < 0};
@@ -2786,11 +2809,11 @@ private _delay=call {
                             // Preserve that travel without treating a different target as progress.
                             if ((_receipt select 0)-_distance >= 1 || {_entryMoved}) then {
                                 _receipt set [0,(_receipt select 0) min _distance];
-                                _receipt set [1,_now];
+                                _receipt set [1,serverTime];
                                 _receipt set [4,+_entryPosition];
                             };
                         };
-                        if (!(_receipt select 2) && {_now-(_receipt select 1) >= 12}
+                        if (!(_receipt select 2) && {serverTime-(_receipt select 1) >= 12}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
                             && {call _mayIssueMovement}) then {
                             // A nearby candidate can have clear geometry but still lack a native
@@ -2837,7 +2860,7 @@ private _delay=call {
                                 || {_alternativeSearches >= 3}
                                 || {_alternativeCoverage >= count _cleared}
                         };
-                        if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}
+                        if ((_receipt select 2) && {serverTime-(_receipt select 1) >= 24}
                             && {!_alternativeUsed} && {_cleared isNotEqualTo []}
                             && {!([_partner,_entryTarget] call _nativeMoveAwaited)}
                             && {[_partner] call _actorAvailable} && {[_partner] call _actorTaskFree}
@@ -2903,6 +2926,18 @@ private _delay=call {
                         };
                         _entryRecovery set [_key,_receipt];
                         _job set ["entryRecovery",_entryRecovery];
+                        private _entrySnapshot=[_group,+_entryContext,[_receipt select 0,_receipt select 1,
+                            _receipt select 2,+(_receipt select 3),+(_receipt select 4)]];
+                        isNil {
+                            if (local _group && {local _partner} && {group _partner == _group}
+                                && {(_group getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _brain}
+                                && {(_job get "generation") == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
+                                && {(_brain get "ownerEpoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                                && {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isEqualTo _entryContext}
+                                && {(_partner getVariable ["CBE_Cortex_ClearEntryRecovery",[]]) isNotEqualTo _entrySnapshot}) then {
+                                _partner setVariable ["CBE_Cortex_ClearEntryRecovery",_entrySnapshot,true];
+                            };
+                        };
                     };
                 };
                 // Persist retirement even when no pending room can be claimed this step.
@@ -3857,7 +3892,7 @@ private _delay=call {
             // choosing another destination never invents entry or renews common recovery.
             private _entryReceipt=(_job getOrDefault ["entryRecovery",createHashMap]) getOrDefault [_key,[]];
             private _entryExhausted=count _entryReceipt >= 3 && {_entryReceipt select 2}
-                && {_now-(_entryReceipt select 1) >= 24};
+                && {serverTime-(_entryReceipt select 1) >= 24};
             if (count _visited < _requiredVisits && {!(_unit in _followExhausted)}
                 && {_unit in (_job getOrDefault ["enteredActors",[]]) || {_entryExhausted}}
                 && {[_unit] call _actorAvailable}

@@ -36,8 +36,17 @@ class ClearEntryFlowTests(unittest.TestCase):
         recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
         self.assertLess(recovery.index('call _nativeMoveAwaited'),recovery.index('call CBE_fnc_RecoveryStep'))
         self.assertIn('private _result="YIELDED"',recovery)
-        alternate=s.split('if ((_receipt select 2) && {_now-(_receipt select 1) >= 24}',1)[1].split('private _pose=',1)[0]
+        alternate=s.split('if ((_receipt select 2) && {serverTime-(_receipt select 1) >= 24}',1)[1].split('private _pose=',1)[0]
         self.assertIn('!([_partner,_entryTarget] call _nativeMoveAwaited)',alternate)
+        # Retained observations carry the original actor/episode budget across resume.
+        entry=s.split('private _entryRecovery=_job getOrDefault',1)[1].split('// Persist retirement',1)[0]
+        for proof in ('CBE_Cortex_ClearEntryRecovery','(_savedEntry select 0) isEqualTo _group',
+                      '(_savedEntry select 1) isEqualTo _entryContext','if (_savedCurrent && {!_savedValid})',
+                      'if (_savedValid && {_savedRecord select 2}) then {_receipt set [2,true]}'):
+            self.assertIn(proof,entry)
+        self.assertIn('_entryRecovery getOrDefault [_key,_entryBaseline]',entry)
+        self.assertIn('_partner setVariable ["CBE_Cortex_ClearEntryRecovery",_entrySnapshot,true]',entry)
+        self.assertNotIn('_receipt set [1,_now]',entry)
 
     def test_provisional_recovery_target_does_not_preempt_distinct_support_selection(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')

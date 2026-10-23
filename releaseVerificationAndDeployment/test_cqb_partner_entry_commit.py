@@ -58,9 +58,9 @@ class PartnerProgressTargetTests(unittest.TestCase):
         section=text.split('// Partner entry recovery is independent',1)[1].split('// Persist retirement',1)[0]
         self.assertIn('private _receipt=+(',section)
         self.assertIn('_receipt set [3,+_alternative]',section)
-        self.assertIn('[_distance,_now,false,+_entryTarget]',section)
+        self.assertIn('[_distance,serverTime,false,+_entryTarget,+_entryPosition]',section)
         self.assertIn('_receipt set [4,+_entryPosition]',block)
-        motion=section.split('private _entryPosition=',1)[1].split('if (!(_receipt select 2)',1)[0]
+        motion=section.split('private _entryMotionAnchor=',1)[1].split('if (!(_receipt select 2)',1)[0]
         self.assertIn('_entryPosition vectorDistance _entryMotionAnchor >= 1',motion)
         self.assertIn('[_partner] call _ownsCurrentMove',motion)
         self.assertIn('simulationEnabled _partner',motion)
