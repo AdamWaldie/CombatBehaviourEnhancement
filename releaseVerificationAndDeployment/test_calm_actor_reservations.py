@@ -410,7 +410,7 @@ class SharedRoutineReservationTests(unittest.TestCase):
         self.assertIn('count _commands >= 64',recording)
         self.assertIn('serverTime+2',recording)
         medical=(ROOT/'addons/infantry/functions/cortexMedicalStep.sqf').read_text()
-        self.assertEqual(medical.count('call CBE_fnc_CortexActorMoveReserved'),2)
+        self.assertEqual(medical.count('call CBE_fnc_CortexActorMoveReserved'),3)
         self.assertIn('"ACTOR_TASK_CHANGED"',medical)
         self.assertIn('"CARRY SOLDIER"',medical)
 

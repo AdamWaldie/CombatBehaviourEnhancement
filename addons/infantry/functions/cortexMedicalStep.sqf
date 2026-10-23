@@ -13,6 +13,8 @@
  * waypoint receipt must match before success and later treatment; changed or missing proof cancels.
  * Admission preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid only the medic's last requested
  * approach destination can explain MOVE; a patient MOVE or a different destination yields.
+ * Terminal cleanup recalls only a still-matching owned approach; generic native healing actions
+ * are left intact because their writer/target cannot be identified by currentCommand alone.
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP> - current Cortex group state.
@@ -42,6 +44,30 @@ private _finish = {
     params ["_result","_reason"];
     private _aid=_group getVariable ["CBE_Cortex_MedicalAid",[]];
     private _generation=_aid param [0,-1];
+    // Recall only the approach we can still identify. ACTION/HEAL is deliberately
+    // untouched: its native target/writer cannot be proved from the generic command.
+    if (count _aid == 9) then {
+        isNil {
+            private _medic=_aid select 1;
+            private _approach=_aid select 8;
+            private _operation=_group getVariable ["CBE_Operation",createHashMap];
+            if (local _group && {(_group getVariable ["CBE_Cortex_MedicalAid",[]]) isEqualTo _aid}
+                && {(_operation getOrDefault ["generation",-1]) == _generation}
+                && {(_operation getOrDefault ["intent",""]) == "MEDICAL_AID"}
+                && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_aid select 7)}
+                && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+                && {[_medic] call _actorEligible} && {alive _medic} && {group _medic == _group}
+                && {isNull objectParent _medic} && {count _approach == 3}
+                && {!([_medic] call CBE_fnc_CortexActorMoveReserved)}
+                && {currentCommand _medic == "MOVE"}) then {
+                private _destination=(expectedDestination _medic) param [0,[]];
+                if (count _destination == 3 && {_destination vectorDistance _approach <= 0.25}) then {
+                    _medic doFollow leader _group;
+                };
+            };
+        };
+    };
     if (_generation >= 0) then {
         if (_result == "COMPLETE") then {
             [_group,_generation,"COMPLETE",_reason] call CBE_fnc_OperationRelease;

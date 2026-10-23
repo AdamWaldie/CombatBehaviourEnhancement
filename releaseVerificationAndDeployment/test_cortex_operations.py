@@ -2248,6 +2248,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_OperationStep',medical)
         self.assertIn('CBE_fnc_OperationCancel',medical)
         self.assertIn('CBE_fnc_OperationRelease',medical)
+        finish=medical.split('private _finish = {',1)[1].split('private _medicalEnabled=',1)[0]
+        for guard in ('count _aid == 9','isNil {','CBE_fnc_NativeOrderReceipt',
+                      'CBE_fnc_CortexExternalTakeover','CBE_fnc_CortexActorMoveReserved',
+                      'currentCommand _medic == "MOVE"','_destination vectorDistance _approach <= 0.25',
+                      'ownerEpoch','"MEDICAL_AID"'):
+            self.assertLess(finish.index(guard),finish.index('_medic doFollow leader _group;'))
+        self.assertNotIn('CancelAction',finish)
+        self.assertLess(finish.index('_medic doFollow leader _group;'),finish.index('CBE_fnc_OperationCancel'))
         self.assertIn('private _mayIssueMedical = {',medical)
         eligible=medical.split('private _actorEligible={',1)[1].split('private _finish = {',1)[0]
         for guard in ('simulationEnabled _actor','!isObjectHidden _actor','!fleeing _actor',
