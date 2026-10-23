@@ -640,6 +640,12 @@ class CortexOperations(unittest.TestCase):
     def test_aircraft_controllers_share_one_generation_owned_flight_lease(self):
         acquire=source('flightLeaseAcquire');valid=source('flightLeaseValid');release=source('flightLeaseRelease')
         attack_start=source('airAttackOperationStart');attack=source('cortexAirAttack')
+        expiry=attack.index('if (_stage != "" && {serverTime > (_job getOrDefault ["deadline",-1])}) exitWith')
+        for mutation in ('private _mayControlAircraft = {','private _commandedStage=',
+                         '_operator doFire _fireTarget','_aircraft fireAtTarget [_fireTarget,_weapon]'):
+            self.assertLess(expiry,attack.index(mutation))
+        permission=attack.split('private _mayControlAircraft = {',1)[1].split('private _liveSpeedReceipt=',1)[0]
+        self.assertIn('_stage == "" || {serverTime <= (_job getOrDefault ["deadline",-1])}',permission)
         landing=source('improvedHelicopterLandingExecuteLocal');landing_release=source('improvedHelicopterLandingRestoreLocal')
         landing_anchor=source('improvedHelicopterLandingAnchorLocal')
         defence=source('cortexMissileDefenceStep');deceleration=source('helicopterDecelerationCorrectLocal')

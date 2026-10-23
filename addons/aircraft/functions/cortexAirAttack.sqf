@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Existing stage deadlines gate execution before planning/command side effects and at shared
+ * native-command permission; a delayed callback cannot fire once more after its stage expires.
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
  * Target cleanup is scoped to the actor/target actually commanded by this job. Native ignored
@@ -317,6 +319,11 @@ private _group=group _pilot;
 if (isNil {_job get "group"}) then {_job set ["group",_group]};
 if ((_job get "group") != _group) exitWith {["PILOT_GROUP_CHANGED"] call _finish};
 private _stage=_job getOrDefault ["stage",""];
+// Expiry is execution authority, not just a late stage-transition observation.
+// Retire before target updates, waypoint writes or another native weapon request.
+if (_stage != "" && {serverTime > (_job getOrDefault ["deadline",-1])}) exitWith {
+    ["STAGE_TIMEOUT"] call _finish
+};
 private _flightLeaseToken=_job getOrDefault ["flightLeaseToken",""];
 // Air operations share the same generation contract as ground operations, but retain their own
 // native flight lease. The common record makes replacement, locality and Zeus diagnostics
@@ -352,6 +359,7 @@ private _mayControlAircraft = {
         && {(_speedReceipt select 2) isEqualType 0} && {finite (_speedReceipt select 2)}
         && {abs ((getForcedSpeed _aircraft)-(_speedReceipt select 2)) <= 0.1}};
     _speedCurrent && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+        && {_stage == "" || {serverTime <= (_job getOrDefault ["deadline",-1])}}
         && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
         && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
