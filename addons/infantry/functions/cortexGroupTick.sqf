@@ -1862,6 +1862,41 @@ switch (_state get "phase") do {
             [_group,_state,false,true,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_CortexRestoreCalm;
             _delay=1;
         };
+        private _withdrawController=["INFANTRY_WITHDRAW","VEHICLE_WITHDRAW"] select
+            (_withdrawKind == "VEHICLE_WITHDRAW" || {(_episode param [0,""]) == "VEHICLE"});
+        private _endWithdrawal={
+            params ["_withdrawTimedOut"];
+            if (_withdrawOwner) then {
+                [_group,_generation,["COMPLETE","INCOMPLETE"] select _withdrawTimedOut,
+                    ["OBJECTIVE_REACHED","TIMEOUT"] select _withdrawTimedOut] call CBE_fnc_OperationRelease;
+            };
+            [_group,_withdrawController,false] call CBE_fnc_CortexOwnershipLease;
+            [_group,_generation] call CBE_fnc_CortexGroupMoveClear;
+            _group setVariable ["CBE_Cortex_WithdrawalIntent",nil,true];
+            _group setVariable ["CBE_Cortex_WithdrawalOrder",nil,true];
+            [_group,_state,"REGROUP",["WITHDRAWAL_COMPLETE","WITHDRAWAL_TIMEOUT"] select _withdrawTimedOut,_now] call CBE_fnc_CortexSetPhase;
+        };
+        // A changed mission permission is not authority to reapply suppression. Check only
+        // the existing receipt here; this read never acquires a missing policy or scans a roster.
+        if (_withdrawOwner && {_withdrawKind == "WITHDRAW"}) then {
+            private _attackLease=(_operation getOrDefault ["restore",createHashMap]) getOrDefault ["groupAttack",[]];
+            private _attackOwned=_attackLease isEqualType [] && {count _attackLease == 2}
+                && {_attackLease findIf {!(_x isEqualType true)} < 0}
+                && {(_attackLease select 1) isEqualTo false}
+                && {attackEnabled _group isEqualTo (_attackLease select 1)};
+            if (!_attackOwned) then {
+                [_group,_generation,"WITHDRAWAL_ATTACK_POLICY_CHANGED"] call CBE_fnc_OperationCancel;
+                [_group,_state,false,true,"WITHDRAWAL_ATTACK_POLICY_CHANGED"] call CBE_fnc_CortexRestoreCalm;
+            };
+        };
+        if ((_state getOrDefault ["phase",""]) != "RETREAT") exitWith {_delay=1};
+        // Expiry precedes morale, straggler recovery and route scoring. A delayed callback
+        // may retire the episode, but cannot spend another recovery/replan after its120s budget.
+        if (_withdrawOwner && {_now-(_state get "phaseStart") > 120}) exitWith {
+            private _lastProgress=_state getOrDefault ["retreatProgress",[_now,0,0]];
+            _group setVariable ["CBE_Cortex_Withdrawal",["INCOMPLETE",round (_lastProgress select 1),_lastProgress select 2],true];
+            [true] call _endWithdrawal;
+        };
         if ((["CBE_AIPass_Morale_Enable", true] call _get)
             && {([_group, _state, _enemies] call CBE_fnc_CortexMorale) == "SURRENDER"}) exitWith {[_group] call CBE_fnc_CortexSurrender};
         private _operationState=if (count _operation > 0 && {!_withdrawOwner}) then {"REPLACED"} else {"ACTIVE"};
@@ -1973,16 +2008,7 @@ switch (_state get "phase") do {
         private _status = if (_timedOut) then {"INCOMPLETE"} else {["MOVING","WITHDRAWN"] select (!_moving && {_travel >= 30})};
         _group setVariable ["CBE_Cortex_Withdrawal",[_status,round _travel,_replans],true];
         if ((!_moving && {_travel >= 30}) || {_timedOut}) then {
-            _operation=_group getVariable ["CBE_Operation",createHashMap];
-            _generation=_state getOrDefault ["withdrawOperationGeneration",-1];
-            if (count _operation > 0 && {(_operation getOrDefault ["intent",""]) == "WITHDRAW"}) then {
-                [_group,_generation,["COMPLETE","INCOMPLETE"] select _timedOut,["OBJECTIVE_REACHED","TIMEOUT"] select _timedOut] call CBE_fnc_OperationRelease;
-            };
-            [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
-            [_group] call CBE_fnc_CortexGroupMoveClear;
-            _group setVariable ["CBE_Cortex_WithdrawalIntent",nil,true];
-            _group setVariable ["CBE_Cortex_WithdrawalOrder",nil,true];
-            [_group,_state,"REGROUP",["WITHDRAWAL_COMPLETE","WITHDRAWAL_TIMEOUT"] select _timedOut,_now] call CBE_fnc_CortexSetPhase;
+            [_timedOut] call _endWithdrawal;
         };
     };
 };
