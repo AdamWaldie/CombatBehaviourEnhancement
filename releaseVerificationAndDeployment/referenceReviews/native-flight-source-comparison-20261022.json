@@ -347,5 +347,20 @@
     "candidate": ".qa/candidates/native-flight-pending-journal-6ecf6f3c",
     "fingerprint": "4462e5c2a5d712d18162aecb65aa076838a0856c198d6d645f78e1fbf1db9bf2",
     "limits": "Audits paused. No complete handback/parity/performance or percentage claim. Continue other demonstrated offline execution work; do not infer global goal blockage from this physical evidence gap."
+  },
+  "mountedAuthorityFollowup20261023": {
+    "baseline": "7de730be",
+    "scope": "Mounted LAMBS fleeing intent compared with existing CBE danger abandonment, gunner replacement and driving driver recovery; no full mounted parity claim.",
+    "sourceIntent": "LAMBS doFleeing selects a surviving commander or driver for a vacant gunner at grounded speed below 3, may eject/reboard after 0.8s, and probabilistically abandons based on mobility/fuel/ammo/damage. CBE does not copy driver sacrifice, forced ejection, blind delayed callback or random crew release.",
+    "existingIntegration": "CBE exact-platform danger response deterministically releases unsafe emplacement or disabled-vehicle occupants; separate generation-owned gunner recovery uses an eligible commander, while DrivingCrewStep handles finite dead-driver replacement under its own route journal. These are different triggers, not an individual mounted FORCED-flight implementation.",
+    "fixed": "Danger abandonment previously checked only living/local/non-player/same-group occupants. It now reuses the shared crew-actor predicate before boarding cancellation, unassignment and exit request, with an additional explicit STOP veto. Protected medical/native tasks, reservations, direct remote or specialist ownership, incapacitation and hidden/suspended actors defer. No new controller or timer.",
+    "remaining": "Low fuel alone is not a new abandonment trigger. No complete individual mounted fleeing policy or coordinated crew recall is implemented here. Exit requests and reason markers do not establish dismount, safe escape, gunner recovery or physical handback. Arma audits remain paused.",
+    "validation": "610 focused operation checks; 1491 full offline tests; HEMTT compilation; independent unsigned dirty candidate verification. No physical acceptance or performance measurement.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicles.sqf": "678aa5ca7331283d377248c1a275d7e380aa347d0fb9d1edc1ecfc8d35a642ea",
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "eb115042e94d423734d2621c2c4adf024f87d8f5ec03d4fc8b0ce86549bc0c94",
+      "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "1f2d7464cb85f240005257ed4c84cd8a7e07d7886e28ec4d33b53aa340858b23"
+    }
   }
 }

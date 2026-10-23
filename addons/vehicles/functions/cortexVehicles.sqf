@@ -27,6 +27,7 @@
  * A validated passenger-owner request temporarily forces the vehicle to zero speed, preserving and
  * restoring any earlier forced-speed value once that passenger squad is out or the request expires,
  * but only while the zero-speed lease remains current and no newer controller has replaced it.
+ * Scripted danger abandonment preserves protected individual tasks, reservations and STOP orders.
  * Separate passenger groups handle only their own local cargo. Only the operating
  * crew group may order vehicle withdrawal or gunnery; convoy ownership remains excluded.
  * The operating crew also leases the engine unload-in-combat policy for an ordinary occupied
@@ -389,7 +390,7 @@ private _combinedGroundFireOwned=_combinedGroundRole isEqualType []
     && {(_combinedGroundRole select 5) isEqualType 0} && {finite (_combinedGroundRole select 5)}
     && {serverTime < (_combinedGroundRole select 5)};
 if (!_combinedGroundFireOwned) then {_state deleteAt "vehicleStandoffYield"};
-private _gunnerAvailable={
+private _crewActorAvailable={
     params ["_vehicle","_gunner"];
     !isNull _gunner && {local _gunner} && {group _gunner == _group}
         && {[_gunner] call CBE_fnc_CortexCombatEffective}
@@ -575,7 +576,10 @@ if (_dangerDismount isNotEqualTo []) then {
                     // a mobile useful gun retains its route and crew, while an empty emplacement, a
                     // close overrun or a disabled wreck releases its own living AI occupants.
                     {
-                        if (alive _x && {local _x} && {!isPlayer _x} && {group _x == _group}) then {
+                        // Scripted abandonment respects the same individual authority as gunnery.
+                        // Native emergency bailouts do not depend on this contact action.
+                        if ([_vehicle,_x] call _crewActorAvailable
+                            && {toUpperANSI currentCommand _x != "STOP"}) then {
                             [_x] orderGetIn false;
                             unassignVehicle _x;
                             doGetOut _x;
@@ -676,7 +680,7 @@ if (_dangerDismount isNotEqualTo []) then {
                 };
                 if (_knownHostile && {_freshGeneration} && {!(_emplacementUnsafe || {_disabledUnsafe})}
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
-                    && {[_vehicle,_gunner] call _gunnerAvailable}
+                    && {[_vehicle,_gunner] call _crewActorAvailable}
                     && {canFire _vehicle}
                     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                     && {combatMode _group in ["YELLOW","RED"]}
@@ -899,7 +903,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _gunneryContacts=+(_enemies select [0,8]);
         // Do not spend native knowledge or station queries while routine targeting
         // cannot act. The final live checks below remain the firing boundary.
-        if (_airCandidate && {[_vehicle,_gunner] call _gunnerAvailable}
+        if (_airCandidate && {[_vehicle,_gunner] call _crewActorAvailable}
             && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
             && {canFire _vehicle}
             && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
@@ -909,7 +913,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 _airContactsRead=true;
                 {
                     private _aaGunner=gunner _x;
-                    if ([_x,_aaGunner] call _gunnerAvailable && {canFire _x}
+                    if ([_x,_aaGunner] call _crewActorAvailable && {canFire _x}
                         && {combatMode _group in ["YELLOW","RED"]}
                         && {unitCombatMode _aaGunner in ["YELLOW","RED"]}) then {
                         private _nativeTarget=getAttackTarget _aaGunner;
@@ -975,14 +979,14 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         // callbacks observe it; no delayed target/fire action is queued with the request.
         private _reloadStatus="REFUSED";
         if (_ranked isNotEqualTo [] && {_vehicle isKindOf "LandVehicle"}
-            && {!_combinedGroundFireOwned} && {[_vehicle,_gunner] call _gunnerAvailable}) then {
+            && {!_combinedGroundFireOwned} && {[_vehicle,_gunner] call _crewActorAvailable}) then {
             private _reloadContact=_gunneryContacts select ((_ranked select 0) select 3);
             if ((_reloadContact select 2) <= 3) then {
                 _reloadStatus=[_vehicle,_gunner,_reloadContact select 0,serverTime-(_reloadContact select 2)]
                     call CBE_fnc_CortexGroundReload;
             };
         };
-        if (_ranked isNotEqualTo [] && {[_vehicle,_gunner] call _gunnerAvailable}
+        if (_ranked isNotEqualTo [] && {[_vehicle,_gunner] call _crewActorAvailable}
             && {!(_reloadStatus in ["REQUESTED","PENDING"])}
             && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
             && {canFire _vehicle}

@@ -6664,7 +6664,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_routine_ground_gunnery_yields_combined_roles_and_checks_operator_station_lane(self):
         text=source('cortexVehicles')
-        reservation=text.split('private _combinedGroundRole=',1)[1].split('private _gunnerAvailable=',1)[0]
+        reservation=text.split('private _combinedGroundRole=',1)[1].split('private _crewActorAvailable=',1)[0]
         self.assertIn('in ["GROUND_FIRE","GROUND_MANOEUVRE"]',reservation)
         self.assertIn('serverTime < (_combinedGroundRole select 5)',reservation)
         self.assertNotIn('setVariable',reservation)
@@ -6682,13 +6682,13 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ('CortexGroupMove','forceSpeed','doMove','OperationStart'):
             self.assertNotIn(forbidden,request)
 
-        authority=text.split('private _gunnerAvailable=',1)[1].split('if (_externalTakeover)',1)[0]
+        authority=text.split('private _crewActorAvailable=',1)[1].split('if (_externalTakeover)',1)[0]
         for proof in ('group _gunner == _group','CortexCombatEffective','simulationEnabled _gunner','isObjectHidden _gunner','remoteControlled _gunner','CortexExternalOwner','CompatibilityExternalControl','CortexActorFireTaskAvailable'):
             self.assertIn(proof,authority)
         danger=text.split('if (_knownHostile &&',1)[1].split('} forEach _affectedVehicles',1)[0]
         routine=text.split('if (_ranked isNotEqualTo []',1)[1].split('private _standoff',1)[0]
         for block in (danger,routine):
-            for proof in ('!_combinedGroundFireOwned','call _gunnerAvailable','canFire _vehicle','CortexGroundFireReady','CortexLineOfFireClear'):
+            for proof in ('!_combinedGroundFireOwned','call _crewActorAvailable','canFire _vehicle','CortexGroundFireReady','CortexLineOfFireClear'):
                 self.assertIn(proof,block)
         self.assertLess(routine.index('CortexLineOfFireClear'),routine.index('_gunner doFire _target'))
         for proof in ('_vehicle distance2D _believed >= 50','abs speed _vehicle < 30',
@@ -9490,6 +9490,13 @@ class CortexOperations(unittest.TestCase):
         for token in ['_knownCloseThreat','_emplacementUnsafe','_disabledUnsafe','CBE_Danger_AbandonReason']:
             self.assertIn(token,danger_segment)
         self.assertIn('call _dismountAtThreat',danger_segment)
+        abandonment=danger_segment.split('if ((_emplacementUnsafe || {_disabledUnsafe})',1)[1].split('// An intact armed platform',1)[0]
+        self.assertLess(abandonment.index('call _crewActorAvailable'),abandonment.index('orderGetIn false'))
+        self.assertLess(abandonment.index('currentCommand _x != "STOP"'),abandonment.index('orderGetIn false'))
+        crew_authority=vehicles.split('private _crewActorAvailable=',1)[1].split('if (_externalTakeover)',1)[0]
+        for proof in ('CortexCombatEffective','remoteControlled','CortexExternalOwner','CompatibilityExternalControl','CortexActorFireTaskAvailable'):
+            self.assertIn(proof,crew_authority)
+
         helper=vehicles.split('private _dismountAtThreat = {',1)[1].split('// Cross-group safe-stop handshake',1)[0]
         for marker in ['CBE_Cortex_DismountStopRequest','CBE_fnc_CortexDismountStop',
                        'CBE_Cortex_OnboardDanger','CBE_fnc_CortexPassengerReady',
