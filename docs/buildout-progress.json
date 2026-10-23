@@ -402,12 +402,12 @@
           "capability": "Apply stable configured skill profile",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Explicitly enabled local application plans nine subskills from the immutable mission baseline, then faction/role/night/variance/crew layers; stable variance offsets follow the actor. Typed receipts and AIProfileYield preserve later differing mission edits or declared skill ownership. The final synchronous commit rechecks owner, profile and generation. Same-value external writes cannot be attributed; public receipt delivery is not an ordered handover protocol.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
             },
             {
               "path": "addons/core/functions/aiProfileYield.sqf",
@@ -423,12 +423,24 @@
           "capability": "Exclusions and owner-local refresh",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Init processes existing local AI according to ApplyMode, installs one CBA creation handler and per-unit Local handlers, and queues one generation-bound lighting/seat job. That job visits at most ten registered actors per callback, yields to human/specialist/declared skill owners and reapplies changed lighting/seat signatures. Side/faction/class lists are enforced on application; script changes require explicit refresh, not continuous filter monitoring. Excluded previously applied actors now enter exact owned restoration.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/aiRebalanceInit.sqf",
               "sha256": "e18473fdbfa977680f66605e777dda0e180344d9082ddf209387c3063094f230"
+            },
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/aiLightingStep.sqf",
+              "sha256": "4e450dd6f55ac40ac005a2680bc86a909ba6f9feaa7491c9cb6e88af5bab305e"
+            },
+            {
+              "path": "addons/core/functions/aiTweaksSettingChanged.sqf",
+              "sha256": "1a9cda58b0ee22d230e0ed6244353c7a787551bd1c424a98ea40a76996afd88a"
             }
           ]
         },
@@ -436,7 +448,7 @@
           "capability": "Restore captured skill values",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "AIRestoreProfile restores each native skill or aim coefficient only while it still equals the recorded CBE application, preserving observed later edits. Complete typed pairs retire; malformed or incomplete pairs remain unresolved. Stop invalidates the skills generation and queue, optionally restores local allUnits according to RestoreOnStop, and clears the worker roster. No proof of ordered migration receipts, physical HC cleanup or runtime cost is inferred.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -455,8 +467,8 @@
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "1d2706a9; SKILL application, refresh and restoration review"
     },
     {
       "id": "LAND",
