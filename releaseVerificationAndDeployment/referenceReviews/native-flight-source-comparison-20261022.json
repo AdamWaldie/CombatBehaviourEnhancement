@@ -292,5 +292,19 @@
       ".qa/native-attack-morale-pace-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot with unrelated dirt; engineering notes afterward. Selected source-intent omission only, not whole LAMBS parity. Physical pacing/balance/HC/JIP and5%median/10%p95 overhead unverified. Audits paused; no score/hash renewal."
+  },
+  "flightPlanningBudget20261023": {
+    "baseline": "c8b74e75",
+    "source_intent": "LAMBS preserves useful busy assault movement; selected CBE foundation principle is observe native planning within the existing finite episode instead of issuing repeated destinations or abandoning useful planning early. No copy of upstream random rerouting or blind delayed commands.",
+    "finding": "CanContinue ended an unacknowledged native flight after0.5s (or immediately when MOVE appeared before destination update), despite original travel budget4..12s. Unlike point investigation the flight lease did not retain its pre-request native command/destination/formation leader.",
+    "implementation": "Local lease now8fields with immutable pre-request native tuple. Cheap FSM continuation accepts exact requested MOVE destination or unchanged pre-request native tuple with empty/MOVE command, only within original deadline and existing actor/owner/generation/reservation gates. Replaced task/destination/leader refuses. No reissue, search, worker or deadline renewal.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing native-flight regression extended; no new case.",
+    "candidate": ".qa/candidates/native-flight-planning-budget-c8b74e75",
+    "fingerprint": "4776972743469ad91d583a14e474571509e33c4cc1824812434f436a90c47312",
+    "logs": [
+      ".qa/native-flight-planning-budget-build.log",
+      ".qa/native-flight-planning-budget-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering notes afterward. Physical path/late ACK/cancellation/rejoin/HC/JIP and overhead unverified. Deadline timeout plus receipt deletion does not prove pending engine request quiescence; identical replacement native intent remains ambiguous. No full flight/mounted parity or eventual handback claim; audits paused. No score/hash renewal."
   }
 }

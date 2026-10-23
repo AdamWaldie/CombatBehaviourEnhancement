@@ -5,7 +5,9 @@
  * may evaluate it repeatedly during the response's sub-two-second observation window.
  * Locality / Authority: Runs where the affected AI soldier is local and reads only live gates and
  * explicit actor/group and occupied-platform ownership markers. Active flight reads its
- * local destination and reservation too, ending on replacement or the original deadline. Non-boolean danger
+ * local destination and reservation too, ending on replacement or the original deadline.
+ * Unacknowledged flight tolerates only its unchanged pre-request native command/destination/leader;
+ * planning consumes the original travel budget and never reissues movement. Non-boolean danger
  * switches and non-array exclusions refuse before negation/membership, matching the
  * shared feature gate without adding a group scan or state write. It issues no command and changes no state.
  * Repeat/JIP: Stateless and repeat-safe. A new locality starts a fresh engine danger FSM.
@@ -68,20 +70,31 @@ if ((_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []
 // Read only its actor-local receipt here; authored waypoint comparison stays at cleanup.
 private _flight=_actor getVariable ["CBE_Danger_FlightLease",[]];
 private _flightInterrupted=!_initial && {_flight isNotEqualTo []} && {
-    !(_flight isEqualType []) || {count _flight != 7}
+    !(_flight isEqualType []) || {count _flight != 8}
     || {!((_flight select 0) isEqualType [])} || {count (_flight select 0) != 3}
     || {(_flight select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {(_flight select 2) != _group} || {(_flight select 3) != (_response select 5)}
     || {(_flight select 4) != (_response select 4)}
     || {!((_flight select 1) isEqualType 0)} || {!finite (_flight select 1)}
     || {!((_flight select 6) isEqualType 0)} || {!finite (_flight select 6)}
+    || {!((_flight select 7) isEqualType [])} || {count (_flight select 7) != 3}
+    || {!(((_flight select 7) select 0) isEqualTo "")}
+    || {!(((_flight select 7) select 1) isEqualType [])}
+    || {!(((_flight select 7) select 2) isEqualType objNull)}
     || {time >= (_flight select 1)} || {!fleeing _actor}
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo
         ["DANGER_FLIGHT",_flight select 0,_flight select 1]}
-    || {if (currentCommand _actor == "MOVE") then {
-        ((expectedDestination _actor) select 0) vectorDistance (_flight select 0) > 0.25
-    } else {currentCommand _actor != "" || {time >= (_flight select 6)+0.5}}}
+    || {
+        private _nativeDestination=expectedDestination _actor;
+        private _before=_flight select 7;
+        private _acknowledged=currentCommand _actor == "MOVE"
+            && {(_nativeDestination select 0) vectorDistance (_flight select 0) <= 0.25};
+        private _pending=currentCommand _actor in [_before select 0,"MOVE"]
+            && {_nativeDestination isEqualTo (_before select 1)}
+            && {formLeader _actor isEqualTo (_before select 2)};
+        !(_acknowledged || {_pending})
+    }
 };
 if (_flightInterrupted) exitWith {false};
 

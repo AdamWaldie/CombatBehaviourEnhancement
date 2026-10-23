@@ -5,7 +5,8 @@
  * Locality/authority: Actor and group owner only. Existing native routes, reservations,
  * operations, medical work, Zeus and external controllers retain priority.
  * Empty release and non-fleeing start return before receipt validation or helper allocation.
- * Repeat/JIP: One local seven-field lease keeps its original deadline, at most twelve seconds.
+ * Repeat/JIP: One local eight-field lease keeps its original deadline, at most twelve seconds.
+ * Unchanged pre-request native planning may consume the original travel budget, never a new grace.
  * No worker, waypoint, reveal, posture/speed reset or remote replay. One search per group
  * per two seconds and per actor per fifteen seconds bounds repeated failed observations.
  * Arguments: 0 mode STRING START or RELEASE; 1 actor OBJECT objNull;
@@ -26,7 +27,7 @@ private _lease=_actor getVariable ["CBE_Danger_FlightLease",[]];
 // Most danger completions never owned a flight move. Keep that ordinary path minimal.
 if (_lease isEqualTo [] && {_mode == "RELEASE" || {!fleeing _actor}}) exitWith {0};
 private _group=group _actor;
-private _validLease=_lease isEqualType [] && {count _lease == 7}
+private _validLease=_lease isEqualType [] && {count _lease == 8}
     && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 3}
     && {(_lease select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
     && {(_lease select 1) isEqualType 0} && {finite (_lease select 1)}
@@ -36,7 +37,11 @@ private _validLease=_lease isEqualType [] && {count _lease == 7}
     && {(_lease select 5) isEqualType []}
     && {(_lease select 6) isEqualType 0} && {finite (_lease select 6)}
     && {(_lease select 6) <= time+1} && {(_lease select 1) >= (_lease select 6)}
-    && {(_lease select 1) <= (_lease select 6)+12};
+    && {(_lease select 1) <= (_lease select 6)+12}
+    && {(_lease select 7) isEqualType []} && {count (_lease select 7) == 3}
+    && {((_lease select 7) select 0) isEqualTo ""}
+    && {((_lease select 7) select 1) isEqualType []}
+    && {((_lease select 7) select 2) isEqualType objNull};
 if (_lease isNotEqualTo [] && {!_validLease}) exitWith {0};
 private _available={
     local _actor && {!isNull _group} && {local _group} && {!isPlayer _actor}
@@ -157,9 +162,10 @@ if (!call _available || {!fleeing _actor} || {_entry isNotEqualTo (call _context
     || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}) exitWith {0};
+private _before=[currentCommand _actor,expectedDestination _actor,formLeader _actor];
 private _deadline=time+((2+(_origin vectorDistance _goal)/2) max 4 min 12);
 _actor doMove _goal;
 _actor setVariable ["CBE_Cortex_ActorMove",["DANGER_FLIGHT",+_goal,_deadline]];
-_actor setVariable ["CBE_Danger_FlightLease",[+_goal,_deadline,_group,_entry select 0,_entry select 1,_entry select 2,time]];
+_actor setVariable ["CBE_Danger_FlightLease",[+_goal,_deadline,_group,_entry select 0,_entry select 1,_entry select 2,time,_before]];
 _actor setVariable ["CBE_Danger_FlightResult",["MOVE_REQUESTED",time,+_goal,time,_deadline]];
 _deadline-time

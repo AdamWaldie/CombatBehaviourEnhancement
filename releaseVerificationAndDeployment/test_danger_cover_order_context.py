@@ -43,6 +43,12 @@ class CoverOrderContextTests(unittest.TestCase):
         for proof in ('time >= (_flight select 1)','(_flight select 3) != (_response select 5)',
                       '(_flight select 4) != (_response select 4)','if (_flightInterrupted) exitWith {false}'):
             self.assertIn(proof,gate)
+        self.assertIn('private _before=[currentCommand _actor,expectedDestination _actor,formLeader _actor]',flight)
+        self.assertIn('_entry select 2,time,_before]',flight)
+        self.assertIn('_nativeDestination isEqualTo (_before select 1)',gate)
+        self.assertIn('formLeader _actor isEqualTo (_before select 2)',gate)
+        self.assertIn('!(_acknowledged || {_pending})',gate)
+        self.assertNotIn('(_flight select 6)+0.5',gate)
         rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('private _rayStart=',1)[0]
         self.assertIn('_actor doFollow _leader',rejoin)
         self.assertIn('currentCommand _actor == ""',rejoin)
