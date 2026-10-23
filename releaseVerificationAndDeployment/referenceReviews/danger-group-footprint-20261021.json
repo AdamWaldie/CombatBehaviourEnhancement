@@ -263,5 +263,18 @@
     ],
     "tracker": "Renewed only CORE Owner epoch and actor reservations after locality delta review; scores unchanged, complete all-owner handback remains partial. Current230 stale references/109unique sources elsewhere; strict global check still fails.",
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering tracker/metadata afterward. Blocked/unconfirmed policy handback may retain unresolved evidence; no physical migration/native restore/HC/JIP/balance/performance proof. Audits paused."
+  },
+  "grenadeOwnedPathHandover20261023": {
+    "baseline": "24c8503a",
+    "finding": "Grenade evasion treated historical supportHeld list membership as authority to enable PATH, although current support cover uses native doStop and legacy cleanup elsewhere requires CBE_Cortex_SupportPathHold. Native fleeing was also omitted from admission and delayed recall, allowing evasion/formation commands over that native response.",
+    "implementation": "Only current PATH or support-list membership plus exact boolean legacy marker admits the actor. Owned PATH reset skips no-op writes, retires marker only on native readback and refuses escape when PATH remains disabled. Current native STOP needs no feature reset. Admission and delayed recall yield native fleeing. Existing evasion lease,16-actor query, six-second regroup, support/coordinated/clearance ownership and original route/epoch/generation checks remain. No new worker/scan/deadline.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing grenade ownership regressions extended, no new case.",
+    "candidate": ".qa/candidates/grenade-owned-path-handover-24c8503a",
+    "fingerprint": "91628afe83cec25652f9072daffa3b8094eefd8cdacd2060f72451d893faf6b8",
+    "logs": [
+      ".qa/grenade-owned-path-handover-build.log",
+      ".qa/grenade-owned-path-handover-independent.log"
+    ],
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Physical grenade escape, authored PATH/refused restoration, fleeing native response and support/CQB repeat handover/HC/JIP/performance unverified. Audits paused; no percentage/parity or automatic-success claim."
   }
 }

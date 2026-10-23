@@ -6110,7 +6110,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"CBE_AIPass_GrenadeEvasion_Enable",true] call CBE_fnc_CortexFeatureEnabled',text)
         self.assertNotIn('CBA_fnc_waitAndExecute',text)
         for region in (callback,text.split('private _grenade =',1)[1]):
-            for proof in ('simulationEnabled _unit','!isObjectHidden _unit','ace_medical_ai_healQueue'):
+            for proof in ('simulationEnabled _unit','!isObjectHidden _unit','!fleeing _unit','ace_medical_ai_healQueue'):
                 self.assertIn(proof,region)
         for proof in ('CBE_AIPass_ClearBuilding','CBE_AIPass_Garrison','CBE_AIPass_Defend',
                       '"responding",false','"assaulting",false','"participants",[]','!_taskOwned'):
@@ -6120,7 +6120,10 @@ class CortexOperations(unittest.TestCase):
     def test_grenade_evasion_temporarily_outranks_support_cover_hold(self):
         grenade=source('cortexGrenadeCheck')
         self.assertIn('private _supportHeld = _state getOrDefault ["supportHeld",[]]',grenade)
-        self.assertIn('_unit checkAIFeature "PATH" || {_unit in _supportHeld}',grenade)
+        self.assertIn('_unit checkAIFeature "PATH" || {_supportPathOwned}',grenade)
+        self.assertIn('(_unit getVariable ["CBE_Cortex_SupportPathHold",false]) isEqualTo true',grenade)
+        self.assertLess(grenade.index('if (_supportPathOwned) then'),grenade.index('_unit enableAI "PATH"'))
+        self.assertLess(grenade.index('if (!(_unit checkAIFeature "PATH")) then {continue}'),grenade.index('_unit doMove _spot'))
         self.assertIn('_unit enableAI "PATH"',grenade)
         self.assertIn('_state set ["supportHeld",_supportHeld-[_unit]]',grenade)
         maintain=source('cortexSupportMaintain')

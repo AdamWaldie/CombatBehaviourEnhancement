@@ -17,7 +17,8 @@
  * the same group, authored waypoint receipt, Zeus token, actor lease and evasion
  * destination, an available on-foot soldier and no current clearance, defence, garrison,
  * support or actor-participating operation. Exact marker cleanup remains independent.
- * Admission and delayed recall yield to dormant/hidden actors and queued ACE care.
+ * Admission and delayed recall yield to dormant/hidden actors, native fleeing and queued ACE care.
+ * Support-list membership never enables PATH; only its actual legacy CBE marker permits handback.
  * An interrupted acknowledged room MOVE retains a local return proposal for the same
  * clearing executor; it issues no return command here and never survives owner migration.
  * Soldiers held in place by a
@@ -63,7 +64,7 @@ if (_regroup isNotEqualTo []) exitWith {
                 && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
                 && {currentCommand _unit in ["","MOVE"]}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}
-                && {simulationEnabled _unit} && {!isObjectHidden _unit}
+                && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
                 && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
                 && {[_group] call CBE_fnc_CortexIsEligible}
@@ -114,15 +115,17 @@ private _regroupActors = [];
     private _state = _group getVariable ["CBE_AIPass_State",createHashMap];
     private _drillUnits = (_state getOrDefault ["drill", createHashMap]) getOrDefault ["units", []];
     private _supportHeld = _state getOrDefault ["supportHeld",[]];
+    private _supportPathOwned=_unit in _supportHeld
+        && {(_unit getVariable ["CBE_Cortex_SupportPathHold",false]) isEqualTo true};
     if (local _unit && {!isPlayer _unit} && {isNull remoteControlled _unit}
         && {[_unit] call CBE_fnc_CortexCombatEffective} && {vehicle _unit == _unit}
-        && {simulationEnabled _unit} && {!isObjectHidden _unit}
+        && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
         && {_unit checkAIFeature "MOVE"}
-        && {_unit checkAIFeature "PATH" || {_unit in _supportHeld}}
+        && {_unit checkAIFeature "PATH" || {_supportPathOwned}}
         && {!(_unit in _drillUnits)} && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
         && {_checkedResults select _groupIndex} && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
         private _sees = _unit distance _grenade < 5 || {([objNull, "VIEW"] checkVisibility [eyePos _unit, _grenadeASL]) > 0.2};
@@ -130,10 +133,13 @@ private _regroupActors = [];
         if (_sees && {random 1 < _chance}) then {
             private _direction = (_grenadePos getDir _unit) + ((_reacted mod 3) - 1) * 35;
             private _spot = ([(getPosATL _unit) getPos [9, _direction], _grenadePos, 6, [], _group,"COVER",_unit] call CBE_fnc_CortexFindCover) select 0;
-            if (_unit in _supportHeld) then {
-                _unit enableAI "PATH";
-                _state set ["supportHeld",_supportHeld-[_unit]];
+            if (_supportPathOwned) then {
+                if (!(_unit checkAIFeature "PATH")) then {_unit enableAI "PATH"};
+                if (_unit checkAIFeature "PATH") then {_unit setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
             };
+            // Native support STOP needs no feature reset. A mission-disabled PATH remains disabled.
+            if (!(_unit checkAIFeature "PATH")) then {continue};
+            if (_unit in _supportHeld) then {_state set ["supportHeld",_supportHeld-[_unit]]};
             private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
             private _expires=time+6;
             private _clearMotion=_unit getVariable ["CBE_Cortex_ClearMotion",[]];
