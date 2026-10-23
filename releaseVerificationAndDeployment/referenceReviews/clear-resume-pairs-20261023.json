@@ -83,5 +83,35 @@
     "audits": "PAUSED",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "laneJournalImplementation20261024": {
+    "base": "9faafc4e",
+    "implementation": "BuildingLaneJournal SAVE/ADOPT wired at worker startup and existing owned callback tail. Snapshot v1 has11fields: version/group/visitContext/exact positions/pairs/routes/states/pending/phase/original entrance list/original entry goal. Exact actor ordering, bounded typed state and complete unique live-room partition required. Original local progress/start clocks transport through serverTime and rebase once.",
+    "authority": "Current CLEAR generation/epoch, visit nonce, transform and original hard deadline. Failed entry/sweep adoption refuses startup; refusal cleanup remains inside original preparation gate and cannot release a successor. ADOPT changes metadata only; actual actor-native motion/settings/visit proofs remain separate. Egress retains its existing independent journal.",
+    "entrances": "Current preparation sorts and truncates exits around the new leader. Saved ordered entry nodes and entry goal are therefore restored only when still in the full currently discovered securityEntries set; lane entrance/tried indices cannot be applied to a new door ordering.",
+    "cost": "Existing callback, at most one successful SAVE sample per1.5s and changed-only publication; at most8lanes/2actors and512nodes. Uses maps for live-room partition membership and retirement membership. No world queries, native commands, extra worker or retry/deadline reset. Copy/validation/replication cost is unmeasured.",
+    "limits": "Snapshots can be stale or delayed; no ordered delivery/owner-ready ACK. Exact changed roster/node/entrance mismatch refuses rather than recasts state. New actor admission still uses separate receipts. Original pending native request timing is not added to this snapshot. No exactly-once cross-owner movement, casualty continuity, physical re-entry, performance or complete lane-transfer claim.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\buildingLaneJournal.sqf": "67f304c1467abfffdee76a655ca8c4d994ab93de6a2a4f8386bdf235e75fb355",
+      "addons\\infantry\\functions\\cortexClearBuilding.sqf": "9df4164b897fa3f93463a21e6cb2d247ff9cf7f780d27bba1aacf89610604ae0",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "3b683127b1d546835c6b6f1d6a1f5c19fa83679848fb1cba8eeb1be026872449"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-journal-final-9faafc4e",
+    "fingerprint": "e9f77c5ff0d8f2020c14505c73113b4d686b85397a4596a46e795630b3808f6a",
+    "logs": [
+      ".qa/clear-lane-journal-entries-build.log",
+      ".qa/clear-lane-journal-final-independent.log"
+    ],
+    "initialFindings": "First build failed missing source coverage; second failed generated source-count report. Both corrected without weakening checks. Intermediate passing candidate clear-lane-journal-9faafc4e fingerprint0ceb5551ff3475bb6728af4b5df8db7e005c88532261d161731606af8a7003dd is superseded: final trace added guarded refusal cleanup and retained entrance ordering. Retain initial logs/candidate as historical evidence only.",
+    "provenance": "Unsigned dirty development snapshot includes unrelated dirt; private review/handover postdate package. No score/hash renewal in build-out tracker.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false
   }
 }

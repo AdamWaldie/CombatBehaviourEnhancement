@@ -20,6 +20,31 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(text.index('private _commitPreparation='),text.index('while {_remaining isNotEqualTo []}'))
         self.assertLess(text.index('while {_remaining isNotEqualTo []}'),text.index('private _pairs=[];'))
 
+        journal=(ROOT/'addons/infantry/functions/buildingLaneJournal.sqf').read_text(encoding='utf-8')
+        for proof in ('isNil {','CBE_Cortex_ClearVisitContext','CBE_AIPass_ClearGeneration',
+                      'CBE_AIPass_Epoch','serverTime >=','_snapshot select 3','_snapshot select 4',
+                      '_nodeCount > 512','_laneCount > 8','count _routes != _laneCount',
+                      '_key in _claimed','_copyStates','serverTime+1.5'):
+            self.assertIn(proof,journal)
+        for forbidden in (' doMove ',' doFollow ','doStop ','setUnitPos','setVariable ["CBE_Cortex_ClearVisits"'):
+            self.assertNotIn(forbidden,journal)
+        self.assertIn('_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal',text)
+        self.assertIn('"securityEntries"',journal)
+        self.assertIn('_job set ["entries",_entryNodes apply {+_x}]',journal)
+        self.assertIn('count _snapshot != 11',journal)
+        self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
+        refusal=text.split('if (!_laneAdopted) exitWith {',1)[1].split('if !([_job]',1)[0]
+        self.assertIn('}] call _commitPreparation',refusal)
+        self.assertLess(refusal.index('[{'),refusal.index('call CBE_fnc_CortexClearRelease'))
+        # Shared-clock transport retains elapsed age across distinct machine clocks.
+        saved_progress=100-(50-42)
+        adopted_progress=8-(105-saved_progress)
+        self.assertEqual(8-adopted_progress,13)
+        self.assertIn('serverTime-(time-(_row select 3))',journal)
+        self.assertIn('time-(serverTime-(_row select 3))',journal)
+        tail=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertLess(tail.index('if (!_tailOwned'),tail.index('if (_liveClear && {_delay >= 0})'))
+
     def test_late_public_metadata_and_pair_selection_are_guarded(self):
         text=clear()
         for field in ('ClearVisitContext','ClearReserveAdmission'):

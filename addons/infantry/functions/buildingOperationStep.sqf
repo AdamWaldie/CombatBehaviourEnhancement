@@ -4181,6 +4181,7 @@ private _liveClear=count _currentOperation > 0
     && {(_currentOperation getOrDefault ["intent",""]) == "CLEAR"}
     && {(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"};
 if (!_tailOwned || {!_liveClear && {!(_delay < 0 && {count _currentOperation == 0})}}) exitWith {false};
+if (_liveClear && {_delay >= 0}) then {["SAVE",_job] call CBE_fnc_BuildingLaneJournal};
 if (count _currentOperation > 0 && {local _group}
     && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {(_currentOperation getOrDefault ["generation",-1]) == (_job getOrDefault ["operationGeneration",-2])}

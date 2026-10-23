@@ -70,7 +70,7 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies do nothing.
  *
- * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; local movement assignments are rebuilt.
+ * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; matching coherent lane snapshots are adopted without a fresh progress age; missing entry/sweep snapshots refuse startup.
  *
  * Arguments:
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
@@ -969,6 +969,17 @@ if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _buildin
         if (_resume) then {["ADOPT",_motionActor,_job] call CBE_fnc_BuildingActorMotion};
     }] call _commitPreparation;
 } forEach (_team select [0,8]);
+private _laneAdopted=!_resume;
+if (_resume) then {[{_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal}] call _commitPreparation};
+if (!_laneAdopted) exitWith {
+    // A scheduled preparation may have lost its generation. Never let this refusal
+    // release whichever successor happens to be current now.
+    [{
+        ["LANE_SNAPSHOT_UNAVAILABLE"] call _refuse;
+        [_group,false] call CBE_fnc_CortexClearRelease;
+    }] call _commitPreparation;
+    false
+};
 if !([_job] call CBE_fnc_BuildingOperationStart) exitWith {
     // Never report a worker-less order as accepted. If preparation lost ownership,
     // the new owner/episode keeps its durable order; no cleanup is remoted or restamped.
@@ -986,5 +997,6 @@ if !([_job] call CBE_fnc_BuildingOperationStart) exitWith {
     };
     false
 };
+["SAVE",_job] call CBE_fnc_BuildingLaneJournal;
 diag_log format ["[CBE] %1 clearing %2 (%3 positions, %4 soldiers, %5 entrances)", _group, typeOf _building, count _positions, count _team, count _entries];
 true
