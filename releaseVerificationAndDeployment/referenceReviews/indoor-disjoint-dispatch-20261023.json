@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "9e6c0a1b",
+  "scope": "Integrate existing finite per-actor indoor work with explicitly disjoint tactical ownership; preserve exclusive whole-group movement.",
+  "reference": {
+    "source": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf",
+    "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+    "review": "Selected function fully read and hash verified; not a new whole-mod review. Actor-level building-to-building movement and native task checks are relevant intent. Raw source remains protected."
+  },
+  "sourceDeparture": "Retain CBE actor journals, bounded authority, native beliefs, physical visit accounting and one finite movement executor. Do not import duplicate doMove/setDestination ownership, random removal of building positions, unconditional forceMove/posture or recursive unbounded task lifetime.",
+  "confirmedFaults": [
+    "CortexGroupTick blanket movement-owner gate prevented IndoorActorDispatch from consulting its existing explicit disjoint-roster admission boundary.",
+    "CortexVehicles false return could overwrite a still-valid movement owner already recognized by the same group tick."
+  ],
+  "implementation": [
+    "Vehicle movement return is ORed with existing finite group ownership, preventing later whole-group planners from treating it as free.",
+    "IndoorActorDispatch is considered under the existing contact, fire-policy, authored-task and building-clearance gates even if another movement layer exists. IndoorActorGroupAvailable remains decisive: actual group waypoints, unsupported/ambiguous common operations, current drill/support participants, malformed rosters and actor reservations/tasks refuse.",
+    "No new worker, shared operation class or command authority. Existing two-investigator capacity, rotating16-member sample,8-second selection cooldown,8 beliefs and bounded roof queries remain. Additional bounded availability checks are now reachable under movement ownership; no measured speedup is claimed."
+  ],
+  "validation": {
+    "tests": 1491,
+    "compiledSqf": 410,
+    "pboCount": 9,
+    "candidate": ".qa/candidates/indoor-disjoint-dispatch-9e6c0a1b",
+    "fingerprint": "cced7692fb9d69da030b3be5285ef9364fd374c12ec3f2ae977360f8bd359d58",
+    "logs": [
+      ".qa/indoor-disjoint-dispatch-build.log",
+      ".qa/indoor-disjoint-dispatch-independent.log"
+    ],
+    "qualification": "Unsigned dirty development snapshot; private comparison and notes postdate package."
+  },
+  "remaining": "Complementary individual investigation only, not full clearance or complete naval CQB continuation. Physical disjoint movement/fire, actual entry, interruption/handback and5/10-percent performance budget remain unverified. Audits paused.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false
+}

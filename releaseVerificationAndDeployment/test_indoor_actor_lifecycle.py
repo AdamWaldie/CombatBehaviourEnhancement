@@ -516,6 +516,13 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('CBE_OperationGeneration',actor)
         door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         self.assertIn('[_unit] call CBE_fnc_IndoorActorGroupAvailable',door)
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        admission=tick.split('// Actor admission does not claim',1)[1].split('call CBE_fnc_IndoorActorDispatch;',1)[0]
+        self.assertNotIn('!_coordinatedOwnsMovement',admission)
+        for guard in ('!_holdFire','_hasTargetKnowledge','!_ordered','!_buildingOwnsMovement'):
+            self.assertIn(guard,admission)
+        self.assertIn('call CBE_fnc_CortexVehicles) || {_groupMovementOwned}',tick)
+
 
     def test_disjoint_generation_acknowledgement_never_renews_actor_work(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()

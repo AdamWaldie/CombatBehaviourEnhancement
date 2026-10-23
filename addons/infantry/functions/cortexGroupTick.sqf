@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Existing finite group movement ownership survives an idle vehicle-layer result. Free actors
+ * may still propose bounded indoor work through the existing explicit disjoint-roster boundary;
+ * whole-group movement and clearance remain exclusive.
  * Passenger stop/continuation proof retains the full current native waypoint identity;
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Normal contact escalation shares the complete native group-posture task guard; native
@@ -1340,7 +1343,7 @@ switch (_state get "phase") do {
             if (["CBE_AIPass_Stance_Enable", true] call _get) then {[_group, _state, _enemies] call CBE_fnc_CortexStance};
             if (!_holdFire && {_hasTargetKnowledge} && {["CBE_AIPass_AntiArmour_Enable", true] call _get}) then {[_group, _state, _enemies] call CBE_fnc_CortexAntiArmour};
             if (["CBE_AIPass_Vehicles_Enable", true] call _get) then {
-                _vehicleOwnsMovement = [_group, _state, _enemies] call CBE_fnc_CortexVehicles;
+                _vehicleOwnsMovement = ([_group, _state, _enemies] call CBE_fnc_CortexVehicles) || {_groupMovementOwned};
             };
             if ((["CBE_AIPass_ContactReports_Enable", true] call _get) && {_now - (_state getOrDefault ["lastReport", -1e6]) >= 20}) then {
                 [_group, _state, _visible] call CBE_fnc_CortexContactReport;
@@ -1371,7 +1374,10 @@ switch (_state get "phase") do {
                 if (_buildingOwnsMovement) then {_ordered=true};
             };
             // Actor admission does not claim the squad or disable its other roles.
-            if (!_holdFire && {_hasTargetKnowledge} && {!_ordered} && {!_coordinatedOwnsMovement} && {!_buildingOwnsMovement}) then {
+            // Existing typed disjoint-roster checks, not a blanket group movement flag,
+            // decide whether a free actor may investigate. Group waypoints, ambiguous
+            // operations, current participants and protected actor tasks still refuse.
+            if (!_holdFire && {_hasTargetKnowledge} && {!_ordered} && {!_buildingOwnsMovement}) then {
                 [_group,_state,_enemies] call CBE_fnc_IndoorActorDispatch;
             };
             if (!_holdFire && {_hasTargetKnowledge} && {!_ordered} && {!_coordinatedOwnsMovement} && {!_buildingOwnsMovement}) then {

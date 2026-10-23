@@ -16,7 +16,9 @@
  * Arguments: 0 group <GROUP>, grpNull; 1 group state <HASHMAP>, empty;
  * 2 native knowledge records <ARRAY>, [] (same format as BuildingContactSelect).
  * Return: NUMBER of newly admitted actors, 0..2; admission is not physical entry or clearance.
- * Current callers: CortexGroupTick CONTACT fallback after natural whole-group CLEAR admission.
+ * Current callers: CortexGroupTick CONTACT after natural whole-group CLEAR admission.
+ * Another movement layer is not permission or a blanket refusal: the existing per-actor
+ * disjoint-roster boundary excludes group waypoints, ambiguous ownership and participants.
  * Example: private _admitted=[_group,_state,_knowledge] call CBE_fnc_IndoorActorDispatch;
  */
 params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
