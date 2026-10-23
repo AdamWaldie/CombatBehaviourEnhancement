@@ -506,6 +506,8 @@ class IndoorActorLifecycleTests(unittest.TestCase):
 
     def test_existing_disjoint_roster_requires_current_bounded_actor_ownership(self):
         s=(ROOT/'addons/infantry/functions/indoorActorGroupAvailable.sqf').read_text()
+        context=(ROOT/'addons/infantry/functions/indoorActorGroupContext.sqf').read_text()
+        s+=context
         for guard in ('participantsRequired','ownerEpoch','CBE_OperationGeneration','cancelReason',
                       'count _participants > 64','_participants isEqualTo []','group _x != _group',
                       'CBE_Cortex_GroupMoveIntent','supportHeld','CBE_AIPass_ClearBuilding',
@@ -516,6 +518,16 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('CBE_OperationGeneration',actor)
         door=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         self.assertIn('[_unit] call CBE_fnc_IndoorActorGroupAvailable',door)
+        available=(ROOT/'addons/infantry/functions/indoorActorGroupAvailable.sqf').read_text()
+        self.assertIn('if (count _this < 2)',available)
+        self.assertIn('call CBE_fnc_IndoorActorGroupContext',available)
+        for name in ('indoorActorDispatch','indoorObservationDispatch'):
+            dispatch=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            self.assertEqual(dispatch.count('call CBE_fnc_IndoorActorGroupContext'),1)
+            self.assertLess(dispatch.index('call CBE_fnc_IndoorActorSample'),dispatch.index('call CBE_fnc_IndoorActorGroupContext'))
+            self.assertIn('if (_sample isEqualTo []) exitWith {0}',dispatch)
+            self.assertIn('[_x,_groupContext] call CBE_fnc_IndoorActorGroupAvailable',dispatch)
+
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         admission=tick.split('// Actor admission does not claim',1)[1].split('call CBE_fnc_IndoorActorDispatch;',1)[0]
         self.assertNotIn('!_coordinatedOwnsMovement',admission)

@@ -4,31 +4,23 @@
  * Locality/authority: Read-only on the actor/group owner. Explicit disjoint rosters grant no
  * movement authority by themselves; the caller must still validate native orders and actor leases.
  * Repeat/JIP: Stateless; no reservation or operation generation is renewed or replayed.
- * Arguments: 0 actor <OBJECT>, objNull.
+ * Arguments: 0 actor <OBJECT>, objNull; 1 optional same-callback group context ARRAY.
+ * Omitting argument1 always obtains fresh group authority. Explicit snapshots are candidate
+ * preflight only; they grant no native command and must not be stored across callbacks.
  * Return: BOOL; false for ambiguous/group-wide/overlapping work or malformed ownership records.
- * Current callers: IndoorActorOperation and CortexBuildingDoor indoor context.
+ * Current callers: IndoorActorOperation, CortexBuildingDoor, IndoorActorDispatch and
+ * IndoorObservationDispatch. Only the two dispatchers supply the optional preflight snapshot.
  * Example: private _free=[soldier1] call CBE_fnc_IndoorActorGroupAvailable;
  */
-params [["_actor",objNull,[objNull]]];
+params [["_actor",objNull,[objNull]],["_context",[],[[]]]];
 if (isNull _actor || {!local _actor}) exitWith {false};
 private _group=group _actor;
 if (isNull _group || {!local _group}) exitWith {false};
-if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []
-    || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
-    || {_group getVariable ["CBE_AIPass_ClearBuilding",false]}) exitWith {false};
-private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
-if (_actor in ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["units",[]])
-    || {_actor in (_state getOrDefault ["supportHeld",[]])}) exitWith {false};
-// A temporary group waypoint owns formation travel, even if its record names fewer actors.
-if (count (_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) > 0) exitWith {false};
-private _operation=_group getVariable ["CBE_Operation",createHashMap];
-if (count _operation == 0) exitWith {true};
-if (!((_operation getOrDefault ["intent",""]) in ["ADVANCE","FLANK","ASSAULT"])
-    || {(_operation getOrDefault ["generation",-1]) != (_group getVariable ["CBE_OperationGeneration",0])}
-    || {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
-    || {(_operation getOrDefault ["cancelReason",""]) != ""}
-    || {!((_operation getOrDefault ["participantsRequired",false]) isEqualTo true)}) exitWith {false};
-private _participants=_operation getOrDefault ["participants",[]];
-if (!(_participants isEqualType []) || {_participants isEqualTo []} || {count _participants > 64}) exitWith {false};
-if (_participants findIf {!(_x isEqualType objNull) || {isNull _x} || {group _x != _group} || {!local _x}} >= 0) exitWith {false};
-!(_actor in _participants)
+if (count _this < 2) then {_context=[_group] call CBE_fnc_IndoorActorGroupContext};
+if (count _context != 6 || {(_context select 0) isNotEqualTo _group}
+    || {(_context select 1) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+    || {(_context select 2) isNotEqualTo (_group getVariable ["CBE_OperationGeneration",0])}) exitWith {false};
+_context params ["_contextGroup","_contextEpoch","_contextGeneration","_participants","_drillUnits","_supportHeld"];
+if (!(_participants isEqualType []) || {!(_drillUnits isEqualType [])} || {!(_supportHeld isEqualType [])}
+    || {count _participants > 64} || {count _drillUnits > 64} || {count _supportHeld > 64}) exitWith {false};
+!(_actor in _participants) && {!(_actor in _drillUnits)} && {!(_actor in _supportHeld)}

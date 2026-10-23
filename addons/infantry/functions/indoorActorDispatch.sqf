@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Candidate preflight shares one ephemeral group ownership snapshot across this bounded sample;
+ * actor START/STEP/door authority still re-read current ownership without that snapshot.
  * Candidate ranking excludes common executor refusals before consuming bounded slots;
  * full START authority, native context and building checks remain mandatory.
  * Purpose: Admit up to two nearby individual indoor investigations from fresh native group knowledge
@@ -30,10 +32,14 @@ if (!(_range isEqualType 0) || {!finite _range} || {_range <= 0}) exitWith {0};
 [_state,"indoorActors",8] call CBE_fnc_CortexCooldown;
 // Establish the available roster before choosing a contact. Otherwise an unavailable
 // nearest contact can consume the selection while another nearby belief is actionable.
-private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
+private _sample=[_group,_state] call CBE_fnc_IndoorActorSample;
+if (_sample isEqualTo []) exitWith {0};
+private _groupContext=[_group] call CBE_fnc_IndoorActorGroupContext;
+if (_groupContext isEqualTo []) exitWith {0};
+private _actors=_sample select {
     local _x && {!isPlayer _x} && {!fleeing _x}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {[_x] call CBE_fnc_CortexCombatEffective}
-        && {isNull objectParent _x} && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
+        && {isNull objectParent _x} && {[_x,_groupContext] call CBE_fnc_IndoorActorGroupAvailable}
         // Cheap executor prerequisites keep ineligible nearby actors from consuming
         // the bounded candidate slots; START still repeats full authority admission.
         && {simulationEnabled _x} && {!isObjectHidden _x}

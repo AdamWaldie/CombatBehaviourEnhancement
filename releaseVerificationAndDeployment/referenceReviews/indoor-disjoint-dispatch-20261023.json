@@ -32,5 +32,15 @@
   "remaining": "Complementary individual investigation only, not full clearance or complete naval CQB continuation. Physical disjoint movement/fire, actual entry, interruption/handback and5/10-percent performance budget remain unverified. Audits paused.",
   "physicalAcceptance": false,
   "performanceMeasured": false,
-  "scoresChanged": false
+  "scoresChanged": false,
+  "sharedPreflight20261023": {
+    "baseCommit": "a6e8c3ed",
+    "confirmedCost": "Candidate filtering could call IndoorActorGroupAvailable for up to16 sampled actors; each call revalidated the same at-most64 common participants and group restrictions. This is repeated preflight validation, separate from actual command-boundary checks.",
+    "implementation": "New read-only IndoorActorGroupContext factors existing group restriction/typed roster checks into one ephemeral same-callback snapshot. Contact and body-clue dispatch sample first, exit immediately for full capacity/empty sample, then share one snapshot across candidates. GroupAvailable without optional snapshot always obtains fresh group authority; all actual actor START/STEP and door call sites retain that default. Identity/epoch/generation and typed bounded exclusion arrays are checked in preflight. No worker, timer, network state, persistent cache or command authority added.",
+    "costBound": "Shared participant locality/group validation at most64 per candidate-filtering callback instead of up to16*64. Actor health/native task/reservation checks and fresh command validations remain; this is not a claim about total frame time or a measured speedup. Existing investigator capacity, cursors, selection cooldown and geometry budgets unchanged.",
+    "validation": "1491 full offline tests/411SQF/9PBOs and independent verification passed. Final candidate .qa/candidates/indoor-group-context-final-a6e8c3ed fingerprint9d06035667c719e83c38371d2b282065ffe845263dbc05d531d5ea94893f46df. Logs .qa/indoor-group-context-final-build.log and .qa/indoor-group-context-final-independent.log. Unsigned dirty development snapshot; review/notes postdate packaging. Earlier indoor-group-context-a6e8c3ed candidate is intermediate.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  }
 }

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Candidate preflight shares one ephemeral group ownership snapshot across this bounded sample;
+ * actor START/STEP/door authority still re-read current ownership without that snapshot.
  * Candidate ranking excludes common executor refusals before consuming bounded slots;
  * full START authority, native context and building checks remain mandatory.
  * Purpose: Use an unknown-body clue to inspect nearby building positions without inventing an enemy.
@@ -48,7 +50,11 @@ if ([_state,"bodyBuilding"] call CBE_fnc_CortexCooldown
     || {combatMode _group in ["BLUE","GREEN"]}
     || {leader _group distance2D _position > 100}) exitWith {0};
 [_state,"bodyBuilding",8] call CBE_fnc_CortexCooldown;
-private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
+private _sample=[_group,_state] call CBE_fnc_IndoorActorSample;
+if (_sample isEqualTo []) exitWith {0};
+private _groupContext=[_group] call CBE_fnc_IndoorActorGroupContext;
+if (_groupContext isEqualTo []) exitWith {0};
+private _actors=_sample select {
     local _x && {!isPlayer _x} && {!fleeing _x}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {_x != leader _group} && {isNull objectParent _x}
         && {[_x] call CBE_fnc_CortexCombatEffective} && {_x distance2D _position <= 50}
@@ -58,7 +64,7 @@ private _actors=([_group,_state] call CBE_fnc_IndoorActorSample) select {
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}
         && {(_x getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []}
         && {isNull remoteControlled _x}
-        && {[_x] call CBE_fnc_IndoorActorGroupAvailable}
+        && {[_x,_groupContext] call CBE_fnc_IndoorActorGroupAvailable}
         // Cheap executor prerequisites keep ineligible nearby actors from consuming
         // the bounded candidate slots; START still repeats full authority admission.
         && {simulationEnabled _x} && {!isObjectHidden _x}
