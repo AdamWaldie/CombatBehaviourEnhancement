@@ -1253,5 +1253,36 @@
       ".qa/clear-native-data-wait-independent.log"
     ],
     "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED."
+  },
+  "dangerNativePlannerDataWait20261024": {
+    "base": "faa44554",
+    "finding": "Danger route classification, cover admission/final boundary, flight/rejoin, group-hide candidates and ordinary stance eligibility excluded INIT/PLANNING/REPLAN but omitted documented planner data-wait INITFAILED and repeat-search DELAY. A stationary actor could be considered idle before native planning became ready.",
+    "primarySource": "https://community.bistudio.com/wiki/getUnitState",
+    "change": "Add those two states to the existing planner-ownership lists in five existing functions. Preserve all other threat/action, movement, feature, ownership and finite-response/cleanup policies. No new helper, query, loop, setting, timer, budget or test case.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\dangerEngineAct.sqf": "3a5971711ac02160683834db0e2981133df9c6e5cc45734267144ae3b7da33cd",
+      "addons\\infantry\\functions\\dangerCoverStep.sqf": "d305546825285964805529161b7ad6c5025ad85bdb6fb5a5b07d032f9b78f8d4",
+      "addons\\infantry\\functions\\dangerGroupHideStep.sqf": "0dc2a35d2a4e2d667b0df861e89c7a5560f90d09ebeddecc1eace5020db3c712",
+      "addons\\infantry\\functions\\dangerFlight.sqf": "e1836687317c7017c80fb9547ee7434b7e45d6d0bcb816125bf6f21174aa7334",
+      "addons\\infantry\\functions\\cortexStance.sqf": "84a4647a2034a67235fc18365a455bd1fb3aab59e6e1bd1ff1eb7e3c8c0bafbf"
+    },
+    "validation": {
+      "existingFocusedDangerCases": 6,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "initialFailure": "One existing group-hide source contract still expected the old3state list. Updated that scoped assertion to require5states; final full run passed without dropping the ownership/order checks.",
+    "candidate": ".qa/candidates/danger-native-data-wait-faa44554",
+    "fingerprint": "84129ec7511f81a19ae759e025de70c8b6a34908f88b3834d5ed46117ef988f7",
+    "logs": [
+      ".qa/danger-native-data-wait-focused.log",
+      ".qa/danger-native-data-wait-build.log",
+      ".qa/danger-native-data-wait-final-build.log",
+      ".qa/danger-native-data-wait-independent.log"
+    ],
+    "limits": "No in-game danger/physical-threat/movement/performance proof or whole-source parity claim. Native data wait may still fail. Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Scores unrenewed; audits PAUSED."
   }
 }

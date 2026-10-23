@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native initialization data waits and delayed search retain planner ownership.
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
  * Native fleeing retires matching metadata without a native recall command.
@@ -188,7 +189,7 @@ if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
-    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
@@ -266,7 +267,7 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
-    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
     || {!simulationEnabled _actor} || {isObjectHidden _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native initialization data waits and delayed search retain planner ownership.
  * Purpose: Give an idle native-fleeing foot soldier a native rejoin or screened escape under the
  * existing engine danger FSM. This is separate from casualty investigation and group cover.
  * Locality/authority: Actor and group owner only. Existing native routes, reservations,
@@ -131,7 +132,7 @@ if (!fleeing _actor || {!call _available}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {currentCommand _actor != ""} || {abs speed _actor >= 0.5}
-    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
     || {time < (_actor getVariable ["CBE_Danger_FlightAfter",-1])}
     || {time < (_group getVariable ["CBE_Danger_FlightSearchAfter",-1])}) exitWith {0};
 private _threat=_record param [1,[],[[]]];
@@ -175,7 +176,7 @@ private _quietRejoin=_cause in [0,3,8] && {_origin distance2D _threat > 75}
 if (_quietRejoin) exitWith {
     if (call _available && {fleeing _actor} && {_entry isEqualTo (call _context)}
         && {currentCommand _actor == ""} && {abs speed _actor < 0.5}
-        && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
+        && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
         _actor doFollow _leader;
@@ -200,7 +201,7 @@ if (!_found || {count _goal != 3} || {_origin vectorDistance _goal < 0.6}
 // Selection is read-only. Recheck the actual movement owner before issuing the sole command.
 if (!call _available || {!fleeing _actor} || {_entry isNotEqualTo (call _context)}
     || {currentCommand _actor != ""} || {abs speed _actor >= 0.5}
-    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}) exitWith {0};
 private _before=[currentCommand _actor,expectedDestination _actor,formLeader _actor];

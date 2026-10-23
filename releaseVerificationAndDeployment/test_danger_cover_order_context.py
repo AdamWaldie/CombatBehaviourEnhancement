@@ -52,7 +52,7 @@ class CoverOrderContextTests(unittest.TestCase):
                       'currentCommand _actor == "MOVE"','vectorDistance _goal <= 0.25','!_arrived && {_owns}'):
             self.assertIn(proof,cleanup)
         self.assertIn('currentCommand _actor != ""',flight)
-        self.assertIn('"INIT","PLANNING","REPLAN"',flight)
+        self.assertIn('"INIT","INITFAILED","PLANNING","REPLAN","DELAY"',flight)
         gate=(ROOT/'addons/infantry/functions/dangerEngineCanContinue.sqf').read_text(encoding='utf-8')
         for proof in ('time >= (_flight select 1)','(_flight select 3) != (_response select 5)',
                       '(_flight select 4) != (_response select 4)','if (_flightInterrupted) exitWith {false}'):

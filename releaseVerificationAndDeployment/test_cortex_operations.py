@@ -7315,7 +7315,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('CBE_fnc_CortexStanceReceipt',cleanup_source)
             self.assertIn('setVariable ["CBE_Cortex_StanceReceipt",nil,true]',cleanup_source)
         for guard in ('simulationEnabled _unit','!isObjectHidden _unit','ace_medical_ai_healQueue',
-                      'getUnitState _unit in ["INIT","PLANNING","REPLAN"]',
+                      'getUnitState _unit in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',
                       'currentCommand _unit in ["MOVE","GET IN"',
                       '(_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]'):
             self.assertIn(guard,text)
@@ -11006,7 +11006,7 @@ class CortexOperations(unittest.TestCase):
     def test_actor_reservations_keep_mobile_danger_posture_including_indoor(self):
         actor=source('dangerEngineAct')
         self.assertIn('private _nativeRouteTask=currentCommand _actor == "MOVE"',actor)
-        self.assertIn('getUnitState _actor in ["INIT","PLANNING","REPLAN"]',actor)
+        self.assertIn('getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',actor)
         self.assertIn('private _actorSpeed=abs (speed _actor)',actor)
         self.assertIn('|| {_actorSpeed >= 0.5}',actor)
         self.assertEqual(actor.count('speed _actor'),1)
@@ -11039,9 +11039,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_hardCover && {!_committedMover} && {!_lateralEvasion}',actor)
 
         cover=source('dangerCoverStep')
-        self.assertEqual(cover.count('getUnitState _actor in ["INIT","PLANNING","REPLAN"]'),2)
+        self.assertEqual(cover.count('getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]'),2)
         admission=source('dangerGroupHideStep').split('private _candidates=',1)[1]
-        self.assertIn('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])',admission)
+        self.assertIn('!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])',admission)
         self.assertLess(admission.index('getUnitState _x'),admission.index('_x setUnitPosWeak'))
 
         self.assertIn('if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;}',actor)

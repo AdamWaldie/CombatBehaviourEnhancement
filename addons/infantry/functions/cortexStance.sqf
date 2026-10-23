@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native initialization data waits and delayed search retain planner ownership.
  * Typed group/epoch/AUTO/applied proof accompanies actual strong stance application.
  * Native flight/care yields new posture and may release only this exact owned restriction.
  * Reservation policy: shared strict owner-local admission; unknown records never grant
@@ -105,7 +106,7 @@ for "_offset" from 0 to ((_count min 12)-1) do {
         && {(_unit getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
         && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-        && {!(getUnitState _unit in ["INIT","PLANNING","REPLAN"])}
+        && {!(getUnitState _unit in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         && {!(toUpperANSI currentCommand _unit in ["MOVE","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {!isPlayer _unit} && {isNull (remoteControlled _unit)}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}

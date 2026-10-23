@@ -30,10 +30,10 @@ class DangerCoverAdmission(unittest.TestCase):
         self.assertNotIn('setVariable',s)
     def test_native_planning_is_not_mistaken_for_idle_cover_admission(self):
         s=(ROOT/'addons/infantry/functions/dangerCoverStep.sqf').read_text(encoding='utf-8')
-        first=s.index('getUnitState _actor in ["INIT","PLANNING","REPLAN"]')
+        first=s.index('getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]')
         self.assertLess(first,s.index('call CBE_fnc_CortexFindCover'))
         commit=s.split('if (_entryContext isNotEqualTo',1)[1].split('_actor doMove _spot',1)[0]
-        self.assertIn('getUnitState _actor in ["INIT","PLANNING","REPLAN"]',commit)
+        self.assertIn('getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',commit)
         self.assertNotIn('setDestination',s)
     def test_indoor_dispatch_and_start_use_same_expiry_without_erasing_live_journals(self):
         dispatch=(ROOT/'addons/infantry/functions/indoorActorDispatch.sqf').read_text(encoding='utf-8')

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native initialization data waits and delayed search retain planner ownership.
  * Weak-posture ownership is recorded only after native confirmation. Group-hide proof survives
  * a refused/unconfirmed actor handoff and retires only after its original baseline is carried or restored.
  * Native fleeing which begins after FSM classification vetoes non-forced action mutation.
@@ -105,7 +106,7 @@ if ([_actor] call CBE_fnc_CortexActorMoveReserved) then {_committedMover=true;};
 private _actorSpeed=abs (speed _actor);
 private _nativeRouteTask=currentCommand _actor == "MOVE"
     || {_actorSpeed >= 0.5}
-    || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]};
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]};
 if (_nativeRouteTask) then {_committedMover=true};
 private _lateralEvasion=false;
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
