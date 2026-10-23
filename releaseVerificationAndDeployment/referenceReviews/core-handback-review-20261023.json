@@ -1,0 +1,17 @@
+{
+  "reviewed_at": "2026-10-23",
+  "source_commit": "bf76d203",
+  "scope": "CORE fourth declared build-out criterion; source review only",
+  "reviewed_paths": [
+    "addons/infantry/functions/cortexReleaseGroup.sqf",
+    "addons/infantry/functions/cortexRestoreCalm.sqf",
+    "addons/core/functions/cortexStop.sqf",
+    "addons/vehicles/functions/cortexVehicles.sqf"
+  ],
+  "finding": "Dismount-stop cleanup in CortexReleaseGroup and CortexStop restores matching speed pairs without consulting the separate stop-order proof; CortexVehicles also has a release branch using the pair alone. This needs a shared exact-owner/order restoration contract, not merely metadata clearing. Split locality, ambiguous identical replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete.",
+  "implemented": "Reviewed 2026-10-23 at bf76d203: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature-owned cleanup. Calm restoration separates owned PATH from recall, protects actor tasks, and records blocked group-policy restoration without granting late retry authority. Finite pending receipts are not proof of native handback.",
+  "next_bounded_action": "Trace the dismount-stop acquisition, order/generation invalidation and all three retirement callers. Implement a shared typed restoration contract that preserves newer actor/vehicle authority and original speed; do not restore solely from value equality or erase blocked proof to claim handback. Account for release advancing operation generation before cleanup. Extend the existing shutdown/vehicle regression, then run the full offline pipeline at the coherent runtime checkpoint.",
+  "score": "0.5 retained; no implementation increase",
+  "validation": "No runtime changes or new package. Previous1491-test/full-build/independent candidate remains the latest runtime evidence. Global build-out freshness intentionally still fails unreviewed families.",
+  "limits": "No physical acceptance, provider quiescence/resume, HC/JIP or measured performance. Audits paused."
+}

@@ -130,24 +130,26 @@
           "capability": "All-owner handback integration",
           "weight": 1,
           "built": 0.5,
-          "implemented": "An implemented subset exists; the named remainder is still open.",
-          "remaining_build_gap": "Unresolved task-specific native-command cases remain across the controllers.",
+          "implemented": "Reviewed 2026-10-23 at bf76d203: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature-owned cleanup. Calm restoration separates owned PATH from recall, protects actor tasks, and records blocked group-policy restoration without granting late retry authority. Finite pending receipts are not proof of native handback.",
+          "remaining_build_gap": "Dismount-stop cleanup in CortexReleaseGroup and CortexStop restores matching speed pairs without consulting the separate stop-order proof; CortexVehicles also has a release branch using the pair alone. This needs a shared exact-owner/order restoration contract, not merely metadata clearing. Split locality, ambiguous identical replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
-              "sha256": "95a39d8c554fcc11fb12f476886c621f28109034c8fe99082bc843a91237f85f"
+              "sha256": "d48dfc9770117a4a33e9c816bdeb062298b244be2f455b99bf3388861ecd43b3"
             },
             {
               "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
-              "sha256": "7ab28c03cabdae1045c5d224632db6f664a4772a53fdc8636750bf721a109309"
+              "sha256": "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "bf76d203"
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "fb392dd1 + finite pending posture cleanup",
-      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
+      "reviewed_at": "2026-10-23",
+      "source_commit": "bf76d203 (criterion checkpoints below)",
+      "review_note": "All four declared CORE criteria reassessed at their named checkpoints; scores unchanged. Handback remains partial with newly traced dismount-stop restoration gap. Not physical acceptance or complete Workshop parity."
     },
     {
       "id": "COMPAT",
