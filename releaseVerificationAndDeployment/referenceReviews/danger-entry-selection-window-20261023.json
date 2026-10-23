@@ -1,0 +1,14 @@
+{
+  "baseline": "4517bc96",
+  "finding": "Start_Danger prepends and separately preserves entry; Init selected last48 queue events before reinserting entry only into group submission. Additional native queue arrivals could exclude triggering event from action ranking despite reporting it.",
+  "implementation": "Reserve one selection slot for nonempty entry plus recent47; no-entry cycles retain recent48. pushBackUnique entry before DangerEngineSelect. Existing selector validates priority/expiry/geometry. Submit remains recent10+entry+selected<=12. Runtime and editable graph synchronized.",
+  "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing executable Python window/submission boundary regression extended beyond48 events, no new cases. Initial build failed editable/runtime parity; editor graph corrected, reviewed build passed.",
+  "candidate": ".qa/candidates/danger-entry-selection-window-4517bc96",
+  "fingerprint": "dce0266b88e0abf77a73a3dcac1fdb702f1b73b5ce37b3d4c4fa6bc19fc587dd",
+  "logs": [
+    ".qa/danger-entry-selection-window-build.log",
+    ".qa/danger-entry-selection-window-build-reviewed.log",
+    ".qa/danger-entry-selection-window-independent.log"
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Native queue arrival timing, physical danger response and measured cost unverified. No score/hash renewal. Audits paused."
+}

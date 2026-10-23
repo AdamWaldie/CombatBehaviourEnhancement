@@ -1328,7 +1328,9 @@ class CortexOperations(unittest.TestCase):
         for forbidden in [' doMove ', ' commandMove ', ' doTarget ', ' doFire ', ' forceWeaponFire ', ' reveal ']:
             self.assertNotIn(forbidden,engine_act)
         self.assertIn('_queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]',engine_fsm)
-        self.assertIn('_window=_queue select [((count _queue)-48) max 0,48]',engine_fsm)
+        self.assertIn('_recentLimit=48-([0,1] select (_cbeEntryRecord isNotEqualTo []))',engine_fsm)
+        self.assertIn('_window=_queue select [((count _queue)-_recentLimit) max 0,_recentLimit]',engine_fsm)
+        self.assertLess(engine_fsm.index('_window pushBackUnique _cbeEntryRecord'),engine_fsm.index('_selected=[_window]'))
         self.assertIn('_records=_window select [((count _window)-10) max 0,10]',engine_fsm)
         self.assertIn('_cbeEntryRecord=[_dangerCause,+_dangerPos,_dangerUntil,_dangerCausedBy]',engine_fsm)
         self.assertIn('_records pushBackUnique _cbeEntryRecord',engine_fsm)
@@ -1345,6 +1347,19 @@ class CortexOperations(unittest.TestCase):
             for record in (entry,selected):
                 if record and record not in records:records.append(record)
             return records
+        def select_window(queue,entry):
+            limit=47 if entry else 48
+            recent=queue[-limit:]
+            if entry and entry not in recent:recent.append(entry)
+            return recent
+        burst=[strongest]+[[1,[i,0,0],28,'fire'] for i in range(80)]
+        self.assertNotIn(strongest,burst[-48:])
+        for size in (0,1,47,48,49,81,128):
+            selected_window=select_window(burst[:size],strongest)
+            self.assertIn(strongest,selected_window)
+            self.assertLessEqual(len(selected_window),48)
+        self.assertEqual(select_window(burst,[]),burst[-48:])
+        self.assertIn(strongest,select_window(burst,strongest))
         records=batch(window,current,strongest)
         self.assertIn(current,records);self.assertIn(strongest,records)
         self.assertLessEqual(len(records),12)
