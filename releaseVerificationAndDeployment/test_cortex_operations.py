@@ -2249,6 +2249,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_OperationCancel',medical)
         self.assertIn('CBE_fnc_OperationRelease',medical)
         self.assertIn('private _mayIssueMedical = {',medical)
+        eligible=medical.split('private _actorEligible={',1)[1].split('private _finish = {',1)[0]
+        for guard in ('simulationEnabled _actor','!isObjectHidden _actor','!fleeing _actor',
+                      '(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []'):
+            self.assertIn(guard,eligible)
+        self.assertIn('[_medic] call _actorEligible',medical)
+        self.assertIn('[_casualty] call _actorEligible',medical)
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',medical)
         self.assertIn('if !([_medic,_casualty] call _mayIssueMedical) exitWith {["CANCELLED","EXTERNAL"] call _finish};',medical)
         self.assertLess(medical.index('private _mayIssueMedical = {'),medical.index('_medic doMove getPosATL _casualty'))

@@ -4,7 +4,8 @@
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
  * Purpose: Runs one bounded, owner-local vanilla medical assistance operation for a calm friendly squad.
  * Locality / Authority: Runs only on the group owner and commands only local on-foot AI. It yields to Zeus,
- * player control, active combat movement and any detected specialist medical owner.
+ * player control, active combat movement and any detected specialist medical owner. Fleeing, hidden,
+ * simulation-disabled or ACE-treatment-queued actors cannot be selected or retain active aid commands.
  * Repeat / JIP: The public operation generation and small aid record are rechecked every group tick. A new owner
  * cancels the old operation rather than resuming a stale treatment command. Approach movement has
  * one native doMove owner and is refreshed only after measured no-progress or an empty command.
@@ -28,6 +29,8 @@ if (isNull _group || {!local _group}) exitWith {false};
 private _actorEligible={
     params ["_actor"];
     !isNull _actor && {local _actor} && {!isPlayer _actor} && {isNull remoteControlled _actor}
+        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
 };

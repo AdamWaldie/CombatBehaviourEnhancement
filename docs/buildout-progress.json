@@ -654,12 +654,12 @@
           "capability": "Eligible local medic/patient selection",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Calm/security aid selects a distinct local on-foot medic/patient pair by damage threshold, available medic trait and nearest three-dimensional range. Shared actor eligibility rejects human/external ownership plus fleeing, hidden, simulation-disabled and ACE-treatment-queued actors at admission and continuation. Active clear/garrison/defend or another operation prevents admission.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "bab19fb5f77f341c07c6ff8f2e64103e3b56839750dc70cfae6453b3c7a03159"
+              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
             }
           ]
         },
@@ -667,36 +667,36 @@
           "capability": "Finite approach and native treatment",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "One MEDICAL_AID generation requests native approach or HealSoldier, with vertical treatment-range checks, no-progress cancellation outside treatment range and a finite timeout. Damage below threshold records observed treatment success; stationary treatment does not falsely consume approach-progress recovery. No damage assignment or teleport is used. Native treatment effectiveness and repeated physical flow remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "bab19fb5f77f341c07c6ff8f2e64103e3b56839750dc70cfae6453b3c7a03159"
+              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
             }
           ]
         },
         {
           "capability": "Current-task cancellation and owned release",
           "weight": 1,
-          "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
-          "remaining_build_gap": "",
+          "built": 0.5,
+          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Shared release/cancel restores matching owned policy and retires only the captured operation; a still-live danger context retains its original response expiry. This does not yet cover every authored order replacement.",
+          "remaining_build_gap": "Medical runs before the ordinary authored-order check and does not capture/compare a native waypoint receipt. Complete admission and continuation protection for authored mission travel, including stationary treatment, remains to implement; generic OperationStep is progress tracking, not that receipt guard.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "bab19fb5f77f341c07c6ff8f2e64103e3b56839750dc70cfae6453b3c7a03159"
+              "sha256": "6c33b029b835f4cbb2522ddb757be345a7f0f6d9ad435524706465f6febff618"
             },
             {
               "path": "addons/core/functions/operationRelease.sqf",
-              "sha256": "1b5ddff3de26cae60cdd7cbbfb25b53dd1d9a5e0106625ff5a4ecbdba01e33f6"
+              "sha256": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8"
             }
           ]
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "1546e011 + medical actor availability fix"
     },
     {
       "id": "CONTACT",
