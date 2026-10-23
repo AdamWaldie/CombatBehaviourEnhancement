@@ -8,9 +8,10 @@
  * Original native issue times are observations only; adoption never starts a new grace window.
  * Missing, malformed or mismatched snapshots refuse adoption rather than invent progress.
  * At most8 lanes,2 actors per lane and512 nodes; SAVE is limited to one sample per1.5s
- * on the existing job, changed-only publication. No worker, world query or retry renewal.
+ * on the existing job, including refused samples; changed-only publication. No worker, world query or retry renewal.
  * Arguments: 0 mode STRING SAVE/ADOPT; 1 job HASHMAP empty.
- * Return: BOOL - metadata saved/adopted, not native acknowledgement or physical continuity.
+ * Return: BOOL - latest SAVE result or metadata adopted; throttling retains the prior result.
+ * Never native acknowledgement, valid-current-snapshot proof or physical continuity.
  * Callers: CortexClearBuilding and BuildingOperationStep existing callback tail.
  * Example: ["SAVE",_job] call CBE_fnc_BuildingLaneJournal;
  */
@@ -20,7 +21,7 @@ private _group=_job getOrDefault ["group",grpNull];
 if (isNull _group || {!local _group}) exitWith {false};
 private _phase=_job getOrDefault ["phase","ENTRY"];
 if (!(_phase in ["ENTRY","SWEEP"])) exitWith {_mode == "ADOPT"};
-if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}) exitWith {true};
+if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
 private _result=false;
 isNil {
 _result=call {
@@ -39,6 +40,12 @@ _result=call {
         || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
         || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
         || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {false};
+    // Budget this admitted observation even when its data later refuses. A bad lane
+    // cannot turn every short callback into another complete snapshot validation.
+    if (_mode == "SAVE") then {
+        _job set ["laneJournalAfter",serverTime+1.5];
+        _job set ["laneJournalLastResult",false];
+    };
     private _positions=_job getOrDefault ["positions",[]];
     private _pairs=_job getOrDefault ["pairs",[]];
     private _routes=_job getOrDefault ["pairRoutes",[]];
@@ -169,7 +176,7 @@ _result=call {
     };
     private _journal=[1,_group,+_context,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
         _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]}];
-    _job set ["laneJournalAfter",serverTime+1.5];
+    _job set ["laneJournalLastResult",true];
     if (_snapshot isNotEqualTo _journal) then {_group setVariable ["CBE_Cortex_ClearLanes",_journal,true]};
     true
 };

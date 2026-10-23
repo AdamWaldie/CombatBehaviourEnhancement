@@ -140,5 +140,27 @@
       ".qa/clear-lane-request-age-independent.log"
     ],
     "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED."
+  },
+  "laneRefusalCadence20261024": {
+    "base": "9ebd03c2",
+    "finding": "laneJournalAfter was set only after successful validation; refused data could repeat full snapshot validation on every shorter existing callback. Cadence skip returned true even after a failed prior sample.",
+    "change": "After exact current CLEAR/context/generation/epoch/deadline checks, admitted SAVE consumes original1.5s sampling cadence and sets last result false before data validation. Successful validation sets true. Cadence skip retains last result; ADOPT and native authority unchanged.",
+    "limits": "No movement or retry deadline change, extra worker/world query/publication or broader performance claim. Constant authority preflight remains outside data-sampling cadence. Runtime/replication/p95 measurement unverified; audits PAUSED.",
+    "evidenceHash": "01ae66546a1b348eb01ff487bdd90abb87831712ab2d893cb1a0372760dad400",
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-refusal-cadence-9ebd03c2",
+    "fingerprint": "4606dbd5578655659128a278d2e528c1b010526f726bc21500c810bf610f3bfc",
+    "logs": [
+      ".qa/clear-lane-refusal-cadence-focused.log",
+      ".qa/clear-lane-refusal-cadence-build.log",
+      ".qa/clear-lane-refusal-cadence-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Scores/evidence ledger unrenewed."
   }
 }

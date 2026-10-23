@@ -39,6 +39,11 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertNotIn('serverTime+2',requests)
         self.assertNotIn('serverTime+30',requests)
         self.assertIn('netId _actor in _requestTimes',requests)
+        self.assertEqual(journal.count('_job set ["laneJournalAfter",serverTime+1.5]'),1)
+        self.assertLess(journal.index('"CANCELLED"}) exitWith {false};'),journal.index('_job set ["laneJournalAfter"'))
+        self.assertLess(journal.index('_job set ["laneJournalAfter"'),journal.index('private _positions='))
+        self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)
+        self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
         self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
         refusal=text.split('if (!_laneAdopted) exitWith {',1)[1].split('if !([_job]',1)[0]
         self.assertIn('}] call _commitPreparation',refusal)
