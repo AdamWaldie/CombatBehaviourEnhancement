@@ -227,6 +227,12 @@ if (count _work == 0 && {!_convoy || {isNil {_group getVariable "CBE_Convoy_Bypa
                 ["driverTask",toUpperANSI currentCommand _driver],["operatorTask",toUpperANSI currentCommand _operator]];
             if (_queue) then {
                 _work set ["queueCrossingBinding",+(_queueAgreement get "crossingBinding")];
+                // Original intent is distinct from a temporary ordinary recovery parent.
+                // Native admission remains gated until queue crossing/return is complete.
+                if (_nativeRoute && {(_queueAgreement getOrDefault ["ownerRoute",[]]) isEqualTo _route}) then {
+                    _work set ["queueNativeIntent",[+_route,[_group] call CBE_fnc_DrivingOwnerReceipt,
+                        +(_queueAgreement get "crossingBinding")]];
+                };
                 _work set ["points",+(_queueAgreement get "crossingPath")];
             };
             if (_parentBound) then {

@@ -89,5 +89,23 @@
     ],
     "remaining": "Native admission exclusions remain. Need queue-specific original route provenance through root crossing, NativeRouteReceipt recognition without ordinary recovery parent, exact pending stop/original-goal return cleanup before enabling. Shared metadata match is not a current native command ACK.",
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. No native queue execution delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
+  },
+  "crossingOriginalIntent20261023": {
+    "baseline": "976f5821",
+    "implementation": "Queue bypass journal can capture queueNativeIntent=[full original route,current owner identity,crossing binding] from exact private ownerRoute. NativeRouteReceipt recognises queue-owned PLAN/FOLLOW original intent only with exact group/platform/seats/goal/epoch/issuer, three-field current owner stamp, binding/expiry/journal route and both current native tasks/destinations; rejects simultaneous ordinary recovery/corridor. Does not recurse into queue/route validators or issue commands. Exact identity can outlive live consent/brain cancellation for cleanup only; it neither extends expiry nor authorizes movement.",
+    "source_sha256": {
+      "drivingBypassStep": "f5a7c53d08fe4222bf00e799300d72e4f08da9e19302b3c31e3fd9fff254ff9c",
+      "drivingNativeRouteReceipt": "d3c7ddc033ecdabd1da40d22ceb45e06cc4551587833ed4afb522f0fbfa99d5d"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial build passed; final pass additionally requires typed nonempty owner stamp and removes inappropriate live-brain dependency from cleanup identity. Existing moving queue case extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-crossing-intent-976f5821",
+    "fingerprint": "28201a4d73d940a60a50490e60a230bfcd27204d4a54edded8c23fc20101ff7b",
+    "logs": [
+      ".qa/queue-native-crossing-intent-build.log",
+      ".qa/queue-native-crossing-intent-build-final.log",
+      ".qa/queue-native-crossing-intent-independent.log"
+    ],
+    "remaining": "Capture/recognition infrastructure only: native non-ORDINARY bypass entry guard remains, so normal current protocol cannot yet create a native queue crossing. Integrate acquisition against private consent original route instead of ordinary parent, plus stop/original-goal return pending acknowledgement and exact deadline cleanup before enabling native proposal/consent/auto guards.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue execution or physical cleanup/locality/performance acceptance. Read-only route identity is not a crossing/stop/return grant. No tracker score renewal. Audits paused."
   }
 }

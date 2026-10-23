@@ -334,6 +334,19 @@ class QueueProposalTests(unittest.TestCase):
                       '_cap > 8/3.6','_pathSegmentsValid'):
             self.assertIn(proof,motion)
         self.assertIn('count _crossPoses != count _vehicles',motion)
+        route=(ROOT/'addons/vehicles/functions/drivingNativeRouteReceipt.sqf').read_text(encoding='utf-8')
+        identity=route.split('private _queueIntent=',1)[1].split('if (count _nativeChild > 0 && {count _nativeWork == 0})',1)[0]
+        for proof in ('count _queueRoute != 9','count _queueBinding != 4','count _queueOwner != 3','call CBE_fnc_DrivingOwnerReceipt',
+                      '"driverTask","__MISSING__"','"operatorTask","__MISSING__"',
+                      '"driverCommand",[]','"command",[]','count _nativeWork != 0','count _nativeCorridor != 0'):
+            self.assertIn(proof,identity)
+        self.assertNotIn('_nativeBrain getOrDefault',identity)
+        for forbidden in ('setVariable','doMove','forceSpeed','DrivingQueueReverseCurrent','DrivingRouteReceipt'):
+            self.assertNotIn(forbidden,identity)
+        bypass=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('_work set ["queueNativeIntent"',bypass)
+        self.assertIn('_nativeRoute && {_controller != "ORDINARY"}',bypass)
+
         remote_stop=motion.split('private _pendingStop=false;',1)[1].split('if (_actor isNotEqualTo _original',1)[0]
         self.assertNotIn('expectedDestination',remote_stop)
         self.assertNotIn('_actor select 9',remote_stop)

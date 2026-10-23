@@ -9,6 +9,8 @@
  * A current brain may retain its already admitted vehicle goal through driver death
  * for the finite crew executor. Historical seat fields during this transition grant no
  * movement permission; confirmed replacement seats and original-goal ACK rebind them.
+ * Queue-root path identity requires its separately captured original intent, current owner
+ * and exact native tasks; it grants no crossing/return authority or locality adoption.
  * No crew locality adoption is inferred. Exact ordinary bypass/corridor children may retain the
  * parent route through their approach/crossing phases; this does not grant parent movement or renew its budget.
  * Arguments: 0 group GROUP grpNull.
@@ -77,6 +79,38 @@ private _nativeCorridor=_nativeVehicle getVariable ["CBE_DrivingCorridor_Work",c
 if !(_nativeCorridor isEqualType createHashMap) exitWith {[]};
 if (count _nativeChild > 0 && {count _nativeCorridor > 0}) exitWith {[]};
 if (count _nativeCorridor > 0) then {_nativeChild=_nativeCorridor};
+// A queue root carries its own original native intent; it cannot borrow an
+// ordinary REFRESH/FINAL parent. Identity may outlive consent only for exact
+// issued-command cleanup; this reader never grants movement or extends expiry.
+if (count _nativeChild > 0 && {(_nativeChild getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
+    && {(_nativeChild getOrDefault ["queueNativeIntent",[]]) isNotEqualTo []}) exitWith {
+    private _queueIntent=_nativeChild get "queueNativeIntent";
+    if (!(_queueIntent isEqualType []) || {count _queueIntent != 3}) exitWith {[]};
+    _queueIntent params ["_queueRoute","_queueOwner","_queueBinding"];
+    private _queueUntil=_nativeChild getOrDefault ["deadline",-1];
+    if (count _nativeWork != 0 || {count _nativeCorridor != 0}
+        || {!(_queueRoute isEqualType [])} || {count _queueRoute != 9}
+        || {(_queueRoute select [0,5]) isNotEqualTo ["NATIVE_MOVE",_nativeGroup,_nativeVehicle,_nativeDriver,_nativeOperator]}
+        || {!((_queueRoute select 6) call _nativeVector)}
+        || {(_queueRoute select 7) isNotEqualTo _nativeEpoch} || {(_queueRoute select 8) isNotEqualTo clientOwner}
+        || {!(_queueOwner isEqualType [])} || {count _queueOwner != 3}
+        || {_queueOwner isNotEqualTo ([_nativeGroup] call CBE_fnc_DrivingOwnerReceipt)}
+        || {!(_queueBinding isEqualType [])} || {count _queueBinding != 4}
+        || {!((_queueBinding select 0) isEqualType "")} || {(_queueBinding select 0) == ""}
+        || {!(_queueUntil isEqualType 0)} || {!finite _queueUntil}
+        || {(_queueBinding select 1) isNotEqualTo _queueUntil}
+        || {(_nativeChild getOrDefault ["queueCrossingBinding",[]]) isNotEqualTo _queueBinding}
+        || {(_nativeChild getOrDefault ["route",[]]) isNotEqualTo _queueRoute}
+        || {(_nativeChild getOrDefault ["group",grpNull]) != _nativeGroup}
+        || {(_nativeChild getOrDefault ["driver",objNull]) != _nativeDriver}
+        || {(_nativeChild getOrDefault ["operator",objNull]) != _nativeOperator}
+        || {!((_nativeChild getOrDefault ["phase",""]) in ["PLAN","FOLLOW"])}
+        || {toUpperANSI (_nativeFrame select 0) != (_nativeChild getOrDefault ["driverTask","__MISSING__"])}
+        || {toUpperANSI (_nativeFrame select 2) != (_nativeChild getOrDefault ["operatorTask","__MISSING__"])}
+        || {(_nativeFrame select 1) isNotEqualTo (_nativeChild getOrDefault ["driverCommand",[]])}
+        || {(_nativeFrame select 3) isNotEqualTo (_nativeChild getOrDefault ["command",[]])}) exitWith {[]};
+    +_queueRoute
+};
 if (count _nativeChild > 0 && {count _nativeWork == 0}) exitWith {[]};
 if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
     private _nativeBound=count _nativePrior == 9 && {(_nativePrior select 6) call _nativeVector}
