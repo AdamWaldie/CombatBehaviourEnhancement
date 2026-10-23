@@ -81,5 +81,30 @@
   "audits": "PAUSED",
   "physicalAcceptance": false,
   "performanceMeasured": false,
-  "scoresChanged": false
+  "scoresChanged": false,
+  "grenadeAimRequest20261023": {
+    "baseline": "8d7629a4",
+    "finding": "The existing finite grenade alignment callback issued doWatch every0.25s until its original1.5s expiry. That repeated native write could replace intervening watch instructions even though retries should observe the original request.",
+    "implementation": "Carry one optional consumed aiming bit as field16 of the existing callback payload. Set only when the original admitted doWatch is issued; copied retry arguments retain it. Each retry still rechecks generation/context/authority/fire policy/ammunition and physical body/view alignment under the same original expiry. No new actor variable, handler, timer or watch-clearing write.",
+    "sourceIntent": "Compose a finite native action with current actor work; do not turn an observation retry into repeated ownership acquisition. Existing source-specific fragmentation/smoke selection and safety remain unchanged.",
+    "apiReview": {
+      "url": "https://community.bistudio.com/wiki/glanceAt",
+      "finding": "Primary description makes glance frequency behaviour-dependent; it does not establish an explicit finite lifetime or body-alignment guarantee. No unsupported glanceAt substitution was made."
+    },
+    "hash": "2960e967bb6a1d93803cc2a0a1afa6aba0c347f39e37b9eef1933559347aabc4",
+    "validation": {
+      "fullExistingTests": 1491,
+      "newCases": 0,
+      "build": ".qa/grenade-aim-once-build.log",
+      "independent": ".qa/grenade-aim-once-independent.log",
+      "candidate": ".qa/candidates/grenade-aim-once-8d7629a4",
+      "fingerprint": "2c65c7c1b8aa4b4b2dcb23de65809cd4dd186ad1e0b48a600b6c209e077b22b7",
+      "initialFocusedFinding": "Existing payload end-shape assertion expected fireAllowed as final field; updated to retain both validators plus new consumed bit. Complete full suite passed afterward.",
+      "provenance": "Unsigned dirty development snapshot with unrelated dirt retained; review and handover notes afterward."
+    },
+    "limits": [
+      "No exact previous-watch restore/readback or complete handback is established. This only removes repeated aiming writes.",
+      "Physical grenade alignment/release/ammunition/late native changes and performance remain unverified. Audits paused."
+    ]
+  }
 }

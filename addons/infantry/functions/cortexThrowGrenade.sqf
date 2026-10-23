@@ -9,7 +9,8 @@
  * Grenade types are identified from config, so mod grenades work: smoke is ammo simulation shotSmoke
  * or shotSmokeX; fragmentation is shotGrenade. Chemlights and ACE
  * flashbangs are skipped. The throw muzzle is the "Throw" weapon muzzle that accepts that magazine.
- * The queued throw revalidates ownership and requests target observation. Release requires actual
+ * The queued throw revalidates ownership and requests target observation once per generation.
+ * Alignment retries observe the original request without replaying doWatch or renewing its deadline. Release requires actual
  * body and viewing alignment; an unaligned actor cancels rather than throwing behind contact. A fragmentation grenade is never thrown when a
  * friendly, civilian, captive, surrendering or handcuffed soldier is within max(12 m, four times the selected ammo indirectHitRange) of the target. The thrower
  * must also remain outside that radius; invalid ammo radii are refused. The target cannot be under 8 m or over
@@ -156,7 +157,7 @@ private _thrown = false;
             private _operationGeneration=(group _unit) getVariable ["CBE_OperationGeneration",0];
             private _ownerEpoch=(group _unit) getVariable ["CBE_AIPass_Epoch",0];
             private _release = {
-                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed"];
+                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]];
                 // A newer request supersedes this queued attempt without cancelling its frag token.
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                 private _cancel = {
@@ -222,7 +223,12 @@ private _thrown = false;
                 isNil {
                     if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                     if (time > _expires || {!([_unit,_context] call _contextMatches)}) exitWith {};
-                    _unit doWatch _towards;
+                    // Carry one consumed request bit in this existing callback payload.
+                    // Reissuing watch on every observation could fight a later native watch.
+                    if (!_aimIssued) then {
+                        _unit doWatch _towards;
+                        _this set [16,true];
+                    };
                     _alignAdmitted=true;
                 };
                 if (!_alignAdmitted) exitWith {

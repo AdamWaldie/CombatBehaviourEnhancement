@@ -895,6 +895,13 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('sleep ',danger_smoke)
         self.assertNotIn('waitUntil',danger_smoke)
         throw=source('cortexThrowGrenade')
+        aim=throw.split('private _alignAdmitted=false;',1)[1].split('private _bearing =',1)[0]
+        self.assertIn('["_aimIssued",false,[true]]',throw)
+        self.assertLess(aim.index('if (!_aimIssued)'),aim.index('_unit doWatch _towards'))
+        self.assertLess(aim.index('_unit doWatch _towards'),aim.index('_this set [16,true]'))
+        self.assertIn('[_retry,+_this,0.25]',throw)
+        self.assertEqual(throw.count('_unit doWatch _towards'),1)
+
         queued=throw.split('params ["_unit", "_muzzle", "_magazine"',1)[1]
         for marker in ['CBE_AIPass_DangerSmoke_Enable','CBE_Danger_Generation','CBE_fnc_CortexExternalTakeover']:
             self.assertIn(marker,queued)
@@ -6206,7 +6213,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,policy)
         self.assertLess(callback.index('FIRE_POLICY_OR_FLIGHT_CHANGED'),callback.index('_unit doWatch _towards'))
         self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',text)
-        self.assertIn('"_contextMatches", "_fireAllowed"]',callback)
+        self.assertIn('"_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]]',callback)
 
     def test_retreat_releases_drill_before_capturing_attack_control(self):
         text=source('cortexRetreat')
