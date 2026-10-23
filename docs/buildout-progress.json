@@ -73,7 +73,7 @@
           "capability": "Master/exclusion admission",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Reviewed 2026-10-23 at af03e459: shared eligibility retains living-player, Zeus, declared specialist/external owner, side/faction/class and feature-owner exclusions. FeatureEnabled rejects empty names, non-boolean settings and malformed disable lists; group/vehicle exclusions cannot enable a global false setting. This scoped admission path is wired; not a whole-controller handover claim.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -84,24 +84,28 @@
               "path": "addons/infantry/functions/cortexFeatureEnabled.sqf",
               "sha256": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "af03e459"
         },
         {
           "capability": "Danger and group FSM dispatch",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Reviewed 2026-10-23 at af03e459: group steps require current local group, owner epoch, generation, exact brain identity and live executor; finite danger steps require current owner/generation and retain bounded source identity/expiry. Danger wakes the existing group brain through its throttled start/wake path instead of adding a second tactical movement owner. Detailed action parity and physical response remain separate.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "c87198a2ea54bff928d5eacb0ed394a555b54c18d70838dd9cac877fa763fccf"
+              "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
             },
             {
               "path": "addons/infantry/functions/dangerStep.sqf",
-              "sha256": "c1232fa4bd9b980be360ee0db1f533100e18a522f8de120c71e81e62f163b50c"
+              "sha256": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "af03e459"
         },
         {
           "capability": "Owner epoch and actor reservations",

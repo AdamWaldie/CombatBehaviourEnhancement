@@ -53,5 +53,16 @@
     "candidate": ".qa/candidates/scheduler-hold-only-2a51c419",
     "fingerprint": "1852574c50704bc59cbd1c68a5a222bf17c712b68db4cce17f304a9454180f8f",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No physical shutdown/HC/JIP/cleanup or5%median/10%p95 proof; audits paused."
+  },
+  "corePartialReassessment20261023": {
+    "baseline": "af03e459",
+    "reviewed": [
+      "CORE Master/exclusion admission",
+      "CORE Danger and group FSM dispatch"
+    ],
+    "evidence": "Current eligibility/typed FeatureEnabled and owner/generation/exact-brain/live-FSM gates reviewed; danger-source expiry and existing-brain throttled wake trace retained. Per-criterion dates/commit and source hashes renewed only for these two paths.",
+    "notReviewed": "Larger CortexLocality delta and all-owner release/calm handback remain historical; whole CORE family not renewed. Existing partial all-owner score retained.",
+    "validation": "Reviewed hashes checked; no runtime edit or repeated full build. Global buildout_progress.py --check remains FAIL at cortexSelectAvenue.sqf. Remaining232 references/110unique sources/54families in .qa/buildout-evidence-freshness-20261023-core-partial.json.",
+    "limits": "No score/weight/scope increase, physical acceptance or Workshop parity inferred. Audits paused; missing private master-register backup question still pending."
   }
 }
