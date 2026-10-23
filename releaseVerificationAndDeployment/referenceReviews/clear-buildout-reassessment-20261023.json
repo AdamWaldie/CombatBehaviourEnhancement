@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-23",
+  "sourceCommit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c",
+  "scope": "All nine existing CLEAR build-out capability contracts; source planning assessment only",
+  "reviewMethod": "Read current ownership/admission, actor dispatch, lane replacement/entry/resume, exit progress, door mutation and settings-retirement paths. Unchanged topology/post helpers verified against previous evidence hashes. Selected execution-path evidence replaces incidental generic references; this is not a whole-source-mod or physical review.",
+  "buildUnits": 6,
+  "scopeUnits": 9,
+  "percent": 67,
+  "scoresAndWeightsChanged": false,
+  "otherFamiliesChanged": false,
+  "selectedEvidenceHashesMatch": true,
+  "correctedObsoleteClaims": [
+    "Shutdown-independent clearance settings cleanup now exists with an original finite retry window.",
+    "Exit progress/motion observations and current lane identity now survive their specific resume paths."
+  ],
+  "remainingBuildGaps": [
+    "General incidental through-building routing/access classification.",
+    "Entry/sweep lane cursor/mover/progress and per-actor entryRecovery observations rebuild on resume.",
+    "Complete whole-pair/clearance reinforcement continuity.",
+    "General contact-aware perimeter and relief without redundant reserves.",
+    "Finite post-clear perimeter/consolidation and complete failed-exit handback.",
+    "Ordered snapshots across public clearance journals and unresolved settings after exhausted cleanup."
+  ],
+  "validation": {
+    "scopedLedgerAndReport": true,
+    "allOtherFamilyObjectsAndScopeMetadataUnchanged": true,
+    "wholeLedgerCheck": "EXPECTED FAILURE: existing stale non-CLEAR evidence first reported at addons/infantry/functions/cortexAdvanceStart.sqf",
+    "log": ".qa/clear-buildout-whole-ledger-check.log",
+    "fullBuildRepeated": false,
+    "reason": "Documentation/ledger only; production sources unchanged from the previously validated4c13c3de checkpoint."
+  },
+  "limits": "~67% is current source build-out for the nine declared criteria, not functioning-in-game quality, source parity, release readiness or the whole-mod score. Historical overall report and all other family assessments are not renewed. Physical acceptance/performance remain unverified; audits paused."
+}

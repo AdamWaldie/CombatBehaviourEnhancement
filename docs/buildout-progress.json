@@ -3261,12 +3261,12 @@
           "capability": "Clear task and operation ownership",
           "weight": 1,
           "built": 1,
-          "implemented": "Explicit task dispatch, generation and owner-local operation are wired. Matching episode/transform adoption retains validated casualty-post history as metadata without restoring movement authority.",
+          "implemented": "Explicit owner-local CLEAR admission checks current generation/epoch, original native order, target transform and finite episode. Guarded preparation/startup and readback-confirmed group attack policy are integrated; matching roster history supplies identity rather than command authority.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767"
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStart.sqf",
@@ -3274,211 +3274,205 @@
             },
             {
               "path": "addons/core/functions/operationAttackPolicy.sqf",
-              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
-            },
-            {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "sha256": "1fe710270ccfa5553c2de0a4f6e21ea7e553e72ff3fc6b4e3bd331501b2ea9e1"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Dynamic building topology and access",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Runtime entrances, nodes and bounded selection exist.",
-          "remaining_build_gap": "Reliable classification of inaccessible modded points and general through-building routing remain unfinished.",
+          "implemented": "Runtime native building nodes/exits, floor-aware route ordering, geometry/body exclusions and bounded alternatives are integrated. The current source rejects oversize node sets and records failed attempts separately from physical visits.",
+          "remaining_build_gap": "General incidental through-building route planning and reliable access classification for arbitrary modded interior points are not implemented. Bounded attempts cannot prove an inaccessible node.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearBuilding.sqf",
-              "sha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767"
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
             },
             {
               "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
-              "sha256": "85c33a24032f6219bce8938bfc0b3fadb491d8a4a981bc0a222996a32e3a703e"
+              "sha256": "fbd2ce31fd66cb4e584dd3255e4d9acbf229d1c8f480566356e252d484699653"
             },
             {
-              "path": "addons/core/functions/operationAttackPolicy.sqf",
-              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
-            },
-            {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+              "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Individual native interior movement",
           "weight": 1,
           "built": 1,
-          "implemented": "Finite native movement, command context, progress and cancellation paths are wired.",
+          "implemented": "The two-investigator finite native actor executor has current group/actor admission, disjoint participant checks, original deadlines, native destination observation, one owned alternative and exact cancellation/terminal command bounds. Buddy preference changes selection only.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/indoorActorOperation.sqf",
-              "sha256": "09d65c44e0ce05d3193b6d667cc1fdf4b41b82155e47e03607abf57b31100710"
+              "sha256": "099aa2a9ec984ab6277ee29b0d2965dc69b6bede51841552dd79ca82a3809173"
             },
             {
               "path": "addons/infantry/functions/indoorActorDispatch.sqf",
-              "sha256": "279ed7ba8e386ab98060614419d9ccb57f7853e0d99169ebeb6adc66a2ef90aa"
+              "sha256": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorGroupContext.sqf",
+              "sha256": "b54793a09624972bb1aaf4a929cfdcfed83666049d75cec5fb3a6e5f6a6833e8"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorGroupAvailable.sqf",
+              "sha256": "1e1d95967ba5930f6190b971d13f9f9e0b2ca547e0871e9624c34b9f2767c215"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Buddy and pair flow",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Pair assignment, progress and follow-through paths exist.",
-          "remaining_build_gap": "Coherent concurrent entry and straggler handling still require logic refinement.",
+          "implemented": "Concurrent pair lanes, separate connected entry proposals, actual individual visits, trailing/follow-through roles and bounded partner recovery are wired. True resume now gives matched lane pairs precedence over general buddy metadata.",
+          "remaining_build_gap": "Entry/sweep resume rebuilds lane cursor/mover/progress and does not retain the per-actor entryRecovery observation/retry record. This is a concrete continuity gap beyond the preserved pair identities and room visits.",
           "evidence": [
             {
               "path": "addons/infantry/functions/combatPairs.sqf",
-              "sha256": "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea"
+              "sha256": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+            },
+            {
+              "path": "addons/infantry/functions/combatElementSelect.sqf",
+              "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
             },
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
             },
             {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Casualty replenishment",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Survivor/pair replacement and role safeguards are wired. Bounded candidate and substitute-observer windows rotate through the full current eligible roster; known guard loss can retain an existing relief leg.",
-          "remaining_build_gap": "Whole-pair replacement continuity and relief of failed assaulters remain incomplete.",
+          "implemented": "Casualty promotion uses a rotating candidate window, receiving-buddy/intact-pair preference, failed VIEW-probe fairness and current substitute exit-cover proof. Atomic promotion updates pair/common participants; a surviving interior mover is not rallied outside.",
+          "remaining_build_gap": "Complete whole-pair entry/relief continuity is unfinished: replacement lanes retain fresh-entry requirements while entry/sweep recovery observations rebuild on owner resume. No complete clearance reinforcement operation spans another squad.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
             },
             {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
+              "path": "addons/infantry/functions/combatElementSelect.sqf",
+              "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
             },
             {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "path": "addons/infantry/functions/combatPairsPublish.sqf",
+              "sha256": "7308c4a9f92350d75890ef7fbd4717a34c3a69352b64382e43c4874ae6648b78"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Exterior isolation/security",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Exterior posts, actual exit observation and lane exclusions are wired. Known guard casualties can trigger one reassignment from a duplicated post using existing coverage proof and original allocation budgets. Matching owner adoption retains casualty history; complete admitted post exclusions are checked before planning.",
-          "remaining_build_gap": "General isolation across approaches, uncovered-exit reassessment without redundant reserve cover, and complete security-role relief remain unfinished. Physical normal/HC/repeated-use outcomes remain separate unverified work.",
+          "implemented": "Native exit inventory drives bounded exterior post proposals. Actual settled view/heading proof and lane/body exclusions govern cover credit and casualty promotion. Duplicated posts can provide finite relief of known guard loss.",
+          "remaining_build_gap": "General contact-aware isolation across approaches/window threats and complete relief when no redundant capable reserve/post exists remain unfinished; selected native-exit coverage is not a full perimeter controller.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
               "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
             },
             {
+              "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
+              "sha256": "7745850ad797cf93789ef40a43f1b261b4cd507f6871f4bd988f1fc061e0c284"
+            },
+            {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
-            },
-            {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Egress and consolidation",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Separated exterior assignments, physical exit tracking and bounded allocation retries with owner-adopted budgets are wired.",
-          "remaining_build_gap": "Coherent post-clear security/consolidation and broader straggler flow remain incomplete.",
+          "implemented": "Separated exterior exit slots, floor-aware actual settlement, checkpoint/one-retry logic, pending allocation budgets and exact diversion handling are integrated. Version-four exit journals retain server-time distance/motion evidence across owner transfer. Successful natural clear can continue only an unchanged plain MOVE.",
+          "remaining_build_gap": "Explicit completion remains a one-shot exterior hold; there is no complete finite post-clear perimeter/consolidation phase. Broader straggler and failed-exit handback remain partial.",
           "evidence": [
             {
               "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+            },
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
             },
             {
               "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
               "sha256": "7745850ad797cf93789ef40a43f1b261b4cd507f6871f4bd988f1fc061e0c284"
-            },
-            {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Door handling",
           "weight": 1,
           "built": 1,
-          "implemented": "Production proximity/ownership door handling exists.",
+          "implemented": "Recognised unlocked doors use current operation/route/actor ownership, proximity and absolute floor/visibility checks, with a building cooldown. Native route-door handling uses the current plain MOVE and a rotating actor sample; no lock override or distant opening permission.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
-              "sha256": "eb9c40cd68953638e491c9af68b3750711976fcf94f4cfcb3d29ca7e5e37c01a"
+              "sha256": "fa098c3df91815c62fd454709ed1e712070afb472a96a3d4e970aac1c7e646cb"
             },
             {
               "path": "addons/infantry/functions/cortexRouteDoors.sqf",
-              "sha256": "46bc0be20444f974ab9656d905c3a414480c7ef53117aea95a00ed3c973d540e"
+              "sha256": "5c155e9b78dc2a00d61f4f5b7ff3a4efff7f544c224297a8eca93afd2f05a2af"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         },
         {
           "capability": "Interruption, repeat and handback",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Generation-scoped interruption, exact movement retirement and shared settings-only release with finite existing-brain retries are wired.",
-          "remaining_build_gap": "Complete post-clear security/repeat lifecycle and deferred settings release after brain shutdown or retry expiry remain unfinished.",
+          "implemented": "Generation-scoped interruption preserves newer native tasks and uses exact canonical setting receipts. Settings-only cleanup now survives tactical shutdown through the shared scheduler under its original finite window. Individual investigation terminal commands and exit progress adoption are bounded.",
+          "remaining_build_gap": "A completed ordered snapshot/replay contract across all public clearance journals is absent. Exhausted settings cleanup retains unresolved proof without guaranteed eventual native handback. Complete post-clear/repeat security and full entry/sweep-state transfer remain unfinished.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexClearRelease.sqf",
-              "sha256": "a962efa40ae65b7a96411a8c2a8c96c2a32dcd7009bcaae4dcebe95324f557dc"
-            },
-            {
-              "path": "addons/infantry/functions/buildingOperationStep.sqf",
-              "sha256": "1bb66e9e0eea87ae82164e42f4598b5ddd1a351bacd65d9554817464e957c34b"
+              "sha256": "304c7e07504e2755e6d30b931890cec0f40454ced00e05557b874d3e52285552"
             },
             {
               "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
-              "sha256": "014bd27dab6fd858cb5fa5306fa82eea7daf1e0b5bf92be6aa0aab7cb8b66e69"
+              "sha256": "8474c1ab36b068ac0a3df5edfa02834a215e5ca6752aaa37851b106b66985c28"
             },
             {
-              "path": "addons/core/functions/actorSettings.sqf",
-              "sha256": "87894c2746610120a562b29db56759135ff9fbac245b5c4e3678d159f43f315e"
-            },
-            {
-              "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
-              "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+              "path": "addons/core/functions/actorSettingsCleanupStep.sqf",
+              "sha256": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
         }
       ],
       "confidence": "medium",
-      "reviewed_at": "2026-10-20",
-      "source_commit": "603a6088c5eac70220ba774af43dca515d6719dc",
-      "review_note": "Reconciled changed recovery/admission and clearance role/adoption blocks against the pushed checkpoint. Existing topology, pair-flow and egress portions retain their named gaps. Scores and scope weights unchanged; source hashes refreshed only for reviewed changed files. No physical or source-parity credit."
+      "reviewed_at": "2026-10-23",
+      "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c",
+      "review_note": "Reassessed all nine CLEAR capability contracts and current scoped execution paths. Six of nine equally weighted build units retained (~67%); no score/weight increase from test or commit counts. Fixed implementations replace obsolete gap text, including shutdown-independent settings cleanup and exit progress/pair-identity transfer. Entry/sweep state, post-clear security, ordered snapshots and unresolved native handback remain concrete build gaps. Only CLEAR evidence renewed; no physical acceptance, source-parity or performance credit and no renewal of the historical overall index."
     },
     {
       "id": "UI",
