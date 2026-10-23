@@ -222,7 +222,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-flight-20261021.json",
-      "sha256": "5996fe9129e3ff4fa22964832f26b3b4e703578f51e979a7e83414bb2be63efd",
+      "sha256": "29f7ee2683fdb2a6a4176e6e2562422542d76d0d6824913839e8978ae101ccfb",
       "scope": "Native crew flight ownership in ordinary recovery",
       "sourceFileMentions": [
         "functions/fn_crewHold.sqf"

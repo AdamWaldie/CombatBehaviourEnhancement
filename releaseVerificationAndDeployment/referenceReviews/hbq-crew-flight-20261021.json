@@ -23,5 +23,24 @@
   "limits": [
     "Audits paused; physical crew action timing, actual native fleeing while mounted, repeated episodes and performance remain unverified.",
     "No automatic recall, external-controller quiescence/resume or whole-HBQ parity claim. Protected sources untouched."
-  ]
+  ],
+  "crewRetentionIntentReview20261023": {
+    "baseline": "40fcd9dd",
+    "scope": "Complete protected HBQ crewHold and complete CBE boarding/unload helpers; caller linkage in DrivingAssistStart and ConvoyTick read selectively. Not whole-HBQ validation.",
+    "sourceIntent": "Keep operating crew in a movable vehicle while allowing passengers to dismount. Source mobility loop applies [true,false]; GetOut can force assigned noncargo AI into an empty prior seat after0.5s, capped at3/minute. Once immobile it applies [true,true].",
+    "currentExecution": "CBE native boarding wait observes exact assigned operating seats and actual GET IN, rejects cargo/player/external/fleeing/dormant/medical-reserved actors, and retains original60s deadlines plus12s measured-progress anchors across owner changes. It issues no boarding action. Ordinary and convoy unload leases apply [false,false] while their deliberate dismount logic owns passengers, preserve changed external values and retire unchanged retention on immobilisation; no allowCrewInImmobile mutation.",
+    "disposition": "Retain physical native boarding cooperation, crew/cargo distinction and exact unchanged-policy restoration. Do not copy moveIn seating or infer renewed recall authority solely from assignment. Passenger retention differs intentionally because CBE owns deliberate contact/convoy dismounts; do not equate identical setting intent with complete source behaviour.",
+    "remainingImplementation": "Automatic physical recall of operating crew without an existing GET IN remains absent. A safe executor needs distinguishable task authority and native seating/progress/interrupt/cleanup proof; current assignedVehicle alone cannot identify a deliberate orderGetIn false or later task. Existing wait and unload leases do not satisfy this missing behaviour.",
+    "limits": [
+      "No runtime edit, new worker, forced seating, retry renewal or tuning change.",
+      "No physical re-entry, immobilisation, migration or performance evidence; audits paused.",
+      "Not full crew-retention/HBQ parity and no completion-score increase."
+    ],
+    "sourceSha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+    "implementationSha256": {
+      "addons/vehicles/functions/drivingCrewBoarding.sqf": "a656ff89b0d7aab9189f2100c24be49bfff8e2c9c930e865b99325f3674ec9de",
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "f54d878f84f7b67dc92cf531f500aecb0d04c7036f85a9fa7bac4fd621bda868",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "6a964475751b390475ce857643d5fc04ed24ab427277c5c804efe9d8e199b6d1"
+    }
+  }
 }
