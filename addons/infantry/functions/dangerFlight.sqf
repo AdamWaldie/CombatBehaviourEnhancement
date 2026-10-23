@@ -19,7 +19,9 @@
  * Recent personal contact, physical hazards and suppression never grant that rejoin path.
  * Native rejoin acquires no flight lease; its request is not acknowledgement or travel.
  * Arrival is a position result, not proof of effective cover or renewed morale. Failed exact
- * owned moves return to native formation; ambiguous/newer orders receive no cleanup command.
+ * owned moves return to the saved native subformation while its formation identity remains
+ * unchanged. A dead/departed saved anchor may fall back to the current group leader.
+ * Ambiguous/newer orders receive no cleanup command; leader-self formation return is valid.
  */
 params [["_mode","START",[""]],["_actor",objNull,[objNull]],["_record",[],[[]]]];
 if (isNull _actor || {!(_mode in ["START","RELEASE"])}) exitWith {0};
@@ -88,13 +90,20 @@ if (_mode == "RELEASE") exitWith {
         };
         private _owns=_sameReservation && {_group == _oldGroup} && {call _available}
             && {[ _epoch,_generation,_route] isEqualTo (call _context)}
+            && {formLeader _actor isEqualTo (_before select 2)}
             && {currentCommand _actor == "MOVE"}
             && {((expectedDestination _actor) select 0) vectorDistance _goal <= 0.25}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0};
         private _reason=if (_arrived) then {"AT_COVER_POSITION"} else {"OWNERSHIP_CHANGED"};
-        if (!_arrived && {_owns} && {!isNull leader _group}
-            && {local leader _group} && {[leader _group] call CBE_fnc_CortexCombatEffective}) then {
-            _actor doFollow leader _group;
+        // Return to the formation we temporarily borrowed, not automatically to the
+        // squad leader. A different live formation assignment revokes this old recall.
+        private _returnLeader=_before select 2;
+        if (isNull _returnLeader || {group _returnLeader != _group}
+            || {!([_returnLeader] call CBE_fnc_CortexCombatEffective)}) then {_returnLeader=leader _group};
+        if (!_arrived && {_owns} && {!isNull _returnLeader}
+            && {local _returnLeader} && {group _returnLeader == _group}
+            && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) then {
+            _actor doFollow _returnLeader;
             _reason="NATIVE_RETURN_REQUESTED";
         };
         if (_sameReservation) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};

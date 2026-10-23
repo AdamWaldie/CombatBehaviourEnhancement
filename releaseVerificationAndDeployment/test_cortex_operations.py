@@ -717,6 +717,10 @@ class CortexOperations(unittest.TestCase):
         for guard in ('"CANCEL_PENDING"','_reservation isEqualTo _lease','_destination vectorDistance _target <= 0.25',
                       '_route isEqualTo','CortexExternalTakeover','_issued'):
             self.assertIn(guard,finish if guard != 'CortexExternalTakeover' else point)
+        self.assertIn('serverTime < _deadline+30',finish)
+        self.assertIn('formLeader _actor isEqualTo (_before select 2)',finish)
+        self.assertIn('_actor doFollow _returnLeader',finish)
+        self.assertNotIn('_actor doFollow leader _group',finish)
         for forbidden in ('allDeadMen','nearestObjects','setPos','addBackpack','rearm','reveal '):
             # Ignore documentation: this task never copies inventory or global discovery shortcuts.
             self.assertNotIn(forbidden,re.sub(r'/\*.*?\*/|//[^\n]*','',point,flags=re.S))

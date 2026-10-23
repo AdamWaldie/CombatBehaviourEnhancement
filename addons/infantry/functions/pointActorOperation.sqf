@@ -8,6 +8,9 @@
  * Owner changes cancel rather than replay the task. Newer native/Zeus/specialist orders win.
  * Unacknowledged cancellation retains its public receipt for existing discovery/locality cleanup;
  * no replacement command or renewed deadline is inferred from unchanged pre-issue state.
+ * Exact acknowledged cleanup may return to the saved native subformation only within the
+ * original server deadline plus30s. Changed formation intent yields; late cleanup retires
+ * metadata without a follow command. A dead/departed saved anchor may use the group leader.
  * Arguments: mode STRING START; actor OBJECT objNull; context/brain HASHMAP empty.
  * START context: optional body OBJECT objNull, observed ARRAY (native event position); engine caller supplies cause 5 only.
  * A bounded actual-death identity receipt can corroborate a missing source or detached corpse group.
@@ -94,7 +97,9 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
         _actor setVariable ["CBE_PointActor_Result",[_generation,"CANCEL_PENDING",serverTime,+_target],true];
         false
     };
-    private _owns=_issued && {_oldGroup == _group} && {call _releaseAvailable}
+    private _owns=_issued && {serverTime < _deadline+30}
+        && {_oldGroup == _group} && {call _releaseAvailable}
+        && {formLeader _actor isEqualTo (_before select 2)}
         && {_reservation isEqualTo _lease || {_mode == "TRANSFER" && {_reservation isEqualTo []}}}
         && {_operation == (_group getVariable ["CBE_OperationGeneration",0])}
         && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}
@@ -102,7 +107,11 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
         && {currentCommand _actor in ["MOVE",""]} && {isNull getAttackTarget _actor}
         && {isNull assignedTarget _actor} && {_destination call _vector}
         && {_destination vectorDistance _target <= 0.25};
-    if (_owns && {!isNull leader _group} && {[leader _group] call CBE_fnc_CortexCombatEffective}) then {_actor doFollow leader _group};
+    private _returnLeader=if (_issued) then {_before select 2} else {objNull};
+    if (isNull _returnLeader || {group _returnLeader != _group}
+        || {!([_returnLeader] call CBE_fnc_CortexCombatEffective)}) then {_returnLeader=leader _group};
+    if (_owns && {!isNull _returnLeader} && {group _returnLeader == _group}
+        && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) then {_actor doFollow _returnLeader};
     if (_reservation isEqualTo _lease) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};
     _actor setVariable ["CBE_PointActor_Result",[_generation,_brain getOrDefault ["reason","CANCELLED"],serverTime,+_target],true];
     _actor setVariable ["CBE_PointActor_Order",nil,true];

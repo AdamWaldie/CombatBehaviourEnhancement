@@ -397,5 +397,39 @@
       "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "44cbf1547ef9397c289eeeec51e5d923eab5239d75716312cb7485cdcec00258",
       "addons/vehicles/functions/convoyUnloadPolicy.sqf": "86a995aa187f9042368fc8d9346afc47894189591839b860cac74a4edbfb5160"
     }
+  },
+  "subformationCleanup20261023": {
+    "baseline": "0ef1c2be",
+    "confirmed": "DangerFlight and PointActorOperation save formLeader in the native request frame but their acknowledged cleanup recalled leader group unconditionally. A valid existing native subformation could therefore be flattened to the squad leader. PointActorOperation also lacked the original-deadline cleanup limit already used by flight/indoor work.",
+    "implementation": "Both cleanup ownership predicates now require unchanged saved formation identity. Eligible saved same-group formation anchor receives the existing follow request; dead/departed/ineffective saved anchors may use the current group leader under existing native-leg and actor authority. Changed live formation identity yields rather than being overwritten. Leader-self return remains permitted. Point cleanup commands additionally require serverTime below original deadline+30; pending proof is not turned into late recall authority.",
+    "sourceIntent": "LAMBS doFleeing uses native formation return to avoid a stuck flight cycle. CBE retains that intent and does not import strong stance/forceSpeed resets, group-memory erasure or joinSilent. Preserving pre-existing subformations is a deliberate extension for mission and element cohesion, not a claim that Protocol pairing or physical rejoin is complete.",
+    "primaryReferences": [
+      "https://community.bistudio.com/wiki/doFollow",
+      "https://community.bistudio.com/wiki/formLeader",
+      "https://community.bistudio.com/wiki/doMove"
+    ],
+    "cost": "Constant existing receipt/actor checks, no group scan, world query, network payload, timer or worker. Original request/deadline and native command count unchanged.",
+    "validation": {
+      "existingDangerChecks": 2,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/actor-subformation-build.log",
+      "candidate": ".qa/candidates/actor-subformation-0ef1c2be",
+      "independent": ".qa/actor-subformation-independent.log",
+      "fingerprint": "453f032eb6c893970b109b9ee45a504455088851ffca3ae3ba952c3e35507980"
+    },
+    "limits": [
+      "No native follow acknowledgement or physical formation reunion, owner-transfer timing or performance evidence.",
+      "Indoor investigation still needs a durable original formation receipt before equivalent restoration can be claimed on journal-only cleanup; do not infer this change covers every infantry executor.",
+      "Late point cleanup can retire metadata while a native leg remains; this is a finite command-authority boundary, not guaranteed eventual handback.",
+      "Unsigned dirty development snapshot includes pre-existing unrelated dirt. Review/continuation notes postdate build; no percentage renewal. Audits paused."
+    ],
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "4621696b86c0ef9e151e57ed172fb94ea55a78c4ffdac5fe65bd863e55cbf8c8",
+      "addons/infantry/functions/pointActorOperation.sqf": "47174515cb913ac3b4e7608f28907e986135c20ef048713b4f6fa61c083aab49",
+      "releaseVerificationAndDeployment/test_danger_cover_order_context.py": "7823517a5be1a14e757c153a5e8aab5fd285ea99479895c59c03eb8374116c42",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "0d812138ef3f03176f3944b3c0f3ab0b13d9ef9a8c92561cf678539e0bbdbf1f"
+    }
   }
 }
