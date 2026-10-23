@@ -1,6 +1,6 @@
 # CBE build-out progress
 
-> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. The SCHED section and the CORE section below were separately reassessed on 2026-10-23; the other historical assessments are not renewed. Physical acceptance remains separate.
+> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. The SCHED section and the CORE section below were separately reassessed on 2026-10-23; the other historical assessments are not renewed. Physical acceptance remains separate. WITHDRAW was separately reassessed at `aaf4f5b9`; its unchanged score does not renew any other family or the historical overall index.
 
 Build-out measures implemented capability and integration. Acceptance, physical reliability and performance are separate criteria.
 
@@ -382,13 +382,15 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## WITHDRAW: Damaged vehicle withdrawal
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `aaf4f5b9`; reviewed 2026-10-23; confidence: low.
+
+Scoped withdrawal reassessment only; the whole report remains historical where evidence is stale. The estimate is unchanged at2.5/3 capability units (approximately83%). Physical acceptance is separate.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Damage/threat admission | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexVehicles](../addons/vehicles/functions/cortexVehicles.sqf); [cortexRetreat](../addons/infantry/functions/cortexRetreat.sqf) |
-| Finite native withdrawal and smoke | 1 / 1 | Scoped production path is wired in the referenced implementation. [cortexRetreat](../addons/infantry/functions/cortexRetreat.sqf); [cortexVehicles](../addons/vehicles/functions/cortexVehicles.sqf) |
-| Coordinated withdrawal integration | 0.5 / 1 | An implemented subset exists; the named remainder is still open. Remaining: Complete screened multi-squad withdrawal/rally is unfinished. [cortexRetreat](../addons/infantry/functions/cortexRetreat.sqf) |
+| Damage/threat admission | 1 / 1 | Current vehicle admission requires a locally commanded movable ground platform, known threat within800m, damage>=0.5 or a genuinely armed platform unable to fire, no previous completed withdrawal, an8s retry interval, and no on-foot group members before group movement. Five terrain-screened vehicle escape proposals precede lease/operation admission. This is task admission, not proof of successful escape. [cortexVehicles](../addons/vehicles/functions/cortexVehicles.sqf) |
+| Finite native withdrawal and smoke | 1 / 1 | Vehicle withdrawal admits either its exact generation-owned reverse response or a confirmed temporary waypoint. Shared RETREAT checks the original120s episode before recovery/replanning, measures displacement along the original away-from-threat axis, bounds replans to4, and releases the matching infantry/vehicle operation and lease before regroup. Infantry supporting withdrawal uses one confirmed common attack-policy lease and opportunistic carried/artillery smoke; ownership resume avoids repeating smoke. Neither smoke requests nor route admission prove delivery, protection or physical travel. [cortexRetreat](../addons/infantry/functions/cortexRetreat.sqf); [cortexVehicles](../addons/vehicles/functions/cortexVehicles.sqf); [cortexGroupTick](../addons/infantry/functions/cortexGroupTick.sqf); [operationAttackPolicy](../addons/core/functions/operationAttackPolicy.sqf) |
+| Coordinated withdrawal integration | 0.5 / 1 | Independent group withdrawal, source-aware route selection, finite straggler recovery and common policy/movement retirement are built components. The assault support coordinator is not a multi-squad withdrawal executor; independent episodes do not supply alternating squad cover or a shared rally. Remaining: A shared multi-squad withdrawal/rally lifecycle, complementary escape lanes and alternating cross-squad overwatch remain unimplemented. Physical reliability and the5%/10% performance target are separate unverified criteria. [cortexRetreat](../addons/infantry/functions/cortexRetreat.sqf); [cortexGroupTick](../addons/infantry/functions/cortexGroupTick.sqf) |
 
 Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
 
