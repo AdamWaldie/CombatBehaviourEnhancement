@@ -60,5 +60,11 @@
       "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb"
     },
     "validation": "Read-only source reconciliation. Runtime unchanged; reuse exact clearance-pace-dab5d3e3 candidate, no repeat full build or audit. No whole-HBQ parity/percentage claim."
+  },
+  "currentReconciliation20261023": {
+    "baseline": "01e25ab2",
+    "superseded": "Historical native queue exclusion is now removed through existing DEFAULT-OFF initiation; see native-queue-execution-boundary-20261023.json nativeAdmission20261023. Actual owner private original route and two-seat return ACK are implemented, not physically accepted.",
+    "confirmedRemaining": "Native passing remains authored-only. Current PassFinish also lacks deferred stop/return acknowledgement for authored passing; full current authority recheck corrected in pass-recall-authority candidate. Refer hbq-pass-recall-authority-20261023.json. Terrain-relative versus deck-support observation remains a separate confirmed source-method difference in hbq-curved-observation-20261016.json gradeDeckReview.",
+    "limits": "Selective reconciliation, not complete renewed HBQ review, whole-mod percentage or physical proof. No blanket hash renewal."
   }
 }

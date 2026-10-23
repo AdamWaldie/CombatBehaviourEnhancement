@@ -392,6 +392,11 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertNotIn('forceSpeed',s)
         self.assertNotIn('setVelocity',s)
+        owned=s.split('private _owned={',1)[1].split('\nisNil {',1)[0]
+        self.assertIn('_brain=_group getVariable',owned)
+        self.assertIn('getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work',owned)
+        recall=s.split('doStop _driver',1)[1].split('if ((_vehicle getVariable',1)[0]
+        self.assertLess(recall.index('if (_resume && {call _owned})'),recall.index('_driver doFollow'))
     def test_passing_uses_existing_fsm_and_suppresses_other_recovery(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('call CBE_fnc_DrivingPassStep',assist)

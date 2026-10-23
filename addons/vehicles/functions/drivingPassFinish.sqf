@@ -7,6 +7,8 @@
  * Locality/authority: Vehicle/group owner. Current epoch, brain generation, both seats and
  * destinations, live simulation, external controller/Zeus state and the unchanged authored route
  * protect every stop/handback; detectable newer orders/controllers survive.
+ * Full original work/brain/task/Zeus proof is re-read after stop before route recall.
+ * This does not establish physical STOP or return acknowledgement; deferred pass handback remains required.
  * Observed STOP events veto command cleanup. Whether a repeated identical STOP emits that
  * group event remains an engine-level interruption test requirement. A newer authored route
  * retires metadata/consent only: cleanup never inserts a formation-follow fallback.
@@ -35,10 +37,12 @@ private _actorFree={params ["_actor"];local _actor && {!fleeing _actor} && {!isP
     && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
     && {currentCommand _actor in ["","MOVE","WAIT","STOP"]}};
 private _owned={
+    _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
     _stop=_vehicle getVariable ["CBE_DrivingPass_Interrupted",[]];
     private _interrupted=_stop isEqualType [] && {count _stop == 5}
         && {(_stop select [0,3]) isEqualTo [_work get "token",_work get "epoch",_work get "generation"]};
     !(_work getOrDefault ["interrupted",false]) && {!_interrupted} && {local _vehicle} && {local _group} && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work}
     && {(_work get "generation") == (_brain getOrDefault ["generation",-1])}
     && {driver _vehicle == _driver} && {(effectiveCommander _vehicle) in [_operator,objNull]}
     && {[_driver] call _actorFree} && {[_operator] call _actorFree}
@@ -57,9 +61,9 @@ isNil {
 if (call _owned && {_work get "issued"}) then {
     [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
     doStop _driver;if (_operator != _driver) then {doStop _operator};
-    if (_resume && {local _vehicle} && {local _group} && {driver _vehicle == _driver}
-        && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
-        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+    // A stop request is not a waiver of actor/task/Zeus or successor-work authority.
+    // Re-read the whole original receipt before follow/route recall as well.
+    if (_resume && {call _owned}) then {
         if (_driver != _operator) then {_driver doFollow _operator};
         if (([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo (_work get "route")) then {
             _operator doMove waypointPosition [_group,currentWaypoint _group];
