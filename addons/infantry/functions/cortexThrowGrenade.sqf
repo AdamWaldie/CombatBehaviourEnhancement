@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * FIREWEAPON and native fleeing gate all throws; fragmentation additionally retains current
+ * group and individual YELLOW/RED fire permission at admission and every queued callback.
  * Admission, queue commitment and every delayed aim/release retry yield to hidden or
  * simulation-disabled actors and queued medical treatment; no queue or deadline is changed.
  * Makes one soldier throw a smoke or fragmentation grenade he is carrying, towards a position.
@@ -55,6 +57,15 @@ if (!([_unit] call CBE_fnc_CortexCombatEffective)
     || {[_unit] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 _kind=toUpperANSI _kind;
 if (!(_kind in ["SMOKE","FRAG"]) || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {false};
+// Carry this stateless policy with the callback, rather than borrowing caller locals later.
+// Smoke does not acquire lethal fire permission; it still respects explicit weapon disable.
+private _fireAllowed={
+    params ["_actor","_type"];
+    _actor checkAIFeature "FIREWEAPON" && {!fleeing _actor}
+        && {_type != "FRAG" || {unitCombatMode _actor in ["YELLOW","RED"]
+            && {combatMode group _actor in ["YELLOW","RED"]}}}
+};
+if !([_unit,_kind] call _fireAllowed) exitWith {false};
 // Explicit finite callers must not adopt a replacement drill discovered during selection.
 // This local validator travels with queued callbacks; it captures no expired caller locals.
 private _contextMatches={
@@ -132,6 +143,7 @@ private _thrown = false;
                 || {!simulationEnabled _unit} || {isObjectHidden _unit}
                 || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                 || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+                || {!([_unit,_kind] call _fireAllowed)}
                 || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {};
             private _muzzle = _muzzles select _muzzleIndex;
             // A throw leaves along the unit's current facing. Do not alter facing until the queued
@@ -144,7 +156,7 @@ private _thrown = false;
             private _operationGeneration=(group _unit) getVariable ["CBE_OperationGeneration",0];
             private _ownerEpoch=(group _unit) getVariable ["CBE_AIPass_Epoch",0];
             private _release = {
-                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches"];
+                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed"];
                 // A newer request supersedes this queued attempt without cancelling its frag token.
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                 private _cancel = {
@@ -155,6 +167,7 @@ private _thrown = false;
                     };
                 };
                 if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
+                if !([_unit,_kind] call _fireAllowed) exitWith {["FIRE_POLICY_OR_FLIGHT_CHANGED"] call _cancel};
                 if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
                 if (!simulationEnabled _unit || {isObjectHidden _unit}
                     || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {
@@ -337,7 +350,7 @@ private _thrown = false;
                 };
                 };
             };
-            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch,_contextMatches]] call CBA_fnc_execNextFrame;
+            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame;
             _thrown = true;
             };
         };

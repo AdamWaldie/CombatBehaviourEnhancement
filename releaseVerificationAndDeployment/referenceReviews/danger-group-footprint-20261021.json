@@ -276,5 +276,19 @@
       ".qa/grenade-owned-path-handover-independent.log"
     ],
     "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Physical grenade escape, authored PATH/refused restoration, fleeing native response and support/CQB repeat handover/HC/JIP/performance unverified. Audits paused; no percentage/parity or automatic-success claim."
+  },
+  "grenadeNativeFirePolicy20261023": {
+    "baseline": "d0c77a25",
+    "finding": "ThrowGrenade had actor/medical/epoch/native-service/Zeus checks but no explicit FIREWEAPON or native-fleeing gate, and a queued fragmentation throw did not retain current individual/group hold-fire policy. Earlier tactical admission could not cover later0.25s aim callbacks.",
+    "implementation": "Stateless explicitly transported policy checks FIREWEAPON and native fleeing for both kinds at selection, atomic queue commit and each delayed callback before facing/release. FRAG additionally requires both unitCombatMode and group combatMode YELLOW/RED. SMOKE retains separate non-lethal policy. Existing cancellation token allows assault to continue without refused frag. No added function/controller/worker/setting/scan/deadline. Current callbacks are CBA unscheduled; no invented intra-callback suspension guard added.",
+    "validation": "1491 existing tests/full reviewed offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing grenade and callback-context regressions updated; no new cases. Initial build failed old callback argument-shape assertion; extended expected payload retains original context plus explicit fire policy.",
+    "candidate": ".qa/candidates/grenade-native-fire-policy-d0c77a25",
+    "fingerprint": "15e21ef61cce3df2bb819182f7dce72916c45401bb413115ca9de7cf2e032e65",
+    "logs": [
+      ".qa/grenade-native-fire-policy-build.log",
+      ".qa/grenade-native-fire-policy-build-reviewed.log",
+      ".qa/grenade-native-fire-policy-independent.log"
+    ],
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Native release after already accepted forceWeaponFire, physical hold-fire/flight transitions, repeated assault continuation, HC/JIP and performance unverified. No projectile cancellation/control claim, complete parity or percentage increase. Audits paused."
   }
 }

@@ -663,7 +663,7 @@ class DrillThrowContextTests(unittest.TestCase):
         admission=source.split('if (_muzzleIndex >= 0) then {',1)[1]
         self.assertLess(admission.index('isNil {'),admission.index('CBE_Cortex_ThrowGeneration'))
         self.assertLess(admission.index('call _contextMatches'),admission.index('private _throwGeneration='))
-        self.assertIn('_ownerEpoch,_contextMatches]] call CBA_fnc_execNextFrame',source)
+        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',source)
         self.assertEqual(source.count('if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};'),2)
         self.assertIn('CBE_AIPass_CoordinatedAssault_Enable',helper)
         self.assertIn('CBE_fnc_CortexFeatureEnabled',helper)

@@ -6151,6 +6151,14 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,callback)
         self.assertLess(callback.index('CBE_AIPass_ZeusHold'),callback.index('forceWeaponFire'))
         self.assertLess(callback.index('!= _drillToken'),callback.index('forceWeaponFire'))
+        policy=text.split('private _fireAllowed=',1)[1].split('if !([_unit,_kind] call _fireAllowed)',1)[0]
+        for guard in ('checkAIFeature "FIREWEAPON"','!fleeing _actor',
+                      '_type != "FRAG"','unitCombatMode _actor in ["YELLOW","RED"]',
+                      'combatMode group _actor in ["YELLOW","RED"]'):
+            self.assertIn(guard,policy)
+        self.assertLess(callback.index('FIRE_POLICY_OR_FLIGHT_CHANGED'),callback.index('_unit doWatch _towards'))
+        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',text)
+        self.assertIn('"_contextMatches", "_fireAllowed"]',callback)
 
     def test_retreat_releases_drill_before_capturing_attack_control(self):
         text=source('cortexRetreat')
