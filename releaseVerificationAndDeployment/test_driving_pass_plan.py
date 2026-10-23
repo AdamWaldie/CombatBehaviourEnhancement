@@ -290,6 +290,11 @@ class DrivingPassPlanTests(unittest.TestCase):
         for forbidden in ('forceSpeed','doMove','doStop','setDriveOnPath','addMissionEventHandler','spawn','waitUntil'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         owner=(ROOT/'addons/vehicles/functions/drivingPassAgreementOwner.sqf').read_text(encoding='utf-8')
+        self.assertLess(owner.index('in ["REFUSED","RELEASED"]'),owner.index('call CBE_fnc_DrivingPassContext'))
+        self.assertIn('isEqualTo _receipt',owner)
+        self.assertIn('[_install,_pending] call _scheduleExpiry',owner)
+        self.assertIn('_old isEqualTo _pending || {_old isEqualTo _agreed}',owner)
+        self.assertIn('[_owned,[_token,_context,_deadline,_expires,"AGREED"]] call _scheduleExpiry',owner)
         self.assertIn('(_request select 2) != _serial',owner)
         self.assertIn('(_request select 0) isNotEqualTo _context',owner)
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
