@@ -328,6 +328,9 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                         ["aircraft",_vehicle],
                         ["missile",_missile],
                         ["projectileKnown",!isNull _missile],
+                        // The twelve-sample nominal maximum is also an original time budget.
+                        // A paused/delayed callback cannot restart this warning on resume.
+                        ["expiresAt",serverTime+(12*(0.45+0.18))],
                         ["generation",_generation],
                         ["side",_side],
                         ["step",0],

@@ -9271,6 +9271,15 @@ class CortexOperations(unittest.TestCase):
                             '_step >= 12',
                             '_aircraft setVelocityModelSpace _candidate']:
             self.assertIn(requirement,defence)
+        self.assertIn('["expiresAt",serverTime+(12*(0.45+0.18))]',discover)
+        expiry=defence.index('private _expiresAt=_state getOrDefault ["expiresAt",-1];')
+        for effect in ('call CBE_fnc_FlightLeaseAcquire','call CBE_fnc_CortexFireCountermeasure',
+                       '_aircraft setVelocityModelSpace _candidate'):
+            self.assertLess(expiry,defence.index(effect))
+        self.assertIn('serverTime >= _expiresAt',defence)
+        self.assertIn('!finite _expiresAt',defence)
+        self.assertIn('"WARNING_EXPIRED"',defence)
+        self.assertNotIn('_state set ["expiresAt"',defence)
         self.assertNotIn(' spawn ',discover)
         self.assertNotIn(' sleep ',discover)
         stop=source('cortexStop')
