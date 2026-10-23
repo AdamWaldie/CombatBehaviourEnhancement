@@ -1583,6 +1583,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('Failed physical attempts are not retried until a later contact',support)
         self.assertIn('if (_potential) exitWith {',support)
         self.assertIn('[_episode,time+3]',support)
+        admission=support.split('private _candidates=',1)[1].split('if (_candidates isEqualTo [])',1)[0]
+        active=support.split('if (count _lease >= 7) exitWith',1)[1].split('if (_leaseEpisode',1)[0]
+        release=support.split('private _release=',1)[1].split('// Both contact',1)[0]
+        for marker in ('simulationEnabled _x','!isObjectHidden _x','!fleeing _x'):
+            self.assertIn(marker,admission)
+        for marker in ('fleeing _actor','simulationEnabled _actor','isObjectHidden _actor'):
+            self.assertIn(marker,active)
+            self.assertIn(marker,release)
         self.assertNotIn('moveInGunner',support)
         self.assertNotIn('setPos',support)
         self.assertNotIn('allowDamage',support)
@@ -1626,6 +1634,15 @@ class CortexOperations(unittest.TestCase):
             'removeEventHandler ["WeaponDisassembled",_handler]'
         ]:
             self.assertIn(marker,deploy)
+        unavailable=deploy.split('private _participantUnavailable=',1)[1].split('if (_participantUnavailable',1)[0]
+        recall=deploy.split('private _canReleaseActor=',1)[1].split('private _cleanupAssemblyHolder=',1)[0]
+        for marker in ('fleeing _actor','simulationEnabled _actor','isObjectHidden _actor'):
+            self.assertIn(marker,unavailable)
+            self.assertIn(marker,recall)
+        for event in ('WeaponAssembled','WeaponDisassembled'):
+            callback=deploy.split('addEventHandler ["'+event+'",',1)[1].split('}];',1)[0]
+            for marker in ('!fleeing _actor','simulationEnabled _actor','!isObjectHidden _actor'):
+                self.assertIn(marker,callback)
         self.assertIn('call CBE_fnc_CortexStaticDeployStep',support)
 
         selection=deploy.split('private _firstPrimaryIndex=',1)[1].split('if (_gunnerIndex < 0) exitWith',1)[0]

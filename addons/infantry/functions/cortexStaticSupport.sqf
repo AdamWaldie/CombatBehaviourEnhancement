@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight, hidden actors and simulation dormancy veto recruitment and native commands.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -49,6 +50,7 @@ private _release={
         if (!_external && {!_protectedTask} && {!_newMove} && {!isNull _actor} && {alive _actor} && {local _actor}
             && {!isPlayer _actor} && {group _actor == _group}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!isNull _weapon} && {assignedVehicle _actor == _weapon}) then {
@@ -94,7 +96,8 @@ if (count _lease >= 7) exitWith {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
             || {_actor in (_operation getOrDefault ["participants",[]])}
     };
-    if (_operationConflict || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
+    if (_operationConflict || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
+        || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
         || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
         [true] call _release;
         "YIELDED"
@@ -165,6 +168,7 @@ _rankedWeapons sort true;
 private _weapon=(_rankedWeapons select 0) select 1;
 private _candidates=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {_x != leader _group}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
         && {[_x] call CBE_fnc_CortexCombatEffective}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {vehicle _x == _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}

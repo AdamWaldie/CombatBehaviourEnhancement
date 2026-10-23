@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight, hidden actors and simulation dormancy veto equipment/movement writes,
+ * including late assembly callbacks. Retirement never recalls those actors.
  * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
  * original carrier a finite chance to occupy the real gunner seat. A one-part record uses the
  * carrier in both legacy actor slots but issues each action only once; no second soldier is reserved.
@@ -65,7 +67,8 @@ private _clearActor={
 private _canReleaseActor={
     params ["_actor"];
     if (isNull _actor || {!alive _actor} || {!local _actor} || {isPlayer _actor}
-        || {group _actor != _group} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+        || {group _actor != _group} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+        || {fleeing _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
         || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {[_actor] call CBE_fnc_CompatibilityExternalControl}
         || {_actor in _operationActors}) exitWith {false};
@@ -229,6 +232,7 @@ if (count _record >= 10) exitWith {
             || {_status == "MOUNTING" && {_actor == _gunner} && {_command == "GET IN"}
                 && {!isNull _weapon} && {assignedVehicle _actor == _weapon}};
         !([_actor] call CBE_fnc_CortexCombatEffective)
+            || {fleeing _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
             || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
             || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo [] && {!([_actor] call _ownsActorMove)}}
             || {!_ownedAction && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}
@@ -367,6 +371,7 @@ if (count _record >= 10) exitWith {
                                 _actor getVariable ["CBE_Cortex_ActorMove",[]]]}
                         && {(_current param [19,[],[[]]]) isEqualTo [clientOwner,_owner getVariable ["CBE_AIPass_Epoch",0]]}
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
+                        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
                         && {!(_actor in ((_owner getVariable ["CBE_Operation",createHashMap]) getOrDefault ["participants",[]]))}
                         && {count _current >= 13} && {(_current select 12) == _thisEventHandler}
                         && {(_current select 1) == "ASSEMBLING"}
@@ -460,6 +465,7 @@ if (count _record >= 10) exitWith {
             && {_gunner distance _supportAnchor > 3.5} && {_gunner distance _supportAnchor <= 10}
             && {time < _deadline} && {!(_record param [16,false,[false]])}
             && {[_gunner] call CBE_fnc_CortexCombatEffective}
+            && {simulationEnabled _gunner} && {!isObjectHidden _gunner} && {!fleeing _gunner}
             && {vehicle _gunner == _gunner} && {backpack _gunner == _gunnerBag}
             && {currentCommand _gunner in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
             && {_actorMove isEqualTo ["STATIC_DEPLOY",_deployPos,_deadline]}) then {
@@ -655,7 +661,9 @@ if (count _record >= 10) exitWith {
                         && {[_actor,true] call _taskFree}
                         && {(_current param [28,false,[true]]) || {[_assistant,false] call _taskFree}}
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
+                        && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
                         && {[_assistant] call CBE_fnc_CortexCombatEffective}
+                        && {simulationEnabled _assistant} && {!isObjectHidden _assistant} && {!fleeing _assistant}
                         && {group _actor == _owner} && {group _assistant == _owner}
                         && {(_current param [19,[],[[]]]) isEqualTo [clientOwner,_owner getVariable ["CBE_AIPass_Epoch",0]]}
                         && {private _newActors=(_owner getVariable ["CBE_Operation",createHashMap]) getOrDefault ["participants",[]];
@@ -736,6 +744,7 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"I
 private _ready=((units _group) select [0,64]) select {
     alive _x && {local _x} && {!isPlayer _x} && {vehicle _x == _x}
         && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
