@@ -51,5 +51,21 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "audits": "PAUSED",
-  "scoresChanged": false
+  "scoresChanged": false,
+  "followup20261023": {
+    "scope": "Focused dismount and same-group ground leadership comparison, not a new whole-source review.",
+    "verifiedSource": "functions/fn_navy_seal.sqf SHA256 4d706d5f31e18b08356a6e55777f77e2b64635a17ae6d64c393700ce9c99e363",
+    "sourceExecution": "Lines406-475 request exit, then repeatedly force moveOut and lockCargo. Lines487-523 obtain foot survivors, reset posture and replace a driver group leader with a foot soldier before forcing combat/speed/formation. This intends an independent fighting ground element rather than infantry regrouping on the driver.",
+    "implemented": "CBE87b71585 observes physical detach, retains original cargo membership, admits bounded finite foot moves through RecoveryStep and owns exact request/cleanup receipts. Original expiry, owner and newer-order vetoes remain. This replaces immediate mounted doMove and unsafe forced exit, not the entire naval source intent.",
+    "deliberateDepartures": [
+      "No forced moveOut, cargo lock or permanent WEDGE/RED/FULL override.",
+      "No unconditional selectLeader: mission leader selection must remain authoritative.",
+      "No duplicate persistent naval infantry controller; existing group scheduler and operation executor remain responsible."
+    ],
+    "materialGap": "Same-group crew/infantry ground command separation remains unresolved. Per-actor egress does not establish a ground-element leader or prove that native formation and later group operations will not pull foot actors back toward a boat leader. Do not count individual arrival as landing-to-ground combat parity. A scoped semantic ground-element handover needs design and implementation, preserving authored group/leader intent, casualties and owner migration; do not add an unowned selectLeader patch.",
+    "evidence": "Latest product candidate .qa/candidates/naval-egress-f64c886c independently verified54461f74d640f1f325d0b4217065c50d2d382814f0e0a1edab3f0f17deb283c9;1491 offline tests/410SQF/9PBOs. No physical or performance claim.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  }
 }
