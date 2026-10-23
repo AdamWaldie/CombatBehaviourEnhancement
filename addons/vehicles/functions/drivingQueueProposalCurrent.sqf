@@ -83,6 +83,9 @@ for "_i" from 0 to (_n-1) do {
         _localCount=_localCount+1;
         private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
         if (count _consent > 0 && {(_consent getOrDefault ["context",[]]) isEqualTo _context}) then {
+            // Shared native identity cannot substitute for this owner's full original route.
+            if ((_consent getOrDefault ["ownerRoute",[]]) isNotEqualTo
+                ([_group] call CBE_fnc_DrivingRouteReceipt)) exitWith {_valid=false};
             private _orders=_consent getOrDefault ["ownerOrders",[]];
             if (!(_orders isEqualType []) || {count _orders != 2}
                 || {_orders findIf {!(_x isEqualType []) || {count _x != 3}

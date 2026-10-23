@@ -456,7 +456,7 @@ if (_mode == "VERIFY") exitWith {
         } < 0;
         {_x setVariable ["CBE_DrivingQueue_Consent",createHashMapFromArray [["token",_token],
             ["serial",_serial],["vehicles",_vehicles],["roles",_roles],["dependencies",_dependencies],
-            ["context",_context],["rearRequirements",_rearRequirements],["deadline",_deadline],["expires",_expires],["phase","PENDING"],
+            ["context",_context],["ownerRoute",[group driver _x] call CBE_fnc_DrivingRouteReceipt],["rearRequirements",_rearRequirements],["deadline",_deadline],["expires",_expires],["phase","PENDING"],
             ["ownerOrders",[driver _x,effectiveCommander _x] apply {
                 [_x,currentCommand _x,+(expectedDestination _x)]
             }]]]} forEach _owned;

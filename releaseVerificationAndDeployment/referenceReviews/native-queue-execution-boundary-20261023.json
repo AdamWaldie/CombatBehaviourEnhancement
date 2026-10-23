@@ -57,5 +57,23 @@
     "Maintain no second worker, no mission waypoint creation/deletion, no crew reassignment, no physics shortcut; one original jam attempt/budget survives cancellation and owner changes.",
     "Validate ordinary authored queues unchanged and native queues through owner loss, split crew locality, refusal, explicit cancellation, blocked geometry and original-goal handback. Physical acceptance remains paused."
   ],
-  "limits": "Read-only bounded source trace; no runtime changes, new tests or unchanged full build. Several broad command outputs were truncated; this is a boundary trace, not a full implementation or whole-HBQ review. Last runtime candidate remains actor-eligibility-roster-cost-74cd0c54. No percentage/acceptance claim."
+  "limits": "Read-only bounded source trace; no runtime changes, new tests or unchanged full build. Several broad command outputs were truncated; this is a boundary trace, not a full implementation or whole-HBQ review. Last runtime candidate remains actor-eligibility-roster-cost-74cd0c54. No percentage/acceptance claim.",
+  "identityFoundation20261023": {
+    "baseline": "3b4781dd",
+    "implementation": "Shared QueueContext native identity is[NATIVE_MOVE,group,platform,driver,operator,owner,epoch,generation], without native destination read. Authored routes retain existing receipt. Actual owner consent captures separate full ownerRoute before ACK and stationary proposal checks require exact route match alongside ownerOrders. Same consent map handles exact release/expiry, no extra marker/worker/timer/function.",
+    "source_sha256": {
+      "drivingQueueContext": "78c885e026017854a2905ae010bfcffd1c918464d186fb373058940e09080545",
+      "drivingQueueAgreementOwner": "f0b0db0aa61b561d596c7990b3b89ba8d7fd784e2972710530f148c7320b3731",
+      "drivingQueueProposalCurrent": "5b60c910fc317b6b62dc702ddf7417cf3b16a0781d9d102c0c4e110985382191"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing canonical context regression extended to check private route capture/consumption and retained native admission refusal. No new cases.",
+    "candidate": ".qa/candidates/queue-native-identity-foundation-3b4781dd",
+    "fingerprint": "b59322a2fad90b96e2eef32a5120280a47aacb55dae7da59f4009cb2e4b18143",
+    "logs": [
+      ".qa/queue-native-identity-foundation-build.log",
+      ".qa/queue-native-identity-foundation-independent.log"
+    ],
+    "remaining": "Native admission guards deliberately retained. Moving-phase canonical/native route matching, root crossing provenance without ordinary recovery parent, native route-reader recognition and original-goal pending handback still required before enabling. Shared native tag is only a candidate no-waypoint intent identity, not proof of actual native MOVE or live executor. Actual owner must establish both.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue movement delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
+  }
 }

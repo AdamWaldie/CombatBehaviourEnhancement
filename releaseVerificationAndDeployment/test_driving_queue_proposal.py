@@ -34,6 +34,15 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DrivingOwnerReceipt',body)
         self.assertIn('if (!_receiptsReady) exitWith {[]}',body)
         self.assertIn('call CBE_fnc_DrivingRouteReceipt',body)
+        self.assertIn('["NATIVE_MOVE",_group,_platform,driver _platform,_operator',body)
+        self.assertIn('_identity select 0,_identity select 1,_identity select 2',body)
+        self.assertNotIn('expectedDestination',body)
+        self.assertIn('["ownerRoute",[group driver _x] call CBE_fnc_DrivingRouteReceipt]',owner)
+        current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
+        self.assertIn('getOrDefault ["ownerRoute",[]]) isNotEqualTo',current)
+        gate=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text(encoding='utf-8')
+        self.assertIn('== "NATIVE_MOVE") exitWith {false}',gate)
+
         self.assertIn('getPosWorld _x,vectorDir _x,vectorUp _x',body)
         self.assertIn('+(vehicleMoveInfo _x)',body)
         for command in ('setVariable','doMove','forceSpeed','remoteExec'):
