@@ -107,7 +107,7 @@
  * - CBE_AIPass_VehicleJink_Enable (MISSION MAKER): One short terrain-checked escape for an intact crewed fighting vehicle under close or severe danger. Default true.
  * - CBE_AIPass_CoverValidation_Enable (MISSION MAKER): Bounded footprint, slope and geometry validation for cover candidates. Default true.
  * - CBE_AIPass_Danger_Enable (MISSION MAKER): Enables CBE's bounded local danger reflex and tactical group handoff. Disabled means the configured FSM exits without issuing CBE commands. Default true.
- * - CBE_AIPass_DangerEvasion_Enable (MISSION MAKER): Enables finite native prone evasion; committed movement and external/native tasks yield. Default true.
+ * - CBE_AIPass_DangerEvasion_Enable (MISSION MAKER): Enables finite native prone/upright evasion; committed movement and external/native tasks yield. Default true.
  * - CBE_AIPass_DangerObservation_Enable (MISSION MAKER): Enables position-only body/scream glances for idle infantry. Requires danger response. Default true.
  * - CBE_AIPass_DangerConcealment_Enable (MISSION MAKER): Allows visual screening fallback after failed solid cover. Default true.
  * - CBE_AIPass_DangerSmoke_Enable (MISSION MAKER): Allows one carried smoke screen during severe finite danger without holding the current operation. Default true.
@@ -395,7 +395,7 @@ createHashMapFromArray [
         ["CBE_Convoy_ContactHalt_Enable", true], // Automatic ambush halt using push-through and pinned rules. Route arrival and explicit stop remain available.
         ["CBE_Convoy_Unload_Enable", true], // Allows CBE passenger unloading on halt. Operating crews remain aboard.
         ["CBE_AIPass_Danger_Enable", true], // Bounded danger events; one shared decision owner.
-        ["CBE_AIPass_DangerEvasion_Enable", true], // Finite native idle prone evasion.
+        ["CBE_AIPass_DangerEvasion_Enable", true], // Finite native idle prone/upright evasion.
         ["CBE_AIPass_DangerObservation_Enable", true], // Position-only idle alert observation.
         ["CBE_AIPass_DangerConcealment_Enable", true], // Separately budgeted visual screening fallback.
         ["CBE_AIPass_DangerSmoke_Enable", true], // One generation-scoped carried smoke response; movement does not wait.

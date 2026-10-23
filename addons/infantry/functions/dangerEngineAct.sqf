@@ -11,7 +11,10 @@
  * Native MOVE, actual actor motion and INIT/PLANNING/REPLAN retain mobile posture as scripted movers do.
  * This includes engine ATTACK travel, whose command label does not identify an idle rifleman.
  * Extreme native suppression lowers idle engaging riflemen prone without pinning committed movers.
- * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
+ * Idle riflemen may perform one native lateral evasion after a hit or near round.
+ * Standing/crouched actors use a short tactical lateral action only when two sampled
+ * side segments are unobstructed. This is an obstruction veto, not a swept-body/path guarantee.
+ * The existing cooldown also bounds failed lateral probes; committed movement is never dodged.
  * A single eligible overhead ray prevents prone rolls beneath roofs/cover.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
@@ -104,6 +107,7 @@ private _nativeRouteTask=currentCommand _actor == "MOVE"
     || {_actorSpeed >= 0.5}
     || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]};
 if (_nativeRouteTask) then {_committedMover=true};
+private _lateralEvasion=false;
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
 // override another native action, or replay this response on every danger recycle.
@@ -128,6 +132,41 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     _actor playActionNow _action;
     _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
         _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
+};
+// Retain the source intent of a short upright dodge without copying fast forward/back
+// movement or issuing a second destination. A known side obstruction keeps posture only.
+if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
+    && {stance _actor in ["STAND","CROUCH"]} && {_actorSpeed < 0.5}
+    && {[_group,"CBE_AIPass_DangerEvasion_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {isNull objectParent _actor} && {currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]}
+    && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+    && {primaryWeapon _actor != ""} && {currentWeapon _actor == primaryWeapon _actor}
+    && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}) then {
+    // Spend the same cooldown even when the probe refuses; a blocked actor cannot add
+    // recurring casts on every danger recycle. No delayed action or new worker is queued.
+    _actor setVariable ["CBE_Danger_EvasionAfter",time+3];
+    private _point=_record param [1,[],[[]]];
+    private _left=random 1 < 0.5;
+    if (count _point >= 2 && {_actor distance2D _point >= 3}) then {_left=_actor getRelDir _point < 180};
+    private _heading=vectorDir _actor;
+    _heading set [2,0];
+    if (vectorMagnitude _heading >= 0.1) then {
+        _heading=vectorNormalized _heading;
+        private _side=[_heading select 1,-(_heading select 0),0];
+        _side=_side vectorMultiply ([2,-2] select _left);
+        private _low=(getPosASL _actor) vectorAdd [0,0,0.3];
+        private _eye=eyePos _actor;
+        private _blocked=[_low,_eye] findIf {
+            (lineIntersectsSurfaces [_x,_x vectorAdd _side,_actor,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []
+        } >= 0;
+        if (!_blocked) then {
+            private _action=["TactR","TactL"] select _left;
+            _actor playActionNow _action;
+            _lateralEvasion=true;
+            _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
+                _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
+        };
+    };
 };
 // Body and scream observations deserve a visible finite assessment, not only a stance flag.
 // Use the position form only: an object argument would fully disclose that object.
@@ -156,7 +195,7 @@ if (_mode == "IMMEDIATE") then {
     // The group layer may grant one idle actor a bounded cover move; this actor-local reflex also
     // lowers the profile immediately while that scheduled cover selection is pending.
     private _hardCover=(_suppression > 0.55) || {_cause in [1,2,4,9]} || {currentCommand _actor == "STOP"};
-    _desiredStance=["MIDDLE","DOWN"] select (_hardCover && {!_committedMover});
+    _desiredStance=["MIDDLE","DOWN"] select (_hardCover && {!_committedMover} && {!_lateralEvasion});
 };
 if (_mode == "HIDE") then {
     // Seeing a casualty or hearing a scream is alerting evidence, not proof of rounds arriving at

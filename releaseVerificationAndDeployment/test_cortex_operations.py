@@ -11006,6 +11006,16 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(evasion.index('CBE_Danger_EvasionAfter'),evasion.index('lineIntersects ['))
         self.assertLess(evasion.index('lineIntersects ['),evasion.index('playActionNow'))
         self.assertIn('_evasionEye vectorAdd [0,0,7],_actor',evasion)
+        lateral=evasion.split('// Retain the source intent of a short upright dodge',1)[1]
+        for guard in ('!_committedMover','["STAND","CROUCH"]','CBE_AIPass_DangerEvasion_Enable',
+                      'CBE_Danger_EvasionAfter','["TactR","TactL"]','[_low,_eye] findIf',
+                      'if (!_blocked)','_lateralEvasion=true'):
+            self.assertIn(guard,lateral)
+        self.assertLess(lateral.index('setVariable ["CBE_Danger_EvasionAfter"'),lateral.index('lineIntersectsSurfaces'))
+        self.assertLess(lateral.index('if (!_blocked)'),lateral.index('playActionNow'))
+        for forbidden in ('doMove','setDestination','forceSpeed','setVelocity','spawn','waitAndExecute'):
+            self.assertNotIn(forbidden,lateral)
+        self.assertIn('_hardCover && {!_committedMover} && {!_lateralEvasion}',actor)
 
         cover=source('dangerCoverStep')
         self.assertEqual(cover.count('getUnitState _actor in ["INIT","PLANNING","REPLAN"]'),2)
