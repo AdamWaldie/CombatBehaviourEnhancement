@@ -10332,6 +10332,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('vehicleDangerCrewRecovery',vehicles)
         self.assertIn('DANGER-VEHICLE-gunner-loss-recovered',audit)
         self.assertIn('DANGER-VEHICLE-driver-role-preserved',audit)
+        acknowledgement=audit.split('private _gunnerRecovered=[{',1)[1].split('},30] call _wait;',1)[0]
+        self.assertIn('_issuedRecovery isNotEqualTo _recoveryIssuedBefore',acknowledgement)
+        self.assertIn('>= _recoveryStartedAt',acknowledgement)
+        self.assertIn('gunner _contactVehicle == _recoveryCommander',acknowledgement)
+        self.assertIn('alive _recoveryCommander',acknowledgement)
+        self.assertNotIn('vehicleDangerCrewRecovery',acknowledgement)
+
 
     def test_armoured_danger_countermeasure_is_generation_owned_and_route_neutral(self):
         text=source('cortexVehicles')

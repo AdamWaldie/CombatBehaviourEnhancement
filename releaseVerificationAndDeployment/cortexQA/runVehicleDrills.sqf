@@ -492,6 +492,12 @@ private _dangerCountermeasure=[{
 private _recoveryDriver=driver _contactVehicle;
 private _lostGunner=gunner _contactVehicle;
 private _recoveryCommander=commander _contactVehicle;
+private _recoveryStartedAt=serverTime;
+private _recoveryIssuedBefore=+(_contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]]);
+private _recoveryBefore=[_recoveryStartedAt,fullCrew [_contactVehicle,"",false],
+    assignedVehicleRole _recoveryDriver,assignedVehicleRole _recoveryCommander,
+    currentCommand _recoveryCommander,expectedDestination _recoveryCommander,
+    vehicleMoveInfo _contactVehicle];
 private _recoveryPrerequisite=!isNull _recoveryDriver && {!isNull _lostGunner}
     && {!isNull _recoveryCommander} && {_recoveryDriver != _recoveryCommander}
     && {_lostGunner != _recoveryCommander};
@@ -513,15 +519,22 @@ _recoveryEnemy disableAI "PATH";
 _recoveryEnemy setDir (_recoveryEnemy getDir _contactVehicle);
 _recoveryEnemy setVariable ["CBE_CortexQA_Label","FRESH CREW-RECOVERY CONTACT",true];
 private _gunnerRecovered=[{
-    private _crewState=_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap];
-    private _recovery=_crewState getOrDefault ["vehicleDangerCrewRecovery",[]];
-    count _recovery == 4 && {_recovery param [2,false,[true]]}
-        && {gunner _contactVehicle == _recoveryCommander}
+    // A later generation can record a refused replacement after the seat was already
+    // recovered. Its latest-attempt BOOL must not erase actual physical success.
+    // Require this case's fresh issued receipt AND the real live primary gunner.
+    private _issuedRecovery=_contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]];
+    count _issuedRecovery == 4 && {_issuedRecovery isNotEqualTo _recoveryIssuedBefore}
+        && {(_issuedRecovery param [1,objNull,[objNull]]) == _recoveryCommander}
+        && {(_issuedRecovery param [3,-1,[0]]) >= _recoveryStartedAt}
+        && {alive _recoveryCommander} && {gunner _contactVehicle == _recoveryCommander}
 },30] call _wait;
 ["DANGER-VEHICLE-gunner-loss-recovered",_recoveryPrerequisite && {_gunnerRecovered},
-    str [_recoveryCommander,gunner _contactVehicle,
+    str [_recoveryBefore,_recoveryCommander,gunner _contactVehicle,
         (_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerCrewRecovery",[]],
-        _contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]]]] call _check;
+        _contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]],
+        fullCrew [_contactVehicle,"",false],assignedVehicleRole _recoveryCommander,
+        currentCommand _recoveryCommander,expectedDestination _recoveryCommander,
+        vehicleMoveInfo _contactVehicle]] call _check;
 ["DANGER-VEHICLE-driver-role-preserved",_recoveryPrerequisite
         && {alive _recoveryDriver} && {driver _contactVehicle == _recoveryDriver},
     str [_recoveryDriver,driver _contactVehicle,assignedVehicleRole _recoveryDriver]] call _check;

@@ -460,5 +460,28 @@
       "addons/vehicles/functions/cortexVehicles.sqf": "f5196f861cb6f4caa41bbdd2b179278ee4c7d85029b702ef9a157f25f65a79fb",
       "releaseVerificationAndDeployment/test_cortex_operations.py": "ab98c1fdbd6347c7d267a0a9a6a1c7fc7a3ba1ab1c69cd301165e501de437a0c"
     }
+  },
+  "mountedSeatObservationReview20261023": {
+    "baseline": "fd95c10f",
+    "execution": "CrewRecover changes the assigned role then requests MoveToGunner once. The actual commander-assignment predicate already refuses repeat requests after that role changes. No timed rollback was added: an unobserved native action is not proven rejected, and restoring role intent could conflict with a pending action. No complete failed-seat handback is claimed.",
+    "primaryReference": "https://community.bistudio.com/wiki/Arma_3:_Actions",
+    "engineConstraint": "MoveToGunner is a native in-vehicle seat action and can swap an existing occupant. Current CBE vacancy/assigned-gunner guards remain necessary; generic CancelAction is not an episode-specific cancellation acknowledgement.",
+    "confirmedAuditFault": "Existing gunner-loss wait required latest vehicleDangerCrewRecovery attempt BOOL. A later fresh generation could record a refusal after actual seat recovery and hide physical success. The existing case now requires a changed fresh CBE_Danger_CrewRecovery issued receipt naming the original commander and timestamp>=case start, plus alive commander actually equal to native gunner. A request alone still cannot pass.",
+    "diagnostics": "Existing check detail now carries before and after fullCrew, assigned driver/commander roles, native commander command/destination and vehicleMoveInfo. No new scenario, production call shortcut, forced seat, injected completion or audit launch.",
+    "validation": {
+      "existingOperationTests": 610,
+      "SQFfilesChecked": 469,
+      "SQFerrors": 0,
+      "tests": ".qa/gunner-recovery-audit-proof-tests.log",
+      "SQF": ".qa/gunner-recovery-audit-proof-sqf.log",
+      "diffCheck": "passed"
+    },
+    "package": "Production runtime unchanged; retain prior mounted-gunner-recovery-13b4541d candidate fingerprint f0dff0cd9fa33c348943f457cf811dfc953b53042fea3b5a46bb4412d4af8051. Its full1491-test/411SQF/9PBO validation predates these audit-only edits. No repeated unchanged production build or new package.",
+    "limits": "Audit remains unrun. Failed/pending internal seat change, actual assignment rollback/cancellation, owner transfer, native gunnery readiness and physical performance remain unresolved. No parity/feature-completion or score credit.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf": "911524da625b26bb4f4491b7e6abc0ed2cd71291be8643b52d5d8cf2e6c275d4",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "4e17f38609e15230e19d9be501ef9752ddc9c9ec5d39cb80d81afcf683b79005"
+    }
   }
 }
