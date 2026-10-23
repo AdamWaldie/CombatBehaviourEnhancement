@@ -11,7 +11,7 @@
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 protocol <STRING, PASS>, PASS or internal QUEUE.
  * Both protocols refuse independent native driving/turning and fixed-path input, even
  * while their unit commands and original destinations remain unchanged.
- * QUEUE supports an actual-owner native MOVE; PASS still requires authored waypoints.
+ * QUEUE and PASS support actual-owner native MOVE, with separate exact consent and cleanup.
  * PASS refuses live/malformed queue consent; QUEUE reuses ordinary eligibility without rejecting
  * its own agreement. QueueProposalCurrent independently refuses passing consent.
  * Consent requires the current route/epoch/generation and actual live ordinary driving FSM;
@@ -70,10 +70,9 @@ if (["CBE_DrivingRecovery_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Wo
 } >= 0) exitWith {false};
 // Consent cannot displace a newer direct driver/commander destination or native CBE.
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
-// Only QUEUE has original native-route provenance and finite stop/return cleanup.
-// Passing retains its authored-route requirement.
+// Both protocols retain an actual-owner native original goal, separate from
+// temporary steering. Their own consent and finite cleanup remain mandatory.
 private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
-if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false};
 // A route/crew snapshot cannot promise a hold when its ordinary executor ended.
 // Check the actual local handle; public state/generation alone is not liveness.
 private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];

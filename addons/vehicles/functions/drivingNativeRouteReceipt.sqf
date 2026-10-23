@@ -106,7 +106,9 @@ if (count _nativePass > 0) exitWith {
         || {(_nativePass getOrDefault ["driver",objNull]) != _nativeDriver}
         || {(_nativePass getOrDefault ["operator",objNull]) != _nativeOperator}
         || {(_nativePass getOrDefault ["route",[]]) isNotEqualTo _passRoute}
-        || {!((_nativePass getOrDefault ["phase",""]) in ["OUT","DROP_BACK","RETURN_SCAN","RETURN_READY","RETURN"])}
+        || {!((_nativePass getOrDefault ["phase",""]) in ["OUT","DROP_BACK","RETURN_SCAN","RETURN_READY","RETURN","INHERITED_CLEANUP"])}
+        || {(_nativePass getOrDefault ["phase",""]) == "INHERITED_CLEANUP"
+            && {count (_nativePass getOrDefault ["inheritedLeg",[]]) != 13}}
         || {!(_tasks isEqualType [])} || {count _tasks != 2}
         || {(_nativeFrame select 0) != (_tasks select 0) && {!((_pendingStop || {_ownStop}) && {(_nativeFrame select 0) == "STOP"})}}
         || {(_nativeFrame select 2) != (_tasks select 1) && {!((_pendingStop || {_ownStop}) && {(_nativeFrame select 2) == "STOP"})}}

@@ -60,6 +60,10 @@ isNil {
             || {(_pass getOrDefault ["driver",objNull]) != (_source select 1)}
             || {(_pass getOrDefault ["operator",objNull]) != (_source select 2)}
             || {(_pass getOrDefault ["route",[]]) isNotEqualTo (_leg select 10)}
+            || {private _route=_pass getOrDefault ["route",[]];
+                (_route param [0,"",[""]]) == "NATIVE_MOVE"
+                    && {(_pass getOrDefault ["nativeIntent",[]]) isNotEqualTo
+                        [_route,+(_source select 0),_pass get "token",_until]}}
             || {!(_until isEqualType 0)} || {!finite _until}
             || {_until != (_leg select 11)} || {count _tasks != 2}
             || {_tasks findIf {!(_x isEqualType "")} >= 0}
@@ -73,7 +77,8 @@ isNil {
             ["leg",+_leg],["state",+_state],["baseline",+_restore],["issuer",+(_source select 0)],
             ["created",_lossEdge select 1],["deadline",_until],["started",_pass get "started"],
             ["driverCommand",+(_pass get "driverCommand")],["command",+(_pass get "command")],
-            ["tasks",+_tasks],["handback",+(_pass getOrDefault ["handback",[]])]
+            ["tasks",+_tasks],["handback",+(_pass getOrDefault ["handback",[]])],
+            ["nativeIntent",+(_pass getOrDefault ["nativeIntent",[]])]
         ],true];
         call _retireSource;_offered=true;
     };

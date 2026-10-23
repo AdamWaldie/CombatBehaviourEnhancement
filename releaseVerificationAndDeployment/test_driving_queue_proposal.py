@@ -41,7 +41,7 @@ class QueueProposalTests(unittest.TestCase):
         current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
         self.assertIn('getOrDefault ["ownerRoute",[]]) isNotEqualTo',current)
         gate=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text(encoding='utf-8')
-        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
+        self.assertNotIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
         self.assertIn('if (_nativeRoute) exitWith {count _route == 9}',gate)
         self.assertLess(gate.index('call CBE_fnc_DrivingGateIntent'),gate.index('if (_nativeRoute) exitWith'))
 

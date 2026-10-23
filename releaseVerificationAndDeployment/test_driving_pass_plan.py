@@ -17,6 +17,8 @@ class DrivingPassPlanTests(unittest.TestCase):
                       'count _guide+_steps <= 128','_passingLateral-_entryLateral',
                       '(_along-_passTravel)/30','_out*(1-_back)'):
             self.assertIn(guard,s)
+        self.assertIn('(_goal vectorDotProduct [sin _heading,cos _heading,0]) < _needed+_ownHalfLength',s)
+        self.assertLess(s.index('private _originalRoute='),s.index('private _road=roadAt'))
         for position in ('_base','_centre','_position','_begin','_end','_frontBegin','_frontEnd'):
             self.assertNotIn(position+' set [2,0]',s)
     def test_geometry_slice_is_bounded_fresh_and_never_whole_pass_clearance(self):
@@ -60,7 +62,8 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('(_ownerOrders param [6,[]]) isEqualTo _originalRoute',begin)
         self.assertIn('_work get "token",_work get "deadline"',begin)
         gate=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text()
-        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
+        self.assertNotIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
+        self.assertLess(gate.index('call CBE_fnc_DrivingGateIntent'),gate.index('if (_nativeRoute) exitWith'))
         self.assertLess(owner.index('setVariable ["CBE_DrivingPass_OwnerOrders"'),owner.index('["ACK",[_token,_accepted]]'))
         for name in ('drivingPassBegin','drivingPassAgreementRelease','drivingAssistStart'):
             self.assertIn('CBE_DrivingPass_OwnerOrders',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
@@ -466,7 +469,7 @@ class DrivingPassPlanTests(unittest.TestCase):
         for proof in ('CBE_DrivingPass_Handover','CBE_DrivingCap_LocalEdge','_created >= (_edge select 1)-5',
                       '_group getVariable ["CBE_AIPass_Adopted",false]','_privateBaseline isEqualTo _baseline',
                       'abs ((getForcedSpeed _vehicle)-(_state select 0)) <= 0.1',
-                      'call CBE_fnc_DrivingPassFinish','["inheritedLeg",+_receipt]',
+                      'call CBE_fnc_DrivingPassFinish','["handoverSourceLeg",+_receipt]',
                       '"INHERITED_UNRESOLVED"'):
             self.assertIn(proof,code)
         offer=(ROOT/'addons/vehicles/functions/drivingCapReleaseOffer.sqf').read_text()
@@ -478,6 +481,13 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DrivingCapReleaseAdopt',code)
         self.assertIn('[_vehicle,_group,true,_capFact] call CBE_fnc_DrivingAssistRelease',code)
         self.assertIn('_created+30',code)
+        self.assertIn('private _nativeSourceProof=false',code)
+        self.assertIn('[_route,[_oldOwner,_epoch,_generation],_token,_deadline]',code)
+        self.assertIn('_cleanupRoute set [7,_owner select 1]',code)
+        self.assertIn('_cleanupRoute set [8,clientOwner]',code)
+        self.assertIn('["nativeIntent",[+_cleanupRoute,+_owner,_token,_deadline]]',code)
+        self.assertIn('setVariable ["CBE_DrivingPass_Leg",_cleanupLeg,true]',code)
+        self.assertNotIn('_cleanupRoute set [6',code)
         self.assertNotIn('serverTime+',code)
         self.assertIn('_edge isEqualTo [] && {serverTime < _deadline}',code)
         self.assertIn('(expectedDestination _driver) isEqualTo _waitDriver',code)

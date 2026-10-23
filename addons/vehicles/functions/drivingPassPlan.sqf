@@ -11,6 +11,7 @@
  * been proved. An executor must obtain owner agreement, validate geometry and retain safety caps.
  * Bounds: 32 road transitions, at most 16 connections per piece, 350 m travel. Junctions,
  * bridges, pedestrian roads, loops, sharp turns and invalid endpoint geometry refuse.
+ * Native orders need enough longitudinal room to their original goal for the full pass.
  * Road endpoints retain their ASL elevation. No terrain flattening or physics shortcut.
  * At most 128 stations sample the centreline at <=5 m, ramp out from the current lane and return over
  * the final 30 m. Each lane offset uses its own road endpoints; insufficient pull-out
@@ -47,6 +48,13 @@ private _frontHalfWidth=(abs ((_frontBounds select 0) select 0)) max (abs ((_fro
 private _seconds=(_gap+_ownHalfLength+_frontHalfLength+7)/(_relative*0.8)+2.5;
 private _passTravel=(_speedKmh/3.6)*_seconds;
 private _needed=_passTravel+30;
+// Do not carry a short native relocation beyond its original goal merely to pass.
+// This is a conservative longitudinal budget, not a new route or clearance grant.
+private _originalRoute=[group driver _vehicle] call CBE_fnc_DrivingRouteReceipt;
+if ((_originalRoute param [0,"",[""]]) == "NATIVE_MOVE") then {
+    private _goal=(_originalRoute select 6) vectorDiff (getPosASL _vehicle);
+    if ((_goal vectorDotProduct [sin _heading,cos _heading,0]) < _needed+_ownHalfLength) then {_needed=1e9};
+};
 if (_seconds > 24 || {_needed > 350}) exitWith {["PASS_BUDGET"] call _fail};
 private _road=roadAt _vehicle;
 if (isNull _road) exitWith {["NO_ROAD"] call _fail};

@@ -42,7 +42,8 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline")',release)
         self.assertIn('if (!_nativeHandback) then {doStop _driver',release)
         consent=read('drivingPassCanConsent')
-        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',consent)
+        self.assertNotIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',consent)
+        self.assertIn('if (_nativeRoute) exitWith {count _route == 9}',consent)
         self.assertLess(consent.index('call CBE_fnc_DrivingGateIntent'),consent.index('if (_nativeRoute) exitWith'))
         gate_route=read('drivingGateRouteMatches')
         for proof in ('count _gateRoute != 9','_gateRouteOwner != groupOwner _gateRouteGroup',

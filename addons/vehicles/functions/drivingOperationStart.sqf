@@ -5,6 +5,8 @@
  * At most one ended-worker restart per owner/route is allowed. A failed startup or
  * second executor loss remains terminal rather than retrying every discovery.
  * Purpose: Starts one route-scoped ordinary driving FSM; registered convoys retain their own writer.
+ * An old issued passing return is observed before route preflight, so a changed native
+ * order cannot be trapped behind an empty stale route receipt. This creates no new command.
  * Exact pending passing STOP/return gates a new generation without renewing its deadline.
  * Exact released abort cleanup gates new generation/cap admission until handback or original expiry;
  * incoming owner proposals come only from the actual group-locality edge.
@@ -22,6 +24,26 @@
  * Example: [group driver truck1] call CBE_fnc_DrivingOperationStart;
  */
 params [["_group",grpNull,[grpNull]]];
+if (isNull _group || {!local _group}) exitWith {false};
+// A lost native return can make the read-only route receipt empty. Observe that
+// exact old passing journal before route admission, or a new order could never
+// reach its own executor while the old safety cap remains applied.
+private _entryVehicle=vehicle leader _group;
+private _entryReturn=_entryVehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+private _entryBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
+if (_entryVehicle != leader _group && {local _entryVehicle}
+    && {(_entryReturn getOrDefault ["group",grpNull]) == _group}
+    && {(_entryReturn getOrDefault ["passReturn",""]) != ""}
+    && {(_entryReturn getOrDefault ["nativeReturn",[]]) isNotEqualTo []}
+    && {count _entryBrain == 0 || {_entryBrain getOrDefault ["cancelled",false]} || {_entryBrain getOrDefault ["finished",false]}}
+    && {driver _entryVehicle == (_entryReturn getOrDefault ["driver",objNull])}
+    && {effectiveCommander _entryVehicle == (_entryReturn getOrDefault ["operator",objNull])}
+    && {["CBE_DrivingPass_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"] findIf {
+        count (_entryVehicle getVariable [_x,createHashMap]) > 0} < 0}) then {
+    // Existing release owns command observation and exact cap/baseline restoration.
+    // This path can neither reissue the return nor start a new movement episode.
+    [_entryVehicle,_group] call CBE_fnc_DrivingAssistRelease;
+};
 if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!([_group] call CBE_fnc_DrivingMovementAvailable)}

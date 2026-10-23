@@ -7,6 +7,7 @@
  * authored route, seats and free actor/controller authority guard native route handback.
  * Same-owner pending STOP belongs to its original observer even after its brain retires.
  * Repeat/JIP: Actual vehicle Local edge and complete source-issued cap/command fact are required.
+ * A proved original native goal may rebind only cleanup owner/epoch, token and expiry unchanged.
  * Adopt cleanup only; never the old executable path or a renewed deadline. Native stop/return
  * is delegated to the original finite observer. Missing/mismatched proof records unresolved.
  * No executable work or timer replay. Split locality
@@ -65,6 +66,8 @@ private _stop=_vehicle getVariable ["CBE_DrivingPass_Interrupted",[]];
 private _interrupted=_stop isEqualType [] && {count _stop == 5}
     && {(_stop select [0,3]) isEqualTo [_token,_epoch,_generation]};
 private _successor=count _work > 0 && {(_work getOrDefault ["token",""]) != _token};
+private _nativeSource=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+private _nativeSourceProof=false;
 private _mayRetire={
     private _event=_vehicle getVariable ["CBE_DrivingPass_Interrupted",[]];
     private _observedStop=_event isEqualType [] && {count _event == 5}
@@ -83,7 +86,7 @@ private _mayRetire={
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
-        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+        && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route || {_nativeSourceProof}}
         && {(expectedDestination _driver) isEqualTo _driverCommand}
         && {(expectedDestination _operator) isEqualTo _command}
         && {[_driver,_operator] findIf {isNull _x || {!local _x} || {group _x != _group}
@@ -130,6 +133,15 @@ isNil {
         && {_request isEqualTo [] || {(_request select 0) isEqualType "" && {(_request select 1) isEqualType true}}}
         && {count _brain == 0 || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}};
     if (_factValid) then {
+        // Source original native intent is proved only inside the real-edge full
+        // fact transaction. It grants no new route outside this cleanup boundary.
+        _nativeSourceProof=_nativeSource && {count _route == 9} && {count waypoints _group <= 1}
+            && {(_route select [0,5]) isEqualTo ["NATIVE_MOVE",_group,_vehicle,_driver,_operator]}
+            && {(_route select 7) == _epoch} && {(_route select 8) == _oldOwner}
+            && {(_route select 6) isEqualType []} && {count (_route select 6) == 3}
+            && {(_route select 6) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {(_fact getOrDefault ["nativeIntent",[]]) isEqualTo
+                [_route,[_oldOwner,_epoch,_generation],_token,_deadline]};
         _driverCommand=+_driverNative;_command=+_operatorNative;
         private _privateState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
         private _privateBaseline=_vehicle getVariable ["CBE_DrivingAssist_Restore",[]];
@@ -145,13 +157,21 @@ isNil {
             if (isNil {_group getVariable "CBE_Driving_Generation"}) then {_group setVariable ["CBE_Driving_Generation",0]};
             private _owner=[_group] call CBE_fnc_DrivingOwnerReceipt;
             if (count _owner == 3 && {(_owner select 0) == clientOwner}) then {
+                private _cleanupRoute=+_route;
+                if (_nativeSourceProof) then {_cleanupRoute set [7,_owner select 1];_cleanupRoute set [8,clientOwner]};
+                private _cleanupLeg=["PASS_LEG_V1",clientOwner,_group,_owner select 1,_owner select 2,
+                    _token,_driver,_operator,+_driverNative,+_operatorNative,+_cleanupRoute,_deadline,_peer];
                 private _cleanup=createHashMapFromArray [
                     ["group",_group],["epoch",_owner select 1],["generation",_owner select 2],
-                    ["driver",_driver],["operator",_operator],["route",+_route],["token",_token],["peer",_peer],
+                    ["driver",_driver],["operator",_operator],["route",+_cleanupRoute],["token",_token],["peer",_peer],
+                    ["driverTask",_tasks select 0],["operatorTask",_tasks select 1],
                     ["driverCommand",+_driverNative],["command",+_operatorNative],
                     ["phase","INHERITED_CLEANUP"],["issued",true],["interrupted",false],
-                    ["started",_started],["deadline",_deadline],["inheritedLeg",+_receipt],["handbackOwner",+_owner]
+                    ["started",_started],["deadline",_deadline],["inheritedLeg",+_cleanupLeg],["handoverSourceLeg",+_receipt],["handbackOwner",+_owner]
                 ];
+                if (_nativeSourceProof) then {
+                    _cleanup set ["nativeIntent",[+_cleanupRoute,+_owner,_token,_deadline]];
+                };
                 if (_request isNotEqualTo []) then {
                     _cleanup set ["handback",+_request];_cleanup set ["handbackTasks",+_tasks];
                     _cleanup set ["handbackCap",_state select 0];_cleanup set ["handbackBaseline",+_baseline];
@@ -160,6 +180,7 @@ isNil {
                 _vehicle setVariable ["CBE_DrivingAssist_Restore",+_baseline];
                 _vehicle setVariable ["CBE_DrivingCap_Issuer",[+_owner,_driver,_operator]];
                 _vehicle setVariable ["CBE_DrivingPass_Work",_cleanup];
+                _vehicle setVariable ["CBE_DrivingPass_Leg",_cleanupLeg,true];
                 _vehicle setVariable ["CBE_DrivingPass_Handover",nil,true];
                 _adopted=true;
                 _retired=[_vehicle,_group,"INHERITED_RETURN",true] call CBE_fnc_DrivingPassFinish;
@@ -207,7 +228,9 @@ if ((_fact getOrDefault ["leg",[]]) isEqualTo _receipt) then {
 };
 if (!_newOrderCap && {_sameSeats} && {!isNull _group} && {local _group} && {local _driver} && {local _operator}
     && {_edgeOpen || {_edge isEqualTo [] && {serverTime < _deadline}}}
-    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route
+        || {_nativeSource && {count _route == 9} && {count waypoints _group <= 1}
+            && {(_route select [0,5]) isEqualTo ["NATIVE_MOVE",_group,_vehicle,_driver,_operator]}}}
     && {(expectedDestination _driver) isEqualTo _waitDriver}
     && {(expectedDestination _operator) isEqualTo _waitOperator}) exitWith {false};
 isNil {

@@ -10,6 +10,14 @@ class DrivingStartAdmissionTests(unittest.TestCase):
         preflight=text.split('private _entryRoute=',1)[1].split('private _accepted=',1)[0]
         self.assertNotIn('setVariable',preflight)
         self.assertNotIn('DrivingOperationFinish',preflight)
+        entry_cleanup=text.split('private _entryVehicle=',1)[1].split('// Read-only fast refusal',1)[0]
+        self.assertIn('getOrDefault ["passReturn",""]',entry_cleanup)
+        self.assertIn('getOrDefault ["nativeReturn",[]]',entry_cleanup)
+        self.assertIn('call CBE_fnc_DrivingAssistRelease',entry_cleanup)
+        self.assertIn('count _entryBrain == 0',entry_cleanup)
+        self.assertNotIn('doMove',entry_cleanup)
+        self.assertNotIn('serverTime+',entry_cleanup)
+        self.assertLess(text.index('private _entryVehicle='),text.index('private _entryRoute='))
     def test_replacement_commit_guards_original_route_epoch_brain_and_yield(self):
         text=source();commit=text.split('isNil {',1)[1]
         gate=commit.split('private _hasVehicle=',1)[0]
