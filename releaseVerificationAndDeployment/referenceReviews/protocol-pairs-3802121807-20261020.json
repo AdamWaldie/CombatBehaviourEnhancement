@@ -57,9 +57,9 @@
   ],
   "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
   "remainingRequiredWork": [
-    "Initial and lifecycle team-scoped pair metadata integrated. Independent pair-granular alternation remains incomplete. Confirm actual casualty replacement, capacity-driven splits, role transfer and migration physically before parity claims.",
-    "Confirm physical role alternation, covering fire, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume.",
-    "Verify binary startup/dependencies/licence before calling the whole source review complete."
+    "Confirm physical opposite buddy roles, covering fire, actual bound arrival, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume. Code integration is not functional acceptance.",
+    "Independent pair-granular timing is an optional CBE enhancement, currently unimplemented. The source flips per-pair flags on each global scan without arrival-driven waves; this optional extension is not required to reproduce its useful paired move/cover intent.",
+    "Binary registration/dependency declarations were reviewed in protocol-binary-configuration-20261021.json; runtime dependencies and source licensing remain separate from behaviour integration."
   ],
   "audits": "PAUSED",
   "physicalAcceptance": false,
@@ -208,7 +208,7 @@
     "arrival": "MOVE observes actor-specific spots/progress/retries, then a 60-percent role quorum with finite six-second progress grace can mark remaining actors as recovery. It does not record independent pair wave arrival.",
     "transition": "First team arrival enters PAUSE; PAUSE flips teamTurn 0 to1. Only second-team completion advances the route point. boundDeadlineIdentity is [point index,teamTurn].",
     "recovery": "Recovery prefers a real surviving buddy in the same element, with one finite route attempt. Physically rejoined actors return only outside MOVE. Recorded resume spots, progress and retries are actor-addressed.",
-    "requiredDeparture": "Pair waves need distinct finite wave identity and arrivals under the existing parent operation deadline, coherent mover/cover selection and casualty recovery. Do not change teamTurn to arbitrary pair indices: binary donor logic, next-bound actor reservations, stage transitions and checkpoint identity would become inconsistent.",
+    "requiredDeparture": "Only if independently timed CBE pair waves are selected as a further enhancement: preserve distinct wave identity/arrivals under the parent deadline, coherent cover selection and casualty recovery. Do not replace binary teamTurn with arbitrary pair indices. This is not an existing source arrival-driven feature.",
     "limits": "This trace proves code structure, not actual covering fire, native path quality, pair timing or source parity."
   },
   "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
@@ -218,7 +218,7 @@
     "sourceSemantics": "One actor per consecutive pair moves while its partner receives suppression; turn flips every unslept global scan without physical arrival. No finite independent-wave arrival lifecycle exists in source.",
     "currentCBE": "AdvanceStart armed two-actor admission uses minimum1 mover/1 cover and bounds<=20m; FlankStep small-survivor rebalance preserves opposite roles, actual actor spots/progress, finite grace/recovery and binary team handoff. Larger groups use pair-preserving fire-team allocation.",
     "disposition": "Two-person arrival-controlled alternation already has an integrated executor; not a missing parallel controller. Larger-group pair-granular alternation remains a distinct unimplemented capability. Do not replace binary teamTurn with arbitrary pair indices or claim full parity from two-actor support.",
-    "nextAction": "If selecting larger-group pair-granular execution, first preserve movement reservations/checkpoint/wave identities and casualty reallocation in the current operation. No new free-running source loop. Actual cover efficacy and normal/HC behaviour remain unverified."
+    "nextAction": "Validate current synchronised opposite roles and actual cover/arrival/casualty flow when audits are authorised. Independent pair timing is optional further build-out, not a missing source feature or a prerequisite added to the current implementation batch."
   },
   "sameBoundCasualtyContinuity": {
     "baseline": "e553d729",
@@ -241,5 +241,20 @@
     "performanceMeasured": false,
     "scoresChanged": false,
     "twoActorMaintenance": "RebalanceRoles now also preserves global pairing for two-actor ADVANCE, even if the parent began in fire-team mode; otherwise participant maintenance could replace the single buddy identity with two singleton role partitions."
+  },
+  "intentScopeReconciliation20261023": {
+    "baseline": "6c4200d4",
+    "protectedSource": ".qa/protocol-pairs-3802121807-review/functions/fn_pairs.sqf",
+    "sourceSHA256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "sourceExecution": "Complete readable function re-read. Each consecutive pair reads actorA _leapFrog defaulttrue; one actor doMove and partner doSuppressiveFire; actorA flag immediately flips. Unslept allGroups scan invokes all groups repeatedly. No unitReady/physical arrival/wave deadline or independent pair completion transition exists. Per-pair flag storage alone is not independently timed movement.",
+    "currentExecution": "CombatPairElements keeps pair partners in opposite roles; AdvanceStart commits buddyBounds through OperationStart and one existing drill FSM. CortexFlankStep keeps binary teamTurn, actor-addressed actual spot/progress/retry observations, finite quorum/recovery and PAUSE handoff. No independent-wave controller exists or is added.",
+    "decision": "Retain synchronised paired move/cover as current selected source intent. Mark independently timed waves optional rather than silently expanding required parity/completion scope. No score increase or physical success claim.",
+    "currentHashes": {
+      "addons/infantry/functions/combatPairElements.sqf": "e4665ca374783a4f74747761735043f780d3b600384f24529a50609063b21b79",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "f430a804fa52828e97ee7ccdf4f9ee0b8a2387efa63df219ab5ea30446ce96d8",
+      "addons/infantry/functions/cortexFlankStep.sqf": "308e34efb3f1bf59e5e324682512040ccc7f8390db65a00465496dcc9e6c8e6f"
+    },
+    "validation": "Read-only runtime/source trace; engineering register correction only. Protected sources and runtime unchanged. Do not repeat the unchanged full build; run the existing reference-boundary check for final notes.",
+    "limits": "Actual cover efficacy, arrival/casualty/recovery/HC and runtime cost remain unverified. No whole Protocol or LAMBS parity/percentage claim. Audits paused."
   }
 }

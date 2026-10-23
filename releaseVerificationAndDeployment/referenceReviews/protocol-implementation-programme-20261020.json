@@ -59,7 +59,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-pairs-3802121807-20261020.json",
-      "remaining": "Qualifying fully armed4..16-person advances now use synchronised opposite buddy roles through existing finite two-role FSM, casualty/next-bound allocation and ownership checkpoint. Independent per-pair timing, actual cover/arrival/recovery/migration/performance and licensing remain unverified. Binary registration/declarations reviewed separately; not whole source parity.",
+      "remaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
