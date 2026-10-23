@@ -37,5 +37,28 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "scoresChanged": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "naturalContinuationSubformations20261023": {
+    "base": "6da3e27a",
+    "finding": "Natural successful clearance continuation flattened every settled follower to the squad leader despite saved native formation admission.",
+    "implementation": "Use existing reserveAdmissionCommands native anchor; resolve only anchors already requested for continuation, at most 16 passes over 16 followers. Each actor authority check runs once; missing, cyclic, unavailable or refused branches retain existing exterior hold. Explicit-clear holding unchanged.",
+    "boundaries": "Existing current owner, epoch, generation, native route, actor and external/task vetoes retained. No new worker, schema, deadline or pair registry. Request is not native acknowledgement or physical travel.",
+    "checks": {
+      "fullTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/clear-subformation-continuation-6da3e27a",
+    "fingerprint": "0e69ea671dcb64ba253b456ded2ce5b17ee5e263cca8217b709b687b7bb200d2",
+    "logs": [
+      ".qa/clear-subformation-continuation-build.log",
+      ".qa/clear-subformation-continuation-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot based on6da3e27a, includes unrelated pre-existing dirt. Review and handover postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "audits": "PAUSED"
+  }
 }

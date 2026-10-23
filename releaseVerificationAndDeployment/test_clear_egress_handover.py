@@ -138,6 +138,16 @@ class TerminalContinuationBoundaryTests(unittest.TestCase):
         self.assertLess(block.index('[_leader] call _mayContinue'),block.index('_leader doMove'))
         self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
         self.assertIn('CBE_Cortex_ClearHold',block)
+        self.assertIn('"reserveAdmissionCommands",createHashMap',block)
+        self.assertIn('(_settled-[_leader]) select [0,16]',block)
+        self.assertIn('for "_continuationPass" from 1 to 16',block)
+        self.assertIn('_returnLeader in _continued',block)
+        self.assertIn('_x doFollow _returnLeader',block)
+        self.assertNotIn('_x doFollow _leader',block)
+        self.assertLess(block.index('_considered pushBack _x'),block.index('[_x] call _mayContinue'))
+        self.assertIn('count _followers == _beforeCount',block)
+        self.assertIn('private _remaining=_settled-_continued',block)
+
         handback=text.split('if (_reason == "NEW_ORDER" && {local _group}',1)[1].split('forEach _handbacks;',1)[0]
         self.assertLess(handback.index('isNil {'),handback.index('_actor doFollow leader _group'))
         self.assertIn('call _finishCurrent',handback)

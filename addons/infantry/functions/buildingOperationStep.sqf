@@ -107,6 +107,7 @@
  * watch receipt retain their current observation command. Unchanged settings release independently
  * of movement diversion, and cleanup journals
  * only actors it physically stopped for later native-order handback. Successful natural clears
+ * preserve admitted native formation chains when requesting original-route continuation. Natural clears
  * may return those actors to their unchanged plain authored MOVE after common-operation release. Early exits retire into
  * the terminal route evidence instead of remaining an active replay journal.
  * Eight seconds without actual motion permits the shared generation's one recovery attempt;
@@ -718,12 +719,32 @@ private _delay=call {
             if ([_leader] call _mayContinue) then {
                 private _continued=[_leader];
                 _leader doMove waypointPosition _waypoint;
-                {
-                    if (_x != _leader && {[_x] call _mayContinue}) then {
-                        _x doFollow _leader;
-                        _continued pushBack _x;
-                    };
-                } forEach _settled;
+                // Preserve admitted native subformations. Resolve only chains whose
+                // anchor has already received its continuation request; do not flatten
+                // missing, cyclic or unavailable anchors into the squad leader.
+                private _followers=(_settled-[_leader]) select [0,16];
+                private _formationAdmission=_job getOrDefault ["reserveAdmissionCommands",createHashMap];
+                for "_continuationPass" from 1 to 16 do {
+                    private _beforeCount=count _followers;
+                    private _considered=[];
+                    {
+                        private _admitted=_formationAdmission getOrDefault [netId _x,[]];
+                        private _returnLeader=_admitted param [3,objNull,[objNull]];
+                        if (count _admitted == 4 && {(_admitted select 0) == _x}
+                            && {!isNull _returnLeader} && {group _returnLeader == _group}
+                            && {_returnLeader in _continued}) then {
+                            // Refusal is final for this finish: the remaining hold receipt
+                            // retains the actor, not another pass over its native authority.
+                            _considered pushBack _x;
+                            if ([_x] call _mayContinue && {[_returnLeader] call _actorAvailable}) then {
+                                _x doFollow _returnLeader;
+                                _continued pushBack _x;
+                            };
+                        };
+                    } forEach _followers;
+                    _followers=_followers-_considered;
+                    if (_followers isEqualTo [] || {count _followers == _beforeCount}) exitWith {};
+                };
                 private _remaining=_settled-_continued;
                 if (_remaining isEqualTo []) then {_group setVariable ["CBE_Cortex_ClearHold",nil,true]} else {
                     _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call CBE_fnc_NativeOrderReceipt,_remaining,_settledPosts select {(_x select 0) in (_remaining apply {netId _x})}],true];
