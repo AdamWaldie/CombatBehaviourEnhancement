@@ -1449,3 +1449,8 @@ The engine danger FSM classifies a response in Init and executes it in a later a
 ### Clearance expiry before sweep work
 
 An expired clearance callback now enters the existing egress transition before reserve promotion, room observation or further entry/sweep movement. This prevents a late callback from issuing another room request or renewing an already-expired stall deadline from a newly observed visit. Successful coverage and expiry share one egress transition, retaining actual participation checks, newer-task diversion, early-exit receipts and the existing45-second exit budget. Expiry grants no room visit or clearance success. No new scheduler or per-actor worker is added. Physical repeated clearance, casualty replacement, egress and runtime cost remain unverified while audits are paused.
+
+
+### Clearance cancellation after settings retirement
+
+Explicit clearance release recognises an exact live MOVE to its saved job destination even if speed/posture settings have already retired. Previously the outer participant check could skip that actor and retire movement metadata while leaving the native room leg running. Recognition requires finite three-component targets within0.25m; the existing later task/destination check still governs recall, and changed destinations, player/external control, reserved actors and mounted actors retain their protections. Restore=false still issues no formation recall. No retry, timer or worker is added. A native recall request is not acknowledgement or proof of physical handback; repeated and cross-owner outcomes remain unverified while audits are paused.

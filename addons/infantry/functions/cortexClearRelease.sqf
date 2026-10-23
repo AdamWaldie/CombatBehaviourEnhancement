@@ -108,7 +108,17 @@ if (isNull _leader) then {_leader=leader _group};
         _leader=[_group] call CBE_fnc_CortexGroupAnchor;
         if (isNull _leader) then {_leader=leader _group};
         private _heldByJob=[_x,_releaseJob] call CBE_fnc_BuildingActorHoldOwned;
-        private _ownedActor=_heldByJob || !isNil {_x getVariable "CBE_Cortex_ClearStance"}
+        // Settings can retire independently while the last owned native leg is still running.
+        // Its exact live destination also identifies a participant; no settings mirror is needed.
+        private _releaseMoveTarget=_movementTargets getOrDefault [netId _x,[]];
+        private _releaseMoveDestination=(expectedDestination _x) param [0,[],[[]]];
+        private _ownedMove=currentCommand _x == "MOVE"
+            && {_releaseMoveTarget isEqualType []} && {count _releaseMoveTarget == 3}
+            && {_releaseMoveTarget findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {count _releaseMoveDestination == 3}
+            && {_releaseMoveDestination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_releaseMoveDestination vectorDistance _releaseMoveTarget <= 0.25};
+        private _ownedActor=_heldByJob || {_ownedMove} || !isNil {_x getVariable "CBE_Cortex_ClearStance"}
             || {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}}
             || {private _stage=_x getVariable ["CBE_Cortex_ClearReserve",[]]; count _stage == 3
                 && {(_stage select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])-1}

@@ -39,6 +39,11 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertIn('!fleeing _candidate',reserve)
         admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
         self.assertIn('&& {!isPlayer _actor} && {!fleeing _actor}',admission)
+        recognition=s.split('private _ownedMove=',1)[1].split('call CBE_fnc_CortexClearSettingsRelease',1)[0]
+        self.assertIn('currentCommand _x == "MOVE"',recognition)
+        self.assertIn('_releaseMoveDestination vectorDistance _releaseMoveTarget <= 0.25',recognition)
+        self.assertIn('private _ownedActor=_heldByJob || {_ownedMove}',recognition)
+        self.assertIn('!finite _x',recognition)
         start=s.index('private _movementOwned=')
         end=s.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x})',start)
         guard=s[start:end]
