@@ -43,5 +43,19 @@
     "addons/vehicles/functions/drivingAssistStart.sqf": "d28e7bbcddae63d1279bdffdfe05e31a5ce7ecbabf9afa41dc5b60a734339562",
     "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
     "addons/vehicles/functions/drivingRecoveryRelease.sqf": "79c9d1377e462a60a60747b157a6ec21610bea536ca94aacddcdfaa1430cc736"
+  },
+  "combinedGroundRefreshFollowup": {
+    "baseline": "e6af5874",
+    "confirmedGap": "CombinedGroundStep spent its one stall retry by calling CortexGroupMove with the same destination/radius/type. The helper sameRequest branch deliberately adopted the existing waypoint without issuing movement, so this retry could not wake native planning.",
+    "implemented": "Optional refreshOwned BOOL defaults false in the existing waypoint helper. Explicit retry requires an unchanged owned current temporary waypoint, matching current operation generation and same request; current waypoint/generation/policy are rechecked in the existing atomic mutation path. It removes/recreates only that CBE node. The combined job spends its existing retry first and captures the returned waypoint and complete authored row receipt after success.",
+    "integration": "Original role expiry, one-stall retry, operation epoch, native order, progress and cancellation paths remain. Other callers keep same-destination idempotence. No doMove, fixed path, new movement owner, restored mission AI permission or authored-waypoint clone is added.",
+    "sourceDistinction": "HBQ refreshRoute recreates waypoint properties for some vehicles and uses a separate commander doMove path for commanded vehicles, particularly after fixed-path disruption. This CBE change uses only its owned temporary-waypoint mechanism and does not claim identical wake-up efficacy across those source cases.",
+    "cost": "No new worker, world query or periodic request. Existing native waypoint transaction runs once only after the current job spends its finite stall attempt. Normal helper calls retain the default reuse path.",
+    "validation": "610 focused operation checks;1491 full offline tests; HEMTT409SQF/9PBO; independent candidate verification passed. Candidate .qa/candidates/combined-ground-real-retry-e6af5874 fingerprint98de0b74d0bb14fe72848b1541388c4570bdc72121a59b09cd47cd7e5fc642e2, unsigned dirty development snapshot including unrelated dirt. Review/notes postdate build.",
+    "limits": "A new native waypoint request is not actual motion, arrival, fire effect or successful recovery. Commanded/uncommanded stuck cases, locality and Zeus interruptions, original-route restoration and performance remain physically unverified. Audits remain paused.",
+    "hashes": {
+      "addons/infantry/functions/cortexGroupMove.sqf": "5c596e7f5c0910b526aa1e3e323b1c1da04d71424f27919ad1be46e0964c9f65",
+      "addons/infantry/functions/cortexCombinedGroundStep.sqf": "c09a67383c23c74e3e83f436798f53aaf826ecee0e1453ff28ea23970d55a3a8"
+    }
   }
 }

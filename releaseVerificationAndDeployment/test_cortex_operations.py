@@ -5834,6 +5834,18 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(retry.index('"CBE_Cortex_CombinedGroundProgress"'),retry.index('call CBE_fnc_CortexGroupMove'))
         self.assertIn('serverTime-(time-(_job get "progressAt"))',retry)
         self.assertIn('if (_stalls >= 1)',step)
+        self.assertIn('[_group,_destination,55,"MOVE",_operationGeneration,true] call CBE_fnc_CortexGroupMove',retry)
+        self.assertIn('_job set ["moveWaypoint",+_waypoint]',retry)
+        self.assertIn('_job set ["moveReceipt",[count waypoints _group',retry)
+        move=source('cortexGroupMove')
+        self.assertIn('["_refreshOwned", false, [true]]',move)
+        self.assertIn('if (_refreshOwned) then {_sameRequest=false}',move)
+        refresh=move.split('if (_refreshOwned &&',1)[1].split('if (_sameRequest) exitWith',1)[0]
+        for proof in ('!_sameRequest','_operationGeneration < 0','operationGeneration','currentWaypoint _group'):
+            self.assertIn(proof,refresh)
+        boundary=move.split('private _routeUnchanged={',1)[1].split('// Keep an established',1)[0]
+        self.assertIn('!_refreshOwned || {currentWaypoint _group',boundary)
+
 
     def test_combined_owner_replay_preserves_destination_only_under_native_order_and_crew_receipts(self):
         local=source('cortexCombinedArmsLocal')

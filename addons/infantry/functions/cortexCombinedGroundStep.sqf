@@ -3,6 +3,8 @@
  * Ground fire selects only a freshly qualified loaded station muzzle. A pending native
  * switch reuses this finite callback/role expiry; it grants no shot or completed fire effect.
  * Maintains one finite ground-vehicle manoeuvre issued by a combined-arms contact opportunity.
+ * One spent stall retry may recreate only its exact unchanged temporary waypoint and stores the
+ * new native receipt. Original opportunity expiry/progress/attempt budget is never renewed.
  * Arrival uses ASL three-dimensional distance within the existing seventy-metre firing area;
  * horizontal overlap above/below the area does not establish arrival.
  * Native group-ignored contacts cancel owned movement and retire the exact support reservation.
@@ -253,7 +255,8 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
     if (_travel < 8) then {
         private _stalls=_job getOrDefault ["stalls",0];
         if (_stalls >= 1) exitWith {_job set ["terminal","BLOCKED"]};
-        // Reacquire a missing route once; a still-owned destination remains committed.
+        // Refresh this exact owned temporary route once to wake native planning.
+        // Normal same-destination adoption sends no new command and cannot be a retry.
         // This cannot create an obstacle-avoidance spiral around a deliberate roadblock.
         if (!([_group] call CBE_fnc_CortexExternalTakeover) && {call _routeCurrent}) then {
             // Spend before route reacquisition so transfer cannot refund this attempt.
@@ -263,9 +266,13 @@ if (time >= (_job getOrDefault ["progressAt",time])+10) then {
                     serverTime-(time-(_job get "progressAt")),+(_job get "lastPosition"),+_destination,
                     +(_job get "nativeOrder"),_job get "driver",_job get "operator","ACTIVE"],true];
             };
-            private _waypoint=[_group,_destination,55,"MOVE",_operationGeneration] call CBE_fnc_CortexGroupMove;
+            private _waypoint=[_group,_destination,55,"MOVE",_operationGeneration,true] call CBE_fnc_CortexGroupMove;
             if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
                 _job set ["terminal","MOVEMENT_REJECTED"];
+            } else {
+                _job set ["moveWaypoint",+_waypoint];
+                _job set ["moveReceipt",[count waypoints _group,_waypoint select 1,
+                    [_group,"",false,_waypoint select 1] call CBE_fnc_AuthoredRouteReceipt]];
             };
         };
     };

@@ -663,7 +663,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-current-20261023.json",
-      "sha256": "3596336961d79a75549f30a71ed7416220b470f4b0064950e8e304287215a430",
+      "sha256": "b40576165f5871e726b083c6575a33f90017f8db96828588136a02ea78a4d31c",
       "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
       "sourceFileMentions": [
         "functions/fn_refreshRoute.sqf",

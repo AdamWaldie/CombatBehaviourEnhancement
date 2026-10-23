@@ -29,6 +29,9 @@
  * 3: type <STRING> - waypoint type, MOVE or SAD (optional, default: "MOVE")
  * 4: operation generation <NUMBER> - matching operation identity, -1 captures the current operation
  *    once. Mismatched generation/epoch refuses at adoption and atomic waypoint commit.
+ * 5: refresh owned current waypoint BOOL false. Only the exact current operation may explicitly
+ *    recreate its unchanged temporary waypoint; caller must own a finite retry budget.
+ *    Ordinary callers keep idempotent adoption. Authored/Zeus waypoints are never refreshed.
  *
  * Return Value:
  * Array - the waypoint [group, index], or [grpNull,-1] when refused before movement
@@ -41,7 +44,7 @@
  * standoff, and shoot-and-scoot.
  */
 
-params [["_group", grpNull, [grpNull]], ["_position", [], [[]]], ["_radius", 25, [0]], ["_type", "MOVE", [""]], ["_operationGeneration", -1, [0]]];
+params [["_group", grpNull, [grpNull]], ["_position", [], [[]]], ["_radius", 25, [0]], ["_type", "MOVE", [""]], ["_operationGeneration", -1, [0]], ["_refreshOwned", false, [true]]];
 if (isNull _group || {!local _group} || {!(count _position in [2,3])}
     || {_position findIf {!(_x isEqualType 0)} >= 0}
     || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {[grpNull, -1]};
@@ -154,6 +157,8 @@ if (_hasOwnedWaypoint && {!(call _policyUnchanged)
 // cannot detect an editor/Zeus edit that retains the original description and array identity.
 private _routeUnchanged={
     (_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isEqualTo _intent
+        && {!_refreshOwned || {currentWaypoint _group == (_previousWaypoint param [1,-1])
+            && {(_intent getOrDefault ["operationGeneration",-2]) == _operationGeneration}}}
         && {!_hasOwnedWaypoint || {
             (_previousWaypoint select 1) < count waypoints _group
                 && {waypointDescription _previousWaypoint == "CBE AI PASS"}
@@ -174,6 +179,12 @@ private _sameRequest = _hasOwnedWaypoint
     && {_sameDestination}
     && {abs (_radius - _previousRadius) <= 2}
     && {_type == _previousType};
+// An explicit finite retry may wake native planning by replacing only this operation's
+// unchanged current temporary node. It cannot adopt/refresh another operation or a passed node.
+if (_refreshOwned && {!_sameRequest || {_operationGeneration < 0}
+    || {(_intent getOrDefault ["operationGeneration",-2]) != _operationGeneration}
+    || {currentWaypoint _group != (_previousWaypoint param [1,-1])}}) exitWith {[grpNull,-1]};
+if (_refreshOwned) then {_sameRequest=false};
 if (_sameRequest) exitWith {
     private _adopted=[grpNull,-1];
     isNil {
