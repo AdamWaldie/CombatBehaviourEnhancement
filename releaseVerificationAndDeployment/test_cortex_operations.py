@@ -7180,6 +7180,16 @@ class CortexOperations(unittest.TestCase):
         for component in ('"COMBAT_MODE"','"BEHAVIOUR"','"SPEED_MODE"'):
             self.assertIn(component,commit)
         self.assertNotIn('CortexQueueJob',commit)
+        locality=source('cortexLocality')
+        self.assertIn('private _groupPolicyFree=[_group] call CBE_fnc_CortexGroupPostureTaskAvailable',locality)
+        policy=locality.split('// OperationStart can invoke locality adoption',1)[1].split('_x params ["_unit", "_feature"]',1)[0]
+        self.assertIn('isNil {',policy)
+        self.assertIn('CBE_fnc_CortexIsEligible',policy)
+        self.assertIn('CBE_fnc_CortexZeusHeld',policy)
+        for lease in ('_groupModeLease','_groupSpeedLease'):
+            self.assertIn('if (_groupPolicyFree && {count '+lease+' == 2}',locality)
+        self.assertIn('behaviour _leader == "SAFE" && {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable}',locality)
+        self.assertIn('if (behaviour _leader == "AWARE") then {_adopted set ["behaviourChanged",true]}',locality)
 
         footprint=source('cortexGroupPostureTaskAvailable')
         for protected in ('fleeing _x','unitCombatMode _x in ["BLUE","GREEN"]',

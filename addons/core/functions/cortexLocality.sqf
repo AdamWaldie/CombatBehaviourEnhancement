@@ -311,13 +311,23 @@ if (_restoreEligible) then {
     // followers toward a combat-effective local anchor, never an incapacitated former leader.
     private _restoreAnchor=[_group] call CBE_fnc_CortexGroupAnchor;
     if (isNull _restoreAnchor) then {_restoreAnchor=leader _group};
+    // OperationStart can invoke locality adoption from a scheduled script. Keep the
+    // bounded footprint read and these two native policy writes non-suspending.
+    isNil {
+        if (local _group && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
+            && {!([_group] call CBE_fnc_CortexZeusHeld)}) then {
+    // Group policy restoration uses the complete native-task footprint; this grants
+    // no movement permission and must not veto eligible actors' separate cleanup.
+    private _groupPolicyFree=[_group] call CBE_fnc_CortexGroupPostureTaskAvailable;
     private _groupModeLease = _restore getOrDefault ["restoreGroupCombatMode",[]];
-    if (count _groupModeLease == 2 && {combatMode _group == (_groupModeLease select 1)}) then {
+    if (_groupPolicyFree && {count _groupModeLease == 2} && {combatMode _group == (_groupModeLease select 1)}) then {
         _group setCombatMode (_groupModeLease select 0);
     };
     private _groupSpeedLease = _restore getOrDefault ["restoreGroupSpeedMode",[]];
-    if (count _groupSpeedLease == 2 && {speedMode _group == (_groupSpeedLease select 1)}) then {
+    if (_groupPolicyFree && {count _groupSpeedLease == 2} && {speedMode _group == (_groupSpeedLease select 1)}) then {
         _group setSpeedMode (_groupSpeedLease select 0);
+    };
+        };
     };
     {
         _x params ["_unit", "_feature"];
@@ -537,7 +547,14 @@ if (_transitionResumeEligible) then {
         _adopted set ["baseSpeed",speedMode _group];
         _adopted set ["behaviourChanged",false];
         _adopted set ["speedChanged",false];
-        if (behaviour _leader == "SAFE") then {_group setBehaviour "AWARE"; _adopted set ["behaviourChanged",true]};
+        isNil {
+            if (local _group && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
+                && {!([_group] call CBE_fnc_CortexZeusHeld)}
+                && {behaviour _leader == "SAFE" && {[_group] call CBE_fnc_CortexGroupPostureTaskAvailable}}) then {
+                _group setBehaviour "AWARE";
+                if (behaviour _leader == "AWARE") then {_adopted set ["behaviourChanged",true]};
+            };
+        };
         [_group,_adopted,_transitionPhase,"OWNERSHIP_RESUME",time-((serverTime-_startedAt) max 0),true] call CBE_fnc_CortexSetPhase;
         _adopted set ["enemyPos",+_target];
         _adopted set ["searchTeam",_team];

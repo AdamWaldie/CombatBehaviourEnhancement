@@ -111,18 +111,20 @@
           "capability": "Owner epoch and actor reservations",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Reviewed 2026-10-23 at 1f08c452 plus locality-policy fix: locality retires machine-local executors/handlers, advances the owner epoch and resumes supported semantic intent only on the actual gained owner. Supported recovery/withdrawal journals retain original budgets and order fences. The actor reservation predicate is owner-local, admits empty or fully typed expired leases and preserves malformed/unknown markers. Complete native/provider handback remains a separate partial criterion.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/cortexLocality.sqf",
-              "sha256": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2"
+              "sha256": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
             },
             {
               "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
-              "sha256": "d43e6feff6eaf0368fff3840517d720557c455b30ea17d0fad3ed4479e8d90c3"
+              "sha256": "1cbd4f0aaeb559971d794b5ea2ddd2099ea128d9913fc668fbd7cc304fdf3874"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "1f08c452 + locality-policy fix"
         },
         {
           "capability": "All-owner handback integration",

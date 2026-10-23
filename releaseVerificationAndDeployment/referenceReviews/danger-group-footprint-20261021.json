@@ -247,5 +247,21 @@
     "candidate": ".qa/candidates/morale-allied-support-718d6935",
     "fingerprint": "a88c4d9736bfb6570ae6959f2b0f0839f0ae6413f859ccaf7a469814908da851",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. No physical alliance/balance or measured overhead proof. Audits paused. Native ATTACK speed parity remains open; current ActorSettings permits only real OPERATION/GARRISON scopes, never fabricate operation authority."
+  },
+  "localityPolicyFootprint20261023": {
+    "baseline": "1f08c452",
+    "finding": "Locality restored checkpoint group combat/speed modes from group eligibility and value matches alone, without the complete protected native-task footprint. Resumed search also promoted SAFE to AWARE and recorded ownership without native confirmation.",
+    "implementation": "Shared CortexGroupPostureTaskAvailable gates group combat/speed restoration only; per-actor cleanup/movement remain separately admitted. Search SAFE->AWARE checks same footprint and records behaviourChanged only after native readback. Footprint/eligibility/Zeus rechecks and native policy writes are non-suspending for the documented scheduled OperationStart adoption caller. No new movement owner, worker or retry.",
+    "scope": "Posture permission only; existing enableAttack restoration has its distinct authority contract. No full migration-handback completion claim.",
+    "validation": "1491 tests/full final build/independent verification passed; existing posture regression extended. Intermediate build passed before scheduled-caller atomicity review; final source revalidated.",
+    "candidate": ".qa/candidates/locality-group-policy-1f08c452",
+    "fingerprint": "11452dd28959d95a0d21a316449ae7617fdd4d3bbd80526904ea396b443a8a3e",
+    "logs": [
+      ".qa/locality-group-policy-build.log",
+      ".qa/locality-group-policy-build-final.log",
+      ".qa/locality-group-policy-independent.log"
+    ],
+    "tracker": "Renewed only CORE Owner epoch and actor reservations after locality delta review; scores unchanged, complete all-owner handback remains partial. Current230 stale references/109unique sources elsewhere; strict global check still fails.",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering tracker/metadata afterward. Blocked/unconfirmed policy handback may retain unresolved evidence; no physical migration/native restore/HC/JIP/balance/performance proof. Audits paused."
   }
 }
