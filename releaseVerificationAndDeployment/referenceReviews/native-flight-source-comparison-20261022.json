@@ -321,5 +321,31 @@
       ".qa/native-flight-pending-journal-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. Retained metadata can block admission indefinitely after cleanup window/shutdown. No guaranteed native quiescence, follow-command ACK or physical return. Owner migration, identical replacement intent, balance and5%median/10%p95 remain unverified; audits paused. No percentage increase."
+  },
+  "flightReturnSemanticReview20261023": {
+    "baseline": "f5afbf54",
+    "scope": "Read-only return-leg authority/engine API review; no runtime edit",
+    "paths": [
+      "addons/infantry/functions/dangerFlight.sqf",
+      "addons/infantry/functions/cortexHolderRecallPending.sqf",
+      "addons/infantry/functions/cortexGroupAnchor.sqf"
+    ],
+    "primary_sources": [
+      {
+        "url": "https://community.bistudio.com/wiki/doFollow",
+        "finding": "Return value Nothing. Return-to-formation is valid even for the leader itself. Same-group requirement. Documented player-issued orders can prevent it; do not substitute joinSilent to bypass mission/Zeus authority."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/formLeader",
+        "finding": "Reads formation leader, which can already equal the group leader before a return request. Equality alone cannot prove that a new follow request was consumed."
+      }
+    ],
+    "execution": "DangerFlight marks NATIVE_RETURN_REQUESTED and clears exact original reservation after issuing follow; holder recall likewise reports FOLLOW_ISSUED rather than physical reunion. These paths do not claim engine acknowledgement or actual route travel. A group anchor is a lifecycle fallback, not evidence that formation travel resumed.",
+    "remaining_material_uncertainty": "Native return request acceptance, delayed delivery and physical continuation are not proven. Do not introduce a positive acknowledgement based on guessed FOLLOW/MOVE labels or unchanged formLeader. No evidence justifies rejecting leader-self doFollow or forcibly joining groups.",
+    "minimum_next_evidence": "When audits are authorised, capture before/after currentCommand, full expectedDestination, formLeader, authored route and real position over the exact follow request under normal/leader-self/replacement/HC cases. Distinguish request, observed native change and actual authored-order travel. No audit launched or new fixture added.",
+    "validation": "Read-only source/API trace. No test/build/package repetition; previous exact candidate remains current runtime evidence. Existing source and protected references unchanged.",
+    "candidate": ".qa/candidates/native-flight-pending-journal-6ecf6f3c",
+    "fingerprint": "4462e5c2a5d712d18162aecb65aa076838a0856c198d6d645f78e1fbf1db9bf2",
+    "limits": "Audits paused. No complete handback/parity/performance or percentage claim. Continue other demonstrated offline execution work; do not infer global goal blockage from this physical evidence gap."
   }
 }
