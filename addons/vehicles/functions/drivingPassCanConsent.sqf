@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
+ * Active passenger-stop proof refuses both pass and queue consent before native input reads.
  * Purpose: Reads whether this owner may consent to one vehicle's proposed road-pass role.
  * Locality/authority: Current vehicle, driver, commander and group owner only. False for a
  * remote participant; observing its public receipt cannot substitute for its owner's consent.
@@ -40,6 +41,7 @@ if (_protocol == "BUSY") exitWith {false};
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}
     || {!canMove _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
     || {!isNil {_vehicle getVariable "CBE_DrivingPass_Leg"}}
+    || {(_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]]) isNotEqualTo []}
     || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}) exitWith {false};
 private _nativeDriveInfo=vehicleMoveInfo _vehicle;

@@ -10786,6 +10786,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_result=_blocked isEqualTo [] ||',text)
         self.assertLess(text.index('call CBE_fnc_DrivingAssistRelease'),text.index('_vehicle forceSpeed 0'))
         self.assertIn('CBE_DrivingCapRelease_Work',text)
+        self.assertIn('CBE_DrivingQueue_Consent',text)
+        self.assertIn('CBE_DrivingPass_Consent',text)
+        self.assertIn('private _available=_protocolFree',text)
+        consent=source('drivingPassCanConsent')
+        self.assertLess(consent.index('CBE_Cortex_DismountStopReceipt'),consent.index('vehicleMoveInfo _vehicle'))
         for name in ['drivingAssistStart','drivingAssistRelease']:
             self.assertIn('CBE_Cortex_DismountStopReceipt',source(name))
         self.assertNotIn('(_proof select 0) == (_group getVariable ["CBE_OperationGeneration"',text)

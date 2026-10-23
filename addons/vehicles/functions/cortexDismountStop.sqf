@@ -4,7 +4,8 @@
  * Locality/authority: Actual vehicle and crew-group owner only. Both original operating actors
  * must remain local, available, in their original seats and on their captured native tasks.
  * Repeat/JIP: Public proof can be observed by a new actual owner without renewing the baseline.
- * Ordinary plain speed caps retire before acquisition; active recovery refuses nested ownership.
+ * Ordinary plain speed caps retire before acquisition; active recovery and outstanding
+ * pass/queue consent refuse nested ownership. Consent cannot be treated as quiescent cap state.
  * No worker, route, boarding command or timer. Terminal refusal records unresolved evidence,
  * revokes the active proof and blocks reacquisition for this group epoch; it grants no late retry.
  * Operation generation is not release authority: common cleanup may already have advanced it.
@@ -42,9 +43,14 @@ isNil {
     // Another group's live receipt cannot be retired by this caller.
     if (_proof isEqualType [] && {count _proof == 8}
         && {(_proof select 0) isEqualType grpNull} && {(_proof select 0) != _group}) exitWith {};
+    private _dismountQueue=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    private _dismountPass=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
+    // Outstanding protocol proof must retire through its owner, never beneath a new stop.
+    private _protocolFree=_dismountQueue isEqualType createHashMap && {count _dismountQueue == 0}
+        && {_dismountPass isEqualType []} && {_dismountPass isEqualTo []};
     private _driver=driver _vehicle;
     private _commander=effectiveCommander _vehicle;
-    private _available=local _group && {!isNull _driver} && {!isNull _commander}
+    private _available=_protocolFree && {local _group} && {!isNull _driver} && {!isNull _commander}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}

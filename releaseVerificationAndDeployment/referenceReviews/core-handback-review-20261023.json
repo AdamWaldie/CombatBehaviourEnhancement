@@ -42,5 +42,14 @@
       ".qa/dismount-stop-composition-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. No physical repeated stop/resume, recovery interruption, HC/JIP or overhead proof. Refused stops may remain stopped; exact identical replacements remain ambiguous. Audits paused."
+  },
+  "trafficConsentExclusion20261023": {
+    "baseline": "1bf73a35",
+    "finding": "Pending pass/queue consent and passenger safe-stop could overlap before native recovery work began.",
+    "implementation": "Passenger stop acquisition/restoration refuses outstanding or malformed pass/queue consent; shared pass/queue consent admission refuses active passenger stop before native input inspection. Only the original protocol owner retires consent. No worker, timer or native-MOVE queue expansion.",
+    "validation": "1491 existing tests and complete offline build passed; copied candidate independently verified. Existing regression extended, no new cases.",
+    "candidate": ".qa/candidates/dismount-traffic-consent-exclusion-1bf73a35",
+    "fingerprint": "63a896ebd36430a8d787cfea224024d3a61069a3228eef6c0fb9c5d2d85fca76",
+    "limits": "Unsigned dirty development snapshot including retained unrelated dirt. Notes afterward. No physical stop/resume, protocol retirement, HC/JIP or performance proof. CORE helper evidence hash now stale; no score renewal. Native-MOVE queues remain excluded; shared cross-owner route proof needs design. Audits paused."
   }
 }
