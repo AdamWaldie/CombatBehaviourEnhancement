@@ -3,7 +3,7 @@
  * Purpose: Let an ordinary authored foot MOVE use nearby unlocked doors without taking its route.
  * Locality/authority: Existing current group-owner tick only; the door helper rechecks actor,
  * plain current MOVE, owner epoch, feature, lock, approach geometry and visibility at animation.
- * Repeat/JIP: Owner-private minimum two-second observation gap at existing tick cadence and rotating sixteen-actor roster.
+ * Repeat/JIP: Owner-private minimum two-second observation gap at existing tick cadence and rotating sixteen-actor samples across at most64 members.
  * No persistent worker, movement command, route replacement, visit credit or JIP command replay.
  * Arguments: 0 group <GROUP, grpNull>; 1 current group state <HASHMAP, empty>.
  * Return: BOOL - one door opening requested, never routing, access or clearance success.
@@ -30,13 +30,18 @@ if (waypointType _waypoint != "MOVE" || {_condition != "true"}
     || {!isNull waypointAttachedVehicle _waypoint} || {!isNull waypointAttachedObject _waypoint}
     || {synchronizedWaypoints _waypoint isNotEqualTo []} || {synchronizedTriggers _waypoint isNotEqualTo []}) exitWith {false};
 private _goal=waypointPosition _waypoint;
-private _actors=(units _group) select [0,16];
+private _actors=(units _group) select [0,64];
 if (_actors isEqualTo []) exitWith {false};
 _state set ["routeDoorNextAt",serverTime+2];
 private _cursor=(_state getOrDefault ["routeDoorCursor",0]) mod count _actors;
+private _sampleCount=(count _actors) min 16;
+// Advance even after an empty/nonlocal window; a fixed prefix starves later members.
+_state set ["routeDoorCursor",(_cursor+_sampleCount) mod count _actors];
 private _selected=objNull;
-for "_offset" from 0 to (count _actors-1) do {
+for "_offset" from 0 to (_sampleCount-1) do {
     private _i=(_cursor+_offset) mod count _actors;private _actor=_actors select _i;
+    // Native destination is actor-local evidence; never query a migrating remote member.
+    if (!local _actor) then {continue};
     private _target=(expectedDestination _actor) param [0,[],[[]]];
     if (local _actor && {!isPlayer _actor} && {isNull objectParent _actor}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}

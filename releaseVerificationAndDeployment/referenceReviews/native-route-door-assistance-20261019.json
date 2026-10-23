@@ -40,5 +40,21 @@
       "url": "https://community.bohemia.net/wiki/lineIntersectsSurfaces",
       "evidence": "First intersection returns direct object and proxy parent, in ASL. This identifies the encountered geometry, not a navigable route."
     }
-  ]
+  ],
+  "rosterFairness20261023": {
+    "baseline": "72495b0a",
+    "finding": "Ordinary door assistance truncated group to first16 members then rotated only that prefix, permanently excluding later supported members. It also evaluated expectedDestination before actor locality, even though remote results were subsequently discarded.",
+    "implementation": "Retain bounded64-member roster, sample at most16 per existing tick and advance cursor even when no eligible actor appears. A selection resumes after selected slot. Locality check now precedes actor native destination read. Same min2s cadence, one3m probe and at most4 door visibility rays; no movement, route, radius search, worker, deadline or door-range change.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing route-door regression extended; no new case.",
+    "candidate": ".qa/candidates/route-door-roster-fairness-72495b0a",
+    "fingerprint": "cc77bf38132114d1ac024eef127771558a1a0330f81ebcc4821cd65efff73981",
+    "logs": [
+      ".qa/route-door-roster-fairness-build.log",
+      ".qa/route-door-roster-fairness-independent.log"
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRouteDoors.sqf": "5c155e9b78dc2a00d61f4f5b7ff3a4efff7f544c224297a8eca93afd2f05a2af"
+    },
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Roster retention increases from16 to64 refs, while per-sample native/geometry work stays bounded16. No measured performance or physical large-group/HC/native-versus-placed passage proof. Existing samefloor3m visibility gates already reject distant opening; do not claim historical screenshot root cause or full routing/parity. Audits paused; no score/blanket hash renewal."
+  }
 }

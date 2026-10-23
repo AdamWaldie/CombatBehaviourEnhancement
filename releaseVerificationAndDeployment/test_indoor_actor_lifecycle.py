@@ -11,10 +11,12 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         body=route.split('params [[',1)[1]
         self.assertEqual(body.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('nearestObjects',body)
-        for proof in ('select [0,16]','routeDoorNextAt','serverTime+2','routeDoorCursor',
+        for proof in ('select [0,64]','(count _actors) min 16','routeDoorNextAt','serverTime+2','routeDoorCursor',
                       '(3 min _length)/_length','_hit select 2','_hit select 3',
                       '_target vectorDistance _goal <= 3','CBE_fnc_CortexBuildingDoor'):
             self.assertIn(proof,body)
+        self.assertLess(body.index('routeDoorCursor",(_cursor+_sampleCount)'),body.index('for "_offset"'))
+        self.assertLess(body.index('if (!local _actor) then {continue}'),body.index('expectedDestination _actor'))
         for forbidden in ('doMove','doFollow','doStop','setDestination','spawn','waitAndExecute','animateSource'):
             self.assertNotIn(forbidden,body)
         admission=door.split('== "ROUTE") exitWith',1)[1].split('if (count _context != 2',1)[0]
