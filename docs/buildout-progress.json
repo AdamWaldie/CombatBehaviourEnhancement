@@ -194,62 +194,70 @@
           "capability": "Active specialist exclusion",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Existing read-only marker checks reject declared control, active/malformed rappel flags and specialist runtime/animation ownership. ExternalTakeover retains group-wide player, remote-control and Zeus vetoes, with optional actor-scoped specialist checks. This is mutation exclusion only, not provider completion or safe resume.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
-              "sha256": "6c52a733f5808f89bbea512fac44e0db6d8121c3dbbe1e91203a8bb58c542dad"
+              "sha256": "2dc4c287b5dfa94724e5d58014b3ab680b5168c2eb59117d6931492741b9091d"
             },
             {
               "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
               "sha256": "4c3fb384f6d8b959048e9f0e5bf842728b7a543b5574b0396ba720aa2ae018fa"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
         },
         {
           "capability": "Finite movement lease handover",
           "weight": 1,
           "built": 0.5,
-          "implemented": "An implemented subset exists; the named remainder is still open.",
-          "remaining_build_gap": "Provider-specific baseline restoration and migration are not all implemented.",
+          "implemented": "The current actual-owner movement lease validates finite expiry and competing ownership, retires ordinary driving before acquisition, and refuses pending controlled-vehicle work plus queue/pass consent or agreement receipts. A receipt is never erased to publish its successor lease.",
+          "remaining_build_gap": "Provider-specific native quiescence, baseline restoration and migration are not all implemented; retiring local protocol metadata alone does not acknowledge a remote peer or native engine action.",
           "evidence": [
             {
               "path": "addons/compatibility/functions/cortexOwnershipLease.sqf",
-              "sha256": "5e8081b50e699425b622ed2b091d18a3b96fdb361ac7879b6ed7bc658b31e5f7"
+              "sha256": "d9721c6e770f2e896c9b62ddb10293cf17aff09d7cc893ae62c0102a5add38ec"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
         },
         {
           "capability": "HC provider bridge",
           "weight": 1,
           "built": 0.5,
-          "implemented": "An implemented subset exists; the named remainder is still open.",
-          "remaining_build_gap": "Required real-provider ownership transitions remain only partially covered.",
+          "implemented": "The unchanged companion bridge listens once for its declared migration event and emits the neutral signal only on the confirmed destination-local owner. It never selects an HC or changes group ownership.",
+          "remaining_build_gap": "Real provider transfer ordering, destination setup and normal/HC runtime cases remain only partially integrated or unverified; this event bridge is not a complete ownership transition.",
           "evidence": [
             {
               "path": "addons/compatibility/functions/compatibilityHeadlessBridge.sqf",
               "sha256": "e8f1ce4c1849142dc7ad3863fa7309850b7e41f6cf1375f11eaa593e74846031"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
         },
         {
           "capability": "Complete required specialist-controller adapters",
           "weight": 1,
           "built": 0,
-          "implemented": "Referenced components expose the boundary but do not implement this capability.",
-          "remaining_build_gap": "Detection/exclusion is not a complete real handover implementation for every required external controller.",
+          "implemented": "Current boundary detects active specialist state but contains no complete provider-specific start/cancel/cleanup/resume adapter set. The rappel actor API currently clears active flags before delayed damage writes.",
+          "remaining_build_gap": "Required complete specialist-controller adapters remain unimplemented. Detection and exclusion must not receive full handback credit; controlled provider completion and mission-state preservation still need implementation.",
           "evidence": [
             {
               "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
-              "sha256": "6c52a733f5808f89bbea512fac44e0db6d8121c3dbbe1e91203a8bb58c542dad"
+              "sha256": "2dc4c287b5dfa94724e5d58014b3ab680b5168c2eb59117d6931492741b9091d"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "31c2fbe8 + movement-consent admission correction"
     },
     {
       "id": "SCHED",

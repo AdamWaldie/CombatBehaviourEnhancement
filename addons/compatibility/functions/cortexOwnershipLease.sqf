@@ -10,7 +10,8 @@
  * A competing unexpired CBE owner is refused; external ownership is handled before acquisition. Repeated release is safe.
  * Acquiring finite movement synchronously retires the ordinary driving FSM and its unchanged
  * speed leases before the new tactical owner is published; later ordinary samples are refused.
- * Pending controlled-vehicle driving journals/cap releases refuse acquisition. Absence of metadata
+ * Pending controlled-vehicle driving journals/cap releases and queue/pass consent or agreement
+ * receipts refuse acquisition. Only their producer may retire protocol participation. Absence of metadata
  * is not proof of native physical quiescence; no cleanup receipt is erased to force handover.
  * Arguments: 0 group <GROUP>; 1 owner <STRING>; 2 acquire <BOOL>, true; 3 expiry <NUMBER>, serverTime + 30.
  * Return Value: Boolean - true when acquired/released, false for invalid locality or competing work.
@@ -60,7 +61,8 @@ if (_acquire) exitWith {
                 if (!local _vehicle) exitWith {true};
                 ["CBE_DrivingAssist_State","CBE_DrivingAssist_Restore","CBE_DrivingCapRelease_Work",
                     "CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingCorridor_Work",
-                    "CBE_DrivingBypass_Work","CBE_DrivingCrew_Work"] findIf {
+                    "CBE_DrivingBypass_Work","CBE_DrivingCrew_Work","CBE_DrivingQueue_Consent",
+                    "CBE_DrivingPass_Consent","CBE_DrivingPass_Agreement"] findIf {
                     private _pending=_vehicle getVariable [_x,[]];
                     // Crew journals retain terminal evidence; they are not live work.
                     // Native boarding/action admission remains the movement executor's check.

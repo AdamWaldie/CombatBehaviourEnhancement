@@ -10479,6 +10479,14 @@ class CortexOperations(unittest.TestCase):
         lease=source('cortexOwnershipLease')
         available=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text(encoding='utf-8')
         self.assertLess(lease.index('CBE_fnc_DrivingOperationFinish'),lease.index('_group setVariable ["CBE_Cortex_MovementLease"'))
+        pending=lease.split('private _drivingPending=',1)[1].split('if (_drivingPending)',1)[0]
+        for receipt in ('CBE_DrivingQueue_Consent','CBE_DrivingPass_Consent','CBE_DrivingPass_Agreement'):
+            self.assertIn(receipt,pending)
+        self.assertIn('count _pending > 0',pending)
+        self.assertIn('!(_pending isEqualType [] || {_pending isEqualType createHashMap})',pending)
+        self.assertLess(lease.index('if (_drivingPending) exitWith {false}'),
+                        lease.index('_group setVariable ["CBE_Cortex_MovementLease"'))
+
         self.assertIn('serverTime < (_lease select 1)',available)
         self.assertIn('CBE_VehicleReverse',available)
         self.assertIn('CBE_AIPass_Epoch',available)

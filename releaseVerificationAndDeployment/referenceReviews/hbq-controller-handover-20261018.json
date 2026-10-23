@@ -133,5 +133,22 @@
       "Absence of journals is not proof of native physical quiescence. External HBQ provider handover still needs real ACK; no compatibility expansion.",
       "Actual tactical handback, split ownership, repeated transitions and performance remain unverified; audits paused."
     ]
+  },
+  "commonMovementConsentBoundary20261023": {
+    "baseline": "31c2fbe8",
+    "finding": "CortexOwnershipLease retired ordinary driving and checked work/cap journals, but omitted surviving local queue/pass consent and pass agreement. Exact producer release can refuse mismatched/unknown proof; absence of a work record is not completed protocol retirement. Pass release explicitly supports an agreement-only receipt.",
+    "implementation": "Add CBE_DrivingQueue_Consent, CBE_DrivingPass_Consent and CBE_DrivingPass_Agreement to the existing <=64-member unique controlled-vehicle pending scan, after exact DrivingOperationFinish and before successor movement lease publication. Existing array/hashmap type validation makes malformed nonempty state refuse. Never clear receipts or start a new protocol/timer.",
+    "hash": "d9721c6e770f2e896c9b62ddb10293cf17aff09d7cc893ae62c0102a5add38ec",
+    "validation": {
+      "focusedExistingTests": 610,
+      "fullExistingTests": 1491,
+      "newCases": 0,
+      "build": ".qa/movement-consent-handover-build.log",
+      "independent": ".qa/movement-consent-handover-independent.log",
+      "candidate": ".qa/candidates/movement-consent-handover-31c2fbe8",
+      "fingerprint": "10bd13b310a92f9fbf15aafcf39a4cf21af4457e36184914a43d59a592eb74ce",
+      "provenance": "Unsigned dirty development snapshot preserving unrelated dirt; review/handover afterward."
+    },
+    "limits": "Local pending-proof exclusion does not establish remote peer acknowledgement, native physical quiescence or complete provider handback. Physical protocol cancellation/new tactical work/HC and overhead unverified. Audits paused."
   }
 }
