@@ -26,5 +26,37 @@
   ],
   "review_limits": "Recovery files were explored but no new handback defect established. Do not add classifier-locality guards solely on missing internal checks without proving a reachable caller path; current native route reader already requires actual local seats. Some broad outputs truncated; not a complete recovery review.",
   "validation": "Read-only source review; no runtime change, new test, package rebuild or score renewal. Last successful runtime candidate remains pass-broker-admission-budget-595b17ba. Audits paused.",
-  "external_lookup": "Official expectedDestination page lookup returned403; no new command-specific documentation evidence obtained. Existing queue source contract establishes project locality intent; physical verification remains necessary."
+  "external_lookup": "Official expectedDestination page lookup returned403; no new command-specific documentation evidence obtained. Existing queue source contract establishes project locality intent; physical verification remains necessary.",
+  "implementation20261023": {
+    "baseline": "5d6d66ba",
+    "changes": [
+      "Shared destination slot empty; no expectedDestination in shared context reader. Existing native-command and authored identity fields retained.",
+      "Stateless DrivingPassNativeFrame refuses remote vehicle/group/control seats before native reads. Initiating proposal retains frame through planning and preparation; preparation freezes the original frame against caller refresh. Geometry/traffic recheck actual-owner frame before/after bounded observation; active step constructs fresh bounded local observation frames while retaining its own issued-command journal.",
+      "Each consenting owner captures private [token,context,deadline,expiry,serial,nativeFrame] before ACK; repeated VERIFY preserves original proof. RESULT and Begin compare it. Existing ordinary-driving callback revokes passive consent on local task/eligibility changes. No new worker or timer.",
+      "Exact-token release and owner refusal retire companion proof without clearing successor token/context; existing original-expiry callback and shutdown use that release. Owner-local proof is never replayed to JIP/new owner. Canonical topology plus broker ACK remain required; native-MOVE negotiations still excluded."
+    ],
+    "source_sha256": {
+      "drivingPassContext": "95c36988378c75afbfb77de44164c8f04057fc09d2666caecefeac787d7ba417",
+      "drivingPassNativeFrame": "a42c759b13cbc55286393bef692a6315a98ed91fe073ba5d0389f4ecd19b179f",
+      "drivingPassPlan": "47b2ec424520dfae30b0103e5d3ca1928593e06a9be9942bbe1453072161d4a6",
+      "drivingPassPrepare": "81ad933d20f1ec47b3eba92e736b4d23c75f21882f6232d23ac79bf896fdaa4c",
+      "drivingPassGeometry": "c41144a8c6e0bb17ef7747fa364ba3c545ff8876510441c356f6402e29e58b16",
+      "drivingPassTraffic": "0d909d4a2fadb18c7ca9f4f476ce61016d983d3a519449c4638b1d35416e428f",
+      "drivingPassAgreementOwner": "51dcfec1d84f1f7099ec1a749fd332d168811fe7340fb9ac7495363c81149dee",
+      "drivingPassAgreementRelease": "eae5d77268b01c88f7910a2f2488358e00805644244323fd3b034340958523da",
+      "drivingPassBegin": "7534cce9dcd406b751b189c1a683e500b84625055f77170f30f82e856217c581",
+      "drivingPassStep": "7f1fc6d834fa4b735bf4454342acf753a5e4d90dd6e6fe8a578d37f096e035a3",
+      "drivingAssistStart": "36e664bffc4cd7ed09d99ad7ea046e65f1a3544b683ea0f6fb72ad96aa1841d0"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package gates and independent copied-package verification passed. Existing ownership regression extended, no new cases. First build failed old expectedDestination-in-shared-context assertion; reviewed passed; final pass includes frozen preparation frame and typed passive proof.",
+    "candidate": ".qa/candidates/pass-owner-native-proof-5d6d66ba",
+    "fingerprint": "56412b5efc0e1b341971107cef473fd8eee22cdcc0b4e52aefd9c2b6825fe507",
+    "logs": [
+      ".qa/pass-owner-native-proof-build.log",
+      ".qa/pass-owner-native-proof-build-reviewed.log",
+      ".qa/pass-owner-native-proof-build-final.log",
+      ".qa/pass-owner-native-proof-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Actual cross-owner consent, passive revocation latency/transport, native path handback, locality transitions, traffic balance and 5%median/10%p95 overhead remain unverified. Ordinary callback revocation is not synchronous all-owner permission at each root steering instruction. No tracker renewal. Audits paused."
+  }
 }

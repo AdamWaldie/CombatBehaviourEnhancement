@@ -69,6 +69,7 @@ class CfgFunctions {
             class DrivingPassCommandWatch {file = "\z\cbe\addons\vehicles\functions\drivingPassCommandWatch.sqf";};
             class DrivingPassRetireInherited {file = "\z\cbe\addons\vehicles\functions\drivingPassRetireInherited.sqf";};
             class DrivingPassFinish {file = "\z\cbe\addons\vehicles\functions\drivingPassFinish.sqf";};
+            class DrivingPassNativeFrame {file = "\z\cbe\addons\vehicles\functions\drivingPassNativeFrame.sqf";};
             class DrivingPassTokenClosed {file = "\z\cbe\addons\vehicles\functions\drivingPassTokenClosed.sqf";};
             class DrivingPassAgreementRelease {file = "\z\cbe\addons\vehicles\functions\drivingPassAgreementRelease.sqf";};
             class DrivingPassAgreementRequest {file = "\z\cbe\addons\vehicles\functions\drivingPassAgreementRequest.sqf";};

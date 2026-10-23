@@ -17,6 +17,12 @@
 params [["_proposal",createHashMap,[createHashMap]],["_work",createHashMap,[createHashMap]]];
 private _refuse={params ["_reason",["_phase","REFUSED"]];_work set ["phase",_phase];_work set ["reason",_reason];_work};
 if (isRemoteExecuted) exitWith {["REMOTE_EXECUTION"] call _refuse};
+private _proposalVehicles=_proposal getOrDefault ["vehicles",[]];
+private _proposalFrame=_proposal getOrDefault ["ownerFrame",[]];
+if (count _proposalVehicles != 2 || {_proposalFrame isEqualTo []}
+    || {([_proposalVehicles select 0] call CBE_fnc_DrivingPassNativeFrame) isNotEqualTo _proposalFrame}) exitWith {
+    ["OWNER_NATIVE_ORDER_CHANGED"] call _refuse
+};
 if (count _work == 0) then {
     private _vehicles=_proposal getOrDefault ["vehicles",[]];
     private _context=[_vehicles] call CBE_fnc_DrivingPassContext;
@@ -40,6 +46,7 @@ if (count _work == 0) then {
         _work set ["phase","SCANNING"];
         _work set ["reason","GEOMETRY_PENDING"];
         _work set ["context",_context];
+        _work set ["ownerFrame",+_proposalFrame];
         _work set ["vehicles",+_vehicles];
         _work set ["guide",_guide apply {+_x}];
         _work set ["proposalAt",_at];
@@ -59,6 +66,7 @@ private _budget=[_proposal getOrDefault ["estimatedSeconds",-1],
     _proposal getOrDefault ["requiredTravel",-1],_proposal getOrDefault ["maximumSeconds",-1],_proposal getOrDefault ["returnIndex",-1]];
 if ((_proposal getOrDefault ["status",""]) != "PROPOSAL"
     || {_budget isNotEqualTo (_work getOrDefault ["budget",[]])}
+    || {_proposalFrame isNotEqualTo (_work getOrDefault ["ownerFrame",[]])}
     || {([_vehicles] call CBE_fnc_DrivingPassContext) isNotEqualTo (_work getOrDefault ["context",[]])}
     || {(_proposal getOrDefault ["context",[]]) isNotEqualTo (_work getOrDefault ["context",[]])}
     || {(_proposal getOrDefault ["guideASL",[]]) isNotEqualTo (_work getOrDefault ["guide",[]])}

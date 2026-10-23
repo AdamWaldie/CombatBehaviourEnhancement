@@ -70,6 +70,12 @@ for "_i" from 0 to 1 do {
         };
         if (((_live select 1) select _i) isNotEqualTo ((_context select 1) select _i)
             || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) then {_accepted=false};
+        private _frame=[_vehicle] call CBE_fnc_DrivingPassNativeFrame;
+        private _orders=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
+        if (_frame isEqualTo []) then {_accepted=false};
+        if (_mode == "RESULT" || {_orders isNotEqualTo [] && {(_orders param [0,""]) == _token}}) then {
+            if (_orders isNotEqualTo [_token,_context,_deadline,_expires,_serial,_frame]) then {_accepted=false};
+        };
         private _old=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
         if (_old isNotEqualTo []) then {
             private _valid=_old isEqualType [] && {count _old == 5}
@@ -97,7 +103,10 @@ if (_mode == "VERIFY") exitWith {
             !(_old isEqualTo _pending || {_old isEqualTo _agreed})
         };
         // Duplicate verification neither adds an expiry callback nor downgrades AGREED.
-        {_x setVariable ["CBE_DrivingPass_Consent",+_pending]} forEach _install;
+        {
+            _x setVariable ["CBE_DrivingPass_OwnerOrders",[_token,_context,_deadline,_expires,_serial,[_x] call CBE_fnc_DrivingPassNativeFrame]];
+            _x setVariable ["CBE_DrivingPass_Consent",+_pending];
+        } forEach _install;
         if (_install isNotEqualTo []) then {[_install,_pending] call _scheduleExpiry};
     };
     ["ACK",[_token,_accepted]] remoteExecCall ["CBE_fnc_DrivingPassAgreementServer",2];
@@ -118,6 +127,9 @@ private _phase=_payload select 6;
         } else {
             [_token,_expires] call CBE_fnc_DrivingPassTokenClosed;
             _x setVariable ["CBE_DrivingPass_Consent",nil];
+            if (((_x getVariable ["CBE_DrivingPass_OwnerOrders",[]]) param [0,""]) == _token) then {
+                _x setVariable ["CBE_DrivingPass_OwnerOrders",nil];
+            };
             private _agreement=_x getVariable ["CBE_DrivingPass_Agreement",[]];
             if (count _agreement == 5 && {(_agreement select 0) == _token}) then {_x setVariable ["CBE_DrivingPass_Agreement",nil]};
         };

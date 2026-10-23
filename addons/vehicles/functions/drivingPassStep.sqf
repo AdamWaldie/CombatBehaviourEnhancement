@@ -112,7 +112,7 @@ private _issue={
         _connectorGuide pushBack (_originASL vectorAdd ((_joinASL vectorDiff _originASL) vectorMultiply (_i/_segments)));
     };
     private _connector=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-        ["context",_pairContext],["observedAt",serverTime],
+        ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],
         ["guideASL",_connectorGuide]];
     private _geometry=[_connector,0] call CBE_fnc_DrivingPassGeometry;
     if ((_geometry getOrDefault ["status",""]) != "SLICE_PROPOSAL") exitWith {false};
@@ -126,7 +126,7 @@ private _issue={
     };
     if (_travel <= 0 || {_travel > 350}) exitWith {false};
     private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-        ["context",_pairContext],["observedAt",serverTime],["guideASL",_guide],
+        ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],["guideASL",_guide],
         ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],["requiredTravel",_travel]];
     private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
     if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION"
@@ -185,7 +185,7 @@ if (_phase == "DROP_BACK") exitWith {
     // Dropping behind still follows the issued forward path. Reduced speed alone
     // cannot authorise travel through the traffic that caused the abort.
     private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-        ["context",_pairContext],["observedAt",serverTime],
+        ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],
         ["guideASL",(_work get "activePath") apply {ATLToASL _x}],["monitorRemaining",true],
         ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],
         ["requiredTravel",_work get "legTravel"]];
@@ -197,7 +197,7 @@ if (_phase == "DROP_BACK") exitWith {
 if (_phase == "RETURN_SCAN") exitWith {
     if (serverTime-(_work get "scanAt") >= 4) exitWith {["RETURN_SCAN_EXPIRED",_ahead] call _finish};
     private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-        ["context",_pairContext],["observedAt",serverTime],["guideASL",_work get "returnASL"]];
+        ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],["guideASL",_work get "returnASL"]];
     private _slice=[_proposal,_work get "scanCursor"] call CBE_fnc_DrivingPassGeometry;
     if ((_slice getOrDefault ["status",""]) != "SLICE_PROPOSAL") exitWith {["RETURN_OBSTRUCTED",false] call _finish};
     private _points=_work get "returnValidated";
@@ -216,7 +216,7 @@ if (_phase == "RETURN_READY") exitWith {
 if (_phase == "RETURN") exitWith {
     // Merge-back remains a live manoeuvre, not unconditional travel until expiry.
     private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-        ["context",_pairContext],["observedAt",serverTime],
+        ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],
         ["guideASL",(_work get "activePath") apply {ATLToASL _x}],["monitorRemaining",true],
         ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],
         ["requiredTravel",_work get "legTravel"]];
@@ -235,7 +235,7 @@ if (_phase == "RETURN") exitWith {
 };
 // OUT retains all caller collision caps. An obstruction never grants traffic-ignore time.
 private _proposal=createHashMapFromArray [["status","PROPOSAL"],["vehicles",[_vehicle,_peer]],
-    ["context",_pairContext],["observedAt",serverTime],["guideASL",(_work get "outPath") apply {ATLToASL _x}],["monitorRemaining",true],
+    ["context",_pairContext],["ownerFrame",[_vehicle] call CBE_fnc_DrivingPassNativeFrame],["observedAt",serverTime],["guideASL",(_work get "outPath") apply {ATLToASL _x}],["monitorRemaining",true],
     ["estimatedSeconds",((_work get "deadline")-serverTime) min 24],["requiredTravel",350]];
 private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
 private _distance=_vehicle distance2D (_work get "target");

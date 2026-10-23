@@ -71,6 +71,9 @@ if (_agreement isEqualType [] && {count _agreement == 5} && {(_agreement select 
     && {(_vehicle getVariable ["CBE_DrivingPass_Agreement",[]]) isEqualTo _agreement}) then {
     _vehicle setVariable ["CBE_DrivingPass_Agreement",nil];
 };
+private _orders=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
+if (_orders isEqualType [] && {count _orders == 6} && {(_orders select 0) isEqualTo _token}
+    && {(_orders select 1) isEqualTo _context}) then {_vehicle setVariable ["CBE_DrivingPass_OwnerOrders",nil]};
 private _request=_vehicle getVariable ["CBE_DrivingPass_Request",[]];
 if (_request isEqualType [] && {count _request == 3} && {(_request select 0) isEqualTo _context}) then {
     _vehicle setVariable ["CBE_DrivingPass_Request",nil];

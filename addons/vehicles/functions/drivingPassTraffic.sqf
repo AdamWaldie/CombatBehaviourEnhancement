@@ -32,7 +32,9 @@ private _context=_proposal getOrDefault ["context",[]];
 private _observed=_proposal getOrDefault ["observedAt",-1];
 private _current={_observed isEqualType 0 && {finite _observed} && {serverTime >= _observed}
     && {serverTime-_observed <= 2} && {_context isNotEqualTo []}
-    && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}};
+    && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}
+    && {private _frame=[_vehicles select 0] call CBE_fnc_DrivingPassNativeFrame;
+        _frame isNotEqualTo [] && {_frame isEqualTo (_proposal getOrDefault ["ownerFrame",[]])}}};
 if !(call _current) exitWith {["STALE_CONTEXT"] call _fail};
 private _vehicle=_vehicles select 0;private _front=_vehicles select 1;
 if (!local _vehicle) exitWith {["OWNER_UNAVAILABLE"] call _fail};

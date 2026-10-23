@@ -31,6 +31,9 @@ if (!(_agreement isEqualType []) || {!(_consent isEqualType [])} || {count _agre
     || {(_consent select 4) != "AGREED"} || {(_agreement select 0) != (_consent select 0)}
     || {(_agreement select 1) isNotEqualTo _vehicles} || {(_agreement select 2) isNotEqualTo _context}
     || {(_consent select 1) isNotEqualTo _context} || {serverTime >= (_agreement select 3)}) exitWith {false};
+private _requestSerial=(_vehicle getVariable ["CBE_DrivingPass_Request",[]]) param [2,-1];
+private _ownerOrders=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
+if (_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame]) exitWith {false};
 private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
 if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION" || {_traffic getOrDefault ["blocked",true]}) exitWith {false};
 private _path=(_prepared get "pointsATL") apply {+_x};
@@ -51,6 +54,8 @@ private _work=createHashMapFromArray [["group",_group],["epoch",_group getVariab
     ["scanAt",-1],["scanCursor",0],["returnValidated",[]],
     ["cap",((_budget select 1)-30)/(_budget select 0)]];
 if (([_vehicles] call CBE_fnc_DrivingPassContext) isNotEqualTo _context
+    || {(_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]]) isNotEqualTo _ownerOrders}
+    || {_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame]}
     || {serverTime >= (_prepared get "deadline")} || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) exitWith {false};
 _vehicle setVariable ["CBE_DrivingPass_Work",_work];
 if (!([_group,_vehicle,_work] call CBE_fnc_DrivingPassCommandWatch)) exitWith {

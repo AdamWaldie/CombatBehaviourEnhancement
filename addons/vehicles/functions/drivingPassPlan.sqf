@@ -28,6 +28,8 @@ if (!finite _speedKmh || {_speedKmh < 5} || {_speedKmh > 120}) exitWith {["INVAL
 if (group driver _vehicle == group driver _front) exitWith {["SAME_GROUP"] call _fail};
 private _context=[[_vehicle,_front]] call CBE_fnc_DrivingPassContext;
 if (_context isEqualTo []) exitWith {["INVALID_CONTEXT"] call _fail};
+private _ownerFrame=[_vehicle] call CBE_fnc_DrivingPassNativeFrame;
+if (_ownerFrame isEqualTo []) exitWith {["OWNER_UNAVAILABLE"] call _fail};
 private _forward=velocityModelSpace _front select 1;
 if (_forward < -0.1 || {(velocityModelSpace _vehicle select 1) < -0.1}) exitWith {["REVERSING"] call _fail};
 private _relative=_speedKmh/3.6-(_forward max 0);
@@ -140,8 +142,9 @@ for "_index" from 0 to 31 do {
 if (_reason != "") exitWith {[_reason] call _fail};
 if (_returnIndex < 2 || {_returnIndex >= count _guide-1}) exitWith {["PASS_LEG_BUDGET"] call _fail};
 if !(_frontRoad in _visited) exitWith {["PEER_OFF_CORRIDOR"] call _fail};
-if (([[_vehicle,_front]] call CBE_fnc_DrivingPassContext) isNotEqualTo _context) exitWith {["CONTEXT_CHANGED"] call _fail};
+if (([[_vehicle,_front]] call CBE_fnc_DrivingPassContext) isNotEqualTo _context
+    || {([_vehicle] call CBE_fnc_DrivingPassNativeFrame) isNotEqualTo _ownerFrame}) exitWith {["CONTEXT_CHANGED"] call _fail};
 createHashMapFromArray [["status","PROPOSAL"],["reason","GEOMETRY_AND_AGREEMENT_REQUIRED"],
-    ["context",_context],["returnIndex",_returnIndex],["guideASL",_guide],["requiredTravel",_needed],["estimatedSeconds",_seconds],
+    ["context",_context],["ownerFrame",_ownerFrame],["returnIndex",_returnIndex],["guideASL",_guide],["requiredTravel",_needed],["estimatedSeconds",_seconds],
     ["maximumSeconds",_seconds*1.8+5],["observedAt",serverTime],["vehicles",[_vehicle,_front]],
     ["transforms",[_vehicle,_front] apply {[getPosWorld _x,vectorDir _x,vectorUp _x]}]]

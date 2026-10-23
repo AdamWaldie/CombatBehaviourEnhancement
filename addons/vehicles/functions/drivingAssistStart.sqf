@@ -193,6 +193,18 @@ _brain set ["geometryTracks",_geometryTracks];
             "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"
         ])}
     };
+    // Passive consent is checked by its actual owner through this existing callback.
+    // Active passing owns a separate exact issued-command journal in DrivingPassStep.
+    private _passConsent=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
+    if (_passConsent isEqualType [] && {count _passConsent == 5}
+        && {count (_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) == 0}) then {
+        private _frame=[_vehicle] call CBE_fnc_DrivingPassNativeFrame;
+        private _proof=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
+        if (!(_proof isEqualType []) || {count _proof != 6} || {_frame isEqualTo []} || {_proof isNotEqualTo [_passConsent select 0,_passConsent select 1,_passConsent select 2,_passConsent select 3,_proof param [4,-1],_frame]}
+            || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) then {
+            [_vehicle,_group,_passConsent select 0] call CBE_fnc_DrivingPassAgreementRelease;
+        };
+    };
     private _routeIdentity=call _readRouteIdentity;
     private _nativeOnlyRoute=(_routeIdentity param [0,"",[""]]) == "NATIVE_MOVE";
     // Empty safety input performs metadata validation only, before successor work can retire.

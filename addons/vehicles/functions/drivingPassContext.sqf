@@ -7,10 +7,11 @@
  * Return: ARRAY [observing client owner, participant rows], [] for invalid participants.
  * Each row is [vehicle, vehicle owner, driver receipt, effective-commander receipt]. An actor
  * receipt includes actor/owner, group/owner/epoch, player/remote control, native command and
- * expected destination, full authored route receipt, then ordinary driving generation.
+ * empty destination slot, full authored route receipt, then ordinary driving generation.
  * Local groups use private owner epoch/generation; remote observations require owner-stamped
  * published identity. Unknown owner identity returns[] for the whole context. Owner
  * verification still compares the full row and actual live controller before consent.
+ * Native destination proof is private on each actual owner through DrivingPassNativeFrame.
  * Actor receipts have11 fields; missing crew use an empty row. Old schemas grant no consent.
  * Current callers: DrivingPassPlan, DrivingPassGeometry, DrivingPassTraffic, DrivingPassPrepare,
  * DrivingPassAgreementServer and DrivingPassAgreementOwner.
@@ -28,7 +29,7 @@ private _actorReceipt={
     private _identity=[_group] call CBE_fnc_DrivingOwnerReceipt;
     if (_identity isEqualTo []) exitWith {_receiptsReady=false;[]};
     [_actor,owner _actor,_group,_identity select 0,_identity select 1,
-        isPlayer _actor,remoteControlled _actor,currentCommand _actor,+(expectedDestination _actor),
+        isPlayer _actor,remoteControlled _actor,currentCommand _actor,[],
         [_group] call CBE_fnc_NativeOrderReceipt,_identity select 2]
 };
 private _rows=_vehicles apply {

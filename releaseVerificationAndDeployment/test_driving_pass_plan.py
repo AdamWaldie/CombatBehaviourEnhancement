@@ -33,12 +33,29 @@ class DrivingPassPlanTests(unittest.TestCase):
         context=(ROOT/'addons/vehicles/functions/drivingPassContext.sqf').read_text()
         for guard in ('owner _x','driver _x','effectiveCommander _x','call CBE_fnc_DrivingOwnerReceipt',
                       'if (!_receiptsReady) exitWith {[]}','remoteControlled _actor','currentCommand _actor',
-                      'expectedDestination _actor','call CBE_fnc_NativeOrderReceipt'):
+                      'call CBE_fnc_NativeOrderReceipt'):
             self.assertIn(guard,context)
+        self.assertNotIn('expectedDestination',context.split('params [[',1)[1])
+        frame=(ROOT/'addons/vehicles/functions/drivingPassNativeFrame.sqf').read_text(encoding='utf-8')
+        self.assertLess(frame.index('!local _driver'),frame.index('expectedDestination _driver'))
+        self.assertLess(frame.index('!local _operator'),frame.index('expectedDestination _operator'))
+        for name in ('drivingPassPlan','drivingPassPrepare','drivingPassGeometry','drivingPassTraffic','drivingPassStep'):
+            code=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertIn('ownerFrame',code)
+            self.assertIn('call CBE_fnc_DrivingPassNativeFrame',code)
+        owner=(ROOT/'addons/vehicles/functions/drivingPassAgreementOwner.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_token,_context,_deadline,_expires,_serial,_frame]',owner)
+        self.assertLess(owner.index('setVariable ["CBE_DrivingPass_OwnerOrders"'),owner.index('["ACK",[_token,_accepted]]'))
+        for name in ('drivingPassBegin','drivingPassAgreementRelease','drivingAssistStart'):
+            self.assertIn('CBE_DrivingPass_OwnerOrders',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
         planner=(ROOT/'addons/vehicles/functions/drivingPassPlan.sqf').read_text()
         geometry=(ROOT/'addons/vehicles/functions/drivingPassGeometry.sqf').read_text()
         self.assertEqual(planner.count('call CBE_fnc_DrivingPassContext'),2)
         self.assertEqual(geometry.count('call _sameContext'),2)
+        prepare=(ROOT/'addons/vehicles/functions/drivingPassPrepare.sqf').read_text(encoding='utf-8')
+        self.assertIn('_work set ["ownerFrame",+_proposalFrame]',prepare)
+        self.assertIn('_proposalFrame isNotEqualTo (_work getOrDefault ["ownerFrame",[]])',prepare)
+
         self.assertIn('["context",_context]',geometry)
     def test_pass_traffic_observation_refuses_dense_or_stale_sets_without_authority(self):
         s=(ROOT/'addons/vehicles/functions/drivingPassTraffic.sqf').read_text()
