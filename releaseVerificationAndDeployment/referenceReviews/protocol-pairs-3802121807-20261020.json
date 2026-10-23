@@ -256,5 +256,16 @@
     },
     "validation": "Read-only runtime/source trace; engineering register correction only. Protected sources and runtime unchanged. Do not repeat the unchanged full build; run the existing reference-boundary check for final notes.",
     "limits": "Actual cover efficacy, arrival/casualty/recovery/HC and runtime cost remain unverified. No whole Protocol or LAMBS parity/percentage claim. Audits paused."
+  },
+  "indoorSelection20261023": {
+    "baseCommit": "5f9dd844",
+    "scope": "Reuse CBE existing persistent buddy/element selector in qualified individual hostile-building investigation; not a new pair movement controller or whole Protocol parity.",
+    "implementation": "IndoorActorDispatch ranks only existing native-contact/range/task/ownership-qualified candidates. Live same-building/contact investigators with matching group, owner epoch, actor generation and unexpired brain can supply receiving-team identity. CombatElementSelect(max2,min1) prefers eligible receiving partners then intact existing pairs; adequate nonleader alternatives remain preferred, native formation anchor stays last within selected actors, and all original distance-ranked fallback candidates remain. Each START independently rechecks capacity/authority; refused buddies create no wait and no shared entry result. No new pair publication.",
+    "intentAndDeparture": "Combines useful buddy cohesion with current finite actor ownership. Source Protocol pairs rebuilt consecutive roster pairs; CBE persistent identity is an improvement already implemented, now reaching indoor selection. Do not copy raw per-scan alternating movement/fire or count this as synchronised two-person room clearing.",
+    "cost": "At most16 qualified candidates,16 existing pair rows and2 registered investigator brain reads per existing8-second selection interval; no new geometry/world scan, timer or worker. No measured performance/physical-flow claim.",
+    "validation": "1491 full offline tests/411SQF/9PBOs and independent verify. Candidate .qa/candidates/indoor-buddy-selection-5f9dd844 fingerprint32f99a612608875854cf175f2203da6b4b9264c52e7429762a89574da16364b8. Logs .qa/indoor-buddy-selection-build.log and .qa/indoor-buddy-selection-independent.log. Unsigned dirty development snapshot; review/notes postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

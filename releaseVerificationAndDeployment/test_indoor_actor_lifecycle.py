@@ -562,6 +562,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertLess(s.index('private _actors='),s.index('private _actionable='))
         self.assertLess(s.index('private _actionable='),s.index('call CBE_fnc_BuildingContactSelect'))
         self.assertIn('_enemies select [0,8]',s)
+        for guard in ('_brain getOrDefault ["building",objNull]','_brain getOrDefault ["contact",objNull]',
+                      '_brain getOrDefault ["deadline",-1]','CBE_IndoorActor_Generation','_nonLeaders >= 2',
+                      '[_group,_pairCandidates,2,1,_incumbents] call CBE_fnc_CombatElementSelect',
+                      '(_rankedActors-_preferred)','forEach _orderedActors'):
+            self.assertIn(guard,s)
+        self.assertLess(s.index('knowsAbout _contact >= 1'),s.index('call CBE_fnc_CombatElementSelect'))
+        self.assertNotIn('call CBE_fnc_CombatPairsPublish',s)
+
         for name in ('indoorActorDispatch','indoorObservationDispatch'):
             dispatcher=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
             roster=dispatcher.split('private _actors=',1)[1].split('if (_actors isEqualTo [])',1)[0]

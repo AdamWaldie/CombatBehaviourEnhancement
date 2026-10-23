@@ -10,7 +10,8 @@
  * 2 maximum element size <NUMBER,2>,1..5; 3 minimum mover count <NUMBER,2>,1..maximum;
  * 4 receiving-team incumbents <ARRAY,[]>, at most16, disjoint from ranked candidates.
  * Return: ARRAY of selected actors, or [] for invalid scope/insufficient candidates.
- * Current callers: CortexAdvanceStart, CortexFlankStart, CortexAssaultStart and CortexFlankStep refill.
+ * Current callers: CortexAdvanceStart, CortexFlankStart, CortexAssaultStart, CortexFlankStep refill
+ * and IndoorActorDispatch candidate preference.
  * Cost: At most16 candidates and16 persistent rows; no geometry or world scan.
  * Example: [group soldier1,[soldier1,soldier2,soldier3,soldier4],2,2] call CBE_fnc_CombatElementSelect;
  */

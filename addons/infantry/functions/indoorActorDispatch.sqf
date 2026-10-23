@@ -4,6 +4,9 @@
  * actor START/STEP/door authority still re-read current ownership without that snapshot.
  * Candidate ranking excludes common executor refusals before consuming bounded slots;
  * full START authority, native context and building checks remain mandatory.
+ * Eligible persistent buddies receive selection preference, including a partner of a live
+ * same-building/contact investigator. Existing non-leader preference and fallback ranking stay;
+ * no partner wait, pair publication or shared movement authority is introduced.
  * Purpose: Admit up to two nearby individual indoor investigations from fresh native group knowledge
  * when the contact decision has not committed a whole-group clearance or coordinated task.
  * Locality/authority: Current group owner only. The actor executor revalidates all ownership,
@@ -107,13 +110,43 @@ private _ranked=[];
     };
 } forEach _actors;
 _ranked sort true;
+private _rankedActors=_ranked apply {_actors select (_x select 2)};
+if (_rankedActors isEqualTo []) exitWith {0};
+// Persistent pair identity ranks only actors already qualified for this contact.
+// A live investigator supplies identity, never authority to command its partner.
+private _incumbents=[];
+private _registered=_group getVariable ["CBE_IndoorActor_Actors",[]];
+if (_registered isEqualType [] && {count _registered <= 2}) then {
+    {
+        if (_x isEqualType objNull && {!isNull _x} && {alive _x} && {local _x}
+            && {group _x == _group} && {!(_x in _rankedActors)}) then {
+            private _brain=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
+            if (_brain isEqualType createHashMap && {count _brain > 0}
+                && {!(_brain getOrDefault ["finished",true])}
+                && {(_brain getOrDefault ["group",grpNull]) == _group}
+                && {(_brain getOrDefault ["generation",-1]) == (_x getVariable ["CBE_IndoorActor_Generation",-2])}
+                && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+                && {serverTime < (_brain getOrDefault ["deadline",-1])}
+                && {(_brain getOrDefault ["building",objNull]) == _building}
+                && {(_brain getOrDefault ["contact",objNull]) == _contact}) then {_incumbents pushBackUnique _x};
+        };
+    } forEach _registered;
+};
+private _formationAnchor=leader _group;
+private _nonLeaders=_rankedActors select {_x != _formationAnchor};
+private _pairCandidates=if (count _nonLeaders >= 2) then {_nonLeaders} else {_rankedActors};
+private _preferred=[_group,_pairCandidates,2,1,_incumbents] call CBE_fnc_CombatElementSelect;
+// Keep receiving-buddy priority, the native formation anchor last within the preferred
+// set, and original distance order for every fallback. Never wait for a refused partner.
+_preferred=(_preferred select {_x != _formationAnchor})+(_preferred select {_x == _formationAnchor});
+private _orderedActors=_preferred+(_rankedActors-_preferred);
 private _admitted=0;
 {
     if (_admitted >= 2) exitWith {};
-    private _actor=_actors select (_x select 2);
+    private _actor=_x;
     private _accepted=["START",_actor,createHashMapFromArray [
         ["building",_building],["contact",_contact],["belief",_belief]
     ]] call CBE_fnc_IndoorActorOperation;
     if (_accepted) then {_admitted=_admitted+1};
-} forEach _ranked;
+} forEach _orderedActors;
 _admitted
