@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native boarding/queue holds skip forward traffic discovery and geometry that cannot relax
+ * their zero cap. Commit rechecks the hold; release samples fresh before motion. Pedestrian
+ * and rear safety remain independent. No stored clear-path or gate-opening permission.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Native cap application and queue fallback STOP must confirm before their ownership receipt changes.
  * An unconfirmed write preserves the last confirmed cap/baseline and cannot advance recovery.
@@ -756,7 +759,11 @@ _brain set ["geometryTracks",_geometryTracks];
             _queueHold=!_queueNativeActive && {!_queueCrossing} && {["OBSERVE",_group,_vehicle,_brain] call CBE_fnc_DrivingQueueHold};
             _crewBoardingHold=!_queueCrossing && {!_queueHold} && {!_queueNativeActive} && {[_group,_vehicle,_brain,{call _mayIssueDriving
                 && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding};
-            private _traffic=if (!_reverseLeg) then {
+            // These holds cannot be relaxed by forward clearance. Avoid discovering hulls
+            // or casting forward geometry only to discard their result below. A hold lost
+            // before commit refuses the cap write; the next callback observes motion afresh.
+            private _forwardHeld=_crewBoardingHold || {_queueHold};
+            private _traffic=if (!_reverseLeg && {!_forwardHeld}) then {
                 [_vehicle,_capMps,objNull,if (_queueCrossing) then {_queueConsent} else {createHashMap}] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
             // Preserve this observation before gate/body/pedestrian caps replace the row.
@@ -787,7 +794,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
                 && {isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}}
                 && {call _mayRecoverOrdinaryRoute};
-            private _geometry=if (!_reverseLeg) then {[_vehicle,_capMps,false,_curveHint,_cornerProbe] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _geometry=if (!_reverseLeg && {!_forwardHeld}) then {[_vehicle,_capMps,false,_curveHint,_cornerProbe] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
             private _gateObservation=_geometry select 0;
             private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};

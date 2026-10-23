@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "ee2f4fb9",
+  "scope": "Operating-crew retention reference and discarded ordinary-driving observation work; not whole-HBQ parity",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf",
+    "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076"
+  },
+  "sourceIntent": "Retain operating crew while a vehicle remains mobile, allow cargo dismount and return still-assigned operating crew to vacant seats. Source uses delayed forced moveIn seat placement, capped three times per minute.",
+  "disposition": "Do not import forced seating. Current CBE unload retention, finite observed GET IN cooperation and casualty internal-seat actions are distinct partial implementations. Automatic operating-crew recall remains absent; assignment alone cannot establish that mission orderGetIn permits reboarding.",
+  "confirmedFinding": "DrivingAssistStart called DrivingFollowingCap and DrivingGeometryCap after observing mandatory crew/queue holds. The traffic result was immediately replaced with zero and geometry could not relax it. Existing final cap boundary already rechecks the hold and declines on loss.",
+  "implementation": "Skip both forward observers while crewBoardingHold or queueHold is true. Retain explicit zero cap, unchanged final hold validation, native turn track, pedestrians, reverse safety, child retirement, original deadlines and cadence. Gate opening is deferred until forward observation resumes. No cache, worker, timer, permission or second speed writer.",
+  "cost": "Removes one forward hull discovery/evaluation and forward geometry call per held vehicle sample. Exact engine/frame-time savings unmeasured. No claim that CBE meets5%median/10%p95 budget.",
+  "validation": {
+    "focused": 17,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "independentVerification": true,
+    "newCases": 0,
+    "note": "Initial full run failed the existing exact old geometry guard string. Updated that same case to require reverse+hold exclusion; final full pipeline passed."
+  },
+  "candidate": ".qa/candidates/driving-held-observation-ee2f4fb9",
+  "fingerprint": "4af498695e45d29d38073582734d7a2b897d0dcb666420ba0f7d6b0a97fcecda",
+  "logs": [
+    ".qa/driving-held-observation-final-build.log",
+    ".qa/driving-held-observation-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot from ee2f4fb9 plus working implementation and unrelated existing changes. Private review and handover postdate build.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

@@ -62,7 +62,7 @@ class DrivingGateCapTests(unittest.TestCase):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         self.assertLess(ordinary.index('call CBE_fnc_DrivingGeometryCap'),ordinary.index('_vehicle forceSpeed _capMps'))
-        self.assertIn('if (!_reverseLeg) then {',ordinary)
+        self.assertIn('private _geometry=if (!_reverseLeg && {!_forwardHeld}) then {',ordinary)
         self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
         self.assertIn('then {_leadTraffic=_leadGate}',convoy)
         self.assertIn('then {_traffic=_vehicleGate}',convoy)

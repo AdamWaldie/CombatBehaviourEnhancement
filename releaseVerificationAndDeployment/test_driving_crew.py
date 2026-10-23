@@ -255,6 +255,14 @@ class DrivingCrewTests(unittest.TestCase):
             self.assertNotIn(command,body)
         self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)
         self.assertIn('if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
+        self.assertIn('private _forwardHeld=_crewBoardingHold || {_queueHold}',assist)
+        self.assertEqual(assist.count('if (!_reverseLeg && {!_forwardHeld}) then {'),2)
+        self.assertLess(assist.index('private _forwardHeld='),assist.index('call CBE_fnc_DrivingFollowingCap'))
+        commit=assist.split('private _capCommitted=false;',1)[1].split('// Publish a minimal current cap receipt',1)[0]
+        for current_hold in ('_queueHold &&','CBE_fnc_DrivingQueueHold','_crewBoardingHold &&','CBE_fnc_DrivingCrewBoarding'):
+            self.assertIn(current_hold,commit)
+        self.assertIn('call CBE_fnc_CortexInfantrySpeed',assist)
+        self.assertIn('call CBE_fnc_DrivingRearClear',assist)
         self.assertIn('&& {!_crewBoardingHold}',assist)
         self.assertIn('"CREW_BOARDING"',step)
 

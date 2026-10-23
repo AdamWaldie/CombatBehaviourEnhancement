@@ -1520,3 +1520,6 @@ Indoor preflight also refuses an empty common operation while a movement lease, 
 
 
 Individual indoor investigation cleanup has a final native-command cutoff at its original server deadline plus thirty seconds, shared by normal finish, locality transfer and later discovery of an ended FSM. Before the cutoff, only the existing exact unchanged movement receipt permits return to the native route/leader. Afterward cleanup can retire its own metadata but issues no new doMove/doFollow. It does not restart the investigation or refresh the deadline. This bounds stale callback authority; it is not an acknowledgement protocol or physical proof of movement handback.
+
+
+Ordinary driving skips forward hull discovery and forward gate/obstacle geometry while a validated native-crew boarding hold or queue hold requires zero speed. Forward clearance cannot relax that hold. The final cap boundary still rechecks the specific hold, and a vanished hold refuses that write; later motion gets fresh observations rather than cached clearance. Pedestrian and rear safety, recovery clocks, cleanup and the existing callback cadence remain. Gate opening is deferred until forward observation resumes. This removes discarded observations; runtime savings and physical boarding/queue release remain unmeasured.
