@@ -9285,6 +9285,19 @@ class CortexOperations(unittest.TestCase):
         stop=source('cortexStop')
         self.assertIn('CBE_Cortex_FlareBurstGeneration',stop)
         self.assertIn('CBE_Cortex_MissileDefenceActive',stop)
+        replacement=discover.split('private _generation=(_vehicle getVariable ["CBE_Cortex_FlareBurstGeneration",0])+1;',1)[1]
+        self.assertLess(replacement.index('"WARNING_REPLACED"] call CBE_fnc_FlightLeaseRelease'),
+                        replacement.index('setVariable ["CBE_Cortex_FlareBurstGeneration",_generation]'))
+        self.assertIn('"MISSILE_DEFENCE",str (_generation-1)',replacement)
+        shutdown=stop.split('private _oldFlareGeneration=',1)[1]
+        self.assertLess(shutdown.index('"CORTEX_STOPPED"] call CBE_fnc_FlightLeaseRelease'),
+                        shutdown.index('setVariable ["CBE_Cortex_FlareBurstGeneration",_oldFlareGeneration+1]'))
+        installer=discover.split('private _oldFlareGeneration=',1)[1].split('private _handler =',1)[0]
+        self.assertLess(installer.index('"HANDLER_REPLACED"] call CBE_fnc_FlightLeaseRelease'),
+                        installer.index('setVariable ["CBE_Cortex_FlareBurstGeneration",_oldFlareGeneration+1]'))
+        release=source('flightLeaseRelease')
+        for field in ('"controller"','"token"','"owner"'):
+            self.assertIn(field,release)
         self.assertLess(stop.index('CBE_Cortex_FlareBurstGeneration'),
                         stop.index('CBE_AIPass_FlaresHandler", nil'))
 

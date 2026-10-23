@@ -161,8 +161,11 @@ missionNamespace setVariable ["CBE_AIPass_InitPending", false];
 {
     private _handler = _x getVariable ["CBE_AIPass_FlaresHandler", -1];
     if (_handler >= 0) then {_x removeEventHandler ["IncomingMissile", _handler]};
-    _x setVariable ["CBE_Cortex_FlareBurstGeneration",
-        (_x getVariable ["CBE_Cortex_FlareBurstGeneration",0])+1];
+    // Disabled scheduler jobs may never execute their own terminal cleanup.
+    // Release only this original response, before invalidating its generation.
+    private _oldFlareGeneration=_x getVariable ["CBE_Cortex_FlareBurstGeneration",0];
+    [_x,"MISSILE_DEFENCE",str _oldFlareGeneration,"CORTEX_STOPPED"] call CBE_fnc_FlightLeaseRelease;
+    _x setVariable ["CBE_Cortex_FlareBurstGeneration",_oldFlareGeneration+1];
     _x setVariable ["CBE_Cortex_MissileDefenceActive",nil];
     _x setVariable ["CBE_AIPass_FlaresHandler", nil];
     _x setVariable ["CBE_AIPass_FlaresInstalled", nil];

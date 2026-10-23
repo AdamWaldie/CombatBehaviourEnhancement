@@ -308,8 +308,9 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                 _vehicle setVariable ["CBE_AIPass_FlaresInstalled", true];
                 // The value is intentionally owner-local. A newly installed owner handler advances it,
                 // permanently invalidating callbacks left by an earlier handler on this machine.
-                _vehicle setVariable ["CBE_Cortex_FlareBurstGeneration",
-                    (_vehicle getVariable ["CBE_Cortex_FlareBurstGeneration",0])+1];
+                private _oldFlareGeneration=_vehicle getVariable ["CBE_Cortex_FlareBurstGeneration",0];
+                [_vehicle,"MISSILE_DEFENCE",str _oldFlareGeneration,"HANDLER_REPLACED"] call CBE_fnc_FlightLeaseRelease;
+                _vehicle setVariable ["CBE_Cortex_FlareBurstGeneration",_oldFlareGeneration+1];
                 private _handler = _vehicle addEventHandler ["IncomingMissile", {
                     params ["_vehicle", "", "_shooter", "", ["_missile",objNull,[objNull]]];
                     if !([_vehicle] call CBE_fnc_CortexAircraftEligible) exitWith {};
@@ -318,6 +319,9 @@ if (_wantArtillery || _wantFlares || _wantAttackFlares || _wantAirAttack) then {
                     // Arma 3 2.10) lets the response stop once guidance has ended; older/unknown projectiles
                     // retain the same bounded maximum duration.
                     private _generation=(_vehicle getVariable ["CBE_Cortex_FlareBurstGeneration",0])+1;
+                    // Retire the exact old response before publishing its successor. The old
+                    // queued callback may be delayed; equal-priority leases cannot replace it.
+                    [_vehicle,"MISSILE_DEFENCE",str (_generation-1),"WARNING_REPLACED"] call CBE_fnc_FlightLeaseRelease;
                     _vehicle setVariable ["CBE_Cortex_FlareBurstGeneration",_generation];
                     _vehicle setVariable ["CBE_Cortex_LastIncomingMissile",_missile];
                     private _threat=[_shooter,_missile] select (!isNull _missile);
