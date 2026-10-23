@@ -78,5 +78,23 @@
   "implementationAccepted": false,
   "physicalAcceptance": false,
   "wholeHBQParity": false,
-  "auditRun": false
+  "auditRun": false,
+  "intentionalWaitingReview20261023": {
+    "baseline": "6fab0841",
+    "scope": "Complete HBQ routeWaiting helper plus CBE nativeWaiting/mayRecoverRoute/recoveryOrderFree/nativeRouteIntent and complete DrivingRouteGoal; selected recovery admission only, not renewed whole-HBQ review.",
+    "sourceIntent": "Do not treat an intentional stop at HOLD, pending trigger, timeout or nontrivial waypoint condition as a frozen/stuck vehicle. HBQ checks current waypoint index and completion radius plus50m; a distant gate still permits approaching it.",
+    "currentExecution": "DrivingAssistStart nativeWaiting additionally requires stationary/readiness before classifying a nearby hold. Independent mayRecoverRoute requires nonempty DrivingRouteGoal. That helper rejects non-MOVE, nontrue conditions, statements/scripts, timeouts, attachments and synchronized waypoint/trigger links; recovery therefore remains refused even when nativeWaiting is false. Native-order routes use a distinct admitted native receipt, not guessed authored permission.",
+    "disposition": "Existing implementation selected and retained. No duplicate waiting classifier, route refresh, watchdog or tuning added. Conservative rejection of recovery for distant gated orders preserves mission authority while native travel remains in control; this is not proof of successful physical travel.",
+    "limits": [
+      "No physical waiting/trigger/timeouts or performance run; audits held.",
+      "Current nativeWaiting/readiness difference is not alone a demonstrated recovery bug because the independent route-goal gate remains.",
+      "No whole-HBQ parity or percentage increase; other branches remain separately reviewed."
+    ],
+    "sourceSha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+    "implementationSha256": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "d28e7bbcddae63d1279bdffdfe05e31a5ce7ecbabf9afa41dc5b60a734339562",
+      "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+      "addons/core/functions/nativeOrderReceipt.sqf": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6"
+    }
+  }
 }

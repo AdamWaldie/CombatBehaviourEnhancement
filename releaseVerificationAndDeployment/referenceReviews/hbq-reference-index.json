@@ -306,7 +306,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",
-      "sha256": "8c2b6a0a5be2d59215794498034ca020c22c748557e7551f1cd002b8a803b968",
+      "sha256": "4608f0733c16ded2185c31b2ed2841785eaa92b255e916c0ece70a83970efa7b",
       "scope": "Follower/main order identity, intentional waiting, route-end restoration, stationary watchdog, cadence and terminal cleanup; refreshRoute and routeWaiting helper text inspected. Scoped review, not whole-mod acceptance.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
@@ -841,9 +841,9 @@
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",
       "recordedSha256": "8c2b6a0a5be2d59215794498034ca020c22c748557e7551f1cd002b8a803b968",
-      "status": "exact-historic-hash",
+      "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",
-      "currentSha256": "8c2b6a0a5be2d59215794498034ca020c22c748557e7551f1cd002b8a803b968"
+      "currentSha256": "4608f0733c16ded2185c31b2ed2841785eaa92b255e916c0ece70a83970efa7b"
     },
     {
       "recordedPath": "releaseVerificationAndDeployment/referenceReviews/hbq-unstuck-helper-20261016.json",
