@@ -1,0 +1,19 @@
+{
+  "baseline": "5fcfdf72",
+  "source": {
+    "path": ".qa\\lambs-2621-review\\danger\\functions\\fnc_brainForced.sqf",
+    "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    "intent": "Native ATTACK branch lowers weak stance prone above0.9 suppression; CBE retains useful low-profile response but protects committed movement and exact restoration. No upstream dependency or raw imported implementation."
+  },
+  "finding": "CBE ENGAGE only lowered standing actors to MIDDLE above0.2; idle crouched actors at extreme suppression could not lower further without a separate immediate event.",
+  "implementation": "ENGAGE suppression>0.9 and not committed mover requests DOWN; moderate suppression retains STAND->MIDDLE. Existing weak stance ownership/expiry/interruption/restoration unchanged. Native suppression sampled once per response across branches. No native movement/fire command, worker, timer or new setting.",
+  "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed; existing mobile-posture and observation regressions extended, no new cases. Initial gate failed old direct getSuppression spelling after sample reuse; revised assertion preserves0.45 threshold and checks sample producer; reviewed build passed.",
+  "candidate": ".qa/candidates/danger-engage-suppression-posture-5fcfdf72",
+  "fingerprint": "3a72d26d1e3820166646c16d0605e797be113dcb361f56f8af6667f49adbe7b8",
+  "logs": [
+    ".qa/danger-engage-suppression-posture-build.log",
+    ".qa/danger-engage-suppression-posture-build-reviewed.log",
+    ".qa/danger-engage-suppression-posture-independent.log"
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Physical native suppression/posture/mobility/restoration, tactical balance and performance unverified. No tracker score/hash renewal. Audits paused."
+}

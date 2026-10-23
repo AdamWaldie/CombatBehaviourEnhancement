@@ -1293,7 +1293,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('currentCommand _actor in ["","MOVE","ATTACK","FIRE","SUPPRESS"]',cover_combat)
         self.assertIn('abs speed _actor > 0.5',cover_combat)
         self.assertIn('_responseCause in ["HIT","EXPLOSION","SUPPRESSED"]',source('cortexGroupTick'))
-        self.assertIn('getSuppression _actor > 0.45',engine_act)
+        self.assertIn('_suppression > 0.45',engine_act)
+        self.assertIn('private _suppression=getSuppression _actor',engine_act)
         self.assertNotIn('_cause in [5,6]',engine_act)
         reaction=source('dangerReact')
         self.assertIn('if (_cause in ["CASUALTY","BODY_FOUND","SCREAM"]) exitWith {"ASSESS"};',reaction)
@@ -10667,6 +10668,12 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(native,actor.index('playActionNow'))
         self.assertLess(native,actor.index('if (_mode == "IMMEDIATE")'))
         self.assertIn('_hardCover && {!_committedMover}',actor)
+        engage=actor.split('if (_mode == "ENGAGE") then {',1)[1].split('if (_desiredStance != "")',1)[0]
+        self.assertIn('_suppression > 0.9 && {!_committedMover}',engage)
+        self.assertIn('_desiredStance="DOWN"',engage)
+        self.assertIn('_suppression > 0.2 && {stance _actor == "STAND"}',engage)
+        self.assertEqual(actor.count('getSuppression _actor'),1)
+
         self.assertIn('stance _actor == "PRONE"',actor)
         evasion=actor.split('if (_mode == "IMMEDIATE" && {_cause in [2,9]}',1)[1].split('// Body and scream observations',1)[0]
         self.assertEqual(evasion.count('lineIntersects ['),1)

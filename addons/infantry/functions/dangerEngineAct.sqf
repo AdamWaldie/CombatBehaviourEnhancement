@@ -10,6 +10,7 @@
  * changes invalidate the lease and are not overwritten. A committed mover is never forced prone.
  * Native MOVE, actual actor motion and INIT/PLANNING/REPLAN retain mobile posture as scripted movers do.
  * This includes engine ATTACK travel, whose command label does not identify an idle rifleman.
+ * Extreme native suppression lowers idle engaging riflemen prone without pinning committed movers.
  * Idle prone riflemen may perform one native lateral evasion after a hit or near round.
  * A single eligible overhead ray prevents prone rolls beneath roofs/cover.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
@@ -55,6 +56,7 @@ private _delay=_baseDelay + random 0.25;
 if (_mode == "FORCED") then {
     _delay=_delay max (["START",_actor,_record] call CBE_fnc_DangerFlight);
 };
+private _suppression=getSuppression _actor;
 private _cause=_record param [0,-1,[0]];
 private _desiredStance="";
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
@@ -150,13 +152,13 @@ if (_mode == "IMMEDIATE") then {
     // Visible fire, a direct hit, an explosion and a near round are immediate physical hazards.
     // The group layer may grant one idle actor a bounded cover move; this actor-local reflex also
     // lowers the profile immediately while that scheduled cover selection is pending.
-    private _hardCover=(getSuppression _actor > 0.55) || {_cause in [1,2,4,9]} || {currentCommand _actor == "STOP"};
+    private _hardCover=(_suppression > 0.55) || {_cause in [1,2,4,9]} || {currentCommand _actor == "STOP"};
     _desiredStance=["MIDDLE","DOWN"] select (_hardCover && {!_committedMover});
 };
 if (_mode == "HIDE") then {
     // Seeing a casualty or hearing a scream is alerting evidence, not proof of rounds arriving at
     // this actor. Keep a mobile crouch unless native suppression itself justifies going prone.
-    _desiredStance=["MIDDLE","DOWN"] select (!_committedMover && {getSuppression _actor > 0.45});
+    _desiredStance=["MIDDLE","DOWN"] select (!_committedMover && {_suppression > 0.45});
 };
 if (_mode == "ENGAGE") then {
     // An authored stealth/hold-fire element should reduce its silhouette when it detects a real
@@ -169,8 +171,14 @@ if (_mode == "ENGAGE") then {
     if (_stealthHold) then {
         _desiredStance="DOWN";
     } else {
-        if (getSuppression _actor > 0.2 && {stance _actor == "STAND"}) then {
-            _desiredStance="MIDDLE";
+        // Extreme native suppression warrants a lower idle profile even without a new hit.
+        // Retain mobility for an actor committed to a route; weak posture still expires.
+        if (_suppression > 0.9 && {!_committedMover}) then {
+            _desiredStance="DOWN";
+        } else {
+            if (_suppression > 0.2 && {stance _actor == "STAND"}) then {
+                _desiredStance="MIDDLE";
+            };
         };
     };
 };
