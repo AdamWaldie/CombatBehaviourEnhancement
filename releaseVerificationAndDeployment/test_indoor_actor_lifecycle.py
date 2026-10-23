@@ -225,7 +225,14 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertNotIn('getPosATL _enemy',s)
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         self.assertIn('private _initialTarget=if ((_admission select 0) == "OBSERVE")',operation)
-        self.assertIn('call _copyArray,+_initialTarget,_lease call _copyArray,false],true]',operation)
+        self.assertIn('call _copyArray,+_initialTarget,_lease call _copyArray,false,_formationLeader],true]',operation)
+        self.assertIn('(_journal select 9) isEqualType objNull',operation)
+        finish=operation.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
+        self.assertIn('formLeader _actor isEqualTo _formationLeader',finish)
+        self.assertIn('_actor doFollow _returnLeader',finish)
+        self.assertNotIn('_actor doFollow leader _group',finish)
+        self.assertIn('formLeader _actor isNotEqualTo (_brain get "formationLeader")',operation)
+
         reservation=operation.split('private _reserved=[];',1)[1].split('private _node=',1)[0]
         self.assertIn('_x != _actor',reservation)
         self.assertIn('(_order select 6) isNotEqualTo []',reservation)
@@ -699,7 +706,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
         preflight=s.split('private _replaceIndoor=',1)[1].split('// Natural contact requires',1)[0]
         for guard in ('!_resume','"preserveBrain",false','isEqualTo false','CBE_fnc_CortexActorMoveReserved',
-                      'count _journal == 9','"finished",true','"generation",-1','"ownerEpoch",-1',
+                      'count _journal == 10','"finished",true','"generation",-1','"ownerEpoch",-1',
                       '(_journal select 2) == _group','(_journal select 7) isEqualTo _reservation',
                       '(_indoor getOrDefault ["lease",[]]) isEqualTo _reservation'):
             self.assertIn(guard,preflight)

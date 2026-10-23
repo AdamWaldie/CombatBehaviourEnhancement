@@ -239,7 +239,8 @@ private _actorAdmissible={
     if (!_reservationFree && {_replaceIndoor}) then {
         private _indoor=_actor getVariable ["CBE_IndoorActor_Brain",createHashMap];
         private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
-        _reservationFree=count _indoor > 0 && {count _journal == 9}
+        _reservationFree=count _indoor > 0 && {count _journal == 10}
+            && {(_journal select 9) isEqualType objNull}
             && {!(_indoor getOrDefault ["finished",true])}
             && {(_indoor getOrDefault ["group",grpNull]) == _group}
             && {(_indoor getOrDefault ["generation",-1]) == (_journal select 0)}

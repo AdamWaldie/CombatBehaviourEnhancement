@@ -50,5 +50,33 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "durableSubformation20261023": {
+    "baseline": "1274fef7",
+    "gap": "Individual indoor FINISH could run with the public order alone after owner/local-brain retirement, but its nine-field order omitted the original native formation leader. Cleanup defaulted to group leader; requestBefore was local and per-leg, insufficient as a durable original formation receipt.",
+    "implementation": "Append one typed OBJECT formation leader to the existing public order at START, retain it in the local brain, and preserve it through target/issued/disjoint-operation updates. FINISH parses the ten-field journal even without local brain and requires unchanged current formation identity before existing owned-leg cleanup. It returns to the saved eligible same-group formation, with existing group leader fallback for dead/departed/ineffective anchors. Group leader authored MOVE is resumed only for an original self-led formation. SELECT rechecks the original formation immediately before movement. Explicit-clear preflight and peer-target reservations read the same ten-field order.",
+    "bounds": "Existing generation, group, operation, native route, actor reservation, protected tasks, original deadline+30 and defensive-position retention remain. No fresh admission, replay, new callback/group/pair controller or alternate movement authority. Unknown old/malformed order shape grants no cleanup command. Leader-self return is permitted.",
+    "cost": "One additional object reference per public order and constant formation checks. No new messages beyond existing order publication, geometry, world scan or worker. Replication and runtime cost remain unmeasured.",
+    "validation": {
+      "existingIndoorChecks": 32,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/indoor-subformation-build.log",
+      "candidate": ".qa/candidates/indoor-subformation-1274fef7",
+      "independent": ".qa/indoor-subformation-independent.log",
+      "fingerprint": "d369d81dd501edf5f021175b97701ee09449d75ef4f397084231cd25a720f390"
+    },
+    "remaining": [
+      "Current code retains the receipt across journal-only cleanup, not an ordered snapshot or owner-ready acknowledgement protocol. Missing/malformed delivery cannot be upgraded to proof.",
+      "Actual native formation identity during doMove, owner migration, follow acknowledgement, physical reunion, repeated investigation/CQB flow and performance remain unverified.",
+      "No claim that complete whole-building CLEAR or every infantry executor now preserves native subformations.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; notes/review postdate package. Audits paused; no scores or acceptance renewed."
+    ],
+    "hashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "3acce317d27151c93fbf6cb1f099a2eb128732dd768b059685c7a250eafb1b73",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "117b435d861e1d18d8e8868a76a88c79bdf4e5747775d4944774d8d576091aa2",
+      "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "4cccf2f5ef16ba4f2ad2cfc82da9c2e7affafe1874e980aa605c61d74a114fd6"
+    }
   }
 }

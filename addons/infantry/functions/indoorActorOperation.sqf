@@ -15,6 +15,8 @@
  * Purpose: Own one finite indoor investigation actor, independently of whole-group CLEAR.
  * Existing discovery may REAP an ended current FSM through exact FINISH cleanup.
  * REAP never restarts investigation, renews its deadline or classifies a node as unreachable.
+ * The ten-field public order retains its original native formation leader across owner cleanup;
+ * changed formation intent forbids recall. Valid leader-self return remains supported.
  * Cleanup may return an unchanged owned leg only before its original server deadline plus30s;
  * later discovery retires exact metadata without issuing a new native movement command.
  * Locality/authority: Actor and group owner only; the FSM queues bounded shared-scheduler work.
@@ -172,7 +174,7 @@ if (_mode == "FINISH") exitWith {
     };
     if (!local _actor || {!local _group}) exitWith {false};
     private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
-    if (count _journal != 9) exitWith {
+    if (count _journal != 10) exitWith {
         if (count _brain > 0 && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
             _actor setVariable ["CBE_IndoorActor_Brain",nil]; _actor setVariable ["CBE_IndoorActor_FSM",nil];
         };
@@ -184,7 +186,7 @@ if (_mode == "FINISH") exitWith {
         && {finite (_journal select 3)} && {(_journal select 4) isEqualType 0}
         && {finite (_journal select 4)} && {(_journal select 5) isEqualType []}
         && {(_journal select 6) isEqualType []} && {(_journal select 7) isEqualType []}
-        && {(_journal select 8) isEqualType true};
+        && {(_journal select 8) isEqualType true} && {(_journal select 9) isEqualType objNull};
     if (!_valid) exitWith {false};
     private _savedLease=_journal select 7;
     if (count _savedLease != 3 || {(_savedLease select 0) isNotEqualTo "INDOOR_INVESTIGATE"}
@@ -193,13 +195,14 @@ if (_mode == "FINISH") exitWith {
         || {(_journal select 0) < 1} || {(_journal select 0) != floor (_journal select 0)}
         || {(_journal select 1) < 0} || {(_journal select 1) != floor (_journal select 1)}
         || {(_journal select 8) && {!((_journal select 6) call _vectorValid)}}) exitWith {false};
-    _journal params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued"];
+    _journal params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued","_formationLeader"];
     // A late old FSM cannot retire a successor's public journal or marker.
     if (count _brain > 0 && {(_brain getOrDefault ["generation",-1]) != _generation
         || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}}) exitWith {false};
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
     private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _ownsLeg=_issued && {serverTime < _deadline+30}
+        && {formLeader _actor isEqualTo _formationLeader}
         && {_oldGroup == _group} && {call _releaseAvailable}
         && {_reservation isEqualTo _lease || {_migration && {_reservation isEqualTo []}}}
         && {(_group getVariable ["CBE_OperationGeneration",0]) == _operation}
@@ -219,10 +222,17 @@ if (_mode == "FINISH") exitWith {
     if (_ownsLeg && {!_retainDefensive}) then {
         private _index=currentWaypoint _group;
         private _waypoint=[_group,_index];
-        if (_actor == leader _group && {_index > 0} && {_index < count waypoints _group}
+        if (_actor == leader _group && {_formationLeader == _actor}
+            && {_index > 0} && {_index < count waypoints _group}
             && {waypointType _waypoint == "MOVE"}) then {
             _actor doMove waypointPosition _waypoint;
-        } else {_actor doFollow leader _group};
+        } else {
+            private _returnLeader=_formationLeader;
+            if (isNull _returnLeader || {group _returnLeader != _group}
+                || {!([_returnLeader] call CBE_fnc_CortexCombatEffective)}) then {_returnLeader=leader _group};
+            if (!isNull _returnLeader && {group _returnLeader == _group}
+                && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) then {_actor doFollow _returnLeader};
+        };
     };
     if ((_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _lease) then {
         _actor setVariable ["CBE_Cortex_ActorMove",nil];
@@ -374,8 +384,9 @@ if (_mode == "START") exitWith {
     private _initialTarget=if ((_admission select 0) == "OBSERVE") then {+(_admission select 2)} else {[]};
     private _serial=(missionNamespace getVariable ["CBE_IndoorActor_Serial",0])+1;
     missionNamespace setVariable ["CBE_IndoorActor_Serial",_serial];
+    private _formationLeader=formLeader _actor;
     _brain=createHashMapFromArray [["jobKey",format ["CBE_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
-        ["ownerEpoch",_epoch],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
+        ["ownerEpoch",_epoch],["formationLeader",_formationLeader],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
         ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],["defensive",_defensive],["defensiveOrigin",getPosASL _actor],
@@ -391,7 +402,7 @@ if (_mode == "START") exitWith {
     _group setVariable ["CBE_IndoorActor_Actors",_investigators+[_actor]];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copyArray];
     _actor setVariable ["CBE_IndoorActor_Order",[_generation,_epoch,_group,
-        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,+_initialTarget,_lease call _copyArray,false],true];
+        _brain get "operationGeneration",_deadline,(_brain get "route") call _copyArray,+_initialTarget,_lease call _copyArray,false,_formationLeader],true];
     private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\indoorActor.fsm";
     _actor setVariable ["CBE_IndoorActor_FSM",_handle];
     private _started=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
@@ -445,7 +456,7 @@ if (_operationGeneration != (_brain get "operationGeneration")
     && {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
     && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}) then {
     private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
-    if (count _journal == 9 && {(_journal select 0) == (_brain get "generation")}
+    if (count _journal == 10 && {(_journal select 0) == (_brain get "generation")}
         && {(_journal select 1) == (_brain get "ownerEpoch")}
         && {(_journal select 2) == _group}
         && {(_journal select 3) == (_brain get "operationGeneration")}
@@ -552,7 +563,7 @@ if (_phase == "SELECT") exitWith {
     {
         if (_x != _actor) then {
             private _order=_x getVariable ["CBE_IndoorActor_Order",[]];
-            if (count _order == 9 && {(_order select 6) isNotEqualTo []}) then {
+            if (count _order == 10 && {(_order select 6) isNotEqualTo []}) then {
                 _reserved pushBack (_order select 6);
             };
         };
@@ -572,6 +583,7 @@ if (_phase == "SELECT") exitWith {
     };
     // Geometry work grants no command authority; re-read actor, route and operation ownership.
     if (!(call _available)
+        || {formLeader _actor isNotEqualTo (_brain get "formationLeader")}
         || {if (_continuingSearch) then {!(call _searchLegOwned)} else {
             ([_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext) isNotEqualTo _admission
         }}
