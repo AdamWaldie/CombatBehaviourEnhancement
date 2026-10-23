@@ -2430,6 +2430,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(move.index('CBE_fnc_CortexExternalTakeover'),move.index('_group addWaypoint'))
         eligible=source('cortexIsEligible')
         self.assertIn('[_group,_ignoreZeusHold,_actorContext] call CBE_fnc_CortexExternalTakeover',eligible)
+        self.assertLess(eligible.index('call CBE_fnc_CortexExternalTakeover'),eligible.index('private _alive ='))
+        self.assertIn('if (isNull _actorContext) then {(units _group) select {alive _x}} else',eligible)
+        self.assertIn('[_actorContext] select {alive _x && {group _x == _group}}',eligible)
+        self.assertNotIn('_alive=_alive select',eligible)
+        takeover=source('cortexExternalTakeover')
+        for veto in ('_members findIf {isPlayer _x}', '_members findIf {!isNull (remoteControlled _x)}',
+                     'bis_fnc_moduleRemoteControl_owner'):
+            self.assertIn(veto,takeover)
+
         self.assertIn('Direct remote control and all other',source('cortexExternalTakeover'))
         self.assertIn('if (isNull _group || {!local _group}',clear)
         self.assertIn('_group setVariable ["CBE_Cortex_GroupMoveIntent", nil, true]',clear)
