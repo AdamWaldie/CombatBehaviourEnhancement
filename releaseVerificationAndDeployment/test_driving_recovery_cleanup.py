@@ -140,7 +140,7 @@ class RecoveryCleanupTests(unittest.TestCase):
             self.assertNotIn(forbidden,gate)
         self.assertEqual(release.count('call _releaseExpired'),2)
         self.assertLess(release.index('if (_owned && {call _releaseExpired})'),release.index('if (_owned) then {'))
-        self.assertIn('if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false}',gate)
+        self.assertIn('if (!_resume) exitWith {false}',gate)
         classify=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
         body=classify.split('params [[',1)[1]
         for forbidden in ('setVariable','doMove','doStop','forceSpeed','spawn','waitAndExecute'):
@@ -170,7 +170,7 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertNotIn('deleteAt "request"',held)
         self.assertLess(pending.index('call _holdOwnedRearCap'),pending.index('call _releaseExpired'))
         terminal=release.split('private _hardUntil=',1)[1].split('private _executable=',1)[0]
-        for proof in ('_owned','releasePending','finite _hardUntil','serverTime >= _hardUntil'):
+        for proof in ('_owned','finite _hardUntil','serverTime >= _hardUntil'):
             self.assertLess(terminal.index(proof),terminal.index('call _holdOwnedRearCap'))
         self.assertLess(terminal.index('call _holdOwnedRearCap'),terminal.index('call _releaseExpired'))
         for forbidden in ('sendSimpleCommand','doMove','doStop','serverTime+','set ["hardDeadline"'):

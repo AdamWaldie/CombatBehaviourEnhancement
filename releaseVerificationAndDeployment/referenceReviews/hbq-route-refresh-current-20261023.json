@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-23",
+  "baseline": "ac53f617",
+  "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
+  "upstream": [
+    {
+      "path": "functions/fn_refreshRoute.sqf",
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8"
+    },
+    {
+      "path": "functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de"
+    }
+  ],
+  "sourceIntent": [
+    "routeWaiting preserves HOLD, inactive synchronized triggers, positive timeout or non-true condition within completion radius plus 50m; distant vehicles may still be considered stuck.",
+    "refreshRoute has a three-second group throttle. Commanded vehicles reselect the current waypoint and doMove the effective commander. Other vehicles may end a fixed path, snapshot and delete/recreate the current waypoint with copied properties, then follow eligible mounted crew and enable PATH/MOVE. This aims to wake native planning after relocation or crew changes."
+  ],
+  "currentImplementation": [
+    "DrivingAssistStart nativeWaiting adds stationary and unitReady requirements; its separate recovery-order admission uses DrivingRouteGoal, which rejects scripted, timed, attached or synchronized waypoint work even when distant. It does not execute arbitrary condition code.",
+    "Leader recovery escalates finite REFRESH/REVERSE/FINAL/EXHAUSTED stages under the same hardDeadline; native goal receipts are distinct from authored waypoints. No delete/recreate waypoint, enableAI reset, fuel creation, repair or teleport is introduced.",
+    "DrivingRecoveryRelease proves exact route, seats, native command and cap provenance before retiring rear movement. SIMPLE_BACK waits for actual STOP/motion observation. A native-return request remains observation-only until acknowledgement; issued requests are not travel proof."
+  ],
+  "confirmedFix": "First late cleanup previously bypassed releaseExpired unless releasePending already existed; authored-route STOP/doMove could then occur beyond the original recovery hard deadline. releaseExpired now applies to every resume under its existing exact-ownership call sites, marks pending/unresolved on expiry, and the existing zero-cap hold no longer requires a pre-existing pending marker. No new deadline or retry is granted.",
+  "deliberateDepartures": [
+    "Preserve authored waypoint identity and mission gates instead of cloning waypoint scripts and synchronization.",
+    "Preserve mission-disabled AI features and native protected crew tasks.",
+    "Retain unresolved issued-command proof rather than treating timeout as rejected movement or successful restoration."
+  ],
+  "limits": [
+    "No native stuck-case physical comparison has run in this checkpoint. Plain-MOVE wake-up effectiveness, reverse travel, forward route resumption and performance remain unverified.",
+    "This does not establish full HBQ route-memory, crew, gate, traffic or recovery parity; historical index hash drift remains separate."
+  ],
+  "validation": {
+    "focusedTests": 10,
+    "fullOfflineTests": 1491,
+    "HEMTT": "408 SQF compiled, nine PBOs built",
+    "independentCandidate": ".qa/candidates/recovery-first-expiry-ac53f617",
+    "fingerprint": "b4765d0fa0b1f44d9da9166c298d254a76666a6de94810acbd69014fbfbaf887",
+    "status": "Unsigned dirty development snapshot including unrelated dirt; this comparison postdates build. Audits paused."
+  },
+  "currentHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "d28e7bbcddae63d1279bdffdfe05e31a5ce7ecbabf9afa41dc5b60a734339562",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "79c9d1377e462a60a60747b157a6ec21610bea536ca94aacddcdfaa1430cc736"
+  }
+}

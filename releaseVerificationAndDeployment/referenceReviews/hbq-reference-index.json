@@ -660,6 +660,16 @@
         "functions/fn_protectBriefly.sqf"
       ],
       "meaning": "Scoped current comparison, not physical acceptance or renewed historical hash coverage."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-current-20261023.json",
+      "sha256": "3596336961d79a75549f30a71ed7416220b470f4b0064950e8e304287215a430",
+      "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Scoped current source comparison and first-cleanup expiry fix; not renewed historical hashes or physical acceptance."
     }
   ],
   "historicIndex": {

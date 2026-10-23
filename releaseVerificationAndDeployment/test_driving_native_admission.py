@@ -273,6 +273,15 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('_recoveryWork=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]',pending)
         self.assertLess(assist.index('"DEFERRED_HANDBACK"'),assist.index('private _mayIssueDriving'))
         self.assertLess(release.index('if (_owned && {!_executable}) exitWith'),release.index('doStop _driver'))
+        expiry=release.split('private _releaseExpired={',1)[1].split('private _commandState=',1)[0]
+        self.assertIn('if (!_resume) exitWith {false}',expiry)
+        self.assertNotIn('if (!_resume ||',expiry)
+        self.assertIn('_work set ["releasePending",true]',expiry)
+        self.assertIn('_work set ["releaseUnresolved",true]',expiry)
+        self.assertLess(release.index('if (_owned && {call _releaseExpired}) exitWith'),release.index('doStop _driver'))
+        cap_expiry=release.split('private _hardUntil=',1)[1].split('private _executable=',1)[0]
+        self.assertNotIn('releasePending',cap_expiry)
+
 
     def test_recovery_admission_and_handback_both_preserve_all_trigger_links(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')

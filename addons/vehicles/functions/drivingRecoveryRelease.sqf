@@ -223,15 +223,17 @@ if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
 // This executor restores destination commands only, never a different native command mode.
 private _commandMode=_work getOrDefault ["commandMode","DESTINATION"];
 if !(_commandMode in ["DESTINATION","SIMPLE_BACK"]) exitWith {false};
-// A blocked exact handback has only the original recovery lifetime. Expiry preserves
+// Every exact handback, including its first cleanup call, has the original recovery lifetime.
+// Expiry preserves
 // command/cap provenance but never grants a late command or a newly renewed cleanup window.
 // Call this only after proving unchanged ownership; newer orders still retire metadata normally.
 private _releaseExpired={
-    if (!_resume || {!(_work getOrDefault ["releasePending",false])}) exitWith {false};
+    if (!_resume) exitWith {false};
     private _until=_work getOrDefault ["hardDeadline",-1];
     private _invalid=!(_until isEqualType 0) || {!finite _until} || {_until < 0};
     if (!(_work getOrDefault ["releaseUnresolved",false]) && {!_invalid} && {serverTime < _until}) exitWith {false};
     if !(_work getOrDefault ["releaseUnresolved",false]) then {
+        _work set ["releasePending",true];
         _work set ["releaseUnresolved",true];
         _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];
         private _outcome=["UNRESOLVED_DEADLINE","UNRESOLVED_INVALID_DEADLINE"] select _invalid;
@@ -365,8 +367,7 @@ private _owned=_resume && {_commandState == "OWNED"} && {_destinationControlFree
 // original hard deadline keep the exact owned reverse constrained before its
 // observation becomes terminal; expiry never grants another STOP or route replay.
 private _hardUntil=_work getOrDefault ["hardDeadline",-1];
-if (_owned && {_work getOrDefault ["releasePending",false]}
-    && {_hardUntil isEqualType 0} && {finite _hardUntil} && {_hardUntil >= 0}
+if (_owned && {_hardUntil isEqualType 0} && {finite _hardUntil} && {_hardUntil >= 0}
     && {serverTime >= _hardUntil}) then {call _holdOwnedRearCap};
 if (_owned && {call _releaseExpired}) exitWith {false};
 private _executable=canMove _vehicle && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
