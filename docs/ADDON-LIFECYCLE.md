@@ -1454,3 +1454,8 @@ An expired clearance callback now enters the existing egress transition before r
 ### Clearance cancellation after settings retirement
 
 Explicit clearance release recognises an exact live MOVE to its saved job destination even if speed/posture settings have already retired. Previously the outer participant check could skip that actor and retire movement metadata while leaving the native room leg running. Recognition requires finite three-component targets within0.25m; the existing later task/destination check still governs recall, and changed destinations, player/external control, reserved actors and mounted actors retain their protections. Restore=false still issues no formation recall. No retry, timer or worker is added. A native recall request is not acknowledgement or proof of physical handback; repeated and cross-owner outcomes remain unverified while audits are paused.
+
+
+### Garrison refill preserves disabled pathfinding
+
+An unassigned spare with mission-disabled PATH is not recruited as a walking garrison replacement. Previously it could reserve a vacant post despite being unable to approach it. Exterior promotion remains separate: a CBE-owned disabled-PATH guard at a verified post can be released only with the existing physical exit-cover checks. Refill never enables a spare's mission-disabled pathfinding and grants no arrival from selection. The change adds one feature query to the existing bounded candidate pass, with no worker or retry. Physical vacancy turnover, preserved exterior coverage and performance remain unverified while audits are paused.

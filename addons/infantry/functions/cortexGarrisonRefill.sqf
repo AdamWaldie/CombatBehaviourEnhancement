@@ -49,7 +49,10 @@ private _eligible=_living select {
     private _assignment=_actor getVariable ["CBE_AIPass_GarrisonPos",[]];
     private _free=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     // A previously enrolled actor handed to a newer native task is not a new reinforcement.
-    private _spare=_assignment isEqualTo [] && {!(_actor in _roster)};
+    // A mission-disabled PATH is not an available walking reinforcement. The exterior
+    // branch below separately proves a settled CBE-owned PATH hold before promotion.
+    private _spare=_assignment isEqualTo [] && {!(_actor in _roster)}
+        && {_actor checkAIFeature "PATH"};
     if ((_assignment param [4,""]) == "EXTERIOR" && {_actor getVariable ["CBE_AIPass_GarrisonDisabledPath",false]}
         && {!(_actor checkAIFeature "PATH")} && {[_actor,_assignment] call CBE_fnc_CortexGarrisonArrived}) then {
         // Never vacate the sole assigned observation post for this building exit.

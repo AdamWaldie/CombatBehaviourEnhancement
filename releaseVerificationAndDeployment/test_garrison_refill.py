@@ -9,6 +9,10 @@ class GarrisonRefillTests(unittest.TestCase):
             self.assertIn(guard,s)
         self.assertIn('currentCommand _actor in ["MOVE","FOLLOW"',s)
         self.assertIn('call CBE_fnc_CortexGarrisonApplyLocal',s)
+        spare=s.split('private _spare=',1)[1].split('if ((_assignment param',1)[0]
+        self.assertIn('_assignment isEqualTo []',spare)
+        self.assertIn('_actor checkAIFeature "PATH"',spare)
+        self.assertNotIn('enableAI',s)
         self.assertNotIn('setPosATL',s)
         self.assertNotIn('call CBE_fnc_CortexGarrison;',s)
     def test_pending_marker_is_updated_by_existing_job_and_cleared_on_release(self):
