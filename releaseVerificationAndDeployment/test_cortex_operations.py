@@ -10596,6 +10596,14 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(crew.index('"MOVEMENT_REJECTED"'),crew.index('_state set ["movementLease"'))
         self.assertIn('[_group,_crewGeneration,"INCOMPLETE","MOVEMENT_REJECTED"]',crew)
         passenger=naval.split('// Passenger egress is a separate operation',1)[1].split('private _ships=',1)[0]
+        waiting=naval.split('if (_aboard isNotEqualTo []) exitWith {',1)[1].split('// Passenger egress is a separate operation',1)[0]
+        for marker in ('(_currentPlan select 0) == _token','(_currentPlan select 7) == _expires',
+                       '(_currentPlan select 8) == "DISEMBARK"','[_boat] call _boatStopped',
+                       '[_unit,_boat] call _cargoAvailable','select [0,64]','doGetOut _unit',
+                       '_seat == "cargo"','_personTurret','_unit in _aboard'):
+            self.assertIn(marker,waiting)
+        for forbidden in ('moveOut','serverTime+','CBE_fnc_OperationStart',' doMove '):
+            self.assertNotIn(forbidden,waiting)
         self.assertIn('if (_landingGeneration < 0) exitWith',passenger)
         self.assertIn('if (!_egressReady) exitWith',passenger)
         self.assertIn('[_group,_egress,25,"MOVE",_landingGeneration]',passenger)

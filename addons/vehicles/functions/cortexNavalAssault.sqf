@@ -23,6 +23,8 @@
  * Repeat/JIP: one token and deadline bound every approach. Refused operation/waypoint admission
  * publishes no moving role; draft generations/leases retire before returning. Passenger and crew
  * continuation stop at the outer action boundary when operation creation refuses.
+ * A temporarily protected passenger is reconsidered by the existing job while still aboard,
+ * only under the original stopped-boat disembark plan. Active native exits are not reissued.
  * Expired local/durable/boat-plan episodes retire before replanning; expiry is never landing
  * success. Completion requires the disembark phase and no living cargo. New infantry delivery
  * requires living cargo in at most64 observed crew rows; empty gunboats retain native combat. Completion, expiry, a closed feature
@@ -116,7 +118,28 @@ if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWit
         [_group,_state] call CBE_fnc_CortexNavalRelease;
         false
     };
-    if (_aboard isNotEqualTo []) exitWith {true};
+    if (_aboard isNotEqualTo []) exitWith {
+        // Initial admission may have left a passenger protected by another native task.
+        // Reconsider that actor on this existing job, never renew the landing or repeat GET OUT.
+        private _currentPlan=_boat getVariable ["CBE_Cortex_NavalPlan",[]];
+        if (count _currentPlan == 9 && {(_currentPlan select 0) == _token}
+            && {(_currentPlan select 2) == _boat} && {(_currentPlan select 7) == _expires}
+            && {(_currentPlan select 8) == "DISEMBARK"}
+            && {!isNull (_currentPlan select 1)} && {side (_currentPlan select 1) == side _group}
+            && {[_boat] call _boatStopped}) then {
+            private _waitingCargo=(fullCrew [_boat,"",false]) select [0,64];
+            {
+                _x params ["_unit","_seat","_cargoIndex","_turretPath","_personTurret"];
+                if (_unit in _aboard && {_seat == "cargo" || {_seat == "turret" && {_personTurret}}}
+                    && {[_unit,_boat] call _cargoAvailable}) then {
+                    [_unit] orderGetIn false;
+                    unassignVehicle _unit;
+                    doGetOut _unit;
+                };
+            } forEach _waitingCargo;
+        };
+        true
+    };
     // Passenger egress is a separate operation from the boat crew's approach.  A passenger
     // locality handover must therefore never replace the crew's movement generation.
     private _landingGeneration=_state getOrDefault ["navalOperationGeneration",-1];
