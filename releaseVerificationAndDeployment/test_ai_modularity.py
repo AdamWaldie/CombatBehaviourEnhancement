@@ -328,6 +328,13 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
         adoption = src('aiHeadlessAdoptLocal')
         diagnostics = src('aiGetDiagnostics')
         self.assertIn('[_unit] call CBE_fnc_CortexExternalOwner != ""', profile)
+        # Changing eligibility must retire the old layer, not merely refuse a fresh application.
+        for gate in (
+            'count _includedSides > 0 && {!(_unitSideKey in _includedSideKeys)}',
+            'count _includedFactions > 0 && {!(faction _unit in _includedFactions)}',
+            'faction _unit in _excludedFactions || {typeOf _unit in _excludedClasses}',
+        ):
+            self.assertIn('if ('+gate+') exitWith {[_unit] call CBE_fnc_AIRestoreProfile; false};', profile)
         self.assertIn('[_x] call CBE_fnc_CortexExternalOwner == ""', adoption)
         self.assertIn('_hcGroups = _hcGroups select', diagnostics)
         self.assertIn('[_unit] call CBE_fnc_CortexExternalOwner == ""', diagnostics)

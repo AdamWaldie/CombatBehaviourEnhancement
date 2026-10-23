@@ -337,7 +337,7 @@
           "capability": "Profile precedence and tuning",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Read-only behaviour profile resolves group override, leader faction, mission behaviour choice, enabled skill-profile choice, then LINE; PUBLIC/STANDARD aliases and per-key LINE/default fallback remain. Chance keys scale by global aggression. This helper never changes native skills or orders.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -350,12 +350,12 @@
           "capability": "Aggression selects eligible tactics",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Investigation preference controls proactive-search eligibility and range within existing order, movement-ownership, report, feature and cooldown gates. AssaultStart/FlankStep use assaultChance for optional grenade preparation; movement itself is selected from current contact geometry rather than legacy random flank/advance/coordinated keys. Morale and retreat consume their separate profile thresholds and scale. No tactical or balance acceptance inferred.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexGroupTick.sqf",
-              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+              "sha256": "81dea8cb721ee478ca6842cd260fd6f0f6242d8ce5280e153d925c6874295bb5"
             },
             {
               "path": "addons/core/functions/cortexProfile.sqf",
@@ -367,12 +367,12 @@
           "capability": "Independent skill/profile application",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Optional owner-local skills are planned from original nine-subskill baseline, with faction/role/night/variance and crew precision layers. Typed original/applied receipts preserve observed mission edits and explicit skill ownership; final commit checks current owner/profile generation. Side/faction/class exclusion now releases unchanged prior CBE effects instead of leaving the old layer behind. Existing bounded lighting/seat worker and Local handler supply refresh; public receipt delivery and physical HC behaviour remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
             },
             {
               "path": "addons/core/functions/cortexProfile.sqf",
@@ -390,8 +390,8 @@
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "d2ebab6d + reviewed profile-scope retirement fix"
     },
     {
       "id": "SKILL",

@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Applies explicitly enabled base, night-sensor, faction, role and vehicle-crew skill layers.
  * Mission ownership or an observed later skill/aim edit yields this entire optional layer.
+ * Leaving the configured side/faction/class scope releases only unchanged previously applied values.
  * Each refresh is planned from the immutable baseline; partial profiles cannot compound modifiers.
  * Locality and authority: call where the AI unit is local; the unit Local handler reapplies after
  * ownership migration. Original skill values and the optional per-unit variance are captured once
@@ -55,9 +56,9 @@ private _unitSideKey = switch (side group _unit) do {
     case west: {"WEST"}; case east: {"EAST"}; case independent: {"GUER"}; default {"CIV"};
 };
 private _includedSideKeys = (_includedSides select {_x isEqualType ""}) apply {toUpperANSI _x};
-if (count _includedSides > 0 && {!(_unitSideKey in _includedSideKeys)}) exitWith {false};
-if (count _includedFactions > 0 && {!(faction _unit in _includedFactions)}) exitWith {false};
-if (faction _unit in _excludedFactions || {typeOf _unit in _excludedClasses}) exitWith {false};
+if (count _includedSides > 0 && {!(_unitSideKey in _includedSideKeys)}) exitWith {[_unit] call CBE_fnc_AIRestoreProfile; false};
+if (count _includedFactions > 0 && {!(faction _unit in _includedFactions)}) exitWith {[_unit] call CBE_fnc_AIRestoreProfile; false};
+if (faction _unit in _excludedFactions || {typeOf _unit in _excludedClasses}) exitWith {[_unit] call CBE_fnc_AIRestoreProfile; false};
 
 if ([_unit] call CBE_fnc_AIProfileYield) exitWith {false};
 private _profileGeneration=missionNamespace getVariable ["CBE_AI_LightingGeneration",0];

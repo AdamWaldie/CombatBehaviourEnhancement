@@ -143,6 +143,8 @@ _unit setVariable ["CBE_AI_SkillOwner",nil,true];
 [_unit] call CBE_fnc_AIApplyProfile;
 ```
 
+When refreshed eligibility excludes a previously profiled side, faction or class, CBE releases its unchanged skill and aim effects through the same restoration path. Later mission edits remain intact.
+
 Custom partial profiles are calculated from the original snapshot on every refresh. Lighting, variance and crew multipliers therefore do not repeatedly multiply the previous CBE result. There is one final native settings commit, with current locality, profile generation and mission ownership checked again. The ownership check reads at most nine skill entries; no new watcher or world scan is installed. The existing lighting/seat job remains bounded to ten registered units per callback.
 
 The separately maintained mission framework also writes absolute values at startup and owner adoption, and its stop path restores captured values unconditionally. Run one skill authority. CBE's default and yield rule prevent CBE from reclaiming later mission edits, but cannot stop another script from overwriting values itself. Its source was examined read-only. Helicopter landing/deceleration and taxi tasks are separate movement-authority review items; a skill label does not grant or release those tasks. Physical custom-script, JIP, owner-transfer and performance checks remain pending while audits are paused.
