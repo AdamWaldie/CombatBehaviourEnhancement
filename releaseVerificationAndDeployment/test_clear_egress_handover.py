@@ -48,6 +48,16 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('!(_unit in _diverted)', selection)
         self.assertIn('if (count _assignments < count (_job get "egressAssignments")) then {_job set ["egressFailed",true]}', selection)
         self.assertIn('_assignments findIf {[_x] call _outsideExit}', egress)
+        # The durable sender and resumed reader share progress fields rather than restarting grace.
+        journal=source.split('// Publish only material egress changes.',1)[1]
+        for field in ('_record param [1,-1]','_record param [2,-1]',
+                      '_record param [5,-1]','_record param [6,[]]'):
+            self.assertIn(field,journal)
+        adoption=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
+        self.assertIn('private _exitRowSize=[6,10] select _progressVersion',adoption)
+        for field in ('then {_x select 6}','then {_x select 7}','then {_x select 8}','then {+(_x select 9)}'):
+            self.assertIn(field,adoption)
+        self.assertIn('private _motionStalled=serverTime-(_record select 5) >= 8',egress)
         self.assertIn('forEach _assignments', egress)
         finish = source.split('private _handbacks=[];', 1)[1].split('private _delay', 1)[0]
         self.assertIn('[_x] call _exitMovementOwned', finish)

@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Egress progress/motion clocks use serverTime and survive owner transfer with their
+ * absolute motion anchor and best distance. Version4 journal rows preserve this evidence
+ * without replaying movement, resetting stall grace or extending the original exit deadline.
  * Room/exit distance and motion progress use absolute ASL geometry. Native points remain AGL;
  * saved actor poses remain ATL. Both are converted at comparison; terrain-cell height
  * changes cannot become progress or a different floor. No receipt schema or deadline changes.
@@ -1192,7 +1195,7 @@ private _delay=call {
                 if (count _target == 3 && {[_unit] call _actorAvailable}
                     && {[_unit] call _exitMovementOwned} && {call _mayIssueMovement}) then {
                     (_job get "egressAssignments") pushBack [_unit,+_target,false];
-                    (_job get "egressProgress") pushBack [_unit,(getPosASL _unit) vectorDistance (AGLToASL _target),time,0];
+                    (_job get "egressProgress") pushBack [_unit,(getPosASL _unit) vectorDistance (AGLToASL _target),serverTime,0,[],serverTime,getPosASL _unit];
                     _unit doMove _target;
                     [_unit,_target] call _rememberMove;
                 } else {
@@ -1296,26 +1299,26 @@ private _delay=call {
                             // Stair and corridor detours can initially increase straight-line
                             // exit distance. Preserve a moving native path within the hard budget.
                             private _motionPose=_record param [6,getPosASL _unit,[[]]];
-                            if (count _record < 7) then {_record set [5,time]; _record set [6,+_motionPose]};
+                            if (count _record < 7) then {_record set [5,serverTime]; _record set [6,+_motionPose]};
                             if ((getPosASL _unit) vectorDistance _motionPose >= 1) then {
-                                _record set [5,time];
+                                _record set [5,serverTime];
                                 _record set [6,getPosASL _unit];
                             };
-                            private _motionStalled=time-(_record select 5) >= 8;
+                            private _motionStalled=serverTime-(_record select 5) >= 8;
                             private _checkpoint=_record param [4,[],[[]]];
                             if (_checkpoint isNotEqualTo [] && {[_unit] call _actorAvailable}
                                 && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 private _atCheckpoint=(getPosASL _unit) vectorDistance (AGLToASL _checkpoint) <= 1.5
                                     && {abs (((getPosASL _unit) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75}
                                     && {[_unit,AGLToASL _checkpoint] call _roomSegmentClear};
-                                if (_atCheckpoint || {time-(_record select 2) >= 8 && {_motionStalled}}) then {
+                                if (_atCheckpoint || {serverTime-(_record select 2) >= 8 && {_motionStalled}}) then {
                                     // A failed checkpoint also yields once to the original exit slot.
                                     // Neither case creates an exit receipt or renews the 45-second budget.
                                     _record set [4,[]];
                                     _unit doMove _target;
                                     [_unit,_target] call _rememberMove;
                                     _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _target)];
-                                    _record set [2,time];
+                                    _record set [2,serverTime];
                                     _checkpoint=[];
                                 };
                             };
@@ -1323,12 +1326,12 @@ private _delay=call {
                             private _remaining=(getPosASL _unit) vectorDistance (AGLToASL _progressTarget);
                             if ((_record select 1)-_remaining >= 0.5) then {
                                 _record set [1,_remaining];
-                                _record set [2,time];
+                                _record set [2,serverTime];
                             };
                             // Opening an unlocked door does not replace a moving route. The engine
                             // observes the opened door; only measured no-progress permits one retry.
                             [_unit,_job get "building",["CLEAR",_job get "generation"]] call CBE_fnc_CortexBuildingDoor;
-                            if (time-(_record select 2) >= 8 && {_motionStalled} && {(_record select 3) < 1}
+                            if (serverTime-(_record select 2) >= 8 && {_motionStalled} && {(_record select 3) < 1}
                                 && {[_unit] call _actorAvailable} && {[_unit] call _actorTaskFree} && {call _mayIssueMovement}) then {
                                 // Try one physically visited current-floor point nearer the exit.
                                 // Native room points remain candidates; selection itself proves no path.
@@ -1348,7 +1351,7 @@ private _delay=call {
                                     _retryTarget=+(_exitRooms select ((_ranked select 0) select 1));
                                     _record set [4,+_retryTarget];
                                     _record set [1,(getPosASL _unit) vectorDistance (AGLToASL _retryTarget)];
-                                    _record set [2,time];
+                                    _record set [2,serverTime];
                                 };
                                 _unit doMove _retryTarget;
                                 [_unit,_retryTarget] call _rememberMove;
@@ -1425,7 +1428,7 @@ private _delay=call {
         _job set ["egressDeadlineServer",serverTime+45];
         _job set ["egressStartedServer",serverTime];
         _job set ["egressProgress",_egressAssignments apply {
-            [_x select 0,(getPosASL (_x select 0)) vectorDistance (AGLToASL (_x select 1)),time,0]
+            [_x select 0,(getPosASL (_x select 0)) vectorDistance (AGLToASL (_x select 1)),serverTime,0,[],serverTime,getPosASL (_x select 0)]
         }];
         _group setVariable ["CBE_Cortex_ClearEgressRetries",[],true];
         _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
@@ -4145,12 +4148,15 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
         private _recordIndex=_progress findIf {(_x select 0) == _actor};
         private _record=if (_recordIndex < 0) then {[]} else {_progress select _recordIndex};
         [_actor,+_target,_arrived,+(_moves getOrDefault [netId _actor,[]]),
-            _record param [3,0],+(_record param [4,[],[[]]])]
+            _record param [3,0],+(_record param [4,[],[[]]]),
+            _record param [1,-1],
+            _record param [2,-1],_record param [5,-1],
+            +(_record param [6,[]])]
     };
     private _journal=["EGRESS",_rows apply {_x select 1},_job get "egressStartedServer",_rows,
         _job get "building",_job get "buildingTransform",_job get "hardDeadline",
         _job get "egressDeadlineServer",_job getOrDefault ["egressFailed",false],
-        _job getOrDefault ["entryFailed",false],3,
+        _job getOrDefault ["entryFailed",false],4,
         +(_job getOrDefault ["egressPending",[]]),
         ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]})];
     if ((_group getVariable ["CBE_Cortex_ClearEgress",[]]) isNotEqualTo _journal) then {

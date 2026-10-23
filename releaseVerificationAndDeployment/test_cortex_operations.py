@@ -3128,7 +3128,7 @@ class CortexOperations(unittest.TestCase):
         egress=step.split('== "EGRESS") exitWith {',1)[1].split('private _positions =',1)[0]
         self.assertNotIn('egressReissue',egress)
         self.assertIn('(_record select 1)-_remaining >= 0.5',egress)
-        self.assertIn('time-(_record select 2) >= 8',egress)
+        self.assertIn('serverTime-(_record select 2) >= 8',egress)
         self.assertIn('(_record select 3) < 1',egress)
         self.assertIn('if ([_x] call _outsideExit && {simulationEnabled _unit} && {!isObjectHidden _unit}',egress)
         self.assertIn('&& {!(netId _unit in _earlyExits)}',egress)

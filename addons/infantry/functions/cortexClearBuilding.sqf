@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Version4 exit journals retain server-time progress/motion clocks and the ASL motion
+ * anchor. Adoption observes the existing leg; it never issues it or renews stall grace.
  * Locality resume reconstructs exit distance and same-floor settlement in ASL; saved
  * native destinations stay AGL. No physical arrival or renewed retry is inferred from transfer.
  * Native fleeing retains movement authority through admission, execution and cleanup.
@@ -744,15 +746,24 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
     && {(_egressJournal select 6) == _hardDeadline}
     && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
     && {count (_egressJournal select 3) <= 8}
-    && {count _egressJournal == 10 || {(_egressJournal select 10) in [2,3]
+    && {count _egressJournal == 10 || {(_egressJournal select 10) in [2,3,4]
         && {(_egressJournal select 11) isEqualType []} && {(_egressJournal select 12) isEqualType []} && {count (_egressJournal select 12) <= 4}
         && {count (_egressJournal select 11)+count (_egressJournal select 3) <= 8}}}) then {
     private _assignments=[];
     private _records=[];
     private _moves=createHashMap;
     private _failed=(_egressJournal select 8) || {_job getOrDefault ["egressFailed",false]};
+    private _progressVersion=count _egressJournal == 13 && {(_egressJournal select 10) == 4};
+    private _exitRowSize=[6,10] select _progressVersion;
     {
-        if (_x isEqualType [] && {count _x == 6}) then {
+        if (_x isEqualType [] && {count _x == _exitRowSize}) then {
+            // A malformed current receipt cannot acquire fresh progress clocks. Legacy
+            // rows have no saved clocks and retain their documented observation baseline.
+            if (_progressVersion && {(_x select [6,3]) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0}} >= 0
+                || {(_x select 7) > serverTime+1} || {(_x select 8) > serverTime+1}
+                || {(_x select 7) > (_egressJournal select 7)} || {(_x select 8) > (_egressJournal select 7)}
+                || {!((_x select 9) isEqualType [])} || {count (_x select 9) != 3}
+                || {(_x select 9) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) then {_failed=true;continue};
             _x params ["_actor","_target","_arrived","_leg","_retries","_checkpoint"];
             private _live=(expectedDestination _actor) param [0,[]];
             private _atTarget=count _target == 3
@@ -767,18 +778,23 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
                 _assignments pushBack [_actor,+_target,_holdsArrival];
                 _moves set [netId _actor,+_leg];
                 private _routeTarget=if (_checkpoint isEqualTo []) then {_target} else {_checkpoint};
-                _records pushBack [_actor,(getPosASL _actor) vectorDistance (AGLToASL _routeTarget),time,
-                    (_retries max 0) min 1,+_checkpoint,time,getPosASL _actor];
+                _records pushBack [_actor,
+                    if (_progressVersion) then {_x select 6} else {(getPosASL _actor) vectorDistance (AGLToASL _routeTarget)},
+                    if (_progressVersion) then {_x select 7} else {serverTime},
+                    (_retries max 0) min 1,+_checkpoint,
+                    if (_progressVersion) then {_x select 8} else {serverTime},
+                    if (_progressVersion) then {+(_x select 9)} else {getPosASL _actor}];
             } else {_failed=true};
         } else {_failed=true};
     } forEach (_egressJournal select 3);
-    // Version 2 appends pending legs/use counts; version 3 retains allocation attempts and next server time.
+    // Version 2 appends pending legs/use counts; versions3/4 retain allocation attempts and next server time.
+    // Version4 adds stable server-time progress clocks and motion evidence to assigned rows.
     // Legacy ten-field journals have no pending work. Adoption never issues movement.
     private _pending=[];
     private _uses=createHashMap;
     if (count _egressJournal == 13) then {
         {
-            private _pendingSize=[2,4] select ((_egressJournal select 10) == 3);
+            private _pendingSize=[2,4] select ((_egressJournal select 10) in [3,4]);
             if (_x isEqualType [] && {count _x == _pendingSize}
                 && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType []}
                 && {count (_x select 1) in [0,3]}

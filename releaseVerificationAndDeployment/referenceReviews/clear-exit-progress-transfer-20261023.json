@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "428a437e",
+  "scope": "Clearance egress progress continuity during owner transfer",
+  "finding": "The v3 durable exit journal retains target/native leg/retry/checkpoint but not best remaining distance, last distance progress, last actual motion or motion anchor. Resume rebuilt those observations at the new owner current time. Repeated transfer could delay the existing eight-second stall/checkpoint retry within the unchanged finite exit deadline.",
+  "implementation": "Use serverTime directly for the egress-only distance/motion observation clocks at construction, progress update, checkpoint change and stall evaluation. Initialise complete seven-field local progress rows at exit assignment. Version4 durable assigned rows append best distance, distance clock, motion clock and ASL anchor. Current receipt validation rejects invalid/future/out-of-deadline appended observations. Resume reads saved values rather than fresh clocks, observes unchanged native MOVE/arrival proof and preserves retry count/original exit deadline. Pending allocation rows retain v3 shape; versions2/3/4 supported. No movement is issued by adoption.",
+  "legacy": "Old assigned rows lack progress clocks and retain their previous observation-baseline behavior. They cannot establish preservation of information never stored. Current-schema malformed observations are not upgraded to fresh clocks.",
+  "cost": "Four appended progress fields per assigned row, at most8. Journal can now publish actual distance/motion progress changes at the existing egress callback cadence as well as previous structural changes. No new scan, ray, handler, worker or timer; server clocks avoid repeated publication-time conversion. Additional replication and total overhead unmeasured; no5/10-percent budget claim.",
+  "validation": {
+    "focusedExistingHandoverCases": 8,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "independentVerification": true,
+    "newCases": 0,
+    "note": "Extended existing sender/reader contract. Updated two existing version/clock assertions after initial full failure. Final full pipeline passed."
+  },
+  "physicalLimits": "Repeated normal/HC owner transfer, delayed replication, native checkpoint/exit retry, settlement and actual cleanup remain unverified. This does not establish complete room-lane/entry transfer continuity.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "276c87e0e94331bc3da755cfa9104967c3d22b20376d991365b26a96edcde75e"
+    }
+  ],
+  "candidate": ".qa/candidates/clear-exit-progress-transfer-428a437e",
+  "fingerprint": "2eff758424367c1311af922a4bb0788bdf91a7aa3444dd797658a7eddc1fe88f",
+  "logs": [
+    ".qa/clear-exit-progress-transfer-final-build.log",
+    ".qa/clear-exit-progress-transfer-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on428a437e plus implementation and unrelated pre-existing dirt. Private review/handover postdate package.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

@@ -31,7 +31,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
 
     def test_pending_adoption_is_typed_unique_and_cannot_renew_or_issue_movement(self):
         replay=self.start.split('// Adopt a transform/episode-bound exit journal',1)[1].split('// Keep reserve search consumption',1)[0]
-        for marker in ('count _egressJournal in [10,13]', 'in [2,3]',
+        for marker in ('count _egressJournal in [10,13]', 'in [2,3,4]',
                        'count (_egressJournal select 11)+count (_egressJournal select 3) <= 8',
                        '(_x select 0) isEqualType objNull','count (_x select 1) in [0,3]',
                        '_assignments+_pending','_live vectorDistance _leg <= 0.25',
