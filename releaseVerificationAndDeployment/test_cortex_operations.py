@@ -7145,6 +7145,11 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_command in ["","STOP","ATTACK","FIRE","SUPPRESS"]',finish)
         self.assertNotIn('{_x doFollow leader _group} forEach _remaining',regroup)
         self.assertIn('_state set ["target",+_retryTarget]',regroup)
+        deadline='if !("deadline" in _state) then {_state set ["deadline",time+_timeout]};'
+        self.assertIn(deadline,regroup)
+        self.assertEqual(1,regroup.count('_state set ["deadline",'))
+        self.assertLess(regroup.index('if (time >= (_state get "deadline")) exitWith {call _finish};'),
+                        regroup.index('if (_phase == "EVALUATE") exitWith'))
         self.assertIn('CBE_AIPass_Epoch',stop)
         self.assertNotIn('"baseBehaviour" in _clearJob',stop)
         def owns(command,destination,original,authored_same=True,medical=False,fleeing=False):

@@ -601,16 +601,16 @@
           "capability": "Casualty eligibility and host selection",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "EntityKilled records owner-local peak strength and coalesces one settled remnant job, adopting the group epoch first. Evaluation requires a genuinely depleted eligible foot group; incapacitation, medical/equipment tasks and committed garrison/clear/defend work refuse opportunistic merging. Nearby Man discovery deduplicates same-side same-owner host groups and checks capable strength, capacity and host eligibility rather than scanning allGroups.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexRegroupOnKill.sqf",
-              "sha256": "fdd267f44d41a0a8c93c1f7182a64bf4cf4abc1e14ca94349047faa3d7614f27"
+              "sha256": "cc60451081565b371e2e5ee4052539791b133f2124c4e9cb138113b674d6d8eb"
             },
             {
               "path": "addons/infantry/functions/cortexRegroupStep.sqf",
-              "sha256": "5ac217500af031809e0ef64206c587e16055527c2209001347a7e9fbe557d7ac"
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
             }
           ]
         },
@@ -618,12 +618,12 @@
           "capability": "Physical approach and finite merge",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "The remnant requests native group movement to a living host anchor and joins only within the configured distance/capacity. Host movement may refresh the target and a stuck approach has one retry. One captured deadline now spans discovery, host replacement and movement, so returning to EVALUATE cannot renew the job. Terminal recall requires original epoch/order/generation plus a still-matching native MOVE destination; it preserves newer commands. Physical arrival/merge and deadline cleanup remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexRegroupStep.sqf",
-              "sha256": "5ac217500af031809e0ef64206c587e16055527c2209001347a7e9fbe557d7ac"
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
             }
           ]
         },
@@ -631,19 +631,19 @@
           "capability": "Cross-operation survivor integration",
           "weight": 1,
           "built": 0.5,
-          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "implemented": "A changed operation generation, native order receipt or current shared operation retires opportunistic regroup; cleanup excludes current operation participants and actors with protected movement or external control. This prevents competing remnant orders but does not implement complete survivor reassignment into coordinated withdrawal or shared rally.",
           "remaining_build_gap": "Complete interaction with ongoing multi-squad withdrawal and shared rally remains unfinished.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexRegroupStep.sqf",
-              "sha256": "5ac217500af031809e0ef64206c587e16055527c2209001347a7e9fbe557d7ac"
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
             }
           ]
         }
       ],
       "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "reviewed_at": "2026-10-23",
+      "source_commit": "3ef70c91 + original regroup deadline fix"
     },
     {
       "id": "MEDICAL",

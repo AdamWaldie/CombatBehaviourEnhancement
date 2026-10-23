@@ -9,7 +9,8 @@
  * group owned by the same machine within CBE_AIPass_Regroup_SearchRadius. It must be larger than
  * a remnant and must stay within CBE_AIPass_Regroup_MaxGroupSize after the merge. With no host,
  * the step retries every 20 seconds until CBE_AIPass_Regroup_TimeoutSeconds, then leaves the
- * remnant on its own orders.
+ * remnant on its own orders. One deadline from the first eligible step covers discovery, movement
+ * and host replacement; neither a new host nor a retry renews that budget.
  * MOVE: survivors walk to the host leader. Each joins silently once within
  * CBE_AIPass_Regroup_JoinDistance. A move order is re-issued only when the host leader has moved
  * more than 25 m. If survivors make no progress for CBE_AIPass_Regroup_StuckSeconds, or the
@@ -116,6 +117,10 @@ if ((units _group) findIf {alive _x && {
     || {(_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []}) exitWith {call _finish};
 
 private _timeout = missionNamespace getVariable ["CBE_AIPass_Regroup_TimeoutSeconds", 120];
+// One original budget spans host discovery, replacement and every movement retry.
+// Returning to EVALUATE must not renew an otherwise indefinitely movable remnant job.
+if !("deadline" in _state) then {_state set ["deadline",time+_timeout]};
+if (time >= (_state get "deadline")) exitWith {call _finish};
 private _joinDistance = missionNamespace getVariable ["CBE_AIPass_Regroup_JoinDistance", 30];
 private _phase = _state getOrDefault ["phase", "EVALUATE"];
 
