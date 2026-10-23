@@ -130,12 +130,12 @@
           "capability": "All-owner handback integration",
           "weight": 1,
           "built": 0.5,
-          "implemented": "Reviewed 2026-10-23 at aa9c91af plus dismount-stop fix: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature cleanup. Calm restoration separates owned PATH from recall and records blocked group policy without late retry authority. Dismount speed acquisition and all three retirement paths now share exact typed crew/native-order proof; repeated refusal remains unresolved, not success.",
+          "implemented": "Reviewed 2026-10-23 at aa9c91af plus dismount-stop fix: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature cleanup. Calm restoration separates owned PATH from recall and records blocked group policy without late retry authority. Dismount speed acquisition and all three retirement paths now share exact typed crew/native-order proof; repeated refusal remains unresolved, not success. Reviewed dd2b71d1 plus composition fix: stop retirement precedes CBE route teardown; plain ordinary caps must retire before stop acquisition, and active recovery or stop proof prevents nested speed controllers.",
           "remaining_build_gap": "Terminally refused or unconfirmed dismount stops may remain physically stopped; evidence grants no late restoration authority. Split locality, ambiguous identical replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete.",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
-              "sha256": "fffc02aad091a2d9746469106ba66a470cbfb90dfa09ee6cb9c03bb3752603fc"
+              "sha256": "bf730c5ac8254400f54c21b15ebd4b0ac1f8cdd01fdb4023564b249ec345f165"
             },
             {
               "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
@@ -143,7 +143,7 @@
             },
             {
               "path": "addons/vehicles/functions/cortexDismountStop.sqf",
-              "sha256": "3fc4093567e3bee762379f26e198dd1ace6c77893fe88bbfe15a23236c94d125"
+              "sha256": "4de8fc7e95d7c69bcef12dfa8288be1945f5bf1312b01c5ed117c4b97fda1b65"
             },
             {
               "path": "addons/vehicles/functions/cortexVehicles.sqf",
@@ -151,16 +151,16 @@
             },
             {
               "path": "addons/core/functions/cortexStop.sqf",
-              "sha256": "bb54d2a7287485b928390a46de84c8491be17b5a583ad1cdc3f5d3ada9e4866b"
+              "sha256": "59873e64e0bd542356f6c2d561da538adce5ef0a15b5cd4f11b77d18cacdc54a"
             }
           ],
           "reviewed_at": "2026-10-23",
-          "source_commit": "aa9c91af + dismount-stop fix"
+          "source_commit": "dd2b71d1 + dismount-stop composition fix"
         }
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "aa9c91af + dismount-stop fix (criterion checkpoints below)",
+      "source_commit": "dd2b71d1 + dismount-stop composition fix (criterion checkpoints below)",
       "review_note": "Four declared CORE criteria reassessed; handback remains0.5 despite shared dismount-stop proof fix. Terminal refusal, native ambiguity and provider handover remain named gaps. Scores/weights/scope unchanged; not physical acceptance or Workshop parity."
     },
     {

@@ -29,5 +29,18 @@
     ],
     "log_provenance": "Initial build failed old caller-local source assertion after speed writes moved into shared helper; test now checks shared command boundary. Reviewed intermediate passed but guide encoding reserialization was corrected preserving original bytes. Final passed before repeat-result issue found; terminal pass covers corrected repeat semantics. Earlier candidate remains preserved, not final.",
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering tracker and handover afterward. No physical speed readback/repeat/HC/JIP/provider handover or performance proof. A refused stop may remain physically zero; terminal evidence is not retry authority. Identical native replacements remain ambiguous. Audits paused."
+  },
+  "dismountStopComposition20261023": {
+    "baseline": "dd2b71d1",
+    "finding": "ReleaseGroup retired passenger speed after common-operation/calm route teardown, invalidating its own newly captured native proof. Ordinary driving could retain a separate cap beneath passenger zero, losing the real baseline or restoring underneath the stop.",
+    "implementation": "Retire passenger stop before OperationCancel/RestoreCalm and before ordinary driving release during shutdown. ACQUIRE refuses active ordinary recovery/pass/corridor/bypass and pending cap retirement, retires a plain ordinary cap, verifies its receipt removal plus unchanged seats/route, then captures its baseline. Ordinary driving roster/admission/command boundaries exclude active stop proof; its release cannot unwind underneath the stop. No route/boarding command, scan loop or timer added.",
+    "validation": "1491 existing tests/full offline build including HEMTT/config/SQF/FSM/docs/package and independent verification passed; existing lifecycle regressions extended, no new cases.",
+    "candidate": ".qa/candidates/dismount-stop-composition-dd2b71d1",
+    "fingerprint": "b6c11ddf1316592632574e18da791bcce4e6a85978bb88859de48a2d365c9399",
+    "logs": [
+      ".qa/dismount-stop-composition-build.log",
+      ".qa/dismount-stop-composition-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. No physical repeated stop/resume, recovery interruption, HC/JIP or overhead proof. Refused stops may remain stopped; exact identical replacements remain ambiguous. Audits paused."
   }
 }

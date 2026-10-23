@@ -99,6 +99,11 @@ if (isServer) then {
     private _vehicle=_x;
     isNil {
         if (!local _vehicle) exitWith {};
+        private _stopProof=_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]];
+        private _stopGroup=if (_stopProof isEqualType [] && {count _stopProof == 8}
+            && {(_stopProof select 0) isEqualType grpNull}) then {_stopProof select 0} else {group effectiveCommander _vehicle};
+        [_vehicle,_stopGroup,"RELEASE",true] call CBE_fnc_CortexDismountStop;
+        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
         [_vehicle] call CBE_fnc_DrivingAssistRelease;
         _vehicle setVariable ["CBE_DrivingGate_Result",nil,true];
         _vehicle setVariable ["CBE_DrivingGate_Pending",nil,true];
@@ -114,11 +119,6 @@ if (isServer) then {
         if (count _unloadLease == 5 && {local _vehicle}) then {
             [_vehicle,_unloadLease select 0,"RELEASE",true] call CBE_fnc_CortexVehicleUnloadPolicy;
         };
-        private _stopProof=_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]];
-        private _stopGroup=if (_stopProof isEqualType [] && {count _stopProof == 8}
-            && {(_stopProof select 0) isEqualType grpNull}) then {_stopProof select 0} else {group effectiveCommander _vehicle};
-        [_vehicle,_stopGroup,"RELEASE",true] call CBE_fnc_CortexDismountStop;
-        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
         _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];

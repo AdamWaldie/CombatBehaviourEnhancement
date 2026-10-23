@@ -44,6 +44,8 @@ if (_capOnly && {count _offered != 9 || {!((_offered select 0) isEqualType [])}
         !(_identity isEqualType []) || {count _identity != 3}
             || {_identity findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x != floor _x}} >= 0}} >= 0}}) exitWith {};
 if (isNull _vehicle || {!local _vehicle}) exitWith {};
+// Passenger safe-stop owns the cap until its exact handback; never unwind underneath it.
+if ((_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]]) isNotEqualTo []) exitWith {};
 if (_capOnly && {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo _offered
     || {(_offered select 2) != _expectedGroup} || {isNull _expectedGroup} || {!local _expectedGroup}
     || {(_offered select 8) isNotEqualTo [clientOwner,_expectedGroup getVariable ["CBE_AIPass_Epoch",0],

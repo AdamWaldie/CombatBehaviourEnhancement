@@ -4,6 +4,7 @@
  * Locality/authority: Actual vehicle and crew-group owner only. Both original operating actors
  * must remain local, available, in their original seats and on their captured native tasks.
  * Repeat/JIP: Public proof can be observed by a new actual owner without renewing the baseline.
+ * Ordinary plain speed caps retire before acquisition; active recovery refuses nested ownership.
  * No worker, route, boarding command or timer. Terminal refusal records unresolved evidence,
  * revokes the active proof and blocks reacquisition for this group epoch; it grants no late retry.
  * Operation generation is not release authority: common cleanup may already have advanced it.
@@ -67,6 +68,20 @@ isNil {
     if (_mode == "ACQUIRE" && {_saved isEqualTo []} && {_proof isEqualTo []}) exitWith {
         if (!_available || {_blocked isEqualType [] && {count _blocked == 6}
             && {(_blocked select 0) == _group} && {(_blocked select 1) == _epoch}}) exitWith {};
+        // Do not nest a passenger cap over an ordinary cap or its unfinished recovery.
+        // A plain ordinary cap may hand back first; active native recovery must finish itself.
+        if (["CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingCorridor_Work","CBE_DrivingBypass_Work"]
+            findIf {count (_vehicle getVariable [_x,createHashMap]) > 0} >= 0
+            || {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo []}) exitWith {};
+        if ((_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo []
+            || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo []}) then {
+            [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
+        };
+        if ((_vehicle getVariable ["CBE_DrivingAssist_State",[]]) isNotEqualTo []
+            || {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isNotEqualTo []}
+            || {(_vehicle getVariable ["CBE_DrivingCapRelease_Work",[]]) isNotEqualTo []}
+            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _native}
+            || {driver _vehicle != _driver} || {effectiveCommander _vehicle != _commander}) exitWith {};
         private _previous=getForcedSpeed _vehicle;
         if (!finite _previous || {_previous < -1}) exitWith {};
         _proof=[_group,_driver,_commander,_native,currentCommand _driver,expectedDestination _driver,

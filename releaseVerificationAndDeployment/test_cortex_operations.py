@@ -10768,6 +10768,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('local _group',text)
         self.assertIn('(_blocked select 1) == _epoch',text)
         self.assertIn('_result=_blocked isEqualTo [] ||',text)
+        self.assertLess(text.index('call CBE_fnc_DrivingAssistRelease'),text.index('_vehicle forceSpeed 0'))
+        self.assertIn('CBE_DrivingCapRelease_Work',text)
+        for name in ['drivingAssistStart','drivingAssistRelease']:
+            self.assertIn('CBE_Cortex_DismountStopReceipt',source(name))
         self.assertNotIn('(_proof select 0) == (_group getVariable ["CBE_OperationGeneration"',text)
 
     def test_group_hide_release_respects_actor_transfer_and_vehicle_domain(self):

@@ -148,7 +148,7 @@ private _stationary={
 private _vehicles=[];
 {
     private _vehicle=vehicle _x;
-    if (_vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")} && {!(_vehicle in _vehicles)}
+    if (_vehicle != _x && {(_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]]) isEqualTo []} && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")} && {!(_vehicle in _vehicles)}
         && {!isNull driver _vehicle} && {group driver _vehicle == _group}) then {
         _vehicles pushBack _vehicle;
     };
@@ -344,6 +344,7 @@ _brain set ["geometryTracks",_geometryTracks];
         // order. Preserve that order at the actual cap/recovery command boundary.
         private _mayIssueDriving = {
             local _group && {local _vehicle} && {call _destinationControlFree}
+                && {(_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]]) isEqualTo []}
                 && {[_group] call CBE_fnc_DrivingMovementAvailable}
                 && {driver _vehicle isEqualTo _driver}
                 && {(effectiveCommander _vehicle) in [_movementOperator,objNull]}

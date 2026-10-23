@@ -91,6 +91,19 @@ if (_reason == "") then {
     _reason=if (_yieldToZeus) then {"ZEUS_TAKEOVER"} else {if (_yieldToExternal) then {"EXTERNAL_TAKEOVER"} else {"RELEASED"}};
 };
 private _externalTakeover=_yieldToZeus || {_yieldToExternal} || {_reason in ["ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
+// Release an interrupted cross-group dismount without stranding the vehicle at forced speed zero.
+private _releasedVehicles=[];
+{
+    private _vehicle=vehicle _x;
+    if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
+        && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
+        _releasedVehicles pushBack _vehicle;
+        [_vehicle,_group,"RELEASE",!_externalTakeover] call CBE_fnc_CortexDismountStop;
+        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
+        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
+    };
+} forEach units _group;
+// Stop restoration precedes operation/route cleanup, which can change our own native receipt.
 // Full shutdown must release a native STOP acquired after a successful clear.
 // Ordinary contact-state cleanup does not undo the explicit post-clear hold.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
@@ -248,18 +261,6 @@ if (local _group) then {
         };
     } forEach +(_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]]);
 };
-// Release an interrupted cross-group dismount without stranding the vehicle at forced speed zero.
-private _releasedVehicles=[];
-{
-    private _vehicle=vehicle _x;
-    if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
-        && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
-        _releasedVehicles pushBack _vehicle;
-        [_vehicle,_group,"RELEASE",!_externalTakeover] call CBE_fnc_CortexDismountStop;
-        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
-        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
-    };
-} forEach units _group;
 _group setVariable ["CBE_AIPass_State", nil];
 if (_forget) then {
     _group setVariable ["CBE_AIPass_Managed",nil];

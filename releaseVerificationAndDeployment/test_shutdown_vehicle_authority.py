@@ -18,6 +18,10 @@ class ShutdownVehicleAuthorityTests(unittest.TestCase):
                         'CBE_Cortex_ArtilleryScootToken','CBE_Cortex_OnboardDanger'):
             self.assertIn(receipt,block)
         self.assertIn('CBE_AIPass_SupportRequests',text[:start])
+        self.assertLess(block.index('call CBE_fnc_CortexDismountStop'),block.index('call CBE_fnc_DrivingAssistRelease'))
+        release=(ROOT/'addons/infantry/functions/cortexReleaseGroup.sqf').read_text(encoding='utf-8')
+        self.assertLess(release.index('call CBE_fnc_CortexDismountStop'),release.index('call CBE_fnc_OperationCancel'))
+        self.assertLess(release.index('call CBE_fnc_CortexDismountStop'),release.index('call CBE_fnc_CortexRestoreCalm'))
         self.assertEqual(text.count('call CBE_fnc_DrivingAssistRelease;'),1)
         self.assertNotIn('remoteExec',block)
         self.assertLess(block.index('isNil {'),block.index('call CBE_fnc_DrivingAssistRelease'))
