@@ -10605,6 +10605,12 @@ class CortexOperations(unittest.TestCase):
         for forbidden in ('moveOut','serverTime+','CBE_fnc_OperationStart',' doMove '):
             self.assertNotIn(forbidden,waiting)
         self.assertIn('if (_landingGeneration < 0) exitWith',passenger)
+        self.assertIn('"PLATFORM_CHANGED"] call CBE_fnc_CortexNavalRelease',naval)
+        self.assertIn('objectParent _x != _boat',naval)
+        self.assertIn('private _elementArrived=_survivors findIf',passenger)
+        self.assertIn('surfaceIsWater (getPosATL _x)',passenger)
+        self.assertIn('(getPosASL _x) vectorDistance (AGLToASL _egress) > 30',passenger)
+        self.assertNotIn('leader _group distance2D _egress',passenger)
         self.assertIn('if (!_egressReady) exitWith',passenger)
         self.assertIn('[_group,_egress,25,"MOVE",_landingGeneration]',passenger)
         self.assertNotIn('if (count _landingOperation == 0) exitWith',passenger)

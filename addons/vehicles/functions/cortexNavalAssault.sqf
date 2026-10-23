@@ -23,6 +23,8 @@
  * Repeat/JIP: one token and deadline bound every approach. Refused operation/waypoint admission
  * publishes no moving role; draft generations/leases retire before returning. Passenger and crew
  * continuation stop at the outer action boundary when operation creation refuses.
+ * Passenger completion requires surviving combat-effective members physically on dry ground
+ * within the three-dimensional egress area; a newer vehicle assignment cancels the landing.
  * A temporarily protected passenger is reconsidered by the existing job while still aboard,
  * only under the original stopped-boat disembark plan. Active native exits are not reissued.
  * Expired local/durable/boat-plan episodes retire before replanning; expiry is never landing
@@ -114,6 +116,11 @@ if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWit
     _operation params ["_token","_boat","_role","_egress","_expires"];
     private _survivors=(units _group) select {alive _x && {[_x] call CBE_fnc_CortexCombatEffective}};
     private _aboard=_survivors select {vehicle _x == _boat};
+    // A later transport assignment is new intent, not successful departure from this boat.
+    if (_survivors findIf {!isNull objectParent _x && {objectParent _x != _boat}} >= 0) exitWith {
+        [_group,_state,"PLATFORM_CHANGED"] call CBE_fnc_CortexNavalRelease;
+        false
+    };
     if (serverTime >= _expires || {_survivors isEqualTo []}) exitWith {
         [_group,_state] call CBE_fnc_CortexNavalRelease;
         false
@@ -176,7 +183,13 @@ if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWit
         [_group,_state,"MOVEMENT_REJECTED"] call CBE_fnc_CortexNavalRelease;
         false
     };
-    if ((leader _group distance2D _egress) <= 30) exitWith {
+    // The common leader reaching shore does not establish delivery of its surviving element.
+    // Incapacitated/dead members were excluded above; the original expiry bounds stragglers.
+    private _elementArrived=_survivors findIf {
+        !isNull objectParent _x || {surfaceIsWater (getPosATL _x)}
+            || {(getPosASL _x) vectorDistance (AGLToASL _egress) > 30}
+    } < 0;
+    if (_elementArrived) exitWith {
         [_group,_state,"COMPLETE"] call CBE_fnc_CortexNavalRelease;
         false
     };
