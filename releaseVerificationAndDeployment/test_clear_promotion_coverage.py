@@ -26,6 +26,14 @@ class ClearPromotionCoverageTests(unittest.TestCase):
         self.assertIn('_promotionViewBudget < _viewBefore',selection)
         self.assertIn('_lastProbeIndex+1',selection)
         self.assertIn('_promotionProbeLast deleteAt _probeKey',selection)
+        self.assertIn('(_promotionCandidates select {_x in _reserves})',selection)
+        self.assertIn('_replacementRanks apply {_x select 2},2,1,_receiving] call CBE_fnc_CombatElementSelect',selection)
+        self.assertIn('if (_reinforceAnchor isEqualTo _buddy) then {[_buddy]} else {[]}',selection)
+        self.assertIn('_preferredRanks+(_replacementRanks select {!((_x select 2) in _preferred)})',selection)
+        self.assertLess(selection.index('call CBE_fnc_CombatElementSelect'),selection.index('_lastProbeIndex+1'))
+        self.assertLess(selection.index('_lastProbeIndex+1'),selection.index('call _mayPromoteReserve'))
+        for forbidden in ('setVariable ["CBE_CombatPairs"','doMove','set ["hardDeadline"','set ["deadline"'):
+            self.assertNotIn(forbidden,selection)
         # Start nearest, then rotate after actual failed probes to reach a farther viable post.
         candidates=[(30,0,'far'),(4,1,'near'),(4,2,'tie')]
         ranked=sorted(candidates)

@@ -132,6 +132,9 @@
  * partner entry recovery. Entered survivors have priority; exterior survivors keep approach
  * continuity. Only a capable, available original buddy still assigned to interior work can
  * preserve lane entry; dead, unavailable or early-exited historical entrants cannot.
+ * Casualty ranking prefers a receiving buddy, then intact registered reserve pairs inside
+ * the existing sixteen-candidate window. Failed VIEW-probe rotation still takes priority
+ * over repeated preferences; identity never grants promotion or exterior-cover authority.
  * Whole-pair replacements still restart exterior entry without inherited receipts.
  * Any roster replacement invalidates its lane buddy-entry proposal for fresh occupancy selection. Durable lane
  * mover/position slots map by actor identity into the filtered active pair, preserving survivor
@@ -2173,8 +2176,20 @@ private _delay=call {
                 // Rank before calling the promotion gate: that gate can consume the sole
                 // callback VIEW ray. Stable actor identities resolve equal-distance ties.
                 private _replacementRanks=[];
-                {_replacementRanks pushBack [_x distance2D _reinforceAnchor,netId _x,_x]} forEach _promotionCandidates;
+                {_replacementRanks pushBack [_x distance2D _reinforceAnchor,netId _x,_x]} forEach (_promotionCandidates select {_x in _reserves});
                 _replacementRanks sort true;
+                // Preserve registered cohesion within the already-windowed reserves. A
+                // newly promoted first member is no longer a candidate for the second slot.
+                // This preference precedes failed-probe rotation, not the coverage gate.
+                private _receiving=if (_reinforceAnchor isEqualTo _buddy) then {[_buddy]} else {[]};
+                private _preferred=[_group,_replacementRanks apply {_x select 2},2,1,_receiving] call CBE_fnc_CombatElementSelect;
+                private _preferredRanks=[];
+                {
+                    private _preferredActor=_x;
+                    private _rankIndex=_replacementRanks findIf {(_x select 2) == _preferredActor};
+                    if (_rankIndex >= 0) then {_preferredRanks pushBack (_replacementRanks select _rankIndex)};
+                } forEach _preferred;
+                _replacementRanks=_preferredRanks+(_replacementRanks select {!((_x select 2) in _preferred)});
                 private _probeKey=format ["%1:%2",_pairIndex,_slot];
                 private _lastProbe=_promotionProbeLast getOrDefault [_probeKey,""];
                 private _lastProbeIndex=_replacementRanks findIf {(_x select 1) == _lastProbe};

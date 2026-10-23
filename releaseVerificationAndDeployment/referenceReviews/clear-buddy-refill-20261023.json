@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "940c49d4",
+  "scope": "Shared persistent combat-element preference integrated into existing clearance casualty promotion",
+  "finding": "Clearance casualty replacement sorted its rotating candidate window by distance only. Assault/advance/refill already use CombatElementSelect to prefer receiving-team buddies and intact registered pairs. New clearance recruits could therefore separate an eligible registered buddy pair despite existing identity metadata.",
+  "implementation": "Filter the at-most16 promotion candidates to those still in the reserve roster, preserving distance/identity sorting. Apply the existing read-only CombatElementSelect with maximum2/minimum1 and the healthy receiving buddy, if present. Reorder the same candidate rows to put the preference first, then retain all remaining candidates. Existing failed actual-VIEW-probe rotation occurs afterward, before the unchanged promotion coverage gate. Actual promotion keeps exact native-task/pose/watch/observer/generation proof and updates common participants through existing atomic code.",
+  "authority": "Preference grants no movement, exit-cover, settings or admission rights. No pair registry is rewritten. A previously promoted first-slot actor cannot remain among candidates when supplied as second-slot incumbent. An unavailable/sole-exit-security buddy may refuse; other reserves remain eligible under existing fairness.",
+  "cost": "No additional world query, geometry, handler or worker. Bounded candidate membership checks against existing reserve list, at most16candidate/16registry selection rows and at most2 preferred-row lookups per vacant slot. Original one-VIEW promotion budget and clearance deadline unchanged; runtime cost unmeasured.",
+  "remaining": "Physical buddy reunion, concurrent entry, whole-pair replacement continuity, casualty relief, repeated normal/HC episodes and runtime performance remain unverified or incomplete. This does not complete the CLEAR family or renew stale master percentages.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "8128b882882d002890ce88fce5d0d9592261fda07521d95b724111104a71a822"
+    },
+    {
+      "path": "addons/infantry/functions/combatElementSelect.sqf",
+      "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
+    }
+  ],
+  "validation": {
+    "focused": 8,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "newCases": 0,
+    "independentVerification": true
+  },
+  "candidate": ".qa/candidates/clear-buddy-refill-940c49d4",
+  "fingerprint": "5a1dc2c7d49239b3427873740be04ceb3d0233574ce8bf1acba6eb1fb4efe011",
+  "logs": [
+    ".qa/clear-buddy-refill-build.log",
+    ".qa/clear-buddy-refill-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on940c49d4 plus implementation and unrelated pre-existing dirt. Private review/handover postdate package.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}
