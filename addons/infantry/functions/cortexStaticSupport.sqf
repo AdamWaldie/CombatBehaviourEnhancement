@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Native flight, hidden actors and simulation dormancy veto recruitment and native commands.
+ * Recruitment also respects unresolved flight journals and existing native MOVE orders.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -178,6 +179,8 @@ private _candidates=(units _group) select {
         // interrupt; the group-level Zeus/mission-order gate above already protects authored work.
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "MOVE"}
 };
 if (_candidates isEqualTo []) exitWith {
     private _potential=(units _group) findIf {

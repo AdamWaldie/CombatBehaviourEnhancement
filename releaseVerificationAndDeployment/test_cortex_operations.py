@@ -1586,7 +1586,8 @@ class CortexOperations(unittest.TestCase):
         admission=support.split('private _candidates=',1)[1].split('if (_candidates isEqualTo [])',1)[0]
         active=support.split('if (count _lease >= 7) exitWith',1)[1].split('if (_leaseEpisode',1)[0]
         release=support.split('private _release=',1)[1].split('// Both contact',1)[0]
-        for marker in ('simulationEnabled _x','!isObjectHidden _x','!fleeing _x'):
+        for marker in ('simulationEnabled _x','!isObjectHidden _x','!fleeing _x',
+                       '!([_x] call CBE_fnc_CortexActorMoveReserved)','currentCommand _x != "MOVE"'):
             self.assertIn(marker,admission)
         for marker in ('fleeing _actor','simulationEnabled _actor','isObjectHidden _actor'):
             self.assertIn(marker,active)
@@ -1634,6 +1635,11 @@ class CortexOperations(unittest.TestCase):
             'removeEventHandler ["WeaponDisassembled",_handler]'
         ]:
             self.assertIn(marker,deploy)
+        ready=deploy.split('private _ready=',1)[1].split('// Prefer an actually complete pair',1)[0]
+        for marker in ('!([_x] call CBE_fnc_CortexActorMoveReserved)','currentCommand _x != "MOVE"'):
+            self.assertIn(marker,ready)
+        reservation=source('cortexActorMoveReserved')
+        self.assertLess(reservation.index('CBE_Danger_FlightLease'),reservation.index('private _lease='))
         unavailable=deploy.split('private _participantUnavailable=',1)[1].split('if (_participantUnavailable',1)[0]
         recall=deploy.split('private _canReleaseActor=',1)[1].split('private _cleanupAssemblyHolder=',1)[0]
         for marker in ('fleeing _actor','simulationEnabled _actor','isObjectHidden _actor'):

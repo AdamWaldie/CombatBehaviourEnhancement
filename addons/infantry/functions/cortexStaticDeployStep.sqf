@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Native flight, hidden actors and simulation dormancy veto equipment/movement writes,
  * including late assembly callbacks. Retirement never recalls those actors.
+ * Recruitment also respects unresolved flight journals and existing native MOVE orders.
  * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
  * original carrier a finite chance to occupy the real gunner seat. A one-part record uses the
  * carrier in both legacy actor slots but issues each action only once; no second soldier is reserved.
@@ -750,6 +751,8 @@ private _ready=((units _group) select [0,64]) select {
         && {isNull assignedVehicle _x}
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "MOVE"}
 };
 // Prefer an actually complete pair over the first primary carrier. An unmatched primary
 // must not hide another compatible team. This equipment path accepts static weapons, not UAVs.
