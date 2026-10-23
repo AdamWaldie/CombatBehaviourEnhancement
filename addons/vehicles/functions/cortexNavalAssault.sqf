@@ -17,7 +17,9 @@
  * Locality/authority: runs only inside the existing machine-local Cortex group job. Boat speed is
  * changed only where the boat is local. The tokenized plan is public so independently owned
  * passenger groups and a replacement owner can continue or release it.
- * Repeat/JIP: one token and deadline bound every approach. Completion, expiry, a closed feature
+ * Repeat/JIP: one token and deadline bound every approach. Refused operation/waypoint admission
+ * publishes no moving role; draft generations/leases retire before returning. Passenger and crew
+ * continuation stop at the outer action boundary when operation creation refuses. Completion, expiry, a closed feature
  * gate, external ownership and Zeus cleanup all restore exact speed and remove only CBE orders.
  *
  * Arguments:
@@ -85,16 +87,32 @@ if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWit
     private _landingGeneration=_state getOrDefault ["navalOperationGeneration",-1];
     if (_landingGeneration < 0) then {
         private _landingOperation=[_group,"NAVAL_LANDING",_egress,_survivors,[_egress],"EGRESS"] call CBE_fnc_OperationStart;
-        if (count _landingOperation == 0) exitWith {false};
-        _state set ["navalOperationGeneration",_landingOperation get "generation"];
+        if (count _landingOperation > 0) then {
+            _landingGeneration=_landingOperation get "generation";
+            _state set ["navalOperationGeneration",_landingGeneration];
+        };
+    };
+    if (_landingGeneration < 0) exitWith {
+        [_group,_state,"OPERATION_REFUSED"] call CBE_fnc_CortexNavalRelease;
+        false
     };
     private _movement=_state getOrDefault ["movementLease",[]];
-    if ((_movement param [0,""]) != "NAVAL_LANDING") then {
+    private _egressReady=(_movement param [0,""]) == "NAVAL_LANDING";
+    if (!_egressReady) then {
         if ([_group,"NAVAL_LANDING",true,_expires] call CBE_fnc_CortexOwnershipLease) then {
-            [_group,_egress,25] call CBE_fnc_CortexGroupMove;
-            _state set ["movementLease",["NAVAL_LANDING",time+((_expires-serverTime) max 1)]];
-            _group setVariable ["CBE_Cortex_NavalStatus",["EGRESS",_egress,_expires],true];
+            private _egressWaypoint=[_group,_egress,25,"MOVE",_landingGeneration] call CBE_fnc_CortexGroupMove;
+            if (!isNull (_egressWaypoint param [0,grpNull,[grpNull]]) && {(_egressWaypoint param [1,-1,[0]]) >= 0}) then {
+                _state set ["movementLease",["NAVAL_LANDING",time+((_expires-serverTime) max 1)]];
+                _group setVariable ["CBE_Cortex_NavalStatus",["EGRESS",_egress,_expires],true];
+                _egressReady=true;
+            } else {
+                [_group,"NAVAL_LANDING",false] call CBE_fnc_CortexOwnershipLease;
+            };
         };
+    };
+    if (!_egressReady) exitWith {
+        [_group,_state,"MOVEMENT_REJECTED"] call CBE_fnc_CortexNavalRelease;
+        false
     };
     if ((leader _group distance2D _egress) <= 30) exitWith {
         [_group,_state,"COMPLETE"] call CBE_fnc_CortexNavalRelease;
@@ -147,10 +165,17 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
     private _crewOperation=[_token,_boat,"CREW",_egress,_expires];
     _state set ["navalOperation",_crewOperation];
     _group setVariable ["CBE_Cortex_NavalOperation",_crewOperation,true];
-    if ((_state getOrDefault ["navalOperationGeneration",-1]) < 0) then {
+    private _crewGeneration=_state getOrDefault ["navalOperationGeneration",-1];
+    if (_crewGeneration < 0) then {
         private _crewOperationRecord=[_group,"NAVAL_ASSAULT",_egress,[],[_approach,_landing,_egress],"APPROACH"] call CBE_fnc_OperationStart;
-        if (count _crewOperationRecord == 0) exitWith {false};
-        _state set ["navalOperationGeneration",_crewOperationRecord get "generation"];
+        if (count _crewOperationRecord > 0) then {
+            _crewGeneration=_crewOperationRecord get "generation";
+            _state set ["navalOperationGeneration",_crewGeneration];
+        };
+    };
+    if (_crewGeneration < 0) exitWith {
+        [_group,_state,"OPERATION_REFUSED"] call CBE_fnc_CortexNavalRelease;
+        false
     };
     if (_phase == "APPROACH" && {(_boat distance2D _landing) <= 45}) then {
         if (local _boat) then {
@@ -243,13 +268,20 @@ if (count _crewOperationRecord == 0) exitWith {
     false
 };
 private _token=format ["NAVAL:%1:%2:%3",netId _boat,clientOwner,round (serverTime*10)];
+private _crewGeneration=_crewOperationRecord get "generation";
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
-    [_group,_state,"EXTERNAL"] call CBE_fnc_CortexNavalRelease;
+    [_group,_crewGeneration,"EXTERNAL"] call CBE_fnc_OperationCancel;
+    [_group,"NAVAL_ASSAULT",false] call CBE_fnc_CortexOwnershipLease;
     false
 };
-[_group,_landing,20] call CBE_fnc_CortexGroupMove;
+private _crewWaypoint=[_group,_landing,20,"MOVE",_crewGeneration] call CBE_fnc_CortexGroupMove;
+if (isNull (_crewWaypoint param [0,grpNull,[grpNull]]) || {(_crewWaypoint param [1,-1,[0]]) < 0}) exitWith {
+    [_group,_crewGeneration,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+    [_group,"NAVAL_ASSAULT",false] call CBE_fnc_CortexOwnershipLease;
+    false
+};
 _state set ["movementLease",["NAVAL_ASSAULT",time+240]];
-_state set ["navalOperationGeneration",_crewOperationRecord get "generation"];
+_state set ["navalOperationGeneration",_crewGeneration];
 private _crewOperation=[_token,_boat,"CREW",_egress,_expires];
 _state set ["navalOperation",_crewOperation];
 _group setVariable ["CBE_Cortex_NavalOperation",_crewOperation,true];

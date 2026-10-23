@@ -8,6 +8,8 @@
  * Reactive mortar reports carry current native believed geometry and its server-time observation.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
+ * Refused standoff waypoint admission releases its exact attempted generation and leases;
+ * no moving state is published, and the existing cooldown defers another attempt for eight seconds.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Danger-derived hostile actions retain the original identity expiry/witness; close-range
  * crew safety uses native believed geometry, never the hidden enemy object position.
@@ -1105,11 +1107,18 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
                 } else {
-                    [_group, _away, 30] call CBE_fnc_CortexGroupMove;
-                    _state set ["movementLease",["VEHICLE_STANDOFF",time+60]];
-                    _state set ["vehicleOperationGeneration",_operation get "generation"];
-                    _movementOwned = true;
-                    [_state, "standoff", 60] call CBE_fnc_CortexCooldown;
+                    private _generation=_operation get "generation";
+                    private _waypoint=[_group,_away,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
+                    if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
+                        [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+                        [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
+                        [_state,"standoff",8] call CBE_fnc_CortexCooldown;
+                    } else {
+                        _state set ["movementLease",["VEHICLE_STANDOFF",time+60]];
+                        _state set ["vehicleOperationGeneration",_generation];
+                        _movementOwned = true;
+                        [_state, "standoff", 60] call CBE_fnc_CortexCooldown;
+                    };
                 };
             };
             };

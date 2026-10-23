@@ -10586,6 +10586,22 @@ class CortexOperations(unittest.TestCase):
         for marker in ['CBE_fnc_OperationStart','"NAVAL_ASSAULT"','"NAVAL_LANDING"',
                        'navalOperationGeneration','"APPROACH"','"EGRESS"']:
             self.assertIn(marker,naval)
+        crew=naval.split('private _crewWaypoint=',1)[1]
+        self.assertLess(crew.index('"MOVEMENT_REJECTED"'),crew.index('_state set ["movementLease"'))
+        self.assertIn('[_group,_crewGeneration,"INCOMPLETE","MOVEMENT_REJECTED"]',crew)
+        passenger=naval.split('// Passenger egress is a separate operation',1)[1].split('private _ships=',1)[0]
+        self.assertIn('if (_landingGeneration < 0) exitWith',passenger)
+        self.assertIn('if (!_egressReady) exitWith',passenger)
+        self.assertIn('[_group,_egress,25,"MOVE",_landingGeneration]',passenger)
+        self.assertNotIn('if (count _landingOperation == 0) exitWith',passenger)
+        resumed=naval.split('// Boat crew: adopt or create',1)[1].split('private _remaining=',1)[0]
+        self.assertIn('if (_crewGeneration < 0) exitWith',resumed)
+        self.assertNotIn('if (count _crewOperationRecord == 0) exitWith',resumed)
+        vehicles=source('cortexVehicles')
+        standoff=vehicles.split('private _operation=[_group,"VEHICLE_STANDOFF"',1)[1]
+        self.assertLess(standoff.index('"MOVEMENT_REJECTED"'),standoff.index('_movementOwned = true'))
+        self.assertIn('[_group,"VEHICLE_STANDOFF",false]',standoff)
+        self.assertIn('[_state,"standoff",8]',standoff)
         for marker in ['navalOperationGeneration','CBE_fnc_OperationRelease',
                        'CBE_fnc_OperationCancel','NAVAL_']:
             self.assertIn(marker,release)
