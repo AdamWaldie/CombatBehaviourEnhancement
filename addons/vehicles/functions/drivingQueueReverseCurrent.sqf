@@ -4,6 +4,7 @@
  * Purpose: Observe an acknowledged queue reverse or bound crossing path without weakening admission.
  * CROSSING requires explicit root binding and a frozen path installed by every owner.
  * Only its exact QUEUE path journal can substitute owned root task receipts.
+ * Shared native identity is metadata only; local work must retain its full pre-consent ownerRoute.
  * All yielding rows remain stopped at their original bounded reverse poses; no completion credit.
  * Locality/authority: Read-only server or participant owner. The caller must already own an
  * authenticated moving phase; this observation never grants a phase or issues native work.
@@ -92,6 +93,22 @@ if (_heldIndices isEqualTo [] && {count (_leaf getVariable ["CBE_DrivingRecovery
     && {(getPosWorld _leaf) vectorDistance (((_context select _movingIndex) select 4) select 0) <= 1.5}) exitWith {
     [_vehicles,_roles,_dependencies,_context,_localRows] call CBE_fnc_DrivingQueueProposalCurrent
 };
+// Shared native identity omits destinations. This matches provenance only; actual
+// local rows separately require the immutable full route stored before consent.
+private _queueRouteMatches={
+    params ["_intentFull","_intentShared"];
+    if (!(_intentFull isEqualType []) || {!(_intentShared isEqualType [])}
+        || {_intentFull isEqualTo []} || {_intentShared isEqualTo []}) exitWith {false};
+    if ((_intentShared param [0,"",[""]]) != "NATIVE_MOVE") exitWith {_intentFull isEqualTo _intentShared};
+    if (count _intentShared != 8 || {count _intentFull != 9}
+        || {(_intentFull select [0,5]) isNotEqualTo (_intentShared select [0,5])}
+        || {!((_intentShared select 1) isEqualType grpNull)} || {isNull (_intentShared select 1)}
+        || {(_intentFull select 7) isNotEqualTo (_intentShared select 6)}
+        || {(_intentFull select 8) isNotEqualTo (_intentShared select 5)}
+        || {!((_intentFull select 6) isEqualType [])} || {count (_intentFull select 6) != 3}
+        || {(_intentFull select 6) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
+    ([_intentShared select 1] call CBE_fnc_DrivingOwnerReceipt) isEqualTo (_intentShared select [5,3])
+};
 private _live=[_vehicles] call CBE_fnc_DrivingQueueContext;
 if (count _live != count _context) exitWith {false};
 private _valid=true;private _localCount=0;
@@ -104,6 +121,8 @@ private _valid=true;private _localCount=0;
     // immutable consent receipt can populate original/native comparison fields.
     if (_localRows && {local _vehicle}) then {
         private _consent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+        private _ownerRoute=_consent getOrDefault ["ownerRoute",[]];
+        if (!([_ownerRoute,(_old select 2) select 10] call _queueRouteMatches)) exitWith {_valid=false};
         private _orders=_consent getOrDefault ["ownerOrders",[]];
         if ((_consent getOrDefault ["token",""]) != _token
             || {(_consent getOrDefault ["context",[]]) isNotEqualTo _context}
@@ -136,7 +155,7 @@ private _valid=true;private _localCount=0;
                 || {_localRows && {local _vehicle}
                     && {(_actor select 9) isNotEqualTo (_rootWork getOrDefault [_goalKey,[]])}}
                 || {(_rootWork getOrDefault ["group",grpNull]) != (_actor select 2)}
-                || {(_rootWork getOrDefault ["route",[]]) isNotEqualTo (_original select 10)}
+                || {!([_rootWork getOrDefault ["route",[]],_original select 10] call _queueRouteMatches)}
                 || {(_rootWork getOrDefault [["driver","operator"] select (_x == 3),objNull]) != (_actor select 0)}) then {_valid=false};
         } else {
             private _pendingStop=false;
@@ -244,7 +263,7 @@ private _valid=true;private _localCount=0;
                     || {(_rootWork getOrDefault ["group",grpNull]) != _group}
                     || {(_rootWork getOrDefault ["driver",objNull]) != driver _vehicle}
                     || {(_rootWork getOrDefault ["operator",objNull]) != effectiveCommander _vehicle}
-                    || {(_rootWork getOrDefault ["route",[]]) isNotEqualTo ((_row select 2) select 10)}
+                    || {(_rootWork getOrDefault ["route",[]]) isNotEqualTo ((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["ownerRoute",[]])}
                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                     || {(_state param [3,grpNull]) != _group} || {!finite _cap} || {_cap < 0} || {_cap > 8/3.6}
                     || {abs ((_state param [0,-100])-_cap) > 0.001}
@@ -275,7 +294,7 @@ private _valid=true;private _localCount=0;
                 || {(_work getOrDefault ["group",grpNull]) != _group}
                 || {(_work getOrDefault ["driver",objNull]) != driver _vehicle}
                 || {(_work getOrDefault ["operator",objNull]) != effectiveCommander _vehicle}
-                || {(_work getOrDefault ["route",[]]) isNotEqualTo ((_row select 2) select 10)}
+                || {(_work getOrDefault ["route",[]]) isNotEqualTo ((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["ownerRoute",[]])}
                 || {private _required=_rearRequirements select _forEachIndex;
                     private _issued=_work getOrDefault ["rearEnvelope",[]];
                     !(_issued isEqualTo _required || {_required isEqualTo [8,6] && {_issued isEqualTo [3.5,2]}})}

@@ -75,5 +75,19 @@
     ],
     "remaining": "Native admission guards deliberately retained. Moving-phase canonical/native route matching, root crossing provenance without ordinary recovery parent, native route-reader recognition and original-goal pending handback still required before enabling. Shared native tag is only a candidate no-waypoint intent identity, not proof of actual native MOVE or live executor. Actual owner must establish both.",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue movement delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
+  },
+  "movingRouteProof20261023": {
+    "baseline": "e6095892",
+    "implementation": "QueueReverseCurrent separates canonical/native provenance matching from actual-owner authority. Native shared8 fields match full9 route group/platform/seats/epoch/issuer plus current DrivingOwnerReceipt generation, with finite goal validation; authored routes retain exact nonempty equality. Local rows validate private pre-consent ownerRoute against shared identity; local crossing/reverse work must exactly equal that private full route. Existing ownerOrders/native task/cap/phase/geometry guards remain. No new function, worker, timer, native command or remote destination read.",
+    "source_sha256": "e707be886d76639c4543d2dd9661889932989deed4f5702af2b5529cf6015c94",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing moving queue regression extended; no new cases.",
+    "candidate": ".qa/candidates/queue-native-moving-route-proof-e6095892",
+    "fingerprint": "0450175d616f43808a3e5da8b465d565997f38a21c7db15f191fae85472b3a68",
+    "logs": [
+      ".qa/queue-native-moving-route-proof-build.log",
+      ".qa/queue-native-moving-route-proof-independent.log"
+    ],
+    "remaining": "Native admission exclusions remain. Need queue-specific original route provenance through root crossing, NativeRouteReceipt recognition without ordinary recovery parent, exact pending stop/original-goal return cleanup before enabling. Shared metadata match is not a current native command ACK.",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. No native queue execution delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
   }
 }

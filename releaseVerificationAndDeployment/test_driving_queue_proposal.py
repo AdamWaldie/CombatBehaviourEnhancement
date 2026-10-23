@@ -305,6 +305,15 @@ class QueueProposalTests(unittest.TestCase):
         self.assertLess(parent_rear-dependency_front,0)
 
         motion=(ROOT/'addons/vehicles/functions/drivingQueueReverseCurrent.sqf').read_text()
+        self.assertIn('private _queueRouteMatches=',motion)
+        for proof in ('count _intentShared != 8','count _intentFull != 9',
+                      '_intentFull select [0,5]','_intentFull select 7','_intentFull select 8',
+                      'call CBE_fnc_DrivingOwnerReceipt','getOrDefault ["ownerRoute",[]]'):
+            self.assertIn(proof,motion)
+        route_match=motion.split('private _queueRouteMatches={',1)[1].split('private _live=',1)[0]
+        for forbidden in ('expectedDestination','setVariable','doMove','forceSpeed','remoteExec'):
+            self.assertNotIn(forbidden,route_match)
+
         for boundary in (commit,motion):
             self.assertIn('fleeing _x',boundary)
             self.assertIn('ace_medical_ai_healQueue',boundary)
