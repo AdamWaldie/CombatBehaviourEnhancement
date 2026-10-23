@@ -23,6 +23,8 @@
  * firing remain enabled. Optional grenades support the movement but never gate it. Casualty
  * replacement, isolated-actor recovery and physical completion are owned by CortexFlankStep.
  *
+ * The assault anchor belongs to its admitted foot element; mounted/nonparticipant group leaders
+ * cannot substitute when that element has no available anchor. No native leader is changed.
  * Locality / Authority: call only where the group is local. The function respects external/Zeus
  * ownership, authored hold-style orders and the shared TACTICAL_DRILL movement lease.
  * Repeat/JIP: an active drill, lease or assault cooldown refuses another start. The finite operation
@@ -95,8 +97,8 @@ if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x
     || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}} >= 0}) exitWith {
     ["SMALL_ELEMENT_UNAVAILABLE",[count _onFoot]] call _refuse
 };
-private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
+private _leader=[_group,_onFoot] call CBE_fnc_CortexGroupAnchor;
+if (isNull _leader) exitWith {["NO_ELEMENT_ANCHOR"] call _refuse};
 // A depleted element uses its armed non-leaders rather than demanding squad-only roles.
 // The shared executor already uses one mover/one cover for two survivors, two/one for three.
 private _riflemen=_onFoot select {_x != _leader && {_smallElement || {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])}}};

@@ -79,5 +79,13 @@
     ],
     "nextImplementation": "Provide an explicit admitted ground-element context through existing tactical assessment, actor manoeuvre and recovery/cleanup. Keep vessel crew outside that element, preserve the original group/native mission route and new-order authority, and use a living current element member for rally/casualty succession. Do not remove the blanket mixed-group gate globally or redirect CortexGroupAnchor for unrelated operations. Avoid a duplicate permanent controller or unconditional native selectLeader/group split.",
     "limits": "This trace narrows the required implementation. No runtime code changed, no parity credit, no physical acceptance and no extra full build of unchanged runtime."
+  },
+  "elementAnchorImplementation20261023": {
+    "scope": "Participant-local anchor foundation; not independent mixed-group tactical admission.",
+    "implementation": "CortexGroupAnchor optional explicit element selects only current local combat-effective on-foot group members from at most64 supplied actors. Explicit empty/unavailable rosters return objNull; native group leader can win only when in the supplied element. Default callers retain fast leader path and12-member fallback. CortexAssaultStart uses _onFoot; CortexFlankStep recovery uses surviving _main and defers on missing witness, retaining existing buddy/nearest-peer preference. No selectLeader, join or new controller.",
+    "remaining": "TacticalAssess mixed-crew VEHICLE_DOMAIN gate and full admitted ground-element context/cleanup remain unresolved; do not globally bypass them. Ordinary final formation handback remains native group semantics, not independent naval ground command.",
+    "validation": "1491 offline tests/410SQF/9PBO; independent candidate .qa/candidates/element-anchor-1808fc61 fingerprint2973b47cdb69a4156e267f5aee3a3913addab02365c3eef076e2a298588b58fd. No live/performance proof.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }

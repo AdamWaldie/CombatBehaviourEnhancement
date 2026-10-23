@@ -60,6 +60,8 @@
  * The manoeuvre group receives a finite FULL-speed lease so inherited NORMAL or LIMITED travel
  * does not make short tactical bounds crawl. Cleanup restores the prior speed only while Cortex
  * still owns FULL; a later Zeus or script speed change cancels the drill and survives cleanup.
+ * Recovery anchors are restricted to the current surviving main element; an empty fire team
+ * falls back within that element, never to a mounted or nonparticipant native group leader.
  * Bound handoff never issues doFollow: formation return competes with individual destinations.
  * No explicit attack target is assigned to movers, because that replaced bound destinations in live QA.
  * The lease never uses BLUE or disables firing. Same-frame BLUE/reset experiments did not reliably cancel stale
@@ -685,7 +687,8 @@ if (_main isNotEqualTo []) then {
         private _peers = _main;
         private _teamIndex = _teams findIf {_actor in _x};
         if (_teamIndex >= 0) then {_peers = (_teams select _teamIndex) select {_x in _main}};
-        private _rallyActor=[_group] call CBE_fnc_CortexGroupAnchor;
+        private _rallyActor=[_group,_main] call CBE_fnc_CortexGroupAnchor;
+        if (isNull _rallyActor) exitWith {_recoveryDeferred=true};
         private _rally = getPosATL _rallyActor;
         if (_peers isNotEqualTo []) then {
             // A centroid across floors may be empty air. Recover toward an actual

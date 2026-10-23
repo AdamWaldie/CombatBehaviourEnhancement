@@ -2886,8 +2886,18 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('if (isNull _',text,name)
         flank=source('cortexFlankStep')
         self.assertIn('private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;',flank)
-        self.assertIn('private _rallyActor=[_group] call CBE_fnc_CortexGroupAnchor;',flank)
+        self.assertIn('private _rallyActor=[_group,_main] call CBE_fnc_CortexGroupAnchor;',flank)
+        self.assertIn('if (isNull _rallyActor) exitWith {_recoveryDeferred=true}',flank)
         self.assertIn('private _rally = getPosATL _rallyActor;',flank)
+        anchor=source('cortexGroupAnchor')
+        for marker in ('private _elementScoped=count _this > 1','_element select [0,64]',
+                       '_leader in _members','group _actor == _group','isNull objectParent _actor'):
+            self.assertIn(marker,anchor)
+        self.assertNotIn('selectLeader',anchor)
+        assault=source('cortexAssaultStart')
+        self.assertIn('[_group,_onFoot] call CBE_fnc_CortexGroupAnchor',assault)
+        self.assertIn('"NO_ELEMENT_ANCHOR"',assault)
+
 
     def test_clearance_release_cancels_only_its_matching_common_operation(self):
         release=source('cortexClearRelease')
