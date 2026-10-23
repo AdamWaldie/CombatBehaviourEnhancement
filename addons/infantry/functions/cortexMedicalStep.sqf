@@ -13,6 +13,8 @@
  * waypoint receipt must match before success and later treatment; changed or missing proof cancels.
  * Admission preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid only the medic's last requested
  * approach destination can explain MOVE; a patient MOVE or a different destination yields.
+ * Admission and each native treatment request require a carried Medikit/FirstAidKit or subclass.
+ * Consuming the last FAK does not cancel a native treatment already in progress.
  * Terminal cleanup recalls only a still-matching owned approach; generic native healing actions
  * are left intact because their writer/target cannot be identified by currentCommand alone.
  * Arguments:
@@ -39,6 +41,15 @@ private _actorEligible={
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+};
+// Native HealSoldier needs a carried kit. Config inheritance retains legitimate
+// replacement kits without treating an arbitrary mod item as vanilla treatment supply.
+private _hasMedicalKit={
+    params ["_medic"];
+    (items _medic) findIf {
+        _x isKindOf ["Medikit",configFile >> "CfgWeapons"]
+            || {_x isKindOf ["FirstAidKit",configFile >> "CfgWeapons"]}
+    } >= 0
 };
 private _finish = {
     params ["_result","_reason"];
@@ -197,8 +208,12 @@ if (_aid isNotEqualTo []) exitWith {
                 _aid set [4,time];
             };
         } else {
-            _medic action ["HealSoldier",_casualty];
-            _aid set [4,time];
+            // A consumed last FAK may belong to treatment still underway. Do not cancel
+            // that native action merely because inventory is now empty; just do not reissue it.
+            if ([_medic] call _hasMedicalKit) then {
+                _medic action ["HealSoldier",_casualty];
+                _aid set [4,time];
+            };
         };
         _aid set [5,_bestDistance];
         _aid set [6,_lastProgressAt];
@@ -233,7 +248,8 @@ private _threshold=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Damag
 // living medic; the pair selection below excludes only self-treatment.
 private _casualties=_members select {damage _x >= _threshold};
 if (_casualties isEqualTo []) exitWith {false};
-private _medics=_members select {_x getUnitTrait "Medic" || {(_x getVariable ["ace_medical_medicClass",0]) > 0}};
+private _medics=_members select {(_x getUnitTrait "Medic" || {(_x getVariable ["ace_medical_medicClass",0]) > 0})
+    && {[_x] call _hasMedicalKit}};
 if (_medics isEqualTo []) exitWith {false};
 private _pair=[];
 private _best=1e9;
@@ -255,6 +271,9 @@ _pair params ["_medic","_casualty"];
 private _operation=[_group,"MEDICAL_AID",_casualty,[_medic], [getPosATL _casualty],"APPROACH"] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {false};
 private _generation=_operation get "generation";
+if !([_medic] call _hasMedicalKit) exitWith {
+    [_group,_generation,"NO_MEDICAL_KIT"] call CBE_fnc_OperationCancel; false
+};
 if !([_medic,_casualty] call _mayIssueMedical) exitWith {
     [_group,_generation,"EXTERNAL"] call CBE_fnc_OperationCancel;
     false

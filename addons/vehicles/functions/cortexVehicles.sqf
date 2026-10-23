@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Locality/authority: Current group owner; native vehicle writes require actual vehicle/crew ownership.
+ * Repeat/JIP: Existing owner-local group ticks maintain finite vehicle work; current
+ * epoch, operation and native-order receipts reject stale commands after ownership changes.
  * Passenger stop/continuation proof retains the full current native waypoint identity;
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Reactive mortar reports carry current native believed geometry and its server-time observation.

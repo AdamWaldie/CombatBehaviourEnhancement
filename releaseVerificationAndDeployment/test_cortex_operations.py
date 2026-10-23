@@ -2278,6 +2278,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (!_inTreatmentRange) then {',medical)
         self.assertIn('private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);',medical)
         self.assertIn('native HealSoldier action can work',medical)
+        kits=medical.split('private _hasMedicalKit={',1)[1].split('private _finish = {',1)[0]
+        for kit in ('items _medic','isKindOf ["Medikit",configFile >> "CfgWeapons"]',
+                    'isKindOf ["FirstAidKit",configFile >> "CfgWeapons"]'):
+            self.assertIn(kit,kits)
+        self.assertIn('&& {[_x] call _hasMedicalKit}',medical)
+        self.assertIn('if ([_medic] call _hasMedicalKit) then {',medical)
+        self.assertIn('"NO_MEDICAL_KIT"',medical)
+        for forbidden in ('addItem','removeItem','addMagazine','setDamage'):
+            self.assertNotIn(forbidden,kits)
         self.assertIn('count _aid != 9 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
         self.assertIn('time,time,_best,time,+_medicalOrder,+_approach],true]',medical)
         self.assertIn('if (_authoredOrder && {!_stationaryOrder}) exitWith {false};',medical)

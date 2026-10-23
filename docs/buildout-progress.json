@@ -654,12 +654,12 @@
           "capability": "Eligible local medic/patient selection",
           "weight": 1,
           "built": 1,
-          "implemented": "Calm/security aid selects a distinct local on-foot medic/patient pair by damage threshold, available medic trait and nearest three-dimensional range. Shared actor eligibility rejects human/external ownership plus fleeing, hidden, simulation-disabled and ACE-treatment-queued actors at admission and continuation. Active clear/garrison/defend or another operation prevents admission.",
+          "implemented": "Calm/security aid selects a distinct local on-foot medic/patient pair by damage threshold, available medic trait and nearest three-dimensional range. Shared actor eligibility rejects human/external ownership plus fleeing, hidden, simulation-disabled and ACE-treatment-queued actors at admission and continuation. Active clear/garrison/defend or another operation prevents admission. Medic selection also requires carried native Medikit/FirstAidKit supply or config-derived replacement; role alone no longer starts an unequipped aid episode.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "e44a2cb70caf9cb855854f7cccf31d33307b3492d7cf5e2760302353a2def57d"
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
             }
           ]
         },
@@ -667,12 +667,12 @@
           "capability": "Finite approach and native treatment",
           "weight": 1,
           "built": 1,
-          "implemented": "One MEDICAL_AID generation requests native approach or HealSoldier, with vertical treatment-range checks, no-progress cancellation outside treatment range and a finite timeout. Damage below threshold records observed treatment success; stationary treatment does not falsely consume approach-progress recovery. No damage assignment or teleport is used. Native treatment effectiveness and repeated physical flow remain unverified.",
+          "implemented": "One MEDICAL_AID generation requests native approach or HealSoldier, with vertical treatment-range checks, no-progress cancellation outside treatment range and a finite timeout. Damage below threshold records observed treatment success; stationary treatment does not falsely consume approach-progress recovery. No damage assignment or teleport is used. Native treatment effectiveness and repeated physical flow remain unverified. Each treatment reissue requires current supply; consuming the last FAK does not cancel an existing native healing action. No supply is created, removed or transferred by CBE.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "e44a2cb70caf9cb855854f7cccf31d33307b3492d7cf5e2760302353a2def57d"
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
             }
           ]
         },
@@ -685,7 +685,7 @@
           "evidence": [
             {
               "path": "addons/infantry/functions/cortexMedicalStep.sqf",
-              "sha256": "e44a2cb70caf9cb855854f7cccf31d33307b3492d7cf5e2760302353a2def57d"
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
             },
             {
               "path": "addons/core/functions/operationRelease.sqf",
@@ -700,7 +700,7 @@
       ],
       "confidence": "low",
       "reviewed_at": "2026-10-23",
-      "source_commit": "c8f01b66 + exact medical approach recall fix"
+      "source_commit": "b7833c73 + native medical kit prerequisite and vehicle header contract repair"
     },
     {
       "id": "CONTACT",
