@@ -16,6 +16,7 @@
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
  *
  * Exact insertion episodes and owner epochs guard execution and cleanup; legacy jobs retire silently.
+ * Matching aircraft cleanup also retires the climb flag so later insertions may request height anew.
  * Every DROP step rechecks live pilot/commander takeover before another passenger exits.
  * Repeat/JIP: current-owner eligibility and automatic feature gates are rechecked before each jump.
  * Attempts rotate through the original roster, including after refusal. Temporarily unavailable
@@ -55,6 +56,7 @@ private _finish = {
         if (!isNull _aircraft && {local _aircraft}
             && {_episode isEqualTo (_aircraft getVariable ["CBE_AIPass_DropEpisode",[]])}) then {
             _aircraft setVariable ["CBE_AIPass_DropUntil",nil];
+            _aircraft setVariable ["CBE_AIPass_AirborneClimb",nil];
             _aircraft setVariable ["CBE_AIPass_DropEpisode",nil,true];
         };
     };

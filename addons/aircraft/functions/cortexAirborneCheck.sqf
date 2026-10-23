@@ -21,6 +21,8 @@
  * the aircraft is not climbed either), or from aircraft owned by another CBE feature (the squad
  * would already be ineligible: Transport Services, Paradrop, Gunship). The aircraft keeps the jump
  * altitude afterwards; give it a new flyInHeight in a later waypoint if it should fly lower.
+ * The one-shot climb obtains the shared lowest-priority flight lease; active flight controllers
+ * retain authority. Releasing that request lease is not altitude acknowledgement or restoration.
  * Locality and authority: call where the group is local.
  *
  * Each insertion retains an exact group/serial/owner-epoch episode for stale-job rejection.
@@ -83,8 +85,18 @@ if (!_force) then {
 if (_target isEqualTo []) exitWith {10};
 private _distance = _aircraft distance2D _target;
 if (!_force && {local _aircraft} && {!([group _pilot] call CBE_fnc_CortexExternalTakeover)} && {!(_aircraft getVariable ["CBE_AIPass_AirborneClimb", false])}) then {
-    _aircraft setVariable ["CBE_AIPass_AirborneClimb", true];
-    _aircraft flyInHeight (missionNamespace getVariable ["CBE_AIPass_Airborne_Altitude", 250]);
+    // This is a single native height request, not a persistent helicopter controller.
+    // Existing landing, attack, defence and braking leases all outrank it.
+    private _climbToken=format ["%1:%2:%3",netId _group,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]];
+    isNil {
+        if ([_aircraft,"AIRBORNE_CLIMB",_climbToken,50] call CBE_fnc_FlightLeaseAcquire) then {
+            if ([_aircraft,"AIRBORNE_CLIMB",_climbToken] call CBE_fnc_FlightLeaseValid) then {
+                _aircraft flyInHeight (missionNamespace getVariable ["CBE_AIPass_Airborne_Altitude", 250]);
+                _aircraft setVariable ["CBE_AIPass_AirborneClimb", true];
+            };
+            [_aircraft,"AIRBORNE_CLIMB",_climbToken,"HEIGHT_REQUESTED"] call CBE_fnc_FlightLeaseRelease;
+        };
+    };
 };
 private _height = (getPos _aircraft) select 2;
 private _ready = (_force || {_distance <= (missionNamespace getVariable ["CBE_AIPass_Airborne_DeployDistance", 700])})

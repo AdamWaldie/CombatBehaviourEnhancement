@@ -9651,6 +9651,21 @@ class CortexOperations(unittest.TestCase):
 
     def test_airborne_episode_rejects_stale_execution_and_cleanup(self):
         start=source('cortexAirborneCheck')
+        climb=start.split('private _climbToken=',1)[1].split('private _height =',1)[0]
+        for marker in ('"AIRBORNE_CLIMB",_climbToken,50','call CBE_fnc_FlightLeaseAcquire',
+                       'call CBE_fnc_FlightLeaseValid','call CBE_fnc_FlightLeaseRelease'):
+            self.assertIn(marker,climb)
+        self.assertLess(climb.index('FlightLeaseValid'),climb.index('flyInHeight'))
+        self.assertLess(climb.index('flyInHeight'),climb.index('CBE_AIPass_AirborneClimb'))
+        self.assertLess(climb.index('CBE_AIPass_AirborneClimb'),climb.index('FlightLeaseRelease'))
+        finish=source('cortexAirborneDropStep').split('private _finish =',1)[1].split('if (isNull _group',1)[0]
+        self.assertLess(finish.index('_episode isEqualTo (_aircraft'),finish.index('CBE_AIPass_AirborneClimb'))
+        self.assertIn('"CBE_AIPass_AirborneClimb",nil',finish)
+        shutdown=source('cortexStop').split('private _airborneStopEpisode=',1)[1]
+        self.assertIn('local _aircraft',shutdown)
+        self.assertLess(shutdown.index('isEqualTo _airborneStopEpisode'),shutdown.index('CBE_AIPass_AirborneClimb'))
+
+
         step=source('cortexAirborneDropStep')
         self.assertIn('["episode",_episode]',start)
         self.assertIn('CBE_AIPass_DropSerial',start)

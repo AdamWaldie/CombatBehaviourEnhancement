@@ -6,7 +6,7 @@
  * Repeat/JIP: Re-acquiring the same controller/token retains its lease identity; controller deadlines remain separate. A strictly higher priority may replace an older CBE controller; public state is diagnostic only and grants no remote authority.
  * Arguments: 0 aircraft <OBJECT>; 1 controller <STRING>; 2 token <STRING>; 3 priority <NUMBER>.
  * Return Value: Boolean - true only when the caller owns the current flight lease.
- * Current callers: aircraft attack, helicopter landing, missile defence and helicopter braking controllers.
+ * Current callers: airborne one-shot climb, aircraft attack, helicopter landing, missile defence and helicopter braking controllers.
  * Example: [_aircraft,"AIR_ATTACK",str _generation,300] call CBE_fnc_FlightLeaseAcquire;
  */
 params [

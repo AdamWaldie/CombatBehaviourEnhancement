@@ -438,7 +438,19 @@ private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missio
         _group setVariable ["CBE_AIPass_GarrisonApplied", nil];
         _group setVariable ["CBE_AIPass_DefendApplied", nil];
         private _aircraft = (_x select 2) getOrDefault ["aircraft", objNull];
-        if (!isNull _aircraft) then {_aircraft setVariable ["CBE_AIPass_DropUntil", nil]};
+        private _airborneStopEpisode=(_x select 2) getOrDefault ["episode",[]];
+        // A queued obsolete insertion must not clear a successor aircraft hold.
+        if (_airborneStopEpisode isNotEqualTo []) then {
+            if ((_group getVariable ["CBE_AIPass_DropEpisode",[]]) isEqualTo _airborneStopEpisode) then {
+                _group setVariable ["CBE_AIPass_DropEpisode",nil,true];
+            };
+            if (!isNull _aircraft && {local _aircraft}
+                && {(_aircraft getVariable ["CBE_AIPass_DropEpisode",[]]) isEqualTo _airborneStopEpisode}) then {
+                _aircraft setVariable ["CBE_AIPass_DropUntil",nil];
+                _aircraft setVariable ["CBE_AIPass_AirborneClimb",nil];
+                _aircraft setVariable ["CBE_AIPass_DropEpisode",nil,true];
+            };
+        };
         _group setVariable ["CBE_AIPass_RegroupQueued", nil];
         _group setVariable ["CBE_AIPass_RegroupHost", nil];
     };

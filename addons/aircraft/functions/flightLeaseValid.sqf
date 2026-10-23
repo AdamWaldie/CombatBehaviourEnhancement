@@ -6,7 +6,7 @@
  * Repeat/JIP: Pure bounded predicate; public lease state is diagnostic and never transfers authority.
  * Arguments: 0 aircraft <OBJECT>; 1 controller <STRING>; 2 token <STRING>.
  * Return Value: Boolean - true only for the exact current local lease owner.
- * Current callers: aircraft attack, helicopter landing, missile defence and helicopter braking mutation boundaries.
+ * Current callers: airborne one-shot climb, aircraft attack, helicopter landing, missile defence and helicopter braking mutation boundaries.
  * Example: [_aircraft,"LANDING",str _revision] call CBE_fnc_FlightLeaseValid;
  */
 params [["_aircraft",objNull,[objNull]],["_controller","",[""]],["_token","",[""]]];
