@@ -44,10 +44,11 @@ class OperationAttackPolicyTests(unittest.TestCase):
             self.assertNotIn(forbidden,text)
         self.assertEqual(text.count('_group enableAttack'),1)
         self.assertIn('OperationRestore',text)
-    def test_both_production_callers_use_shared_acquisition_and_refuse(self):
+    def test_production_callers_use_shared_acquisition_and_refuse(self):
         flank=source('addons/infantry/functions/cortexFlankStep.sqf')
         clear=source('addons/infantry/functions/cortexClearBuilding.sqf')
-        for text in (flank,clear):
+        retreat=source('addons/infantry/functions/cortexRetreat.sqf')
+        for text in (flank,clear,retreat):
             self.assertIn('call CBE_fnc_OperationAttackPolicy',text)
             self.assertNotIn('_group enableAttack false',text)
             self.assertNotIn('set ["groupAttack",',text)

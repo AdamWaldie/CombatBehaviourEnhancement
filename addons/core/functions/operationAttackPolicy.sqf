@@ -13,7 +13,7 @@
  * Arguments: 0 group <GROUP>, grpNull; 1 operation <HASHMAP>, empty; 2 applied policy <BOOL>, false;
  * 3 original policy <ARRAY>, [] to capture now or [BOOL] from an admitted durable task.
  * Return: STRING - ACQUIRED, OWNED, POLICY_CHANGED or REFUSED. No movement authority is granted.
- * Current callers: CortexFlankStep and CortexClearBuilding; release through OperationRestore.
+ * Current callers: CortexFlankStep, CortexClearBuilding and CortexRetreat; release through OperationRestore.
  * Example: [_group,_operation,false] call CBE_fnc_OperationAttackPolicy;
  */
 params [["_group",grpNull,[grpNull]],["_operation",createHashMap,[createHashMap]],

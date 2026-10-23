@@ -6264,8 +6264,11 @@ class CortexOperations(unittest.TestCase):
 
     def test_retreat_releases_drill_before_capturing_attack_control(self):
         text=source('cortexRetreat')
-        self.assertLess(text.index('call CBE_fnc_CortexFlankEnd'),text.index('set ["baseAttack"'))
-        self.assertIn('_group enableAttack false',text)
+        self.assertLess(text.index('call CBE_fnc_CortexFlankEnd'),text.index('call CBE_fnc_OperationAttackPolicy'))
+        self.assertLess(text.index('call CBE_fnc_OperationAttackPolicy'),text.index('call CBE_fnc_CortexGroupMove;'))
+        self.assertIn('ATTACK_POLICY_REFUSED',text)
+        self.assertNotIn('_group enableAttack false',text)
+        self.assertNotIn('set ["baseAttack"',text)
         self.assertIn('_state set ["behaviourChanged",true]',text)
         self.assertIn('_state set ["baseBehaviour",_priorBehaviour]',text)
         self.assertLess(text.index('private _priorBehaviour=behaviour _leader'),text.index('_group setBehaviour "AWARE"'))

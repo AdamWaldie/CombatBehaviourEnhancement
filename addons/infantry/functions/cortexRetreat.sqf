@@ -161,6 +161,15 @@ if (count _operation == 0) exitWith {
     false
 };
 private _generation=_operation get "generation";
+// Withdrawal shares the common operation's confirmed setting ownership. Refusal retires
+// this exact operation before a new route or attack suppression can be treated as acquired.
+private _attackPolicy=[_group,_operation,false] call CBE_fnc_OperationAttackPolicy;
+if (!(_attackPolicy in ["ACQUIRED","OWNED"])) exitWith {
+    [_group,_generation,"INCOMPLETE","ATTACK_POLICY_REFUSED"] call CBE_fnc_OperationRelease;
+    [_group,"INFANTRY_WITHDRAW",false] call CBE_fnc_CortexOwnershipLease;
+    _group setVariable ["CBE_Cortex_Withdrawal",["ATTACK_POLICY_REFUSED",0,0],true];
+    false
+};
 // Recall exact ordinary holds before the incoming withdrawal changes their native route.
 isNil {
     private _live=_group getVariable ["CBE_Operation",createHashMap];
@@ -201,11 +210,6 @@ if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0
     false
 };
 _state set ["withdrawOperationGeneration",_generation];
-if (!("baseAttack" in _state)) then {
-    _state set ["baseAttack",attackEnabled _group];
-    _state set ["attackChanged",attackEnabled _group];
-};
-_group enableAttack false;
 // RED grants the engine independent pursuit authority, which can replace the finite retreat
 // waypoint while the smoke layer still runs. YELLOW retains fire-at-will and formation movement.
 // Record both the previous and applied values so cleanup only restores a mode Cortex still owns.
