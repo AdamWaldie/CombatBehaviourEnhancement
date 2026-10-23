@@ -10,7 +10,8 @@
  * and every future command boundary. True is eligibility only, not an acknowledgement or priority.
  * Arguments: 0 vehicle <OBJECT>, objNull; 1 protocol <STRING, PASS>, PASS or internal QUEUE.
  * Both protocols refuse independent native driving/turning and fixed-path input, even
- * while their unit commands and waypoint destinations remain unchanged.
+ * while their unit commands and original destinations remain unchanged.
+ * QUEUE supports an actual-owner native MOVE; PASS still requires authored waypoints.
  * PASS refuses live/malformed queue consent; QUEUE reuses ordinary eligibility without rejecting
  * its own agreement. QueueProposalCurrent independently refuses passing consent.
  * Consent requires the current route/epoch/generation and actual live ordinary driving FSM;
@@ -69,8 +70,10 @@ if (["CBE_DrivingRecovery_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Wo
 } >= 0) exitWith {false};
 // Consent cannot displace a newer direct driver/commander destination or native CBE.
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
-// Gate intent supports native MOVE; pass/queue topology still requires authored routes.
-if ((_route param [0,"",[""]]) == "NATIVE_MOVE") exitWith {false};
+// Only QUEUE has original native-route provenance and finite stop/return cleanup.
+// Passing retains its authored-route requirement.
+private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false};
 // A route/crew snapshot cannot promise a hold when its ordinary executor ended.
 // Check the actual local handle; public state/generation alone is not liveness.
 private _brain=_group getVariable ["CBE_Driving_Brain",createHashMap];
@@ -84,6 +87,9 @@ if (count _brain == 0 || {(_brain getOrDefault ["group",grpNull]) != _group}
     || {completedFSM _executor}) exitWith {false};
 
 if !([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent) exitWith {false};
+// NativeRouteReceipt and GateIntent already require actual local operating actors,
+// matching original MOVE goals and an unchanged live ordinary executor.
+if (_nativeRoute) exitWith {count _route == 9};
 private _index=currentWaypoint _group;
 if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
 private _waypoint=[_group,_index];private _statements=waypointStatements _waypoint;

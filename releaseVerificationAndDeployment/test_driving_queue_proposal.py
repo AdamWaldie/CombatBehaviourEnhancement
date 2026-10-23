@@ -41,7 +41,9 @@ class QueueProposalTests(unittest.TestCase):
         current=(ROOT/'addons/vehicles/functions/drivingQueueProposalCurrent.sqf').read_text(encoding='utf-8')
         self.assertIn('getOrDefault ["ownerRoute",[]]) isNotEqualTo',current)
         gate=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text(encoding='utf-8')
-        self.assertIn('== "NATIVE_MOVE") exitWith {false}',gate)
+        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
+        self.assertIn('if (_nativeRoute) exitWith {count _route == 9}',gate)
+        self.assertLess(gate.index('call CBE_fnc_DrivingGateIntent'),gate.index('if (_nativeRoute) exitWith'))
 
         self.assertIn('getPosWorld _x,vectorDir _x,vectorUp _x',body)
         self.assertIn('+(vehicleMoveInfo _x)',body)
@@ -371,8 +373,17 @@ class QueueProposalTests(unittest.TestCase):
         bound=bypass.split('private _queueNativeBound=',1)[1].split('private _deadline=',1)[0]
         for proof in ('getOrDefault ["ownerRoute",[]]) isEqualTo _route','count (_queueAgreement getOrDefault ["crossingBinding",[]]) == 4','call _queueCurrent'):
             self.assertIn(proof,bound)
-        for name in ('drivingQueueAutoStep','drivingPassCanConsent'):
-            self.assertIn('"NATIVE_MOVE") exitWith', (ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))
+        auto=(ROOT/'addons/vehicles/functions/drivingQueueAutoStep.sqf').read_text(encoding='utf-8')
+        self.assertNotIn('"NATIVE_MOVE") exitWith',auto)
+        self.assertIn('"CBE_AIPass_DrivingAssist_Queue_Enable",false',auto)
+        proposal=(ROOT/'addons/vehicles/functions/drivingQueueProposal.sqf').read_text(encoding='utf-8')
+        self.assertIn('count waypoints _group <= 1',proposal)
+        self.assertIn('findIf {currentCommand _x != "MOVE"}',proposal)
+        self.assertNotIn('expectedDestination',proposal)
+        reverse_release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
+        self.assertIn('if ("queueBinding" in _work) then {',reverse_release)
+        self.assertIn('["queueReturn",+(_work get "queueBinding")]',reverse_release)
+        self.assertIn('["kind","QUEUE_RETURN"]',reverse_release)
 
 
         remote_stop=motion.split('private _pendingStop=false;',1)[1].split('if (_actor isNotEqualTo _original',1)[0]

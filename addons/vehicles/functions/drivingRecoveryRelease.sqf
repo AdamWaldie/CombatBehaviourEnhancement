@@ -5,6 +5,8 @@
  * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
  * turn/input receipt. An unowned BACK revokes stop/route handback and deferred retention.
  * Native STOP acknowledgement must also have finite measured rest before forward handback.
+ * Queue reverse native returns require both operating actors at the original goal and retire
+ * without creating another ordinary recovery allowance.
  * Existing owner cleanup observes a pending stop at zero owned cap; no timer or renewed deadline.
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
@@ -424,6 +426,12 @@ if (_owned) then {
                 _operator doMove _originalGoal;
                 _handback=["AUTHORED_ROUTE","NATIVE_ROUTE"] select _nativeHandback;
                 if (_nativeHandback) then {
+                    // Queue reverse is not an ordinary recovery allowance. Its return
+                    // must observe both original-goal MOVE replies and then retire.
+                    if ("queueBinding" in _work) then {
+                        _work set ["queueReturn",+(_work get "queueBinding")];
+                        _work set ["kind","QUEUE_RETURN"];
+                    };
                     _work set ["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline"),_returnBefore]];
                     _work set ["releasePending",true];
                     _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];

@@ -6,6 +6,7 @@
  * Locality/authority: Initiating vehicle owner, read-only. Proposed roles are not priority or
  * consent. Remote participant eligibility is observational; actual-owner ACK is separately brokered; a native
  * reverse/dependency/crossing execution is separately granted through existing driving callbacks.
+ * Native MOVE candidates expose no remote destination; actual owners independently bind the goal.
  * This proposal writes no movement/reservations/speed.
  * Repeat/JIP: Stateless fresh proposal, expires within original retry deadline and two seconds.
  * Stationary admission requires finite total linear velocity below1km/h and angular
@@ -45,7 +46,11 @@ private _observedEligible={
     if ([_driver,_operator] findIf {isPlayer _x || {!alive _x} || {!isNull remoteControlled _x}
         || {!(currentCommand _x in ["","MOVE","WAIT"])}} >= 0) exitWith {false};
     private _group=group _driver;private _index=currentWaypoint _group;
-    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
+    if (_index <= 0 || {_index >= count waypoints _group}) exitWith {
+        // Remote command labels are proposal observations only. Each actual owner
+        // separately proves both original native goals and captures its full route.
+        count waypoints _group <= 1 && {[_driver,_operator] findIf {currentCommand _x != "MOVE"} < 0}
+    };
     private _wp=[_group,_index];private _statements=waypointStatements _wp;
     private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
     waypointType _wp == "MOVE" && {_condition == "true"}

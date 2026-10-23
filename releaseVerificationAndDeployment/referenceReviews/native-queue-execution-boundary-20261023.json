@@ -176,5 +176,20 @@
     ],
     "remaining": "Native queue top-level exclusions retained. Review live protocol admission and all-owner route snapshot composition before removing. STOP expectedDestination semantics, native FOLLOW/MOVE acknowledgement propagation, shutdown/locality loss, successor caps and actual original-order travel require physical validation when audits authorized.",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Static observations do not prove physical stop/handback or performance budget. No score renewal. Audits paused."
+  },
+  "nativeAdmission20261023": {
+    "baseline": "0d03aa05",
+    "implementation": "Removed native-only refusal from AutoStep while retaining existing default-off initiation, live local FSM, original jam lifetime, one attempt and bounded commit sends. Proposal no-waypoint branch permits observed two-seat MOVE only with no authored route; reads no remote destination. PassCanConsent permits native routes only for QUEUE after actual-owner route/live executor/GateIntent checks; PASS retains authored-only boundary. Existing shared native identity, private full ownerRoute/ownerOrders, all-owner consent and exact crossing/stop/abort/return journals now compose. Native reversing participant return tags queueReturn and kind QUEUE_RETURN so existing CommandState requires both operating actors at original goal and successful cleanup cannot create new FINAL ordinary recovery budget.",
+    "validation": "9 focused queue and10 existing native admission cases passed. First full build failed old universal native CanConsent refusal assertion; reviewed build found second old AutoStep exclusion assertion; both updated existing case to retain PASS refusal and default-off QUEUE gate. Final1491 tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. No new cases.",
+    "candidate": ".qa/candidates/queue-native-admission-0d03aa05",
+    "fingerprint": "ab236e32f58d45d4895b69cbb18b91cf6aca9e176a5f6164307197e67668835a",
+    "logs": [
+      ".qa/queue-native-admission-build.log",
+      ".qa/queue-native-admission-build-reviewed.log",
+      ".qa/queue-native-admission-build-final.log",
+      ".qa/queue-native-admission-independent.log"
+    ],
+    "remaining": "Native QUEUE admission is implemented through existing opt-in setting, not physically accepted. Normal-client native and authored/mixed queue regression needs actual passage, both crew goal return, original order travel, cancellation/new task/successor cap, original expiry and shutdown. Separate HC/locality pass and median/p95 performance required when audits authorized. Native abort does not infer owner adoption.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Native labels and command ACK are not travel. No physical reliability, feature completion, whole-mod parity or tracker score renewal. Audits paused."
   }
 }

@@ -41,7 +41,9 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('serverTime >= (_work get "hardDeadline")',release)
         self.assertIn('["nativeReturn",[+_originalGoal,(serverTime+2) min (_work get "hardDeadline")',release)
         self.assertIn('if (!_nativeHandback) then {doStop _driver',release)
-        self.assertIn('"NATIVE_MOVE") exitWith {false}',read('drivingPassCanConsent'))
+        consent=read('drivingPassCanConsent')
+        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',consent)
+        self.assertLess(consent.index('call CBE_fnc_DrivingGateIntent'),consent.index('if (_nativeRoute) exitWith'))
         gate_route=read('drivingGateRouteMatches')
         for proof in ('count _gateRoute != 9','_gateRouteOwner != groupOwner _gateRouteGroup',
                       '_gateRouteOwner != owner _gateRouteVehicle','_gateRoute select 6','isServer'):
@@ -50,7 +52,9 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertNotIn('"NATIVE_MOVE") exitWith {false}',read('drivingGateIntent'))
         for name in ('drivingGateOpenServer','drivingGateCloseServer'):
             self.assertIn('call CBE_fnc_DrivingGateRouteMatches',read(name))
-        self.assertIn('"NATIVE_MOVE") exitWith {[false,false]}',read('drivingQueueAutoStep'))
+        queue_auto=read('drivingQueueAutoStep')
+        self.assertNotIn('"NATIVE_MOVE") exitWith {[false,false]}',queue_auto)
+        self.assertIn('"CBE_AIPass_DrivingAssist_Queue_Enable",false',queue_auto)
         corridor=read('drivingCorridorStep')
         self.assertIn('if (_nativeRoute && {_convoy})',corridor)
         self.assertIn('call _corridorParentCurrent',corridor)
