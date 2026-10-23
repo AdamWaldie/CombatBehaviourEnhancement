@@ -44,7 +44,23 @@ class DrivingPassPlanTests(unittest.TestCase):
             self.assertIn('ownerFrame',code)
             self.assertIn('call CBE_fnc_DrivingPassNativeFrame',code)
         owner=(ROOT/'addons/vehicles/functions/drivingPassAgreementOwner.sqf').read_text(encoding='utf-8')
-        self.assertIn('[_token,_context,_deadline,_expires,_serial,_frame]',owner)
+        self.assertIn('[_token,_context,_deadline,_expires,_serial,_frame,[group driver _vehicle] call CBE_fnc_DrivingRouteReceipt]',owner)
+        release=(ROOT/'addons/vehicles/functions/drivingPassAgreementRelease.sqf').read_text()
+        self.assertIn('count _orders == 7',release)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('count _proof != 7',assist)
+        native=(ROOT/'addons/vehicles/functions/drivingNativeRouteReceipt.sqf').read_text()
+        passing=native.split('private _nativePass=',1)[1].split('private _nativeChild=',1)[0]
+        for proof in ('nativeIntent','DrivingOwnerReceipt','_passToken','_passUntil','driverCommand','operatorTask',
+                      'CBE_DrivingPass_CommandWriting','_ownStop','count _nativeWork > 0'):
+            self.assertIn(proof,passing)
+        for command in ('doMove','doStop','doFollow','forceSpeed','setDriveOnPath'):
+            self.assertNotIn(command,passing)
+        begin=(ROOT/'addons/vehicles/functions/drivingPassBegin.sqf').read_text()
+        self.assertIn('(_ownerOrders param [6,[]]) isEqualTo _originalRoute',begin)
+        self.assertIn('_work get "token",_work get "deadline"',begin)
+        gate=(ROOT/'addons/vehicles/functions/drivingPassCanConsent.sqf').read_text()
+        self.assertIn('if (_nativeRoute && {_protocol != "QUEUE"}) exitWith {false}',gate)
         self.assertLess(owner.index('setVariable ["CBE_DrivingPass_OwnerOrders"'),owner.index('["ACK",[_token,_accepted]]'))
         for name in ('drivingPassBegin','drivingPassAgreementRelease','drivingAssistStart'):
             self.assertIn('CBE_DrivingPass_OwnerOrders',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8'))

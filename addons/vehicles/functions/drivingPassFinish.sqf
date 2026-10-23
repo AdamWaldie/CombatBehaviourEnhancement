@@ -119,7 +119,10 @@ if (call _owned && {_work get "issued"}) then {
             } else {
                 if ((_request select 1) && {call _owned}
                     && {count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0}) then {
-                    private _goal=waypointPosition [_group,currentWaypoint _group];
+                    private _route=_work get "route";
+                    private _goal=if ((_route param [0,"",[""]]) == "NATIVE_MOVE") then {+(_route select 6)} else {
+                        waypointPosition [_group,currentWaypoint _group]
+                    };
                     if (_driver != _operator) then {_driver doFollow _operator};
                     private _before=[currentCommand _driver,+(expectedDestination _driver),
                         currentCommand _operator,+(expectedDestination _operator)];

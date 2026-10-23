@@ -200,7 +200,7 @@ _brain set ["geometryTracks",_geometryTracks];
         && {count (_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) == 0}) then {
         private _frame=[_vehicle] call CBE_fnc_DrivingPassNativeFrame;
         private _proof=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
-        if (!(_proof isEqualType []) || {count _proof != 6} || {_frame isEqualTo []} || {_proof isNotEqualTo [_passConsent select 0,_passConsent select 1,_passConsent select 2,_passConsent select 3,_proof param [4,-1],_frame]}
+        if (!(_proof isEqualType []) || {count _proof != 7} || {_frame isEqualTo []} || {_proof isNotEqualTo [_passConsent select 0,_passConsent select 1,_passConsent select 2,_passConsent select 3,_proof param [4,-1],_frame,[_group] call CBE_fnc_DrivingRouteReceipt]}
             || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) then {
             [_vehicle,_group,_passConsent select 0] call CBE_fnc_DrivingPassAgreementRelease;
         };

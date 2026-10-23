@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Original native intent is private and bound to full owner consent, token and original expiry.
  * Purpose: Admits an explicitly prepared, agreed road pass into the existing ordinary driving FSM.
  * Locality/authority: Current owner of the leader vehicle, effective crew and group only. No
  * movement occurs here; DrivingPassStep is called by the existing sole driving writer.
@@ -33,7 +34,7 @@ if (!(_agreement isEqualType []) || {!(_consent isEqualType [])} || {count _agre
     || {(_consent select 1) isNotEqualTo _context} || {serverTime >= (_agreement select 3)}) exitWith {false};
 private _requestSerial=(_vehicle getVariable ["CBE_DrivingPass_Request",[]]) param [2,-1];
 private _ownerOrders=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
-if (_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame]) exitWith {false};
+if (_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame,[_group] call CBE_fnc_DrivingRouteReceipt]) exitWith {false};
 private _traffic=[_proposal] call CBE_fnc_DrivingPassTraffic;
 if ((_traffic getOrDefault ["status",""]) != "TRAFFIC_OBSERVATION" || {_traffic getOrDefault ["blocked",true]}) exitWith {false};
 private _path=(_prepared get "pointsATL") apply {+_x};
@@ -46,16 +47,24 @@ if (_split != floor _split || {_split < 2} || {_split >= count _path-1}) exitWit
 private _operator=effectiveCommander _vehicle;if (isNull _operator) then {_operator=driver _vehicle};
 private _work=createHashMapFromArray [["group",_group],["epoch",_group getVariable ["CBE_AIPass_Epoch",0]],
     ["generation",_brain get "generation"],["route",[_group] call CBE_fnc_DrivingRouteReceipt],
-    ["driver",driver _vehicle],["operator",_operator],["driverCommand",+(expectedDestination driver _vehicle)],
+    ["driver",driver _vehicle],["operator",_operator],
+    ["driverTask",currentCommand driver _vehicle],["operatorTask",currentCommand _operator],
+    ["driverCommand",+(expectedDestination driver _vehicle)],
     ["command",+(expectedDestination _operator)],["peer",_vehicles select 1],["peerRow",(_context select 1) select 1],
     ["context",_context],["token",_agreement select 0],["deadline",_agreement select 3],["started",serverTime],
     ["phase","OUT"],["issued",false],["interrupted",false],["outPath",_path select [0,_split]],
     ["returnPath",_path select [_split-1]],["returnASL",_pathASL select [_split-1]],
     ["scanAt",-1],["scanCursor",0],["returnValidated",[]],
     ["cap",((_budget select 1)-30)/(_budget select 0)]];
+private _originalRoute=_work get "route";
+if ((_originalRoute param [0,"",[""]]) == "NATIVE_MOVE"
+    && {(_ownerOrders param [6,[]]) isEqualTo _originalRoute}) then {
+    _work set ["nativeIntent",[+_originalRoute,[_group] call CBE_fnc_DrivingOwnerReceipt,
+        _work get "token",_work get "deadline"]];
+};
 if (([_vehicles] call CBE_fnc_DrivingPassContext) isNotEqualTo _context
     || {(_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]]) isNotEqualTo _ownerOrders}
-    || {_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame]}
+    || {_ownerOrders isNotEqualTo [_consent select 0,_context,_consent select 2,_consent select 3,_requestSerial,[_vehicle] call CBE_fnc_DrivingPassNativeFrame,[_group] call CBE_fnc_DrivingRouteReceipt]}
     || {serverTime >= (_prepared get "deadline")} || {!([_vehicle] call CBE_fnc_DrivingPassCanConsent)}) exitWith {false};
 _vehicle setVariable ["CBE_DrivingPass_Work",_work];
 if (!([_group,_vehicle,_work] call CBE_fnc_DrivingPassCommandWatch)) exitWith {

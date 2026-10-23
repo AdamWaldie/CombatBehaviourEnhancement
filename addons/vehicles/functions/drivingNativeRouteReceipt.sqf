@@ -10,6 +10,8 @@
  * for the finite crew executor. Historical seat fields during this transition grant no
  * movement permission; confirmed replacement seats and original-goal ACK rebind them.
  * Exact queue-abort STOP identity preserves the original native goal and owner without renewing expiry.
+ * Same-owner passing identity requires its private original route/token/owner/expiry and current
+ * native command frame; this is not a movement grant or cross-owner adoption.
  * Queue-root path identity requires its separately captured original intent, current owner
  * and exact native tasks; it grants no crossing/return authority or locality adoption.
  * No crew locality adoption is inferred. Exact ordinary bypass/corridor children may retain the
@@ -71,9 +73,49 @@ if !(_nativeWork isEqualType createHashMap) exitWith {[]};
 private _nativePrior=_nativeWork getOrDefault ["route",[]];
 if !(_nativePrior isEqualType []) exitWith {[]};
 if (count _nativeWork > 0 && {(_nativePrior param [0,"",[""]]) != "NATIVE_MOVE"}) exitWith {[]};
-if (["CBE_DrivingPass_Work"]
-    findIf {private _childProof=_nativeVehicle getVariable [_x,createHashMap];
-        !(_childProof isEqualType createHashMap) || {count _childProof > 0}} >= 0) exitWith {[]};
+private _nativePass=_nativeVehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+if !(_nativePass isEqualType createHashMap) exitWith {[]};
+// Temporary passing steering cannot become a fresh native destination. Retain only
+// its separately captured original owner/token/expiry and exact current command frame.
+if (count _nativePass > 0) exitWith {
+    private _intent=_nativePass getOrDefault ["nativeIntent",[]];
+    if (!(_intent isEqualType []) || {count _intent != 4}) exitWith {[]};
+    _intent params ["_passRoute","_passOwner","_passToken","_passUntil"];
+    private _pendingStop=(_nativePass getOrDefault ["handback",[]]) isNotEqualTo [];
+    private _ownStop=(_nativeGroup getVariable ["CBE_DrivingPass_CommandWriting",[]]) isEqualTo
+        [_nativeVehicle,_passToken,_nativePass getOrDefault ["epoch",-1],_nativePass getOrDefault ["generation",-1]];
+    private _tasks=if (_pendingStop) then {_nativePass getOrDefault ["handbackTasks",[]]} else {
+        [_nativePass getOrDefault ["driverTask","__MISSING__"],_nativePass getOrDefault ["operatorTask","__MISSING__"]]
+    };
+    if (count _nativeWork > 0
+        || {["CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"] findIf {
+            count (_nativeVehicle getVariable [_x,createHashMap]) > 0} >= 0}
+        || {!(_passRoute isEqualType [])} || {count _passRoute != 9}
+        || {(_passRoute select [0,5]) isNotEqualTo ["NATIVE_MOVE",_nativeGroup,_nativeVehicle,_nativeDriver,_nativeOperator]}
+        || {!((_passRoute select 6) call _nativeVector)}
+        || {(_passRoute select 7) isNotEqualTo _nativeEpoch} || {(_passRoute select 8) isNotEqualTo clientOwner}
+        || {!(_passOwner isEqualType [])} || {count _passOwner != 3}
+        || {_passOwner isNotEqualTo ([_nativeGroup] call CBE_fnc_DrivingOwnerReceipt)}
+        || {!(_passToken isEqualType "")} || {_passToken == ""}
+        || {_passToken isNotEqualTo (_nativePass getOrDefault ["token",""])}
+        || {!(_passUntil isEqualType 0)} || {!finite _passUntil}
+        || {_passUntil isNotEqualTo (_nativePass getOrDefault ["deadline",-1])}
+        || {(_nativePass getOrDefault ["group",grpNull]) != _nativeGroup}
+        || {(_nativePass getOrDefault ["epoch",-1]) != _nativeEpoch}
+        || {(_nativePass getOrDefault ["generation",-1]) != (_passOwner select 2)}
+        || {(_nativePass getOrDefault ["driver",objNull]) != _nativeDriver}
+        || {(_nativePass getOrDefault ["operator",objNull]) != _nativeOperator}
+        || {(_nativePass getOrDefault ["route",[]]) isNotEqualTo _passRoute}
+        || {!((_nativePass getOrDefault ["phase",""]) in ["OUT","DROP_BACK","RETURN_SCAN","RETURN_READY","RETURN"])}
+        || {!(_tasks isEqualType [])} || {count _tasks != 2}
+        || {(_nativeFrame select 0) != (_tasks select 0) && {!((_pendingStop || {_ownStop}) && {(_nativeFrame select 0) == "STOP"})}}
+        || {(_nativeFrame select 2) != (_tasks select 1) && {!((_pendingStop || {_ownStop}) && {(_nativeFrame select 2) == "STOP"})}}
+        || {(_nativeFrame select 1) isNotEqualTo (_nativePass getOrDefault ["driverCommand",[]])
+            && {!(_ownStop && {(_nativeFrame select 0) == "STOP"})}}
+        || {(_nativeFrame select 3) isNotEqualTo (_nativePass getOrDefault ["command",[]])
+            && {!(_ownStop && {(_nativeFrame select 2) == "STOP"})}}) exitWith {[]};
+    +_passRoute
+};
 private _nativeChild=_nativeVehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if !(_nativeChild isEqualType createHashMap) exitWith {[]};
 private _nativeCorridor=_nativeVehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];

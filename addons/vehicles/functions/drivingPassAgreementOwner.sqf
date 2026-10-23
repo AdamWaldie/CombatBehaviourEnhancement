@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Private ownerOrders bind full owner-local original route and native frame; destinations stay private.
  * Purpose: Checks server-requested road-pass consent on each actual vehicle owner and receives result.
  * Locality/authority: Only authenticated server remote calls. Each owned participant checks its
  * exact current crew/order row and local eligibility. A peer's public label is never an ACK.
@@ -74,7 +75,7 @@ for "_i" from 0 to 1 do {
         private _orders=_vehicle getVariable ["CBE_DrivingPass_OwnerOrders",[]];
         if (_frame isEqualTo []) then {_accepted=false};
         if (_mode == "RESULT" || {_orders isNotEqualTo [] && {(_orders param [0,""]) == _token}}) then {
-            if (_orders isNotEqualTo [_token,_context,_deadline,_expires,_serial,_frame]) then {_accepted=false};
+            if (_orders isNotEqualTo [_token,_context,_deadline,_expires,_serial,_frame,[group driver _vehicle] call CBE_fnc_DrivingRouteReceipt]) then {_accepted=false};
         };
         private _old=_vehicle getVariable ["CBE_DrivingPass_Consent",[]];
         if (_old isNotEqualTo []) then {
@@ -104,7 +105,8 @@ if (_mode == "VERIFY") exitWith {
         };
         // Duplicate verification neither adds an expiry callback nor downgrades AGREED.
         {
-            _x setVariable ["CBE_DrivingPass_OwnerOrders",[_token,_context,_deadline,_expires,_serial,[_x] call CBE_fnc_DrivingPassNativeFrame]];
+            _x setVariable ["CBE_DrivingPass_OwnerOrders",[_token,_context,_deadline,_expires,_serial,[_x] call CBE_fnc_DrivingPassNativeFrame,
+                [group driver _x] call CBE_fnc_DrivingRouteReceipt]];
             _x setVariable ["CBE_DrivingPass_Consent",+_pending];
         } forEach _install;
         if (_install isNotEqualTo []) then {[_install,_pending] call _scheduleExpiry};
