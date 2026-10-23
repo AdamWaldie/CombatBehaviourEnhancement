@@ -648,6 +648,18 @@
         "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-rear-current-20261023.json",
+      "sha256": "7320967197ff6b0fba946717b49847acc44ac8657b1a3d92f663c1344087d891",
+      "scope": "Complete four HBQ crew/rear/damage helpers and current CBE crew/rear helpers; not whole-HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf",
+        "functions/fn_rearClear.sqf",
+        "functions/fn_damageInit.sqf",
+        "functions/fn_protectBriefly.sqf"
+      ],
+      "meaning": "Scoped current comparison, not physical acceptance or renewed historical hash coverage."
     }
   ],
   "historicIndex": {
