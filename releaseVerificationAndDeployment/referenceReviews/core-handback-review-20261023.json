@@ -80,5 +80,29 @@
     ],
     "remaining": "Existing DrivingQueueTokenClosed has no equivalent overflow-until scalar. Its full-journal rejection can end when an earlier token expires even though an unrecorded retired token has later expiry; review/fix next. Native-MOVE queue integration remains excluded.",
     "limits": "Unsigned dirty development snapshot with unrelated dirt; notes afterward. No physical delayed-message/owner-migration/handback or performance proof. No tracker score/hash renewal; global evidence remains stale. Audits paused."
+  },
+  "queueSaturationReview20261023": {
+    "baseline": "595b17ba",
+    "correction": "Previous passRetiredTokens remaining finding was not traced through server admission. No queue runtime fix justified for normal broker operation.",
+    "evidence": "Queue broker retains at most64 root admission keys for90seconds, including after release; token expiry cannot exceed admission time+90. A new root admission requires a free key. Thus a65th simultaneously unexpired legitimate token cannot be generated, and old delayed messages carry expired original deadlines. Queue closure journal64 already matches the broker lifetime bound. External metadata corruption or other trusted scripts forging server messages are not this guarantee.",
+    "source_sha256": {
+      "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013",
+      "addons/vehicles/functions/drivingQueueTokenClosed.sqf": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "8377649876558b009f027499bec23ae75089252f9e25faf2ae4715c679427fa4"
+    },
+    "limits": "Source lifecycle proof only, not actual transport ordering or physical handback. No queue runtime/test change."
+  },
+  "passBrokerAdmissionBudget20261023": {
+    "baseline": "595b17ba",
+    "finding": "Passing active registry32 did not bound fresh serial/release cycles; the newly installed per-phase expiry callbacks could accumulate until their original deadlines. Local auto context cooldown does not constrain direct requests.",
+    "implementation": "Authenticated broker retains at most64 root admissions for50seconds, one per initiating netId. Release does not remove admissions. Admission lifetime covers maximum consent expiry50seconds; duplicate live requests return before consuming another slot. Unknown/corrupt admission state refuses. No new worker or native command; two bounded64 metadata passes on validated BEGIN.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package build plus independent copied-package verification passed. Existing broker regression extended, no new cases.",
+    "candidate": ".qa/candidates/pass-broker-admission-budget-595b17ba",
+    "fingerprint": "f8f93122f490da6c5da2f4fc90b82517f0376a046aa8c8d4676ce1b704087303",
+    "logs": [
+      ".qa/pass-broker-admission-budget-build.log",
+      ".qa/pass-broker-admission-budget-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Physical message churn/owner transitions/stop-resume and overhead unverified. Scripted fresh pass attempts on same root now wait50seconds even after cancellation; ordinary driving unaffected, automatic context cooldown remains60. No tracker renewal. Audits paused."
   }
 }

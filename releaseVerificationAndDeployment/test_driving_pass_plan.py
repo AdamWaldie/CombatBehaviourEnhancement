@@ -130,6 +130,10 @@ class DrivingPassPlanTests(unittest.TestCase):
                       'count _acks == count (_record get "owners")','count _registry >= 32',
                       'CBE_DrivingPass_ServerSequence'):
             self.assertIn(guard,server)
+        self.assertLess(server.index('count _admissions >= 64'),server.index('_registry set [_token,_record]'))
+        self.assertLess(server.index('_admissions set [_admissionKey,serverTime+50]'),server.index('["VERIFY",[_token'))
+        release=server.split('if (_mode == "RELEASE") exitWith {',1)[1].split('if (_mode == "ACK")',1)[0]
+        self.assertNotIn('_admissions',release)
         self.assertIn('remoteExecutedOwner != 2',owner)
         self.assertIn('call CBE_fnc_DrivingPassCanConsent',owner)
         for text in (server,owner):
