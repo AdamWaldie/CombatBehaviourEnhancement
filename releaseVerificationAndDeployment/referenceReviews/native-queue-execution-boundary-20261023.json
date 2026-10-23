@@ -149,5 +149,18 @@
     ],
     "remaining": "Native queue admission remains disabled. DrivingAbortHandback is still authored-only; integrate original native goal and pending return recognition before enabling. STOP observation after original deadline does not authorize a late native goal return. Validate native stop destination semantics, owner migration, actual handback travel and cap restoration in engine when audits authorized.",
     "limits": "Unsigned dirty development snapshot preserving unrelated dirt; engineering notes afterward. No physical or performance acceptance, no whole-mod parity claim or tracker score renewal. Audits paused."
+  },
+  "nativeAbortHandback20261023": {
+    "baseline": "6c781016",
+    "implementation": "Native queue-abort STOP holds now keep original queue expiry rather than authored +15s allowance. NativeRouteReceipt recognises exact original route/group/platform/seats/owner/epoch/binding and both STOP destinations/form leaders after crossing work retires, without granting movement or adopting native locality. AbortHandback retains existing clear traffic/gate/solid, physical rest, cap, actor and authority guards; chooses captured native goal instead of waypoint; consumes hold before one native issue and records kind QUEUE_RETURN with both seats/pre-request frame/cap/binding/original deadline. Existing recovery service observes both-seat goal acknowledgement, pending/expired return and successor commands without replay or FINAL ordinary budget conversion.",
+    "validation": "31 focused existing bypass tests passed, then 1491 existing tests and complete HEMTT/FSM/SQF/config/docs/package gates passed. Independent copied-package verification passed. Existing queue-abort test extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-abort-handback-6c781016",
+    "fingerprint": "63d3792f2f05905ce9ec58a251057eae8733cbc7cb8427f34b1862ad9a288b6b",
+    "logs": [
+      ".qa/queue-native-abort-handback-build.log",
+      ".qa/queue-native-abort-handback-independent.log"
+    ],
+    "remaining": "Native proposal/consent/auto exclusions remain. Review full native queue lifecycle composition before admission: queued crossing ownership, pending STOP service after tactical worker shutdown, expired STOP cap/provenance, native goal return and locality loss. Native hold does not adopt a different owner/epoch. Physical traffic crossing, two-seat return propagation, original-order travel and cap restoration remain unverified.",
+    "limits": "Unsigned dirty development snapshot including unrelated dirt; engineering notes afterward. No physical acceptance, performance measurement, feature completion claim or tracker score renewal. Audits paused."
   }
 }

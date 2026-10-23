@@ -2,11 +2,13 @@
  * Author: WaldoTheWarfighter
  * Queued ACE treatment blocks safety observation and native route wakeup.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
- * Purpose: Hands back an unchanged authored route after an exact owned queue-abort STOP,
+ * Purpose: Hands back an unchanged authored or captured native MOVE route after an exact owned queue-abort STOP,
  * only when the existing driving observer has fresh clear traffic/geometry and an owned cap.
  * Locality/authority: current ordinary-driving vehicle/group owner and exact original brain
  * identity. New native orders, seats, route, reservations or successor work retire authority.
- * Repeat/JIP: consume once before native issue; original queue expiry plus15s bounds cleanup.
+ * Repeat/JIP: consume once before native issue; authored cleanup uses original queue expiry plus15s.
+ * Native cleanup retains the original queue deadline and journals both-seat return acknowledgement
+ * through the existing recovery observer; it never fabricates a waypoint or renews a retry budget.
  * Public receipt alone grants no replay authority. Migration requires the local group-edge proposal,
  * unchanged released baseline and native/crew/route proof before registering existing cleanup.
  * Adopted cleanup republishes its owner identity for a subsequent transfer only when no driving brain exists.
@@ -182,9 +184,29 @@ isNil {
         || {currentCommand _driver != "STOP"} || {currentCommand _operator != "STOP"}
         || {(expectedDestination _driver) isNotEqualTo (_hold get "driverCommand")}
         || {(expectedDestination _operator) isNotEqualTo (_hold get "command")}) exitWith {};
+    private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+    private _returnGoal=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,currentWaypoint _group]};
+    private _returnCap=getForcedSpeed _vehicle;
+    private _returnBaseline=if (_released) then {[]} else {+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])};
     ["HANDOFF_ISSUED"] call _retire;
     if (_driver != _operator) then {_driver doFollow _operator};
-    _operator doMove waypointPosition [_group,currentWaypoint _group];
+    private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+        currentCommand _operator,+(expectedDestination _operator)];
+    _operator doMove _returnGoal;
+    if (_nativeRoute && {local _vehicle} && {local _group}
+        && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+        && {([_group] call CBE_fnc_DrivingOwnerReceipt) isEqualTo _ownerNow}
+        && {count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0}) then {
+        _vehicle setVariable ["CBE_DrivingRecovery_Work",createHashMapFromArray [
+            ["group",_group],["route",+_route],["driver",_driver],["operator",_operator],
+            ["kind","QUEUE_RETURN"],["commandMode","DESTINATION"],["queueReturn",+(_hold get "binding")],
+            ["started",serverTime],["deadline",_deadline],["hardDeadline",_deadline],
+            ["cap",_returnCap],["baseline",_returnBaseline],
+            ["driverCommand",+(_returnBefore select 1)],["command",+(expectedDestination _operator)],
+            ["nativeReturn",[+_returnGoal,_deadline,_returnBefore]],["releasePending",true]
+        ],true];
+        [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+    };
     _issued=true;
 };
 _issued

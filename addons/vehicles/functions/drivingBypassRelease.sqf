@@ -148,7 +148,8 @@ isNil {
             if (_owner isNotEqualTo []) then {
                 _vehicle setVariable ["CBE_DrivingAbort_Hold",createHashMapFromArray [
                     ["binding",+_queueBinding],["group",_group],["driver",_driver],["operator",_operator],
-                    ["owner",_owner],["route",+_route],["deadline",(_work get "deadline")+15],
+                    ["owner",_owner],["route",+_route],
+                    ["deadline",if (_nativeRoute) then {_work get "deadline"} else {(_work get "deadline")+15}],
                     ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _operator)],
                     ["driverLeader",formLeader _driver],["operatorLeader",formLeader _operator]
                 ],true];

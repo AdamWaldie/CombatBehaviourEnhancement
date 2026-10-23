@@ -9,6 +9,7 @@
  * A current brain may retain its already admitted vehicle goal through driver death
  * for the finite crew executor. Historical seat fields during this transition grant no
  * movement permission; confirmed replacement seats and original-goal ACK rebind them.
+ * Exact queue-abort STOP identity preserves the original native goal and owner without renewing expiry.
  * Queue-root path identity requires its separately captured original intent, current owner
  * and exact native tasks; it grants no crossing/return authority or locality adoption.
  * No crew locality adoption is inferred. Exact ordinary bypass/corridor children may retain the
@@ -79,6 +80,34 @@ private _nativeCorridor=_nativeVehicle getVariable ["CBE_DrivingCorridor_Work",c
 if !(_nativeCorridor isEqualType createHashMap) exitWith {[]};
 if (count _nativeChild > 0 && {count _nativeCorridor > 0}) exitWith {[]};
 if (count _nativeCorridor > 0) then {_nativeChild=_nativeCorridor};
+// An aborted queue STOP retains its original native intent after the crossing
+// journal retires. This is read-only identity, not a new movement allowance.
+private _nativeAbort=_nativeVehicle getVariable ["CBE_DrivingAbort_Hold",createHashMap];
+if (_nativeAbort isEqualType createHashMap && {count _nativeAbort > 0}
+    && {((_nativeAbort getOrDefault ["route",[]]) param [0,"",[""]]) == "NATIVE_MOVE"}) exitWith {
+    private _abortRoute=_nativeAbort get "route";
+    private _abortBinding=_nativeAbort getOrDefault ["binding",[]];
+    private _abortUntil=_nativeAbort getOrDefault ["deadline",-1];
+    if (count _nativeWork > 0 || {count _nativeChild > 0} || {count _nativeCorridor > 0}
+        || {count _abortRoute != 9}
+        || {(_abortRoute select [0,5]) isNotEqualTo ["NATIVE_MOVE",_nativeGroup,_nativeVehicle,_nativeDriver,_nativeOperator]}
+        || {!((_abortRoute select 6) call _nativeVector)}
+        || {(_abortRoute select 7) isNotEqualTo _nativeEpoch} || {(_abortRoute select 8) isNotEqualTo clientOwner}
+        || {(_nativeAbort getOrDefault ["group",grpNull]) != _nativeGroup}
+        || {(_nativeAbort getOrDefault ["driver",objNull]) != _nativeDriver}
+        || {(_nativeAbort getOrDefault ["operator",objNull]) != _nativeOperator}
+        || {(_nativeAbort getOrDefault ["owner",[]]) isNotEqualTo ([_nativeGroup] call CBE_fnc_DrivingOwnerReceipt)}
+        || {!(_abortBinding isEqualType [])} || {count _abortBinding != 4}
+        || {!((_abortBinding select 0) isEqualType "")} || {(_abortBinding select 0) == ""}
+        || {!(_abortUntil isEqualType 0)} || {!finite _abortUntil}
+        || {(_abortBinding select 1) isNotEqualTo _abortUntil}
+        || {(_nativeFrame select 0) != "STOP"} || {(_nativeFrame select 2) != "STOP"}
+        || {(_nativeFrame select 1) isNotEqualTo (_nativeAbort getOrDefault ["driverCommand",[]])}
+        || {(_nativeFrame select 3) isNotEqualTo (_nativeAbort getOrDefault ["command",[]])}
+        || {formLeader _nativeDriver != (_nativeAbort getOrDefault ["driverLeader",objNull])}
+        || {formLeader _nativeOperator != (_nativeAbort getOrDefault ["operatorLeader",objNull])}) exitWith {[]};
+    +_abortRoute
+};
 // A queue root carries its own original native intent; it cannot borrow an
 // ordinary REFRESH/FINAL parent. Identity may outlive consent only for exact
 // issued-command cleanup; this reader never grants movement or extends expiry.

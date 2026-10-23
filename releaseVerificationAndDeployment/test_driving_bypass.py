@@ -251,6 +251,18 @@ class DrivingBypassTests(unittest.TestCase):
                       '(expectedDestination _driver)','(expectedDestination _operator)'):
             self.assertIn(guard,handback)
         self.assertLess(handback.index('["HANDOFF_ISSUED"] call _retire'),handback.index('_operator doMove'))
+        self.assertIn('if (_nativeRoute) then {+(_route select 6)} else {waypointPosition',handback)
+        self.assertIn('["kind","QUEUE_RETURN"]',handback)
+        self.assertIn('["nativeReturn",[+_returnGoal,_deadline,_returnBefore]]',handback)
+        self.assertIn('call CBE_fnc_DrivingRecoveryCleanup',handback)
+        self.assertIn('if (_nativeRoute) then {_work get "deadline"}',release)
+        native=(ROOT/'addons/vehicles/functions/drivingNativeRouteReceipt.sqf').read_text()
+        abort_identity=native.split('private _nativeAbort=',1)[1].split('// A queue root carries',1)[0]
+        for proof in ('DrivingOwnerReceipt','_abortBinding select 1','_nativeFrame select 0','_nativeFrame select 2',
+                      'driverCommand','operatorLeader','count _nativeWork > 0'):
+            self.assertIn(proof,abort_identity)
+        for command in ('doMove','doFollow','forceSpeed','setDriveOnPath'):
+            self.assertNotIn(command,abort_identity)
         for forbidden in ('forceSpeed ','setDriveOnPath','nearEntities','lineIntersectsSurfaces','spawn','queueClearanceAccepted'):
             self.assertNotIn(forbidden,handback)
 
