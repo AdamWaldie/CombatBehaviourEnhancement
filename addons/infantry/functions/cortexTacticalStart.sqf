@@ -22,6 +22,9 @@
  * 3: flank enabled <BOOL> - authoritative live feature gate (default true)
  * 4: advance enabled <BOOL> - authoritative live feature gate (default true)
  * 5: assault enabled <BOOL> - authoritative live feature gate (default true)
+ * 6: optional ground element <ARRAY of OBJECT>; actor-only close assault, no group fallback.
+ * Element distances use existing believed contact positions relative to the foot anchor.
+ * No hidden contact transform, native leader change or separate worker is introduced.
  *
  * Return Value:
  * Boolean - true when either manoeuvre started
@@ -40,12 +43,23 @@ params [
     ["_enemies", [], [[]]],
     ["_flankEnabled", true, [true]],
     ["_advanceEnabled", true, [true]],
-    ["_assaultEnabled", true, [true]]
+    ["_assaultEnabled", true, [true]],
+    ["_element",[],[[]]]
 ];
 if (isNull _group || {!local _group}) exitWith {false};
 
 if (!_flankEnabled && {!_advanceEnabled} && {!_assaultEnabled}) exitWith {false};
-private _assessment=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled] call CBE_fnc_CortexTacticalAssess;
+private _elementScoped=count _this > 6;
+if (_elementScoped && {count _element > 64}) exitWith {false};
+if (_elementScoped) then {
+    private _anchor=[_group,_element] call CBE_fnc_CortexGroupAnchor;
+    if (!isNull _anchor) then {
+        _enemies=_enemies apply {private _record=+_x;_record set [3,_anchor distance2D (_record select 1)];_record};
+    };
+};
+private _assessmentArgs=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled];
+if (_elementScoped) then {_assessmentArgs pushBack _element};
+private _assessment=_assessmentArgs call CBE_fnc_CortexTacticalAssess;
 private _intent=_assessment getOrDefault ["intent","HOLD"];
 private _reason=_assessment getOrDefault ["reason","NO_VIABLE_CONTACT"];
 private _targetIndex=_assessment getOrDefault ["targetIndex",-1];
@@ -76,7 +90,11 @@ private _orderedEnemies=[_enemies,_targetIndex] call _prioritiseContact;
 private _started=false;
 {
     switch (_x) do {
-        case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAssaultStart};
+        case "ASSAULT": {
+            private _args=[_group,_state,_orderedEnemies];
+            if (_elementScoped) then {_args pushBack _element};
+            _started=_args call CBE_fnc_CortexAssaultStart
+        };
         case "FLANK": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexFlankStart};
         case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAdvanceStart};
         case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call CBE_fnc_CortexTacticalReposition};
@@ -86,7 +104,7 @@ private _started=false;
 // A viable manoeuvre can still be rejected by terrain, a live-fire lane or a temporary role loss.
 // Do not convert that refusal into an unexplained pause: make one short screened improvement and
 // reassess from there. The helper is generation-owned and cooldown-bound, so it cannot churn routes.
-if (!_started && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNotEqualTo []}) then {
+if (!_started && {!_elementScoped} && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNotEqualTo []}) then {
     _started=[_group,_state,_orderedEnemies,0,"NO_SAFE_MANOEUVRE"] call CBE_fnc_CortexTacticalReposition;
     if (_started) then {
         _intent="REPOSITION";

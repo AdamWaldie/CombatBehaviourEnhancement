@@ -33,6 +33,7 @@ params [
     ["_reason","CANCELLED",[""]]
 ];
 if (isNull _group) exitWith {};
+_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
 // A handover release must clear CBE state without restoring a speed chosen by a later
 // curator, mission or specialist controller.
 private _externalTakeover=[_group] call CBE_fnc_CortexExternalTakeover;

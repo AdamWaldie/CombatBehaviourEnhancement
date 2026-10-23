@@ -28,7 +28,9 @@ class AIModularityContracts(unittest.TestCase):
         self.assertLess(step.index('"OWNERSHIP_LOST" call _end'), step.index('_group setCombatMode'))
         end = src('cortexFlankEnd')
         self.assertIn('_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"]', end)
-        self.assertIn('if (_mayCommand) then {{_x doFollow _leader}', end)
+        self.assertIn('if (_mayCommand) then {_members call _returnElement}', end)
+        self.assertIn('_x doFollow _returnLeader', end)
+        self.assertIn('[_group,_members] call CBE_fnc_CortexGroupAnchor', end)
         self.assertIn('private _hold = _mayCommand', end)
 
     def test_child_switches_are_registered_by_cba_and_react_on_current_owners(self):

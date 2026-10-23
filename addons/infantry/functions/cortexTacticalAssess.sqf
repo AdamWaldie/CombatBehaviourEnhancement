@@ -15,6 +15,8 @@
  * Elevation uses the supplied native believed position; no live hostile height is queried.
  * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
  * This immediate readiness gate does not cancel existing work, defensive repositioning or native orders.
+ * Optional argument6 is an explicit ground element: only its actors count and only actor-only
+ * close assault may be proposed. Group route/flank/reposition alternatives remain unavailable.
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
@@ -28,15 +30,18 @@ params [
     ["_enemies",[],[[]]],
     ["_flankEnabled",true,[true]],
     ["_advanceEnabled",true,[true]],
-    ["_assaultEnabled",true,[true]]
+    ["_assaultEnabled",true,[true]],
+    ["_element",[],[[]]]
 ];
+private _elementScoped=count _this > 6;
 private _result=createHashMapFromArray [
     ["intent","HOLD"],["reason","NO_VIABLE_CONTACT"],["targetIndex",-1],
     ["candidates",[]],["evidence",[]]
 ];
-if (isNull _group || {!local _group} || {_enemies isEqualTo []}) exitWith {_result};
-private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
+if (isNull _group || {!local _group} || {_enemies isEqualTo []} || {_elementScoped && {count _element > 64}}) exitWith {_result};
+private _leader=if (_elementScoped) then {[_group,_element] call CBE_fnc_CortexGroupAnchor}
+    else {[_group] call CBE_fnc_CortexGroupAnchor};
+if (isNull _leader && {!_elementScoped}) then {_leader=leader _group};
 if (isNull _leader || {!alive _leader}) exitWith {_result};
 // Group manoeuvres issue group destinations. A fully mounted group or operating crew mixed with
 // foot soldiers must retain the vehicle domain; zero infantry rifles is not lost vehicle firepower.
@@ -47,12 +52,13 @@ private _hasCrew=_members findIf {
     alive _x && {!isNull _platform}
         && {_x in [driver _platform,gunner _platform,commander _platform]}
 } >= 0;
-if (!_hasFoot || {_hasCrew}) exitWith {
+if (!_hasFoot || {_hasCrew && {!_elementScoped}}) exitWith {
     _result set ["reason","VEHICLE_DOMAIN"];
     _result set ["evidence",[_hasFoot,_hasCrew]];
     _result
 };
 private _moraleState=_state getOrDefault ["moraleState","STEADY"];
+if (_elementScoped && {_moraleState != "STEADY"}) exitWith {_result set ["reason","MORALE_NOT_STEADY"];_result};
 if (_moraleState == "BROKEN") exitWith {
     _result set ["reason","MORALE_NOT_STEADY"];
     _result
@@ -73,6 +79,7 @@ private _forwardOrder=_waypointIndex < count waypoints _group
     && {_leader distance2D waypointPosition [_group,_waypointIndex] > 80};
 private _foot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+        && {!_elementScoped || {_x in _element}}
 };
 // Current tactical capacity excludes protected tasks and independently leased actors.
 // Physical squad strength remains separate in _foot for diagnostics and other layers.
@@ -87,6 +94,7 @@ if (_availableFoot isEqualTo []) exitWith {
     _result
 };
 private _armedFoot=_availableFoot select {primaryWeapon _x != "" && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
+if (_elementScoped && {count _armedFoot < 2}) exitWith {_result set ["reason","ACTOR_TASKS_BUSY"];_result};
 if (count _armedFoot < 2) exitWith {
     // A single fresh infantry opponent at immediate firing range is not, by itself,
     // a reason to turn a surviving rifleman away. Keep native engagement/mission movement;
@@ -249,6 +257,11 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
             };
         };
     };
+};
+// Explicit ground elements admit only the actor-only assault executor. Every other
+// candidate can create a group destination and must retain the mounted-domain safeguard.
+if (_elementScoped && {_intent != "ASSAULT"}) exitWith {
+    _result set ["reason","ELEMENT_NO_CLOSE_ASSAULT"];_result
 };
 // Smoothed group morale cannot establish immediate command readiness. Defer only a new
 // offensive proposal; leave protective repositioning and ordinary engine orders untouched.

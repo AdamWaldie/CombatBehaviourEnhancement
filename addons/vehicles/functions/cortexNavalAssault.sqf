@@ -10,6 +10,9 @@
  * finite dry-ground egress. For a legacy combined crew/passenger group, cargo receives short
  * individual generation-owned egress attempts only after actual detach, so the boat group
  * is never assigned a land waypoint. Original landing membership survives departure from fullCrew.
+ * Successful combined-group egress retains one 45-second semantic foot-element handover,
+ * bound to the current native route/owner. It can start only the existing actor-only close
+ * assault; no group land route, leader switch, group split or new job is introduced.
  * Existing sparse actor discovery reaps pending native cleanup; no new worker is installed.
  * Disembark requests require current actor task/assignment authority and a low-motion boat.
  *
@@ -55,6 +58,7 @@ params [
 if (isNull _group || {!local _group}) exitWith {false};
 private _enabled=[_group,"CBE_AIPass_NavalAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 if (!_enabled) exitWith {
+    _group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
     if ((_state getOrDefault ["navalOperation",[]]) isNotEqualTo []
         || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}) then {
         [_group,_state] call CBE_fnc_CortexNavalRelease
@@ -108,9 +112,34 @@ if (count _operation == 5 && {serverTime >= (_operation select 4)}) exitWith {
 // A passenger landing, boat approach or disembark must yield as a whole when a curator,
 // player or specialist controller takes either group. Release removes only CBE-owned state.
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
+    _group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
     if (_operation isNotEqualTo []) then {[_group,_state,"EXTERNAL"] call CBE_fnc_CortexNavalRelease};
     false
 };
+// A landed mixed-group foot element may use the existing actor-only assault executor.
+// The original native route and owner epoch bind admission; the boat never gets a land waypoint.
+private _groundStarted=false;
+private _groundElement=_group getVariable ["CBE_Cortex_NavalGroundElement",[]];
+if (count _groundElement == 6) then {
+    _groundElement params ["_groundToken","_groundBoat","_groundActors","_groundEpoch","_groundRoute","_groundExpiry"];
+    private _groundPlan=_groundBoat getVariable ["CBE_Cortex_NavalPlan",[]];
+    private _groundCurrent=serverTime < _groundExpiry
+        && {_groundEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {count _groundPlan == 9} && {(_groundPlan select 0) == _groundToken}
+        && {(_groundPlan select 1) == _group} && {(_groundPlan select 8) == "LANDED"}
+        && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _groundRoute};
+    if (!_groundCurrent) then {_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true]} else {
+        if (_enemies isNotEqualTo [] && {count (_state getOrDefault ["drill",createHashMap]) == 0}) then {
+            if ([_group,_state,_enemies,false,false,
+                [_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled,_groundActors]
+                call CBE_fnc_CortexTacticalStart) then {
+                _group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
+                _groundStarted=true;
+            };
+        };
+    };
+};
+if (_groundStarted) exitWith {true};
 // Continue a passenger landing after the last soldier has physically left the boat.
 if (count _operation >= 4 && {(_operation param [2,""]) == "PASSENGER"}) exitWith {
     _operation params ["_token","_boat","_role","_egress","_expires"];
@@ -355,13 +384,22 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
             };
             _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil];
         };
+        private _landedCohort=_group getVariable ["CBE_Cortex_NavalEgress",[]];
+        private _landedActors=if (count _landedCohort == 3 && {(_landedCohort select 0) == _token}) then {
+            ((_landedCohort select 2) select [0,64]) apply {_x select 0}
+        } else {[]};
         [_group,_state,"COMPLETE"] call CBE_fnc_CortexNavalRelease;
+        private _landedExpiry=serverTime+45;
+        if (count _landedActors >= 2) then {
+            _group setVariable ["CBE_Cortex_NavalGroundElement",[_token,_boat,_landedActors,
+                _group getVariable ["CBE_AIPass_Epoch",0],[_group] call CBE_fnc_NativeOrderReceipt,_landedExpiry],true];
+        };
         _plan set [8,"LANDED"];
-        _plan set [7,serverTime+45];
+        _plan set [7,_landedExpiry];
         _boat setVariable ["CBE_Cortex_NavalPlan",_plan,true];
         _state deleteAt "navalOperation";
         _group setVariable ["CBE_Cortex_NavalOperation",nil,true];
-        _group setVariable ["CBE_Cortex_NavalStatus",["COMPLETE",_shore,serverTime+45],true];
+        _group setVariable ["CBE_Cortex_NavalStatus",["COMPLETE",_shore,_landedExpiry],true];
         false
     } else {
         true

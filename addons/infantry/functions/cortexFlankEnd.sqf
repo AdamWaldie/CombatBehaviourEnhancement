@@ -9,6 +9,9 @@
  * Failed support-bound and transient retry stops remain separate ownership roles.
  * Reservation policy: unknown/malformed/nonfinite actor leases remain owned through the
  * shared owner-local CortexActorMoveReserved predicate at admission and command/cleanup gates.
+ * Explicit ground-element cleanup uses a surviving foot member for formation return;
+ * it cannot recall that element to a boat-based or nonparticipant native group leader.
+ * No available element anchor means no follow command.
  * Ends a drill (flank, bounding advance or direct assault). Restores owned unit and group combat-mode overrides only
  * while the current mode still matches the value Cortex applied; later external changes survive.
  *
@@ -132,6 +135,13 @@ if (_unresolvedPolicies isNotEqualTo []) then {
     if (_mayRestore && {[_unit] call _mayRestoreActor} && {behaviour _unit == _owned}) then {_unit setCombatBehaviour _previous};
 } forEach (_drill getOrDefault ["combatBehaviours",[]]);
 private _members = (_drill getOrDefault ["units", []]) select {alive _x && {local _x} && {group _x == _group}};
+private _returnScoped=_drill getOrDefault ["elementScoped",false];
+private _returnLeader=if (_returnScoped) then {
+    [_group,_members] call CBE_fnc_CortexGroupAnchor
+} else {leader _group};
+private _returnElement={
+    {if (!isNull _returnLeader && {!_returnScoped || {_x != _returnLeader}}) then {_x doFollow _returnLeader}} forEach _this;
+};
 // Retire only the temporary throw listener belonging to this cancelled/completed drill.
 // Keep the projectile record: cancellation does not remove a live explosive from the world.
 {
@@ -212,7 +222,7 @@ if (_holdFailedBound || {_holdCompletedSupport}) then {
         };
     } forEach (if (_holdCompletedSupport) then {_members-_stragglers} else {_members});
     _state set ["supportStopHolds",_supportHolds];
-    if (_holdCompletedSupport) then {{_x doFollow leader _group} forEach _stragglers};
+    if (_holdCompletedSupport) then {_stragglers call _returnElement};
     };
 } else {
 if (_hold) then {
@@ -235,13 +245,12 @@ if (_hold) then {
         };
     } forEach (_members-_stragglers);
     _state set ["holderRecallReceipts",_holdRows];
-    {_x doFollow leader _group} forEach _stragglers;
+    _stragglers call _returnElement;
     _state set ["holders", _holders];
 } else {
-    private _leader = leader _group;
     // Zeus has already supplied the replacement movement. Restore Cortex-owned
     // feature switches above, but do not replace that order with formation return.
-    if (_mayCommand) then {{_x doFollow _leader} forEach _members};
+    if (_mayCommand) then {_members call _returnElement};
 };
 };
 isNil {

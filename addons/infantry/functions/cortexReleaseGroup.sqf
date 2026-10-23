@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending landed-foot handover is retired by group release even after the boat operation ended.
  * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
  * Contact-only disable may preserve independent jobs after validating its narrow keep-brain scope.
  * Dismount speed handback uses the shared exact crew/native-order receipt; refusal retains evidence.
@@ -191,7 +192,8 @@ if (local _group && {count _operation > 0}) then {
     [_group,_operation getOrDefault ["generation",-1],_reason] call CBE_fnc_OperationCancel;
 };
 if ((_state getOrDefault ["navalOperation",[]]) isNotEqualTo []
-    || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}) then {
+    || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}
+    || {(_group getVariable ["CBE_Cortex_NavalGroundElement",[]]) isNotEqualTo []}) then {
     [_group,_state] call CBE_fnc_CortexNavalRelease;
 };
 // Defence in depth for every caller, including a release delivered after locality migration. The

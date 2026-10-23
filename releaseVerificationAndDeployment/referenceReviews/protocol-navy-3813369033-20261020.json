@@ -87,5 +87,17 @@
     "validation": "1491 offline tests/410SQF/9PBO; independent candidate .qa/candidates/element-anchor-1808fc61 fingerprint2973b47cdb69a4156e267f5aee3a3913addab02365c3eef076e2a298588b58fd. No live/performance proof.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "landedElementCloseAssault20261023": {
+    "baseCommit": "3611a5b6",
+    "implementation": "Successful same-group egress captures at most64 original cargo actors into a semantic handover using the existing45-second LANDED expiry. Owner epoch, boat plan token/group/phase and unchanged native route bind admission. Existing group job dispatches existing TacticalStart/Assess/AssaultStart with an explicit foot roster; native believed contact distances are measured from its foot anchor. Only close ASSAULT may pass; group flank/advance/reposition and fallback remain forbidden for this context. No new worker, FSM, native leader change or group split.",
+    "lifecycle": "Accepted assault consumes pending context and uses its ordinary finite operation/FSM. Original foot roster bounds casualty refill. Existing participant-local recovery anchors apply; scoped final follow requests target a surviving member rather than mounted group leader. Ordinary squad self-follow formation reset remains unchanged. Feature closure, takeover, changed native route/epoch or expiry retire pending context; generic CortexReleaseGroup now includes it even after naval operation retirement.",
+    "sourceIntent": "Progress toward a ground element that continues fighting after landing while operating crew stay aboard. Deliberately replaces unowned source selectLeader/RED/FULL/WEDGE and repeated force-exit loops with existing actor executor and ownership boundaries.",
+    "remaining": "Close-assault handover only. General independent long-range advance, CQB/urban continuation and durable ground command are not implemented by this change. Native subformation/follow acknowledgement, leader-anchor stopping/continuation, waves, casualties, refusal, owner changes, Zeus interruption and physical authored-order handback require in-engine observation. Do not count command issue as physical acceptance or declare naval parity.",
+    "officialCommandReference": "https://community.bistudio.com/wiki/doFollow (same-group formation leader; native self-follow formation reset preserved for ordinary drills).",
+    "validation": "1491 full offline tests,410SQF/9PBO, independent verification. Candidate .qa/candidates/naval-ground-element-final-3611a5b6 fingerprint f5b59869271aca46571873ba44bf4dd16217b85be38e5271880388edcdb1c092. Unsigned dirty development snapshot; review/notes postdate package. Earlier candidate naval-ground-element-3611a5b6 lacks final generic release integration and must not be substituted.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

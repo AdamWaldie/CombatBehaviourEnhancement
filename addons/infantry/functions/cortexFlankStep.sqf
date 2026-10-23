@@ -60,6 +60,8 @@
  * The manoeuvre group receives a finite FULL-speed lease so inherited NORMAL or LIMITED travel
  * does not make short tactical bounds crawl. Cleanup restores the prior speed only while Cortex
  * still owns FULL; a later Zeus or script speed change cancels the drill and survives cleanup.
+ * Explicit ground-element drills retain their original foot roster during casualty refill;
+ * unrelated dismounted crew cannot be silently recruited.
  * Recovery anchors are restricted to the current surviving main element; an empty fire team
  * falls back within that element, never to a mounted or nonparticipant native group leader.
  * Bound handoff never issues doFollow: formation return competes with individual destinations.
@@ -406,6 +408,10 @@ private _entryPhase=[_drill getOrDefault ["stage",""],_drill getOrDefault ["inde
 private _fitSquad=(units _group) select {!(_x in _unavailable)} select {[_x] call CBE_fnc_CortexCombatEffective && {local _x}
     && {isNull objectParent _x} && {group _x == _group} && {_x checkAIFeature "MOVE"}
     && {_x checkAIFeature "PATH" || {_x in _ownedPathUnits}} && {[_x] call _actorTaskFree}};
+if (_drill getOrDefault ["elementScoped",false]) then {
+    private _elementRoster=_drill getOrDefault ["elementRoster",[]];
+    _fitSquad=_fitSquad select {_x in _elementRoster};
+};
 private _rosterNative=_fitSquad apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
 private _teams=_entryTeams apply {+_x};
 private _desiredStrength=_drill getOrDefault ["desiredStrength",count (_drill get "units")];

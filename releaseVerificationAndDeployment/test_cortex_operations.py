@@ -4739,7 +4739,8 @@ class CortexOperations(unittest.TestCase):
         end = source('cortexFlankEnd')
         self.assertIn('_reason = "PARTIAL"', end)
         self.assertIn('forEach (_members-_stragglers)', end)
-        self.assertIn('{_x doFollow leader _group} forEach _stragglers', end)
+        self.assertIn('_stragglers call _returnElement', end)
+        self.assertIn('!_returnScoped || {_x != _returnLeader}',end)
 
     def test_manoeuvre_elements_reinforce_and_rebalance_after_casualties(self):
         step=source('cortexFlankStep')
@@ -5213,7 +5214,9 @@ class CortexOperations(unittest.TestCase):
         self.assertFalse(close_candidate(3,25,enabled=False))
 
         self.assertIn('_selected=_manoeuvre select _freshPosition',assessment)
-        self.assertIn('case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAssaultStart}',selector)
+        self.assertIn('_started=_args call CBE_fnc_CortexAssaultStart',selector)
+        self.assertIn('if (_elementScoped) then {_args pushBack _element}',selector)
+        self.assertIn('!_elementScoped',selector)
         self.assertIn('private _forwardOrder=_waypointIndex < count waypoints _group',assessment)
         self.assertIn('"FORTIFIED_OR_DISTANT_CONTACT"',assessment)
         self.assertIn('"OPEN_APPROACH"',assessment)
@@ -10634,6 +10637,16 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('if (_remaining < 0 || {serverTime >= _expires})',naval)
         self.assertNotIn('_unit doMove (_egress',naval)
         self.assertIn('CBE_Cortex_NavalEgress',naval)
+        self.assertIn('CBE_Cortex_NavalGroundElement',source('cortexReleaseGroup'))
+        self.assertIn('CBE_Cortex_NavalGroundElement',release)
+        ground=naval.split('private _groundStarted=false;',1)[1].split('// Continue a passenger landing',1)[0]
+        for marker in ('CBE_Cortex_NavalGroundElement','_groundEpoch','_groundRoute',
+                       '"LANDED"','CBE_fnc_CortexTacticalStart','_groundActors','if (_groundStarted) exitWith {true}'):
+            self.assertIn(marker,ground)
+        self.assertIn('["elementScoped",_elementScoped]',source('cortexAssaultStart'))
+        self.assertIn('_fitSquad=_fitSquad select {_x in _elementRoster}',source('cortexFlankStep'))
+        self.assertIn('[_group,_members] call CBE_fnc_CortexGroupAnchor',source('cortexFlankEnd'))
+
         self.assertIn('_admissions < 2',naval)
         self.assertIn('_admissions=_admissions+1',naval)
         self.assertIn('[_landingGeneration,"NAVAL_LANDING"] call _operationCurrent',naval)
@@ -10994,7 +11007,9 @@ class CortexOperations(unittest.TestCase):
     def test_infantry_assessment_does_not_take_mounted_vehicle_destinations(self):
         assess=source('cortexTacticalAssess')
         start=source('cortexTacticalStart')
-        self.assertIn('if (!_hasFoot || {_hasCrew}) exitWith',assess)
+        self.assertIn('if (!_hasFoot || {_hasCrew && {!_elementScoped}}) exitWith',assess)
+        self.assertIn('_elementScoped && {_intent != "ASSAULT"}',assess)
+        self.assertIn('_x in _element',assess)
         self.assertLess(assess.index('"VEHICLE_DOMAIN"'),assess.index('"INSUFFICIENT_FIREPOWER"'))
         self.assertLess(assess.index('"VEHICLE_DOMAIN"'),assess.index('"MORALE_SHAKEN"'))
         self.assertIn('"VEHICLE_LAYER_HANDOFF"',start)

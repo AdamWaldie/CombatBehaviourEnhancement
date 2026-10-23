@@ -35,6 +35,8 @@
  * 0: group <GROUP> - locally owned infantry group in contact
  * 1: state <HASHMAP> - current CBE group state
  * 2: enemies <ARRAY> - current CBE_fnc_CortexKnowledge result
+ * 3: optional explicit ground element <ARRAY of OBJECT>; only matching foot actors may enter
+ * or replace casualties. Cleanup rallies within the element without changing the native leader.
  *
  * Return Value:
  * Boolean - true when a direct close assault started
@@ -46,7 +48,8 @@
  * Result: two fire teams commit a safe approach and physical clear-through against the close threat.
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_element",[],[[]]]];
+private _elementScoped=count _this > 3;
 private _refuse={
     params ["_reason",["_detail",[]]];
     private _previous=_group getVariable ["CBE_Cortex_AssaultRefusal",[]];
@@ -55,6 +58,7 @@ private _refuse={
     };
     false
 };
+if (_elementScoped && {count _element > 64}) exitWith {["ELEMENT_TOO_LARGE"] call _refuse};
 if (!local _group || {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {["DISABLED_OR_REMOTE"] call _refuse};
 if (_state getOrDefault ["responding",false] || {_state getOrDefault ["assaulting",false]}) exitWith {["SUPPORT_OWNS_MOVEMENT"] call _refuse};
 private _movementLease=_state getOrDefault ["movementLease",[]];
@@ -83,6 +87,7 @@ if (_waypointIndex < count waypoints _group && {
 
 private _onFoot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+        && {!_elementScoped || {_x in _element}}
         && {primaryWeapon _x != ""} && {unitCombatMode _x in ["YELLOW","RED"]}
         && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
@@ -147,6 +152,7 @@ _group setVariable ["CBE_Cortex_DrillFailure",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["target",_target],["type","ASSAULT"],["units",_onFoot],
+    ["elementScoped",_elementScoped],["elementRoster",+_onFoot],
     ["desiredStrength",count _onFoot],["teams",[_assaultElement,_coverElement]],
     ["teamSizes",[count _assaultElement,count _coverElement]],["teamTurn",0],
     ["points",_points],["index",0],["stage",""],["enemyPos",+_enemyPos],
