@@ -13,8 +13,8 @@ class ShutdownVehicleAuthorityTests(unittest.TestCase):
         self.assertTrue(text[:start].rstrip().endswith('};'))
         self.assertIn('if (isServer) then {',text[:start])
         block=text[start:end]
-        for receipt in ('call CBE_fnc_DrivingAssistRelease','CBE_Cortex_DismountForcedSpeed',
-                        'CBE_Cortex_DismountStopOrder','CBE_Cortex_DismountStopRequest',
+        for receipt in ('call CBE_fnc_DrivingAssistRelease','call CBE_fnc_CortexDismountStop',
+                        'CBE_Cortex_DismountStopReceipt','CBE_Cortex_DismountStopRequest',
                         'CBE_Cortex_ArtilleryScootToken','CBE_Cortex_OnboardDanger'):
             self.assertIn(receipt,block)
         self.assertIn('CBE_AIPass_SupportRequests',text[:start])

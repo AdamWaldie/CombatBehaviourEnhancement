@@ -13,5 +13,21 @@
   "next_bounded_action": "Trace the dismount-stop acquisition, order/generation invalidation and all three retirement callers. Implement a shared typed restoration contract that preserves newer actor/vehicle authority and original speed; do not restore solely from value equality or erase blocked proof to claim handback. Account for release advancing operation generation before cleanup. Extend the existing shutdown/vehicle regression, then run the full offline pipeline at the coherent runtime checkpoint.",
   "score": "0.5 retained; no implementation increase",
   "validation": "No runtime changes or new package. Previous1491-test/full-build/independent candidate remains the latest runtime evidence. Global build-out freshness intentionally still fails unreviewed families.",
-  "limits": "No physical acceptance, provider quiescence/resume, HC/JIP or measured performance. Audits paused."
+  "limits": "No physical acceptance, provider quiescence/resume, HC/JIP or measured performance. Audits paused.",
+  "dismountStopImplementation20261023": {
+    "baseline": "aa9c91af",
+    "implementation": "Shared CortexDismountStop captures typed previous/applied speed and original operating crew, full authored route, local native commands/destinations. Actual vehicle/crew owner and protected-task/external/convoy gates apply atomically at acquisition/retirement. All three previous pair-only paths use it. Repeated matching stop is read-only; no operation-generation assumption. Terminal refusal archives latest unresolved proof, revokes active authority and blocks same-epoch reacquisition. Repeated release cannot turn unresolved proof into success. No new scheduler, route, force boarding or timer.",
+    "validation": "1491 existing tests, complete offline build with HEMTT/FSM/SQF/config/docs/package gates and independent copied-candidate verification passed. Existing regressions extended; no new cases.",
+    "candidate": ".qa/candidates/dismount-stop-handback-terminal-aa9c91af",
+    "fingerprint": "7d7baafdbfe8b89f7e219684cfbd2a7643e0330bbc24b009f2bf4e07e6232f9b",
+    "logs": [
+      ".qa/dismount-stop-handback-build.log",
+      ".qa/dismount-stop-handback-build-reviewed.log",
+      ".qa/dismount-stop-handback-build-final.log",
+      ".qa/dismount-stop-handback-build-terminal.log",
+      ".qa/dismount-stop-handback-terminal-independent.log"
+    ],
+    "log_provenance": "Initial build failed old caller-local source assertion after speed writes moved into shared helper; test now checks shared command boundary. Reviewed intermediate passed but guide encoding reserialization was corrected preserving original bytes. Final passed before repeat-result issue found; terminal pass covers corrected repeat semantics. Earlier candidate remains preserved, not final.",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering tracker and handover afterward. No physical speed readback/repeat/HC/JIP/provider handover or performance proof. A refused stop may remain physically zero; terminal evidence is not retry authority. Identical native replacements remain ambiguous. Audits paused."
+  }
 }

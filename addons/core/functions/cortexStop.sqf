@@ -25,6 +25,7 @@
  * presentation state are invalidated. An active aircraft lease restores its recorded native group
  * attack policy, deletes its finite native guidance target and named movement waypoint, and removes
  * its firing-solution telemetry and re-attack cooldown before the job is discarded.
+ * Vehicle safe-stop retirement shares exact original crew and native-order proof, retaining unresolved evidence.
  * Vehicle safe-stop handshakes restore their prior forced speed only while their exact zero-speed
  * lease remains current; a newer vehicle controller's cap is preserved when tokens are cleared.
  * Ordinary driving FSM identities and terminal retry receipts are synchronously retired.
@@ -113,14 +114,10 @@ if (isServer) then {
         if (count _unloadLease == 5 && {local _vehicle}) then {
             [_vehicle,_unloadLease select 0,"RELEASE",true] call CBE_fnc_CortexVehicleUnloadPolicy;
         };
-        private _savedStopSpeed=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
-        private _ownedStop=_savedStopSpeed param [1,-2];
-        if (_savedStopSpeed isNotEqualTo [] && {local _vehicle} && {_ownedStop >= 0}
-            && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
-            _vehicle forceSpeed (_savedStopSpeed param [0,-1]);
-        };
-        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
-        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
+        private _stopProof=_vehicle getVariable ["CBE_Cortex_DismountStopReceipt",[]];
+        private _stopGroup=if (_stopProof isEqualType [] && {count _stopProof == 8}
+            && {(_stopProof select 0) isEqualType grpNull}) then {_stopProof select 0} else {group effectiveCommander _vehicle};
+        [_vehicle,_stopGroup,"RELEASE",true] call CBE_fnc_CortexDismountStop;
         _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
         _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
         _vehicle setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];

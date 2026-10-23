@@ -7891,12 +7891,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _mayIssueVehicle = {',vehicles)
         self.assertIn('!([_group] call CBE_fnc_CortexExternalTakeover)',vehicles)
         self.assertIn('if !([] call _mayIssueVehicle) exitWith {_movementOwned};',vehicles)
-        for command in ['_vehicle forceSpeed 0',
-                        'doGetOut _unit',
+        for command in ['doGetOut _unit',
                         '_gunner doTarget _target',
                         '_gunner doFire _target',
                         '[_group,"VEHICLE_WITHDRAW",true,serverTime+120] call CBE_fnc_CortexOwnershipLease']:
             self.assertLess(vehicles.rindex('[] call _mayIssueVehicle',0,vehicles.index(command)+len(command)),vehicles.index(command))
+
+        stop=source('cortexDismountStop')
+        self.assertLess(stop.index('CBE_fnc_CortexExternalTakeover'),stop.index('_vehicle forceSpeed 0'))
+        self.assertIn('isNil {',stop)
 
     def test_ordinary_vehicle_unload_policy_is_exact_owned_and_restorable(self):
         policy=source('cortexVehicleUnloadPolicy')
@@ -9278,14 +9281,13 @@ class CortexOperations(unittest.TestCase):
     def test_cross_group_dismount_safe_stop_is_owner_validated_and_reversible(self):
         vehicles=source('cortexVehicles')
         for item in ['CBE_Cortex_DismountStopRequest','groupOwner _passengerGroup == _passengerOwner',
-                     'effectiveCommander _vehicle in units _group','getForcedSpeed _vehicle',
-                     '_vehicle forceSpeed 0','CBE_Cortex_DismountForcedSpeed',
+                     'effectiveCommander _vehicle in units _group','CBE_fnc_CortexDismountStop',
                      '[_group,groupOwner _group,serverTime+30]']:
             self.assertIn(item,vehicles)
         release=source('cortexReleaseGroup')
         stop=source('cortexStop')
         for text in [release,stop]:
-            self.assertIn('CBE_Cortex_DismountForcedSpeed',text)
+            self.assertIn('CBE_fnc_CortexDismountStop',text)
             self.assertIn('CBE_Cortex_DismountStopRequest',text)
 
     def test_danger_only_vehicle_response_uses_safe_dismount_without_target_work(self):
@@ -9314,7 +9316,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(token,danger_segment)
         self.assertIn('call _dismountAtThreat',danger_segment)
         helper=vehicles.split('private _dismountAtThreat = {',1)[1].split('// Cross-group safe-stop handshake',1)[0]
-        for marker in ['CBE_Cortex_DismountStopRequest','CBE_Cortex_DismountForcedSpeed',
+        for marker in ['CBE_Cortex_DismountStopRequest','CBE_fnc_CortexDismountStop',
                        'CBE_Cortex_OnboardDanger','CBE_fnc_CortexPassengerReady',
                        'orderGetIn false','unassignVehicle','doGetOut']:
             self.assertIn(marker,helper)
@@ -9332,12 +9334,23 @@ class CortexOperations(unittest.TestCase):
         vehicles=source('cortexVehicles')
         release=source('cortexReleaseGroup')
         stop=source('cortexStop')
-        self.assertGreaterEqual(vehicles.count('[getForcedSpeed _vehicle,0]'),2)
+        helper=source('cortexDismountStop')
         for text in [vehicles,release,stop]:
-            self.assertIn('param [1,-2]',text)
-            self.assertIn('abs ((getForcedSpeed',text)
-            self.assertIn('-_ownedStop) <= 0.1',text)
-        self.assertIn('if (!_externalTakeover && {_saved isNotEqualTo []}',release)
+            self.assertIn('call CBE_fnc_CortexDismountStop',text)
+            self.assertNotIn('_vehicle forceSpeed (_saved',text)
+        for proof in ['expectedDestination _driver isEqualTo (_proof select 5)',
+                      'expectedDestination _commander isEqualTo (_proof select 7)',
+                      '_native isEqualTo (_proof select 3)',
+                      '_driver == (_proof select 1)', '_commander == (_proof select 2)',
+                      'CBE_fnc_CortexActorFireTaskAvailable', 'CBE_ExternalDrivingOwner',
+                      'getForcedSpeed _vehicle == (_saved select 1)',
+                      'getForcedSpeed _vehicle == (_saved select 0)',
+                      'CBE_Cortex_DismountStopUnresolved']:
+            self.assertIn(proof,helper)
+        self.assertIn('[_vehicle,_group,"RELEASE",!_externalTakeover]',release)
+        self.assertLess(helper.index('isNil {'),helper.index('_vehicle forceSpeed 0'))
+        self.assertNotIn('remoteExec',helper)
+        self.assertNotIn('CBA_fnc_add',helper)
 
     def test_countermeasure_inventory_includes_modded_person_turrets(self):
         for name in ['cortexFireCountermeasure','cortexVehicles']:
@@ -10747,11 +10760,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(section.index('if (count _operation == 0)'),section.index('CBE_fnc_CortexFireCountermeasure'))
 
     def test_passenger_stop_saved_speed_survives_owner_migration(self):
-        text=source('cortexVehicles')
-        self.assertIn('setVariable ["CBE_Cortex_DismountForcedSpeed",[getForcedSpeed _vehicle,0],true]',text)
+        text=source('cortexDismountStop')
         self.assertIn('setVariable ["CBE_Cortex_DismountForcedSpeed",_saved,true]',text)
+        self.assertIn('setVariable ["CBE_Cortex_DismountStopReceipt",_proof,true]',text)
         self.assertIn('setVariable ["CBE_Cortex_DismountForcedSpeed",nil,true]',text)
-        self.assertIn('abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1',text)
+        self.assertIn('local _vehicle',text)
+        self.assertIn('local _group',text)
+        self.assertIn('(_blocked select 1) == _epoch',text)
+        self.assertIn('_result=_blocked isEqualTo [] ||',text)
+        self.assertNotIn('(_proof select 0) == (_group getVariable ["CBE_OperationGeneration"',text)
 
     def test_group_hide_release_respects_actor_transfer_and_vehicle_domain(self):
         text=source('dangerGroupHideStep')

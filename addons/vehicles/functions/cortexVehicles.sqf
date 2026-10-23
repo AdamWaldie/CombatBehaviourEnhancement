@@ -14,6 +14,7 @@
  * damaged vehicle back behind smoke. A targetless hit, explosion or suppression may invoke only
  * the safe-stop and passenger-exit path; target work, movement and reporting remain unavailable.
  *
+ * Dismount safe-stop application and retirement share exact crew/native-order proof (CortexDismountStop).
  * Dismount records ownership before issuing exit commands, then cancels outstanding boarding orders.
  * Exit handlers can therefore identify the initiating controller without racing bookkeeping.
  * Crew owners publish a bounded, expiring approximate contact report for separate onboard groups.
@@ -427,12 +428,7 @@ private _dismountAtThreat = {
     if (_onboardCargo isNotEqualTo []) then {
         _vehicle setVariable ["CBE_Cortex_DismountStopRequest",[_group,groupOwner _group,serverTime+30],true];
         if (_commandsVehicle && {local _vehicle}) then {
-            if ((_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]]) isEqualTo []) then {
-                _vehicle setVariable ["CBE_Cortex_DismountStopOrder",[_group getVariable ["CBE_OperationGeneration",0],
-                    [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
-                _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",[getForcedSpeed _vehicle,0],true];
-            };
-            if ([] call _mayIssueVehicle) then {_vehicle forceSpeed 0};
+            [_vehicle,_group,"ACQUIRE"] call CBE_fnc_CortexDismountStop;
         };
     };
     private _cargo=(crew _vehicle) select {
@@ -465,7 +461,6 @@ private _dismountAtThreat = {
 {
     private _vehicle=_x;
     private _request=_vehicle getVariable ["CBE_Cortex_DismountStopRequest",[]];
-    private _saved=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
     private _valid=false;
     if (count _request == 3 && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
         _request params ["_passengerGroup","_passengerOwner","_requestExpiry"];
@@ -519,24 +514,10 @@ private _dismountAtThreat = {
                     } >= 0}
             }};
     };
-    // An external speed edit invalidates our exact zero-speed hold. Never reapply zero over it.
-    if (_saved isNotEqualTo [] && {abs ((getForcedSpeed _vehicle)-(_saved param [1,-2])) > 0.1}) then {_valid=false};
     if (_valid) then {
-        if (_saved isEqualTo []) then {
-            _saved=[getForcedSpeed _vehicle,0];
-            _vehicle setVariable ["CBE_Cortex_DismountStopOrder",[_group getVariable ["CBE_OperationGeneration",0],
-                [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
-            _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",_saved,true];
-        };
-        if ([] call _mayIssueVehicle) then {_vehicle forceSpeed 0};
+        [_vehicle,_group,"ACQUIRE"] call CBE_fnc_CortexDismountStop;
     } else {
-        private _ownedStop=_saved param [1,-2];
-        if (_saved isNotEqualTo [] && {local _vehicle} && {[] call _mayIssueVehicle}
-            && {_ownedStop >= 0} && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
-            _vehicle forceSpeed (_saved param [0,-1]);
-        };
-        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
-        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil,true];
+        [_vehicle,_group,"RELEASE",true] call CBE_fnc_CortexDismountStop;
         if (_request isNotEqualTo []) then {_vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true]};
     };
 } forEach _vehicles;

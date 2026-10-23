@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
  * Contact-only disable may preserve independent jobs after validating its narrow keep-brain scope.
+ * Dismount speed handback uses the shared exact crew/native-order receipt; refusal retains evidence.
  * Final post-clear recall yields to native flight, queued care and dormancy.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
@@ -254,14 +255,7 @@ private _releasedVehicles=[];
     if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
         && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
         _releasedVehicles pushBack _vehicle;
-        private _saved=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
-        private _ownedStop=_saved param [1,-2];
-        if (!_externalTakeover && {_saved isNotEqualTo []} && {_ownedStop >= 0}
-            && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
-            _vehicle forceSpeed (_saved param [0,-1]);
-        };
-        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
-        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
+        [_vehicle,_group,"RELEASE",!_externalTakeover] call CBE_fnc_CortexDismountStop;
         _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
         _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
     };
