@@ -79,6 +79,9 @@ isNil {
     };
     if (_epoch == (_vehicle getVariable ["CBE_DrivingRecovery_LocalEpoch",0])
         && {_gained} && {local _vehicle} && {alive _vehicle}) then {
+        if ((_vehicle getVariable ["CBE_DrivingPass_Leg",[]]) isNotEqualTo []) then {
+            [_vehicle] call CBE_fnc_DrivingPassRetireInherited;
+        };
         if ([_vehicle] call CBE_fnc_DrivingCapReleaseAdopt) then {
             [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
             _accepted=true;

@@ -1,0 +1,40 @@
+{
+  "baseline": "39a06a3a",
+  "scope": "Actual vehicle Local-edge passing cleanup handover, authored routes only; not pass replay or physical acceptance",
+  "finding": "Public PASS_LEG_V1 contains native command/route identity but no cap baseline. Generic cap loss offer excludes child work, while inherited retirement issued immediate STOP/follow/MOVE and erased receipt without deferred acknowledgement.",
+  "implementation": [
+    "Real native Local-loss CapReleaseOffer may publish cleanup-only CBE_DrivingPass_Handover from exact private cap issuer, issued pass/leg token/epoch/generation/seats, last owner-local native command/task receipts, original deadline and baseline. It reads no remote expectedDestination and offers no path points. Publish precedes private cap receipt retirement.",
+    "RetireInherited requires existing real vehicle Local-edge window plus established group adoption, complete source fact, original source stamp/leg, actual local crew/native tasks/destinations/route and exact cap/baseline. It creates cleanup-only private work under current owner stamp and delegates to finite PassFinish STOP/return observation. An already-issued original STOP is not replayed. No old path/phase executor is adopted.",
+    "Missing/mismatched proof never grants native commands. Unchanged immutable receipt may wait for separately delivered real edge only until original expiry; established edge waiting never renews. Discovery reuses existing vehicle traversal and RecoveryAdopt reuses existing bounded lookup. Group/seat reassignment invalidates the old receipt.",
+    "Known new native command retires only a proven old cap through existing DrivingCapReleaseAdopt and cap-only AssistRelease. Cap-only lifetime is source loss time plus30 seconds, not callback time; passing movement retains original expiry. Old STOP safety may retire an exactly owned expired path but never grant a late original-goal return.",
+    "Matching handover facts retire with their exact leg/token; successor fields survive. No new worker/timer/function/config setting, forced physics, waypoint rewrite or executable guide publication."
+  ],
+  "hashes": {
+    "addons/vehicles/functions/drivingCapReleaseOffer.sqf": "e221c7b7f69647a57945af9d4cdbf864e3ac357e9f06599243410e32b699e055",
+    "addons/vehicles/functions/drivingOperationStart.sqf": "27f5c1ce9d60e295e386cc66473910bbeded444b80ebb8492ba842a237fcb573",
+    "addons/vehicles/functions/drivingPassFinish.sqf": "8787bc2d959d292f976e36479563afeddaf3106fade41ef0fe9e7ca0473401c3",
+    "addons/vehicles/functions/drivingPassRetireInherited.sqf": "c046fe435bd58d9acea336c42799ce822cbd7708a0a84c2baa378251d73c2e7d",
+    "addons/vehicles/functions/drivingPassStep.sqf": "60da1dfe4a4318945c7dd02f6d1821a2efa157eceeb914d7a6b0e521e8d03c6c",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "1c2fd4de4e9ec1d0eda130b8db4acd58d152c1bd1a2e450a3fdd2bab59fe0959"
+  },
+  "validation": {
+    "focusedExistingDrivingTests": 258,
+    "focusedExistingConvoyEndpointTests": 8,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "notes": "Initial driving check had obsolete direct STOP position assertion; existing inherited case now verifies no direct native commands, complete edge/cap proof and delegated Finish. First full build failed old direct ConvoyRetireMoveReceipt expectation in inherited caller; existing case now checks delegation while retaining callee write-boundary proof. Reviewed build passed; material new-order cap-only and edge-order additions each received final full validation.",
+    "build": ".qa/pass-owner-edge-build-edge-order.log",
+    "focused": ".qa/pass-owner-edge-focused-edge-order.log",
+    "convoyFocused": ".qa/pass-owner-edge-convoy-focused.log",
+    "independent": ".qa/pass-owner-edge-independent.log",
+    "candidate": ".qa/candidates/pass-owner-edge-39a06a3a",
+    "fingerprint": "4b7de01eb724503c1c4074955678175441a37c293b0fa2c607df4086b4416ab8"
+  },
+  "remaining": [
+    "Loss/gain/group/crew/fact ordering, empty/malformed/late facts, cap adoption/restoration, new orders, actual STOP/rest and both-seat return propagation require real normal/HC validation; no cross-owner reliability claim.",
+    "Expired movement may remain explicitly unresolved at owned zero cap. Missing actual edge or complete source proof does not authorize adoption. Acknowledgement is not authored-route travel.",
+    "Native passing remains disabled: shared/private native intent and temporary-path original-route recognition still need integration.",
+    "Performance budget and actual oncoming/merge/drop-back/vehicle path behaviour remain unmeasured while audits paused."
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Static/package checks do not establish physical handover, full HBQ parity or build-out score renewal. Audits paused."
+}

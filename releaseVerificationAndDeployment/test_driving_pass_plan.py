@@ -444,7 +444,29 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('private _pendingOwned=',code)
         self.assertIn('getOrDefault ["handbackOwner",[]]',code)
         self.assertIn('call CBE_fnc_DrivingOwnerReceipt',code)
-        self.assertLess(code.index('if (_live || {_pendingOwned}) exitWith'),code.index('doStop _driver'))
+        self.assertLess(code.index('if (_live || {_pendingOwned}) exitWith'),code.index('private _fact='))
+        for command in ('doStop','doMove','doFollow','setDriveOnPath'):
+            self.assertNotIn(command,code)
+        for proof in ('CBE_DrivingPass_Handover','CBE_DrivingCap_LocalEdge','_created >= (_edge select 1)-5',
+                      '_group getVariable ["CBE_AIPass_Adopted",false]','_privateBaseline isEqualTo _baseline',
+                      'abs ((getForcedSpeed _vehicle)-(_state select 0)) <= 0.1',
+                      'call CBE_fnc_DrivingPassFinish','["inheritedLeg",+_receipt]',
+                      '"INHERITED_UNRESOLVED"'):
+            self.assertIn(proof,code)
+        offer=(ROOT/'addons/vehicles/functions/drivingCapReleaseOffer.sqf').read_text()
+        passing=offer.split('if (count _pass > 0) exitWith {',1)[1].split('private _created=false',1)[0]
+        self.assertIn('["leg",+_leg]',passing)
+        self.assertIn('["baseline",+_restore]',passing)
+        self.assertIn('_until != (_leg select 11)',passing)
+        self.assertNotIn('expectedDestination _',passing)
+        self.assertIn('call CBE_fnc_DrivingCapReleaseAdopt',code)
+        self.assertIn('[_vehicle,_group,true,_capFact] call CBE_fnc_DrivingAssistRelease',code)
+        self.assertIn('_created+30',code)
+        self.assertNotIn('serverTime+',code)
+        self.assertIn('_edge isEqualTo [] && {serverTime < _deadline}',code)
+        self.assertIn('(expectedDestination _driver) isEqualTo _waitDriver',code)
+        for path in ('outPath','activePath','returnPath','pointsATL'):
+            self.assertNotIn(path,passing)
         self.assertLess(code.index('!local _driver'),code.index('CBE_DrivingPass_Leg",nil,true'))
         self.assertIn('(_work getOrDefault ["epoch",-1]) == _epoch',code)
         self.assertNotIn('set ["deadline",',code)

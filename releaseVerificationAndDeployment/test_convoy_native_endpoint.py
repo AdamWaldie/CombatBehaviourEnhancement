@@ -135,6 +135,11 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
             text=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text(encoding='utf-8')
             body=text.split('params ',1)[1]
             body='\n'.join(line for line in body.splitlines() if not line.lstrip().startswith('//'))
+            if name == 'drivingPassRetireInherited':
+                self.assertIn('call CBE_fnc_DrivingPassFinish',body)
+                self.assertNotIn('doStop ',body)
+                self.assertNotIn('doMove ',body)
+                continue
             self.assertIn('call CBE_fnc_ConvoyRetireMoveReceipt',body,name)
             self.assertLess(body.index('call CBE_fnc_ConvoyRetireMoveReceipt'),body.index('doStop '),name)
 

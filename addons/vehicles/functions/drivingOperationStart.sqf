@@ -45,6 +45,16 @@ private _abortPending=false;private _passPending=false;private _abortSeen=[];
     private _abortVehicle=vehicle _x;
     if (_abortVehicle != _x && {!(_abortVehicle in _abortSeen)}) then {
         _abortSeen pushBack _abortVehicle;
+        if (local _abortVehicle && {(_abortVehicle getVariable ["CBE_DrivingPass_Leg",[]]) isNotEqualTo []}) then {
+            [_abortVehicle,_group] call CBE_fnc_DrivingPassRetireInherited;
+            private _passEdge=_abortVehicle getVariable ["CBE_DrivingCap_LocalEdge",[]];
+            private _pendingLeg=_abortVehicle getVariable ["CBE_DrivingPass_Leg",[]];
+            if ((_pendingLeg param [2,grpNull]) == _group
+                && {(_pendingLeg param [10,[]]) isEqualTo _route}
+                && {(count _passEdge == 3 && {serverTime < (_passEdge select 2)})
+                    || {_passEdge isEqualTo [] && {serverTime < (_pendingLeg param [11,-1])}}}
+                && {count (_group getVariable ["CBE_Driving_Brain",createHashMap]) == 0}) then {_passPending=true};
+        };
         // Reuse this existing vehicle traversal. Pending passing cleanup owns its
         // original cap/order even when its tactical brain has already retired.
         private _pass=_abortVehicle getVariable ["CBE_DrivingPass_Work",createHashMap];

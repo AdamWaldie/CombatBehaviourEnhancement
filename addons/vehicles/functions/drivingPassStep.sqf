@@ -154,6 +154,8 @@ private _issue={
                 _vehicle setDriveOnPath _path;
                 _work set ["driverCommand",+(expectedDestination _driver)];
                 _work set ["command",+(expectedDestination _operator)];
+                _work set ["driverTask",currentCommand _driver];
+                _work set ["operatorTask",currentCommand _operator];
                 _work set ["issued",true];_work set ["phase",_newPhase];
                 if (_newPhase == "OUT") then {_work set ["outPath",_path apply {+_x}]};
                 _work set ["activePath",_path apply {+_x}];_work set ["legTravel",_travel];

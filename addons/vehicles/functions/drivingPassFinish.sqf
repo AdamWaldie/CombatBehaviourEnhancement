@@ -49,9 +49,8 @@ private _owned={
     !(_work getOrDefault ["interrupted",false]) && {!_interrupted} && {local _vehicle} && {local _group} && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",0])}
     && {(_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work}
     && {(_work get "generation") == (_brain getOrDefault ["generation",-1])
-        || {count _brain == 0 && {(_work getOrDefault ["handback",[]]) isNotEqualTo []}
-            && {(_work getOrDefault ["handbackOwner",[]]) isEqualTo [clientOwner,_work get "epoch",_work get "generation"]}
-            && {(_work get "handbackOwner") isEqualTo ([_group] call CBE_fnc_DrivingOwnerReceipt)}}}
+        || {count _brain == 0 && {([_group] call CBE_fnc_DrivingOwnerReceipt)
+            isEqualTo [clientOwner,_work get "epoch",_work get "generation"]}}}
     && {driver _vehicle == _driver} && {(effectiveCommander _vehicle) in [_operator,objNull]}
     && {[_driver] call _actorFree} && {[_operator] call _actorFree}
     && {group _driver == _group} && {group _operator == _group}
@@ -147,10 +146,16 @@ if ((_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _wor
     _vehicle setVariable ["CBE_DrivingPass_Work",nil];
     private _leg=_vehicle getVariable ["CBE_DrivingPass_Leg",[]];
     if (_leg isEqualType [] && {count _leg == 13} && {(_leg select 0) == "PASS_LEG_V1"}
-        && {(_leg select 1) == clientOwner} && {(_leg select 2) == _group}
-        && {(_leg select 3) == (_work get "epoch")} && {(_leg select 4) == (_work get "generation")}
-        && {(_leg select 5) == (_work get "token")}) then {
+        && {(_leg select 2) == _group} && {(_leg select 5) == (_work get "token")}
+        && {((_leg select 1) == clientOwner && {(_leg select 3) == (_work get "epoch")}
+            && {(_leg select 4) == (_work get "generation")})
+            || {_leg isEqualTo (_work getOrDefault ["inheritedLeg",[]])}}) then {
         _vehicle setVariable ["CBE_DrivingPass_Leg",nil,true];
+        private _handover=_vehicle getVariable ["CBE_DrivingPass_Handover",createHashMap];
+        if (_handover isEqualType createHashMap && {(_handover getOrDefault ["leg",[]]) isEqualTo _leg}
+            && {(_vehicle getVariable ["CBE_DrivingPass_Handover",createHashMap]) isEqualTo _handover}) then {
+            _vehicle setVariable ["CBE_DrivingPass_Handover",nil,true];
+        };
     };
 };
 _stop=_vehicle getVariable ["CBE_DrivingPass_Interrupted",[]];
