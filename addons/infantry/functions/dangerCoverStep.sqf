@@ -214,7 +214,8 @@ if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
     && {!([_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
     ["NO_SCREEN"] call _clearLease
 };
-// One search per callback. A failed solid-cover pass permits a visual-only pass on the next
+// One screened selection pass per callback, with bounded refuge fallback after exterior failure.
+// A failed solid-cover pass permits a visual-only pass on the next
 // existing scheduler step; it never doubles the geometry work in the current callback.
 private _screenMode=if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
     && {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
@@ -230,6 +231,10 @@ private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 
     && {_threat vectorDistance (_failedSearch select 2) <= 3};
 private _cover=if (_sameGeometry) then {[_origin,false]} else {
     private _result=[_origin,_threat,18,[],_group,_screenMode,_actor] call CBE_fnc_CortexFindCover;
+    if (!(_result select 1) && {_screenMode == "COVER"}) then {
+        private _refuge=[_actor,_origin,_threat] call CBE_fnc_DangerRefugeSelect;
+        if (_refuge isNotEqualTo []) then {_result=[+_refuge,true]};
+    };
     if !(_result select 1) then {
         _failedSearches set [_screenMode,[time+3,+_origin,+_threat]];
         _actor setVariable ["CBE_Danger_CoverFailedSearches",_failedSearches];

@@ -174,26 +174,10 @@ private _rayStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
 if ([_rayStart,(getPosASL _actor) vectorAdd [0,0,1],_actor,"COVER"]
     call CBE_fnc_CortexCoverScreened) exitWith {0};
 ([_origin,_threat,18,[],_group,"COVER",_actor] call CBE_fnc_CortexFindCover) params ["_goal","_found"];
-// Exterior cover remains preferred. A roofed native node is a candidate, not access proof.
-if (!_found && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
-    private _refugeHouses=nearestObjects [_origin,["House"],18,true];
-    {
-        private _refugeHouse=_x;
-        if (alive _refugeHouse) then {
-            private _refugeFrame=[getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse];
-            private _refugeNode=[_actor,_refugeHouse,_origin,[]] call CBE_fnc_IndoorActorNodeSelect;
-            if (count _refugeNode == 3 && {_origin vectorDistance _refugeNode >= 0.6}
-                && {_origin vectorDistance _refugeNode <= 18}
-                && {[_rayStart,(AGLToASL _refugeNode) vectorAdd [0,0,1],_actor,"COVER"]
-                    call CBE_fnc_CortexCoverScreened}
-                && {alive _refugeHouse}
-                && {_refugeFrame isEqualTo [getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse]}) then {
-                _goal=+_refugeNode;
-                _found=true;
-            };
-        };
-        if (_found) exitWith {};
-    } forEach (_refugeHouses select [0,2]);
+// Exterior cover remains preferred. Native refuge metadata never proves access.
+if (!_found) then {
+    private _refuge=[_actor,_origin,_threat] call CBE_fnc_DangerRefugeSelect;
+    if (_refuge isNotEqualTo []) then {_goal=+_refuge;_found=true};
 };
 if (!_found || {count _goal != 3} || {_origin vectorDistance _goal < 0.6}
     || {_origin vectorDistance _goal > 18}

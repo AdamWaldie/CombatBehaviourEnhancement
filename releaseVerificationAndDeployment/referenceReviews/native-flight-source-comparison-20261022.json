@@ -362,5 +362,24 @@
       "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
       "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "1f2d7464cb85f240005257ed4c84cd8a7e07d7886e28ec4d33b53aa340858b23"
     }
+  },
+  "ordinaryDangerIndoorRefugeFollowup": {
+    "baseline": "5487131e",
+    "source": {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doHide.sqf",
+      "sha256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe"
+    },
+    "sourceIntent": "LAMBS doHide preserves selected native tasks and disabled movement, may stay prone indoors, otherwise searches building/terrain cover and may scatter into a building. It also forces speed24, changes strong stance and installs delayed stance/stop callbacks. CBE implements indoor refuge choice without those unowned resets/callbacks.",
+    "integration": "Extracted the bounded fleeing indoor selection into read-only DangerRefugeSelect and registered it. DangerCoverStep now invokes that same selector only after failed exterior COVER selection, before recording a negative search result. Existing three-second negative cache covers both failures; CONCEALMENT retry does not repeat houses. Flight retains its existing authority and final screen check.",
+    "bounds": "One native nearest-House query within18m; inspect at most two live houses. Per house existing IndoorActorNodeSelect ranks <=512 points and makes <=3 roof probes, with original actor-floor/body/failure exclusions; current threat screen and unchanged building transform required before return. Native query cost depends on density. No new scan loop, worker, cache or movement command.",
+    "authority": "Callers retain native-order, operation, reservation, Zeus/external-owner and posture handoff admission plus existing original4-12s movement leases. The selector grants no command permission, opens no doors, forces no speed/stance and supplies no room-clearance proof.",
+    "limits": "Native roof/node metadata does not prove an accessible interior; known actor failed-node observations are respected but this fallback creates no new reachability proof. Physical refuge arrival, useful protection, moved-building travel, behaviour balance and performance remain unverified. This is not full doHide, armoured-threat, CQB or whole-LAMBS parity.",
+    "validation": "Existing flight/cover regression extended without new cases. Initial full builds exposed source registry/report synchronization and product source-name boundary errors; corrected wiring/docs, no acceptance scores increased. Final1491 offline tests, HEMTT409SQF/9PBO and independent verification passed. Candidate .qa/candidates/danger-cover-indoor-5487131e fingerprint0f512d427b2385c217a9523494e8660583fe623c05535c477b8f7aa127d4d911, unsigned dirty development snapshot. Review/notes postdate build; audits paused.",
+    "currentHashes": {
+      "addons/infantry/functions/dangerRefugeSelect.sqf": "af12d2122141b2f3f8d364c43350446178ab877b5327207ba68c65efc7d890c3",
+      "addons/infantry/functions/dangerFlight.sqf": "845fac1ba9fa366eb17aa81df1ff7693bda3c1cb426a4dd352d02f265b1dd51d",
+      "addons/infantry/functions/dangerCoverStep.sqf": "7fa2615a40f56c0ffa3ec9f542d6580fbe34ddc9bc21050967eda3fe0ef8a5cf",
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "fbd2ce31fd66cb4e584dd3255e4d9acbf229d1c8f480566356e252d484699653"
+    }
   }
 }

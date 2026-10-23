@@ -175,6 +175,7 @@ class CfgFunctions {
             class CortexStaticDeployStep {file = "\z\cbe\addons\infantry\functions\cortexStaticDeployStep.sqf";};
             class DangerAttackPace {file = "\z\cbe\addons\infantry\functions\dangerAttackPace.sqf";};
             class DangerFlight {file = "\z\cbe\addons\infantry\functions\dangerFlight.sqf";};
+            class DangerRefugeSelect {file = "\z\cbe\addons\infantry\functions\dangerRefugeSelect.sqf";};
             class DangerCoverStep {file = "\z\cbe\addons\infantry\functions\dangerCoverStep.sqf";};
             class DangerGroupHideStep {file = "\z\cbe\addons\infantry\functions\dangerGroupHideStep.sqf";};
             class DangerSmokeStep {file = "\z\cbe\addons\infantry\functions\dangerSmokeStep.sqf";};

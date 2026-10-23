@@ -28,7 +28,7 @@
  * original radius/floor across retries; it is never replaced by the actor's new position.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
- * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch; DangerFlight refuge fallback.
+ * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch; DangerRefugeSelect fallback for flight and ordinary danger cover.
  * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
  */
 params [["_actor",objNull,[objNull]],["_building",objNull,[objNull]],
