@@ -7,6 +7,8 @@
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
  * Blocked batches rotate candidates. Raw belief remains unchanged; this never issues movement.
+ * General rifle fire control also requires a currently selected primary bullet magazine;
+ * launcher, pistol and UGL selection remains with native/specialist combat. No weapon is switched.
  * Hidden, simulation-disabled or FIREWEAPON-disabled actors receive no scripted fire assignment.
  * These are live admission gates; no native permission or simulation state is changed.
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
@@ -111,6 +113,16 @@ private _recovering = (_drill getOrDefault ["recovery",[]]) apply {_x select 0};
 // identify stationary cover. Reuse the danger-response 0.5 km/h motion boundary.
 // Physical capability does not imply firing authority. Evaluate specialist ownership once
 // per roster member, before any scripted targeting or suppression command in this callback.
+// Carrying a rifle does not authorize rifle orders while a launcher, pistol or UGL owns
+// the current weapon selection. Inspect the native selected magazine, without changing it.
+private _primaryBulletSelected = {
+    params ["_fireActor"];
+    private _primary=primaryWeapon _fireActor;
+    private _selected=weaponState _fireActor;
+    _primary != "" && {count _selected >= 4} && {(_selected select 0) == _primary}
+        && {toLowerANSI getText (configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines"
+            >> (_selected select 3) >> "ammo") >> "simulation") == "shotbullet"}
+};
 private _eligible = (units _group) select {
     ([_x] call CBE_fnc_CortexCombatEffective) && {local _x} && {!isPlayer _x} && {!fleeing _x}
         && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
@@ -123,7 +135,7 @@ private _eligible = (units _group) select {
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {unitCombatMode _x in ["YELLOW","RED"]} && {vehicle _x == _x}
-        && {!(_x in _recovering)} && {primaryWeapon _x != ""}
+        && {!(_x in _recovering)} && {[_x] call _primaryBulletSelected}
         && {!(toUpperANSI currentCommand _x in ["MOVE","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 // Route ownership extends beyond drills: a clearer, evading actor or finite aid mover

@@ -4604,7 +4604,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_native_canfire_uses_its_own_contact_and_existing_safe_suppression(self):
         fire = source("cortexFireControl")
+        selected=fire.split('private _primaryBulletSelected = {',1)[1].split('private _eligible =',1)[0]
+        for proof in ('weaponState _fireActor','(_selected select 0) == _primary','(_selected select 3)','"shotbullet"'):
+            self.assertIn(proof,selected)
+        for forbidden in ('selectWeapon','doTarget','doFire','setVariable'):
+            self.assertNotIn(forbidden,selected)
         roster=fire[fire.index('private _eligible ='):fire.index('private _members =')]
+        self.assertIn('[_x] call _primaryBulletSelected',roster)
         self.assertIn('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])',roster)
         self.assertIn('behaviour _x != "STEALTH"',roster)
         self.assertLess(fire.index('!(getUnitState _x in ["INIT","PLANNING","REPLAN"])'),fire.index('_unit doTarget'))

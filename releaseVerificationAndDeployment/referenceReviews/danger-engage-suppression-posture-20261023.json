@@ -30,5 +30,16 @@
     "limits": "Command observation is not shot acknowledgement or effective suppression. It does not count unavailable actors outside the existing eligible member roster or establish full LAMBS fire-control parity. Native burst spacing/ammo/balance/performance remain physically unverified; audits paused.",
     "currentHash": "394f59c6a8b19a1323ea41d54bf8e8c9786a5561130c3c88ca583de27d6d81f3",
     "validation": "610 focused operation checks,1491 full offline tests, HEMTT and independent candidate verification passed. Unsigned dirty development candidate .qa/candidates/suppression-native-burst-49f6b3be; fingerprint065ae2b7d53a7f04f3d27498519aff3037234f4ef8e074076052da7cb5d3cd22. Review and notes postdate build."
+  },
+  "selectedWeaponIntegrationFollowup": {
+    "baseline": "59bcefd7",
+    "confirmedGap": "General fire-control roster required a carried primary weapon but not its current selection. Only suppression later validated the selected bullet muzzle. Close-threat doTarget/doFire could therefore be injected while a launcher, handgun or UGL was selected; suppression-only readiness did not protect that earlier branch.",
+    "implemented": "A read-only local predicate observes weaponState and requires its weapon to match the nonempty primary weapon and its selected magazine ammo simulation to be shotbullet. Used in the existing roster before close-threat, distribution and suppression. No weapon switch, native permission change, role marker or second controller.",
+    "interaction": "Native combat and the existing CortexAntiArmour path remain available to actors excluded from general rifle dispatch. Existing moving/medical/Zeus/external/task and finite target-hold checks remain. Rifle suppression still performs its stronger fresh loaded/reload/ammo and lane checks.",
+    "sourceContext": "LAMBS doDodge similarly refuses a non-primary current weapon for its own movement action. This is contextual evidence for preserving specialist weapon selection, not a claim that LAMBS doSuppress implements this full CBE roster rule or that the whole dodge/reposition methods have parity.",
+    "cost": "One native weaponState plus primary/config reads per otherwise eligible roster member. No new roster/world query, recurring worker or timer. This is a structural bound, not a measured frame-time result.",
+    "validation": "610 focused operations,1491 full offline tests, HEMTT409SQF/9PBO and independent verification passed. Candidate .qa/candidates/rifle-selected-weapon-59bcefd7 fingerprint5c63a6e6cc74f6114160be7cb4782fcc605efeea359d0c9407b5b5c9e4d0e1ff; unsigned dirty development snapshot including unrelated dirt. Review/notes postdate build.",
+    "limits": "Native switching, actual shots, close-range/backblast outcomes, role balance and performance unverified. Empty/non-bullet selected magazines defer general scripted rifle orders; native combat remains active. Audits paused.",
+    "currentHash": "a79002e844b5b453bcb57b7b5b6a83f5484e1c74baf13a5d8219f5b7e194f9eb"
   }
 }
