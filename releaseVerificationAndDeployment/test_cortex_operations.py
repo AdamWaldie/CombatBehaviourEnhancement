@@ -1750,6 +1750,9 @@ class CortexOperations(unittest.TestCase):
         retirement=source('dangerPostureStep')
         self.assertNotIn('_proof isEqualTo [] &&',retirement)
         self.assertLess(retirement.index('call CBE_fnc_DangerAttackPace'),retirement.index('if (_proof isEqualType []'))
+        pace_retirement=retirement.split('// Speed and stance',1)[1].split('if (_proof isEqualType []',1)[0]
+        self.assertIn('!( ["CHECK",_actor] call CBE_fnc_DangerAttackPace)',pace_retirement)
+        self.assertLess(pace_retirement.index('["CHECK",_actor]'),pace_retirement.index('["RELEASE",_actor,true]'))
         self.assertIn('_waiting pushBackUnique _actor',retirement)
         self.assertIn('_cleanupRunning',pace)
         settings=source('actorSettings')

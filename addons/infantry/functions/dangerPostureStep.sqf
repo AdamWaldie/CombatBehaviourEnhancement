@@ -5,6 +5,7 @@
  * actor, operation, native task and exact applied stance before any restoration.
  * Repeat/JIP: One keyed shared-scheduler job per group/epoch. Pops one of at most 64 queued
  * actors per callback. Original stance expiry plus 30 seconds bounds retries; no renewal.
+ * A stale actor queue entry is not retirement authority over a fresh live attack-pace response.
  * No persistent worker, world scan or JIP replay. New owners do not inherit local stance proof.
  * Arguments: 0 job state <HASHMAP, empty>, containing group GROUP and ownerEpoch NUMBER.
  * Return: NUMBER, 0.25 seconds while pending work remains, otherwise -1 to retire.
@@ -27,7 +28,10 @@ if (_actor isEqualType objNull && {!isNull _actor} && {local _actor} && {group _
     private _proof=_actor getVariable ["CBE_Danger_EngineStanceLease",[]];
     // Speed and stance carry independent original restoration windows. An expired or
     // malformed stance receipt cannot consume the speed retirement queue slot.
-    if ((_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []) then {
+    // A prior release may have left this actor in the queue after a newer response started.
+    // Preserve that exact current response; its engine Finished path owns timely retirement.
+    if ((_actor getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []
+        && {!( ["CHECK",_actor] call CBE_fnc_DangerAttackPace)}) then {
         ["RELEASE",_actor,true] call CBE_fnc_DangerAttackPace;
     };
     if (_proof isEqualType [] && {count _proof == 6}

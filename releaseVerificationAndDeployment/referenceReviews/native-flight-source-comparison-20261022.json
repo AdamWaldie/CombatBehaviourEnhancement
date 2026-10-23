@@ -262,5 +262,19 @@
       "Excluded/player-led/specialist/dormant/reserved/oversized groups may still refuse retirement; original expiry+30s preserves unresolved proof rather than overriding new authority. Same-valued external edits indistinguishable.",
       "Build-out evidence freshness still fails; no hash/score renewal or percentage/parity claim."
     ]
+  },
+  "paceSuccessorQueue20261023": {
+    "baseline": "739c5b8b",
+    "source_intent": "Preserved LAMBS doAssaultSpeed derives native assault pace from situation. CBE implements a finite owner-scoped speed cap rather than copying a competing controller; retaining its active lifetime is necessary to that selected intent. No whole-source parity claim.",
+    "finding": "DangerPostureStep stores actor identities, not immutable pace episodes. A successful prior speed release can leave a queued actor while a new engine response starts. The callback unconditionally released the current pace, terminating that fresh response cap early.",
+    "implementation": "Shared callback invokes typed CHECK before RELEASE. Exact live response/owner/generation/native identity/original expiry keeps its pace; expired or replaced proof still reaches release independently of stance. The existing engine Finished path retains responsibility for active-response retirement. No new job, retry, deadline or sensing.",
+    "validation": "1491 existing tests/full offline build including HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing lifecycle regression extended, no new cases.",
+    "candidate": ".qa/candidates/danger-pace-successor-queue-739c5b8b",
+    "fingerprint": "daae8d3345b80845999bfbc9abfe6470d1d742f94c38d182054f9f1a4eabfecf",
+    "logs": [
+      ".qa/danger-pace-successor-queue-build.log",
+      ".qa/danger-pace-successor-queue-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt, engineering notes afterward. No physical repeat-danger/assault pace/native ACK/HC/JIP/balance/performance proof. Original finite response and expiry+30 release limits remain; physical eventual cleanup and complete LAMBS parity remain unproven. Audits paused. No score/hash renewal."
   }
 }
