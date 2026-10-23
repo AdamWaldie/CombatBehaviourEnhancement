@@ -31,7 +31,14 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal',text)
         self.assertIn('"securityEntries"',journal)
         self.assertIn('_job set ["entries",_entryNodes apply {+_x}]',journal)
-        self.assertIn('count _snapshot != 11',journal)
+        self.assertIn('count _snapshot != 12',journal)
+        requests=journal.split('// Keep request age',1)[1].split('private _journal=',1)[0]
+        self.assertIn('_request select 1',requests)
+        self.assertIn('_job set ["movementRequestTimes",_requestTimes]',requests)
+        self.assertNotIn('"movementTargets"',requests)
+        self.assertNotIn('serverTime+2',requests)
+        self.assertNotIn('serverTime+30',requests)
+        self.assertIn('netId _actor in _requestTimes',requests)
         self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
         refusal=text.split('if (!_laneAdopted) exitWith {',1)[1].split('if !([_job]',1)[0]
         self.assertIn('}] call _commitPreparation',refusal)

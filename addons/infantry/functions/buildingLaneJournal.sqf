@@ -5,6 +5,7 @@
  * Adoption changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
  * Local progress/start clocks are transported as server time and rebased once on adoption.
+ * Original native issue times are observations only; adoption never starts a new grace window.
  * Missing, malformed or mismatched snapshots refuse adoption rather than invent progress.
  * At most8 lanes,2 actors per lane and512 nodes; SAVE is limited to one sample per1.5s
  * on the existing job, changed-only publication. No worker, world query or retry renewal.
@@ -47,7 +48,7 @@ _result=call {
     private _entryGoal=_job getOrDefault ["entry",[]];
     private _snapshot=_group getVariable ["CBE_Cortex_ClearLanes",[]];
     if (_mode == "ADOPT") then {
-        if (!(_snapshot isEqualType []) || {count _snapshot != 11}
+        if (!(_snapshot isEqualType []) || {count _snapshot != 12}
             || {(_snapshot select 0) != 1} || {(_snapshot select 1) isNotEqualTo _group}
             || {(_snapshot select 2) isNotEqualTo _context}
             || {(_snapshot select 3) isNotEqualTo _positions}
@@ -135,12 +136,39 @@ _result=call {
         if (!(_key in _retiredSet) && {!(_key in _claimed)}) exitWith {_valid=false};
     };
     if (!_valid) exitWith {false};
+    // Keep request age with the matching lane allocation. This map never supplies an
+    // owned MOVE target: BuildingActorMotion still needs actual native acknowledgement.
+    private _requests=[];
+    if (_mode == "SAVE") then {
+        private _requestTimes=_job getOrDefault ["movementRequestTimes",createHashMap];
+        {
+            private _request=_requestTimes getOrDefault [netId _x,[]];
+            if (_request isNotEqualTo []) then {_requests pushBack [_x,+_request]};
+        } forEach _roster;
+    } else {_requests=_snapshot select 11};
+    if (!(_requests isEqualType []) || {count _requests > count _roster}) exitWith {false};
+    private _requestTimes=createHashMap;
+    {
+        if (!(_x isEqualType []) || {count _x != 2}) exitWith {_valid=false};
+        _x params ["_actor","_request"];
+        if (!(_actor isEqualType objNull) || {!(_actor in _roster)}
+            || {netId _actor in _requestTimes}
+            || {!(_request isEqualType [])} || {count _request != 2}
+            || {!((_request select 0) call _vectorValid)}
+            || {!((_request select 1) isEqualType 0)} || {!finite (_request select 1)}
+            || {(_request select 1) < 0} || {(_request select 1) > serverTime+1}
+            || {(_request select 1) > (_job get "hardDeadline")}) exitWith {_valid=false};
+        _requestTimes set [netId _actor,[+(_request select 0),_request select 1]];
+    } forEach _requests;
+    if (!_valid) exitWith {false};
     if (_mode == "ADOPT") exitWith {
+        _job set ["movementRequestTimes",_requestTimes];
         _job set ["pairRoutes",_copyRoutes];_job set ["pairStates",_copyStates];
         _job set ["pending",+_pending];_job set ["phase",_phase];
         _job set ["entries",_entryNodes apply {+_x}];_job set ["entry",+_entryGoal];true
     };
-    private _journal=[1,_group,+_context,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal];
+    private _journal=[1,_group,+_context,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
+        _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]}];
     _job set ["laneJournalAfter",serverTime+1.5];
     if (_snapshot isNotEqualTo _journal) then {_group setVariable ["CBE_Cortex_ClearLanes",_journal,true]};
     true

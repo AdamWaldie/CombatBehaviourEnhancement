@@ -113,5 +113,32 @@
     "provenance": "Unsigned dirty development snapshot includes unrelated dirt; private review/handover postdate package. No score/hash renewal in build-out tracker.",
     "audits": "PAUSED",
     "physicalAcceptance": false
+  },
+  "laneNativeRequestAge20261024": {
+    "base": "1b82d3fb",
+    "finding": "Lane adoption restored route/progress state but discarded movementRequestTimes, the original target/server-time observations used by nativeMoveAwaited. BuildingActorMotion adoption restores only acknowledged movement/hold ownership, not pending request age.",
+    "change": "Extend unreleased v1 snapshot11to12fields with bounded [actor,[target,originalServerIssueTime]] rows for matched lane roster. Validate actor membership/uniqueness, vector, finite nonnegative timestamp within original hard deadline. ADOPT installs observation map only; no movementTargets, reservations, command or new issue time.",
+    "cost": "At most16 matched actor observations within existing8lane/2actor snapshot; same SAVE cadence, no new publication/writer/world query or worker.",
+    "limits": "Missing/delayed/stale snapshots may omit a later request. This does not create ordered delivery or exactly-once native issue. Native acknowledgement, actual travel, normal/HC transfer timing and runtime/network cost remain unverified. No score renewal.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\buildingLaneJournal.sqf": "90aab098c2d80338882b57aab43a7f0614dde0df4b0de56bb60d7984abe72f3f",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "3b683127b1d546835c6b6f1d6a1f5c19fa83679848fb1cba8eeb1be026872449",
+      "addons\\infantry\\functions\\buildingActorMotion.sqf": "da8f35a8f60d028dde6afe2eb6419fb35afbf09d9a8253f2ea5466221c97917a"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-request-age-1b82d3fb",
+    "fingerprint": "1959f478c3c5d081563b782ceedd05c1389eb1396b1d4b12841ebd7998d86266",
+    "logs": [
+      ".qa/clear-lane-request-age-focused.log",
+      ".qa/clear-lane-request-age-build.log",
+      ".qa/clear-lane-request-age-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED."
   }
 }
