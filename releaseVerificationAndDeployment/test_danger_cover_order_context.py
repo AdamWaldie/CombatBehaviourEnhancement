@@ -31,6 +31,15 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertLess(fast,flight.index('private _validLease='))
         self.assertLess(fast,flight.index('private _available='))
         self.assertEqual(flight.count('_actor doMove _goal'),1)
+        refuge=flight.split('// Exterior cover remains preferred.',1)[1].split('// Selection is read-only.',1)[0]
+        self.assertIn('if (!_found &&',refuge)
+        self.assertIn('CBE_AIPass_BuildingCombat_Enable',refuge)
+        self.assertIn('forEach (_refugeHouses select [0,2])',refuge)
+        self.assertIn('[_actor,_refugeHouse,_origin,[]] call CBE_fnc_IndoorActorNodeSelect',refuge)
+        self.assertIn('_refugeFrame isEqualTo',refuge)
+        self.assertIn('call CBE_fnc_CortexCoverScreened',refuge)
+        self.assertNotIn('doMove',refuge)
+
         self.assertIn('((_lease select 1)-time) max 0',flight)
         self.assertLess(flight.index('if (_lease isNotEqualTo []) exitWith'),flight.index('call CBE_fnc_CortexFindCover'))
         cleanup=flight.split('if (_mode == "RELEASE") exitWith',1)[1].split('if (!local _actor',1)[0]
