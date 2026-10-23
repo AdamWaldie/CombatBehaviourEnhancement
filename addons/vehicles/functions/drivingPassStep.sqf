@@ -53,7 +53,16 @@ private _current={call _base && {(expectedDestination _driver) isEqualTo (_work 
     && {(expectedDestination _operator) isEqualTo (_work get "command")}};
 private _finish={params ["_reason",["_resume",false]];
     [_vehicle,_group,_reason,_resume] call CBE_fnc_DrivingPassFinish;
-    [false,1e6,_reason]
+    private _pending=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+    private _return=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    if ((_pending getOrDefault ["handback",[]]) isNotEqualTo []
+        || {(_return getOrDefault ["passReturn",""]) == (_work get "token")}) then {
+        [true,0,"HANDBACK_PENDING"]
+    } else {[false,1e6,_reason]}
+};
+if ((_work getOrDefault ["handback",[]]) isNotEqualTo []) exitWith {
+    private _request=_work get "handback";
+    [_request select 0,_request select 1] call _finish
 };
 if (_work getOrDefault ["interrupted",false]) exitWith {["NATIVE_STOP_EVENT",false] call _finish};
 if !(call _current) exitWith {["OWNER_OR_ORDER_CHANGED",true] call _finish};

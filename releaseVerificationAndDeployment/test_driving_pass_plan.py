@@ -390,13 +390,26 @@ class DrivingPassPlanTests(unittest.TestCase):
         for guard in ('get "epoch"','get "generation"','driverCommand','expectedDestination _operator',
                       'call CBE_fnc_DrivingMovementAvailable','_work get "token"','isNil {'):
             self.assertIn(guard,s)
-        self.assertNotIn('forceSpeed',s)
+        self.assertEqual(s.count('_vehicle forceSpeed 0'),1)
         self.assertNotIn('setVelocity',s)
-        owned=s.split('private _owned={',1)[1].split('\nisNil {',1)[0]
+        self.assertIn('(_state param [0,-2]) == _cap',s)
+        self.assertIn('abs ((getForcedSpeed _vehicle)-_cap) <= 0.1',s)
+        self.assertIn('handbackBaseline',s)
+        self.assertIn('if (_retain) exitWith {false}',s)
+        self.assertIn('currentCommand _driver == "STOP" && {currentCommand _operator == "STOP"}',s)
+        self.assertIn('_linear < 0.1',s)
+        self.assertIn('["nativeReturn",[+_goal,_until,_before]]',s)
+        self.assertNotIn('serverTime+',s)
+        owned=s.split('private _owned={',1)[1].split('private _retain=',1)[0]
         self.assertIn('_brain=_group getVariable',owned)
         self.assertIn('getVariable ["CBE_DrivingPass_Work",createHashMap]) isEqualTo _work',owned)
         recall=s.split('doStop _driver',1)[1].split('if ((_vehicle getVariable',1)[0]
-        self.assertLess(recall.index('if (_resume && {call _owned})'),recall.index('_driver doFollow'))
+        self.assertLess(recall.index('if ((_request select 1) && {call _owned}'),recall.index('_driver doFollow'))
+        self.assertLess(s.index('isEqualTo []) then {',s.index('if (call _owned')),s.index('doStop _driver'))
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text()
+        self.assertIn('CBE_DrivingPassStop_CleanupTicket',cleanup)
+        self.assertIn('call CBE_fnc_DrivingPassFinish',cleanup)
+        self.assertIn('handbackUnresolved',cleanup)
     def test_passing_uses_existing_fsm_and_suppresses_other_recovery(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         self.assertIn('call CBE_fnc_DrivingPassStep',assist)

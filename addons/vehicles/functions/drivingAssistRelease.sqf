@@ -144,11 +144,14 @@ if (!isNull _bypassGroup && {isNull _expectedGroup || {_expectedGroup == _bypass
 };
 // Child release can create pending STOP or a native-return journal after the earlier
 // recovery pass. Neither permits restoring speed underneath its issued command.
+private _afterPass=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
 private _afterBypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 private _afterReturn=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
-if (!_capOnly && {((_afterBypass getOrDefault ["phase",""]) == "STOP_PENDING"
+if (!_capOnly && {((_afterPass getOrDefault ["handback",[]]) isNotEqualTo []
+    && {isNull _expectedGroup || {(_afterPass getOrDefault ["group",grpNull]) == _expectedGroup}})
+    || {((_afterBypass getOrDefault ["phase",""]) == "STOP_PENDING"
     && {(_afterBypass getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
-    && {isNull _expectedGroup || {(_afterBypass getOrDefault ["group",grpNull]) == _expectedGroup}})
+    && {isNull _expectedGroup || {(_afterBypass getOrDefault ["group",grpNull]) == _expectedGroup}})}
     || {(_afterReturn getOrDefault ["releasePending",false])
         && {(_afterReturn getOrDefault ["nativeReturn",[]]) isNotEqualTo []}
         && {isNull _expectedGroup || {(_afterReturn getOrDefault ["group",grpNull]) == _expectedGroup}}}}) exitWith {

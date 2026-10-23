@@ -10,7 +10,7 @@ class RecoveryCleanupTests(unittest.TestCase):
                           'set ["deadline"', 'set ["hardDeadline"'):
             self.assertNotIn(forbidden,text)
         self.assertIn('call CBE_fnc_DrivingAssistRelease',text)
-        self.assertIn('"simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn"] apply',text)
+        self.assertIn('"simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn","passReturn"] apply',text)
         self.assertIn('([_current] call _signature) isEqualTo _proof',text)
         self.assertIn('local _target',text)
         native=(ROOT/'addons/vehicles/functions/drivingQueueReverseCommit.sqf').read_text()

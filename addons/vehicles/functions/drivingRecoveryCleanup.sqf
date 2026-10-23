@@ -5,6 +5,7 @@
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Observes exact pending reverse/issued native return, ordinary-cap and released-cap queue-abort receipts after tactical workers stop.
+ * Pending passing STOP shares the same service and original episode deadline; no command replay.
  * Pending queue STOP uses the same four-ticket service, exact original request and deadline.
  * It observes without reissuing STOP; terminal unresolved proof receives no more tickets.
  * Abort safety observations are throttled per receipt; all ticket types share the four-ticket service bound.
@@ -29,12 +30,35 @@ isNil {
     private _signature={
         params ["_work"];
         ["group","route","driver","operator","started","deadline","hardDeadline",
-            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn"] apply {_work getOrDefault [_x,[]]}
+            "driverCommand","command","kind","cap","baseline","commandMode","simpleBefore","request","nativeReturn","queueBinding","rearEnvelope","bypassReturn","queueReturn","passReturn"] apply {_work getOrDefault [_x,[]]}
     };
     private _abortSignature={
         params ["_hold"];
         ["binding","group","route","driver","operator","owner","deadline","driverCommand",
             "command","driverLeader","operatorLeader","releasedCap"] apply {_hold getOrDefault [_x,[]]}
+    };
+    private _passSignature={
+        params ["_work"];
+        ["group","route","driver","operator","token","epoch","generation","deadline",
+            "command","driverCommand","handback","handbackTasks","handbackCap","handbackBaseline"]
+            apply {_work getOrDefault [_x,[]]}
+    };
+    if (!isNull _vehicle && {local _vehicle}) then {
+        private _pass=_vehicle getVariable ["CBE_DrivingPass_Work",createHashMap];
+        if ((_pass getOrDefault ["handback",[]]) isNotEqualTo []
+            && {!(_pass getOrDefault ["handbackUnresolved",false])}) then {
+            private _proof=[_pass] call _passSignature;
+            private _existing=_vehicle getVariable ["CBE_DrivingPassStop_CleanupTicket",""];
+            private _record=_registry getOrDefault [_existing,[]];
+            if (_record isEqualTo [] || {!((_record select 1) isEqualTo _proof)}) then {
+                private _serial=1+(localNamespace getVariable ["CBE_DrivingRecovery_CleanupSerial",0]);
+                localNamespace setVariable ["CBE_DrivingRecovery_CleanupSerial",_serial];
+                private _id=str _serial;
+                _registry set [_id,[_vehicle,_proof,"PASS_STOP"]];
+                _vehicle setVariable ["CBE_DrivingPassStop_CleanupTicket",_id];
+                _queue pushBack _id;
+            };
+        };
     };
     private _stopSignature={
         params ["_work"];
@@ -126,7 +150,29 @@ isNil {
                 private _ticketVariable=["CBE_DrivingRecovery_CleanupTicket","CBE_DrivingAbort_CleanupTicket"] select (_kind == "ABORT");
                 if (_kind == "CAP") then {_ticketVariable="CBE_DrivingCapRelease_CleanupTicket"};
                 if (_kind == "QUEUE_STOP") then {_ticketVariable="CBE_DrivingQueueStop_CleanupTicket"};
+                if (_kind == "PASS_STOP") then {_ticketVariable="CBE_DrivingPassStop_CleanupTicket"};
                 private _matching=false;
+                if (_kind == "PASS_STOP") then {
+                    private _pass=_target getVariable ["CBE_DrivingPass_Work",createHashMap];
+                    private _passGroup=_pass getOrDefault ["group",grpNull];
+                    private _request=_pass getOrDefault ["handback",[]];
+                    _matching=!isNull _target && {local _target} && {!isNull _passGroup} && {local _passGroup}
+                        && {(_target getVariable [_ticketVariable,""]) == _id}
+                        && {([_pass] call _passSignature) isEqualTo _proof}
+                        && {!(_pass getOrDefault ["handbackUnresolved",false])}
+                        && {_request isEqualType []} && {count _request == 2}
+                        && {(_request select 0) isEqualType ""} && {(_request select 1) isEqualType true};
+                    if (_matching) then {
+                        localNamespace setVariable ["CBE_DrivingRecovery_Cleanup",_registry];
+                        private _retired=[_target,_passGroup,_request select 0,_request select 1]
+                            call CBE_fnc_DrivingPassFinish;
+                        if (_retired) then {[_target,_passGroup] call CBE_fnc_DrivingAssistRelease};
+                        private _after=_target getVariable ["CBE_DrivingPass_Work",createHashMap];
+                        _matching=(_after getOrDefault ["handback",[]]) isNotEqualTo []
+                            && {!(_after getOrDefault ["handbackUnresolved",false])}
+                            && {([_after] call _passSignature) isEqualTo _proof};
+                    };
+                } else {
                 if (_kind == "QUEUE_STOP") then {
                     private _stop=_target getVariable ["CBE_DrivingBypass_Work",createHashMap];
                     private _stopGroup=_stop getOrDefault ["group",grpNull];
@@ -208,6 +254,7 @@ isNil {
                             && {!(_current getOrDefault ["releaseUnresolved",false])}
                             && {([_current] call _signature) isEqualTo _proof};
                     };
+                };
                 };
                 };
                 };

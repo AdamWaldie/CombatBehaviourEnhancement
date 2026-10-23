@@ -355,7 +355,7 @@ class QueueProposalTests(unittest.TestCase):
         command=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text(encoding='utf-8')
         self.assertIn('"bypassReturn" in _work || {"queueReturn" in _work}',command)
         retire=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
-        self.assertIn('(_work getOrDefault ["kind",""]) != "QUEUE_RETURN"',retire)
+        self.assertIn('in ["QUEUE_RETURN","PASS_RETURN"]',retire)
         cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text(encoding='utf-8')
         signature=cleanup.split('private _signature={',1)[1].split('private _abortSignature=',1)[0]
         self.assertIn('"queueReturn"',signature)

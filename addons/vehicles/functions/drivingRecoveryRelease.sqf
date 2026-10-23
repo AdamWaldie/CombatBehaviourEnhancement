@@ -180,7 +180,7 @@ if ((_work getOrDefault ["nativeReturn",[]]) isNotEqualTo []) exitWith {
     private _returnRoute=_work getOrDefault ["route",[]];
     private _returnAssist=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
     if (_returnState == "OWNED" && {_reason == "DEFERRED_HANDBACK"}
-        && {(_work getOrDefault ["kind",""]) != "QUEUE_RETURN"}
+        && {!((_work getOrDefault ["kind",""]) in ["QUEUE_RETURN","PASS_RETURN"])}
         && {local _group} && {count _returnRoute == 9}
         && {count _returnAssist >= 11} && {(_returnAssist select 3) isEqualTo _group}
         && {(_returnAssist select 9) isEqualTo _returnRoute}
