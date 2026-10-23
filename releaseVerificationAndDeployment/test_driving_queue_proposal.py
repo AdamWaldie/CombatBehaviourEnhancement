@@ -361,6 +361,13 @@ class QueueProposalTests(unittest.TestCase):
 
         self.assertIn('_nativeRoute && {!(_controller in ["ORDINARY","QUEUE"])}',bypass)
         self.assertIn('private _queueNativeBound=_nativeRoute && {_queue}',bypass)
+        pending=bypass.split('if ((_work getOrDefault ["phase",""]) == "STOP_PENDING"',1)[1].split('if (!(call _mayWrite))',1)[0]
+        self.assertIn('call CBE_fnc_DrivingBypassRelease',pending)
+        self.assertNotIn('doStop',pending)
+        self.assertIn('if (!_stopPending) then {doStop _driver',release)
+        self.assertIn('if (_retainStop) exitWith {false}',release)
+        self.assertIn('queueStopUnresolved',release)
+
         bound=bypass.split('private _queueNativeBound=',1)[1].split('private _deadline=',1)[0]
         for proof in ('getOrDefault ["ownerRoute",[]]) isEqualTo _route','count (_queueAgreement getOrDefault ["crossingBinding",[]]) == 4','call _queueCurrent'):
             self.assertIn(proof,bound)

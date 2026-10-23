@@ -178,6 +178,22 @@ private _recoveryBinding={
 };
 private _captureOwner=[clientOwner,_brain getOrDefault ["ownerEpoch",-1],_brain getOrDefault ["jobToken",""],_brain getOrDefault ["generation",-1]];
 private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+if ((_work getOrDefault ["phase",""]) == "STOP_PENDING"
+    && {(_work getOrDefault ["controller",[]]) isEqualTo ["QUEUE",-1]}
+    && {(_work getOrDefault ["group",grpNull]) == _group}) exitWith {
+    private _stopRequest=_work getOrDefault ["queueStopRequest",[]];
+    if (!(_stopRequest isEqualType []) || {count _stopRequest != 4}
+        || {!((_stopRequest select 0) isEqualType "")} || {!((_stopRequest select 1) isEqualType true)}
+        || {!((_stopRequest select 2) isEqualType true)} || {!((_stopRequest select 3) isEqualType 0)}) exitWith {_inactive};
+    [_vehicle,_group,_stopRequest select 0,_stopRequest select 1,_stopRequest select 2,_stopRequest select 3]
+        call CBE_fnc_DrivingBypassRelease;
+    private _remaining=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+    if ((_remaining getOrDefault ["phase",""]) == "STOP_PENDING"
+        && {(_remaining getOrDefault ["queueCrossingBinding",[]]) isEqualTo (_work getOrDefault ["queueCrossingBinding",[]])}
+        && {local _vehicle} && {local _group} && {call _seatsAvailable} && {call _nativePathFree}) then {
+        [true,0,["STOP_PENDING","STOP_UNRESOLVED"] select (_remaining getOrDefault ["queueStopUnresolved",false]),false]
+    } else {_inactive}
+};
 if (!(call _mayWrite)) exitWith {
     if ((_work getOrDefault ["controller",["ORDINARY",-1]]) isEqualTo _controllerReceipt) then {
         [_vehicle,_group,"AUTHORITY_ENDED"] call CBE_fnc_DrivingBypassRelease;

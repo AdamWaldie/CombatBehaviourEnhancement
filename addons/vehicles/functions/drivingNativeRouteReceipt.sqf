@@ -104,9 +104,11 @@ if (count _nativeChild > 0 && {(_nativeChild getOrDefault ["controller",[]]) isE
         || {(_nativeChild getOrDefault ["group",grpNull]) != _nativeGroup}
         || {(_nativeChild getOrDefault ["driver",objNull]) != _nativeDriver}
         || {(_nativeChild getOrDefault ["operator",objNull]) != _nativeOperator}
-        || {!((_nativeChild getOrDefault ["phase",""]) in ["PLAN","FOLLOW"])}
-        || {toUpperANSI (_nativeFrame select 0) != (_nativeChild getOrDefault ["driverTask","__MISSING__"])}
-        || {toUpperANSI (_nativeFrame select 2) != (_nativeChild getOrDefault ["operatorTask","__MISSING__"])}
+        || {!((_nativeChild getOrDefault ["phase",""]) in ["PLAN","FOLLOW","STOP_PENDING"])}
+        || {toUpperANSI (_nativeFrame select 0) != (_nativeChild getOrDefault ["driverTask","__MISSING__"])
+            && {!((_nativeChild getOrDefault ["phase",""]) == "STOP_PENDING" && {(_nativeFrame select 0) == "STOP"})}}
+        || {toUpperANSI (_nativeFrame select 2) != (_nativeChild getOrDefault ["operatorTask","__MISSING__"])
+            && {!((_nativeChild getOrDefault ["phase",""]) == "STOP_PENDING" && {(_nativeFrame select 2) == "STOP"})}}
         || {(_nativeFrame select 1) isNotEqualTo (_nativeChild getOrDefault ["driverCommand",[]])}
         || {(_nativeFrame select 3) isNotEqualTo (_nativeChild getOrDefault ["command",[]])}) exitWith {[]};
     +_queueRoute

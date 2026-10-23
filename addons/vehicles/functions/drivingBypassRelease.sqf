@@ -20,6 +20,8 @@
  * Native queue return uses an explicit QUEUE_RETURN observation journal through the original
  * queue deadline; no ordinary recovery parent is fabricated and no return command is replayed.
  * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
+ * An unacknowledged queue stop retains STOP_PENDING with its original deadline; repeat
+ * observation never reissues doStop. Expiry retains unresolved proof, not route-return authority.
  * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
  * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
  * A successor queue binding forbids native cleanup and survives metadata retirement.
@@ -72,7 +74,11 @@ isNil {
     private _pathInput=vehicleMoveInfo _vehicle;
     private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
         && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
-    private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly} || {_queue}} && {_queueMayRetire}
+    private _stopRequest=_work getOrDefault ["queueStopRequest",[]];
+    private _stopPending=_queue && {_stopRequest isEqualType []} && {count _stopRequest == 4}
+        && {(_work getOrDefault ["phase",""]) == "STOP_PENDING"};
+    private _retainStop=false;
+    private _owned=((_work get "phase") == "FOLLOW" || {_stopPending}) && {_resume || {_stopOnly} || {_queue}} && {_queueMayRetire}
         && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
         && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
         && {group _driver == _group} && {group _operator == _group}
@@ -80,8 +86,10 @@ isNil {
         && {_nativePathFree}
         && {(expectedDestination _operator) isEqualTo (_work get "command")}
         && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
-        && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])}
-        && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
+        && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])
+            || {_stopPending && {currentCommand _driver == "STOP"}}}
+        && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])
+            || {_stopPending && {currentCommand _operator == "STOP"}}}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {_convoy || {[_group] call CBE_fnc_DrivingMovementAvailable}}
         && {_convoy || {!(_vehicle getVariable ["CBE_Convoy_Active",false])}}
@@ -116,7 +124,24 @@ isNil {
         && {!(_nativeParent getOrDefault ["releasePending",false])}};
     if (_owned && {_nativeParentCurrent}) then {
         [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
-        doStop _driver;if (_operator != _driver) then {doStop _operator};
+        if (!_stopPending) then {doStop _driver;if (_operator != _driver) then {doStop _operator}};
+        if (_queue && {currentCommand _driver != "STOP" || {currentCommand _operator != "STOP"}
+            || {_stopPending && {serverTime >= (_work get "deadline")}}}) then {
+            private _pendingStop=createHashMapFromArray (keys _work apply {[_x,_work get _x]});
+            if (!_stopPending) then {
+                _pendingStop set ["queueStopRequest",[_reason,_resume,_stopOnly,_expectedRevision]];
+                _pendingStop set ["phase","STOP_PENDING"];
+            };
+            if (serverTime >= (_work get "deadline")) then {_pendingStop set ["queueStopUnresolved",true]};
+            if ((_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work) then {
+                _vehicle setVariable ["CBE_DrivingBypass_Work",_pendingStop,true];
+                _vehicle setVariable ["CBE_DrivingBypass_Result",[
+                    ["STOP_PENDING","STOP_UNRESOLVED"] select (_pendingStop getOrDefault ["queueStopUnresolved",false]),
+                    serverTime,_work get "obstacle",_work get "index"],true];
+            };
+            _retainStop=true;
+        };
+        if (!_retainStop) then {
         if (_queue && {!_queueMayResume} && {_resume} && {!_stopOnly}
             && {currentCommand _driver == "STOP"} && {currentCommand _operator == "STOP"}) then {
             private _owner=[_group] call CBE_fnc_DrivingOwnerReceipt;
@@ -199,7 +224,9 @@ isNil {
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_returned,true];
             };
         };
+        };
     };
+    if (_retainStop) exitWith {false};
     // A synchronous native event may have published successor work during command handling.
     if (!local _vehicle || {!local _group}
         || {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work}) exitWith {false};

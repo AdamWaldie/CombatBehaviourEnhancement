@@ -136,5 +136,18 @@
     ],
     "remaining": "Native top-level proposal/consent/auto exclusions remain. Unacknowledged initial doStop must retain exact path/stop journal rather than retire it. Aborted queue STOP/original-goal safety handback remains authored-only in DrivingAbortHandback; integrate native receipt recognition and pending return there before enabling. Audit split locality/adoption and cap restoration.",
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Command acknowledgement is not physical travel. Driver FOLLOW->native MOVE propagation, stop timing, pending/late native return and overhead unverified. No native queue feature completion or score renewal. Audits paused."
+  },
+  "pendingStopLifecycle20261023": {
+    "baseline": "e21617aa",
+    "implementation": "Queue release retains exact STOP_PENDING crossing journal when either operating actor has not acknowledged STOP. Existing driving callback observes the original recorded release request without replaying doStop or extending the original deadline. Native route reader recognises unchanged original tasks or STOP alongside exact destinations and original queue provenance. Expired pending stop remains explicitly unresolved; existing sole cap writer receives zero-cap intent while ownership remains available.",
+    "validation": "1491 existing tests and full HEMTT/FSM/SQF/config/docs/package gates passed. Independent verification of copied package passed. Existing moving queue regression extended; no new test cases.",
+    "candidate": ".qa/candidates/queue-pending-stop-lifecycle-e21617aa",
+    "fingerprint": "3de0cace815753dd115c7f42163e79dd5caa744bcc1d3efdd218165090eae1ed",
+    "logs": [
+      ".qa/queue-pending-stop-lifecycle-build.log",
+      ".qa/queue-pending-stop-lifecycle-independent.log"
+    ],
+    "remaining": "Native queue admission remains disabled. DrivingAbortHandback is still authored-only; integrate original native goal and pending return recognition before enabling. STOP observation after original deadline does not authorize a late native goal return. Validate native stop destination semantics, owner migration, actual handback travel and cap restoration in engine when audits authorized.",
+    "limits": "Unsigned dirty development snapshot preserving unrelated dirt; engineering notes afterward. No physical or performance acceptance, no whole-mod parity claim or tracker score renewal. Audits paused."
   }
 }
