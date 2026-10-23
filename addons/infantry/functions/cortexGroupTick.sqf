@@ -1632,7 +1632,7 @@ switch (_state get "phase") do {
                 !(_x in _originalInvestigators) && {_x != leader _group} && {local _x} && {!isPlayer _x}
                     && {group _x == _group} && {[_x] call CBE_fnc_CortexCombatEffective}
                     && {!fleeing _x} && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
-                    && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","PLANNING","REPLAN","BUSY"])}
+                    && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"])}
                     && {isNull getAttackTarget _x} && {isNull assignedTarget _x}
                     && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                     && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}

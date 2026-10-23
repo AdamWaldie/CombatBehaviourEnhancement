@@ -78,5 +78,34 @@
       "addons/infantry/functions/cortexClearBuilding.sqf": "117b435d861e1d18d8e8868a76a88c79bdf4e5747775d4944774d8d576091aa2",
       "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "4cccf2f5ef16ba4f2ad2cfc82da9c2e7affafe1874e980aa605c61d74a114fd6"
     }
+  },
+  "nativePlannerDataWait20261024": {
+    "base": "6bc77f0d",
+    "finding": "Individual indoor native-context admission, observation dispatch, search-leg retry/escalation and approach wait still treated INITFAILED/DELAY as available or ended. The whole-clear planning allowances were corrected separately; the same documented state meaning applies to these executor paths.",
+    "primarySource": "https://community.bistudio.com/wiki/getUnitState",
+    "change": "Add INITFAILED/DELAY to existing planner-ownership exclusions in IndoorActorNativeContext, IndoorActorOperation and IndoorObservationDispatch plus CortexGroupTick indoor observation candidate selection. Existing original operation deadline bounds waiting; no new allowance, worker, engine/world query, attempt or state schema.",
+    "boundary": "No blanket native-state controller or unrelated stance/AT/tactical-route change. Exterior watch already admits new watch writes only for idle/STOP actors; its later native engagement effect remains an engine question, not a demonstrated source defect.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\indoorActorNativeContext.sqf": "49b7bc55c625b2d795c8dde7d2294d8e52d256239b99cddf789925df1178d3a1",
+      "addons\\infantry\\functions\\indoorActorOperation.sqf": "c818ad1d6ae2118690133cfebadf2ca53da42d33d7a90269fd65f8ff6d1b9bd0",
+      "addons\\infantry\\functions\\indoorObservationDispatch.sqf": "e36d17c5065117117c9b110ed3a76b82e691d2fd5959e1a6ee21536caecb022e",
+      "addons\\infantry\\functions\\cortexGroupTick.sqf": "ede8ff21f7d2521fa88610230ca4e070e7ab7155eeeb4e6a7630d3ad1d5baa21"
+    },
+    "validation": {
+      "existingFocusedCases": 32,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/indoor-native-data-wait-6bc77f0d",
+    "fingerprint": "74f1ef34c8744b1bc29392c19e1f0c145ff86107add05354637f3b01163fad8e",
+    "logs": [
+      ".qa/indoor-native-data-wait-focused.log",
+      ".qa/indoor-native-data-wait-build.log",
+      ".qa/indoor-native-data-wait-independent.log"
+    ],
+    "limits": "No physical indoor routing/clearance/parity or measured performance acceptance. Native planning can still time out. Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Scores unrenewed; audits PAUSED."
   }
 }

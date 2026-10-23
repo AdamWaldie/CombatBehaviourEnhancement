@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search retain ownership; no deadline is renewed.
  * Native fleeing preempts investigation and forbids return-to-formation cleanup commands.
  * One stalled CBE-issued ISSUE leg may select an alternative node under the same deadline/probe budget.
  * Exact prior native destination/formation and twelve seconds without progress remain mandatory;
@@ -511,7 +512,7 @@ if (_phase == "SELECT") exitWith {
         (if (_retryOwned) then {(_brain getOrDefault ["ownedRetries",0]) == 0
             && {((_brain get "admission") select 0) == "ISSUE"}
             && {serverTime-(_brain get "progressAt") >= 12}
-            && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])}
+            && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         } else {call _searchMemoryValid})
             && {_brain getOrDefault ["issued",false]}
             && {currentCommand _actor in ["","MOVE"]}
@@ -556,7 +557,7 @@ if (_phase == "SELECT") exitWith {
     if (_escalate && {(_brain getOrDefault ["escalations",0]) >= 1
         || {serverTime-(_brain get "progressAt") < 12}
         || {(_admission select 0) != "OBSERVE"}
-        || {getUnitState _actor in ["INIT","PLANNING","REPLAN"]} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
+        || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]} || {currentCommand _actor == "FIRE"}}) exitWith {["ESCALATION_REFUSED"] call _finish};
     private _reserved=[];
     // A peer following native AI still occupies its recorded destination. The issued flag
     // grants cleanup rights only; using it here would invite a second actor to the same node.
@@ -665,7 +666,7 @@ if (_phase == "APPROACH") exitWith {
         };
         // Path recalculation is not evidence of an inaccessible node. Observe only;
         // the original FSM deadline still bounds this wait and is never renewed.
-        if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1};
+        if (getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]) exitWith {-1};
         if (serverTime-(_brain get "progressAt") >= 12) then {
             // Only our unchanged issued leg may consume one alternative. Native observed
             // movement retains its existing separate escalation path below.
@@ -674,7 +675,7 @@ if (_phase == "APPROACH") exitWith {
                 _brain set ["retryOwned",true]; _brain set ["phase","SELECT"];
             };
             if (!(_brain get "issued") && {(_brain get "escalations") == 0}
-                && {!(getUnitState _actor in ["INIT","PLANNING","REPLAN"])} && {currentCommand _actor != "FIRE"}) then {
+                && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])} && {currentCommand _actor != "FIRE"}) then {
                 private _admission=[_actor,_contact,(_brain get "belief") select 0,_building] call CBE_fnc_IndoorActorNativeContext;
                 if (_admission isNotEqualTo [] && {(_admission select 0) == "OBSERVE"}
                     && {(_admission select 2) isEqualTo _target}) then {

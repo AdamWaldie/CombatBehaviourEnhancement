@@ -359,7 +359,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '_unitState == "BUSY"','_nativeFiringClear','_destination vectorDistance _belief <= 2.5'):
             self.assertIn(guard,s)
         self.assertIn('["OBSERVE","COMBAT_APPROACH"',s)
-        self.assertIn('_unitState in ["INIT","PLANNING","REPLAN"]',s)
+        self.assertIn('_unitState in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]',s)
         # Preflight shares task vetoes but cannot issue a usable native receipt or ray query.
         self.assertIn('["_preflight",false,[true]]',s)
         self.assertIn('if (!_preflight && {_contactValid}',s)
@@ -402,7 +402,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertNotIn('set ["issued",true]',observe)
         for guard in ('serverTime-(_brain get "progressAt") < 12','["escalations",1]',
                       '_reserved pushBack +(_brain get "target")','currentCommand _actor == "FIRE"',
-                      'getUnitState _actor in ["INIT","PLANNING","REPLAN"]','contactRequired','vectorDistance (_brain get "progressPosition") >= 1','_admission isNotEqualTo (_brain get "admission")'):
+                      'getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]','contactRequired','vectorDistance (_brain get "progressPosition") >= 1','_admission isNotEqualTo (_brain get "admission")'):
             self.assertIn(guard,s)
         self.assertEqual(s.split("_brain=createHashMapFromArray",1)[1].count('["deadline",_deadline]'),1)
         self.assertNotIn('_brain set ["deadline",',s)
@@ -470,7 +470,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('CBE_AIPass_Investigate_Enable',s)
 
         approach=s.split('if (_phase == "APPROACH") exitWith {',1)[1]
-        self.assertLess(approach.index('if (getUnitState _actor in ["INIT","PLANNING","REPLAN"]) exitWith {-1}'),approach.index('if (serverTime-(_brain get "progressAt") >= 12)'))
+        self.assertLess(approach.index('if (getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]) exitWith {-1}'),approach.index('if (serverTime-(_brain get "progressAt") >= 12)'))
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         self.assertIn('private _ownsLeg=_issued',finish)
         self.assertIn('_actor doMove waypointPosition _waypoint;',finish)

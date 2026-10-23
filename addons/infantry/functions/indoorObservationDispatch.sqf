@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native planner data waits and delayed search retain ownership; no deadline is renewed.
  * Candidate preflight shares one ephemeral group ownership snapshot across this bounded sample;
  * actor START/STEP/door authority still re-read current ownership without that snapshot.
  * Candidate ranking excludes common executor refusals before consuming bounded slots;
@@ -59,7 +60,7 @@ private _actors=_sample select {
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {_x != leader _group} && {isNull objectParent _x}
         && {[_x] call CBE_fnc_CortexCombatEffective} && {_x distance2D _position <= 50}
         && {!(behaviour _x in ["STEALTH","CARELESS"])}
-        && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","PLANNING","REPLAN","BUSY"])}
+        && {currentCommand _x == ""} && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"])}
         && {isNull getAttackTarget _x} && {isNull assignedTarget _x}
         && {serverTime >= (_x getVariable ["CBE_IndoorActor_Cooldown",-1])}
         && {(_x getVariable ["CBE_IndoorActor_Order",[]]) isEqualTo []}
