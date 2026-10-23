@@ -83,5 +83,14 @@
       ".qa/point-investigation-release-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. FINISH acceptance is not proof pending native MOVE is quiescent; physical replacement/Zeus/HC/JIP/overhead unverified. Audits paused. Global build-out freshness failure remains; no source-parity/score claim."
+  },
+  "contactOnlyActorIndependence20261023": {
+    "baseline": "0f452bd2",
+    "finding": "Contact-off GroupTick already avoids repeated idle resets, but one-time CortexReleaseGroup reconciliation retired indoor/point jobs before validating keepBrain. Those actor jobs have independent Danger/Investigation/BuildingCombat gates, so Contact-only disable should not itself cancel them.",
+    "implementation": "Validate keepBrain before actor retirement and restrict it to explicit CONTACT_DISABLED reason, forget=false, current local non-external/non-Zeus group. Actor FINISH loop runs only outside that exemption. Full RELEASE/EXCLUDE/stop/takeover still retires jobs. No new task, worker, deadline or feature-gate override.",
+    "validation": "1491 tests/full build plus independent candidate verification passed; existing actor lifecycle test extended. No new cases or repeated-reset bug claim.",
+    "candidate": ".qa/candidates/contact-disabled-actor-independence-0f452bd2",
+    "fingerprint": "d785cbfb7cf211cb9f098cbb2f7ed5a9455ec2f2d3fe4b869cc05fb47b2da842",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering metadata afterward. Physical feature transition, movement handback, HC/JIP and overhead unverified; audits paused. Tracker/global Workshop scope gaps remain."
   }
 }

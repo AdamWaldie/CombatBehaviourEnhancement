@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
+ * Contact-only disable may preserve independent jobs after validating its narrow keep-brain scope.
  * Final post-clear recall yields to native flight, queued care and dormancy.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
@@ -50,6 +51,12 @@
 params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
 [_group,true] call CBE_fnc_CortexIlluminationStep;
+// Only the Contact-disabled reconciliation may preserve the independent actor/brain work.
+// Validate before actor retirement; full release and takeover cannot inherit this exemption.
+_keepBrain=_keepBrain && {_reason == "CONTACT_DISABLED"} && {!_forget} && {local _group}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)};
+if (!_keepBrain) then {
 {
     private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
     if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
@@ -60,11 +67,7 @@ if (isNull _group) exitWith {};
         ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
     };
 } forEach units _group;
-// Contact disablement releases autonomous state without rebuilding the same independent
-// safety/aid brain every discovery cycle. Full, external and locality releases still retire it.
-_keepBrain=_keepBrain && {!_forget} && {local _group}
-    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-    && {!([_group] call CBE_fnc_CortexZeusHeld)};
+};
 private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 if (count _brain > 0 && {!_keepBrain}) then {

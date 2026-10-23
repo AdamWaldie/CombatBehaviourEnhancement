@@ -129,6 +129,12 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         orders=(ROOT/'addons/infantry/functions/cortexOrderLocal.sqf').read_text()
         self.assertIn('_released=_released || {_garrisonReleased}',orders)
         self.assertIn('_released=_released || {_defendReleased}',orders)
+        shared=(ROOT/'addons/infantry/functions/cortexReleaseGroup.sqf').read_text()
+        self.assertLess(shared.index('_keepBrain=_keepBrain'),shared.index('private _point='))
+        self.assertIn('_reason == "CONTACT_DISABLED"',shared)
+        gated=shared.split('if (!_keepBrain) then {',1)[1].split('private _state =',1)[0]
+        self.assertIn('call CBE_fnc_PointActorOperation',gated)
+        self.assertIn('call CBE_fnc_IndoorActorOperation',gated)
 
     def test_arrival_is_not_a_room_clear_and_has_finite_failure(self):
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
