@@ -5,7 +5,8 @@
  * state changes. Participants receive at most64 group/locality checks per snapshot.
  * Repeat/JIP: Same-callback candidate filtering only; never persist or replay the result.
  * Actual actor executors call IndoorActorGroupAvailable without a snapshot to re-read current
- * authority before commands. Empty/malformed/group-wide ownership returns no snapshot.
+ * authority before commands. Unscoped live movement claims and malformed/group-wide ownership
+ * return no snapshot. Local leases use time; public leases use serverTime.
  * Arguments: 0 group GROUP, grpNull.
  * Return: ARRAY [group,epoch,generation,participants,drillUnits,supportHeld], or [] for refusal.
  * Current callers: IndoorActorGroupAvailable, IndoorActorDispatch, IndoorObservationDispatch.
@@ -29,6 +30,26 @@ private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _generation=_group getVariable ["CBE_OperationGeneration",0];
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (!(_operation isEqualType createHashMap)) exitWith {[]};
+// Migration can reserve movement before rebuilding the common operation. Without an
+// explicit current roster there is no proof that an indoor actor is disjoint.
+private _unscopedClaim=false;
+if (count _operation == 0) then {
+    private _leaseClaimsMovement={
+        params ["_candidateLease","_clockNow"];
+        if (_candidateLease isEqualTo []) exitWith {false};
+        private _typedLease=_candidateLease isEqualType [] && {count _candidateLease == 2}
+            && {(_candidateLease select 0) isEqualType ""} && {(_candidateLease select 0) != ""}
+            && {(_candidateLease select 1) isEqualType 0} && {finite (_candidateLease select 1)};
+        if (!_typedLease) exitWith {true};
+        _clockNow < (_candidateLease select 1)
+    };
+    if (count _drill > 0
+        || {(_state getOrDefault ["responding",false]) isNotEqualTo false}
+        || {(_state getOrDefault ["assaulting",false]) isNotEqualTo false}
+        || {[_state getOrDefault ["movementLease",[]],time] call _leaseClaimsMovement}
+        || {[_group getVariable ["CBE_Cortex_MovementLease",[]],serverTime] call _leaseClaimsMovement}) exitWith {_unscopedClaim=true};
+};
+if (_unscopedClaim) exitWith {[]};
 private _participants=[];
 private _contextValid=true;
 if (count _operation > 0) then {

@@ -513,6 +513,17 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'CBE_Cortex_GroupMoveIntent','supportHeld','CBE_AIPass_ClearBuilding',
                       '!(_actor in _participants)','["ADVANCE","FLANK","ASSAULT"]'):
             self.assertIn(guard,s)
+        unscoped=context.split('if (count _operation == 0) then {',1)[1].split('private _participants=[];',1)[0]
+        for guard in ('count _drill > 0','["responding",false]','["assaulting",false]',
+                      '["movementLease",[]],time','["CBE_Cortex_MovementLease",[]],serverTime',
+                      'if (!_typedLease) exitWith {true}','finite (_candidateLease select 1)',
+                      '_clockNow < (_candidateLease select 1)','if (_unscopedClaim) exitWith {[]}'):
+            self.assertIn(guard,unscoped)
+        for forbidden in ('setVariable','deleteAt','set [','supportHeld'):
+            self.assertNotIn(forbidden,unscoped)
+        resume=(ROOT/'addons/infantry/functions/cortexDrillResume.sqf').read_text()
+        self.assertIn('["movementLease",["TACTICAL_DRILL",time+5]]',resume)
+        self.assertIn('private _settleUntil=serverTime+5',resume)
         actor=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         self.assertEqual(actor.count('call CBE_fnc_IndoorActorGroupAvailable'),5)
         self.assertIn('CBE_OperationGeneration',actor)

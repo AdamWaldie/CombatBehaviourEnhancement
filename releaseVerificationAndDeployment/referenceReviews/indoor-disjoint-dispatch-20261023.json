@@ -42,5 +42,21 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "unscopedMovementAdmission20261023": {
+    "baseCommit": "5e81f3f7",
+    "finding": "CortexDrillResume reserves TACTICAL_DRILL movement for a deferred five-second locality-settling interval before reconstructing the common operation. Empty-operation indoor preflight previously treated this interval as free.",
+    "implementation": "When no common operation exists, refuse nonempty drills, responding/assaulting claims and active or malformed nonempty local/public movement leases. Local movementLease uses time; public CBE_Cortex_MovementLease uses serverTime. Expired typed leases alone do not refuse. Valid current explicit disjoint operations retain existing admission. Read-only, no timer, lease renewal, new worker or movement writes.",
+    "validation": "32 focused and1491 full offline cases passed;411SQF compiled and9PBOs built. Independent package verification passed. No new test cases added.",
+    "candidate": ".qa/candidates/indoor-unscoped-5e81f3f7",
+    "fingerprint": "3557b543f1f288234c8481183bb527bd77c7b509bc64d1e44304f2742b71ffcc",
+    "logs": [
+      ".qa/indoor-unscoped-build.log",
+      ".qa/indoor-unscoped-independent.log"
+    ],
+    "qualification": "Unsigned dirty development snapshot based on5e81f3f7 with working implementation and unrelated pre-existing changes. Review and handover postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
