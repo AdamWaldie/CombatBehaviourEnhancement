@@ -276,5 +276,21 @@
       ".qa/danger-pace-successor-queue-independent.log"
     ],
     "limits": "Unsigned dirty development snapshot with retained unrelated dirt, engineering notes afterward. No physical repeat-danger/assault pace/native ACK/HC/JIP/balance/performance proof. Original finite response and expiry+30 release limits remain; physical eventual cleanup and complete LAMBS parity remain unproven. Audits paused. No score/hash renewal."
+  },
+  "nativeMoralePace20261023": {
+    "baseline": "7cc26a15",
+    "reference": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultSpeed.sqf",
+    "reference_sha256": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105",
+    "source_intent": "Personal native morale below zero or leadership reduces assault pace once; suppression and target distance are separate modifiers.",
+    "finding": "CBE native ATTACK pace implemented the leader reduction but omitted native negative personal morale. Group tactical morale is a distinct0..1 estimate and cannot substitute the upstream native input.",
+    "implementation": "Existing leader condition now includes native morale<0 as an OR, never a second stacked penalty. Existing STEALTH1m/s, suppression/close-belief modifiers, min1m/s policy and ActorSettings stricter-authored-cap preservation remain unchanged. No skill/fleeing setting, new function/controller/scan/job or deadline.",
+    "validation": "1491 existing tests, full offline HEMTT/config/SQF/FSM/docs/package pipeline and independent copied-candidate verification passed. Existing lifecycle regression extended, no new case.",
+    "candidate": ".qa/candidates/native-attack-morale-pace-7cc26a15",
+    "fingerprint": "c8bd9df3b06bb3bc04cd756d56ce3c828a9c94ddcf8c6d74a5487e3415e33888",
+    "logs": [
+      ".qa/native-attack-morale-pace-build.log",
+      ".qa/native-attack-morale-pace-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; engineering notes afterward. Selected source-intent omission only, not whole LAMBS parity. Physical pacing/balance/HC/JIP and5%median/10%p95 overhead unverified. Audits paused; no score/hash renewal."
   }
 }

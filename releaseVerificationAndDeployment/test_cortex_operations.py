@@ -1741,6 +1741,8 @@ class CortexOperations(unittest.TestCase):
         pace=source('dangerAttackPace')
         self.assertIn('CBE_fnc_ActorSettings',pace)
         self.assertIn('_actor getHideFrom _target',pace)
+        self.assertIn('leader _group == _actor || {morale _actor < 0}',pace)
+        self.assertIn('_pace max 1',pace)
         self.assertNotIn('getPosATL _target',pace)
         self.assertNotIn(' doMove ',pace)
         self.assertIn('(_context select 4)+30',pace)

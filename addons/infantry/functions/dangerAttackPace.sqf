@@ -3,6 +3,7 @@
  * Purpose: Apply a finite native ATTACK speed cap without owning destinations or fire.
  * Locality/authority: Actual actor/group owner. START uses current native knowledge and the
  * exact local engine-danger response; RELEASE may retire unchanged public proof after migration.
+ * Personal native morale below zero shares the leader pace reduction; the two never stack.
  * Repeat/JIP: No deadline renewal or replay. Pending release uses the existing group posture
  * cleanup queue for at most 30 seconds after original expiry. Changed native values survive.
  * Arguments: 0 mode STRING START/CHECK/RELEASE; 1 actor OBJECT objNull;
@@ -35,7 +36,7 @@ if (_mode == "START" && {_proof isEqualTo []}) exitWith {
     if (_belief isEqualTo [0,0,0]) exitWith {false};
     private _wanted=if (behaviour _actor == "STEALTH") then {1} else {
         private _pace=[4,3] select (getSuppression _actor > 0);
-        if (leader _group == _actor) then {_pace=_pace-1};
+        if (leader _group == _actor || {morale _actor < 0}) then {_pace=_pace-1};
         if (_actor distance2D _belief < 5) then {_pace=_pace-1};
         _pace max 1
     };
