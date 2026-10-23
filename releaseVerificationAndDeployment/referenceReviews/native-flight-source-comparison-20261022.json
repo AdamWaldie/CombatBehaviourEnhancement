@@ -431,5 +431,34 @@
       "releaseVerificationAndDeployment/test_danger_cover_order_context.py": "7823517a5be1a14e757c153a5e8aab5fd285ea99479895c59c03eb8374116c42",
       "releaseVerificationAndDeployment/test_cortex_operations.py": "0d812138ef3f03176f3944b3c0f3ab0b13d9ef9a8c92561cf678539e0bbdbf1f"
     }
+  },
+  "mountedGunnerAvailability20261023": {
+    "baseline": "13b4541d",
+    "confirmed": "CortexVehicles already offers exact-platform crew recovery on fresh known-hostile danger, but helper admission rejected all causes except DETECTED and required canMove despite issuing only a commander-to-gunner role request. Incoming-fire generations and immobile useful guns were excluded. Helper native-task guard also omitted queued ACE treatment before a HEAL command appears.",
+    "implemented": "Accept DETECTED/HIT/EXPLOSION/SUPPRESSED/GUNFIRE in existing helper; mobility no longer gates an internal gunner replacement request. Living platform, someAmmo, original sub20km/h speed ceiling, actual assigned commander turret, vacant/unreserved primary gunner role, eligible local commander distinct from driver, current native hostile knowledge, protected tasks/STOP, external/Zeus/convoy ownership and feature gates remain. Queued ACE care now explicitly refuses before assignment/action.",
+    "integration": "Caller still validates current exact danger vehicle/source expiry/witness/belief and fresh generation, excludes unsafe emplacement or disabled-hit abandonment, and records acceptance/refusal once per generation. No new danger producer, cooldown, repeated seat worker, gunner fabrication or native movement command.",
+    "sourceDisposition": "LAMBS doFleeing prioritises restoring an armed platform when its gunner is lost. CBE retains useful firepower even without mobility and responds to actual incoming-fire generations. Source driver reassignment and non-tank eject/delayed reboard shortcuts remain rejected. Existing CBE internal MoveToGunner and20km/h admission differ from source grounded3km/h gate and require physical vehicle-config comparison; this is not whole mounted-flight parity.",
+    "validation": {
+      "focusedOperationTests": 610,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/mounted-gunner-recovery-build.log",
+      "candidate": ".qa/candidates/mounted-gunner-recovery-13b4541d",
+      "independent": ".qa/mounted-gunner-recovery-independent.log",
+      "fingerprint": "f0dff0cd9fa33c348943f457cf811dfc953b53042fea3b5a46bb4412d4af8051"
+    },
+    "cost": "Same once-per-generation native request and existing reads, with a small fixed cause check and one queue read. No new scan/worker/timer/network schema. Actual cost remains unmeasured.",
+    "limits": [
+      "Request issue is not seat-change acknowledgement, actual station readiness or resumed fire.",
+      "Physical immobilised/active-hit/medical/seat/owner-transfer cases, balance, internal seat support and performance remain unverified.",
+      "No complete mounted fleeing/abandonment/fuel policy or source parity claimed.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/notes postdate package. Audits paused; no scores renewed."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "addons/vehicles/functions/cortexVehicles.sqf": "f5196f861cb6f4caa41bbdd2b179278ee4c7d85029b702ef9a157f25f65a79fb",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "ab98c1fdbd6347c7d267a0a9a6a1c7fc7a3ba1ab1c69cd301165e501de437a0c"
+    }
   }
 }

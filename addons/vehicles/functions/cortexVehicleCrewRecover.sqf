@@ -2,6 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Preserve one useful armed vehicle after its primary gunner is lost by assigning an
  * eligible existing commander to the empty gunner role during a confirmed danger generation.
+ * Detection or fresh incoming-fire danger may trigger the same finite request. An immobilised
+ * platform can retain useful firepower; mobility is not required for an internal seat change.
+ * The caller excludes current abandonment cases. Queued ACE care forbids reassignment.
  * Locality / Authority: Runs on the current group owner. It changes only a local AI commander's
  * assigned vehicle role and asks the engine to perform an internal seat change. Zeus, player,
  * specialist, convoy and authored task ownership always win.
@@ -38,8 +41,8 @@ private _reject={
     false
 };
 if (isNull _group || {!local _group} || {isNull _vehicle} || {!local _vehicle}
-    || {_generation < 0} || {_cause != "DETECTED"}
-    || {!alive _vehicle} || {!canMove _vehicle} || {!someAmmo _vehicle}
+    || {_generation < 0} || {!(_cause in ["DETECTED","HIT","EXPLOSION","SUPPRESSED","GUNFIRE"])}
+    || {!alive _vehicle} || {!someAmmo _vehicle}
     || {abs speed _vehicle >= 20} || {_vehicle getVariable ["CBE_Convoy_Active",false]}
     || {!([_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
@@ -61,7 +64,8 @@ if ([_candidate] call CBE_fnc_CortexActorMoveReserved
     || {([_candidate] call CBE_fnc_CortexExternalOwner) != ""}
     || {[_candidate] call CBE_fnc_CompatibilityExternalControl}) exitWith {["ACTOR_OWNERSHIP"] call _reject};
 private _command=toUpperANSI currentCommand _candidate;
-if (fleeing _candidate || {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {["NATIVE_TASK"] call _reject};
+if (fleeing _candidate || {(_candidate getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+    || {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {["NATIVE_TASK"] call _reject};
 if (_command == "STOP" || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
     || {!simulationEnabled _candidate} || {isObjectHidden _candidate}
     || {!(_candidate checkAIFeature "MOVE")} || {!(_candidate checkAIFeature "PATH")}

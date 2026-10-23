@@ -10315,9 +10315,14 @@ class CortexOperations(unittest.TestCase):
         vehicles=source('cortexVehicles')
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
         self.assertIn('class CortexVehicleCrewRecover',registry)
-        for marker in ['_cause != "DETECTED"','abs speed _vehicle >= 20','CBE_Convoy_Active',
+        for marker in ['!(_cause in ["DETECTED","HIT","EXPLOSION","SUPPRESSED","GUNFIRE"])','abs speed _vehicle >= 20','CBE_Convoy_Active',
                        'CBE_AIPass_VehicleGunnery_Enable','CortexExternalTakeover','CortexZeusHeld']:
             self.assertIn(marker,recovery)
+        self.assertNotIn('!canMove _vehicle',recovery)
+        self.assertLess(recovery.index('ace_medical_ai_healQueue'),recovery.index('_candidate assignAsGunner'))
+        invocation=vehicles.split('if (_freshCrewRecovery',1)[1].split('private _freshGeneration=',1)[0]
+        self.assertIn('_dangerHostile',invocation)
+        self.assertIn('!(_emplacementUnsafe || {_disabledUnsafe})',invocation)
         self.assertIn('_candidate=commander _vehicle',recovery)
         self.assertIn('_candidate == driver _vehicle',recovery)
         self.assertIn('_candidate assignAsGunner _vehicle',recovery)
