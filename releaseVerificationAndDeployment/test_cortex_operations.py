@@ -9656,14 +9656,25 @@ class CortexOperations(unittest.TestCase):
                        'call CBE_fnc_FlightLeaseValid','call CBE_fnc_FlightLeaseRelease'):
             self.assertIn(marker,climb)
         self.assertLess(climb.index('FlightLeaseValid'),climb.index('flyInHeight'))
-        self.assertLess(climb.index('flyInHeight'),climb.index('CBE_AIPass_AirborneClimb'))
-        self.assertLess(climb.index('CBE_AIPass_AirborneClimb'),climb.index('FlightLeaseRelease'))
+        self.assertLess(climb.index('flyInHeight'),climb.index('_state set ["airborneClimb"'))
+        self.assertLess(climb.index('_state set ["airborneClimb"'),climb.index('FlightLeaseRelease'))
         finish=source('cortexAirborneDropStep').split('private _finish =',1)[1].split('if (isNull _group',1)[0]
-        self.assertLess(finish.index('_episode isEqualTo (_aircraft'),finish.index('CBE_AIPass_AirborneClimb'))
-        self.assertIn('"CBE_AIPass_AirborneClimb",nil',finish)
+        self.assertLess(finish.index('_episode isEqualTo (_group'),finish.index('deleteAt "airborneClimb"'))
+        self.assertIn('deleteAt "airborneClimb"',finish)
+        context=start.split('private _climbContext=',1)[1].split('private _climbToken=',1)[0]
+        for marker in ('_aircraft,_pilot,effectiveCommander _aircraft,clientOwner',
+                       'CBE_AIPass_Epoch','_pilotRoute,_requestedHeight',
+                       'getOrDefault ["airborneClimb",[]]) isNotEqualTo _climbContext'):
+            self.assertIn(marker,context)
+        self.assertNotIn('_target',context)
+        self.assertIn('waypointPosition [_pilotGroup,_pilotWaypoint]',start)
+        self.assertIn('waypointType [_pilotGroup,_pilotWaypoint]',start)
+        self.assertIn('if (_riding isEqualTo []) exitWith {_state deleteAt "airborneClimb";',start)
+        self.assertNotIn('CBE_AIPass_AirborneClimb',start)
+
         shutdown=source('cortexStop').split('private _airborneStopEpisode=',1)[1]
         self.assertIn('local _aircraft',shutdown)
-        self.assertLess(shutdown.index('isEqualTo _airborneStopEpisode'),shutdown.index('CBE_AIPass_AirborneClimb'))
+        self.assertIn('deleteAt "airborneClimb"',source('cortexStop'))
 
 
         step=source('cortexAirborneDropStep')

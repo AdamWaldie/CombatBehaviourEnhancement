@@ -260,6 +260,7 @@ if (!isNil "_civilianCreated") then {
         _x setVariable ["CBE_Danger_BuildingClue",nil,true];
         _x setVariable ["CBE_Danger_BuildingClueSeen",nil,true];
         _x setVariable ["CBE_Danger_BuildingVisits",nil];
+        (_x getVariable ["CBE_AIPass_State",createHashMap]) deleteAt "airborneClimb";
         _x setVariable ["CBE_Danger_Casualties",nil,true];
     };
     {
@@ -447,7 +448,6 @@ private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missio
             if (!isNull _aircraft && {local _aircraft}
                 && {(_aircraft getVariable ["CBE_AIPass_DropEpisode",[]]) isEqualTo _airborneStopEpisode}) then {
                 _aircraft setVariable ["CBE_AIPass_DropUntil",nil];
-                _aircraft setVariable ["CBE_AIPass_AirborneClimb",nil];
                 _aircraft setVariable ["CBE_AIPass_DropEpisode",nil,true];
             };
         };

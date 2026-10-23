@@ -89,5 +89,30 @@
       "A climb request before an insertion that never starts still retains its one-shot flag; no unowned automatic height reset or new retry loop introduced.",
       "Actual controller preemption, repeated drops, abort/locality timing and runtime overhead remain unverified. Audits paused; no launch or publishing."
     ]
+  },
+  "climbContext20261023": {
+    "baseline": "6cbcef59",
+    "supersedes": "Permanent aircraft-local climb flag, including prior pre-insertion-never-started limitation. Existing one-shot shared flight lease remains.",
+    "implementation": "One existing group-state key airborneClimb stores the exact last requested airframe/pilot/commander/client/passenger epoch/pilot group+epoch/waypoint count+index+position+type/requested height context. Only changed context can request again. Native contact-belief drift is excluded. Refused flight ownership does not record success. No aircraft flag, worker, timeout refresh or new scan. Empty rider selection, exact current insertion finish and existing local shutdown remove metadata without height commands.",
+    "hashes": {
+      "addons/aircraft/functions/cortexAirborneCheck.sqf": "c22b7fde85282a7009d680c5d43d236c247ec6f0f0afb2fe9eb70ceb5c6aec2e",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "c0513f7c66024df2e17d4b965987ec46ad1366d5a9d094b774a7dc813857d7a5",
+      "addons/core/functions/cortexStop.sqf": "a29164454b31e270f1819834fdf873369422ce12055efeee2c514be0a9a32524"
+    },
+    "validation": {
+      "focusedExistingTests": 610,
+      "fullExistingTests": 1491,
+      "newCases": 0,
+      "build": ".qa/airborne-climb-context-build.log",
+      "independent": ".qa/airborne-climb-context-independent.log",
+      "candidate": ".qa/candidates/airborne-climb-context-6cbcef59",
+      "fingerprint": "b95846241d9ce855c489ee674f9fcfb572a3f3f4a219564b1d278420d707d054",
+      "provenance": "Unsigned dirty development snapshot preserving unrelated dirt; review/handover afterward."
+    },
+    "limits": [
+      "Receipt records a request, not current desired native height or physical climb. It is bounded metadata, not ongoing flight authority.",
+      "Mission-script height or native goal changes with unchanged captured authored route are not inferable from this receipt; no universal external-order detection or restoration claimed.",
+      "Actual repeated approach/drop/owner change/arbitration and runtime overhead remain unverified. Audits paused."
+    ]
   }
 }
