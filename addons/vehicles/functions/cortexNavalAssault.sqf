@@ -19,7 +19,10 @@
  * passenger groups and a replacement owner can continue or release it.
  * Repeat/JIP: one token and deadline bound every approach. Refused operation/waypoint admission
  * publishes no moving role; draft generations/leases retire before returning. Passenger and crew
- * continuation stop at the outer action boundary when operation creation refuses. Completion, expiry, a closed feature
+ * continuation stop at the outer action boundary when operation creation refuses.
+ * Expired local/durable/boat-plan episodes retire before replanning; expiry is never landing
+ * success. Completion requires the disembark phase and no living cargo. New infantry delivery
+ * requires living cargo in at most64 observed crew rows; empty gunboats retain native combat. Completion, expiry, a closed feature
  * gate, external ownership and Zeus cleanup all restore exact speed and remove only CBE orders.
  *
  * Arguments:
@@ -57,14 +60,16 @@ private _operation=_state getOrDefault ["navalOperation",[]];
 // never replay its previous waypoint or extend its original deadline.
 if (_operation isEqualTo []) then {
     private _durable=_group getVariable ["CBE_Cortex_NavalOperation",[]];
-    if (count _durable == 5 && {serverTime >= (_durable select 4)}) exitWith {
-        _state set ["navalOperation",+_durable];
-        [_group,_state] call CBE_fnc_CortexNavalRelease;
-    };
-    if (count _durable == 5 && {serverTime < (_durable select 4)}) then {
+    if (count _durable == 5) then {
         _operation=+_durable;
         _state set ["navalOperation",_operation];
     };
+};
+// Expired local and reconstructed episodes retire before any new planning or crew command.
+// An inner exit during reconstruction would leave the outer action free to restart the route.
+if (count _operation == 5 && {serverTime >= (_operation select 4)}) exitWith {
+    [_group,_state,"EXPIRED"] call CBE_fnc_CortexNavalRelease;
+    false
 };
 // A passenger landing, boat approach or disembark must yield as a whole when a curator,
 // player or specialist controller takes either group. Release removes only CBE-owned state.
@@ -159,6 +164,12 @@ if (!_commandsBoat) exitWith {
 
 // Boat crew: adopt or create the single public plan.
 private _plan=_boat getVariable ["CBE_Cortex_NavalPlan",[]];
+if (count _plan == 9 && {(_plan select 1) == _group} && {(_plan select 2) == _boat}
+    && {serverTime >= (_plan select 7)}) exitWith {
+    _state set ["navalOperation",[_plan select 0,_boat,"CREW",_plan select 6,_plan select 7]];
+    [_group,_state,"EXPIRED"] call CBE_fnc_CortexNavalRelease;
+    false
+};
 if (count _plan == 9 && {(_plan select 8) == "LANDED"} && {serverTime < (_plan select 7)}) exitWith {false};
 if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan select 7)}) exitWith {
     _plan params ["_token","_crewGroup","_plannedBoat","_approach","_landing","_shore","_egress","_expires","_phase"];
@@ -209,7 +220,7 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
             _seat == "cargo" || {_seat == "turret" && {_x select 4}}
         });
     };
-    if (_remaining < 0 || {serverTime >= _expires}) then {
+    if ((_plan select 8) == "DISEMBARK" && {_remaining < 0}) then {
         if (local _boat) then {
             private _saved=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
             private _ownedStop=_saved param [1,-2];
@@ -234,6 +245,12 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
 };
 
 if (_enemies isEqualTo [] || {!surfaceIsWater (getPosATL _boat)}) exitWith {false};
+// Infantry delivery requires living landing cargo; gunboat combat is a separate behaviour.
+private _landingCrew=fullCrew [_boat,"",false];
+if (count _landingCrew > 64 || {_landingCrew findIf {
+    private _passenger=_x select 0;
+    alive _passenger && {(_x select 1) == "cargo" || {(_x select 1) == "turret" && {_x select 4}}}
+} < 0}) exitWith {false};
 private _contact=_enemies select 0;
 private _target=_contact select 0;
 private _targetPos=_contact select 1;

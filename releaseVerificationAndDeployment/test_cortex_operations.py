@@ -10602,6 +10602,16 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('if (count _landingOperation == 0) exitWith',passenger)
         resumed=naval.split('// Boat crew: adopt or create',1)[1].split('private _remaining=',1)[0]
         self.assertIn('if (_crewGeneration < 0) exitWith',resumed)
+        expiry=naval.split('if (count _operation == 5 && {serverTime >= (_operation select 4)}) exitWith',1)[1].split('// A passenger landing',1)[0]
+        self.assertIn('"EXPIRED"] call CBE_fnc_CortexNavalRelease',expiry)
+        self.assertNotIn('CortexGroupMove',expiry)
+        self.assertNotIn('if (count _durable == 5 && {serverTime >=',naval)
+        self.assertIn('if ((_plan select 8) == "DISEMBARK" && {_remaining < 0})',naval)
+        self.assertNotIn('if (_remaining < 0 || {serverTime >= _expires})',naval)
+        admission=naval.split('private _landingCrew=',1)[1].split('private _contact=',1)[0]
+        self.assertIn('count _landingCrew > 64',admission)
+        self.assertIn('alive _passenger',admission)
+
         self.assertNotIn('if (count _crewOperationRecord == 0) exitWith',resumed)
         vehicles=source('cortexVehicles')
         standoff=vehicles.split('private _operation=[_group,"VEHICLE_STANDOFF"',1)[1]
