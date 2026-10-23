@@ -3391,7 +3391,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true]',admission)
         self.assertIn('serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])',step)
         self.assertNotIn('_job set ["hardDeadline"',step)
-        self.assertIn('|| {!_allWorkersEntered} || {!_allWorkersProgressed}',step)
+        self.assertIn('|| {!_egressEntered} || {!_egressProgressed}',step)
 
     def test_clearance_preserves_failure_evidence_after_release(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
@@ -11452,7 +11452,14 @@ class CortexOperations(unittest.TestCase):
 
     def test_clearance_deadline_cannot_fabricate_partner_entry_success(self):
         text=source('buildingOperationStep')
-        self.assertIn('|| {!_allWorkersEntered} || {!_allWorkersProgressed}',text)
+        expiry=text.index('if (serverTime > ((_job get "deadline") min (_job getOrDefault ["hardDeadline",_job get "deadline"]))) exitWith {',text.index('private _beginEgress='))
+        self.assertLess(expiry,text.index('// Refill casualties'))
+        self.assertLess(expiry,text.index('private _visitIndices='))
+        self.assertLess(expiry,text.index('_job set ["deadline",(_job get "deadline") max (serverTime+120)]'))
+        self.assertIn('] call _beginEgress',text[expiry:text.index('// Refill casualties')])
+        self.assertIn('[_activeWorkers,_allWorkersEntered,_allWorkersProgressed] call _beginEgress',text)
+        self.assertEqual(text.count('_job set ["egressDeadlineServer",serverTime+45]'),1)
+        self.assertIn('|| {!_egressEntered} || {!_egressProgressed}',text)
         self.assertIn('(_job getOrDefault ["entryFailed",false])',text)
         result=text.split('private _result =',1)[1].split('_group setVariable ["CBE_Cortex_ClearResult"',1)[0]
         self.assertIn('!(_job getOrDefault ["entryFailed",false])',result)

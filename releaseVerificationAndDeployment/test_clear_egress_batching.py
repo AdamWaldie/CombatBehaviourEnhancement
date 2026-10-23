@@ -10,14 +10,14 @@ class ClearEgressBatchingTests(unittest.TestCase):
         cls.start = (ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
 
     def test_transition_does_not_search_or_command_pending_workers(self):
-        transition = self.step.split('// Defer expensive exterior planning;',1)[1].split('private _phase=toUpperANSI',1)[0]
+        transition = self.step.split('// Defer expensive exterior planning;',1)[1].split('\n    };\n    if (serverTime >',1)[0]
         for forbidden in ('call _chooseExteriorExit', ' doMove ', 'getPosATL _unit;'):
             self.assertNotIn(forbidden, transition)
         self.assertIn('_pending pushBack [_unit,+(_moves getOrDefault', transition)
         self.assertIn('"egressDeadlineServer",serverTime+45', transition)
 
     def test_one_allocation_still_services_existing_travel_and_pending_blocks_success(self):
-        block = self.step.split('// End exterior planner;',1)[1].split('private _reserveReady=',1)[0]
+        block = self.step.split('// End exterior planner;',1)[1].split('    private _positions = _job get',1)[0]
         self.assertEqual(block.count('call _chooseExteriorExit'),1)
         self.assertEqual(block.count('_pending deleteAt _readyIndex'),1)
         self.assertIn('time < (_job get "egressDeadline")',block)

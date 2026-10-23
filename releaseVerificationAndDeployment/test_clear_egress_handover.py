@@ -22,7 +22,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
 
     def test_transition_preserves_replacement_before_first_exit_order(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
-        transition = source.split('// Complete physical coverage and participation', 1)[1]
+        transition = source.split('private _beginEgress={', 1)[1].split('\n    };\n    if (serverTime >', 1)[0]
         admission = transition.split('private _entries=', 1)[0]
         self.assertIn('if !([_actor] call _exitMovementOwned) then', admission)
         ownership=source.split('private _exitMovementOwned={',1)[1].split('private _activeOwnMove=',1)[0]

@@ -1367,6 +1367,75 @@ private _delay=call {
     private _retryChanged = false;
     private _pairs=_job get "pairs";
     private _pairStates=_job get "pairStates";
+    // One transition owns expiry and successful completion alike. Expired sweep callbacks
+    // enter this before promotion, room observation or movement; a late visit cannot renew them.
+    private _beginEgress={
+        params ["_egressWorkers","_egressEntered","_egressProgressed"];
+        private _actorVisits=_job getOrDefault ["actorVisits",createHashMap];
+        // Room coverage does not prove that every active clearing actor entered.
+        // A deadline may release the operation, but cannot convert missing participation to success.
+        if (!(_job getOrDefault ["entryFailed",false]) && {!_egressEntered || {!_egressProgressed}}) then {
+            private _cause=["SWEEP_PARTICIPATION",serverTime,_job get "deadline",_job get "hardDeadline",
+                (_egressWorkers select [0,16]) apply {[netId _x,_x in (_job getOrDefault ["enteredActors",[]]),count (_actorVisits getOrDefault [netId _x,[]])]}];
+            _job set ["entryFailureCause",_cause];
+            diag_log format ["CBE CLEAR ENTRY FAILURE: %1",[_job get "generation",_cause]];
+        };
+        _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_egressEntered} || {!_egressProgressed}];
+        private _active=[];
+        {_active append _x} forEach (_job get "pairs");
+        _active=_active arrayIntersect _active;
+        _active=_active select {[_x] call _actorAvailable && {!(_x in _unavailable)}};
+        // Admission must honour replacement orders before the first exit leg is issued.
+        // The EGRESS callback cannot detect an order that this transition already overwrote.
+        private _diverted=_job getOrDefault ["egressDiverted",[]];
+        _active=_active select {
+            private _actor=_x;
+            if !([_actor] call _exitMovementOwned) then {
+                _diverted pushBackUnique _actor;
+                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
+            };
+            !(_actor in _diverted)
+        };
+        if (_diverted isNotEqualTo []) then {_job set ["egressFailed",true]};
+        _job set ["egressDiverted",_diverted];
+        // Defer expensive exterior planning; pending actors retain their owned room leg.
+        private _moves=_job getOrDefault ["movementTargets",createHashMap];
+        private _pending=[];
+        private _egressAssignments=[];
+        {
+            private _unit=_x;
+            private _early=_earlyExits getOrDefault [netId _unit,[]];
+            if (_early isNotEqualTo []) then {
+                _egressAssignments pushBack [_unit,+(_early select 1),(_early select 3) == "ARRIVED"];
+            } else {
+                _pending pushBack [_unit,+(_moves getOrDefault [netId _unit,[]]),0,0];
+            };
+        } forEach _active;
+        _job set ["egressPending",_pending];
+        _job set ["egressExitUses",createHashMap];
+        _job set ["phase","EGRESS"];
+        _job set ["egressAssignments",_egressAssignments];
+        _job set ["egressDeadline",time+45];
+        _job set ["egressDeadlineServer",serverTime+45];
+        _job set ["egressStartedServer",serverTime];
+        _job set ["egressProgress",_egressAssignments apply {
+            [_x select 0,(getPosATL (_x select 0)) vectorDistance (_x select 1),time,0]
+        }];
+        _group setVariable ["CBE_Cortex_ClearEgressRetries",[],true];
+        _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
+        0.1
+    };
+    if (serverTime > ((_job get "deadline") min (_job getOrDefault ["hardDeadline",_job get "deadline"]))) exitWith {
+        private _expiredRetired=_job getOrDefault ["rotatedOut",[]];
+        private _expiredWorkers=(_job get "team") select {[_x] call _actorAvailable
+            && {!(_x in _expiredRetired)} && {!(_x in _unavailable)}};
+        private _expiredVisits=_job getOrDefault ["actorVisits",createHashMap];
+        private _expiredRequired=2 min count _positions;
+        [_expiredWorkers,
+            _expiredWorkers findIf {!(_x in (_job getOrDefault ["enteredActors",[]]))} < 0,
+            _expiredWorkers findIf {count (_expiredVisits getOrDefault [netId _x,[]]) < _expiredRequired} < 0
+        ] call _beginEgress
+    };
     // Refill casualties from soldiers that were deliberately left on exterior security. This is
     // evaluated in the existing building job, so it adds no per-unit scheduler or event-handler cost.
     private _reserved=[];
@@ -4011,58 +4080,7 @@ private _delay=call {
     // Complete physical coverage and participation retire obsolete owned room legs.
     // Egress is the next generation-owned request; native planner BUSY is not extra clearance evidence.
     if (((count _cleared + count _unreachable) >= count _positions && {_allWorkersProgressed || {_unreachable isNotEqualTo []}} && {_evadingWorkers isEqualTo []}) || {serverTime > (_job get "deadline")} || {serverTime > (_job getOrDefault ["hardDeadline",_job get "deadline"])} || {_activeWorkers isEqualTo [] && {_evadingWorkers isEqualTo []}}) exitWith {
-        // Room coverage does not prove that every active clearing actor entered.
-        // A deadline may release the operation, but cannot convert missing participation to success.
-        if (!(_job getOrDefault ["entryFailed",false]) && {!_allWorkersEntered || {!_allWorkersProgressed}}) then {
-            private _cause=["SWEEP_PARTICIPATION",serverTime,_job get "deadline",_job get "hardDeadline",
-                (_activeWorkers select [0,16]) apply {[netId _x,_x in (_job getOrDefault ["enteredActors",[]]),count (_actorVisits getOrDefault [netId _x,[]])]}];
-            _job set ["entryFailureCause",_cause];
-            diag_log format ["CBE CLEAR ENTRY FAILURE: %1",[_job get "generation",_cause]];
-        };
-        _job set ["entryFailed",(_job getOrDefault ["entryFailed",false]) || {!_allWorkersEntered} || {!_allWorkersProgressed}];
-        private _active=[];
-        {_active append _x} forEach (_job get "pairs");
-        _active=_active arrayIntersect _active;
-        _active=_active select {[_x] call _actorAvailable && {!(_x in _unavailable)}};
-        // Admission must honour replacement orders before the first exit leg is issued.
-        // The EGRESS callback cannot detect an order that this transition already overwrote.
-        private _diverted=_job getOrDefault ["egressDiverted",[]];
-        _active=_active select {
-            private _actor=_x;
-            if !([_actor] call _exitMovementOwned) then {
-                _diverted pushBackUnique _actor;
-                (_job getOrDefault ["movementTargets",createHashMap]) deleteAt (netId _actor);
-            };
-            !(_actor in _diverted)
-        };
-        if (_diverted isNotEqualTo []) then {_job set ["egressFailed",true]};
-        _job set ["egressDiverted",_diverted];
-        // Defer expensive exterior planning; pending actors retain their owned room leg.
-        private _moves=_job getOrDefault ["movementTargets",createHashMap];
-        private _pending=[];
-        private _egressAssignments=[];
-        {
-            private _unit=_x;
-            private _early=_earlyExits getOrDefault [netId _unit,[]];
-            if (_early isNotEqualTo []) then {
-                _egressAssignments pushBack [_unit,+(_early select 1),(_early select 3) == "ARRIVED"];
-            } else {
-                _pending pushBack [_unit,+(_moves getOrDefault [netId _unit,[]]),0,0];
-            };
-        } forEach _active;
-        _job set ["egressPending",_pending];
-        _job set ["egressExitUses",createHashMap];
-        _job set ["phase","EGRESS"];
-        _job set ["egressAssignments",_egressAssignments];
-        _job set ["egressDeadline",time+45];
-        _job set ["egressDeadlineServer",serverTime+45];
-        _job set ["egressStartedServer",serverTime];
-        _job set ["egressProgress",_egressAssignments apply {
-            [_x select 0,(getPosATL (_x select 0)) vectorDistance (_x select 1),time,0]
-        }];
-        _group setVariable ["CBE_Cortex_ClearEgressRetries",[],true];
-        _group setVariable ["CBE_Cortex_ClearStatus",["EGRESS",count (_job get "cleared"),count (_job get "unreachable"),count (_job get "positions"),count (_job get "pairs"),serverTime],true];
-        0.1
+        [_activeWorkers,_allWorkersEntered,_allWorkersProgressed] call _beginEgress
     };
     1.5
 };

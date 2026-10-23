@@ -1444,3 +1444,8 @@ This adds no worker or scan: the existing finite cleanup searches the current wa
 ### Danger action-state behaviour replacement
 
 The engine danger FSM classifies a response in Init and executes it in a later action state. DangerEngineAct rechecks CARELESS before evasion, observation, posture, or attack-pace requests; changing to this authored behaviour between states therefore returns zero delay without a final CBE reaction. Classification and Waiting retain their existing release checks. The shared action helper covers the engine-loaded FSM without adding a second controller or repeating terrain/roster work. Existing owned cleanup still runs. Physical state-transition timing remains unverified while audits are paused.
+
+
+### Clearance expiry before sweep work
+
+An expired clearance callback now enters the existing egress transition before reserve promotion, room observation or further entry/sweep movement. This prevents a late callback from issuing another room request or renewing an already-expired stall deadline from a newly observed visit. Successful coverage and expiry share one egress transition, retaining actual participation checks, newer-task diversion, early-exit receipts and the existing45-second exit budget. Expiry grants no room visit or clearance success. No new scheduler or per-actor worker is added. Physical repeated clearance, casualty replacement, egress and runtime cost remain unverified while audits are paused.
