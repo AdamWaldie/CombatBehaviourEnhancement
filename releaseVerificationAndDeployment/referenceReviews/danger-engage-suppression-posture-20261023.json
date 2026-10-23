@@ -15,5 +15,20 @@
     ".qa/danger-engage-suppression-posture-build-reviewed.log",
     ".qa/danger-engage-suppression-posture-independent.log"
   ],
-  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Physical native suppression/posture/mobility/restoration, tactical balance and performance unverified. No tracker score/hash renewal. Audits paused."
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Physical native suppression/posture/mobility/restoration, tactical balance and performance unverified. No tracker score/hash renewal. Audits paused.",
+  "nativeBurstContinuationFollowup": {
+    "baseline": "49f6b3be",
+    "source": {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doSuppress.sqf",
+      "sha256": "3eeb2ab99ff564aab61ec691d9b3c93841a55a3e242a9f7c9357c056f682f9c7"
+    },
+    "sourceIntent": "LAMBS doSuppress refuses an existing native Suppress command, checks terrain/range and optionally LOS, clips long aim to 200m and first VIEW obstruction, checks nearby friendlies for the original close range, then issues watch plus suppressive fire. No upstream watch/reset, indiscriminate obstacle clipping or long-range friendly-check omission is copied.",
+    "engineReference": "https://community.bistudio.com/wiki/doSuppressiveFire",
+    "engineEvidence": "Native burst uses an engine-selected number of rounds and exposes currentCommand Suppress. A fixed CBE timestamp does not establish burst completion.",
+    "fixed": "CBE previously counted only LastSuppress newer than eight seconds. An ongoing native burst beyond that window no longer disappeared from the configured active-suppressor budget. Existing native SUPPRESS actors are also rejected before reserve/geometry discovery for another burst. Native bursts issued outside CBE count within the existing eligible stationary member roster.",
+    "integration": "Existing three-lane geometry bound, group randomized spacing, eight-second request/rest window, loaded primary bullet muzzle, reserve requirements, target belief, current medical/Zeus/native task and friendly-cone checks retained. No movement, additional worker, burst cancel or new timer.",
+    "limits": "Command observation is not shot acknowledgement or effective suppression. It does not count unavailable actors outside the existing eligible member roster or establish full LAMBS fire-control parity. Native burst spacing/ammo/balance/performance remain physically unverified; audits paused.",
+    "currentHash": "394f59c6a8b19a1323ea41d54bf8e8c9786a5561130c3c88ca583de27d6d81f3",
+    "validation": "610 focused operation checks,1491 full offline tests, HEMTT and independent candidate verification passed. Unsigned dirty development candidate .qa/candidates/suppression-native-burst-49f6b3be; fingerprint065ae2b7d53a7f04f3d27498519aff3037234f4ef8e074076052da7cb5d3cd22. Review and notes postdate build."
+  }
 }

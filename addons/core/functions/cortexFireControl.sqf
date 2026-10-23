@@ -31,6 +31,8 @@
  * rotates through its candidates at a 2.5-4 s interval. The first order receives a 0.25-2.25 s
  * short per-group random delay, so separate squads do not produce an uncanny global volley. This models
  * alternating or "talking" fire inside an element while leaving unrelated elements asynchronous.
+ * Ongoing native SUPPRESS commands count against the limit beyond the timestamp window and
+ * never receive another suppression request while that command remains active.
  * A suppressor needs at least two nonempty spare magazines and 60 rounds
  * for his weapon, must currently hold a loaded primary bullet muzzle with a completed magazine reload, must not himself be heavily
  * suppressed, and must have a clear line of fire
@@ -261,7 +263,9 @@ if (_suppressPos isNotEqualTo []) then {
     // Belief positions are ATL ground/body positions, not a disclosed enemy eye point.
     private _targetASL = (ATLToASL _suppressPos) vectorAdd [0,0,1];
     private _limit = missionNamespace getVariable ["CBE_AIPass_FireControl_MaxSuppressors", 2];
-    private _active = {(_x getVariable ["CBE_AIPass_LastSuppress", -1e6]) > _now - 8} count _members;
+    // Native bursts have engine-selected duration. A timestamp cannot retire an ongoing burst.
+    private _active = {toUpperANSI currentCommand _x == "SUPPRESS"
+        || {(_x getVariable ["CBE_AIPass_LastSuppress", -1e6]) > _now - 8}} count _members;
     private _nextWindow = _group getVariable ["CBE_AIPass_NextSuppress",-1];
     if (_nextWindow < 0) then {
         _nextWindow = _now + 0.25 + random 2;
@@ -279,6 +283,7 @@ if (_suppressPos isNotEqualTo []) then {
             if (_issued || {_geometryChecks >= 3}) exitWith {};
             private _unit = _members select (_x select 1);
             if (unitReady _unit && {!(_unit in _closeThreatActors)} && {!(_unit call _held)}
+                && {toUpperANSI currentCommand _unit != "SUPPRESS"}
                 && {(_unit getVariable ["CBE_AIPass_LastSuppress", -1e6]) <= _now - 8} && {getSuppression _unit < 0.5}) then {
                 private _weapon = primaryWeapon _unit;
                 // A carried rifle reserve does not qualify a pistol, empty muzzle or selected

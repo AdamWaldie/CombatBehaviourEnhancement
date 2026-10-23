@@ -4377,6 +4377,13 @@ class CortexOperations(unittest.TestCase):
         suppression = fire.split('// Disciplined suppression', 1)[1]
         self.assertIn('if (_issued || {_geometryChecks >= 3}) exitWith {}', suppression)
         self.assertIn('_cursor + 1', suppression)
+        active=suppression.split('private _active =',1)[1].split('private _nextWindow =',1)[0]
+        self.assertIn('toUpperANSI currentCommand _x == "SUPPRESS"',active)
+        self.assertIn('CBE_AIPass_LastSuppress',active)
+        self.assertIn('count _members',active)
+        candidate=suppression.split('private _unit = _members select',1)[1].split('private _weapon =',1)[0]
+        self.assertIn('toUpperANSI currentCommand _unit != "SUPPRESS"',candidate)
+
         self.assertGreaterEqual(fire.count('_group setVariable ["CBE_AIPass_NextSuppress",nil]'), 2)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runFireControl.sqf').read_text()
         for token in ['FIRE-talking-guns-rotated-suppressors',
