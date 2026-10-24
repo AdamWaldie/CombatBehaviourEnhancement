@@ -72,7 +72,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('"INVALID_CONTINUATION"',admission)
         self.assertIn('_job getOrDefault ["continueRoute",false],+(_job get "buildingTransform")], true]',s)
         block=s.split('// A natural clear is an interruption',1)[1].split('if (_reason == "NEW_ORDER"',1)[0]
-        for guard in ('_result == "COMPLETE"','waypointType _waypoint == "MOVE"',
+        for guard in ('_result in ["COMPLETE","INCOMPLETE"]','!(_job getOrDefault ["egressFailed",false])','waypointType _waypoint == "MOVE"',
                       'waypointScript _waypoint == ""','waypointTimeout',
                       'synchronizedWaypoints','synchronizedTriggers','waypointAttachedObject',
                       'currentCommand _actor == "STOP"','_actor in _settled',
@@ -82,6 +82,19 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertLess(s.index('call CBE_fnc_OperationRelease'),s.index('// A natural clear is an interruption'))
         self.assertLess(block.index('[_leader] call _mayContinue'),block.index('_leader doMove'))
         self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
+        # Safe route handback and full room coverage are separate outcomes.
+        # One inaccessible node previously kept this already-settled group held.
+        coverage,positions=4,5
+        result='COMPLETE' if coverage==positions else 'INCOMPLETE'
+        def continuation(opt_in=True,egress_failed=False,route_unchanged=True):
+            return opt_in and not egress_failed and route_unchanged and result in ('COMPLETE','INCOMPLETE')
+        self.assertEqual(result,'INCOMPLETE')
+        self.assertFalse(result=='COMPLETE') # former gate refuses every partial result
+        self.assertTrue(continuation())
+        self.assertFalse(continuation(opt_in=False))
+        self.assertFalse(continuation(egress_failed=True))
+        self.assertFalse(continuation(route_unchanged=False))
+        self.assertIn('_group setVariable ["CBE_Cortex_ClearResult",[_result,',s)
         for forbidden in ('addWaypoint','deleteWaypoint','setCurrentWaypoint','enableAI','setPos'):
             self.assertNotIn(forbidden,block)
 

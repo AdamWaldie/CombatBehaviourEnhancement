@@ -81,7 +81,8 @@
  *    order/generation. A cancelled or replaced snapshot refuses without retiring a successor.
  *    Natural contact entry uses preserveBrain so
  *    live fire control and contact transitions continue around the single building movement owner.
- *    continueRoute (BOOL, default false) returns a successful clear to its unchanged plain MOVE;
+ *    continueRoute (BOOL, default false) returns a safely exited clear to its unchanged plain MOVE;
+ *    incomplete room coverage remains INCOMPLETE and failed egress never qualifies;
  *    natural contact callers opt in. Failed/gated/no-route work retains post-clear settlement.
  *    The choice is durable on owner resume and grants no hostile-room safety claim.
  *    minimumActors (NUMBER, default 1) requires 1..16 integer task-free actors before handoff.

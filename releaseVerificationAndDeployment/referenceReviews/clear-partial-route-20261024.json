@@ -1,0 +1,31 @@
+{
+  "base": "7b43fb98",
+  "scope": "Natural contact-led clearance mission-route handback after safe partial search",
+  "finding": "Terminal clearance correctly reports INCOMPLETE for inaccessible/unvisited rooms, but opt-in continuation also required full COMPLETE. Safely settled actors after a finite partial search could remain held on an unchanged authored MOVE solely because coverage was incomplete. This is source policy evidence, not a reproduced physical stop.",
+  "change": "Allow COMPLETE or INCOMPLETE under existing natural completion reason, continueRoute opt-in and nonfailed egress. Result/coverage publication unchanged. Exact original plain ungated MOVE/native receipt, current operation retirement, actor STOP/post availability, owner/generation, existing formation chain and external-control checks remain. Explicit CLEAR default continuation false unchanged.",
+  "intent": "Finite incidental clearance should relinquish its interruption of mission movement when actors safely exit; returning to original mission movement is not proof the house is safe. An inaccessible modded node must not itself grant permanent route ownership.",
+  "validation": {
+    "focusedExistingCases": 8,
+    "fullTests": 1491,
+    "compiledSQF": 412,
+    "pbos": 9,
+    "newCases": 0,
+    "counterexample": "4/5 physically visited nodes produce INCOMPLETE; safe opted-in handback now eligible, explicit/no-opt-in, failed egress and changed route still refuse.",
+    "candidate": ".qa/candidates/clear-partial-route-7b43fb98",
+    "fingerprint": "dc8124596db9af86b9baa84980cf5d740570cc2cf350200271700a99ba5eb1e0",
+    "logs": [
+      ".qa/clear-partial-route-focused.log",
+      ".qa/clear-partial-route-build.log",
+      ".qa/clear-partial-route-independent.log"
+    ]
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "99ff2823ec029b0ad02b1aff9540fed45a97f323efc8036b29a65cb2c97edc18",
+    "addons/infantry/functions/cortexBuildingContact.sqf": "681c9c5b39f7b2cc110adb17c1f18b9a1d91add3019687e9ed3a919a4afddd36",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "97b365c9b20fda2014676c1acc27bb1b1c7c198dc5cb4636c59b95e125f31ec1",
+    "releaseVerificationAndDeployment/test_clear_egress_handover.py": "63505829725e309c419093cac8ce8ae7931f88627d6ab7656b221aefdc0a09dc"
+  },
+  "limits": "No actual inaccessible-building continuation, native acknowledgement/travel, threat response after return, repeat, normal/HC or performance proof. Existing no-replay native handback limitations remain. No claim this resolves historical sprawl/exit screenshots. Unsigned dirty candidate includes unrelated preexisting dirt; review/handover postdate package. No source-parity/build percentage credit.",
+  "audits": "PAUSED",
+  "physicalAcceptance": false
+}

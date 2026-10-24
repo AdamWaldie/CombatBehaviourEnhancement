@@ -2752,3 +2752,10 @@ The five-second upkeep is an observation at request time. It does not pin the en
 An active clearance retains up to64 actual death identities against its exact original building/transform/episode/deadline context. This event-only receipt is separate from the rolling eight-body, five-minute investigation list: later deaths and corpse cleanup cannot evict an earlier guard loss while that clearance remains active. Matching terminal completion/release removes it; owner transfer preserves the current episode receipt. Missing, expired or mismatched evidence still refuses deleted-guard substitution.
 
 This records a loss, not a casualty position or replacement authority. A present living guard defeats old loss evidence. Existing reserve eligibility, physical arrival and exit-observation checks still govern replacement, and no room visit or coverage is inferred. More than64 recorded deaths in one episode retain the first64 without guessing later losses. Replication/locality and physical casualty-replacement behaviour remain unverified while audits are paused.
+
+
+### Natural clearance after a partial search
+
+Automatic contact-led clearance opts into returning to the original plain MOVE route after safe egress. Inaccessible or unvisited rooms still produce INCOMPLETE; safe return to the mission route does not grant room coverage or building safety. This prevents a finite partial search from leaving safely settled actors permanently held solely because room coverage was incomplete. Explicit CLEAR tasks retain the default continuation-off hold policy.
+
+Failed egress cannot grant this handback. The existing exact native route, plain ungated MOVE, actor STOP/post, owner/generation, formation-chain and external-control checks remain required; newer individual or mission orders are preserved. Physical partial-search handback, repeat behaviour and performance remain unverified while audits are paused.

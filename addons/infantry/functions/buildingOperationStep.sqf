@@ -725,9 +725,12 @@ private _delay=call {
             };
         };
         // A natural clear is an interruption of an existing route, not a permanent hold.
-        // Only actual successful participation/egress permits this opt-in continuation.
-        // No waypoint reconstruction, scripted/gated shortcut or recalled individual MOVE.
-        if (_reason == "COMPLETE" && {_result == "COMPLETE"}
+        // Safe egress permits this opt-in handback even when inaccessible rooms leave
+        // the search INCOMPLETE. Returning the authored route is not clearance credit.
+        // Failed egress, newer orders and scripted/gated routes never grant continuation.
+        // No waypoint reconstruction or recalled individual MOVE.
+        if (_reason == "COMPLETE" && {_result in ["COMPLETE","INCOMPLETE"]}
+            && {!(_job getOrDefault ["egressFailed",false])}
             && {_job getOrDefault ["continueRoute",false]} && {_settled isNotEqualTo []}) then {
             private _index=currentWaypoint _group;
             private _waypoint=[_group,_index];

@@ -7,7 +7,8 @@
  * through the shared selector, bounded to three recent infantry contacts. Natural admission requests four actually eligible
  * actors from the executor; nominal headcount cannot satisfy that threshold.
  * The common building operation remains the sole
- * movement owner. After successful clearance it may return to the unchanged plain authored MOVE,
+ * movement owner. After safe egress it may return to the unchanged plain authored MOVE,
+ * even when inaccessible rooms leave the result INCOMPLETE; no room safety is inferred,
  * preserving native behaviour/ROE and newer actor orders. Believed inclusion/roof geometry is not proof an enemy remains in that house.
  * Repeat/JIP: A per-group cooldown bounds failed topology and executor admission checks. An accepted clear publishes its
  * normal durable order and is reconstructed by the new owner after locality migration.
