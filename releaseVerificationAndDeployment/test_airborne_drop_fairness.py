@@ -84,9 +84,10 @@ class AirborneDropFairnessTests(unittest.TestCase):
                       '(expectedDestination _actor) isNotEqualTo _destination','formLeader _actor != _leader'):
             self.assertIn(proof,commit)
         self.assertIn('private _joined=_cargo select {group _x == _ground}',helper)
-        self.assertIn('currentCommand _x in ["STOP","GET IN"',before)
+        self.assertIn('private _protectedCommands=["STOP","GET IN"',before)
+        self.assertIn('currentCommand _x in _protectedCommands',before)
         after_join=helper.split('_cargo joinSilent _ground;',1)[1]
-        self.assertLess(after_join.index('currentCommand _x == "STOP"'),after_join.index('_ground addWaypoint'))
+        self.assertLess(after_join.index('currentCommand _x in _protectedCommands'),after_join.index('_ground addWaypoint'))
         self.assertIn('_alive findIf {toUpperANSI currentCommand _x == "STOP"} < 0',step)
         mission_route=helper.split('if (count waypoints _ground > 1) then {',1)[1].split('} else {',1)[0]
         self.assertIn('count _joined == count _cargo',mission_route)

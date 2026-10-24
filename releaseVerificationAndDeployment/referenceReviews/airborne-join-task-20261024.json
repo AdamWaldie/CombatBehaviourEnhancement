@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "source_base": "601c2255",
+  "finding": "Post-join mission task protection checked STOP only, unlike pre-join admission. Synchronous mission join handlers can assign other protected tasks.",
+  "implementation": "One bounded protected native command list is used before transfer and before search waypoint or brain startup. Actual joined actors remain joined; partial receipt prevents another join. No movement controller, retry or task cancellation added.",
+  "candidate": ".qa/candidates/airborne-join-task-601c2255",
+  "fingerprint": "8fa628b4d112d8dda0591a9fac7cfa1b5c5afb8571eab17be0839d7dc05b8500",
+  "provenance": "Unsigned dirty development package; unrelated local changes preserved. Clean a6735a13 candidate remains unchanged and does not include this fix.",
+  "validation": "Five existing airborne tests pass; full offline build and independent package verification pass. Static contracts are not engine timing proof.",
+  "physical": "UNRUN; audits PAUSED. Retest mission join-handler HEAL/REARM/STOP and ordinary join command transitions before acceptance.",
+  "remaining": "All-passenger readiness barrier and one-shot partial transfer remain; no early split or late-arrival join implemented."
+}
