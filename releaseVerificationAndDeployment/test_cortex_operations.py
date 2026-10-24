@@ -2548,7 +2548,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_actorContext] select {alive _x && {group _x == _group}}',eligible)
         self.assertNotIn('_alive=_alive select',eligible)
         takeover=source('cortexExternalTakeover')
-        for veto in ('_members findIf {isPlayer _x}', '_members findIf {!isNull (remoteControlled _x)}',
+        for veto in ('isPlayer _x', '!isNull (remoteControlled _x)',
                      'bis_fnc_moduleRemoteControl_owner'):
             self.assertIn(veto,takeover)
 
@@ -5024,7 +5024,9 @@ class CortexOperations(unittest.TestCase):
     def test_external_takeover_uses_one_cached_member_scan(self):
         takeover=source('cortexExternalTakeover')
         self.assertIn('private _members=units _group;',takeover)
-        self.assertIn('_specialistSubjects findIf {[_x] call CBE_fnc_CortexExternalOwner != ""}',takeover)
+        self.assertIn('[_x] call CBE_fnc_CortexExternalOwner != ""',takeover)
+        self.assertEqual(takeover.count('_members findIf'),1)
+        self.assertEqual(takeover.count('_specialistSubjects findIf'),1)
         self.assertIn('if (isNull _actorContext) then {_members} else {[_actorContext]}',takeover)
         self.assertNotIn('([leader _group] call CBE_fnc_CortexExternalOwner)',takeover)
         self.assertNotIn('isPlayer leader _group',takeover)
@@ -5047,7 +5049,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_delayed_vehicle_and_building_release_restore_shutdown_but_yield_to_external_owners(self):
         takeover=source('cortexExternalTakeover')
-        for marker in ['_members findIf {isPlayer _x} >= 0','CBE_fnc_CortexZeusHeld',
+        for marker in ['isPlayer _x','CBE_fnc_CortexZeusHeld',
                        'CBE_fnc_CortexExternalOwner','CBE_fnc_CompatibilityExternalControl']:
             self.assertIn(marker,takeover)
         self.assertIn('if (isNull _group) exitWith {true};',takeover)
@@ -5554,8 +5556,9 @@ class CortexOperations(unittest.TestCase):
 
     def test_external_takeover_boolean_chain_starts_with_a_boolean(self):
         takeover = source('cortexExternalTakeover')
-        self.assertIn('(_members findIf {isPlayer _x} >= 0)\n||', takeover)
-        self.assertNotIn('{_members findIf {isPlayer _x} >= 0}\n||', takeover)
+        self.assertIn('private _directTakeover=_members findIf {',takeover)
+        self.assertIn('} >= 0;\n_directTakeover\n||',takeover)
+        self.assertNotIn('{_directTakeover}\n||',takeover)
 
     def test_packaged_audit_stops_after_command_boundary_preflight_failure(self):
         addon = (ROOT / 'releaseVerificationAndDeployment/cortexQA/runAddon.sqf').read_text(encoding='utf-8')

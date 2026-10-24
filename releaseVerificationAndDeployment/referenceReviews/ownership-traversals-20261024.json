@@ -1,0 +1,25 @@
+{
+  "baseline": "ed40fa5a",
+  "scope": "Shared owner-boundary list traversal cost used by CQB, danger and cleanup callers",
+  "finding": "One units snapshot was reused, but the no-claim path traversed members three times for player/remote checks and scoped specialist subjects three times for Zen/specialist/platform checks. Repeated per-actor calls multiply that list traversal work.",
+  "implementation": "One cheap group direct-control pass followed by one scoped specialist/current-parent pass. Same actor-context narrowing, player/curator group scope, neutral declared ownership and per-call platform deduplication. No ownership result persists across calls, no command-boundary call removed, no new scan/worker/deadline.",
+  "semanticLimits": "Read order within specialist subjects changes; class memo may be populated for an earlier actor before a later Zen claim is found. Classification remains read-only except its existing bounded class memo. No provider or actor state is written.",
+  "validation": {
+    "focusedCases": 3,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/ownership-traversals-ed40fa5a",
+    "fingerprint": "e8ae97719ae39d2d9d56ca8b8974a56c4b5e98c9553939c8ec6f3f75f8c0809c",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "Six-to-two is list traversals on the no-claim path, not a frame-time speedup or measured5%/10% compliance",
+    "Existing real-crew occupied-platform boundary fixture remains prepared/unrun",
+    "No source parity or behaviour percentage changed",
+    "Unsigned dirty development preserves unrelated dirt; review/handover postdate package"
+  ],
+  "productionSHA256": "6b8780cbb9f1f7049a93e1cbcbd88852c24575fb04a91bf43ac1fe8cb0cf12bd"
+}

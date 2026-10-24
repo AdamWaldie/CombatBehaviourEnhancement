@@ -29,20 +29,21 @@ private _members=units _group;
 if (!isNull _actorContext && {group _actorContext != _group}) exitWith {true};
 private _specialistSubjects=if (isNull _actorContext) then {_members} else {[_actorContext]};
 
-(_members findIf {isPlayer _x} >= 0)
+// One cheap group footprint pass precedes the scoped specialist/platform pass.
+// Keep these fresh per call: a cached result is not command authority.
+private _directTakeover=_members findIf {
+    isPlayer _x || {!isNull (remoteControlled _x)}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+} >= 0;
+_directTakeover
 || {!_ignoreZeusHold && {[_group] call CBE_fnc_CortexZeusHeld}}
-|| {_members findIf {!isNull (remoteControlled _x)} >= 0}
-|| {_members findIf {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])} >= 0}
-|| {_specialistSubjects findIf {
-    (_x getVariable ["zen_ai_garrisoned",false]) || {_x getVariable ["zen_ai_isSuppressing",false]}
-} >= 0}
-|| {_specialistSubjects findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0}
 || {
-    // Crew may be ordinary soldiers while only their occupied platform declares control.
-    // Actor-local calls inspect only that actor's current parent; group commands inspect
-    // the actual occupied platforms once each. Assignment alone grants no inheritance.
     private _checkedPlatforms=[];
     _specialistSubjects findIf {
+        if ((_x getVariable ["zen_ai_garrisoned",false])
+            || {_x getVariable ["zen_ai_isSuppressing",false]}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}) exitWith {true};
+        // Current occupancy only; actor-scoped calls retain their narrow footprint.
         private _platform=objectParent _x;
         if (isNull _platform || {_platform in _checkedPlatforms}) exitWith {false};
         _checkedPlatforms pushBack _platform;
