@@ -1616,15 +1616,23 @@ private _jobStarted=[{_casualtyGroup getVariable ["CBE_AIPass_ClearBuilding",fal
 ["CLEAR-casualty-job-started",_jobStarted] call _check;
 private _initialOperation=_casualtyGroup getVariable ["CBE_Operation",createHashMap];
 private _initialParticipants=+(_initialOperation getOrDefault ["participants",[]]);
+private _casualtyGeneration=_initialOperation getOrDefault ["generation",-1];
+private _casualtyJob=(_casualtyGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+private _casualtyHardDeadline=_casualtyJob getOrDefault ["hardDeadline",-1];
 private _casualty=_initialParticipants param [0,objNull];
 private _reservePool=_casualtyMembers select {!(_x in _initialParticipants)};
 private _reserveStarts=_reservePool apply {getPosATL _x};
 private _reserve=objNull;
 private _reserveStart=[];
-["CLEAR-casualty-entry-and-reserve-fixture",!isNull _casualty && {_reservePool isNotEqualTo []},
+private _casualtyFixture=_casualtyAccepted && {_jobStarted} && {!isNull _casualty}
+    && {alive _casualty} && {_reservePool isNotEqualTo []}
+    && {_casualtyGeneration >= 0} && {_casualtyHardDeadline > serverTime};
+["CLEAR-casualty-entry-and-reserve-fixture",_casualtyFixture,
     str [_initialParticipants,_reservePool]] call _check;
 private _evidenceBefore=count (_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]]);
-_casualty setDamage 1;
+if (_casualtyFixture) then {_casualty setDamage 1};
+// Failed admission or ineffective fault injection cannot earn replacement credit.
+private _casualtyLost=_casualtyFixture && {!alive _casualty};
 private _reinforced=[{
     private _evidence=_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]];
     private _replacementIndex=_evidence findIf {(_x param [1,""]) == netId _casualty};
@@ -1636,11 +1644,14 @@ private _reinforced=[{
             _reserveStart=_reserveStarts select _poolIndex;
         };
     };
-    !isNull _reserve
+    _casualtyLost && {!isNull _reserve}
 },30] call _wait;
 ["CLEAR-casualty-reserve-assigned",_reinforced,str (_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]])] call _check;
 private _reserveOperation=_casualtyGroup getVariable ["CBE_Operation",createHashMap];
+private _reserveJob=(_casualtyGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
 ["CLEAR-casualty-shared-progress-roster",_reinforced
+    && {(_reserveOperation getOrDefault ["generation",-2]) == _casualtyGeneration}
+    && {(_reserveJob getOrDefault ["hardDeadline",-2]) == _casualtyHardDeadline}
     && {_reserve in (_reserveOperation getOrDefault ["participants",[]])}
     && {!(_casualty in (_reserveOperation getOrDefault ["participants",[]]))}
     && {(_reserveOperation getOrDefault ["participantProgress",[]]) findIf {(_x select 0) == _reserve} >= 0},

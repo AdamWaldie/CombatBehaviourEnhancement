@@ -3470,6 +3470,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('for "_i" from 0 to 9 do',case)
         self.assertIn('_casualty setDamage 1',case)
         self.assertIn('CBE_Cortex_ClearReinforcements',case)
+        for proof in ('private _casualtyFixture=', '_casualtyFixture && {!alive _casualty}',
+                      '_casualtyLost && {!isNull _reserve}',
+                      'getOrDefault ["generation",-2]) == _casualtyGeneration',
+                      'getOrDefault ["hardDeadline",-2]) == _casualtyHardDeadline'):
+            self.assertIn(proof,case)
         self.assertIn('CLEAR-casualty-reserve-assigned',case)
         self.assertIn('CLEAR-casualty-reserve-physical-movement',case)
         self.assertNotIn('setPos',case)

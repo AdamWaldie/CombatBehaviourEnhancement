@@ -1420,5 +1420,33 @@
     "candidate": ".qa/candidates/anti-armour-native-movement-59ec2dce",
     "fingerprint": "842dce1b40bba112e836b63c06845875038dae94c59a45da28278d7fcc7c4008",
     "limits": "Shared native-movement authority correction, not physical launcher response, aim/backblast/route continuity/normalHC or measured5/10performance proof. No reproduced straggler/animation defect claim. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no parity/percentage credit."
+  },
+  "clearanceCasualtyEvidence20261024": {
+    "base": "abf03026",
+    "scope": "Current casualty promotion, original deadline and terminal cleanup trace; not a renewed whole-source review.",
+    "executionTrace": "Existing reserveReady protects native care, flight, seats, movement reservations, mission movement flags and external control. PromotionProofCurrent checks callback-local coverage/native evidence before replacing the original vacant slot in the matching CLEAR operation. Original hard deadline is not renewed. Terminal finish uses exact movement ownership and egress diversion before hold/recall; no new production defect established in these selected paths.",
+    "auditGap": "Existing first casualty case required replacement event and roster participation, but did not explicitly require real death, accepted/live initial fixture, unchanged operation generation or original job hard deadline.",
+    "change": "Strengthened existing fixture, reserve-assigned and shared-progress checks. Kill stimulus only after valid admitted fixture; assignment cannot pass without actual death. Shared progress requires same generation and hard deadline. Existing independent movement and wall-aware entry checks retained. No new audit result rows, Python cases, production movement/pose/animation writes, worker or deadline.",
+    "hashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "3542ad587bea2480b7a813ea0135e962de1c52302da8fc3de5876c4b1db94f05",
+      "addons/core/functions/operationRelease.sqf": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8",
+      "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf": "ccc5d6dc3b33275721c9234d224bf61abb862f6356c557bc048c3edb5cfcd882",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "59140b6a6ac534d05bc2b6d569c435f10a37f54eb7f77e1f45b4633cdee50e96"
+    },
+    "validation": {
+      "focusedExisting": 610,
+      "fullExisting": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/clear-casualty-evidence-abf03026",
+    "fingerprint": "86e14e94e474bfd4355cfd036722e7c211d9c3b60b77f2ab07f735b0e2b978f5",
+    "logs": [
+      ".qa/clear-casualty-evidence-focused.log",
+      ".qa/clear-casualty-evidence-build.log",
+      ".qa/clear-casualty-evidence-independent.log"
+    ],
+    "limits": "Prepared procedure UNRUN; production behaviour unchanged. No actual casualty/refill, isolation, room flow, normal/HC, visual or5/10performance acceptance. Unsigned dirty development includes unrelated dirt; review/notes postdate package. No source parity or build-out percentage renewal. Audits PAUSED."
   }
 }
