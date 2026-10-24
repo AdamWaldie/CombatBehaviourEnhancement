@@ -15,6 +15,8 @@
  * assault/advance and reconsider a later child within the same original window, after
  * operation release and existing cooldowns. No group land route, leader switch, group split
  * or new job is introduced; no child start renews the handover expiry.
+ * Stop baselines are public and landing-token-bound so owner migration can restore only
+ * the exact cap borrowed for this landing. Missing transport waits within the original deadline.
  * Existing sparse actor discovery reaps pending native cleanup; no new worker is installed.
  * Disembark requests require current actor task/assignment authority and a low-motion boat.
  *
@@ -304,17 +306,39 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
         [_group,_state,"OPERATION_CHANGED"] call CBE_fnc_CortexNavalRelease;
         false
     };
+    private _stopPending=false;
+    private _stopReceipt=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
     if (_phase == "APPROACH" && {(_boat distance2D _landing) <= 45}) then {
+        private _stopOwned=false;
         if (local _boat) then {
-            if ((_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]]) isEqualTo []) then {
-                _boat setVariable ["CBE_Cortex_NavalForcedSpeed",[getForcedSpeed _boat,0]];
+            if (_stopReceipt isEqualTo []) then {
+                private _baseline=getForcedSpeed _boat;
+                if (finite _baseline && {_baseline >= -1}) then {
+                    _stopReceipt=[_baseline,0,_token,_group];
+                    // Publish before mutation so a replacement owner retains the baseline.
+                    _boat setVariable ["CBE_Cortex_NavalForcedSpeed",_stopReceipt,true];
+                    _boat forceSpeed 0;
+                };
             };
-            _boat forceSpeed 0;
+            _stopOwned=count _stopReceipt == 4 && {(_stopReceipt select 2) isEqualTo _token}
+                && {(_stopReceipt select 3) isEqualTo _group}
+                && {(_stopReceipt select 1) isEqualTo 0}
+                && {abs (getForcedSpeed _boat) <= 0.1};
         };
-        _plan set [8,"DISEMBARK"];
-        _boat setVariable ["CBE_Cortex_NavalPlan",_plan,true];
-        _group setVariable ["CBE_Cortex_NavalStatus",["DISEMBARK",_shore,_expires],true];
+        if (_stopOwned) then {
+            _plan set [8,"DISEMBARK"];
+            _boat setVariable ["CBE_Cortex_NavalPlan",_plan,true];
+            _group setVariable ["CBE_Cortex_NavalStatus",["DISEMBARK",_shore,_expires],true];
+        } else {_stopPending=true};
     };
+    if ((_plan select 8) == "DISEMBARK" && {!local _boat || {count _stopReceipt != 4}
+        || {!((_stopReceipt param [0,0]) isEqualType 0)} || {!finite (_stopReceipt select 0)}
+        || {(_stopReceipt select 0) < -1} || {!((_stopReceipt select 1) isEqualTo 0)}
+        || {!((_stopReceipt select 2) isEqualTo _token)} || {!((_stopReceipt select 3) isEqualTo _group)}
+        || {abs (getForcedSpeed _boat) > 0.1}}) then {_stopPending=true};
+    // Locality/receipt transport may lag. Wait only within the original landing deadline,
+    // never replay a zero cap over a changed controller value or unload before stop proof.
+    if (_stopPending) exitWith {true};
     private _remaining=(fullCrew [_boat,"",false]) findIf {
         private _unit=_x select 0;
         private _seat=_x select 1;
@@ -387,12 +411,18 @@ if (count _plan == 9 && {(_plan select 1) == _group} && {serverTime < (_plan sel
         if (local _boat) then {
             private _saved=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
             private _ownedStop=_saved param [1,-2];
-            if (_saved isNotEqualTo [] && {_ownedStop >= 0}
+            if (count _saved == 4 && {(_saved select 2) isEqualTo _token}
+                && {(_saved select 3) isEqualTo _group}
+                && {(_saved select 0) isEqualType 0} && {finite (_saved select 0)} && {(_saved select 0) >= -1}
+                && {_ownedStop isEqualType 0} && {finite _ownedStop} && {_ownedStop >= 0}
                 && {abs ((getForcedSpeed _boat)-_ownedStop) <= 0.1}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
                 _boat forceSpeed (_saved param [0,-1]);
             };
-            _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil];
+            if (count _saved == 4 && {(_saved select 2) isEqualTo _token}
+                && {(_saved select 3) isEqualTo _group}) then {
+                _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil,true];
+            };
         };
         private _landedCohort=_group getVariable ["CBE_Cortex_NavalEgress",[]];
         private _landedActors=if (count _landedCohort == 3 && {(_landedCohort select 0) == _token}) then {

@@ -4,7 +4,8 @@
  * only while CBE's zero-speed lease remains current.
  *
  * Locality/authority: call on the current group owner. Only the group whose token matches the
- * public boat plan may clear that plan or restore the boat. Passenger groups release only their
+ * public boat plan may clear that plan or restore the boat. The stop receipt is public
+ * and token/group-bound; a departed owner cannot retire a resumed operation. Passenger groups release only their
  * own movement lease. Zeus takeover and locality cleanup use this same path.
  * Repeat/JIP: public plan tokens, exact saved forced-speed values and the owned zero cap make
  * repeated or late cleanup harmless. Route cleanup requires the matching generation, and a later
@@ -32,8 +33,7 @@ params [
     ["_state",createHashMap,[createHashMap]],
     ["_reason","CANCELLED",[""]]
 ];
-if (isNull _group) exitWith {};
-_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
+if (isNull _group || {!local _group}) exitWith {};
 // A handover release must clear CBE state without restoring a speed chosen by a later
 // curator, mission or specialist controller.
 private _externalTakeover=[_group] call CBE_fnc_CortexExternalTakeover;
@@ -43,6 +43,14 @@ if (_operation isEqualTo []) then {
 };
 private _token=_operation param [0,""];
 private _boat=_operation param [1,objNull];
+private _durable=_group getVariable ["CBE_Cortex_NavalOperation",[]];
+private _durableToken=_durable param [0,""];
+private _ground=_group getVariable ["CBE_Cortex_NavalGroundElement",[]];
+private _groundToken=_ground param [0,""];
+private _retirePublic=(_durableToken == "" || {_durableToken isEqualTo _token})
+    && {_groundToken == "" || {_groundToken isEqualTo _token} || {_token == ""}};
+if (_retirePublic) then {_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true]};
+
 // Retire only this landing token's actor requests before removing the common operation/route.
 // Pending native cleanup retains actor proof for existing sparse discovery; no late replay.
 private _cohort=_group getVariable ["CBE_Cortex_NavalEgress",[]];
@@ -63,11 +71,18 @@ if (!isNull _boat) then {
         && {(_plan select 1) == _group} && {local _boat}) then {
         private _saved=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
         private _ownedStop=_saved param [1,-2];
-        if (_saved isNotEqualTo [] && {!_externalTakeover} && {_ownedStop >= 0}
+        if (count _saved == 4 && {(_saved select 2) isEqualTo _token}
+            && {(_saved select 3) isEqualTo _group}
+            && {(_saved select 0) isEqualType 0} && {finite (_saved select 0)} && {(_saved select 0) >= -1}
+            && {_ownedStop isEqualType 0} && {finite _ownedStop}
+            && {!_externalTakeover} && {_ownedStop >= 0}
             && {abs ((getForcedSpeed _boat)-_ownedStop) <= 0.1}) then {
             _boat forceSpeed (_saved param [0,-1]);
         };
-        _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil];
+        if (count _saved == 4 && {(_saved select 2) isEqualTo _token}
+            && {(_saved select 3) isEqualTo _group}) then {
+            _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil,true];
+        };
         _boat setVariable ["CBE_Cortex_NavalPlan",nil,true];
     };
 };
@@ -87,5 +102,7 @@ if (_operationGeneration >= 0) then {
 };
 _state deleteAt "navalOperationGeneration";
 _state deleteAt "navalOperation";
-_group setVariable ["CBE_Cortex_NavalOperation",nil,true];
-_group setVariable ["CBE_Cortex_NavalStatus",nil,true];
+if (_retirePublic) then {
+    _group setVariable ["CBE_Cortex_NavalOperation",nil,true];
+    _group setVariable ["CBE_Cortex_NavalStatus",nil,true];
+};

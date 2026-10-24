@@ -3351,7 +3351,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_state,"EXTERNAL"] call CBE_fnc_CortexNavalRelease',naval)
         self.assertLess(naval.rindex('CortexExternalTakeover'),naval.rindex('CBE_fnc_CortexGroupMove'))
         self.assertIn('private _externalTakeover=[_group] call CBE_fnc_CortexExternalTakeover;',release)
-        self.assertIn('if (_saved isNotEqualTo [] && {!_externalTakeover} && {_ownedStop >= 0}',release)
+        self.assertIn('if (count _saved == 4 && {(_saved select 2) isEqualTo _token}',release)
+        self.assertIn('&& {!_externalTakeover} && {_ownedStop >= 0}',release)
     def test_clearance_preserves_live_behaviour_and_combat_mode(self):
         clear=source('cortexClearBuilding')+source('buildingOperationStep')
         release=source('cortexClearRelease')
@@ -10731,7 +10732,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_operationGeneration] call CBE_fnc_CortexGroupMoveClear;',release)
         self.assertNotIn('[_group] call CBE_fnc_CortexGroupMoveClear;',release)
         self.assertIn('if (_operationGeneration >= 0 &&',release)
-        self.assertIn('CBE_Cortex_NavalForcedSpeed",[getForcedSpeed _boat,0]',source('cortexNavalAssault'))
+        self.assertIn('_stopReceipt=[_baseline,0,_token,_group]',source('cortexNavalAssault'))
+        self.assertIn('CBE_Cortex_NavalForcedSpeed",_stopReceipt,true',source('cortexNavalAssault'))
+        self.assertIn('if (_stopPending) exitWith {true}',source('cortexNavalAssault'))
+        self.assertIn('!local _group',release)
+        self.assertIn('if (_retirePublic)',release)
+        self.assertIn('(_saved select 2) isEqualTo _token',release)
+        self.assertIn('CBE_Cortex_NavalForcedSpeed",nil,true',release)
         for forbidden in ['moveIn','orderGetIn true','assignAs','setPos','deleteVehicle']:
             self.assertNotIn(forbidden,release)
 
