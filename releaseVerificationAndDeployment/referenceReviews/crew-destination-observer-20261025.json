@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-25",
+  "base": "7dd75493",
+  "scope": "Read-only two-seat native MOVE observation extracted from actual driving return path as a required selected-artillery-crew prerequisite. No new movement executor.",
+  "implementation": [
+    "VehicleCrewDestinationState accepts explicit before/current command and expectedDestination observations for two seats, requested goal, original reply deadline and observation time.",
+    "DrivingRecoveryCommandState immediately reuses it for both existing temporary return paths, retaining actual vehicle/crew/group/route/journal checks outside the helper. No fabricated driving parent or journal.",
+    "Both MOVE goals within0.25m produce OWNED. One acknowledged plus one unchanged prior observation remains PENDING until the original reply deadline; changed observations produce LOST. No acknowledgement alone proves actual movement or stopped state.",
+    "Preserves prior comparator semantics: matching goals remain observable after reply deadline for retirement; callers retain their original hard execution deadlines before any command. No renewal.",
+    "No native reads inside helper; caller passes its existing destination samples and current command labels. No job, handler, global scan, setting, movement, stop or return command added."
+  ],
+  "notDone": "Selected gun-crew movement/hold/stop/return is NOT implemented by this extraction. Existing artillery mixed-group refusal remains until that actual lifecycle and its report/fire/locality checks are integrated. User requires unchanged group membership and only selected crew movement.",
+  "validation": {
+    "tests": 1497,
+    "focused": 10,
+    "compiledSQF": 415,
+    "PBOs": 11,
+    "build": ".qa/crew-destination-observer-build.log",
+    "coverage": ".qa/crew-destination-observer-coverage.log",
+    "independent": ".qa/crew-destination-observer-independent.log",
+    "candidate": ".qa/candidates/crew-destination-observer-7dd75493",
+    "fingerprint": "641b6bab78680e15e4d49b6367e393aa25a50dc2c7c852bef98f53d5602ab96e",
+    "unsignedDirtyDevelopment": true
+  },
+  "hashes": {
+    "addons/vehicles/functions/vehicleCrewDestinationState.sqf": "8c0af8c2ba1ae119a54fa46909c125272cc76d7d34730723e8c294dcc0ded14b",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "1114bd840577bf511e3f6ee23508983ff6f7a61604aaca4271b58c0d356b2498",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "1c37f0f6ab97b5127153dea2ed1115915a1d0f61c73c1c7c713a53a9dd21f7f0"
+  },
+  "physical": "Native ACK timing, driving child return, future artillery movement, STOP/quiescence, HC/JIP and runtime budget UNRUN. Audits PAUSED. No whole-source/feature completion or parity percentage awarded."
+}

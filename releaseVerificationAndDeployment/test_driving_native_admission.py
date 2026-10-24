@@ -102,9 +102,12 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertLess(shutdown.index('_nativeBypassGroup,"DRIVING_RELEASED"'),
                         shutdown.index('_recovery get "group","DRIVING_RELEASED"'))
         self.assertIn('_nativeRoute && {_reason == "RECOVERY_PARENT_CHANGED"}',bypass)
-        native_ack=classifier.split('// A native bypass returns both',1)[1].split('private _position=',1)[0]
+        native_ack=read('vehicleCrewDestinationState')
+        self.assertIn('CBE_fnc_VehicleCrewDestinationState',classifier)
+        self.assertIn('currentCommand _driver,_driverNative',classifier)
+        self.assertIn('currentCommand _operator,_operatorNative',classifier)
         self.assertIn('if (_driverAck && {_operatorAck})',native_ack)
-        self.assertIn('serverTime > _until',native_ack)
+        self.assertIn('_observedAt > _until',native_ack)
         # Partial acknowledgement remains pending, never grants a fresh clock or success.
         def state(driver_ack,operator_ack,driver_same,operator_same,now,until):
             if driver_ack and operator_ack:return 'OWNED'

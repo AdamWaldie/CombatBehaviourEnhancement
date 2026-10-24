@@ -128,6 +128,7 @@ class CfgFunctions {
             class DrivingRecoveryAdopt {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryAdopt.sqf";};
             class DrivingRecoveryCleanup {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryCleanup.sqf";};
             class DrivingRecoveryCommandState {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryCommandState.sqf";};
+            class VehicleCrewDestinationState {file = "\z\cbe\addons\vehicles\functions\vehicleCrewDestinationState.sqf";};
             class DrivingRecoveryRelease {file = "\z\cbe\addons\vehicles\functions\drivingRecoveryRelease.sqf";};
             class DrivingAssistRelease {file = "\z\cbe\addons\vehicles\functions\drivingAssistRelease.sqf";};
             class ModuleConvoy {file = "\z\cbe\addons\vehicles\functions\moduleConvoy.sqf";};

@@ -35,22 +35,8 @@ private _operatorNative=expectedDestination _operator;
 // or holds STOP. Observe both original goals within the same original request window.
 private _temporaryReturnState={
     params ["_goal","_until","_before"];
-    private _atOriginalGoal={
-        params ["_actor","_native"];
-        private _point=_native param [0,[],[[]]];
-        currentCommand _actor == "MOVE" && {count _point == 3}
-            && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-            && {_point vectorDistance _goal <= 0.25}
-    };
-    private _driverAck=[_driver,_driverNative] call _atOriginalGoal;
-    private _operatorAck=[_operator,_operatorNative] call _atOriginalGoal;
-    if (_driverAck && {_operatorAck}) exitWith {"OWNED"};
-    private _driverWaiting=_driverAck || {_driverNative isEqualTo (_before select 1)
-        && {currentCommand _driver in [_before select 0,"MOVE"]}};
-    private _operatorWaiting=_operatorAck || {_operatorNative isEqualTo (_before select 3)
-        && {currentCommand _operator in [_before select 2,"MOVE"]}};
-    if (!_driverWaiting || {!_operatorWaiting}) exitWith {"LOST"};
-    ["PENDING","EXPIRED"] select (serverTime > _until)
+    [_goal,_until,_before,[currentCommand _driver,_driverNative,
+        currentCommand _operator,_operatorNative],serverTime] call CBE_fnc_VehicleCrewDestinationState
 };
 private _nativeReturn=_work getOrDefault ["nativeReturn",[]];
 if (_nativeReturn isNotEqualTo []) exitWith {
