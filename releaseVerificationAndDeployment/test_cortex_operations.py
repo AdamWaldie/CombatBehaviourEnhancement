@@ -1860,6 +1860,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["objective",_objectiveSnapshot]',start)
         self.assertIn('["route",_routeSnapshot]',start)
         self.assertIn('private _routeSnapshot=+_route;',start)
+        for guard in ('count _participants > 64','_participants findIf {!(_x isEqualType objNull)}',
+                      'count (_participants arrayIntersect _participants) != count _participants',
+                      '_participants=+_participants;','_pairElements=_pairElements apply {+_x};'):
+            self.assertIn(guard,start)
+            self.assertLess(start.index(guard),start.index('CBE_fnc_CortexLocality'))
+            self.assertLess(start.index(guard),start.index('call CBE_fnc_OperationCancel'))
         self.assertNotIn('["objective",_objective]',start)
         geometry=start.split('// Validate the same private geometry',1)[1].split('// Reject a malformed optional partition',1)[0]
         for guard in ('count _point in [2,3]','!(_x isEqualType 0)','!finite _x',

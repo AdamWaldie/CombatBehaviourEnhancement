@@ -1,0 +1,19 @@
+{
+  "base": "380b5084",
+  "finding": "Participant elements lacked early type/duplicate/size validation before owner adoption and outgoing attack-pace cleanup. Non-object entries could reach native local/getVariable commands; duplicate/oversized arrays could multiply progress work.",
+  "change": "Reject more than64 requested actors, non-object entries or duplicate objects before owner adoption/cleanup; copy accepted participant array and validated optional pair-element rows. Null/dead objects retain downstream eligibility filtering. Empty actor operations remain valid. Production caller trace uses unit/crew/selected actor lists or empty arrays.",
+  "evidence": {
+    "addons/core/functions/operationStart.sqf": "d37465fa236f8a9c3efb39b36f2bb548fd1c1233986b81212eea630b0db2fd17"
+  },
+  "validation": {
+    "focusedExistingCases": 610,
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/operation-participant-admission-380b5084",
+  "fingerprint": "ecce08063955e8647f3aa8a9dc526ade29214b1de4008a6042f3707bcfb11ad3",
+  "limits": "Offline validation/admission correction, not native execution or measured frame-budget proof. Unsigned dirty development includes unrelated dirt; private review/guidance/notes postdate package. Audits PAUSED."
+}

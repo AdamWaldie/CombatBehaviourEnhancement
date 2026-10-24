@@ -6,7 +6,8 @@
  * Locality/authority: Runs on the current group owner; server forwards only through callers that already own dispatch.
  * After locality adoption, replacement, generation capture and publication run unscheduled even for
  * scheduled script callers. Normal group PFH jobs already run unscheduled; no extra job is created.
- * Array objectives and routes are copied before admission, isolating later caller-array edits.
+ * Actor lists (at most64 unique objects), pair elements, array objectives and routes are
+ * copied before mutation, isolating later caller-array edits. Malformed actors refuse admission.
  * Nonempty position objectives and every route point require two/three finite numeric coordinates.
  * Invalid geometry returns before locality adoption, predecessor cleanup or generation mutation;
  * empty objectives/routes and object targets remain supported.
@@ -15,7 +16,7 @@
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
  * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
  * Repeat/JIP: Replacing an intent increments a public generation. The durable summary is replayable; local routes and callbacks rebuild on ownership migration.
- * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY>; 4 route <ARRAY>; 5 state <STRING, PLAN>.
+ * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY of up to64 unique OBJECTs>; 4 route <ARRAY>; 5 state <STRING, PLAN>.
  * Optional argument6: pair elements <ARRAY,[]>; at most two disjoint actor arrays covering
  * the requested participants. New pair identity is formed within each element and published once.
  * Empty preserves ordinary pairing. Element membership grants no command or fitness authority.
@@ -28,6 +29,12 @@ params [
     ["_participants",[],[[]]], ["_route",[],[[]]], ["_phase","PLAN",[""]], ["_pairElements",[],[[]]]
 ];
 if (isNull _group || {!local _group} || {_intent == ""}) exitWith {createHashMap};
+// Participant validation precedes even owner adoption and outgoing cleanup. Never let
+// malformed script input enter native actor commands or multiply progress accounting.
+if (count _participants > 64
+    || {_participants findIf {!(_x isEqualType objNull)} >= 0}
+    || {count (_participants arrayIntersect _participants) != count _participants}) exitWith {createHashMap};
+_participants=+_participants;
 // Validate the same private geometry that will be committed. A malformed replacement
 // must not adopt/retire work or consume the current generation. Empty means no position.
 private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};
@@ -50,6 +57,7 @@ private _partitioned=[];
 if (_pairElements isNotEqualTo [] && {!_partitionValid
     || {count (_partitioned arrayIntersect _partitioned) != count _partitioned}
     || {_participants findIf {!(_x in _partitioned)} >= 0}}) exitWith {createHashMap};
+_pairElements=_pairElements apply {+_x};
 // The shared lifecycle is the final authority boundary for every feature. Check it before
 // retiring an earlier route: a delayed job must not cancel CBE state or issue cleanup after
 // Zeus, a player or a specialist controller has claimed the group.
