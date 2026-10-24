@@ -111,7 +111,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/convoy-disabled-movement-20261024.json",
-      "sha256": "15f6d3d75dc60b5234a40a11b6c2f290d42d202bb5164e0e8964eca88451a79e",
+      "sha256": "f603fb0385860d00203549d88d5e61a2629f50688adfb1dfe80036465430f0b8",
       "scope": "Convoy mission-disabled movement admission/suspension and selected HBQ traffic/refresh-route contrast; not whole controller parity.",
       "sourceFileMentions": [
         "functions/fn_refreshRoute.sqf"

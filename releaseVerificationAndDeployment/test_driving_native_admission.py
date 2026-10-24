@@ -204,6 +204,15 @@ class NativeAdmissionTests(unittest.TestCase):
             self.assertEqual(source.count('setDriveOnPath'),1)
     def test_ordinary_recovery_preserves_individual_seat_reservations(self):
         assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        disabled=assist.split('// Mission-disabled movement is suspension',1)[1].split('private _nativeTaskFree=',1)[0]
+        for guard in ('[_driver,_movementOperator] findIf','!isNull _x','local _x',
+                      '!(_x checkAIFeature "MOVE")','!(_x checkAIFeature "PATH")',
+                      'call CBE_fnc_DrivingAssistRelease','continue;'):
+            self.assertIn(guard,disabled)
+        self.assertLess(assist.index('// Mission-disabled movement is suspension'),
+                        assist.index('call CBE_fnc_DrivingRecoveryCommandState'))
+        for forbidden in ('enableAI','doMove','setVariable','set ['):
+            self.assertNotIn(forbidden,disabled)
         helper=assist.split('private _nativeTaskFree={',1)[1].split('private _routeIdentity=',1)[0]
         self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',helper)
         for seat in ['_driver','_movementOperator']:

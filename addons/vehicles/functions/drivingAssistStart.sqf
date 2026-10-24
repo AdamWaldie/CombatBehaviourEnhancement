@@ -60,6 +60,8 @@
  * Native individual MOVE destinations and deliberate STOP commands block new route recovery;
  * the waypoint match includes elevation so a newer stacked-road destination is not flattened.
  * an exact owned reverse journal alone permits its finite handback to the authored route.
+ * Mission-disabled MOVE/PATH releases existing assistance before recovery acknowledgement
+ * classification; command guards retain both flags and never enable them.
  * Native boarding, service, medical and assembly tasks release the exact speed lease;
  * both driver and effective commander are rechecked at each cap/recovery command boundary.
  * Individual movement reservations also yield assistance, including malformed or nonlocal actor leases.
@@ -186,6 +188,16 @@ _brain set ["geometryTracks",_geometryTracks];
     private _driver=driver _vehicle;
     private _movementOperator=effectiveCommander _vehicle;
     if (isNull _movementOperator) then {_movementOperator=_driver};
+    // Mission-disabled movement is suspension, not a failed acknowledgement. Release
+    // exact existing work before classifying its request or adopting a new cap baseline.
+    // Native cleanup retains its own seat/task/feature gates and original deadlines.
+    if ([_driver,_movementOperator] findIf {
+        !isNull _x && {local _x}
+            && {!(_x checkAIFeature "MOVE") || {!(_x checkAIFeature "PATH")}}
+    } >= 0) then {
+        [_vehicle,_group] call CBE_fnc_DrivingAssistRelease;
+        continue;
+    };
     private _nativeTaskFree={
         params ["_actor"];
         !isNull _actor && {!fleeing _actor} && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
