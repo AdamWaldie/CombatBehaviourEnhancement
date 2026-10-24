@@ -457,7 +457,7 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
                     && {vehicle leader _group == _battery}
                     && {count units _group <= 64}
                     && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}
-                    && {simulationEnabled _battery} && {!isObjectHidden _battery} && {canMove _battery}
+                    && {simulationEnabled _battery} && {!isObjectHidden _battery} && {canMove _battery} && {!waterDamaged _battery}
                     && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
                     && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}
                     && {(_seats arrayIntersect _seats) findIf {

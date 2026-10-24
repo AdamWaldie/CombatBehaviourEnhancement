@@ -22,5 +22,15 @@
     "drivingBypassStep": "4d573ce7d9b630aed4e99cd4b994b9f26aa3b59fcbcc1e95b2eeaaae45fcc4d5",
     "drivingCorridorStep": "f06f228d0ae0f3f152ac0f8c670d7b753206662965bde243d263e2412db78eb5"
   },
-  "limitations": "No measured runtime performance or physical damage/repair transition proof. Unsigned dirty development candidate includes preserved unrelated dirt; engineering notes postdate package."
+  "limitations": "No measured runtime performance or physical damage/repair transition proof. Unsigned dirty development candidate includes preserved unrelated dirt; engineering notes postdate package.",
+  "artilleryMobilityExtension": {
+    "base_commit": "6cf631fe",
+    "gap": "Artillery positioning/scoot and active scoot validation used canMove without the existing native drowned-engine refusal",
+    "change": "Add waterDamaged rejection to owner positioning admission/observation and scoot initial/current crew gates. GroupTick active scoot session validity also requires flag clear, reaching existing exact operation retirement on failure.",
+    "preserved": "Cleanup does not depend on healthy engine. No repair,water-depth calculation,fording permission,damage reset or ordinary stationary firing policy change. Other tactical vehicle paths are not claimed covered.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify pass. Existing artillery session test extended;no new test cases.",
+    "candidate": ".qa/candidates/artillery-water-mobility-6cf631fe",
+    "fingerprint": "2bc7d2a0db3bcad2c0b505da77b94b8774b4689278167ce02bd1ae1aff3f8bb9",
+    "limits": "Unsigned dirty development. Native water damage/cancellation/repair transition and frame cost UNRUN;audits PAUSED. Mixed-group artillery still lacks selected-platform movement/hold/return executor;existing group-route refusal remains."
+  }
 }

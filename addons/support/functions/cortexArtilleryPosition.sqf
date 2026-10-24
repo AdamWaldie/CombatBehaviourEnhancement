@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Water-damaged engines refuse mobility admission; exact session cleanup remains independent.
  * Purpose: Execute one current-owner pre-fire positioning step under the existing server mission FSM.
  * Locality/authority: Server-addressed battery/group/AI-seat owner only. Geometry is a proposal;
  * only physical arrival and fresh native range permit READY. No firing occurs here.
@@ -75,7 +76,7 @@ if ((_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isNotEqualTo _se
 private _driver=driver _battery;private _operator=effectiveCommander _battery;
 if (isNull _operator) then {_operator=_driver};
 private _current={
-    local _battery && {alive _battery} && {canMove _battery}
+    local _battery && {alive _battery} && {canMove _battery} && {!waterDamaged _battery}
         && {_battery isKindOf "LandVehicle"} && {!(_battery isKindOf "StaticWeapon")}
         && {local _group} && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
         && {!(_battery getVariable ["CBE_Convoy_Active",false])}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Water-damaged engines refuse mobility admission; exact session cleanup remains independent.
  * The fire request's original movement-group and authored-order receipt remain authoritative
  * through delayed admission; owner migration cannot rebase onto a newer mission route.
  * Both actual AI movement seats must remain local, available and free of treatment,
@@ -80,7 +81,7 @@ private _sessionCurrent={
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
 };
 if !(call _sessionCurrent) exitWith {call _clear;false};
-if (!canMove _battery || {isNull driver _battery} || {!([group driver _battery] call CBE_fnc_CortexIsEligible)}
+if (!canMove _battery || {waterDamaged _battery} || {isNull driver _battery} || {!([group driver _battery] call CBE_fnc_CortexIsEligible)}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {call _clear; false};
 if !(_purpose in ["SUPPORT","COUNTER"]
     && {missionNamespace getVariable [_scootSetting,true]}
@@ -91,7 +92,7 @@ private _driver=driver _battery;
 private _operator=effectiveCommander _battery;
 if (isNull _operator) then {_operator=_driver};
 private _crewReady={
-    local _group && {local _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
+    local _group && {local _battery} && {!waterDamaged _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
         && {vehicle leader _group == _battery}
         && {count units _group <= 64}
         && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}

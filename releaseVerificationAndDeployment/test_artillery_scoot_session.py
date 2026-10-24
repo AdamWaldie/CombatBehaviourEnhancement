@@ -41,6 +41,15 @@ class ArtilleryScootSession(unittest.TestCase):
         for guard in ('vehicle leader _group == _battery','count units _group <= 64',
                       '(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0'):
             self.assertIn(guard,ready)
+        self.assertIn('!waterDamaged _battery',ready)
+        clear=s.split('private _clear = {',1)[1].split('private _purpose=',1)[0]
+        self.assertNotIn('waterDamaged',clear)
+        position=(ROOT/'addons/support/functions/cortexArtilleryPosition.sqf').read_text()
+        current=position.split('private _current={',1)[1].split('if (_ours &&',1)[0]
+        self.assertIn('!waterDamaged _battery',current)
+        tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
+        scoot=tick.split('if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT")',1)[1].split('private _moveLease',1)[0]
+        self.assertIn('!waterDamaged _battery',scoot)
         self.assertLess(s.index('if !(call _crewReady)'),s.index('private _origin='))
         self.assertLess(commit.index('call _crewReady'),commit.index('call CBE_fnc_CortexGroupMove'))
         mission=(ROOT/'addons/support/functions/cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
