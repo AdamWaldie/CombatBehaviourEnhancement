@@ -5300,6 +5300,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('Any live contact can provide fire context',assessment)
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)
         self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}',assessment)
+        self.assertIn('private _uncounteredArmour=!_forwardOrder && {_armourIndex >= 0} && {!_capableAT};',assessment)
+        self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_uncounteredArmour}',assessment)
+        self.assertIn('if (_uncounteredArmour) then {',assessment)
+        self.assertLess(assessment.index('private _uncounteredArmour='),assessment.index('_selected=_manoeuvre select _closePosition'))
         capacity=assessment.split('private _availableFoot=',1)[1].split('private _houses=',1)[0]
         self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',capacity)
         self.assertIn('simulationEnabled _x',capacity)

@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Selects and starts one viable local infantry manoeuvre from the squad's live tactical context.
  *
- * CBE_fnc_CortexTacticalAssess first distinguishes close infantry, authored forward movement,
+ * CBE_fnc_CortexTacticalAssess gives uncountered armour priority over opportunistic close assault,
+ * while retaining authored forward movement. It also distinguishes close infantry,
  * armour overmatch, fortified or elevated positions, and open versus concealed approaches. It
  * returns at most two candidate intents and one already-known contact. This dispatcher tries those
  * candidates in order, so a failed avenue or cooldown can immediately fall back without leaving a

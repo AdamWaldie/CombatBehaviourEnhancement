@@ -12,6 +12,8 @@
  * actual actor/role/native-task admission remains with CortexAssaultStart.
  * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
  * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
+ * Uncountered known armour takes priority over an opportunistic close infantry assault.
+ * Authored forward-order policy remains unchanged; actor-only elements never gain a group retreat.
  * Elevation uses the supplied native believed position; no live hostile height is queried.
  * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
  * This immediate readiness gate does not cancel existing work, defensive repositioning or native orders.
@@ -176,7 +178,10 @@ private _freshPosition=_manoeuvre findIf {
 };
 // Match the finite assault executor: two/three available actors are supported elements.
 // Assessment proposes only; the executor still validates actual roles, native tasks and avenue.
-if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
+// A nearby rifle contact must not mask known armour the squad cannot counter.
+// Preserve the existing authored-forward policy and use the existing screened reposition.
+private _uncounteredArmour=!_forwardOrder && {_armourIndex >= 0} && {!_capableAT};
+if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_uncounteredArmour}) then {
     _selected=_manoeuvre select _closePosition;
     _intent="ASSAULT";
     _reason="FRESH_CLOSE_INFANTRY";
@@ -196,7 +201,7 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}) then {
             if (_flankEnabled) then {_candidates pushBack "FLANK"};
         };
     } else {
-        if (_armourIndex >= 0 && {!_capableAT}) then {
+        if (_uncounteredArmour) then {
             _selected=_armourIndex;
             _intent="REPOSITION";
             _reason="ARMOUR_OVERMATCH";
