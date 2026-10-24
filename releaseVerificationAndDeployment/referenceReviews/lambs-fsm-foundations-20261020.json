@@ -1477,6 +1477,32 @@
       ".qa/group-hide-reservation-build.log",
       ".qa/group-hide-reservation-independent.log"
     ],
-    "limits": "No physical flight/egress/native stance transition, normalHC or5/10performance evidence. No reproduced/fixed arm-stretching claim. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; guide newline normalization and review/notes postdate package; production runtime unchanged after build. Audits PAUSED; no parity/percentage renewal."
+    "limits": "No physical flight/egress/native stance transition, normalHC or5/10performance evidence. No reproduced/fixed arm-stretching claim. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; guide newline normalization and review/notes postdate package; production runtime unchanged after build. Audits PAUSED; no parity/percentage renewal.",
+    "calmFollowup": {
+      "base": "4c34d6df",
+      "finding": "CortexRestoreCalm duplicated typed empty/expired ActorMove validation but omitted unresolved FlightLease/NavalEgressMove journals. Its same helper gated held-actor doFollow and generic marker deletion, so either could occur before feature-specific native cleanup was confirmed.",
+      "change": "Replace duplicate helper body with shared CortexActorMoveReserved negation. Existing hold/native/Zeus proof, own PATH restoration, routine stance cleanup and feature-specific release remain unchanged. No new exception, move, retry, worker, timer or lifetime.",
+      "hashes": {
+        "addons/infantry/functions/cortexRestoreCalm.sqf": "2a1cc644f427f8a06fb8033414aceb46aa6aaaec3a399e04e5b514d5c1f47e83",
+        "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+        "releaseVerificationAndDeployment/test_calm_actor_reservations.py": "c9e7f1ff49514ddab48866f1efb2d52fdfd1364a6ec4ab4a4dd607be2a5939f1"
+      },
+      "validation": {
+        "focusedExisting": 48,
+        "fullExisting": 1491,
+        "compiledSQF": 412,
+        "PBOs": 9,
+        "newCases": 0,
+        "independentVerification": true
+      },
+      "candidate": ".qa/candidates/calm-pending-movement-4c34d6df",
+      "fingerprint": "34c15f1e21fc42580fc36a7fc3d5ddb2e6a080faee5e1fddd436b262cdc211ef",
+      "logs": [
+        ".qa/calm-pending-movement-focused.log",
+        ".qa/calm-pending-movement-build.log",
+        ".qa/calm-pending-movement-independent.log"
+      ],
+      "limits": "Source admission/cleanup correction, not proof of native quiescence, completed handback, physical continuation, normalHC or5/10performance. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. No animation distortion reproduced/fixed. Audits PAUSED; no parity/percentage renewal."
+    }
   }
 }

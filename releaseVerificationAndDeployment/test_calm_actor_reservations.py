@@ -9,10 +9,15 @@ class CalmActorReservationTests(unittest.TestCase):
         cls.s=(ROOT/'addons/infantry/functions/cortexRestoreCalm.sqf').read_text()
     def test_only_valid_expired_or_absent_move_is_free(self):
         helper=self.s.split('private _actorMoveFree={',1)[1].split('private _releaseOwnedHold=',1)[0]
-        for guard in ('_move isEqualTo []','count _move == 3','(_move select 0) isEqualType ""',
-                      'count (_move select 1) == 3','!finite _x','finite (_move select 2)',
-                      '(_move select 2) <= time'):
-            self.assertIn(guard,helper)
+        self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',helper)
+        shared=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text()
+        for guard in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove',
+                      'count _lease == 3','count (_lease select 1) == 3',
+                      '!finite _x','finite (_lease select 2)'):
+            self.assertIn(guard,shared)
+        # Pending native cleanup is checked before the empty ordinary-marker shortcut.
+        for journal in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove'):
+            self.assertLess(shared.index(journal),shared.index('if (_lease isEqualTo [])'))
         for forbidden in ('doFollow','doMove','setVariable','lineIntersects','nearEntities'):
             self.assertNotIn(forbidden,helper)
     def test_old_hold_cannot_recall_a_live_successor(self):

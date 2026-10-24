@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Generic recall and marker retirement preserve unresolved flight/naval native cleanup
+ * through the shared typed reservation gate; no restoration window is renewed.
  * Ordinary current-owner support teardown uses release-only native hold handback before
  * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
@@ -85,13 +87,7 @@ if (!_yieldToExternal && {(_group getVariable ["CBE_AIPass_State",createHashMap]
 // unknown reservation is also not permission to issue a return-to-formation order.
 private _actorMoveFree={
     params ["_actor"];
-    private _move=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-    if (_move isEqualTo []) exitWith {true};
-    _move isEqualType [] && {count _move == 3} && {(_move select 0) isEqualType ""}
-        && {(_move select 1) isEqualType []} && {count (_move select 1) == 3}
-        && {(_move select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-        && {(_move select 2) isEqualType 0} && {finite (_move select 2)}
-        && {(_move select 2) <= time}
+    !([_actor] call CBE_fnc_CortexActorMoveReserved)
 };
 private _releaseOwnedHold={
     params ["_unit",["_restorePath",true],["_returnSearchTeam",false]];
