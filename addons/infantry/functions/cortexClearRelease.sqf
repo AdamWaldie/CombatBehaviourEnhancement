@@ -55,6 +55,13 @@ isNil {
         if (count _retiredRoster == 4 && {(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")}) then {
             _group setVariable ["CBE_Cortex_ClearRoster",nil,true];
         };
+        // Retire only this episode's lane metadata; locality transfer never uses this release path.
+        private _retiredLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
+        if (_retiredLanes isEqualType [] && {count _retiredLanes == 12}
+            && {(_retiredLanes select 0) == 1}
+            && {(_retiredLanes select 2) isEqualTo (_motionJob get "visitContext")}) then {
+            _group setVariable ["CBE_Cortex_ClearLanes",nil,true];
+        };
         if (count _buildingBrain > 0) then {
             _buildingBrain set ["cancelled",true];
             _buildingBrain set ["cancelReason","CLEAR_RELEASE"];

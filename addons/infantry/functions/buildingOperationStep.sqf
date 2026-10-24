@@ -515,6 +515,16 @@ private _delay=call {
         if (count _retiredRoster == 4 && {(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
             isNil {if (call _finishCurrent) then {_group setVariable ["CBE_Cortex_ClearRoster",nil,true]}};
         };
+        isNil {
+            if (call _finishCurrent) then {
+                private _retiredLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
+                if (_retiredLanes isEqualType [] && {count _retiredLanes == 12}
+                    && {(_retiredLanes select 0) == 1}
+                    && {(_retiredLanes select 2) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
+                    _group setVariable ["CBE_Cortex_ClearLanes",nil,true];
+                };
+            };
+        };
         // Ownership-loss callbacks above preserve receipts for the successor owner.
         { ["RETIRE",_x,_job] call CBE_fnc_BuildingActorMotion; }
             forEach ((_job get "team") + (_job getOrDefault ["securityActors",[]]));

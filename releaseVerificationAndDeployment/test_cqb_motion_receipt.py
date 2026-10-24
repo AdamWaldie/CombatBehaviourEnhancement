@@ -79,9 +79,17 @@ class MotionReceiptTests(unittest.TestCase):
         cancel=(ROOT/'addons/core/functions/operationCancel.sqf').read_text(encoding='utf-8')
         self.assertIn('_group setVariable ["CBE_Operation",nil,true]',cancel)
         self.assertNotIn('CBE_Cortex_ClearRoster',cancel)
+        self.assertNotIn('CBE_Cortex_ClearLanes',cancel)
         step=read('buildingOperationStep.sqf')
         self.assertIn('+_participants,(_job get "pairs") apply {+_x}',step)
         self.assertLess(step.index('"OWNERSHIP_LOST"'),step.index('private _retiredRoster='))
+        self.assertLess(step.index('"OWNERSHIP_LOST"'),step.index('private _retiredLanes='))
+        self.assertIn('(_retiredLanes select 2) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
+        release=read('cortexClearRelease.sqf')
+        self.assertIn('(_retiredLanes select 2) isEqualTo (_motionJob get "visitContext")',release)
+        for terminal in (step,release):
+            self.assertIn('count _retiredLanes == 12',terminal)
+            self.assertIn('_group setVariable ["CBE_Cortex_ClearLanes",nil,true]',terminal)
         self.assertIn('(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
         self.assertIn('(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")',read('cortexClearRelease.sqf'))
     def test_locality_checkpoint_cannot_recall_new_stop_or_clearance(self):

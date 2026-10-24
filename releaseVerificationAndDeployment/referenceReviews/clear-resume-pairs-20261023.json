@@ -198,5 +198,25 @@
       ".qa/clear-roster-snapshot-refresh-independent.log"
     ],
     "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED; no physical/performance/percentage claim."
+  },
+  "terminalLaneRetirement20261024": {
+    "base": "5806ce4a",
+    "finding": "Terminal worker completion and explicit clearance release retired the roster but retained the lane snapshot. Episode identity already prevented adoption by a fresh clear; no stale-command replay defect claimed.",
+    "change": "Current-owner terminal finish and exact admitted explicit release retire a typed12field version1 lane snapshot only when its context matches the retiring job. Ownership-loss early return and CortexLocality transfer preserve it.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "c60d31f76184112288e6e2ce5619792f44cb497863d5731025f4c1901d646d7b",
+      "addons/infantry/functions/cortexClearRelease.sqf": "8c426668a02ca1ff2281287aa6b908feacfbcf9b9365dff6fd2b16a4ab1f3d89",
+      "addons/core/functions/cortexLocality.sqf": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-terminal-retirement-5806ce4a",
+    "fingerprint": "5ed7c84d9d0cf25f064d263b562a0dcba948375cbf51609d09fd4fc8c909d34c",
+    "limits": "Offline lifecycle cleanup only; no new worker/query/native write or ordered delivery/performance/physical claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
   }
 }
