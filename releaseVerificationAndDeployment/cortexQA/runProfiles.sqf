@@ -101,6 +101,8 @@ private _refreshed = [{abs ((_unit skill "spotDistance")-_daySpot) < 0.001},90] 
 ["LIGHT-day-restores-baseline",abs ((_unit skill "spotDistance")-_daySpot) < 0.001,str getLighting] call _check;
 // State-restoration boundary only: these explicit fixture edits represent an external
 // controller's new tuning. No projectile accuracy or player takeover is claimed here.
+private _externalSticky=false;
+private _explicitReacquire=false;
 private _restoreReady=false;
 private _restoredOwned=false;
 private _preservedExternal=false;
@@ -123,11 +125,21 @@ isNil {
     _restoreIdempotent=!([_unit] call CBE_fnc_AIRestoreProfile)
         && {isNil {_unit getVariable "CBE_AI_AppliedSkills"}}
         && {isNil {_unit getVariable "CBE_AI_OriginalSkills"}};
+    private _reapplied=[_unit] call CBE_fnc_AIApplyProfile;
+    _externalSticky=(_unit getVariable ["CBE_AI_SkillOwner",""]) == "OBSERVED_EXTERNAL_CHANGE"
+        && {!_reapplied} && {abs ((_unit skill "courage")-0.123) < 0.0001}
+        && {abs (getCustomAimCoef _unit-0.88) < 0.0001};
+    // Explicit mission authorisation, not a simulated successful result.
+    _unit setVariable ["CBE_AI_SkillOwner",nil,true];
+    _explicitReacquire=[_unit] call CBE_fnc_AIApplyProfile;
+
 };
 ["PROFILE-restore-receipt-prerequisite",_restoreReady] call _check;
 ["PROFILE-restore-owned-value",_restoreReady && {_restoredOwned}] call _check;
 ["PROFILE-restore-preserves-external-values",_restoreReady && {_preservedExternal}] call _check;
 ["PROFILE-restore-idempotent",_restoreReady && {_restoreIdempotent}] call _check;
+["PROFILE-restore-external-owner-sticky",_restoreReady && {_externalSticky}] call _check;
+["PROFILE-explicit-reacquisition",_restoreReady && {_externalSticky} && {_explicitReacquire}] call _check;
 setDate _date;
 {missionNamespace setVariable [_x,_lightingSaved select _forEachIndex]} forEach _lightingKeys;
 {missionNamespace setVariable [_x,_saved select _forEachIndex]} forEach _keys;

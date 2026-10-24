@@ -37,7 +37,8 @@ class ProfileReceiptTests(unittest.TestCase):
         cleanup=text.split('if (_retired) then {',1)[1]
         self.assertLess(cleanup.index('"skillsPending"'),cleanup.index('CBE_AI_SkillVarianceOffsets'))
         self.assertLess(cleanup.index('"aimPending"'),cleanup.index('CBE_AI_SkillVarianceOffsets'))
-        self.assertNotIn('CBE_AI_SkillOwner',text)
+        self.assertIn('if (_observedExternal) then {',text)
+        self.assertNotIn('["CBE_AI_SkillOwner",nil',text)
     def test_application_and_cleanup_use_same_reader_and_exclusion_observes_native_restore(self):
         self.assertIn('call CBE_fnc_AIProfileReceipt',src('aiProfileYield'))
         self.assertIn('call CBE_fnc_AIProfileReceipt',src('aiRestoreProfile'))
