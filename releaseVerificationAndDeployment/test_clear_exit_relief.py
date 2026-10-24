@@ -34,7 +34,7 @@ class ClearExitRelief(unittest.TestCase):
         self.assertIn('[_replacement,_promotionProof] call _promotionProofCurrent',s)
         rebalance=s.split('// Rebalance one duplicated live post',1)[1].split('// Build the migration journal',1)[0]
         for gate in ('_stageSearchBudget <= 0','_promotionViewBudget <= 0','_lostKeys select [0,16]',
-                     '!isNull _lostGuard','lifeState _lostGuard == "INCAPACITATED"',
+                     '[_lostGuard,_lostKey] call _securityCasualtyKnown',
                      '_lostExit in _securityEntries','call _exitAssigned','_searchCount < 3',
                      'call _mayPromoteReserve','call _promotionProofCurrent',
                      'call CBE_fnc_BuildingExteriorProposal','call CBE_fnc_BuildingExteriorCandidate',
@@ -104,7 +104,31 @@ class ClearExitRelief(unittest.TestCase):
         g=s.split('private _reliefNeeded={',1)[1].split('if (!(call _reliefNeeded))',1)[0]
         self.assertLess(g.index('serverTime >= (_reliefRow select 3)'),g.index('private _securityLost='))
         branch=g.split('private _securityLost=',1)[1].split('private _stage=',1)[0]
+        known=s.split('private _securityCasualtyKnown={',1)[1].split('// Record only stops',1)[0]
         for guard in ('!isNull _guard','!alive _guard','"INCAPACITATED"','"ACE_isUnconscious"',
+                      'CBE_Danger_Casualties','select [0,8]','count _x == 5',
+                      '(_x select 3) isEqualTo _key','(_x select 4) isEqualTo (_job get "visitContext")',
+                      'serverTime < (_x select 2)','(_x select 2) <= (_x select 1)+300'):
+            self.assertIn(guard,known)
+        self.assertNotIn('doMove',known)
+        capture=(ROOT/'addons/core/functions/cortexInit.sqf').read_text().split('addMissionEventHandler ["EntityKilled"',1)[1].split('CBE_fnc_CortexRegroupOnKill',1)[0]
+        self.assertIn('serverTime+300,netId _unit,+_clearContext',capture)
+        self.assertIn('"intent",""]) != "CLEAR"',capture)
+        self.assertIn('count _casualties >= 8',capture)
+        # Absence is never death proof; the positive event must match identity,
+        # episode and original expiry. A present living guard defeats old proof.
+        def known_loss(present,dead=False,receipt=None,key='guard',context='episode',now=120):
+            if present:return dead
+            return receipt is not None and receipt[0]==key and receipt[1]==context and 0<=receipt[2]<=now<receipt[3]<=receipt[2]+300
+        receipt=('guard','episode',100,400)
+        self.assertTrue(known_loss(False,receipt=receipt))
+        self.assertFalse(known_loss(False))
+        self.assertFalse(known_loss(False,receipt=receipt,context='new-episode'))
+        self.assertFalse(known_loss(False,receipt=receipt,key='other-guard'))
+        self.assertFalse(known_loss(False,receipt=receipt,now=400))
+        self.assertFalse(known_loss(True,receipt=receipt))
+        self.assertTrue(known_loss(True,dead=True))
+        for guard in ('[_guard,_reliefRow select 1] call _securityCasualtyKnown',
                       'count _originalStage >= 6','"ARRIVED"','"securityEntries"',
                       '(_record param [5,[]]) isEqualTo (_reliefRow select 2)',
                       '(_record select 2) == (_reliefRow select 3)'):

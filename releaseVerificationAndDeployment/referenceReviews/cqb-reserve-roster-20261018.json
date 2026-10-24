@@ -23,5 +23,46 @@
     "Casualty promotion without losing coverage, new native orders, repeat/HC/JIP and performance remain unrun",
     "Other direct CQB mutations and full HBQ/driving/combined arms scope remain open"
   ],
-  "audits": "PAUSED; all65 families partial"
+  "audits": "PAUSED; all65 families partial",
+  "deletedGuardIdentity20261024": {
+    "base": "5e3269deff482e98b72a748389054b69fb7c65db",
+    "finding": "Exit-relief continuation and duplicate-post casualty rebalancing required the original guard object. Corpse deletion makes objectFromNetId null, losing positive death evidence and refusing replacement despite the original post assignment. Missing lookup alone remains insufficient proof because replication can be late.",
+    "change": "Extend existing owner-local EntityKilled eight-row/300s provenance receipt to [body,deathAt,expires,originalNetId,exactClearVisitContext]. Capture context only for matching active CLEAR objective. Retain eligible deleted-body identity without renewing expiry. Body-observation selector understands five fields but still requires present dead body and actual local observation. Shared local securityCasualtyKnown preserves existing live death/incapacity checks; for missing guard, require exact identity/context and typed original unexpired event. Used by relief continuation and rebalance planning/final mutation.",
+    "authority": "No new handler, callback, timer, world scan, casualty position, coverage credit or movement permission. Existing admitted ARRIVED post, live coverage/VIEW, candidate task/native owner, scene geometry, original operation/hard/relief deadlines remain. A currently present living guard defeats old death proof.",
+    "cost": "Existing event-only maximum8 receipts and original300s lifetime; missing-guard checks inspect <=8 rows per existing bounded guard sample. Extra ID/context payload is unmeasured. No persistent observer.",
+    "evidence": [
+      {
+        "path": "addons/core/functions/cortexInit.sqf",
+        "sha256": "b3d79d5578d0a1f946d30d0e491a9e9e09b36455af0de40ffd6786ceea1f5f5e"
+      },
+      {
+        "path": "addons/infantry/functions/casualtyObservationSelect.sqf",
+        "sha256": "794d76cde5c30b33e544479316dabf5a56a6e359eeb6c0b55a5ba932c9a32f0b"
+      },
+      {
+        "path": "addons/infantry/functions/buildingOperationStep.sqf",
+        "sha256": "cfcf8a5058e43896b2f197378a3eeb13c22b18d773711109482770bfad411e08"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_clear_exit_relief.py",
+        "sha256": "d5de71b64751611f24911f56992bb0d8bed95fbb49628ee266401d3721607047"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 9,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-deleted-guard-identity-5e3269de",
+      "fingerprint": "513cf0ec76f9199dd0b001041ec223d5ff9603c4096a9a664ae899d81ccf66e6",
+      "logs": [
+        ".qa/clear-deleted-guard-identity-focused.log",
+        ".qa/clear-deleted-guard-identity-build.log",
+        ".qa/clear-deleted-guard-identity-independent.log"
+      ]
+    },
+    "limits": "No record, original expiry, evicted receipt, missing/non-network ID or mismatched episode means no deleted-guard corroboration. No latest/ordered event delivery guarantee or physical corpse-cleanup/relief, normal/HC, tactical isolation or runtime/network budget proof. Unreleased internal schema5fields; no legacy3field adapter. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. No physical/parity/percentage claim. Audits PAUSED; no launch/push/CI/merge/publish."
+  }
 }

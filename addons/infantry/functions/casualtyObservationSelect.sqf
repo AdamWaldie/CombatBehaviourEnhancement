@@ -4,7 +4,8 @@
  * Locality/authority: Read-only on the current observer/group owner. Native cause 5 or an explicit
  * owner script supplies the observation; death records alone never dispatch movement.
  * Repeat/JIP: Reads at most eight original five-minute casualty receipts. No expiry renewal,
- * timer or discovery query. Public records can corroborate the old group after corpse detachment.
+ * timer or discovery query. Public five-field records corroborate the old group after corpse
+ * detachment; retained deleted-body identity never supplies a physical body or observation.
  * Arguments: actor OBJECT objNull; observed position ARRAY []; optional native body OBJECT objNull.
  * Return: OBJECT known own-group dead soldier near the observation, or objNull if absent/ambiguous.
  * Current caller: PointActorOperation START, after actor/feature/native-task admission gates.
@@ -18,8 +19,10 @@ private _rows=_group getVariable ["CBE_Danger_Casualties",[]];
 private _known=[];
 if (_rows isEqualType []) then {
     {
-        if (_x isEqualType [] && {count _x == 3}
+        if (_x isEqualType [] && {count _x == 5}
             && {(_x select 0) isEqualType objNull} && {!isNull (_x select 0)}
+            && {(_x select 3) isEqualType ""} && {(_x select 4) isEqualType []}
+            && {count (_x select 4) in [0,4]}
             && {!alive (_x select 0)} && {(_x select 0) isKindOf "CAManBase"}
             && {(_x select 1) isEqualType 0} && {finite (_x select 1)}
             && {(_x select 2) isEqualType 0} && {finite (_x select 2)}

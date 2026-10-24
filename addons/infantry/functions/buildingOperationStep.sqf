@@ -136,6 +136,8 @@
  * and sixteen reserve candidates bound this check; deferral never renews the episode deadline.
  * Before first staging, reserves retain their episode admission command; a new MOVE/FOLLOW/CBE
  * or active task is preserved. Same-leader FOLLOW can move naturally without a stale point lock.
+ * Positive episode-bound death identity survives corpse cleanup for exterior relief; a
+ * missing lookup alone never grants casualty or movement authority.
  * A known exterior casualty can rebalance one duplicated live post using existing
  * coverage proof and allocation budgets, with same-callback native dispatch.
  * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
@@ -306,6 +308,30 @@ private _delay=call {
         !fleeing _actor && {simulationEnabled _actor} && {!isObjectHidden _actor}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+    };
+    // Live incapacity is observed directly. Deleted guards require positive death
+    // identity from this exact episode, not absence or a guessed casualty position.
+    private _securityCasualtyKnown={
+        params ["_guard","_key"];
+        if (!isNull _guard) exitWith {
+            !alive _guard || {lifeState _guard == "INCAPACITATED"}
+                || {_guard getVariable ["ACE_isUnconscious",false]}
+        };
+        if (_key in ["","0:0"]) exitWith {false};
+        private _rows=_group getVariable ["CBE_Danger_Casualties",[]];
+        if !(_rows isEqualType []) exitWith {false};
+        ((_rows select [0,8]) findIf {
+            _x isEqualType [] && {count _x == 5}
+                && {(_x select 0) isEqualType objNull}
+                && {isNull (_x select 0) || {!alive (_x select 0)}}
+                && {(_x select 3) isEqualTo _key}
+                && {(_x select 4) isEqualTo (_job get "visitContext")}
+                && {(_x select 1) isEqualType 0} && {finite (_x select 1)}
+                && {(_x select 2) isEqualType 0} && {finite (_x select 2)}
+                && {(_x select 1) >= 0} && {(_x select 1) <= serverTime}
+                && {serverTime < (_x select 2)} && {(_x select 2) > (_x select 1)}
+                && {(_x select 2) <= (_x select 1)+300}
+        }) >= 0
     };
     // Record only stops actually issued by this callback. Native holds are not inferred
     // from posture/speed settings or an arbitrary later STOP elsewhere.
@@ -998,10 +1024,9 @@ private _delay=call {
                         // interior vacancy was filled elsewhere. Keep only the original
                         // target/exit/deadline; never turn temporary dormancy or a new order
                         // into permission to spend another security actor.
-                        // A missing lookup is not casualty evidence: replication may be late.
-                        private _securityLost=!isNull _guard && {!alive _guard
-                            || {lifeState _guard == "INCAPACITATED"}
-                            || {_guard getVariable ["ACE_isUnconscious",false]}};
+                        // Missing lookup alone is not casualty evidence. A matched actual
+                        // death record can preserve the existing exit leg after corpse cleanup.
+                        private _securityLost=[_guard,_reliefRow select 1] call _securityCasualtyKnown;
                         if (_securityLost) exitWith {
                             count _originalStage >= 6 && {(_originalStage select 2) == "ARRIVED"}
                                 && {(_originalStage select 5) isEqualTo (_reliefRow select 2)}
@@ -2469,9 +2494,7 @@ private _delay=call {
         private _lostGuard=objectFromNetId _lostKey;
         private _lostStage=+(_reserveStages getOrDefault [_lostKey,[]]);
         private _lostExit=_lostStage param [5,[]];
-        private _knownLoss=!isNull _lostGuard && {!alive _lostGuard
-            || {lifeState _lostGuard == "INCAPACITATED"}
-            || {_lostGuard getVariable ["ACE_isUnconscious",false]}};
+        private _knownLoss=[_lostGuard,_lostKey] call _securityCasualtyKnown;
         if (_knownLoss && {(_lostStage param [2,""]) == "ARRIVED"}
             && {_lostExit in _securityEntries} && {!([_lostExit] call _exitAssigned)}) then {
             {
@@ -2527,9 +2550,7 @@ private _delay=call {
                             isNil {
                                 if (call _mayIssueMovement && {[_candidate,_proof] call _promotionProofCurrent}
                                     && {(_reserveStages getOrDefault [_lostKey,[]]) isEqualTo _lostStage}
-                                    && {!isNull _lostGuard} && {!alive _lostGuard
-                                        || {lifeState _lostGuard == "INCAPACITATED"}
-                                        || {_lostGuard getVariable ["ACE_isUnconscious",false]}}
+                                    && {[_lostGuard,_lostKey] call _securityCasualtyKnown}
                                     && {!([_lostExit] call _exitAssigned)}) then {
                                     private _watchLease=_candidate getVariable ["CBE_Cortex_ClearExitWatch",[]];
                                     if (_watchLease isNotEqualTo []) then {
