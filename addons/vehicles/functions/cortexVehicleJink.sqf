@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Both current control seats are checked and bound for admission, commit and continuation.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
+ * Route scoring supplies the actual platform to existing bounded endpoint screening;
+ * full-height material screening may rank an escape, never prove hull clearance or protection.
  * Purpose: Starts one short terrain-checked escape by an intact armed ground vehicle after a close
  * hostile, hit or explosion danger generation, without becoming a persistent driving controller.
  * Locality / Authority: Runs on the current group and vehicle owner. It yields to convoy, player,
@@ -69,7 +71,7 @@ private _candidates=[];
 {
     _candidates pushBack [_origin getPos [_x select 0,_awayBearing+(_x select 1)]];
 } forEach [[35,0],[40,-30],[40,30],[45,-55],[45,55]];
-private _route=[_origin,_candidates,_threatPosition,[],_threat,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
+private _route=[_origin,_candidates,_threatPosition,[],_threat,"VEHICLE",_vehicle] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {["NO_ROUTE"] call _refuse};
 private _destination=+(_route select -1);
 if (!([_group,_vehicle,_jinkSeats] call CBE_fnc_CortexVehicleCrewAvailable)) exitWith {["CREW_CHANGED"] call _refuse};
