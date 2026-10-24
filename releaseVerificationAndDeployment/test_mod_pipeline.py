@@ -295,8 +295,25 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertEqual(flags,{'R_PG7_F':64+128+256+512,'R_PG32V_F':64+128+256+512,
             'M_SPG9_HEAT':64+128+512,'R_MRAAWS_HEAT_F':64+128+512})
         self.assertEqual(body.count('allowAgainstInfantry = 1;'),4)
+        grenade=body.split('    class Launcher;',1)[0]
+        for mode in ('HandGrenadeMuzzle','MiniGrenadeMuzzle'):
+            self.assertIn('class '+mode+': ThrowMuzzle {',grenade)
+        self.assertIn('class ThrowMuzzle: GrenadeLauncher {};',grenade)
+        self.assertEqual(grenade.count('minRange = 20;'),2)
+        self.assertIn('minRange = 50;',grenade)
+        self.assertEqual(grenade.count('Probab = 1.015;'),6)
+        self.assertEqual(grenade.count('Probab = 1.05;'),3)
+        self.assertNotIn('SmokeShellMuzzle',grenade)
+        self.assertNotIn('FlashBang',grenade)
+        self.assertNotIn('GrenadeHand:',body)
+        self.assertNotIn('cost =',body)
+        self.assertNotIn('indirectHit',body)
         diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
         self.assertIn('engine-policy-launchers',diagnostics)
+        for entry in ('"UGL_F","Single","minRange",50',
+                      '"Throw","HandGrenadeMuzzle","minRange",20',
+                      '"Throw","MiniGrenadeMuzzle","minRange",20'):
+            self.assertIn(entry,diagnostics)
         self.assertIn('"CBE_policy_launchers"',diagnostics)
         self.assertIn('!isNumber _entry',diagnostics)
         launcher=(ROOT/'releaseVerificationAndDeployment/launch_mod_audit.ps1').read_text()
