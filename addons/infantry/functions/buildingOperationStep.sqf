@@ -2533,7 +2533,9 @@ private _delay=call {
     if (_lostKeys isNotEqualTo []) then {
         private _cursor=(_job getOrDefault ["securityLossCursor",0]) mod count _lostKeys;
         _lostKeys=(_lostKeys select [_cursor])+(_lostKeys select [0,_cursor]);
-        _job set ["securityLossCursor",(_cursor+16) mod count _lostKeys];
+        // Only one fallback can be chosen. Rotate its first key too, including
+        // rosters dividing16, so an exhausted guard cannot monopolise selection.
+        _job set ["securityLossCursor",(_cursor+1) mod count _lostKeys];
     };
     private _securityRebalanced=false;
     private _unfilledSecurityKey="";
