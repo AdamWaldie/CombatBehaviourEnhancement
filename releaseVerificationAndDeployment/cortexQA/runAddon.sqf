@@ -34,3 +34,9 @@ private _policyRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param
 ["ADDON-engine-policy-diagnostic-effective",count _policyRows == 1 && {
     (_policyRows select 0) param [2,""] == (["DISABLED","LOADED"] select _policyLoaded)
 },str _policyRows] call _check;
+// Effective config only, not observed suppression recovery or combat balance.
+private _suppressionLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_suppression");
+private _suppressionRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param [1,""]) == "engine-policy-suppression"};
+["ADDON-suppression-policy-diagnostic",count _suppressionRows == 1 && {
+    (_suppressionRows select 0) param [2,""] == (["DISABLED","LOADED"] select _suppressionLoaded)
+},str _suppressionRows] call _check;

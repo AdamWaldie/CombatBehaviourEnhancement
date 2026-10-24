@@ -159,6 +159,13 @@ class StandalonePerformanceReportTests(unittest.TestCase):
                 with self.subTest(index=index),self.assertRaises(ValueError):compare(native,changed)
             cbe['manifest']['enginePolicies']=['turret_aiming']
             self.assertEqual(compare(native,cbe)['engine_policies'],['turret_aiming'])
+            cbe['manifest']['enginePolicies']=['suppression','turret_aiming']
+            self.assertEqual(compare(native,cbe)['engine_policies'],['suppression','turret_aiming'])
+            manifest_path=root/'cbe/audit-manifest.json'
+            manifest=json.loads(manifest_path.read_text())
+            manifest['enginePolicies']=['suppression']
+            manifest_path.write_text(json.dumps(manifest))
+            self.assertEqual(read_run(root/'cbe')['manifest']['enginePolicies'],['suppression'])
             path=root/'cbe/server/run.rpt'
             original=path.read_text()
             marker='CBE STANDALONE PERF ENGINE: '

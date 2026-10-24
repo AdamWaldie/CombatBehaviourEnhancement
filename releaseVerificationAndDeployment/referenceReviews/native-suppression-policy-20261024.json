@@ -1,0 +1,32 @@
+{
+  "baseline": "99060c42",
+  "sourceWorkshopId": "1808238502",
+  "sourceConfigSHA256": "63a1564732b2d577b5676462c920581c866cc3c2fec2db182d8254ae87d4c569",
+  "scope": "Six native AI suppression/aim recovery properties, supplied as an explicit optional addon; not whole danger FSM parity.",
+  "implementation": "CBE_policy_suppression loads independently of turret aiming. Native decay25/4 seconds, explosion weight1.5; aim recovery3.5/0.6 seconds, turning influence1.2. Existing native getSuppression consumers remain; no duplicate decay loop, per-actor skills, weapon properties or maximum error angles changed.",
+  "selection": "Global default soldier brain configuration cannot be unloaded by CBA or actor exclusion; explicit addon load/restart is required. Default CBE does not silently apply it. All participants must use matching selection.",
+  "integration": [
+    "Effective six-value diagnostics report disabled/loaded/error; configuration override does not claim successful application.",
+    "Audit launcher records supported policy selection and forbids native baseline loading; performance reader accepts and reports exact selection.",
+    "Existing addon QA checks effective diagnostics; not executed. Recursive package/signing coverage retained."
+  ],
+  "validation": {
+    "tests": 1492,
+    "compiledSQF": 412,
+    "PBOs": 10,
+    "configInspect": "valid",
+    "staticPerformanceFindings": 0,
+    "buildExitCode": 0,
+    "independentVerification": "passed",
+    "candidate": ".qa/candidates/native-suppression-99060c42",
+    "fingerprint": "269ec5f7c378593f21e04424bc0bddef466f12527ba56461a5eb2b455ce97bd9"
+  },
+  "primaryDocumentation": "https://community.bohemia.net/wiki/Arma_3:_CfgBrains_Config_Reference",
+  "limits": [
+    "Native endpoint parameters are not guaranteed measured recovery timings under continued danger.",
+    "Global config policy cannot obey per-group feature exclusions; explicit optional selection documented.",
+    "Actual recovery, combat balance, skill-profile interactions, normal/HC consistency and performance budget unverified; audits paused.",
+    "Unsigned dirty development candidate includes unrelated existing changes; this review and handover postdate package.",
+    "No full-mod parity or overall percentage claim. Protected source unchanged."
+  ]
+}

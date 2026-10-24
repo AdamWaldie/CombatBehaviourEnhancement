@@ -249,6 +249,25 @@ class PackagePipelineTests(unittest.TestCase):
         (self.folder/'cbe-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
 
+    def test_native_suppression_policy_preserves_skill_and_weapon_configuration(self):
+        import re
+        text=(ROOT/'optionals/suppression/config.cpp').read_text(encoding='utf-8')
+        properties={}
+        for component in ('AIBrainSuppressionComponent','AIBrainAimingErrorComponent'):
+            body=text.split('class '+component+' {',1)[1].split('};',1)[0]
+            properties[component]={key:float(value) for key,value in
+                                   re.findall(r'(\w+)\s*=\s*([0-9.]+)\s*;',body)}
+        self.assertEqual(properties,{
+            'AIBrainSuppressionComponent':{'worstDecreaseTime':25,'bestDecreaseTime':4,'causeExplosionWeight':1.5},
+            'AIBrainAimingErrorComponent':{'worstDecreaseTime':3.5,'bestDecreaseTime':0.6,'turningInfluence':1.2}})
+        self.assertNotIn('class CfgWeapons',text)
+        self.assertNotIn('class CfgAmmo',text)
+        self.assertNotIn('class CfgAISkill',text)
+        self.assertIn('"CBE_danger"',text)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
+        self.assertIn('!isNumber _entry',diagnostics)
+        self.assertIn('engine-policy-suppression',diagnostics)
+
     def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
         policy=self.folder/'optionals/@cbe_turret_aiming/addons/policy.pbo'
         policy.parent.mkdir(parents=True)

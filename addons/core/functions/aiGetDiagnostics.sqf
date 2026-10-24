@@ -307,7 +307,28 @@ private _turretPolicyCeiling=getNumber (configFile >> "CfgBrains" >> "DefaultSol
 private _turretPolicyState=if (!_turretPolicyLoaded) then {"DISABLED"} else {
     ["ERROR","LOADED"] select (abs (_turretPolicyCeiling-0.12) < 0.0001)
 };
+// Native policy reads are diagnostics only; no skill or suppression values are written.
+private _suppressionPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_suppression");
+private _brainComponents=configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components";
+private _suppressionPolicyValues=[];
+private _suppressionPolicyMatches=true;
+{
+    _x params ["_component","_property","_expected"];
+    private _entry=_brainComponents >> _component >> _property;
+    private _actual=getNumber _entry;
+    _suppressionPolicyValues pushBack [_component,_property,_actual];
+    if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_suppressionPolicyMatches=false};
+} forEach [["AIBrainSuppressionComponent","worstDecreaseTime",25],
+    ["AIBrainSuppressionComponent","bestDecreaseTime",4],
+    ["AIBrainSuppressionComponent","causeExplosionWeight",1.5],
+    ["AIBrainAimingErrorComponent","worstDecreaseTime",3.5],
+    ["AIBrainAimingErrorComponent","bestDecreaseTime",0.6],
+    ["AIBrainAimingErrorComponent","turningInfluence",1.2]];
+private _suppressionPolicyState=if (!_suppressionPolicyLoaded) then {"DISABLED"} else {
+    ["ERROR","LOADED"] select _suppressionPolicyMatches
+};
 private _checks = [
+    ["ai","engine-policy-suppression",_suppressionPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Global native policy persists while CBA tactics are disabled; different values indicate a config override. Mission skills are unchanged. Balance and recovery timing require physical verification.",_suppressionPolicyLoaded,_suppressionPolicyValues]],
     ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 restartRequired=true. Runtime CBA gates cannot unload this configuration. A different effective ceiling while loaded indicates a configuration override; physical lethality and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling]],
     ["ai", "cortex", _passState, format ["enabled=%1 serverActive=%2 serverJobs=%3 paused=%4 includedSides=%5. %6", _passEnabled, _passActive, _passJobs, [] call CBE_fnc_CortexIsPaused, missionNamespace getVariable ["CBE_AIPass_IncludedSides", []], _passHint]],
     ["ai", "cortex-scheduler", if (!_passEnabled) then {"DISABLED"} else {"LOADED"}, format ["sampledJobs=%1 callbackMs=%2 maxQueueLatency=%3 staleProgress=%4",count _schedulerQueue,_schedulerCallbackMs toFixed 3,_schedulerLatency toFixed 2,_schedulerStaleProgress]],
