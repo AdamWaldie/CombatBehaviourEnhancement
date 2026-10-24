@@ -33,5 +33,25 @@
     "Active ordinary cruising-cap provenance and old-machine private-state retirement beyond this pending fact remain separate unfinished work.",
     "Public metadata is cooperative internal CBE provenance, not authenticated external provider quiescence, FSM liveness, JIP readiness or physical success.",
     "No whole HBQ or LAMBS parity claim and no buildout percentage change."
-  ]
+  ],
+  "nativeLocalDefaultRevalidation20261024": {
+    "base": "a15a3841",
+    "engineReference": "https://community.bistudio.com/wiki/forceSpeed",
+    "getterReference": "https://community.bistudio.com/wiki/getForcedSpeed",
+    "evidence": "forceSpeed requires local execution and reapplication after locality change; getForcedSpeed returns -1 when not set. Incoming release adoption explicitly requires exact old applied cap and refuses a defaulted incoming value. Ordinary handover is not complete merely because source metadata was published.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingCapReleaseOffer.sqf": "378c0afbe3858c5376774e29ad3153443801b2c3a9ed5e10dfe1fe0512ddeddc",
+      "addons/vehicles/functions/drivingCapReleaseAdopt.sqf": "0722ef687ebaaf7a9b36ad173964ae518a88f904ab69e64217994afc7f586e41",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c62d7a05edd70db32207fdec0817f873dfd7a39a0fec3354c8dbcb269cedd0af"
+    },
+    "currentScope": "Existing five-second Local-edge receipt collection and finite pending-release custody; not active cruising control migration. No runtime change made during this revalidation.",
+    "requiredNextStep": [
+      "Trace DrivingRecoveryAdopt and DrivingAssistRelease callers before introducing native effects into the currently metadata-only adopter",
+      "Use actual destination-owner observation to distinguish inherited native cap,defaulted local cap and a changed nondefault cap; a default by itself is not ownership",
+      "For a justified default-case handback, preserve original seats,issuer/custodian,actual Local edge,unchanged authored route,baseline and original deadline; never fabricate an applied-cap receipt for an unissued command",
+      "Keep fresh cruising policy separate from terminal release. Do not blindly replay the old dynamic speed cap or renew recovery/traffic clocks",
+      "Physically validate both directions,owner return,late receipt delivery,new native route,Zeus/mission/external replacement and exact baseline restoration when audits resume"
+    ],
+    "limits": "No claim that all Arma owner changes always reset the cap; actual incoming native values remain a physical test requirement. No general cruising-cap or provider-quiescence acceptance. Audits PAUSED."
+  }
 }
