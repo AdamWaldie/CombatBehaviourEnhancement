@@ -106,6 +106,22 @@
     },
     "candidate": ".qa/candidates/artillery-scoot-crew-0c43d0d2",
     "fingerprint": "d5fcc3ec6f750f6cd8d1441f162e617fa6694dd04a71cd322870cfecc16cfa04",
-    "remainingCodeScope": "Postfire uses a whole-group native movement operation; multi-vehicle/foot composition and whether independent battery authority is required still need source-intent/execution assessment. This crew binding is not mixed-group support or provider quiescence."
+    "remainingCodeScope": "Selected-battery pre/postfire movement remains a required code gap: source issues doMove only to selected battery driver/commander, whereas current CBE uses whole-group CortexGroupMove. Existing crew binding is not selected-vehicle or mixed-group movement support. See selectedBatteryMovement20261024.",
+    "historicalRemainingCodeScope": "Postfire uses a whole-group native movement operation; multi-vehicle/foot composition and whether independent battery authority is required still need source-intent/execution assessment. This crew binding is not mixed-group support or provider quiescence."
+  },
+  "selectedBatteryMovement20261024": {
+    "base": "4ba1c085",
+    "scope": "Source movement branches111..136 and158..178 against current CBE positioning/scoot call boundaries. Not renewed whole-mod review.",
+    "sourceFinding": "Before fire, loops crew of the selected artillery and issues doMove to actual driver or commander; waits on vehicle distance<120 or death with no finite timeout. After request20..35s, loops same selected vehicle crew for displacement. It does not explicitly issue group move/waypoints. Two seat writes are not a desirable competing-controller model.",
+    "cbeFinding": "CortexArtilleryPosition uses OperationStart empty participant fallback plus CortexGroupMove HOLD; CortexArtilleryScoot uses CortexGroupMove MOVE. Both restrict independent single-platform groups. Current crew/task/session and original-deadline protection exists; selected vehicle movement in mixed groups is not implemented.",
+    "requiredContribution": "Implement selected-platform pre/postfire displacement under one actual current control owner, preserving the original group mission/native tasks and other vehicles/foot actors. Retain finite acknowledgement/progress/deadline, exact original seats/native destination, cancellation/handback and fresh range/HOLD/readiness evidence. Do not copy dual-seat writes, unbounded wait, unsafe random destination or opposing-side command. Do not present whole-group path as mixed-group parity.",
+    "currentValidation": "4 existing artillery scoot session tests pass .qa/protocol-artillery-movement-scope-focused.log. Protected readable source hash matches stored PBO member9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d. No runtime changes or full rebuild.",
+    "hashes": {
+      ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+      "addons/support/functions/cortexArtilleryPosition.sqf": "f63eb203d1b8611b7f8fea70180ad72e1c74ddc1b5511f10bc5f3eb09b231821",
+      "addons/support/functions/cortexArtilleryScoot.sqf": "b420d502ddc19e448818e88be318bca78232eb63eab966d39e2249684a06a3c8",
+      "addons/support/functions/cortexArtilleryShot.sqf": "b7084d5f258b846bafbd140622a7b359b664b02d9bab4b04ac1a2da65aecc94b"
+    },
+    "limits": "No selected-platform executor implemented, native vehicle command independence/arrival/cancellation or physical behaviour proved. Do not confuse existing task guards and package checks with this missing behaviour. Latest recovery-pause-admission-b9bf422b/cfbb8495b5bf2f796db74ee3dbe34fbd402449eac99480e718aa0990184523df remains prior unsigned dirty runtime checkpoint. No source parity/percentage renewal; audits PAUSED."
   }
 }

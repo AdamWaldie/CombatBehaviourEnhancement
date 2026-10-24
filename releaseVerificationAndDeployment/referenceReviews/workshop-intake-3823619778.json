@@ -1,0 +1,33 @@
+{
+  "workshopId": "3823619778",
+  "name": "TEKILLA Dynamic AI Reactions",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3823619778",
+  "date": "2026-10-24",
+  "queue": "Follow on extension",
+  "priority": "DEFERRED_USER_REQUEST",
+  "status": "REGISTERED_FOR_LATER_EVALUATION_NOT_IMPLEMENTED",
+  "scope": "Evaluate AI stress/morale, suppression/blast/witness reactions, flight/surrender and recovery intent for useful later CBE extensions. Registration does not approve wholesale import or player-facing prisoner mechanics.",
+  "ordering": "After current foundations/FSM, LAMBS parity/improvement and required Protocol implementation work; no current-scope expansion.",
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3823619778",
+  "identityEvidence": "Installed mod.cpp and README.md; Workshop page unavailable through browser tool and ID search returned no result.",
+  "dependencies": "README declares CBA_A3 optional settings support and runtime detection of ACE3/LAMBS/DCO/PIR/WebKnight reactions/IKMS. Configuration and actual dependency behaviour unverified. IKMS/WBK Droids/Zombies remain compatibility-only under existing CBE policy.",
+  "evaluationTopics": [
+    "Preserve gameplay balance and native task authority; avoid omniscient stress triggers or permanent competing loops.",
+    "Review custom animations, weapon laydown/pickup and exact loadout restoration. Arm stretching, distorted limbs or broken grip are defects.",
+    "Finite owner-local reaction lifecycle, casualty/capture/medical interruption, locality migration and repeat-safe restoration.",
+    "Bounded sensing/cooldowns and measured cost; merge complementary AI intent rather than duplicate existing controllers."
+  ],
+  "licence": "UNVERIFIED; inspect before incorporating implementation.",
+  "sourceProtection": "Installed originals and preserved references read-only; no source execution, edits or raw assets in product packages.",
+  "masterLedger": "LOCAL_IMPLEMENTATION_LEDGER.md remains absent; this tracked intake preserves the user request without reconstructing the missing private master.",
+  "audits": "PAUSED",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "files": {
+    "mod.cpp": "eb4bd64ff6ebaa9ad8b22016dd5eb47de2aa11c3cf632f5c04c18c4fc9d2a9fb",
+    "README.md": "a107802003bb6da56ab5676042d4d0d9c369508faac6060cf141da0cbd7d8c2b",
+    "addons\\tek_dar_anims.pbo": "f5fd66883199049d6305acfe2ca1214d7e7a84b312e791bb7aaa7b7a7cc61f6e",
+    "addons\\tek_dar_main.pbo": "24bb3551a416c3cf3a92ba095d7a150335e3166b00e6adb6ebade1e550671698",
+    "addons\\tek_dar_test.pbo": "f425cc9c3e811cccb617e1fe42f4ccc016b1dceebb222f371ceae123e2bffa2c"
+  }
+}

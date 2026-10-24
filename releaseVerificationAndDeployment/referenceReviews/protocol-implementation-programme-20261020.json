@@ -48,6 +48,13 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "movementScopeReconciliation20261024": {
+        "review": "protocol-artillery-3801354927-20261020.json#selectedBatteryMovement20261024",
+        "requiredCodeGap": "Selected-battery pre/postfire movement rather than whole-group waypoints; actual source movement loops only selected vehicle driver/commander. Mixed-group support remains unimplemented. Existing single-platform positioning/scoot does not close this scope.",
+        "productChanged": false,
+        "physicalAcceptance": false,
+        "scoresChanged": false
       }
     },
     {
