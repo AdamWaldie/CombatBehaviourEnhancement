@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Retains eligible infantry partners across operation changes and repairs broken pairs.
- * Explicit episode-bound intact pairs take precedence over the general registry.
+ * Explicit episode-bound intact lanes (one or two actors) take precedence over the general registry.
  * Supplied rows grant identity preference only; all returned actors still pass eligibility.
  * Intact pairs win; only unpaired actors choose the nearest remaining eligible partner in3D,
  * with roster order breaking equal-distance ties. Distance is not proof of a connected route.
@@ -10,7 +10,7 @@
  * as active workers. Unchanged metadata does not republish; public identity survives migration/JIP.
  * Arguments: 0 group <GROUP, grpNull>; 1 eligible actors <ARRAY of OBJECT, []>, maximum 16;
  * 2 publish <BOOL,true>; false computes rows without changing the shared registry, for one combined publication.
- * 3 preferred intact pairs <ARRAY,[]>, maximum16; current caller owns episode binding.
+ * 3 preferred intact lanes <ARRAY,[]>, maximum16; current caller owns episode binding.
  * Cost: At most16 supplied preference rows plus16 general rows over at most16 eligible actors.
  * Return Value: ARRAY of one- or two-actor pairs; [] for invalid authority or an oversized request.
  * Current callers: OperationStart, RebalanceRoles, CortexClearBuilding and CortexAdvanceStart.
@@ -30,10 +30,11 @@ if !(_previous isEqualType []) then {_previous=[]};
 private _pairs=[];
 private _orphans=[];
 // A current operation can carry newer lane identity than the general public registry.
-// Only intact pairs wholly inside the supplied eligible roster may take precedence.
+// Only intact lanes wholly inside the supplied eligible roster may take precedence.
+// A singleton is an intentional episode slot, not an orphan to pair with another lane.
 {
-    private _pair=if (_x isEqualType [] && {count _x == 2}) then {(_x arrayIntersect _x) select {_x in _remaining}} else {[]};
-    if (count _pair == 2) then {
+    private _pair=if (_x isEqualType [] && {count _x in [1,2]}) then {(_x arrayIntersect _x) select {_x in _remaining}} else {[]};
+    if (_pair isNotEqualTo [] && {count _pair == count _x}) then {
         _pairs pushBack _pair;
         _remaining=_remaining-_pair;
     };

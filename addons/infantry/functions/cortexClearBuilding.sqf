@@ -306,7 +306,7 @@ private _useRosterJournal=_resume && {count _resumeRosterJournal == 4}
     && {(_resumeRosterJournal select 3) isEqualType []};
 if (_useRosterJournal) then {
     _resumeParticipants=+(_resumeRosterJournal select 1);
-    _resumePairs=(_resumeRosterJournal select 2) select {_x isEqualType [] && {count _x == 2}} apply {+_x};
+    _resumePairs=(_resumeRosterJournal select 2) select {_x isEqualType [] && {count _x in [1,2]}} apply {+_x};
     _resumeUnavailable=+(_resumeRosterJournal select 3);
     _useResumeRoster=true;
 };

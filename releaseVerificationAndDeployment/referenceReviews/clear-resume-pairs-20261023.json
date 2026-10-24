@@ -237,5 +237,25 @@
     "candidate": ".qa/candidates/clear-lane-resume-preflight-9e735ae5",
     "fingerprint": "7eeb871cc0a535806daa93834ead8f7ae86540cdec932ef7dfd68961e442026d",
     "limits": "Not delivery acknowledgement, exact-once replay or complete changed-roster casualty recovery. Eligible roster changes and malformed lane state can still refuse later adoption. Physical/HC/performance unverified. Unsigned dirty candidate includes unrelated dirt; private notes/review postdate package. Audits PAUSED."
+  },
+  "singletonLaneResume20261024": {
+    "base": "edb57ca1",
+    "finding": "ClearRoster adoption filtered rows to exactly2actors, although lane journal and CombatPairs support singleton lanes. Snapshot identity could not match legitimate odd/single-actor allocations. Preferred pairing also ignored explicit singleton slots.",
+    "change": "Roster adoption retains one/two-actor rows. Preferred lanes are admitted only when nonempty, fully eligible and unique (filtered cardinality equals original row cardinality). Exact ordered preferred singleton slots remain reserved ahead of the general registry. Default fresh pairing remains unchanged when preferred lanes are absent. No movement/settings/worker/timer/deadline change.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "d1c1b1ad6c24a267b6c67cfd75ba635a94f6b3b52e94500afd518edf6d4d22f8",
+      "addons/infantry/functions/combatPairs.sqf": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617"
+    },
+    "validation": {
+      "existingMotionCases": 9,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-singleton-lane-resume-edb57ca1",
+    "fingerprint": "0cebb8e0aaba1b34d7c0e2720d8cb663c5b77d22cb3c2b97aebc09a224947ab3",
+    "limits": "Offline allocation/admission correction. Changed eligibility can still alter roster and refuse adoption. Ordered delivery, exact-once transfer and physical one/three-person or casualty/HC continuity unverified. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
   }
 }

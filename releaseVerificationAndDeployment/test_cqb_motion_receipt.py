@@ -66,6 +66,10 @@ class MotionReceiptTests(unittest.TestCase):
         pairs=read('combatPairs.sqf')
         self.assertLess(pairs.index('forEach (_preferred select [0,16])'),pairs.index('forEach (_previous select [0,16])'))
         self.assertIn('count _preferred > 16',pairs)
+        preferred=pairs.split('// A current operation can carry newer lane identity',1)[1].split('// Intact pairs take priority',1)[0]
+        self.assertIn('count _x in [1,2]',preferred)
+        self.assertIn('_pair isNotEqualTo [] && {count _pair == count _x}',preferred)
+        self.assertIn('_resumePairs=(_resumeRosterJournal select 2) select {_x isEqualType [] && {count _x in [1,2]}}',text)
         self.assertIn('select {_x in _remaining}',pairs)
         self.assertLess(pairs.index('CBE_fnc_CortexCombatEffective'),pairs.index('forEach (_preferred'))
     def test_durable_roster_survives_common_operation_cancel_and_is_episode_bound(self):
