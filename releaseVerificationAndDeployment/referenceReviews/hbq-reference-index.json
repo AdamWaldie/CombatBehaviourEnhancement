@@ -495,6 +495,16 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-recovery-helper-disposition-20261024.json",
+      "sha256": "242df03108eba0529e12abd58dc23ba75d0b7976919aeb06500ec9bbc7e6fa10",
+      "scope": "Complete selected HBQ vehicleUnstuck and routeWaiting helpers; current CBE recovery/crew/wait call-path comparison, not whole HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_routeWaiting.sqf",
+        "functions/fn_vehicleUnstuck.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
       "sha256": "3ff5d7469d35ecf7be7faeaa08dd2503909a751b117748a9a9d4eb30748314ed",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",
