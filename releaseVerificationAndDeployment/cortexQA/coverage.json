@@ -760,6 +760,7 @@
         "CBE_AIPass_DrivingAssist_MaxSpeed",
         "CBE_AIPass_DrivingAssist_Recovery_Enable",
         "CBE_AIPass_DrivingAssist_Queue_Enable",
+        "CBE_AIPass_DrivingAssist_CrewRecall_Enable",
         "CBE_AIPass_DrivingAssist_CloseGates_Enable"
       ],
       "status": "implemented_partial",

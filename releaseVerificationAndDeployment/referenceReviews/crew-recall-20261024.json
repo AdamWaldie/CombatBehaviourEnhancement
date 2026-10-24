@@ -1,0 +1,26 @@
+{
+  "scope": "Optional HBQ-style normal crew recall",
+  "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+  "user_decision": "Optional CBA setting, off by default",
+  "implementation": "Existing ordinary-driving callback and shared fullCrew snapshot; remembers physically occupied operating seats; exact route and driver, current owner brain;20-second idle grace, fixed60-second observation window, one ordinary orderGetIn request; no assignment change or forced seating.",
+  "boundaries": [
+    "Cargo and FFV excluded",
+    "Current seated leader and usable calm vehicle required",
+    "Care, fleeing, newer visible native tasks, reservations and external/Zeus ownership retire the episode",
+    "Intentional silent scripted dismount must unassign operator",
+    "Disable clears history without cancelling native orders",
+    "No JIP or ownership-replacement command replay",
+    "Existing native boarding wait remains independently finite"
+  ],
+  "validation": {
+    "unit_tests": 1494,
+    "compiled_sqf": 413,
+    "pbo": 10,
+    "cba_settings": 155,
+    "independent_package": "pass",
+    "fingerprint": "6c5c0348f1b6a955a6a92f956e20e8f3e53f2df04afec29e67d1058e5a70aa07",
+    "live": "UNRUN - audits paused",
+    "candidate": ".qa/candidates/crew-recall-b7074d5c"
+  },
+  "limitations": "Offline checks do not establish physical boarding, balance, locality handover or measured performance. No forced stage from HBQ was copied."
+}

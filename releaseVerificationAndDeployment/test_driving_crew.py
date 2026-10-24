@@ -251,8 +251,14 @@ class DrivingCrewTests(unittest.TestCase):
         self.assertIn('_row set [5,_position];_row set [6,serverTime]',body)
         self.assertIn('count _x != 7',body)
         self.assertNotIn('time+60',body.replace('serverTime+60',''))
-        for command in ('orderGetIn','assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
+        for command in ('assignAs','moveIn','forceSpeed','setVelocity','spawn','sleep','execFSM'):
             self.assertNotIn(command,body)
+        self.assertEqual(body.count('orderGetIn true'),1)
+        self.assertIn('CrewRecall_Enable",false,_vehicle',body)
+        self.assertIn('(_seat select 0) == _actor',body)
+        self.assertIn('serverTime-(_recall select 3) >= 20',body)
+        self.assertIn('currentCommand _actor in ["","NONE"]',body)
+        self.assertIn('_recall set [4,true]',body)
         self.assertEqual(assist.count('call CBE_fnc_DrivingCrewBoarding'),2)
         self.assertIn('if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]}',assist)
         self.assertIn('private _forwardHeld=_crewBoardingHold || {_queueHold}',assist)

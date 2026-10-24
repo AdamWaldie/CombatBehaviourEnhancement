@@ -5,8 +5,9 @@
  * Pending ACE care ends native-boarding cooperation without clearing its queue or renewing seat deadlines.
  * Purpose: Offers a finite vehicle wait for an already-ordered operating crew member.
  * Locality/authority: Existing ordinary-driving callback, current group/vehicle owner only.
- * This reads native GET IN and the exact assigned operating seat; it never issues boarding,
- * changes assignments or changes speed. DrivingAssistStart remains the sole speed writer.
+ * Default behaviour reads native GET IN and the exact assigned operating seat. Optional recall
+ * requests ordinary reboarding once after20 seconds idle outside an observed seat; it never
+ * changes assignments, force-seats actors or changes speed. DrivingAssistStart remains the sole speed writer.
  * Repeat/JIP: Public per-seat deadlines survive owner/brain replacement on the same authored
  * route. Expired attempts cannot renew until physical boarding or assignment removal/change.
  * Twelve seconds without measured two-metre actor motion ends the wait unless native
@@ -19,6 +20,9 @@
  * Return: BOOL - current native boarding requests a zero cap, not successful re-entry.
  * Cost: one fullCrew observation (engine cost), at most20 seat rows/20 retained attempts;
  * no world query, geometry rays, worker or event handler. Oversized/unknown journals refuse.
+ * Optional recall history is brain-local, max20 rows, expires60 seconds after dismount.
+ * Route/driver replacement or disabling clears history; no JIP command replay.
+ * Intentional dismount scripts must unassign operators to prevent recall.
  * Current caller: DrivingAssistStart at its existing vehicle sample cadence.
  * Example: private _wait=[_group,_vehicle,_brain,{call _mayIssueDriving
  *     && {call _recoveryOrderFree} && {call _nativeRouteIntent}}] call CBE_fnc_DrivingCrewBoarding;
@@ -54,7 +58,8 @@ private _rows=if (_entry isNotEqualTo [] && {(_entry select 0) == _group}
 private _seats=fullCrew [_vehicle,"",true];
 if (count _seats > 20) exitWith {false};
 // Boarding permissions are not observable from assignedVehicle alone: orderGetIn false
-// preserves that assignment. Cooperate only with an actual native GET IN, never recall it.
+// preserves that assignment. Default cooperation requires an actual native GET IN.
+// Optional recall is explicit operator policy, not inferred mission permission.
 private _available=call _mayWait && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle}
     && {!isObjectHidden _vehicle} && {vehicle leader _group == _vehicle}
     && {behaviour leader _group in ["SAFE","AWARE"]}
@@ -66,6 +71,63 @@ private _available=call _mayWait && {alive _vehicle} && {canMove _vehicle} && {s
     && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     && {["CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"]
         findIf {!isNil {_vehicle getVariable _x}} < 0};
+// Brain-local history cannot replay commands across route, driver or owner replacement.
+// Each row is [observed operator, role, turret path, first outside time, retired].
+private _recallEnabled=[_group,"CBE_AIPass_DrivingAssist_CrewRecall_Enable",false,_vehicle]
+    call CBE_fnc_CortexFeatureEnabled;
+private _recallReceipt=[_vehicle,+_route,driver _vehicle];
+if (!_recallEnabled || {(_brain getOrDefault ["crewRecallReceipt",[]]) isNotEqualTo _recallReceipt}) then {
+    _brain set ["crewRecallRows",[]];
+    _brain set ["crewRecallReceipt",_recallReceipt];
+};
+if (_recallEnabled) then {
+    private _recallRows=_brain getOrDefault ["crewRecallRows",[]];
+    private _recallNext=[];
+    {
+        private _seat=_x;
+        if (count _seat < 6) then {continue};
+        private _role=toLowerANSI (_seat select 1);
+        private _actor=_seat select 5;
+        private _path=_seat select 3;
+        if (_role == "cargo" || {_seat select 4} || {isNull _actor}
+            || {!alive _actor} || {group _actor != _group}
+            || {assignedVehicle _actor != _vehicle}) then {continue};
+        private _index=_recallRows findIf {(_x select 0) == _actor
+            && {(_x select 1) == _role} && {(_x select 2) isEqualTo _path}};
+        private _recall=if (_index < 0) then {[]} else {+(_recallRows select _index)};
+        if ((_seat select 0) == _actor) then {
+            // Only a physical occupation rearms this seat episode.
+            _recall=[_actor,_role,+_path,-1,false];
+        } else {
+            if (_recall isNotEqualTo [] && {!(_recall select 4)}) then {
+                if ((_recall select 3) < 0) then {_recall set [3,serverTime]};
+                private _idle=local _actor && {isNull objectParent _actor}
+                    && {isNull (_seat select 0)} && {!isPlayer _actor}
+                    && {toUpperANSI currentCommand _actor in ["","NONE"]}
+                    && {!fleeing _actor} && {simulationEnabled _actor}
+                    && {!isObjectHidden _actor} && {isNull remoteControlled _actor}
+                    && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                    && {[_actor] call CBE_fnc_CortexCombatEffective}
+                    && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+                    && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
+                    && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
+                    && {_actor distance2D _vehicle <= 100};
+                // New commands, care or tactical ownership retire rather than postpone recall.
+                if (!_available || {!_idle} || {serverTime-(_recall select 3) >= 60}) then {_recall set [4,true]} else {
+                    if (serverTime-(_recall select 3) >= 20) then {
+                        _recall set [4,true];
+                        // Publish retirement before the native request. No assignment mutation.
+                        _brain set ["crewRecallRows",[]];
+                        [_actor] orderGetIn true;
+                    };
+                };
+            };
+        };
+        if (_recall isNotEqualTo []) then {_recallNext pushBack _recall};
+    } forEach _seats;
+    _brain set ["crewRecallRows",_recallNext];
+};
 private _wait=false;
 private _next=[];
 {

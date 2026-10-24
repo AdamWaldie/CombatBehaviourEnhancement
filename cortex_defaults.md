@@ -136,6 +136,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_DrivingAssist_Passing_Enable` | `false` | Experimental automatic road-pass admission; original finite deadlines and real owner consent. Physical/performance acceptance pending. |
 | `CBE_AIPass_DrivingAssist_Queue_Enable` | `false` | Experimental automatic head-on jam initiation; one attempt per original traffic-retry episode, actual-owner consent and finite commit retry. Physical/performance acceptance pending. |
 | `CBE_AIPass_DrivingAssist_MaxSpeed` | `70` | General driving safety cap in km/h; terrain and lower authored caps still apply. |
+| `CBE_AIPass_DrivingAssist_CrewRecall_Enable` | `false` | Optional ordinary reboarding for observed assigned operators; never force-seat. |
 | `CBE_AIPass_DrivingAssist_CloseGates_Enable` | `false` | Opt-in finite gate closure after observed passage and traffic clearance. |
 | `CBE_AIPass_DrivingAssist_Recovery_Enable` | `true` | Permit new finite ordinary-driving recovery attempts. |
 | `CBE_AIPass_CoverValidation_Enable` | `true` | Adds bounded slope and body clearance checks to shared cover selection. |

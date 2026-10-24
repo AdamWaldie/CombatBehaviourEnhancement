@@ -138,3 +138,7 @@ The historical LOCAL_IMPLEMENTATION_LEDGER.md remains missing. Do not replace it
 ## Automatic airborne ground squad
 
 User clarification 2026-10-24: when operating aircrew and passengers share a group, automatically form the original grounded surviving passengers into a separate ground squad after insertion. Preserve the flight crew and its native route. Cargo-only squads retain their group and authored orders. This explicitly authorised membership change is not teleport/recovery or permission to split unrelated mission groups. Keep native/care/reservation and pending restoration gates, exact insertion ownership, real join acknowledgements, partial-failure reporting and passive JIP metadata. Normal group tactics own the new squad; do not create a parallel permanent actor movement controller or count assignment as physical combat completion.
+
+## Optional crew recall
+
+User decision: HBQ-style crew recall must be an optional CBA setting, off by default. Use normal reboarding only, never forced seating. Intentional scripted dismounts must unassign the operator.
