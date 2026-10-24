@@ -2759,3 +2759,10 @@ This records a loss, not a casualty position or replacement authority. A present
 Automatic contact-led clearance opts into returning to the original plain MOVE route after safe egress. Inaccessible or unvisited rooms still produce INCOMPLETE; safe return to the mission route does not grant room coverage or building safety. This prevents a finite partial search from leaving safely settled actors permanently held solely because room coverage was incomplete. Explicit CLEAR tasks retain the default continuation-off hold policy.
 
 Failed egress cannot grant this handback. The existing exact native route, plain ungated MOVE, actor STOP/post, owner/generation, formation-chain and external-control checks remain required; newer individual or mission orders are preserved. Physical partial-search handback, repeat behaviour and performance remain unverified while audits are paused.
+
+
+### Native acknowledgement during clearance handback
+
+Natural-route handback records each actual leader MOVE and admitted formation FOLLOW request using the existing one-shot clearance recall receipt. A request alone does not remove an actor from the terminal hold list: an actor still stopped at its recorded same-floor post retains that evidence. Acknowledged movement or a changed command/pose cannot inherit that old hold. Existing later hold inspection can distinguish an already requested recall without using an expired observation window as replay permission.
+
+No new polling job, retry deadline or native command is added. Indefinitely unacknowledged requests remain unresolved; this is evidence retention, not proof the engine accepted the order or the actor travelled. Normal/headless acknowledgement and physical handback remain unverified while audits are paused.

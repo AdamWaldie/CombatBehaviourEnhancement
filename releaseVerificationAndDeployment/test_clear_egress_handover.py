@@ -159,7 +159,17 @@ class TerminalContinuationBoundaryTests(unittest.TestCase):
         self.assertNotIn('_x doFollow _leader',block)
         self.assertLess(block.index('_considered pushBack _x'),block.index('[_x] call _mayContinue'))
         self.assertIn('count _followers == _beforeCount',block)
-        self.assertIn('private _remaining=_settled-_continued',block)
+        self.assertIn('private _remaining=(_settled-_continued)+_unacknowledged',block)
+        self.assertLess(block.index('_leader setVariable ["CBE_Cortex_ClearRecall"'),block.index('_leader doMove'))
+        self.assertLess(block.index('_x setVariable ["CBE_Cortex_ClearRecall"'),block.index('_x doFollow'))
+        self.assertIn('[_x,_handoverJob] call CBE_fnc_BuildingActorHoldOwned',block)
+        # The issued set alone discarded every delayed actor. Retain only the
+        # still-owned STOP, not the acknowledged FOLLOW or a newer individual MOVE.
+        settled={'leader','buddy','diverted'}
+        requested={'leader','buddy'}
+        unchanged_stops={'leader'}
+        self.assertEqual(settled-requested,{'diverted'})
+        self.assertEqual((settled-requested)|(requested & unchanged_stops),{'leader','diverted'})
 
         handback=text.split('if (_reason == "NEW_ORDER" && {local _group}',1)[1].split('forEach _handbacks;',1)[0]
         self.assertLess(handback.index('isNil {'),handback.index('_actor doFollow leader _group'))

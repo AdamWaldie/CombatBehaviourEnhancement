@@ -27,5 +27,29 @@
   },
   "limits": "No actual inaccessible-building continuation, native acknowledgement/travel, threat response after return, repeat, normal/HC or performance proof. Existing no-replay native handback limitations remain. No claim this resolves historical sprawl/exit screenshots. Unsigned dirty candidate includes unrelated preexisting dirt; review/handover postdate package. No source-parity/build percentage credit.",
   "audits": "PAUSED",
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "nativeContinuationAcknowledgement20261024": {
+    "base": "d118ed3b",
+    "finding": "Natural continuation appended actors to continued immediately after doMove/doFollow and subtracted them from the terminal hold receipt. A delayed native request still reporting the original STOP lost hold proof; this path also omitted the existing one-shot ClearRecall marker.",
+    "change": "Record the existing four-field generation/epoch/anchor/time+5 recall immediately before each actual leader MOVE or admitted native-chain FOLLOW. After requests, use existing BuildingActorHoldOwned with this finish actual post snapshot; retain requested actors still stopped at those posts plus unrequested actors. Changed command/pose is not owned hold proof. No new fields, command, observer, timer, deadline or replay introduced.",
+    "validation": {
+      "focusedExistingCases": 8,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "candidate": ".qa/candidates/clear-continuation-ack-d118ed3b",
+      "fingerprint": "61e0d4f46e3da1b06505ffbe72eac96a1933798f5225b7641ba5eb65fbae3509",
+      "logs": [
+        ".qa/clear-continuation-ack-focused.log",
+        ".qa/clear-continuation-ack-build.log",
+        ".qa/clear-continuation-ack-independent.log"
+      ]
+    },
+    "sourceHashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "294b5704e7674b3fd9935ee4ea21a16b0ecea02f032f3f77f71cc13de7fa70e7",
+      "releaseVerificationAndDeployment/test_clear_egress_handover.py": "a7749e1affd0c47151572745384c11cb5dbba25d4654027aa31ec45ecaddf6eb"
+    },
+    "limits": "Source/model evidence only; actual delayed acknowledgement, native travel, local actor receipt migration, indefinitely unacknowledged requests and physical handback/performance remain unverified. Same-route hold metadata may remain until existing hold inspection; no new retry observer is claimed. Unsigned dirty development package includes unrelated dirt; review/handover postdate package. No parity or percentage credit. Audits PAUSED."
+  }
 }

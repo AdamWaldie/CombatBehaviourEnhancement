@@ -762,6 +762,7 @@ private _delay=call {
             private _leader=leader _group;
             if ([_leader] call _mayContinue) then {
                 private _continued=[_leader];
+                _leader setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_brain get "ownerEpoch",_leader,time+5]];
                 _leader doMove waypointPosition _waypoint;
                 // Preserve admitted native subformations. Resolve only chains whose
                 // anchor has already received its continuation request; do not flatten
@@ -781,6 +782,7 @@ private _delay=call {
                             // retains the actor, not another pass over its native authority.
                             _considered pushBack _x;
                             if ([_x] call _mayContinue && {[_returnLeader] call _actorAvailable}) then {
+                                _x setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_brain get "ownerEpoch",_returnLeader,time+5]];
                                 _x doFollow _returnLeader;
                                 _continued pushBack _x;
                             };
@@ -789,7 +791,13 @@ private _delay=call {
                     _followers=_followers-_considered;
                     if (_followers isEqualTo [] || {count _followers == _beforeCount}) exitWith {};
                 };
-                private _remaining=_settled-_continued;
+                // A native request is not acknowledgement. Keep only actors still
+                // stopped at this finish's actual posts; new movement/poses own themselves.
+                // The existing one-shot recall receipt prevents deadline-based replay.
+                private _handoverJob=createHashMapFromArray [["group",_group],
+                    ["nativeHoldPositions",createHashMapFromArray _settledPosts]];
+                private _unacknowledged=_continued select {[_x,_handoverJob] call CBE_fnc_BuildingActorHoldOwned};
+                private _remaining=(_settled-_continued)+_unacknowledged;
                 if (_remaining isEqualTo []) then {_group setVariable ["CBE_Cortex_ClearHold",nil,true]} else {
                     _group setVariable ["CBE_Cortex_ClearHold",[_job get "generation",_brain get "ownerEpoch",[_group] call CBE_fnc_NativeOrderReceipt,_remaining,_settledPosts select {(_x select 0) in (_remaining apply {netId _x})}],true];
                 };
