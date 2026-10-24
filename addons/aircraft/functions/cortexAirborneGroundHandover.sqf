@@ -96,7 +96,7 @@ _handoverResult=call {
             _ground setVariable [_x,_value,true];
         };
     } forEach ["CBE_AIPass_Profile","CBE_AIPass_DisabledFeatures","CBE_AI_Exclude","CBE_AIPass_Exclude",
-        "CBE_Headless_ExcludeGroup","acex_headless_blacklist"];
+        "Waldo_Headless_ExcludeGroup","acex_headless_blacklist"];
     _ground setCombatMode (combatMode _group);
     _ground setCombatBehaviour (combatBehaviour _group);
     _ground setSpeedMode (speedMode _group);
