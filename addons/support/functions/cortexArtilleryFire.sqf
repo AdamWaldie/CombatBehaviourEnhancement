@@ -6,6 +6,8 @@
  * operating crew before reservation. Remote observations never replace owner-local task checks.
  * Delayed post-fire movement retains the request-time movement group/authored route;
  * a later mission order cannot become a new scoot baseline.
+ * Mobile-position selection excludes water-damaged engines before reserving a fire mission.
+ * In-range stationary firing retains its separate gun/crew admission.
  * Magazine preference is ranked only among currently loaded target-reaching candidates.
  * A stronger but out-of-range shell cannot hide another eligible loaded magazine.
  * Queues a finite mission of bounded bursts on the authoritative server. This is dispatch
@@ -108,7 +110,7 @@ private _mayPosition={
     !_danger && {!_retreatSmoke} && {_purpose in ["SUPPORT","COUNTER"]}
         && {!_counter || {finite _observedAt && {_observedAt >= 0}}}
         && {_asset isKindOf "LandVehicle"} && {!(_asset isKindOf "StaticWeapon")}
-        && {canMove _asset} && {[_asset] call _batteryCrewUsable}
+        && {canMove _asset} && {!waterDamaged _asset} && {[_asset] call _batteryCrewUsable}
         && {[driver _asset] call CBE_fnc_CortexCombatEffective}
         && {group driver _asset == group gunner _asset}
         && {!isPlayer driver _asset} && {vehicle leader group driver _asset == _asset}

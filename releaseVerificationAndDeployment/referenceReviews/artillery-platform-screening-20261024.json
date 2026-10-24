@@ -32,5 +32,38 @@
     "addons/support/functions/cortexArtilleryScoot.sqf": "d47c023db7f31d466d785f001d5d498faed16e2ac6db10c8a024bffadc79eec1",
     "addons/infantry/functions/cortexSelectAvenue.sqf": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8",
     "releaseVerificationAndDeployment/test_cortex_operations.py": "5a86d83d7050f146536dea038ebbc28537cc8326d1014b1733fe719efb44cf27"
+  },
+  "mobileSelectionAlignment": {
+    "base": "0fa3447e",
+    "finding": "Server _mayPosition lacked the waterDamaged guard already required by owner Position and Scoot. Server mobile fallback must not reserve a candidate the owner refuses for that same native flag.",
+    "change": "Check !waterDamaged only inside mobile-position eligibility. In-range _batteryCrewUsable firing and cleanup are unchanged. No claim that canMove always remains true after drowning or that an observed physical failure was caused by it.",
+    "validation": {
+      "tests": 1497,
+      "compiledSQF": 414,
+      "PBOs": 11,
+      "build": ".qa/artillery-mobile-selection-build.log",
+      "independent": ".qa/artillery-mobile-selection-independent.log",
+      "candidate": ".qa/candidates/artillery-mobile-selection-0fa3447e",
+      "fingerprint": "febf6d32d0d48197b7adfb3e81b961ac9a8ccb07b1c35dd89853aa429b9f2964",
+      "unsignedDirtyDevelopment": true
+    },
+    "hashes": {
+      "addons/support/functions/cortexArtilleryFire.sqf": "041248102fcc9cd1901ca02978a049560952c5ba6de6e485fc4800614eac8fb4",
+      "releaseVerificationAndDeployment/test_artillery_scoot_session.py": "a06e942cf6eea34f226a951e5dccd96a7db14f60f7f622a8777407bad82a567f"
+    },
+    "physical": "Native damage/alternative battery selection/stationary fire/HC/performance UNRUN; audits paused."
+  },
+  "selectedPlatformUserDecision": {
+    "decision": "Preserve group membership; move only selected gun crew. User answered asynchronous question2026-10-24.",
+    "implementation": "NOT YET IMPLEMENTED; current independent-group admission remains. Do not remove all-members-in-battery refusal to pretend support.",
+    "currentCoupling": [
+      "Server Fire._mayPosition uses whole group; Position and Scoot create group operations/waypoints and acquire group movement lease.",
+      "PositionReport, MissionStep and Shot validate group HOLD/generation/native receipt; readiness cannot be changed in isolation.",
+      "GroupTick assumes artillery movement owns a CBE waypoint and retires the operation otherwise; current locality replay resumes only the older Scoot contract.",
+      "DrivingRecoveryCrewHandback requires the exact live driving FSM, admitted NATIVE_MOVE route and actual reverse/native-return journal. It cannot be borrowed by fabricating a driving journal.",
+      "ActorMove reservations are finite local three-field markers; unresolved native flight/naval journals deliberately outlive markers. A new selected-crew mover must retain real pending stop/return evidence rather than expire into competing controller permission."
+    ],
+    "requiredExecution": "Selected driver/commander original native goal/order observations, exact vehicle/group/owner/epoch/token/session, actual move acknowledgment and arrival, stable fire hold, one finite stop/return observation and retirement. No group waypoint, group split, forced seats, teleport, fabricated ACK or broad native-order reset. Preserve newer orders, unrelated actors and original deadlines.",
+    "limits": "This is implementation direction and traced dependencies, not a completed executor or handover."
   }
 }

@@ -47,6 +47,13 @@ class ArtilleryScootSession(unittest.TestCase):
         position=(ROOT/'addons/support/functions/cortexArtilleryPosition.sqf').read_text()
         current=position.split('private _current={',1)[1].split('if (_ours &&',1)[0]
         self.assertIn('!waterDamaged _battery',current)
+        fire=(ROOT/'addons/support/functions/cortexArtilleryFire.sqf').read_text(encoding='utf-8')
+        mobile=fire.split('private _mayPosition={',1)[1].split('if (isNull _battery)',1)[0]
+        self.assertIn('!waterDamaged _asset',mobile)
+        stationary=fire.split('private _batteryCrewUsable={',1)[1].split('private _mayPosition=',1)[0]
+        self.assertNotIn('waterDamaged',stationary)
+        self.assertLess(fire.index('!waterDamaged _asset'),fire.index('_missions set [netId _battery'))
+
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         scoot=tick.split('if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT")',1)[1].split('private _moveLease',1)[0]
         self.assertIn('!waterDamaged _battery',scoot)
