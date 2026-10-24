@@ -15,5 +15,21 @@
   },
   "candidate": ".qa/candidates/operation-participant-admission-380b5084",
   "fingerprint": "ecce08063955e8647f3aa8a9dc526ade29214b1de4008a6042f3707bcfb11ad3",
-  "limits": "Offline validation/admission correction, not native execution or measured frame-budget proof. Unsigned dirty development includes unrelated dirt; private review/guidance/notes postdate package. Audits PAUSED."
+  "limits": "Offline validation/admission correction, not native execution or measured frame-budget proof. Unsigned dirty development includes unrelated dirt; private review/guidance/notes postdate package. Audits PAUSED.",
+  "boundedArraysFollowup20261024": {
+    "base": "17c7f3d8",
+    "finding": "Optional partition rows scanned membership before size refusal; geometry arrays copied before route/objective size rejection. Actor bound alone did not bound these costs.",
+    "change": "Each of at most2 element rows must fit admitted participant count before membership scan/append. Route rejects more than512points and array objective rejects sizes outside0/2/3 before geometry copies. Existing finite-coordinate validation remains. No silent truncation, new worker/query, command, timer or lifetime renewal.",
+    "sourceHash": "ddd8105ff7ae523ee3e57c5688013abdf0e59d7dddf3a84afb738c3aec608fc8",
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/operation-bounded-admission-17c7f3d8",
+    "fingerprint": "a6ae3d5a37e1ed0b950054046b8e9d80380cb5f3971dc602ecc5953ad18ee83d",
+    "limits": "Admission bounds only, not measured runtime overhead or physical lifecycle proof.512route bound matches existing maximum clearance topology. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  }
 }

@@ -7,7 +7,8 @@
  * After locality adoption, replacement, generation capture and publication run unscheduled even for
  * scheduled script callers. Normal group PFH jobs already run unscheduled; no extra job is created.
  * Actor lists (at most64 unique objects), pair elements, array objectives and routes are
- * copied before mutation, isolating later caller-array edits. Malformed actors refuse admission.
+ * copied before mutation, isolating later caller-array edits. Routes admit at most512 points;
+ * oversized/invalid inputs refuse rather than truncate or retire the active operation.
  * Nonempty position objectives and every route point require two/three finite numeric coordinates.
  * Invalid geometry returns before locality adoption, predecessor cleanup or generation mutation;
  * empty objectives/routes and object targets remain supported.
@@ -16,7 +17,7 @@
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
  * fallback retains its original foot/vehicle domain without fixing the leader actor identity.
  * Repeat/JIP: Replacing an intent increments a public generation. The durable summary is replayable; local routes and callbacks rebuild on ownership migration.
- * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY of up to64 unique OBJECTs>; 4 route <ARRAY>; 5 state <STRING, PLAN>.
+ * Arguments: 0 group <GROUP>; 1 intent <STRING>; 2 objective <OBJECT or ARRAY>; 3 participants <ARRAY of up to64 unique OBJECTs>; 4 route <ARRAY of up to512 positions>; 5 state <STRING, PLAN>.
  * Optional argument6: pair elements <ARRAY,[]>; at most two disjoint actor arrays covering
  * the requested participants. New pair identity is formed within each element and published once.
  * Empty preserves ordinary pairing. Element membership grants no command or fitness authority.
@@ -37,6 +38,7 @@ if (count _participants > 64
 _participants=+_participants;
 // Validate the same private geometry that will be committed. A malformed replacement
 // must not adopt/retire work or consume the current generation. Empty means no position.
+if (count _route > 512 || {_objective isEqualType [] && {!(count _objective in [0,2,3])}}) exitWith {createHashMap};
 private _objectiveSnapshot=if (_objective isEqualType []) then {+_objective} else {_objective};
 private _routeSnapshot=+_route;
 private _positionValid={
@@ -48,10 +50,12 @@ if ((_objectiveSnapshot isEqualType [] && {_objectiveSnapshot isNotEqualTo []}
         && {!(_objectiveSnapshot call _positionValid)})
     || {_routeSnapshot findIf {!(_x call _positionValid)} >= 0}) exitWith {createHashMap};
 // Reject a malformed optional partition before retiring any previous operation.
+// Each row is bounded by the admitted actor count before membership scans/copying.
 private _partitionValid=count _pairElements <= 2;
 private _partitioned=[];
 {
-    if (!(_x isEqualType []) || {_x findIf {!(_x isEqualType objNull) || {!(_x in _participants)}} >= 0}) exitWith {_partitionValid=false};
+    if (!(_x isEqualType []) || {count _x > count _participants}
+        || {_x findIf {!(_x isEqualType objNull) || {!(_x in _participants)}} >= 0}) exitWith {_partitionValid=false};
     _partitioned append _x;
 } forEach (_pairElements select [0,2]);
 if (_pairElements isNotEqualTo [] && {!_partitionValid

@@ -1860,6 +1860,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["objective",_objectiveSnapshot]',start)
         self.assertIn('["route",_routeSnapshot]',start)
         self.assertIn('private _routeSnapshot=+_route;',start)
+        self.assertIn('count _route > 512',start)
+        self.assertIn('count _objective in [0,2,3]',start)
+        self.assertLess(start.index('count _route > 512'),start.index('private _routeSnapshot='))
+        self.assertLess(start.index('count _route > 512'),start.index('private _objectiveSnapshot='))
         for guard in ('count _participants > 64','_participants findIf {!(_x isEqualType objNull)}',
                       'count (_participants arrayIntersect _participants) != count _participants',
                       '_participants=+_participants;','_pairElements=_pairElements apply {+_x};'):
@@ -11812,6 +11816,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_pairs] call CBE_fnc_CombatPairsPublish',start)
         self.assertLess(start.index('private _partitionValid='),start.index('call CBE_fnc_OperationCancel'))
         self.assertIn('count (_partitioned arrayIntersect _partitioned) != count _partitioned',start)
+        partition_gate=start.split('private _partitionValid=',1)[1].split('_pairElements=_pairElements apply',1)[0]
+        self.assertIn('count _x > count _participants',partition_gate)
+        self.assertLess(partition_gate.index('count _x > count _participants'),partition_gate.index('_x findIf'))
+        self.assertLess(partition_gate.index('count _x > count _participants'),partition_gate.index('_partitioned append'))
         self.assertIn('_participants findIf {!(_x in _partitioned)}',start)
         self.assertIn('if (_publish) then',pairs)
         advance=source('cortexAdvanceStart')
