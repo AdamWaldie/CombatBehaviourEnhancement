@@ -12169,6 +12169,25 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _leader'))
         self.assertIn('[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned',branch)
         self.assertIn('createHashMapFromArray (_clearHold select 4)',branch)
+        request=branch.split('// Record one native request',1)[1].split('// A newer individual order retires',1)[0]
+        for guard in ('CBE_Cortex_ClearRecall','(_recall select 0) isEqualTo (_clearHold select 0)',
+                      '(_recall select 1) isEqualTo _epoch','(_recall select 2) isEqualTo _leader',
+                      'if (!_requested)','currentCommand _x == "STOP"','_deferred pushBackUnique _x'):
+            self.assertIn(guard,request)
+        self.assertLess(request.index('setVariable ["CBE_Cortex_ClearRecall"'),request.index('_x doFollow'))
+        self.assertLess(request.index('_x doFollow'),request.index('_deferred pushBackUnique _x'))
+        self.assertNotIn('time < (_recall select 3)',request)
+        self.assertEqual(request.count('_x doFollow'),1)
+        # Delayed native acknowledgement retains the original hold but cannot
+        # turn repeated callbacks (or expiry) into repeated movement requests.
+        requested=False;issued=0
+        for now,command in ((0,'STOP'),(1,'STOP'),(8,'STOP'),(9,'FOLLOW')):
+            if command=='STOP' and not requested:
+                requested=True;issued+=1
+            retained=command=='STOP'
+            if now<9:self.assertTrue(retained)
+            else:self.assertFalse(retained)
+        self.assertEqual(issued,1)
     def test_post_clear_hold_defers_temporary_motion_loss_without_stale_recall(self):
         branch=source('groupBrainStep').split('private _clearHold=',1)[1].split('private _legacyJob=',1)[0]
         issue=branch.split('// A newer individual order retires',1)[0]
@@ -12184,6 +12203,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,defer)
         self.assertIn('fleeing _x',defer)
         self.assertIn('ace_medical_ai_healQueue',defer)
+        self.assertIn('!([_leader] call CBE_fnc_CortexCombatEffective)',defer)
         # An unchanged exact hold survives temporary treatment/flight; replacement commands do not.
         for medical,fleeing in ((True,False),(False,True),(True,True)):
             may_follow=not medical and not fleeing

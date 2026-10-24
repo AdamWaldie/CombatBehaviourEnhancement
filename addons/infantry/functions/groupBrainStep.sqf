@@ -7,6 +7,8 @@
  * An active replacement operation defers handback without deleting the original hold receipt.
  * Queued ACE treatment and native fleeing also defer an unchanged owned STOP; no formation
  * return may compete with them. A newer native command still retires the old receipt.
+ * Native recall is issued once per hold/owner/anchor; an unacknowledged unchanged STOP
+ * retains proof without renewing or replaying the request. An unavailable leader defers it.
  * Deferred danger posture belongs to DangerPostureStep on the shared scheduler; it does not
  * depend on this tactical brain running and does not wake tactical planning.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
@@ -101,7 +103,8 @@ if (count _clearHold == 5) then {
             private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
 
             {
-                if (local _x && {group _x == _group} && {!isPlayer _x}
+                if (!isNull _leader && {local _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
+                    && {local _x} && {group _x == _group} && {!isPlayer _x}
                     && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned} && {isNull remoteControlled _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective}
                     && {!fleeing _x} && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
@@ -113,7 +116,22 @@ if (count _clearHold == 5) then {
                     // Native formation return also releases a leader's scripted doStop.
                     // Leave waypoint type, gates, attachments and scripts to the engine;
                     // do not flatten a new authored task into one positional MOVE.
-                    _x doFollow _leader;
+                    // Record one native request for this hold/owner/anchor. An expired
+                    // observation window is not permission to replay an unacknowledged recall.
+                    private _recall=_x getVariable ["CBE_Cortex_ClearRecall",[]];
+                    private _requested=_recall isEqualType [] && {count _recall == 4}
+                        && {(_recall select 0) isEqualTo (_clearHold select 0)}
+                        && {(_recall select 1) isEqualTo _epoch} && {(_recall select 2) isEqualTo _leader}
+                        && {(_recall select 3) isEqualType 0} && {finite (_recall select 3)};
+                    if (!_requested) then {
+                        _x setVariable ["CBE_Cortex_ClearRecall",[_clearHold select 0,_epoch,_leader,time+5]];
+                        _x doFollow _leader;
+                    };
+                    // A request is not acknowledgement. Preserve only the same native STOP
+                    // at our recorded post; newer movement retires this receipt below.
+                    if (currentCommand _x == "STOP" && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}) then {
+                        _deferred pushBackUnique _x;
+                    };
                 };
                 // A newer individual order retires the old hold. A living soldier's unchanged
                 // STOP retains proof across temporary unavailability, not just reservations.
@@ -134,7 +152,8 @@ if (count _clearHold == 5) then {
                         || {!simulationEnabled _x} || {isObjectHidden _x}
                         || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
                         || {!([_x] call CBE_fnc_CortexCombatEffective)}
-                        || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}) then {
+                        || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+                        || {isNull _leader} || {!local _leader} || {!([_leader] call CBE_fnc_CortexCombatEffective)}}) then {
                     _deferred pushBackUnique _x;
                 };
             } forEach (_clearHold select 3);

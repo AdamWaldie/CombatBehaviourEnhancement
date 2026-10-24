@@ -396,5 +396,41 @@
       ]
     },
     "limits": "Internal metadata retirement only, no native command/settings/worker/route/deadline change. Locality transfer preserves snapshot. No visible wedge/bunching fix, physical repeat/Zeus/HC/performance or parity/percentage credit. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  },
+  "postClearRecallAcknowledgement20261024": {
+    "base": "63a5afef01a6b7bb92d5185133e5e3eefea26a3a",
+    "finding": "Normal GroupBrainStep native-order handback sent doFollow then retained STOP proof only for independent temporary blockers. A delayed unacknowledged STOP without such blocker could lose proof immediately; unlike shutdown cleanup, request return was not separated from acknowledgement. No physical command-delay reproduction claimed.",
+    "change": "Normal handback records existing actor-local CBE_Cortex_ClearRecall before its sole request, bound to hold generation/current epoch/leader and existing5s observation field. Repeated callbacks including expired observation do not resend matching request. Exact unchanged native STOP/post remains in original hold receipt; changed native command or hold position retires old proof. Local combat-effective leader required, temporary leader unavailability retains original STOP.",
+    "boundaries": "Existing current-generation/epoch/route-change/no-successor-operation, actual held-pose, actor task/effectiveness/MOVE/PATH, care/flight/external/Zeus guards retained. No new tuple schema/journal/worker/timer/world query/route/deadline. Same-value foreign STOP remains indistinguishable. A changed leader may admit its own once-bound request; same leader/hold never renews the old request.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/groupBrainStep.sqf",
+        "sha256": "bec15fb5bddc356aae28133ff0167567aa97f7dd4000743a19b8d9b237cbf9b9"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+        "sha256": "e09ed502545276d1dc17da0ee02a374180a58a8273b7dd9d936fda3705e10038"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "24e6af8312bab27f5dee542aee7199acba8f4f042bc4a7da638976e60f54f6e9"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 4,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-hold-native-ack-63a5afef",
+      "fingerprint": "7c374524bd9fb2dc141cb6b0fdd95a2fb4a576cb17454b51638560bf8b40da5c",
+      "logs": [
+        ".qa/clear-hold-native-ack-focused.log",
+        ".qa/clear-hold-native-ack-build.log",
+        ".qa/clear-hold-native-ack-independent.log"
+      ]
+    },
+    "limits": "An indefinitely unacknowledged native request remains unresolved evidence, not a completed handover; no renewed automatic retry from expiry or another waypoint with same hold/leader. Receipt is actor-local; physical normal/HC transfer and native timing remain unverified. No visible sprawl/wedge resolution or measured performance/parity/percentage claim. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
   }
 }
