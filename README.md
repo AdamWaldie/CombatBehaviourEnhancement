@@ -14,7 +14,7 @@ The repository now builds as a conventional `z\cbe\addons\main` addon:
 - CBA extended post-init starts only the systems enabled for that owner;
 - public functions use the sole `CBE_fnc_*` namespace through `CfgFunctions`;
 - CBA Settings owns global addon configuration and JIP synchronization;
-- Native Zeus orders are included; optional ZEN supplies an extended convoy dialog;
+- Native Zeus orders include **Airborne insertion now**, placed on an AI cargo passenger; optional ZEN supplies additional task dialogs;
 - the standalone settings request validates the requesting curator and updates the CBA server layer;
 - HEMTT owns packaging and version metadata.
 

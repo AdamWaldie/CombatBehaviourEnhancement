@@ -625,3 +625,20 @@ An autonomous squad without currently available anti-armour capability selects t
 ### Battery movement screening
 
 Pre-fire positioning and shoot-and-scoot rank their existing route candidates using the selected battery's conservative horizontal radius and full model height. Low cover that hides a rifleman no longer earns vehicle screening credit by that fact alone. This reuses the existing three endpoint probes without an additional scan or movement controller. It is sparse screening relative to the existing origin reference, not hull clearance, road reachability, or protection from incoming artillery. Mixed-group movement remains unavailable until a selected-platform move, firing hold and handback can preserve unrelated actors' orders.
+
+### Native Zeus airborne insertion
+
+Place **Airborne insertion now** on an AI cargo soldier or passenger-turret occupant aboard the intended aircraft. This is an immediate behaviour order, available with CBA and without ZEN. It uses the existing airborne executor and changes no CBA settings. The explicit request bypasses automatic contact and planned-landing timing even when automatic airborne insertion is off; minimum jump altitude (default 120 m, configured range 80-300 m), dry land, AI pilots, external ownership and task eligibility still apply. Operating crew do not jump.
+
+The server authenticates the curator, binds the selected passenger and aircraft to the squad order and supplies the existing twelve-second admission deadline. The current group owner rechecks membership, actual cargo/FFV seating, aircraft and combat readiness. A squad riding several aircraft is refused by this explicit module rather than selecting another airframe. A change from passenger to operating crew, transfer to another aircraft, or newer native/Zeus order before execution refuses the request. Moving between eligible passenger seats in the same aircraft does not change the task target. Group-only script calls retain their existing API. There is no nearest-squad fallback or additional movement controller.
+
+The disposable module deletes itself after submission or refusal. Owner acknowledgement reports task admission; it does not establish a jump or landing. The existing finite insertion owns jump spacing, casualty/availability checks, aircraft and owner changes, the original 180-second deadline and landed-squad handover. It preserves original backpacks and the flight crew's orders through those existing paths. JIP does not replay an old module or drop. One module performs local seat inspection and one authenticated dispatch; it adds no recurring scan, timer or event handler.
+
+Trusted server scripts can send the same selected-context request:
+
+```sqf
+[[["order","AIRBORNE"],["group",group cargoSoldier],
+  ["passenger",cargoSoldier],["aircraft",objectParent cargoSoldier]],2] call CBE_fnc_CortexOrderDispatch;
+```
+
+No-ZEN placement, refusal at unsafe altitude/over water, cargo-to-crew or aircraft changes, owner acknowledgement, actual jumping/landing, repeated use, HC transfer and JIP remain unrun for this frontend. Audits are paused. Static wiring and package checks do not establish physical behaviour.

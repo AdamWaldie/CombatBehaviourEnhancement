@@ -113,7 +113,26 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             true
         };
         case "CLEAR": {[_group, _building] call CBE_fnc_CortexClearBuilding};
-        case "AIRBORNE": {[_group] call CBE_fnc_CortexAirborneDrop};
+        case "AIRBORNE": {
+            private _witnessCurrent=true;
+            if ("passenger" in _settings || {"aircraft" in _settings}) then {
+                private _passenger=_settings getOrDefault ["passenger",objNull];
+                private _aircraft=_settings getOrDefault ["aircraft",objNull];
+                _witnessCurrent=_passenger isEqualType objNull && {_aircraft isEqualType objNull}
+                    && {!isNull _passenger} && {!isNull _aircraft} && {local _passenger}
+                    && {group _passenger == _group} && {objectParent _passenger == _aircraft}
+                    && {[_passenger] call CBE_fnc_CortexCombatEffective}
+                    && {_aircraft isKindOf "Air"} && {!(_aircraft isKindOf "ParachuteBase")}
+                    && {private _seats=(fullCrew [_aircraft,"cargo"])
+                        +((fullCrew [_aircraft,"turret"]) select {_x select 4});
+                        _seats findIf {(_x select 0) == _passenger} >= 0}
+                    && {(units _group) findIf {alive _x && {local _x}
+                        && {(vehicle _x) isKindOf "Air"} && {!((vehicle _x) isKindOf "ParachuteBase")}
+                        && {vehicle _x != _aircraft}} < 0};
+            };
+            if (!_witnessCurrent) exitWith {false};
+            [_group] call CBE_fnc_CortexAirborneDrop
+        };
         default {false};
     };
 
@@ -140,6 +159,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
         case "NO_VALID_POSITIONS": {"No valid garrison positions were found in the selected area. No earlier task was replaced."};
         default {"Garrison planning was invalid or exceeded its bounded planning budget. No earlier task was replaced."};
     };
+};
+if (!_accepted && {_order == "AIRBORNE"}) then {
+    _executionReason="Airborne insertion was refused. Check the selected passenger, squad aircraft, altitude, dry land and AI pilots; newer orders or another controller also take priority.";
 };
 if (!_accepted && {_order == "CLEAR"}) then {
     private _failure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];

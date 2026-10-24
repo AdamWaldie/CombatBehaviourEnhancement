@@ -24,7 +24,7 @@ tactical tuning resumes, so growth and ownership can be measured instead of infe
 | Vehicles | Passenger decisions, gunnery priorities, standoff, smoke/withdrawal and crew retention | Cortex vehicle jobs |
 | Aircraft | Attack planning, weapon capability, ingress/release/egress, missile reaction, attack-run flares, landing and deceleration | Cortex aircraft jobs and landing handlers |
 | Fires | Artillery roles, warning smoke, finite bursts, observation, counter-battery and shoot-and-scoot | Server mission authority plus gun owner |
-| Other actors | Civilian reactions, airborne insertion and naval assault | Event-driven or finite group job |
+| Other actors | Civilian reactions, airborne insertion and naval assault | Event-driven or finite group job; native Zeus airborne task on an explicit cargo passenger |
 | Operator support | Diagnostics, native Zeus orders, optional ZEN convoy dialog and visible QA overlays | CBA; ZEN only for the optional dialog |
 
 ## Foundation and optional integrations

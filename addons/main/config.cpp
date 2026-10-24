@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -105,6 +105,20 @@ class CfgVehicles {
                 "Without a synchronized trigger the task is active at mission start. Trigger deactivation removes it; repeat activation re-registers it."
             };
             sync[] = {};
+        };
+    };
+    class CBE_ModuleAirborne: Module_F {
+        scope = 1;
+        scopeCurator = 2;
+        displayName = "Airborne insertion now";
+        category = "CBE_CuratorOrders";
+        function = "CBE_fnc_ModuleAirborne";
+        isGlobal = 1;
+        isTriggerActivated = 0;
+        isDisposable = 1;
+        curatorCanAttach = 1;
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI cargo passenger to request a drop now. Overrides automatic contact and landing timing; minimum altitude, dry land and AI-pilot guards remain. Crew do not jump. ZEN is optional.";
         };
     };
     class CBE_ModuleGarrison: Module_F {

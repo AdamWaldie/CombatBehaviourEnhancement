@@ -45,7 +45,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | REINFORCE - Reinforcement | 3 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
 | ART - Spotted artillery bursts | 13 | 0 | 20 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
-| AIRBORNE - Parachute passengers | 6 | 0 | 9 | `runAirborne.sqf` | 0 | implemented_partial |
+| AIRBORNE - Parachute passengers | 6 | 0 | 10 | `runAirborne.sqf` | 0 | implemented_partial |
 | GARRISON - Garrison and dynamic AO | 1 | 0 | 6 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
@@ -324,7 +324,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Only eligible passengers jump at correct spacing and land; crew stay aboard, unsafe altitude refuses and transfer does not duplicate jumps.
 
-**Automation and open work:** runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover.
+**Automation and open work:** runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun.
 
 ### GARRISON - Garrison and dynamic AO
 

@@ -6,7 +6,7 @@
  * Repeat/JIP: request tokens are consumed once; no stale order is replayed for JIP.
  * Arguments: 0: task parameters <ARRAY> of named pairs; 1: requesting owner <NUMBER>, default 2.
  * Return Value: Boolean, dispatch accepted.
- * Current callers: mission scripts, ModuleGarrison, ZenGarrisonModule and ZenDefendModule.
+ * Current callers: mission scripts, ModuleGarrison, ModuleAirborne and optional task dialogs.
  * No JIP command replay. Pending owner acknowledgements are limited to 64 for at most 12 seconds.
  * The server overwrites the admission deadline; owners refuse packets received at/after expiry.
  * Example: [[["order", "RELEASE"], ["group", _group]], 2] call CBE_fnc_CortexOrderDispatch;
@@ -52,6 +52,15 @@ if (_order in ["GARRISON", "DEFEND"]) then {
     _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
 };
 if (_order == "CLEAR") then {_valid = _valid && {!isNull (_settings getOrDefault ["building", objNull])}};
+// Explicit airborne modules bind both selected witnesses. Group-only script orders retain their API.
+if (_order == "AIRBORNE" && {"passenger" in _settings || {"aircraft" in _settings}}) then {
+    private _passenger=_settings getOrDefault ["passenger",objNull];
+    private _aircraft=_settings getOrDefault ["aircraft",objNull];
+    _valid=_valid && {_passenger isEqualType objNull} && {_aircraft isEqualType objNull}
+        && {!isNull _passenger} && {!isNull _aircraft} && {group _passenger == _group}
+        && {objectParent _passenger == _aircraft} && {_aircraft isKindOf "Air"}
+        && {!(_aircraft isKindOf "ParachuteBase")};
+};
 if (!_valid) exitWith {
     _pending deleteAt _token;
     ["AI ORDERS","Invalid squad or task target. No order was started.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];

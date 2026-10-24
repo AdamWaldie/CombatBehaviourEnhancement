@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-24",
+  "base": "5f165b72b76adb5a4f99c6cf1c4e500d5deb9f56",
+  "scope": "Native Zeus immediate airborne behaviour frontend using existing authenticated order and finite insertion executor. No new insertion controller or whole Protocol parity claim.",
+  "implementation": [
+    "Native CBE_ModuleAirborne registered in CfgPatches/CfgVehicles/CfgFunctions, local disposable frontend in aircraft subsystem; CBA required, ZEN optional.",
+    "Placement must explicitly attach to an AI cargo/FFV passenger; no nearest squad or aircraft selection. Named group/passenger/aircraft payload through existing CortexOrderDispatch.",
+    "Server validates witness types, membership and airframe. Owner rechecks live passenger/airframe/cargo role and refuses several locally occupied aircraft; group-only scripts retain original API.",
+    "Existing original serial/deadline/native and Zeus receipts, result acknowledgement, rollback and insertion expiry remain. Explicit task bypasses automatic contact/landing timing, not altitude/dry-land/AI-pilot/ownership guards.",
+    "No setting, recurring scan, handler, global controller, parachute implementation or provider added. Same-airframe passenger-seat changes allowed; passenger-to-operating-crew or airframe replacement refuses."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 414,
+    "PBOs": 11,
+    "buildLog": ".qa/native-airborne-module-build-final.log",
+    "focused": ".qa/native-airborne-module-focused.log",
+    "contracts": ".qa/native-airborne-module-contracts.log",
+    "coverage": ".qa/native-airborne-module-coverage-final.log",
+    "candidate": ".qa/candidates/native-airborne-module-docs-5f165b72",
+    "fingerprint": "2bceb5625b844e5dd8561282f37c83b773ac46c225e54f20a86c96d932ec8f39",
+    "independent": ".qa/native-airborne-module-docs-independent.log",
+    "unsignedDirtyDevelopment": true,
+    "earlierFailures": "Required module inventory contract not yet added and incorrect report output path; added reviewed contract, restored this-turn-only historical COVERAGE write and regenerated FEATURE_STATUS. Gates retained.",
+    "documentationReseal": "After complete passing build, clarified role-change wording only. Copied that guide into package and resealed distinct candidate; all11 PBOs independently hash-identical to the passing complete build. Original candidate preserved."
+  },
+  "physical": "UNRUN: no-ZEN module placement, native UI target attachment, slot/airframe changes, owner ACK, actual jump/landing, repeat, HC/JIP, balance and runtime cost. Audits PAUSED.",
+  "hashes": {
+    "addons/aircraft/functions/moduleAirborne.sqf": "445d1a9d4d5e021d472c2b3a65565a88277669a9316e5ea3ec48ae1856654b4f",
+    "addons/aircraft/functions/cortexAirborneDrop.sqf": "0058d92a4b0c722fb9706787b5a8ea8cd15924301382694deaaa2f6a42e80876",
+    "addons/infantry/functions/cortexOrderDispatch.sqf": "b54e7f91620480d1977ec5758e3d74f8949f4f3309b2ee8f7289fc8516012fa0",
+    "addons/infantry/functions/cortexOrderLocal.sqf": "7ba3826bab85ad987924e1c686cc3d6f4b5131c98815debb7383dc0bd1798e75",
+    "addons/main/config.cpp": "f8415a3bf8b8515e7b77a0878ce8bd9f7bdb5f6b88e77d6c3eadbbabc2ea775c",
+    "addons/main/CfgFunctions.hpp": "e9651207d5647ef24a7e0ef4f7e1f6194a97da60a67eca153b16d42671d19236",
+    "releaseVerificationAndDeployment/behaviour_module_contracts.json": "8e6ae9a1625582c32cb04c074346bbb28ae2843e7e742f62741694b8bb4dc9c4",
+    "releaseVerificationAndDeployment/test_standalone_extraction.py": "072187834de8660336db2e935132d0f8cdf39f23427adfd50c7a61e809dee689"
+  }
+}

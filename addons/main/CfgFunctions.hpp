@@ -238,6 +238,7 @@ class CfgFunctions {
             class CortexAirborneGroundHandover {file = "\z\cbe\addons\aircraft\functions\cortexAirborneGroundHandover.sqf";};
             class CortexAirborneDropStep {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDropStep.sqf";};
             class CortexAirborneDrop {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDrop.sqf";};
+            class ModuleAirborne {file = "\z\cbe\addons\aircraft\functions\moduleAirborne.sqf";};
             class CortexParachuteJump {file = "\z\cbe\addons\infantry\functions\cortexParachuteJump.sqf";};
             class CortexParachutePublish {file = "\z\cbe\addons\infantry\functions\cortexParachutePublish.sqf";};
             class CortexParachuteObserve {file = "\z\cbe\addons\infantry\functions\cortexParachuteObserve.sqf";};

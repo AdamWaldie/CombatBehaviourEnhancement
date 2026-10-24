@@ -115,6 +115,27 @@ class StandaloneExtractionContracts(unittest.TestCase):
         self.assertIn('isNil "zen_dialog_fnc_create"', dialog)
         launcher = (ROOT / "releaseVerificationAndDeployment/launch_mod_audit.ps1").read_text(encoding="utf-8")
         self.assertIn('if ($WithZen)', launcher)
+        airborne=(ROOT/'addons/aircraft/functions/moduleAirborne.sqf').read_text(encoding='utf-8')
+        owner=(ROOT/'addons/infantry/functions/cortexOrderLocal.sqf').read_text(encoding='utf-8')
+        dispatch=(ROOT/'addons/infantry/functions/cortexOrderDispatch.sqf').read_text(encoding='utf-8')
+        self.assertIn('class CBE_ModuleAirborne: Module_F',config)
+        self.assertIn('function = "CBE_fnc_ModuleAirborne";',config)
+        self.assertIn('attachedTo _logic',airborne)
+        self.assertIn('!local _logic',airborne)
+        self.assertIn('CBE_processed',airborne)
+        self.assertNotIn('zen_',airborne)
+        self.assertNotIn('nearest',airborne.lower())
+        self.assertIn('["passenger",_passenger],["aircraft",_aircraft]',airborne)
+        self.assertIn('CBE_fnc_CortexOrderDispatch',airborne)
+        self.assertNotIn('CBE_fnc_CortexAirborneDrop',airborne)
+        self.assertIn('"passenger" in _settings || {"aircraft" in _settings}',dispatch)
+        case=owner.split('case "AIRBORNE": {',1)[1].split('default {false}',1)[0]
+        for check in ('objectParent _passenger == _aircraft','CortexCombatEffective',
+                      'fullCrew [_aircraft,"cargo"]','vehicle _x != _aircraft',
+                      'if (!_witnessCurrent) exitWith {false};','CortexAirborneDrop'):
+            self.assertIn(check,case)
+        self.assertLess(case.index('if (!_witnessCurrent)'),case.index('CortexAirborneDrop'))
+
 
     def test_curator_waypoint_edit_uses_native_group_and_id_payload(self):
         watcher = (ROOT / "addons/core/functions/cortexZeusWatchLocal.sqf").read_text(encoding="utf-8")
