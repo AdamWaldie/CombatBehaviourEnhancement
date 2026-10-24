@@ -162,5 +162,18 @@
       ".qa/clear-lane-refusal-cadence-independent.log"
     ],
     "provenance": "Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Scores/evidence ledger unrenewed."
+  },
+  "casualtyLanePublicationTrace20261024": {
+    "base": "dd591825",
+    "finding": "Promotion mutates the lane actor slot, updates common operation participants/pairs and publishes ClearRoster. ClearLanes is published separately at the existing callback tail and SAVE may return its prior result during the1.5s sample cadence. Resume prioritises ClearRoster then requires exact snapshot pair identity. A newer roster with an older lane snapshot therefore refuses adoption; this source path does not require an intra-call scheduler race.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "d19dcb86265b1e78363d39deeb28949769b15260c2ba22903342a6594ed354b8",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "9df4164b897fa3f93463a21e6cb2d247ff9cf7f780d27bba1aacf89610604ae0",
+      "addons/infantry/functions/buildingLaneJournal.sqf": "01ae66546a1b348eb01ff487bdd90abb87831712ab2d893cb1a0372760dad400",
+      "addons/infantry/functions/combatPairs.sqf": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+    },
+    "boundary": "An unavailable actor can also change CombatPairs eligible membership/order before adoption. Exact identity rejection prevents old actor slots/request observations from being silently assigned to another actor; removing that guard or blindly filtering dead actors is unsafe.",
+    "nextImplementation": "Make episode lane allocation and roster revision coherent at handover. Retain original lane slot identity until validated casualty repair; preserve original retry/request clocks and bounded room partition. Handle delayed/missing/newer publication explicitly. Do not treat publication order as receiver acknowledgement or introduce a second movement controller.",
+    "limits": "Source trace only. No code change, new test, candidate rebuild, runtime reproduction, percentage renewal or claim of complete ordered delivery. Audits remain PAUSED."
   }
 }
