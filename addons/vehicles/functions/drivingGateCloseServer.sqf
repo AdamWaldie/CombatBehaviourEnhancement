@@ -11,7 +11,9 @@
  * Current callers: CortexQueueJob callback registered by DrivingGateOpenServer.
  * Example: private _delay=[_job] call CBE_fnc_DrivingGateCloseServer;
  * Passage requires an observed bounded segment through the gate aperture and current whole-hull
- * clearance. Sampled traffic clearance is not continuous collision proof. CLOSE_REQUESTED is
+ * clearance. Moving sampled pedestrians retain an open gate; stationary guards and static
+ * weapons block only through their closure footprint, not through a busy emplacement task.
+ * Sampled traffic clearance is not continuous collision proof. CLOSE_REQUESTED is
  * separate from CLOSED_OBSERVED. An indistinguishable intervening same-value gate edit is unknown.
  */
 params [["_job",createHashMap,[createHashMap]]];
@@ -127,6 +129,9 @@ private _clear=true;private _aperture=_job get "aperture";private _gateSpan=_job
 {
     if (_x == _vehicle || {objectParent _x == _vehicle}) then {continue};
     if (_x isKindOf "CAManBase") then {
+        // Moving pedestrians in the sampled approach area need the same grace as
+        // road traffic; being outside the leaf right now is not completed passage.
+        if (abs speed _x > 1) exitWith {_clear=false};
         private _delta=(getPosWorld _x) vectorDiff _origin;
         if (abs (_delta vectorDotProduct _axis) <= 4
             && {(_delta vectorDotProduct _side) >= (_aperture select 0)-2}
@@ -134,7 +139,10 @@ private _clear=true;private _aperture=_job get "aperture";private _gateSpan=_job
     } else {
         // Active traffic in this small approach area keeps the gate open. Parked bodies
         // still block when their full hull occupies the gate's closure envelope.
-        if (abs speed _x > 1 || {!unitReady _x && {crew _x isNotEqualTo []}}) exitWith {_clear=false};
+        // A firing static emplacement is not a queued road vehicle. A moving
+        // emplacement still blocks, and its stationary hull is checked below.
+        if (abs speed _x > 1 || {!unitReady _x && {crew _x isNotEqualTo []}
+            && {!(_x isKindOf "StaticWeapon")}}) exitWith {_clear=false};
         private _hull=[_x,_origin,_axis,_side] call CBE_fnc_DrivingHullInterval;
         if (count _hull != 4
             || {(_hull select 0) < (_gateSpan select 1)+3 && {(_hull select 1) > (_gateSpan select 0)-3}

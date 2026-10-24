@@ -364,6 +364,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-gate-traffic-20261024.json",
+      "sha256": "627a6c641fd3236bccaa07fd4f62071de7340710da2d2debe46120924c169940",
+      "scope": "Optional finite driving gate closure: approaching pedestrians and busy static emplacements",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-indexed-gate-sources-20261018.json",
       "sha256": "cfff341b35249a676eb0cc723ab2ada501e52dbacd579ca3993d8b0149255f4f",
       "scope": "Read the record for its exact scope.",

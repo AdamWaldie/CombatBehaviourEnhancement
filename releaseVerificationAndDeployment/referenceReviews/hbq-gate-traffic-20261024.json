@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-24",
+  "sourceCommit": "1982e7721d92f6df68b937187df11a83d5f66954",
+  "scope": "Optional finite driving gate closure: approaching pedestrians and busy static emplacements",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesRead": [
+      "220-305 gate classification/phase/set",
+      "897-941 GateWanted/CloseGates"
+    ],
+    "intent": "Avoid closing before queued traffic; stationary guards and emplacements should not hold the gate indefinitely. Source protects people only within4m; CBE extends moving-approach treatment within existing sampled area.",
+    "rejected": "No damage-as-passability, unconditional animations, arbitrary action execution or source600s job added."
+  },
+  "findings": [
+    "Current CBE holds any moving vehicle in existing25m sample but pedestrians only in immediate closure footprint. Approaching foot traffic outside footprint could be ignored at closure admission.",
+    "Stationary StaticWeapon with busy crew was included as queued road traffic despite clear hull; source explicitly excludes static emplacements from traffic readiness."
+  ],
+  "implementation": [
+    "Moving sampled CAManBase (>1km/h absolute speed) now retains open gate; stationary persons keep existing closure-area test. No claim of heading prediction or continuous safety.",
+    "StaticWeapon does not acquire active-road-traffic status solely from busy crew. Moving emplacements remain traffic and stationary ones still undergo full hull clearance.",
+    "Original120s lifetime, <=8jobs/8leaves/16entities, route/crew/owner/lock/phase/whole-hull/remote-intent requirements unchanged. No new query/ray/worker/clock."
+  ],
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingGateCloseServer.sqf",
+      "sha256": "d440731cc398e7944e44938d182889d576fd9f9c0df50810ddadca88f2fd7145"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_gate_cap.py",
+      "sha256": "6e4355e2b48fa515c689254a159abdb1e0891cc5ad72fd07b90e5b1b934d1674"
+    },
+    {
+      "path": "docs/Smart-AI-Pass.md",
+      "sha256": "bd3402e77ae62ab0aaf4d5bbc7fd8278cc3dae05714f457f230285f9ed4a554f"
+    }
+  ],
+  "validation": {
+    "focusedCases": 14,
+    "fullTests": 1491,
+    "sqf": 412,
+    "pbos": 9,
+    "newCases": 0,
+    "logs": [
+      ".qa/gate-pedestrian-static-traffic-focused.log",
+      ".qa/gate-pedestrian-static-traffic-build.log",
+      ".qa/gate-pedestrian-static-traffic-independent.log"
+    ],
+    "candidate": ".qa/candidates/gate-pedestrian-static-traffic-1982e772",
+    "fingerprint": "07c11f38a32776bfe029ae96370005e060428ae9c0b64ee8f077232a8afcd25f",
+    "result": "Full offline gates and independent verification passed; unsigned dirty development includes pre-existing unrelated dirt. Review/notes postdate package.",
+    "hbqIndex": "Deliberately refreshed and verified:19 protected source files,70 readable review pointers,31 unresolved historical texts remain. .qa/gate-pedestrian-static-traffic-index-write.log and -index-check.log; not parity or recovery of missing reviews."
+  },
+  "limits": [
+    "No physical closure/pedestrian/emplacement/convoy/normalHC or measured budget acceptance.",
+    "Moving sampled actors can conservatively keep gate open while moving away; original job expiry still applies.",
+    "Entities outside sampled area or entering after closure request are not continuously monitored.",
+    "No whole-HBQ parity or percentage claim; audits PAUSED, no launch/push/CI/merge/publish."
+  ]
+}

@@ -230,6 +230,22 @@ class DrivingGateClosureTests(unittest.TestCase):
         self.assertNotIn('["group",_group]',opening.split('private _job=createHashMapFromArray',1)[1])
         mutation=close.index('_gate animateSource')
         self.assertLess(close.index('if (!_clear)'),mutation)
+        pedestrian=close.split('if (_x isKindOf "CAManBase") then {',1)[1].split('} else {',1)[0]
+        self.assertLess(pedestrian.index('abs speed _x > 1'),pedestrian.index('getPosWorld _x'))
+        traffic=close.split('// Active traffic in this small approach area',1)[1].split('} forEach _near;',1)[0]
+        self.assertIn('!(_x isKindOf "StaticWeapon")',traffic)
+        self.assertLess(traffic.index('!(_x isKindOf "StaticWeapon")'),traffic.index('DrivingHullInterval'))
+        # Differentiate approach traffic from a stationary manned emplacement.
+        # Physical footprint checks remain mandatory for every non-active object.
+        def active_approach(person,static,speed,ready,crewed):
+            return abs(speed)>1 or (not person and not static and not ready and crewed)
+        self.assertTrue(active_approach(True,False,5,True,False))
+        self.assertTrue(active_approach(True,False,-2,True,False))
+        self.assertFalse(active_approach(True,False,0,False,False))
+        self.assertFalse(active_approach(False,True,0,False,True))
+        self.assertTrue(active_approach(False,True,2,False,True))
+        self.assertTrue(active_approach(False,False,0,False,True))
+        self.assertFalse(active_approach(False,False,0,True,True))
         self.assertLess(close.index('if (!_open'),mutation)
         self.assertEqual(close.count('_gate animateSource'),1)
         self.assertIn('CLOSE_REQUESTED',close)
