@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-24",
+  "source_commit": "7a3fe70a",
+  "status": "confirmed static capability gap; no runtime change or physical validation",
+  "finding": "AA interception START uses the nonexplosive bullet-suppression readiness policy. Native B_35mm_AA ammunition is explosive and is rejected before aiming.",
+  "native_evidence": {
+    "private_extract": ".qa/native-aa-config-20261024/weapons_f.cpp",
+    "ammo": "B_35mm_AA",
+    "parent": "BulletBase",
+    "hit": 60,
+    "indirectHit": 25,
+    "indirectHitRange": 2.4,
+    "explosive": 0.6,
+    "magazine": "680Rnd_35mm_AA_shells",
+    "loaded_capacity": 680,
+    "magazine_initSpeed": 1440,
+    "weapon": "autocannon_35mm",
+    "sources": [
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\armor_f_beta.pbo",
+        "sha256": "EF64AB1D5684FBC59DE168ADCE2A837778A580DF5B398C584226B43DAB25D08C"
+      },
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\weapons_f.pbo",
+        "sha256": "9043BEFB56E50FF585FFD42762C87DBB1990CD59E2B92EF2F58C7957EA085D32"
+      },
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\weapons_f_beta.pbo",
+        "sha256": "7C535D650FD262F6D97A20CD3DFACB26245D603E2F89DF563B724A67AD2594E4"
+      }
+    ]
+  },
+  "production_trace": [
+    "addons/vehicles/functions/cortexAAIntercept.sqf START passes bulletSuppression=true to CortexGroundFireReady",
+    "addons/infantry/functions/cortexGroundFireReady.sqf rejects indirectHit>0 or explosive>0 under this policy",
+    "addons/vehicles/functions/cortexAAInterceptEffect.sqf separately requires nonexplosive direct bullets; relaxing admission alone does not implement safe explosive interception"
+  ],
+  "limits": [
+    "No AA fixture was added or launched",
+    "Does not prove all native AA platforms are excluded; actual station/loadout and inheritance still need examination",
+    "No claim that custom projectile destruction is valid for explosive cannon rounds",
+    "Existing runtime and last coherent build remain unchanged"
+  ],
+  "required_next_action": "Separate native AA aiming/firing eligibility from custom fuse eligibility. Inspect actual station/loadout and real hit behaviour before choosing a finite cannon executor; preserve ownership, ROE, friendly safety, same-owner and payload restrictions. Then prepare a real incoming-warning fixture using actual firing events, without synthetic tracks or scripted success.",
+  "audits": "PAUSED by user instruction"
+}
