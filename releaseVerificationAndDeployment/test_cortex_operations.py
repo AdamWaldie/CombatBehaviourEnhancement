@@ -1820,6 +1820,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_paceParticipants findIf',pace_cleanup)
         self.assertNotIn('forEach (_participants',pace_cleanup)
         self.assertNotIn('if (_participants findIf',pace_cleanup)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runScheduler.sqf').read_text()
+        for check in ('OPERATION-foreign-pace-real-setting-prerequisite',
+                      'OPERATION-foreign-pace-preserved','OPERATION-foreign-pace-explicit-owner-release'):
+            self.assertIn(check,qa)
+        self.assertIn('getForcedSpeed _foreignActor == _foreignBaseline',qa)
+        self.assertIn('isEqualTo _foreignReceipt',qa)
         self.assertIn('CBE_fnc_DangerAttackPace',source('dangerPostureStep'))
         retirement=source('dangerPostureStep')
         self.assertNotIn('_proof isEqualTo [] &&',retirement)

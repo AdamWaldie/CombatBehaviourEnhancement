@@ -275,6 +275,44 @@ private _recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
     ["route-node",+_recoveryTarget,["not a position"]],
     ["route-coordinate",+_recoveryTarget,[[0,"invalid",0]]]
 ];
+// Cross-group cleanup boundary: acquire a real native SPEED lease through ActorSettings.
+// The pace envelope is deliberate metadata scaffolding, not a fabricated danger event or
+// combat completion. OperationStart must not release another group's exact setting receipt.
+private _foreignGroup=createGroup [east,true];
+_foreignGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_foreignGroup setVariable ["acex_headless_blacklist",true,true];
+private _foreignActor=_foreignGroup createUnit ["O_Soldier_F",[2350,1730,0],[],0,"NONE"];
+_foreignGroup setCombatMode "BLUE";
+_foreignGroup setBehaviourStrong "CARELESS";
+private _foreignOperation=[_foreignGroup,"SETTING_DIAGNOSTIC",[],[_foreignActor],[],"PLAN"] call CBE_fnc_OperationStart;
+private _foreignGeneration=_foreignOperation getOrDefault ["generation",-1];
+private _foreignContext=[_foreignGroup,"QA_FOREIGN_PACE",_foreignGeneration,
+    _foreignGroup getVariable ["CBE_AIPass_Epoch",-1],serverTime+60];
+private _foreignBaseline=getForcedSpeed _foreignActor;
+private _foreignApplied=["APPLY",_foreignActor,_foreignContext,createHashMapFromArray [["SPEED",1]],"OPERATION"] call CBE_fnc_ActorSettings;
+private _foreignPace=[+_foreignContext,[],[]];
+private _foreignReceipt=+(_foreignActor getVariable ["CBE_ActorSettings",[]]);
+private _foreignReady=_foreignApplied in ["APPLIED","OWNED"]
+    && {getForcedSpeed _foreignActor == 1} && {_foreignBaseline != 1};
+["OPERATION-foreign-pace-real-setting-prerequisite",_foreignReady,str [_foreignApplied,_foreignBaseline,getForcedSpeed _foreignActor]] call _check;
+_foreignActor setVariable ["CBE_Danger_AttackPace",_foreignPace];
+private _mixedOperation=[_recoveryGroup,"RECOVERY_DIAGNOSTIC",_recoveryTarget,
+    [_recoveryActor,_foreignActor],[+_recoveryTarget],"MOVING"] call CBE_fnc_OperationStart;
+["OPERATION-foreign-pace-preserved",_foreignReady && {count _mixedOperation > 0}
+    && {(_mixedOperation getOrDefault ["participants",[]]) isEqualTo [_recoveryActor]}
+    && {getForcedSpeed _foreignActor == 1}
+    && {(_foreignActor getVariable ["CBE_ActorSettings",[]]) isEqualTo _foreignReceipt}
+    && {(_foreignActor getVariable ["CBE_Danger_AttackPace",[]]) isEqualTo _foreignPace}
+    && {(_foreignGroup getVariable ["CBE_Operation",createHashMap]) isEqualTo _foreignOperation}] call _check;
+// Explicit cleanup belongs to the foreign actor's actual owner, never the tested group.
+private _foreignReleased=["RELEASE",_foreignActor] call CBE_fnc_DangerAttackPace;
+["OPERATION-foreign-pace-explicit-owner-release",_foreignReady && {_foreignReleased}
+    && {getForcedSpeed _foreignActor == _foreignBaseline}] call _check;
+[_foreignGroup,_foreignGeneration,"QA_FINISHED"] call CBE_fnc_OperationCancel;
+deleteVehicle _foreignActor;
+deleteGroup _foreignGroup;
+_recoveryOperation=_recoveryGroup getVariable ["CBE_Operation",createHashMap];
+_recoveryGeneration=_recoveryOperation getOrDefault ["generation",-1];
 private _recoveryAccepted=[_recoveryGroup,_recoveryGeneration,_recoveryActor,_recoveryTarget] call CBE_fnc_RecoveryStep;
 private _freshRecoveryState=[_recoveryGroup,_recoveryGeneration,3,12] call CBE_fnc_OperationStep;
 ["RECOVERY-fresh-window-remains-active",_recoveryAccepted == "RECOVERING" && {_freshRecoveryState == "ACTIVE"}] call _check;

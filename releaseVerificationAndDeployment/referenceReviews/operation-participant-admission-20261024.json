@@ -48,5 +48,15 @@
     "candidate": ".qa/candidates/operation-pace-group-scope-5a9cfdae",
     "fingerprint": "afe8b5784d33ad7851508f40682d73ab9ae794fa58a39132ea5c51b98ae04d78",
     "limits": "Source authority correction; cross-group physical behaviour and measured performance remain unverified. Unsigned dirty development includes unrelated dirt; review and handover postdate package. Audits PAUSED. No animation distortion reproduced or fixed."
+  },
+  "groupScopedPaceRuntimeProcedure20261024": {
+    "base": "0e2823d3",
+    "scope": "Prepared cleanup-isolation runtime procedure in existing runScheduler, not executed while audits are paused. Cancellation/release source trace confirms original operation, generation and owner-epoch retirement gates; no new cancellation defect established.",
+    "method": "Fresh foreign group obtains native SPEED1 through real OperationStart/ActorSettings. Explicit synthetic pace envelope uses that exact context solely to exercise cleanup authority, not to fabricate native danger or combat completion. Mixed requested actor list must admit only target group actors and preserve foreign native cap, setting receipt, pace envelope and operation. Explicit actual-owner DangerAttackPace RELEASE must restore captured baseline. Prerequisite failure cannot pass preservation or release.",
+    "sourceHash": "1d72a74b135877cf22cc9aff21191d84c809d53f1c853bcf39e4497aa0879163",
+    "validation": "610 existing focused and1491 full offline cases,412 compiled SQF,9PBO,independent package pass. Three targeted assertions in existing runtime procedure; no added Python cases. In-engine procedure UNRUN.",
+    "candidate": ".qa/candidates/operation-pace-runtime-procedure-0e2823d3",
+    "fingerprint": "4c4fdf75c852f3de0167554d99b0c61079fa9c6da1fc9a3ba0a89a69c02a8783",
+    "limits": "Unsigned dirty development includes unrelated dirt; metadata postdates package. No physical/animation/performance/parity/score credit. Audits PAUSED."
   }
 }
