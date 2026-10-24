@@ -9,7 +9,8 @@
  * return no snapshot. Local leases use time; public leases use serverTime.
  * Arguments: 0 group GROUP, grpNull.
  * Return: ARRAY [group,epoch,generation,participants,drillUnits,supportHeld], or [] for refusal.
- * Current callers: IndoorActorGroupAvailable, IndoorActorDispatch, IndoorObservationDispatch.
+ * Current callers: IndoorActorGroupAvailable, IndoorActorDispatch, IndoorObservationDispatch
+ * and CortexAirborneGroundHandover same-call cargo preflight.
  * Example: private _context=[group soldier1] call CBE_fnc_IndoorActorGroupContext;
  */
 params [["_group",grpNull,[grpNull]]];

@@ -1145,7 +1145,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open.",
+      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover.",
       "executable_sources": [
         "runAirborne.sqf"
       ],
@@ -1153,6 +1153,7 @@
         "addons/aircraft/functions/cortexAirborneCheck.sqf",
         "addons/aircraft/functions/cortexAirborneDrop.sqf",
         "addons/aircraft/functions/cortexAirborneDropStep.sqf",
+        "addons/aircraft/functions/cortexAirborneGroundHandover.sqf",
         "addons/infantry/functions/cortexParachuteJump.sqf",
         "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
         "addons/infantry/functions/cortexParachuteDeploy.sqf",

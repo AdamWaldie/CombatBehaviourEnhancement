@@ -235,6 +235,7 @@ class CfgFunctions {
             class CortexRegroupOnKill {file = "\z\cbe\addons\infantry\functions\cortexRegroupOnKill.sqf";};
             class CortexRegroupStep {file = "\z\cbe\addons\infantry\functions\cortexRegroupStep.sqf";};
             class CortexAirborneCheck {file = "\z\cbe\addons\aircraft\functions\cortexAirborneCheck.sqf";};
+            class CortexAirborneGroundHandover {file = "\z\cbe\addons\aircraft\functions\cortexAirborneGroundHandover.sqf";};
             class CortexAirborneDropStep {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDropStep.sqf";};
             class CortexAirborneDrop {file = "\z\cbe\addons\aircraft\functions\cortexAirborneDrop.sqf";};
             class CortexParachuteJump {file = "\z\cbe\addons\infantry\functions\cortexParachuteJump.sqf";};

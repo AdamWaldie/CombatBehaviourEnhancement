@@ -62,6 +62,46 @@ class AirborneDropFairnessTests(unittest.TestCase):
         self.assertEqual(outcome(roster,{'cargo-a'}),(False,False))
         self.assertEqual(outcome(set(),grounded),(False,False))
 
+    def test_mixed_crew_handover_forms_only_original_landed_cargo(self):
+        helper=(ROOT/'addons/aircraft/functions/cortexAirborneGroundHandover.sqf').read_text()
+        step=(ROOT/'addons/aircraft/functions/cortexAirborneDropStep.sqf').read_text()
+        config=(ROOT/'addons/main/CfgFunctions.hpp').read_text()
+        self.assertIn('class CortexAirborneGroundHandover',config)
+        self.assertIn('[_job] call CBE_fnc_CortexAirborneGroundHandover',step)
+        self.assertIn('"DEFERRED" && {time < (_job get "deadline")}',step)
+        self.assertIn('&& {_groundHandoverOK}',step)
+        before=helper.split('private _ground=createGroup',1)[0]
+        for marker in ('CBE_AIPass_DropEpisode','CBE_AIPass_Epoch','count _roster > 64',
+                       'group _x == _group','!isTouchingGround _x','!local _x',
+                       'CortexActorMoveReserved','IndoorActorGroupAvailable','ace_medical_ai_healQueue',
+                       'CBE_ParachuteDeploy','CBE_fnc_CortexIsPaused',
+                       'CBE_Danger_EngineStanceLease','CBE_Danger_AttackPace','CBE_Cortex_StanceReceipt'):
+            self.assertIn(marker,before)
+        self.assertLess(helper.index('_job set ["groundHandover",_result]'),helper.index('_cargo joinSilent _ground'))
+        self.assertIn('private _joined=_cargo select {group _x == _ground}',helper)
+        self.assertIn('count _joined == count _cargo',helper)
+        self.assertIn('[_ground,true] call CBE_fnc_GroupBrainStart',helper)
+        self.assertIn('(units _ground) findIf {!(_x in _joined)} < 0',helper)
+        self.assertIn('units _ground isNotEqualTo []',helper)
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runAirborne.sqf').read_text()
+        self.assertIn('AIRBORNE-mixed-real-ground-squad',qa)
+        self.assertIn('AIRBORNE-mixed-crew-route-preserved',qa)
+        self.assertIn('AIRBORNE-mixed-ground-brain',qa)
+        self.assertIn('if (_grouped) then {_cargo=_ground}',qa)
+        self.assertIn('_ground addWaypoint',helper)
+        self.assertIn('_target=(_target select [0,2])+[0]',helper)
+        self.assertIn('((_job get "target") select [0,2])+[0]',step)
+        self.assertNotIn('_group addWaypoint',helper)
+        for forbidden in ('setPos','moveIn','setSkill','reveal ','joinSilent _group','spawn','while {'):
+            self.assertNotIn(forbidden,helper)
+        roster={'cargo-a','cargo-b','dead-cargo','departed'}
+        current={'cargo-a','cargo-b','dead-cargo','pilot','gunner','late-arrival'}
+        living=current-{'dead-cargo'}
+        joined=roster & living & current
+        self.assertEqual(joined,{'cargo-a','cargo-b'})
+        self.assertEqual(current-joined,{'dead-cargo','pilot','gunner','late-arrival'})
+        self.assertNotEqual(len(joined-{'cargo-b'}),len(joined)) # Partial join cannot count as full.
+
     def test_attempt_advances_before_exit_and_only_acceptance_refreshes_hold(self):
         text=(ROOT/'addons/aircraft/functions/cortexAirborneDropStep.sqf').read_text()
         attempt=text.split('private _jumper=_jumpers select 0;',1)[1].split('// LAND',1)[0]

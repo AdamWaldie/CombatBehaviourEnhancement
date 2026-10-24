@@ -8,8 +8,9 @@
  * Omitting argument1 always obtains fresh group authority. Explicit snapshots are candidate
  * preflight only; they grant no native command and must not be stored across callbacks.
  * Return: BOOL; false for ambiguous/group-wide/overlapping work or malformed ownership records.
- * Current callers: IndoorActorOperation, CortexBuildingDoor, IndoorActorDispatch and
- * IndoorObservationDispatch. Only the two dispatchers supply the optional preflight snapshot.
+ * Current callers: CortexAirborneGroundHandover (same-call roster preflight),
+ * IndoorActorOperation, CortexBuildingDoor, IndoorActorDispatch and
+ * IndoorObservationDispatch. Dispatchers and airborne handover supply the optional preflight snapshot.
  * Example: private _free=[soldier1] call CBE_fnc_IndoorActorGroupAvailable;
  */
 params [["_actor",objNull,[objNull]],["_context",[],[[]]]];

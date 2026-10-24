@@ -11,7 +11,9 @@
  * the original start), insertion tracking ends. Unrelated pilots/crew/new members cannot count
  * as jumpers or be retasked by the fallback ground order. A cargo-only group without waypoints gets a SAD waypoint
  * on the enemy position that triggered the drop, so it goes and fights rather than standing where it
- * landed.
+ * landed. Mixed operating crew/cargo groups automatically form an independent landed squad
+ * through CortexAirborneGroundHandover, without moving actors or retasking the crew.
+ * Native join/waypoint acknowledgement is assignment only, not ground combat completion.
  * Locality and authority: runs where the group is local; only local soldiers jump.
  *
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
@@ -133,15 +135,23 @@ if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {call _finish};
 private _groundOrderScoped=_landed && {_alive isNotEqualTo []} && {
     ((units _group) select {alive _x}) findIf {!(_x in _alive)} < 0
 };
+// Mixed operating crew keeps its group; original grounded cargo forms a real ground squad.
+private _groundHandover=["NOT_REQUIRED",grpNull,[],false];
+if (_landed && {_alive isNotEqualTo []} && {!_groundOrderScoped}) then {
+    _groundHandover=[_job] call CBE_fnc_CortexAirborneGroundHandover;
+};
+if ((_groundHandover select 0) == "DEFERRED" && {time < (_job get "deadline")}) exitWith {3};
+private _groundHandoverOK=(_groundHandover select 0) in ["NOT_REQUIRED","ASSIGNED"];
 if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}) then {
-    private _waypoint = _group addWaypoint [_job get "target", 30];
+    private _groundTarget=((_job get "target") select [0,2])+[0];
+    private _waypoint = _group addWaypoint [_groundTarget, 30];
     _waypoint setWaypointType "SAD";
     _group setCurrentWaypoint _waypoint;
 };
-if (_landed && {_alive isNotEqualTo []}) then {
+if (_landed && {_alive isNotEqualTo []} && {_groundHandoverOK}) then {
     missionNamespace setVariable ["CBE_AIPass_AirborneDrops", (missionNamespace getVariable ["CBE_AIPass_AirborneDrops", 0]) + 1];
     diag_log format ["[CBE] %1 airborne insertion complete (%2 on the ground).", _group, count _alive];
 } else {
-    diag_log format ["[CBE] %1 airborne insertion INCOMPLETE: landing deadline expired or no survivors.", _group];
+    diag_log format ["[CBE] %1 airborne insertion INCOMPLETE: landing/ground handover incomplete (deadline, unavailable passengers or partial assignment).", _group];
 };
 call _finish

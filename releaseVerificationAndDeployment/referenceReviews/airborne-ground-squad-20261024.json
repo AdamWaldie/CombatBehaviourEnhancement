@@ -1,0 +1,41 @@
+{
+  "baseline": "198ff519",
+  "userDirective": "Automatically form a ground squad after landing when pilots and passengers share the group.",
+  "scope": "Actual native group formation and task assignment for original landed cargo in mixed operating crew/cargo groups; not completed ground combat.",
+  "implementation": [
+    "Only original surviving cargo still in source group transfers; current operating crew of original aircraft proves mixed case. Cargo-only groups keep identity and authored route.",
+    "Current owner/epoch/episode, original deadline, local grounded effective actors, native/care/reservation and group-bound posture/pace cleanup gates. Same-call bounded group context; no world scan.",
+    "Create local same-side delete-when-empty group, copy CBE profile/exclusions and native group policy, join original cargo once, verify actual membership. No units moved, equipped, revealed, skill-edited or force-seated.",
+    "Recheck authority after GroupCreated callbacks; unexpected new members or replaced group provenance block a task over unrelated actors. Partial joins retained and reported, never rolled back or split again.",
+    "New ground squad gets SAD around terrain-projected original insertion XY, then ordinary owner-local GroupBrainStart. No source crew waypoint edits or forced generic ground eligibility for an aircraft group.",
+    "Passive public origin/handover snapshot, no JIP command replay. New group persists normally until empty. Failed brain start is visible separately; normal discovery owns retries."
+  ],
+  "validation": {
+    "focusedExistingSuite": 5,
+    "fullTests": 1494,
+    "compiledSQF": 413,
+    "PBOs": 10,
+    "buildExitCode": 0,
+    "staticPerformanceFindings": 0,
+    "independent": "passed",
+    "candidate": ".qa/candidates/airborne-ground-squad-198ff519",
+    "fingerprint": "a7b547ca26ec96eaf07abbf65d32fb4b15009428840effb845da0afbf4f0cd55",
+    "preparedNormalFixture": "Existing runAirborne normal base now uses mixed crew/cargo, observes actual new group, original crew/route, live normal ground brain and later physical waypoint movement. HC and invalid-chute variants retain separate groups; no new audit focus or launch.",
+    "initialGateFailures": "New source lacked coverage mapping, then generated report was stale; mapping and report updated, no tests skipped."
+  },
+  "hashes": {
+    "addons/aircraft/functions/cortexAirborneGroundHandover.sqf": "eb3b315e2c3a04ed823a9e86af808bb1b5c6d21915627e51fe4d8902f365f369",
+    "addons/aircraft/functions/cortexAirborneDropStep.sqf": "26f8e3db9ff28f145ad4aba94014f6453c25eb78c261e4eb353b5f374ad5a662",
+    "addons/main/CfgFunctions.hpp": "346f109196dd35d640c5ae0971289cef75451741ce5eb88d85fa045ccd285296",
+    "releaseVerificationAndDeployment/cortexQA/runAirborne.sqf": "14d936adb2ab6e7441622f0fc1697067cd03678410f0b9b006e6aca8f7d35951"
+  },
+  "limits": [
+    "ASSIGNED proves native group/waypoint acknowledgement only, not travel, fire, objective clearance, eventual brain operation or tactical quality.",
+    "Mixed HC/locality transfer, group-created/changed mission hooks, casualties, repeated insertion, native grouping failures and runtime overhead remain unverified.",
+    "Unavailable original passengers defer only until original insertion deadline; partial join is incomplete, not automatically retried.",
+    "Mixed detection is operating crew aboard the original aircraft; other mixed-domain mission structures need separate evaluation.",
+    "Automatic grouping intentionally changes passenger membership, as explicitly requested; it does not authorise unrelated group splits.",
+    "Unsigned dirty development candidate includes unrelated existing changes. Review/notes postdate package. Audits paused."
+  ],
+  "sourceContext": "Protocol source provides ejection, not a landing-to-ground controller. This implements required CBE extension; prior trace198ff519 remains historical, not current missing-code status."
+}

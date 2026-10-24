@@ -133,3 +133,8 @@ User clarification2026-10-24: arm stretching and similar visible body or weapon 
 ## Register recovery when the private master is unavailable
 
 The historical LOCAL_IMPLEMENTATION_LEDGER.md remains missing. Do not replace it with an inferred complete list. Later additions are separately reconciled in ignored .qa/implementation-register-additions.json against tracked referenceReviews/workshop-intake-*.json; the nine locally registered Protocol sources use protocol-implementation-programme-20261020.json. Read the named dated reviews before assigning work: an intake status is not whole-source implementation or physical acceptance. Recovery/backup and archive verification evidence is in local-reference-freshness-20261017.json registerRecovery20261024. Keep private registers/backups out of Git.
+
+
+## Automatic airborne ground squad
+
+User clarification 2026-10-24: when operating aircrew and passengers share a group, automatically form the original grounded surviving passengers into a separate ground squad after insertion. Preserve the flight crew and its native route. Cargo-only squads retain their group and authored orders. This explicitly authorised membership change is not teleport/recovery or permission to split unrelated mission groups. Keep native/care/reservation and pending restoration gates, exact insertion ownership, real join acknowledgements, partial-failure reporting and passive JIP metadata. Normal group tactics own the new squad; do not create a parallel permanent actor movement controller or count assignment as physical combat completion.

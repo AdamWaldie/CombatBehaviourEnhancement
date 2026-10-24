@@ -2797,3 +2797,12 @@ The native danger bridge checks the actor's currently occupied platform at class
 ### Scheduler failure retirement
 
 A missing, non-numeric or non-finite callback delay cancels its existing job state and clears pending status instead of silently discarding the queue entry. Non-finite initial delays are refused before queue publication. Deadline overflow also retires the job. Finite FSMs observe cancellation through their existing cleanup paths; the scheduler issues no movement or settings restoration commands and does not retry a failed callback. Normal negative completion results and finite retry delays retain their existing meaning.
+
+
+### Ground squad after a mixed-crew insertion
+
+When the original passenger group also contains operating crew still aboard the aircraft, grounded surviving passengers automatically form an independent squad. Only original passengers still in that group transfer; pilots, operating turrets, later arrivals and passengers already assigned elsewhere stay under their existing commander. Cargo-only groups keep their identity and authored route. The split does not move or re-equip anyone, copy flight waypoints, reveal enemies or change skills.
+
+The new squad receives the original group's combat behaviour, combat mode, speed and formation, plus its CBE profile and feature exclusions. It receives a search-and-destroy task around the insertion's original destination and starts the ordinary owner-local tactical brain; subsequent contact still requires native observations. Existing crew waypoints remain intact. Group and waypoint acknowledgement means the task is assigned, not that the squad has reached or secured the destination.
+
+Passengers must be local, physically grounded, combat-effective and free of conflicting care, native tasks and CBE reservations. Unavailability defers within the original insertion deadline. A failed or partial native join remains visible as an incomplete handover; joined actors are not forcibly returned, and the task does not create another squad. Empty failed groups are removed. The new squad remains a normal persistent group until empty; it is not automatically merged back into the flight crew. The public handover record is passive metadata, with no JIP command replay. Physical flow, casualty cases, split-locality behaviour and performance remain unverified while audits are paused.
