@@ -45,6 +45,14 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
         self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
+        preflight=text.split('private _resumeLanePending=false;',1)[1].split('private _generation=-1;',1)[0]
+        for proof in ('!_useResumeRoster','count _resumeLanes != 12','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
+            self.assertIn(proof,preflight)
+        self.assertIn('if (_resumeLanePending) exitWith {false};',preflight)
+        for forbidden in ('setVariable','_retireResume','_refuse','CortexClearRelease','serverTime+'):
+            self.assertNotIn(forbidden,preflight)
+        self.assertLess(text.index('serverTime >= (_deadline min _hardDeadline)'),text.index('private _resumeLanePending=false;'))
+        self.assertLess(text.index('if (_resumeLanePending) exitWith'),text.index('private _handoffAccepted=false;'))
         refusal=text.split('if (!_laneAdopted) exitWith {',1)[1].split('if !([_job]',1)[0]
         self.assertIn('}] call _commitPreparation',refusal)
         self.assertLess(refusal.index('[{'),refusal.index('call CBE_fnc_CortexClearRelease'))

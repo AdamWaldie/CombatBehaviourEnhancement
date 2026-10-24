@@ -218,5 +218,24 @@
     "candidate": ".qa/candidates/clear-lane-terminal-retirement-5806ce4a",
     "fingerprint": "5ed7c84d9d0cf25f064d263b562a0dcba948375cbf51609d09fd4fc8c909d34c",
     "limits": "Offline lifecycle cleanup only; no new worker/query/native write or ordered delivery/performance/physical claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "pendingResumePreflight20261024": {
+    "base": "9e735ae5",
+    "finding": "Missing/mismatched lane identity was detected only after setup; late adoption refusal calls explicit release and consumes durable resume order. Existing discovery already retries unapplied clearance orders.",
+    "change": "Before operation handoff, resume with incomplete room work requires available episode-bound roster and version1/12field lane snapshot matching group/context/positions/pairs. Pending metadata returns false read-only after original deadline expiry handling. No refusal publication, release, new worker or timer. Completed room work retains independent egress journal admission. Full ADOPT still validates remaining state after setup.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "0508f582579ca6102438d3637349c789a64d3298ea65e881334054bbc85c2978",
+      "addons/core/functions/cortexDiscover.sqf": "28a202e878d6ca5b45e32ed4cd32ea73f2b3b000b7eb031810cc7730183b3dc2"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-resume-preflight-9e735ae5",
+    "fingerprint": "7eeb871cc0a535806daa93834ead8f7ae86540cdec932ef7dfd68961e442026d",
+    "limits": "Not delivery acknowledgement, exact-once replay or complete changed-roster casualty recovery. Eligible roster changes and malformed lane state can still refuse later adoption. Physical/HC/performance unverified. Unsigned dirty candidate includes unrelated dirt; private notes/review postdate package. Audits PAUSED."
   }
 }

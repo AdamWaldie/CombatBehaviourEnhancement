@@ -374,6 +374,21 @@ private _preserveBrain=_options getOrDefault ["preserveBrain",false];
 private _continueRoute=if (_resume) then {_previous param [12,false,[true]]} else {_options getOrDefault ["continueRoute",false]};
 if (!(_continueRoute isEqualType true)) exitWith {["INVALID_CONTINUATION"] call _refuse};
 if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] call _refuse};
+// A delayed lane/roster publication must not consume the durable order by entering
+// setup and failing adoption afterward. Discovery retries this read-only admission under
+// the original stall/hard deadlines above. Completed room work uses its separate exit journal.
+private _resumeLanePending=false;
+if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreachable)) < count _positions}) then {
+    private _resumeLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
+    _resumeLanePending=!_useResumeRoster
+        || {!(_resumeLanes isEqualType [])} || {count _resumeLanes != 12}
+        || {(_resumeLanes select 0) != 1}
+        || {(_resumeLanes select 1) isNotEqualTo _group}
+        || {(_resumeLanes select 2) isNotEqualTo _resumeRosterContext}
+        || {(_resumeLanes select 3) isNotEqualTo _positions}
+        || {(_resumeLanes select 4) isNotEqualTo _resumePairs};
+};
+if (_resumeLanePending) exitWith {false};
 private _generation=-1;
 private _operation=createHashMap;
 private _handoffAccepted=false;
