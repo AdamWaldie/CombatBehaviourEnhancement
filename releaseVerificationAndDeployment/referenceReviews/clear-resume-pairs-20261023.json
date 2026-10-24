@@ -354,5 +354,47 @@
       "postBuildTestRefinement": "Existing pending-target model replaced tautological example with explicit before/after proposal-vs-issued counterexample;13 focused cases passed afterward. Production sources unchanged; no redundant compiler/package rebuild."
     },
     "limits": "All candidates occupied still permits original finite busy-node fallback. Public snapshot freshness, current access, actual crowding/repeated buddy entry, normal/HC, added native observation cost and5%/10% budget remain unverified. No physical/parity/percentage claim. Unsigned dirty development includes unrelated dirt; test-model refinement/review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  },
+  "terminalSchemaCoherence20261024": {
+    "base": "1d63eeb6d08a6abc29433e14793dce3b349fe7b8",
+    "finding": "Regression introduced by9e777802: buddy destination extended unreleased lane snapshot12to13fields and changed resume guards, but worker finish and CortexClearRelease still retired only12fields. Existing test independently pinned12, so previous full gates missed lifecycle disagreement. Matching13field lane metadata remained after terminal completion/release; episode guards still prevented fresh-clear adoption, no stale movement replay claimed.",
+    "change": "Both terminal paths retire the current13field shape under unchanged version/context/owner checks. Existing lifecycle case derives expected fields from journal ADOPT guard and checks resume preflight plus both retirement paths, retaining cross-episode and ownership-loss protections.",
+    "regressionEvidence": ".qa/clear-lane-retirement-schema-before.log:1491-suite existing focused lifecycle case fails12!=13 before production correction. No new testcase.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingOperationStep.sqf",
+        "sha256": "8c60e0b1a1b946c7e6f66ab03a0b53de3bb3c0dd10d09b232fc95c879ba17f81"
+      },
+      {
+        "path": "addons/infantry/functions/cortexClearRelease.sqf",
+        "sha256": "4ac1949305c5664f257f6307f52488fe6b033fd180b8c3bab912e91644c455a3"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_cqb_motion_receipt.py",
+        "sha256": "caf2e2c7afe467cbcc0be920f279f2d93c0416e6be3888ffef8a6d2c1ec55247"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "218830ef6d85b66a79828080dfc0d6b27d10539e3d2994170aedb4f61891a87b"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 12,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-lane-retirement-schema-1d63eeb6",
+      "fingerprint": "47a67431e87bd219b2c13935afb7ac23ad11450fac8de3bba047aa832beffb3e",
+      "logs": [
+        ".qa/clear-lane-retirement-schema-before.log",
+        ".qa/clear-lane-retirement-schema-focused.log",
+        ".qa/clear-lane-retirement-schema-preparation.log",
+        ".qa/clear-lane-retirement-schema-build.log",
+        ".qa/clear-lane-retirement-schema-independent.log"
+      ]
+    },
+    "limits": "Internal metadata retirement only, no native command/settings/worker/route/deadline change. Locality transfer preserves snapshot. No visible wedge/bunching fix, physical repeat/Zeus/HC/performance or parity/percentage credit. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
   }
 }

@@ -96,9 +96,24 @@ class MotionReceiptTests(unittest.TestCase):
         self.assertIn('(_retiredLanes select 2) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
         release=read('cortexClearRelease.sqf')
         self.assertIn('(_retiredLanes select 2) isEqualTo (_motionJob get "visitContext")',release)
+        # Retirement and preflight must follow the admitted snapshot schema rather
+        # than pinning an older field count independently of the journal reader.
+        import re
+        journal=read('buildingLaneJournal.sqf')
+        expected_fields=int(re.search(r'count _snapshot != (\d+)',journal).group(1))
+        preflight=read('cortexClearBuilding.sqf')
+        self.assertEqual(int(re.search(r'count _resumeLanes != (\d+)',preflight).group(1)),expected_fields)
         for terminal in (step,release):
-            self.assertIn('count _retiredLanes == 12',terminal)
+            retired_fields=int(re.search(r'count _retiredLanes == (\d+)',terminal).group(1))
+            self.assertEqual(retired_fields,expected_fields)
             self.assertIn('_group setVariable ["CBE_Cortex_ClearLanes",nil,true]',terminal)
+        # Matching shape never grants retirement across a different episode.
+        def retire(fields,version,context,original):
+            return fields==expected_fields and version==1 and context==original
+        self.assertTrue(retire(expected_fields,1,'episode','episode'))
+        self.assertFalse(retire(expected_fields-1,1,'episode','episode'))
+        self.assertFalse(retire(expected_fields,1,'new-episode','episode'))
+        self.assertFalse(retire(expected_fields,2,'episode','episode'))
         self.assertIn('(_retiredRoster select 0) isEqualTo (_job getOrDefault ["visitContext",[]])',step)
         self.assertIn('(_retiredRoster select 0) isEqualTo (_motionJob get "visitContext")',read('cortexClearRelease.sqf'))
     def test_locality_checkpoint_cannot_recall_new_stop_or_clearance(self):

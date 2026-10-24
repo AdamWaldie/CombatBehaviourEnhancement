@@ -57,7 +57,7 @@ isNil {
         };
         // Retire only this episode's lane metadata; locality transfer never uses this release path.
         private _retiredLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
-        if (_retiredLanes isEqualType [] && {count _retiredLanes == 12}
+        if (_retiredLanes isEqualType [] && {count _retiredLanes == 13}
             && {(_retiredLanes select 0) == 1}
             && {(_retiredLanes select 2) isEqualTo (_motionJob get "visitContext")}) then {
             _group setVariable ["CBE_Cortex_ClearLanes",nil,true];
