@@ -12,7 +12,8 @@
  * actual actor/role/native-task admission remains with CortexAssaultStart.
  * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
  * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
- * Uncountered known armour takes priority over an opportunistic close infantry assault.
+ * Fresh uncountered armour takes priority over an opportunistic close infantry assault.
+ * Old armour memory alone does not veto that fresh close engagement; ordinary overmatch remains.
  * Authored forward-order policy remains unchanged; actor-only elements never gain a group retreat.
  * Elevation uses the supplied native believed position; no live hostile height is queried.
  * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
@@ -131,6 +132,7 @@ private _concealment=(_houses+_trees+(_forest*0.5)) min 1;
 private _closeRange=(missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 60;
 private _manoeuvre=[];
 private _armourIndex=-1;
+private _freshArmourIndex=-1;
 private _airIndex=-1;
 private _elevatedIndex=-1;
 private _fortifiedIndex=-1;
@@ -141,8 +143,13 @@ private _fortifiedIndex=-1;
     private _distance=_x param [3,1e9,[0]];
     if (!isNull _target && {alive _target}) then {
         private _platform=vehicle _target;
-        if (_armourIndex < 0 && {_distance <= 450}
-            && {_platform isKindOf "Tank" || {_platform isKindOf "Wheeled_APC_F"}}) then {_armourIndex=_forEachIndex};
+        if (_distance <= 450
+            && {_platform isKindOf "Tank" || {_platform isKindOf "Wheeled_APC_F"}}) then {
+            if (_armourIndex < 0) then {_armourIndex=_forEachIndex};
+            // Native knowledge retains remembered contacts. Only a fresh observation may
+            // override a fresh close infantry opportunity; an older nearer tank cannot mask it.
+            if (_freshArmourIndex < 0 && {_age >= 0} && {_age <= 10}) then {_freshArmourIndex=_forEachIndex};
+        };
         if (_airIndex < 0 && {_distance <= 1200} && {_platform isKindOf "Air"}
             && {isEngineOn _platform || {speed _platform > 5}}) then {_airIndex=_forEachIndex};
         if (_target isKindOf "CAManBase" && {isNull objectParent _target}
@@ -181,7 +188,8 @@ private _freshPosition=_manoeuvre findIf {
 // A nearby rifle contact must not mask known armour the squad cannot counter.
 // Preserve the existing authored-forward policy and use the existing screened reposition.
 private _uncounteredArmour=!_forwardOrder && {_armourIndex >= 0} && {!_capableAT};
-if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_uncounteredArmour}) then {
+private _freshUncounteredArmour=_uncounteredArmour && {_freshArmourIndex >= 0};
+if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_freshUncounteredArmour}) then {
     _selected=_manoeuvre select _closePosition;
     _intent="ASSAULT";
     _reason="FRESH_CLOSE_INFANTRY";
@@ -202,7 +210,7 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_un
         };
     } else {
         if (_uncounteredArmour) then {
-            _selected=_armourIndex;
+            _selected=[_armourIndex,_freshArmourIndex] select _freshUncounteredArmour;
             _intent="REPOSITION";
             _reason="ARMOUR_OVERMATCH";
             _candidates=["REPOSITION"];

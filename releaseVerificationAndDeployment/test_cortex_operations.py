@@ -5301,7 +5301,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)
         self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2}',assessment)
         self.assertIn('private _uncounteredArmour=!_forwardOrder && {_armourIndex >= 0} && {!_capableAT};',assessment)
-        self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_uncounteredArmour}',assessment)
+        self.assertIn('_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_freshUncounteredArmour}',assessment)
+        self.assertIn('private _freshUncounteredArmour=_uncounteredArmour && {_freshArmourIndex >= 0};',assessment)
+        self.assertIn('if (_freshArmourIndex < 0 && {_age >= 0} && {_age <= 10}) then {_freshArmourIndex=_forEachIndex};',assessment)
+        self.assertIn('_selected=[_armourIndex,_freshArmourIndex] select _freshUncounteredArmour;',assessment)
         self.assertIn('if (_uncounteredArmour) then {',assessment)
         self.assertLess(assessment.index('private _uncounteredArmour='),assessment.index('_selected=_manoeuvre select _closePosition'))
         capacity=assessment.split('private _availableFoot=',1)[1].split('private _houses=',1)[0]
