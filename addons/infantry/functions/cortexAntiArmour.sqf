@@ -17,8 +17,10 @@
  * selection and new writes. This does not change native permissions or the medical queue.
  * Backblast uses the shared firing-safety allegiance policy: allied sides, civilians and
  * protected captives behind the gunner refuse. The existing6m actor query caps at64 candidates.
- * Native FOLLOW/CBE/STOP or non-route tasks also refuse opportunistic relocation. A MOVE
- * must address the current plain authored waypoint; individual destination replacements refuse.
+ * Native MOVE and moving FOLLOW/ATTACK retain movement ownership before selection and
+ * final writes, even without a CBE reservation. Native firing remains enabled.
+ * Stationary FOLLOW/STOP or non-route tasks also refuse opportunistic relocation;
+ * authored waypoint metadata and individual destination replacements retain their guards.
  *
  * Shared typed movement reservations and current CLEAR/MEDICAL_AID/WITHDRAW participants
  * refuse new targeting and relocation. Unknown leases remain reserved; typed expired leases
@@ -65,6 +67,9 @@ private _actorAvailable={
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        // An unreserved native route still owns this actor. Stationary FOLLOW/ATTACK
+        // may provide fire support; actual movement must settle without an injected order.
+        && {toUpperANSI currentCommand _actor != "MOVE"} && {abs (speed _actor) < 0.5}
         && {_actor checkAIFeature "FIREWEAPON"}
         && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}

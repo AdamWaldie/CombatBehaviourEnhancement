@@ -1400,5 +1400,25 @@
     },
     "validation": "Existing focused garrison duck contract passes .qa/garrison-recovery-current-trace.log. Runtime unchanged; reuse last full1491/412SQF/9PBO/independent ground-reload-native-proof-31041128/dd79f3ae9b758d355691f78c1bbcbc1d92fa540159d99037dd3ec1f3e70346f8 with original unsigned dirty limits. No repeated full build.",
     "limits": "No visual animation, current pose/reload blend, normal/HC transfer, saturated queue fairness or physical recovery guarantee. No new implementation/parity/percentage/performance credit. Audits PAUSED."
+  },
+  "antiArmourNativeMovement20261024": {
+    "base": "59ec2dce",
+    "finding": "Anti-armour roster excluded CBE movers/recovery actors and reservations, but its repeated actor predicate allowed independent native MOVE and physically moving FOLLOW/ATTACK actors. Scripted doTarget/doFire could compete with that native movement without any CBE marker. Routine rifle dispatch already preserves native MOVE and uses0.5km/h stationary admission.",
+    "change": "Same repeated actor predicate now requires current command notMOVE and absolute speed below0.5km/h before selection, relocation and final targeting. Native target/fire remain enabled; stationary support actors retain firing. Existing relocation stays finite and respects holding/orders/tasks; native MOVE no longer grants opportunistic relocation admission. No stop/follow/pose/animation/skill write, extra query/controller/timer or deadline.",
+    "hashes": {
+      "addons/infantry/functions/cortexAntiArmour.sqf": "701fdb38a6250229e3d055c81140de59e74c72f37fc63acf5e84ae627fb4f37f",
+      "addons/core/functions/cortexFireControl.sqf": "dd9219e66d935dfd156f77a56aa7f7735653cbe8474e4a40d965d039c855bf8d"
+    },
+    "validation": {
+      "focusedExistingCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/anti-armour-native-movement-59ec2dce",
+    "fingerprint": "842dce1b40bba112e836b63c06845875038dae94c59a45da28278d7fcc7c4008",
+    "limits": "Shared native-movement authority correction, not physical launcher response, aim/backblast/route continuity/normalHC or measured5/10performance proof. No reproduced straggler/animation defect claim. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no parity/percentage credit."
   }
 }

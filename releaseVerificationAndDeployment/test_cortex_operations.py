@@ -4929,6 +4929,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexCombatEffective', text)
         available=text.split('private _actorAvailable={',1)[1].split('private _now =',1)[0]
         for guard in ('_actor checkAIFeature "FIREWEAPON"','ace_medical_ai_healQueue',
+                      'toUpperANSI currentCommand _actor != "MOVE"','abs (speed _actor) < 0.5',
                       'getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]'):
             self.assertIn(guard,available)
         self.assertGreaterEqual(text.count('[_gunner] call _actorAvailable'),3)
