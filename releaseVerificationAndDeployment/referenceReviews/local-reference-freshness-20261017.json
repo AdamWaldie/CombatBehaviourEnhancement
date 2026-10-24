@@ -487,5 +487,46 @@
     "path": ".qa/workshop-comparison-20261014/source-revalidation.json",
     "sha256": "a18fbffc9b1dd5762aa7d28fc6e2ed9fea76f40180805e735941807ccfca750d"
   },
-  "archiveManifest": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/manifest.json"
+  "archiveManifest": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/manifest.json",
+  "registerRecovery20261024": {
+    "baseline": "5579a7be",
+    "scope": "Known-checkout and reference-archive lookup of missing master, later additions status reconciliation, archived Pinned Down identity and integrity. No renewed whole-source implementation review.",
+    "masterLedger": "Not located in current CBE tree, two known temporary WAIT checkouts, clean CBE validation tree, managed worktrees or preserved reference archive. GitHub-root enumeration also yielded no match but encountered inaccessible WMP .pytest_cache; that search is not exhaustive.",
+    "privateAdditions": ".qa/implementation-register-additions.json",
+    "privateBackup": ".qa/implementation-register-additions-before-reconcile-20261024-040621.json",
+    "privateBeforeSHA256": "53d8c21a8ce24cbecf48894713680c416f2181fb060b4d82f400b867dada6a4f",
+    "privateAfterSHA256": "76158334044f58dbdc1e7f070eb1f2368f91851a8ca42c259718747cbf60f890",
+    "changes": [
+      {
+        "workshopId": "3815260246",
+        "change": "Reconciled stale private status with dated tracked intake",
+        "previousStatus": "REGISTERED_PENDING_SOURCE_EVALUATION",
+        "currentStatus": "FOCUSED_INTERCEPTION_MECHANISM_REVIEWED_FULL_SCOPE_PENDING"
+      },
+      {
+        "workshopId": "3822504009",
+        "change": "Reconciled stale private status with dated tracked intake",
+        "previousStatus": "READABLE_SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+        "currentStatus": "READABLE_SOURCE_REVIEWED_PARTIAL_SELECTED_INTENT_INTEGRATION"
+      },
+      {
+        "workshopId": "3823619778",
+        "change": "Added existing tracked deferred intake to private additions register",
+        "previousStatus": null,
+        "currentStatus": "REGISTERED_FOR_LATER_EVALUATION_NOT_IMPLEMENTED"
+      }
+    ],
+    "entriesVerified": 8,
+    "archive": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708",
+      "verification": "verify_archive.py: Verified320 files; failures0",
+      "scope": "Eight extracted20261011 snapshots, NOT original PBO/signature backups",
+      "identitiesRecovered": {
+        "3775025723": "Pinned Down Cover and Concealment",
+        "3776232873": "Pinned Down Tracks and Boots"
+      },
+      "readmeSHA256": "7ee685c5c5fc30881e965972835c6b8d3f282b671790b2dadde01181f06a7f70"
+    },
+    "limits": "Later additions register is not reconstructed historical master. Existing source hashes/statuses outside named intake pointers not renewed. Private backup/register excluded from Git; original archive and Steam sources untouched. No percentage, parity, source completeness or physical acceptance claim. Runtime unchanged; no redundant build or audit. Latest CQB candidate remains current offline checkpoint."
+  }
 }

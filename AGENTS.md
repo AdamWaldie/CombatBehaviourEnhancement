@@ -128,3 +128,8 @@ Next, implement, fix and improve the complete Protocol AI collection. Evaluate e
 ## Animation quality requirement
 
 User clarification2026-10-24: arm stretching and similar visible body or weapon animation distortions are defects. Preserve normal anatomy, joint proportions, weapon grip/alignment and believable transitions. Do not use forced animation, pose, speed or transform changes that stretch limbs or break weapon handling to make a behaviour appear to work. Use supported engine animation/stance paths and account for the active weapon and character rig. Animation-affecting changes require visual in-engine checks of the affected transitions before acceptance; compilation and static checks do not establish visual quality. Audits remain paused until authorised, so record unverified visual behaviour explicitly. Carry this requirement into implementation reviews and handovers.
+
+
+## Register recovery when the private master is unavailable
+
+The historical LOCAL_IMPLEMENTATION_LEDGER.md remains missing. Do not replace it with an inferred complete list. Later additions are separately reconciled in ignored .qa/implementation-register-additions.json against tracked referenceReviews/workshop-intake-*.json; the nine locally registered Protocol sources use protocol-implementation-programme-20261020.json. Read the named dated reviews before assigning work: an intake status is not whole-source implementation or physical acceptance. Recovery/backup and archive verification evidence is in local-reference-freshness-20261017.json registerRecovery20261024. Keep private registers/backups out of Git.
