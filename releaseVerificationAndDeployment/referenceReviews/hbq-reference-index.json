@@ -155,6 +155,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/crew-recall-20261024.json",
+      "sha256": "3e1a8262e888ddddd5282d27a1ddaf54d9e3bf256811f1044be1ff6f55cb8301",
+      "scope": "Optional HBQ-style normal crew recall",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/crew-return-execution-boundary-20261019.json",
       "sha256": "f546843ae75545f6a7f17cb870b1845f6fc03f00104e5c038373379649a85dfe",
       "scope": "HBQ crew-left-behind intent and CBE passenger/crew boundary",
@@ -227,6 +236,13 @@
         "functions/fn_unstuckLoop.sqf",
         "functions/fn_vehicleUnstuck.sqf"
       ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-control-reconciliation-20261024.json",
+      "sha256": "1fabd18f2d11a7ed4f02ee2780131e4c40ba2aad729d9aa5c96470e63179255d",
+      "scope": "Current CBE convoy pacing/retained-path trace only, not a new whole-HBQ source review or physical validation. Related HBQ reference3812620045 remains broader than convoy spacing.",
+      "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
