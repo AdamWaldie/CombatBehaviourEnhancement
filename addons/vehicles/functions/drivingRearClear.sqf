@@ -12,6 +12,8 @@
  * support a reverse, including parent/proxy hits. Every support station rejects submerged ground;
  * static decks above water remain eligible. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
+ * Straight motion additionally vetoes new future full-body actor entry; existing front contact
+ * alone does not prohibit backing away. Discovery includes that full-body prediction envelope.
  * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
  * These only veto additional hazards; changing steering/acceleration remains unknown.
  * Arguments:
@@ -73,8 +75,9 @@ if (_turning) then {
     _actorRear=_actorRear-_swing;_actorFront=(_high select 1)+_swing;
 };
 // Expanded turn actor bounds must remain inside discovery, including approaching actors.
+private _predictionFront=_actorFront max (_high select 1);
 private _actorRadius=sqrt (((abs _actorLeft) max (abs _actorRight))^2
-    +(((abs _actorRear) max (abs _actorFront))^2));
+    +(((abs _actorRear) max (abs _predictionFront))^2));
 _radius=_radius max (_actorRadius+35*_predictionSeconds);
 if (_radius > 250) exitWith {[false,"REAR_SCAN_BUDGET",time,0]};
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
@@ -83,6 +86,24 @@ private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _actors=(_vehicle nearEntities ["CAManBase",_radius])
     +(_area nearEntities [["LandVehicle"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
+// Pure simultaneous overlap intervals. Keep the original rear test; an additional
+// full-body test may veto a new approaching actor without rejecting separation from
+// an already-touching front hull. At most two three-axis tests per observed actor.
+private _overlapInterval={
+    params ["_ranges","_modelVelocity","_seconds"];
+    private _entry=0;private _exit=_seconds;private _possible=true;
+    for "_axis" from 0 to 2 do {
+        (_ranges select _axis) params ["_actorLow","_actorHigh","_areaLow","_areaHigh"];
+        private _velocity=_modelVelocity select _axis;
+        if (abs _velocity < 0.01) then {
+            if (_actorHigh < _areaLow || {_actorLow > _areaHigh}) then {_possible=false};
+        } else {
+            private _a=(_areaLow-_actorHigh)/_velocity;private _b=(_areaHigh-_actorLow)/_velocity;
+            _entry=_entry max (_a min _b);_exit=_exit min (_a max _b);
+        };
+    };
+    [_possible && {_entry <= _exit} && {_exit >= 0} && {_entry <= _seconds},_entry]
+};
 private _scheduledObservation=canSuspend;
 private _crewObserved=false;private _ownCrew=[];
 private _predicted=false;
@@ -130,20 +151,17 @@ private _occupied=_actors findIf {
             (velocity _thisActor) vectorDiff _ownVelocity
         };
         private _modelVelocity=[_relative vectorDotProduct _side,_relative vectorDotProduct _forward,_relative vectorDotProduct _up];
-        private _entry=0;private _exit=_predictionSeconds;private _possible=true;
         private _ranges=[[_minX,_maxX,_actorLeft,_actorRight],[_minY,_maxY,_actorRear,_actorFront],
             [_minZ,_maxZ,(_low select 2)-0.3,(_high select 2)+0.3]];
-        for "_axis" from 0 to 2 do {
-            (_ranges select _axis) params ["_actorLow","_actorHigh","_areaLow","_areaHigh"];
-            private _velocity=_modelVelocity select _axis;
-            if (abs _velocity < 0.01) then {
-                if (_actorHigh < _areaLow || {_actorLow > _areaHigh}) then {_possible=false};
-            } else {
-                private _a=(_areaLow-_actorHigh)/_velocity;private _b=(_areaHigh-_actorLow)/_velocity;
-                _entry=_entry max (_a min _b);_exit=_exit min (_a max _b);
-            };
+        private _rearInterval=[_ranges,_modelVelocity,_predictionSeconds] call _overlapInterval;
+        private _crosses=_rearInterval select 0;
+        if (!_crosses && {!_turning} && {_predictionFront > _actorFront}) then {
+            _ranges set [1,[_minY,_maxY,_actorRear,_predictionFront]];
+            private _bodyInterval=[_ranges,_modelVelocity,_predictionSeconds] call _overlapInterval;
+            // Entry after now is a new swept-body conflict. Existing front contact
+            // alone must not prevent a separating reverse; the original rear veto remains.
+            _crosses=(_bodyInterval select 0) && {(_bodyInterval select 1) > 0};
         };
-        private _crosses=_possible && {_entry <= _exit} && {_exit >= 0} && {_entry <= _predictionSeconds};
         if (_crosses) then {_predicted=true};
         _crosses
     }

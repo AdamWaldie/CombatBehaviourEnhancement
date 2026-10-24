@@ -200,6 +200,31 @@ class DrivingRearMonitorTests(unittest.TestCase):
                        '_entry=_entry max','_exit=_exit min','_entry <= _exit'):
             self.assertIn(marker,s)
         self.assertLess(s.index('if (_current) exitWith {true}'),s.index('private _relative='))
+        for marker in ('_predictionFront=_actorFront max (_high select 1)',
+                       '(_bodyInterval select 1) > 0','private _crosses=_rearInterval select 0',
+                       '!_crosses && {!_turning}','abs _predictionFront'):
+            self.assertIn(marker,s)
+        # Interval geometry only: approaching front/side actors differ from current
+        # separating front contact. These examples do not execute the Arma engine.
+        def interval(ranges,velocity):
+            entry,exit=0.0,2.0
+            for (lo,hi,area_lo,area_hi),v in zip(ranges,velocity):
+                if abs(v)<0.01:
+                    if hi<area_lo or lo>area_hi:return False,entry
+                else:
+                    a,b=(area_lo-hi)/v,(area_hi-lo)/v
+                    entry=max(entry,min(a,b));exit=min(exit,max(a,b))
+            return entry<=exit and exit>=0 and entry<=2,entry
+        def prediction(x,y,v):
+            rear=[(*x,-1.3,1.3),(*y,-11,-2.5),(0,1.8,-0.3,2.3)]
+            old=interval(rear,v)[0]
+            body=list(rear);body[1]=(*y,-11,3)
+            whole,entry=interval(body,v)
+            return old,old or (whole and entry>0)
+        self.assertEqual(prediction((-.3,.3),(3.5,4.5),(0,-2,0)),(False,True))
+        self.assertEqual(prediction((2.5,3.1),(0,1),(-2,2,0)),(False,True))
+        self.assertEqual(prediction((-.3,.3),(3,4),(0,2,0)),(False,False))
+        self.assertEqual(prediction((-.3,.3),(-8,-7),(0,0,0)),(True,True))
         self.assertEqual(s.count('nearEntities'),2)
         for forbidden in ('setVariable','sendSimpleCommand','forceSpeed','doMove','setVelocity'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])

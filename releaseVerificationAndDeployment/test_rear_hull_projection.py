@@ -66,7 +66,7 @@ class RearHullProjectionTests(unittest.TestCase):
         self.assertIn('[_otherHigh select 0,_otherLow select 1,_otherLow select 2]',block)
         self.assertIn('[_otherLow select 0,_otherHigh select 1,_otherLow select 2]',block)
         self.assertIn('[_otherLow select 0,_otherLow select 1,_otherHigh select 2]',block)
-        for guard in ('_minZ <= (_high select 2)+0.3','_maxZ >= (_low select 2)-0.3','private _entry=0;private _exit=_predictionSeconds'):
+        for guard in ('_minZ <= (_high select 2)+0.3','_maxZ >= (_low select 2)-0.3','private _entry=0;private _exit=_seconds'):
             self.assertIn(guard,source)
 
     def test_traffic_uses_the_same_full_hull_identity_without_weakening_admission(self):

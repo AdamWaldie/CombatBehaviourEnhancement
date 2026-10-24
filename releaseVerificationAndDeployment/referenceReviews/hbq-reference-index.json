@@ -705,6 +705,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/rear-full-body-entry-20261024.json",
+      "sha256": "e097bb203a001101facafa4aaee6d8e32929a9375f9cc4c89977a696272d89f5",
+      "scope": "Complete40line HBQ rearClear helper and current CBE actor-overlap/prediction path; not renewed whole geometry/controller review.",
+      "sourceFileMentions": [
+        "functions/fn_rearClear.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/recovery-component-damage-20261018.json",
       "sha256": "fc99d6f0752802ee5c5e6cbe6bfc5ab1e678fc2752e35cc27b22818899d7a04f",
       "scope": "Damage-aware native rear interruption; not whole HBQ damage handling parity",
