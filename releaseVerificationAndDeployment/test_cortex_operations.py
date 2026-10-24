@@ -2739,6 +2739,11 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('animateSource',text)
         self.assertNotIn('setPos',text)
         self.assertNotIn('setVariable [format ["bis_disabled',text)
+        authority=text.split('private _orderCurrent={',1)[1].split('if (isNull _unit',1)[0]
+        self.assertLess(authority.index('if (fleeing _unit) exitWith {false}'),authority.index('if (_context isEqualTo [])'))
+        self.assertLess(text.index('if (_metadataOnly) exitWith'),text.index('private _orderCurrent='))
+        commit=text.split('if (_near && {_visible}) then {',1)[1]
+        self.assertLess(commit.index('call _orderCurrent'),commit.index('call BIS_fnc_door'))
 
     def test_door_opening_requires_unobstructed_nearby_interaction(self):
         text=source('cortexBuildingDoor')

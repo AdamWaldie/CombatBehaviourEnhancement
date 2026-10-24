@@ -22,7 +22,7 @@
  * native-goal line. It never redirects movement, unlocks doors or admits a scripted/wait waypoint.
  * 3 metadata only <BOOL, false> - cache model definitions without interaction or cooldown.
  * Metadata discovery is read-only world observation and does not require an available actor.
- * STOP, pending medical care, disabled movement, hidden actors and disabled simulation veto
+ * Native fleeing, STOP, pending medical care, disabled movement, hidden actors and disabled simulation veto
  * opening requests. Care is read before interaction queries and again before animation.
  * Empty-context direct calls require an unreserved idle/MOVE actor; owned INDOOR combat
  * retains its separate exact contact/task receipt rather than borrowing this exemption.
@@ -55,6 +55,9 @@ private _vectorValid={
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
 };
 private _orderCurrent={
+    // Native flight supersedes every earlier building/route interaction intent.
+    // Metadata-only discovery returns above and remains a read-only model query.
+    if (fleeing _unit) exitWith {false};
     // A direct script request has no owned-operation receipt. It may assist an
     // ordinary approach, never borrow an unrelated reserved/native service task.
     if (_context isEqualTo []) exitWith {
