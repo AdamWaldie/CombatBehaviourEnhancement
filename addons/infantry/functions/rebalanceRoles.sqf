@@ -7,7 +7,8 @@
  * participants retain the current policy; this does not prove ownership of a later STOP on them.
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
  * Protected native tasks, queued medical treatment and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
- * Temporary treatment does not remove living pair identity or mutate the medical queue.
+ * Temporary treatment or native flight does not erase living pair identity; unavailable actors
+ * leave active roles without clearing medical queues, morale or the native fleeing state.
  * A matching fire-team drill retains mover/cover partitions during pair repair; synchronised
  * buddy bounds and two-actor advances preserve pair identity across those roles. This includes role
  * transfers with unchanged participant count. New pair metadata grants no movement authority.
@@ -34,7 +35,7 @@ private _actorEligible={
     params ["_actor"];
     private _reservationFree=!([_actor] call CBE_fnc_CortexActorMoveReserved);
     group _actor == _group && {simulationEnabled _actor} && {!isObjectHidden _actor}
-        && {local _actor} && {!isPlayer _actor} && {isNull (remoteControlled _actor)}
+        && {local _actor} && {!isPlayer _actor} && {!fleeing _actor} && {isNull (remoteControlled _actor)}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""} && {[_actor] call CBE_fnc_CortexCombatEffective}
         && {isNull objectParent _actor} && {!(_actor in _blocked)}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}

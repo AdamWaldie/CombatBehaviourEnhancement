@@ -1,0 +1,25 @@
+{
+  "baseline": "52f9606d",
+  "scope": "Protocol pair/operation casualty replacement eligibility, not full pair timing or physical acceptance",
+  "finding": "OperationStep already treats fleeing as a temporary native owner, but RebalanceRoles candidate predicate omitted fleeing. A combat-effective fleeing actor could keep occupying or re-entering the desired active roster while the executor correctly refused it, starving an eligible replacement.",
+  "implementation": "Use !fleeing in the existing actor-eligibility predicate for candidate selection and the unchanged atomic roster-publication recheck. Do not change desired count, original operation generation/deadline, native morale/flight, medical queues or movement controllers. Existing CombatPairsPublish retains living out-of-scope identity separately.",
+  "validation": {
+    "focusedCases": 1,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/pair-role-flight-52f9606d",
+    "fingerprint": "4175d8cddfe5b17a8e241b8ae22980dee6abbba9e8406d95ecdfa91a1cd0fb5f",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "No historical screenshot or failure is attributed solely to this omission",
+    "No physical casualty/flight recovery, odd-size role flow, covering fire or HC migration proof",
+    "Living member retention is metadata, not preservation of every old buddy relationship or command authority",
+    "No whole Protocol source parity or measured performance claim",
+    "Unsigned dirty development preserves unrelated dirt; review/handover postdate package"
+  ],
+  "productionSHA256": "496ed506135dfe7f270b75f1ef882f47466b56fc4c5350453c642a26f33f24ce"
+}

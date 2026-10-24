@@ -2370,6 +2370,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _blocked=(_operation getOrDefault ["unavailable",[]])+_excluded',rebalance)
         eligibility=rebalance.split('private _actorEligible=',1)[1].split('private _capable=',1)[0]
         self.assertIn('(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []',eligibility)
+        self.assertIn('!fleeing _actor',eligibility)
+        commit=rebalance.split('isNil {',1)[1]
+        self.assertLess(commit.index('_current findIf {!([_x] call _actorEligible)}'),
+                        commit.index('_operation set ["participants",_current]'))
+        self.assertNotIn('allowFleeing',rebalance)
+
         self.assertNotIn('setVariable ["ace_medical_ai_healQueue"',rebalance)
 
         flank=source('cortexFlankStep')
