@@ -82,6 +82,7 @@ if (!isNull _boat) then {
         if (count _saved == 4 && {(_saved select 2) isEqualTo _token}
             && {(_saved select 3) isEqualTo _group}) then {
             _boat setVariable ["CBE_Cortex_NavalForcedSpeed",nil,true];
+            _boat setVariable ["CBE_Cortex_NavalStopLocal",nil];
         };
         _boat setVariable ["CBE_Cortex_NavalPlan",nil,true];
     };

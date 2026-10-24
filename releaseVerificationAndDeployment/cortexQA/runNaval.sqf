@@ -139,7 +139,9 @@ _coast params ["_shore","_water","_offshore","_inland"];
     if (_hc && {_started}) then {
         _targetOwner=_owners select _forEachIndex;
         private _stopReady=[{private _r=_boat getVariable ["CBE_Cortex_NavalForcedSpeed",[]];
-            count _r == 4 && {(_r select 1) isEqualTo 0}},90] call _wait;
+            private _p=_boat getVariable ["CBE_Cortex_NavalPlan",[]];
+            count _r == 4 && {(_r select 1) isEqualTo 0}
+                && {count _p == 9} && {(_p select 8) == "DISEMBARK"}},90] call _wait;
         ["NAVAL-"+_suffix+"-stop-before-migration",_stopReady] call _check;
         if (_stopReady) then {
             private _before=[_boat,2] call _sampleOwner;

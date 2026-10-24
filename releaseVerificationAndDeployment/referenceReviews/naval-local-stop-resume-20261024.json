@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "6f0dfc2e",
+  "engine_reference": "https://community.bistudio.com/wiki/forceSpeed",
+  "engine_evidence": "Command reference documents speed in metres/second; locality note states it must be applied where the unit is local and reapplied after locality changes. getForcedSpeed returns the local forced cap or -1.",
+  "confirmed_gap": "Published speed baseline alone did not resume the local stop on a replacement owner; waiting for native zero could stall until the landing expired. Capturing a baseline only at shore also risks recapturing a replacement owner default.",
+  "changes": [
+    "Publish baseline/zero/token/group receipt at initial approach admission before plan publication, without stopping the offshore approach",
+    "Near shore or during disembark, validate public receipt and actual boat/group locality; wait for missing transport within original expiry",
+    "Machine-local token/group/owner-epoch stamp permits one initial/resumed zero application for native default,admitted baseline or already-zero cap",
+    "Same-owner explicit cap change/reset is not replayed; a distinct nondefault cap refuses adoption",
+    "Exact matching release retires local stamp with public receipt",
+    "HC fixture waits for DISEMBARK as well as receipt before migrating; early approach receipt alone is not stop proof"
+  ],
+  "limits": [
+    "An undeclared writer choosing the same admissible value before first local application is indistinguishable",
+    "No external provider quiescence or native handover/forced-cap transport result proven",
+    "No extra timer,worker,epoch extension,repair,teleport or forced seating",
+    "Physical naval HC cases remain UNRUN; audits PAUSED"
+  ],
+  "checks": {
+    "full_offline": "1496 tests;413 compiled SQF;11 PBOs;static performance0 findings;pass",
+    "independent_package_verify": "pass",
+    "candidate": ".qa/candidates/naval-local-stop-resume-6f0dfc2e",
+    "fingerprint": "9c4424452ab0dd90055a7917ac508f2f2c6089cae546301e52b8acfebe652b72",
+    "package_status": "unsigned dirty development; review and handover postdate build"
+  }
+}
