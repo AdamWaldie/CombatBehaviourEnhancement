@@ -2886,6 +2886,11 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(requirement,recovery)
         self.assertLess(recovery.index('exitWith {"YIELDED"}'),recovery.index('_actor doMove _destination'))
         self.assertGreaterEqual(recovery.count('CBE_fnc_CortexExternalTakeover'),2)
+        self.assertEqual(recovery.count('call CBE_fnc_CortexIsPaused'),2)
+        self.assertLess(recovery.index('call CBE_fnc_CortexIsPaused'),recovery.index('private _recovery='))
+        commit=recovery.split('isNil {',1)[1]
+        for mutation in ('_used set [_key','_recovery set [_key','_actor doMove _destination'):
+            self.assertLess(commit.index('call CBE_fnc_CortexIsPaused'),commit.index(mutation))
         final_check=recovery.rindex('CBE_fnc_CortexExternalTakeover')
         self.assertLess(final_check,recovery.index('_actor doMove _destination'))
         self.assertIn('private _currentOperation=',recovery[final_check:])

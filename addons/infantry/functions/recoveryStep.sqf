@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * ENDEX/SafeStart pause yields before admission and again before the live retry commit;
+ * the existing operation and unspent attempt survive without a new movement request.
  * Explicit Zeus interruption vetoes both preflight and final retry issue, independently of
  * specialist takeover detection; no retry budget is spent while the group is held.
  * Purpose: Makes one bounded native recovery attempt for a stalled participant without enabling disabled AI features, duplicating route commands or delaying the rest of its operation.
@@ -16,6 +18,7 @@
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_actor",objNull,[objNull]],["_destination",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _group} || {isNull _actor} || {!local _group} || {!local _actor} || {!(count _destination in [2,3])}
     || {_destination findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {"INVALID"};
+if ([] call CBE_fnc_CortexIsPaused) exitWith {"YIELDED"};
 // This is the final direct movement command in a recovery path. Recheck handover at the point of
 // issue because a Zeus or specialist operation can arrive between an earlier operation step and
 // this isolated retry. Recovery must retire rather than overwrite the newer controller's route.
@@ -51,6 +54,7 @@ isNil {
         if ([_group,false,_actor] call CBE_fnc_CortexExternalTakeover
             || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {"YIELDED"};
+        if ([] call CBE_fnc_CortexIsPaused) exitWith {"YIELDED"};
         private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
         if ((_currentOperation getOrDefault ["phase",""]) == "CANCELLED"
             || {count _currentOperation == 0}
