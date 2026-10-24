@@ -381,7 +381,7 @@ private _resumeLanePending=false;
 if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreachable)) < count _positions}) then {
     private _resumeLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
     _resumeLanePending=!_useResumeRoster
-        || {!(_resumeLanes isEqualType [])} || {count _resumeLanes != 12}
+        || {!(_resumeLanes isEqualType [])} || {count _resumeLanes != 13}
         || {(_resumeLanes select 0) != 1}
         || {(_resumeLanes select 1) isNotEqualTo _group}
         || {(_resumeLanes select 2) isNotEqualTo _resumeRosterContext}

@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Save/adopt one coherent clearance lane allocation and progress observation.
  * Locality/authority: Current group owner and current CLEAR generation/epoch only.
- * Adoption changes job metadata, never native commands, visits, settings or deadlines.
+ * Adoption retains lane-bound buddy destination proposals as well as request ages and progress.
+ * It changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
  * Local progress/start clocks are transported as server time and rebased once on adoption.
  * Original native issue times are observations only; adoption never starts a new grace window.
@@ -56,7 +57,7 @@ _result=call {
     private _entryGoal=_job getOrDefault ["entry",[]];
     private _snapshot=_group getVariable ["CBE_Cortex_ClearLanes",[]];
     if (_mode == "ADOPT") then {
-        if (!(_snapshot isEqualType []) || {count _snapshot != 12}
+        if (!(_snapshot isEqualType []) || {count _snapshot != 13}
             || {(_snapshot select 0) != 1} || {(_snapshot select 1) isNotEqualTo _group}
             || {(_snapshot select 2) isNotEqualTo _context}
             || {(_snapshot select 3) isNotEqualTo _positions}
@@ -144,6 +145,30 @@ _result=call {
         if (!(_key in _retiredSet) && {!(_key in _claimed)}) exitWith {_valid=false};
     };
     if (!_valid) exitWith {false};
+    // Keep the selected buddy destination with its exact lane/roster, rather than
+    // rebuilding it while retaining the old native request age and recovery budget.
+    // This is a proposal cache only, not an owned MOVE or physical entry receipt.
+    private _entryTargets=[];
+    if (_mode == "SAVE") then {
+        private _targets=_job getOrDefault ["pairEntryTargets",createHashMap];
+        if (!(_targets isEqualType createHashMap) || {count _targets > _laneCount}) exitWith {_valid=false};
+        for "_slot" from 0 to (_laneCount-1) do {
+            private _key=str _slot;
+            if (_key in _targets) then {_entryTargets pushBack [_slot,_targets get _key]};
+        };
+        if (count _entryTargets != count _targets) then {_valid=false};
+    } else {_entryTargets=_snapshot select 12};
+    if (!_valid || {!(_entryTargets isEqualType [])} || {count _entryTargets > _laneCount}) exitWith {false};
+    private _copyEntryTargets=createHashMap;
+    {
+        if (!(_x isEqualType []) || {count _x != 2}) exitWith {_valid=false};
+        _x params ["_slot","_target"];
+        if (!(_slot isEqualType 0) || {!finite _slot} || {_slot != floor _slot}
+            || {_slot < 0} || {_slot >= _laneCount} || {str _slot in _copyEntryTargets}
+            || {!(_target call _vectorValid)}) exitWith {_valid=false};
+        _copyEntryTargets set [str _slot,+_target];
+    } forEach _entryTargets;
+    if (!_valid) exitWith {false};
     // Keep request age with the matching lane allocation. This map never supplies an
     // owned MOVE target: BuildingActorMotion still needs actual native acknowledgement.
     private _requests=[];
@@ -170,13 +195,15 @@ _result=call {
     } forEach _requests;
     if (!_valid) exitWith {false};
     if (_mode == "ADOPT") exitWith {
+        _job set ["pairEntryTargets",_copyEntryTargets];
         _job set ["movementRequestTimes",_requestTimes];
         _job set ["pairRoutes",_copyRoutes];_job set ["pairStates",_copyStates];
         _job set ["pending",+_pending];_job set ["phase",_phase];
         _job set ["entries",_entryNodes apply {+_x}];_job set ["entry",+_entryGoal];true
     };
     private _journal=[1,_group,+_context,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
-        _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]}];
+        _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]},
+        _entryTargets apply {[_x select 0,+(_x select 1)]}];
     _job set ["laneJournalLastResult",true];
     if (_snapshot isNotEqualTo _journal) then {_group setVariable ["CBE_Cortex_ClearLanes",_journal,true]};
     true

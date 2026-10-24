@@ -276,5 +276,42 @@
     "candidate": ".qa/candidates/clear-common-lane-identity-170ea584",
     "fingerprint": "3d57668924c13b84bd08f5927952ce8b947ec45493f5750798a8ca5ff99ca952",
     "limits": "Local publication consistency only; separate-variable ordering and owner-ready acknowledgement remain incomplete. No physical/HC/performance/parity/percentage claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "buddyEntryTargetResume20261024": {
+    "base": "fb9c7fc74d9378ff16a9701a6f470b8dad11611c",
+    "finding": "Current lane journal already restores routes/cursors/movers/progress/request ages; actor entry-recovery budgets are public. It omitted pairEntryTargets, so the buddy proposal could rebuild against current geometry while inheriting old request age/recovery state.",
+    "change": "Extend unreleased v1 lane snapshot12to13 fields with <=8 ordered-lane destination proposal rows. SAVE rejects noncanonical/out-of-range map keys, malformed/duplicate lane rows and nonfinite/non3D targets. ADOPT detaches cache into job metadata under existing exact episode/building transform/node/roster/generation/epoch/hard-deadline checks. Resume preflight requires matching13field snapshot.",
+    "authority": "No movementTargets, actor reservation/native command, entry visit or renewed deadline is granted. Existing committed roster replacement deletes the changed lane cache. Missing/delayed/malformed snapshots retain refusal under original deadlines; no legacy12field replay adapter for unreleased schema.",
+    "cost": "At most8 existing lane proposals added to existing1.5s changed-only publication; no extra world query/ray/worker/clock. Network/runtime overhead unmeasured.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingLaneJournal.sqf",
+        "sha256": "1cb63ad8461c140b211c012c4bf63ddb75b6698283aaa2f3a2e53ca92a881754"
+      },
+      {
+        "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+        "sha256": "d5bd83a105625b2d394bed556f9146258f8f1113a2d5b47555c9e72695e374df"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_clear_preparation_commit.py",
+        "sha256": "5f95089adb80765b821ee9aeb84301ba106c423a3cfd24476f770dcdd8375cef"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 3,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-resume-buddy-target-fb9c7fc7",
+      "fingerprint": "bdbe5b8e16fd0a114d2df7d1e1d5f7526fa303b55ceda3c3ca7640f47726476a",
+      "logs": [
+        ".qa/clear-resume-buddy-target-focused.log",
+        ".qa/clear-resume-buddy-target-build.log",
+        ".qa/clear-resume-buddy-target-independent.log"
+      ]
+    },
+    "limits": "Proposal continuity only, not current occupancy or native acknowledgement. Existing proposal-selection occupancy logic unchanged; import does not add fresh occupancy proof. Ordered delivery, latest snapshot, full changed-roster continuity and physical normal/HC flow/performance remain incomplete/unverified. No parity/percentage/acceptance claim. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits paused; no push/CI/merge/publish."
   }
 }

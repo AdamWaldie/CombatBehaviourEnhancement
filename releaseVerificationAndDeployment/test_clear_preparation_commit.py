@@ -31,7 +31,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal',text)
         self.assertIn('"securityEntries"',journal)
         self.assertIn('_job set ["entries",_entryNodes apply {+_x}]',journal)
-        self.assertIn('count _snapshot != 12',journal)
+        self.assertIn('count _snapshot != 13',journal)
         requests=journal.split('// Keep request age',1)[1].split('private _journal=',1)[0]
         self.assertIn('_request select 1',requests)
         self.assertIn('_job set ["movementRequestTimes",_requestTimes]',requests)
@@ -39,6 +39,40 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertNotIn('serverTime+2',requests)
         self.assertNotIn('serverTime+30',requests)
         self.assertIn('netId _actor in _requestTimes',requests)
+        targets=journal.split('// Keep the selected buddy destination',1)[1].split('// Keep request age',1)[0]
+        for proof in ('count _targets > _laneCount','count _entryTargets != count _targets',
+                      '_entryTargets=_snapshot select 12','str _slot in _copyEntryTargets',
+                      '_target call _vectorValid','_slot >= _laneCount'):
+            self.assertIn(proof,targets)
+        self.assertIn('_job set ["pairEntryTargets",_copyEntryTargets]',journal)
+        adoption=journal.split('if (_mode == "ADOPT") exitWith {',1)[1].split('private _journal=',1)[0]
+        self.assertNotIn('doMove',adoption)
+        self.assertNotIn('"movementTargets"',adoption)
+        self.assertNotIn('serverTime+',adoption)
+        # Lane-specific proposals survive intact with their request ages. Rebuilding
+        # from current nearest geometry would mix an old budget with a new target.
+        cached={0:[10,20,1],1:[11,25,4]}
+        snapshot=[[slot,target.copy()] for slot,target in cached.items()]
+        adopted={slot:target.copy() for slot,target in snapshot}
+        self.assertEqual(adopted,cached)
+        adopted[0][0]=99
+        self.assertEqual(cached[0],[10,20,1])
+        def valid_targets(rows,lanes):
+            import math
+            seen=set()
+            for row in rows:
+                if not isinstance(row,list) or len(row)!=2:return False
+                slot,target=row
+                if (type(slot) not in (int,float) or not math.isfinite(slot)
+                    or slot!=int(slot) or not 0<=slot<lanes or slot in seen):return False
+                if (not isinstance(target,list) or len(target)!=3
+                    or any(type(v) not in (int,float) or not math.isfinite(v) for v in target)):return False
+                seen.add(slot)
+            return len(rows)<=lanes
+        self.assertTrue(valid_targets(snapshot,2))
+        for invalid in ([[0,[1,2,3]],[0,[4,5,6]]],[[2,[1,2,3]]],
+                        [[0.5,[1,2,3]]],[[0,[1,2]]],[[0,[1,2,float('nan')]]]):
+            self.assertFalse(valid_targets(invalid,2))
         self.assertEqual(journal.count('_job set ["laneJournalAfter",serverTime+1.5]'),1)
         self.assertLess(journal.index('"CANCELLED"}) exitWith {false};'),journal.index('_job set ["laneJournalAfter"'))
         self.assertLess(journal.index('_job set ["laneJournalAfter"'),journal.index('private _positions='))
@@ -46,7 +80,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
         self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
         preflight=text.split('private _resumeLanePending=false;',1)[1].split('private _generation=-1;',1)[0]
-        for proof in ('!_useResumeRoster','count _resumeLanes != 12','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
+        for proof in ('!_useResumeRoster','count _resumeLanes != 13','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
             self.assertIn(proof,preflight)
         self.assertIn('if (_resumeLanePending) exitWith {false};',preflight)
         for forbidden in ('setVariable','_retireResume','_refuse','CortexClearRelease','serverTime+'):
