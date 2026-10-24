@@ -4167,6 +4167,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_height <= 20',selector)
         self.assertIn('_threatObject,"VEHICLE",_vehicle',source('cortexVehicles'))
         self.assertIn('objNull,"VEHICLE",_vehicle',source('cortexAARelocate'))
+        for name in ('cortexArtilleryPosition','cortexArtilleryScoot'):
+            self.assertIn('[_origin,_candidates,_origin,[],objNull,"VEHICLE",_battery] call CBE_fnc_CortexSelectAvenue',source(name))
         self.assertNotIn('selectRandom [',start)
         self.assertNotIn('private _routeProtection = {',start)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runMultiManoeuvre.sqf').read_text()

@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Avenue ranking uses this battery's existing full-height conservative endpoint envelope,
+ * rather than infantry-height cover probes. Sparse screening is not hull clearance or
+ * protection from incoming artillery; the origin is only the existing scoring reference.
  * Water-damaged engines refuse mobility admission; exact session cleanup remains independent.
  * Purpose: Execute one current-owner pre-fire positioning step under the existing server mission FSM.
  * Locality/authority: Server-addressed battery/group/AI-seat owner only. Geometry is a proposal;
@@ -164,7 +167,7 @@ private _distanceToFix=_origin distance2D _target;
     _distanceToFix*1.25,_distanceToFix*1.5,_distanceToFix*2,_distanceToFix*4,500,2000,8000,32000] apply {(_x max 100) min 64000});
 _ranked sort true;
 private _candidates=(_ranked select [0,6]) apply {[+(_x select 1)]};
-private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
+private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE",_battery] call CBE_fnc_CortexSelectAvenue;
 if (_selected isEqualTo []) exitWith {["NO_SUPPORTED_POSITION"] call _finish};
 private _spot=_selected select (count _selected-1);
 private _started=false;

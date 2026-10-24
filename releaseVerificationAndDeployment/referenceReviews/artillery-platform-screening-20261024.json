@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-24",
+  "base": "ac3b1bc8",
+  "scope": "Actual battery endpoint-screening integration in existing artillery positioning and shoot-and-scoot; selected Protocol mobility comparison, not whole mod parity.",
+  "reference": ".qa\\protocol-artillery-3801354927-review\\functions\\fn_artillery.sqf",
+  "referenceSHA256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+  "referenceRead": "Selected movement and displacement branches108..176: separate driver/commander doMove, randomized positions and wait loop. Not a renewed whole-source review.",
+  "finding": "Both existing CBE battery route selectors passed VEHICLE mobility without the actual platform, leaving shared scoring on infantry-height route probes. AA relocation, jink and vehicle escape already supplied their platform.",
+  "implementation": [
+    "Pass _battery to existing CortexSelectAvenue in pre-fire position and shoot-and-scoot.",
+    "Existing conservative horizontal radius/full model height and three endpoint screening probes now apply; unsupported or oversized bounds receive no cover credit.",
+    "Actual battery excluded from the material screening query; route sample count, mobility terrain policy, candidates, native commands, finite operation, READY, firing and cleanup unchanged."
+  ],
+  "limits": [
+    "Screening origin remains current battery origin, not an observed incoming-fire source. No claim of counterbattery protection or ballistic cover.",
+    "Sparse endpoint screening is not hull clearance, path reachability, future pose or stable firing position.",
+    "Mixed-group positioning and relocation still refused. Existing group HOLD/order receipt binds Position, PositionReport, MissionStep and Shot; changing only admission would break authority. A selected-platform movement/hold/return executor and matching validation are still required.",
+    "Actual large/modded gun movement, chosen endpoints, firing, repeat, HC/JIP and performance UNRUN; audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "focused": 610,
+    "build": ".qa/artillery-platform-screening-build.log",
+    "independent": ".qa/artillery-platform-screening-independent.log",
+    "candidate": ".qa/candidates/artillery-platform-screening-ac3b1bc8",
+    "fingerprint": "cefffac8024f21469a13d229241b5ced04d86c1b7dababd6991ef3ed63c3f240",
+    "unsignedDirtyDevelopment": true,
+    "scope": "Extended existing source contract; no test count increase and no physical completion claim."
+  },
+  "hashes": {
+    "addons/support/functions/cortexArtilleryPosition.sqf": "25b7c8326d24866dd1ccf32426e0e789c197e9d3706b6c045acae3f1b51ff0eb",
+    "addons/support/functions/cortexArtilleryScoot.sqf": "d47c023db7f31d466d785f001d5d498faed16e2ac6db10c8a024bffadc79eec1",
+    "addons/infantry/functions/cortexSelectAvenue.sqf": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "5a86d83d7050f146536dea038ebbc28537cc8326d1014b1733fe719efb44cf27"
+  }
+}

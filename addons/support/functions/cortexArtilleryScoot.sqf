@@ -1,5 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
+ * Avenue ranking uses this battery's existing full-height conservative endpoint envelope,
+ * rather than infantry-height cover probes. Sparse screening is not hull clearance or
+ * protection from incoming artillery; the origin is only the existing scoring reference.
  * Water-damaged engines refuse mobility admission; exact session cleanup remains independent.
  * The fire request's original movement-group and authored-order receipt remain authoritative
  * through delayed admission; owner migration cannot rebase onto a newer mission route.
@@ -139,7 +142,7 @@ private _candidates=[];
 for "_attempt" from 0 to 5 do {
     _candidates pushBack [_origin getPos [200+random 150,random 360]];
 };
-private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
+private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE",_battery] call CBE_fnc_CortexSelectAvenue;
 private _spot=if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)};
 if (_spot isEqualTo []) exitWith {call _clear; false};
 private _started=false;
