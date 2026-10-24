@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Before recovery starts, pending native path search gets one additional observation window.
+ * This issues no wait/hold and never resets the no-motion clock or an existing recovery deadline.
  * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Native boarding/queue holds skip forward traffic discovery and geometry that cannot relax
  * their zero cap. Commit rechecks the hold; release samples fresh before motion. Pedestrian
@@ -1230,6 +1232,15 @@ _brain set ["geometryTracks",_geometryTracks];
                                     || {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isNotEqualTo _forwardJournal}
                                     || {[currentCommand _driver,+(expectedDestination _driver),
                                         currentCommand _movementOperator,+(expectedDestination _movementOperator)] isNotEqualTo _forwardCommands}) exitWith {false};
+                                // No recovery episode exists yet: pending native search is not
+                                // permission to replace its operative plan. Retain the original
+                                // no-motion clock and permit only one extra observation window.
+                                // Existing episode deadlines still run below; stuck planning cannot defer forever.
+                                if (count _forwardJournal == 0 && {time-_progressAt < 2*_observationWindow}
+                                    && {getUnitState _driver in
+                                    ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}) exitWith {
+                                    _recoveryResult="NATIVE_PLANNING";false
+                                };
                                 if (count _forwardJournal > 0 && {serverTime >= (_forwardJournal get "hardDeadline")}) then {
                                     _recoveryStage=4;_recoveryResult="EXHAUSTED";_reverseIssued=false;
                                     _recoveryUntil=["EXHAUSTED"] call _recordRecovery;

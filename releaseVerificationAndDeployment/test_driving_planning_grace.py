@@ -11,6 +11,13 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         reverse=s.split('case 1: {',1)[1].split('case 2:',1)[0]
         retry=s.split('case 2: {',1)[1].split('default {',1)[0]
         self.assertIn('_recoveryUntil=["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',refresh)
+        planning=refresh.split('if (count _forwardJournal == 0',1)[1].split('if (count _forwardJournal > 0',1)[0]
+        self.assertIn('time-_progressAt < 2*_observationWindow',planning)
+        self.assertIn('getUnitState _driver',planning)
+        for state in ('INIT','INITFAILED','PLANNING','REPLAN','DELAY'):
+            self.assertIn('"'+state+'"',planning)
+        for forbidden in ('_progressAt=','set ["hardDeadline"','doMove','call _recordRecovery'):
+            self.assertNotIn(forbidden,planning)
         self.assertIn('call _recordRecovery',reverse)
         self.assertIn('_recoveryUntil=["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',retry)
         self.assertIn('case "REFRESH":{_hard-66}',s)

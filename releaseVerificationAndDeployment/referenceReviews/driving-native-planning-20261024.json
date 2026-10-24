@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "78ff1e4b",
+  "reference": "https://community.bohemia.net/wiki/getUnitState",
+  "evidence": "Official command reference classifies INIT/INITFAILED/PLANNING/REPLAN/DELAY as operative path preparation, missing-data or retry-search states; it does not establish a suitable gameplay grace duration.",
+  "gap": "Initial no-motion recovery could replace an already pending native path search after20 seconds without inspecting planner state",
+  "change": "With no recovery journal, pending native planning may defer first REFRESH for one additional existing observation window. Original no-motion clock is unchanged, so at40 seconds stage0 may recover even if planning remains stuck. Existing episodes and later retries receive no grace or deadline extension.",
+  "checks": "Full1496-test offline build;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify pass. Existing planning test extended afterward,14 focused checks pass;test count unchanged.",
+  "candidate": ".qa/candidates/driving-native-planning-78ff1e4b",
+  "fingerprint": "e6644b37442c6cb135fe0e3cb3250baebd7149bcf245d143bb858b0c29b2e40c",
+  "limits": "Unsigned dirty development; test extension and notes postdate build. Actual planner stalls,data delay,recovery balance and performance UNRUN. No claim this repairs the observed convoy gaps. Audits PAUSED."
+}
