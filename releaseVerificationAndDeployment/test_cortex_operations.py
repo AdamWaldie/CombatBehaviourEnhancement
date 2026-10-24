@@ -11038,6 +11038,12 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(actor.count('getSuppression _actor'),1)
 
         self.assertIn('stance _actor == "PRONE"',actor)
+        reload_guard=actor.split('private _evasionWeaponReady={',1)[1].split('private _lateralEvasion=false;',1)[0]
+        for proof in ('weaponState _actor','count _evasionWeapon >= 7','[5,6] findIf','!finite _phase','_phase != 0'):
+            self.assertIn(proof,reload_guard)
+        self.assertEqual(actor.count('call _evasionWeaponReady'),2)
+        self.assertNotIn('reload ',reload_guard)
+        self.assertNotIn('setWeaponReloadingTime',reload_guard)
         evasion=actor.split('if (_mode == "IMMEDIATE" && {_cause in [2,9]}',1)[1].split('// Body and scream observations',1)[0]
         self.assertEqual(evasion.count('lineIntersects ['),1)
         self.assertLess(evasion.index('CBE_Danger_EvasionAfter'),evasion.index('lineIntersects ['))

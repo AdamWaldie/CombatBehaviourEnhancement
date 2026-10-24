@@ -21,6 +21,7 @@
  * Live actor reservations use the shared expiry gate to retain mobile posture across indoor work.
  * The separate finite point executor may admit an identified own-group casualty investigation.
  * Posture itself creates no movement, target or firing lease.
+ * Evasion defers during round/magazine reload or unknown weapon state without interrupting it.
  * FORCED may delegate idle on-foot native flight to DangerFlight under this same finite FSM.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: mode <STRING>, ASSESS; 2: selected record <ARRAY>, [].
  * Return Value: Number - short observation deadline in seconds.
@@ -108,6 +109,15 @@ private _nativeRouteTask=currentCommand _actor == "MOVE"
     || {_actorSpeed >= 0.5}
     || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]};
 if (_nativeRouteTask) then {_committedMover=true};
+// A native task label does not describe an ongoing weapon reload. Inspect only after
+// evasion's eligibility/cooldown gates; unknown or active phases cannot authorise an action.
+private _evasionWeaponReady={
+    private _evasionWeapon=weaponState _actor;
+    count _evasionWeapon >= 7
+        && {(_evasionWeapon select 0) isEqualTo currentWeapon _actor}
+        && {[5,6] findIf {private _phase=_evasionWeapon select _x;
+            !(_phase isEqualType 0) || {!finite _phase} || {_phase != 0}} < 0}
+};
 private _lateralEvasion=false;
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
@@ -120,6 +130,7 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {primaryWeapon _actor != ""} && {currentWeapon _actor == primaryWeapon _actor}
     && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}
+    && {call _evasionWeaponReady}
     // Native roll needs open overhead space. Keep indoor/covered actors on posture only.
     // One short-circuited ray after eligibility/cooldown, never a roster/world scan.
     && {private _evasionEye=eyePos _actor;
@@ -142,7 +153,8 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     && {isNull objectParent _actor} && {currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
     && {primaryWeapon _actor != ""} && {currentWeapon _actor == primaryWeapon _actor}
-    && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}) then {
+    && {time >= (_actor getVariable ["CBE_Danger_EvasionAfter",-1])}
+    && {call _evasionWeaponReady}) then {
     // Spend the same cooldown even when the probe refuses; a blocked actor cannot add
     // recurring casts on every danger recycle. No delayed action or new worker is queued.
     _actor setVariable ["CBE_Danger_EvasionAfter",time+3];

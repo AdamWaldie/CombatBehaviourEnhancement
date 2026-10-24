@@ -1318,5 +1318,29 @@
       ".qa/native-data-wait-final-paths-independent.log"
     ],
     "limits": "No in-game planner, boarding, fire-control, small-team, amphibious or performance acceptance. Native search can still fail. Unsigned dirty development includes unrelated pre-existing dirt; private review/notes postdate package. Scores and whole-source parity unrenewed; audits PAUSED."
+  },
+  "evasionReloadAdmission20261024": {
+    "base": "f9c8ddac",
+    "finding": "Existing native roll/upright evasion actions checked task/weapon/stance but not ongoing weapon reload. ATTACK/FIRE task labels alone do not prove weapon readiness.",
+    "change": "Lazy shared local predicate reads selected weaponState only after existing eligibility/cooldown gates. Both existing evasion branches require matching current weapon and finite numeric round/magazine phases exactly0; missing/malformed/-1/active phases refuse action. No animation/pose/rig change, reload command/reset, new movement/worker/timer/ray.",
+    "primarySources": [
+      "https://community.bistudio.com/wiki/weaponState",
+      "https://github.com/acemod/ACE3/blob/master/addons/common/XEH_postInit.sqf"
+    ],
+    "sourceScope": "Current CBE evasion path and official weaponState contract; no renewed whole upstream comparison. gestureState documentation was also checked; no gesture-state ownership inference added from unavailable client observations.",
+    "evidence": {
+      "addons/infantry/functions/dangerEngineAct.sqf": "1d1ee2ce52092a4fbcc48d42383b853c67233d3ebfdfd367422a0880ffd54aef"
+    },
+    "validation": {
+      "focusedExistingCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/danger-evasion-reload-f9c8ddac",
+    "fingerprint": "a426682482fe670b59e2e73d3efc82dd789e95fae21f306b0a5e9aad583f493a",
+    "limits": "No arm stretching reproduced or fixed; no blanket animation-quality acceptance. Actual reload/action sequencing, modded rigs/weapons, HC and measured overhead remain unverified. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
   }
 }
