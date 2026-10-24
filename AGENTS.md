@@ -142,3 +142,8 @@ User clarification 2026-10-24: when operating aircrew and passengers share a gro
 ## Optional crew recall
 
 User decision: HBQ-style crew recall must be an optional CBA setting, off by default. Use normal reboarding only, never forced seating. Intentional scripted dismounts must unassign the operator.
+
+
+## Audit pause and implementation scope
+
+An audit pause blocks installed-game staging and in-engine validation, not source implementation. Continue concrete foundation/FSM and registered-source build gaps while audits are held. Do not mark the entire goal blocked merely because physical acceptance cannot run while substantive implementation remains possible. Do not substitute repeated unchanged builds, speculative guard changes or status restatements for the remaining behaviour work. Retain build-out and physical acceptance as separate evidence.

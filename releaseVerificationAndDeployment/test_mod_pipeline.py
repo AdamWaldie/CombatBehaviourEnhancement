@@ -321,6 +321,31 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertIn('!isNumber _entry',diagnostics)
         self.assertIn('engine-policy-suppression',diagnostics)
 
+    def test_turret_policy_preserves_player_ballistics_and_native_burst_control(self):
+        import re
+        text=(ROOT/'optionals/turret_aiming/config.cpp').read_text(encoding='utf-8')
+        body=text.split('class CfgWeapons {',1)[1]
+        properties=set(re.findall(r'\b(\w+)\s*=',body))
+        self.assertEqual(properties,{'aiDispersionCoefX','aiDispersionCoefY','aiBurstTerminable'})
+        self.assertEqual(re.findall(r'aiBurstTerminable\s*=\s*(\d+)',body),['1']*12)
+        self.assertNotIn('class CfgAmmo',text)
+        self.assertNotIn('class CfgAISkill',text)
+        for child,parent in [('LMG_RCWS','MGun'),('HMG_127','LMG_RCWS'),
+                             ('LMG_coax','LMG_RCWS'),('autocannon_Base_F','CannonCore')]:
+            self.assertIn('class '+child+': '+parent+' {',body)
+        self.assertEqual(body.count('aiDispersionCoefX = 6;'),4)
+        self.assertEqual(body.count('aiDispersionCoefY = 7;'),3)
+        self.assertIn('aiDispersionCoefX = 5;',body)
+        self.assertIn('aiDispersionCoefY = 4;',body)
+        self.assertIn('aiDispersionCoefY = 5;',body)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
+        policy=diagnostics.split('private _turretPolicyValues=[];',1)[1].split('// Native policy reads',1)[0]
+        self.assertIn('!isNumber _entry',policy)
+        self.assertIn('["close","short","medium","far"]',policy)
+        self.assertIn('["LMG_RCWS","HMG_127","LMG_coax"]',policy)
+        self.assertIn('[_weapon,_x,"aiBurstTerminable",1]',policy)
+        self.assertIn('select _turretPolicyMatches',policy)
+
     def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
         policy=self.folder/'optionals/@cbe_turret_aiming/addons/policy.pbo'
         policy.parent.mkdir(parents=True)

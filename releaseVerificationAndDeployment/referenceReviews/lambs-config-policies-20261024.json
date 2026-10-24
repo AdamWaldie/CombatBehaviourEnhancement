@@ -54,9 +54,9 @@
     },
     "1862208264": {
       "intent": "Less precise and sustained AI turret fire through brain error plus weapon/mode dispersion and burst policy.",
-      "cbe": "Optional restart-required turret aiming PBO sets maxAngularErrorTurrets0.12 versus source0.15. It does not implement source RCWS/HMG/coax per-mode AI dispersion/nonterminable burst or autocannon dispersion changes. Numerical difference is not proof of improvement.",
-      "disposition": "Selected partial policy exists. Do not import nonterminable bursts without accounting for mission fire policy and friendly-lane changes; physical lethality/balance unverified.",
-      "status": "CONFIG_REVIEWED_SELECTED_OPTIONAL_POLICY_ONLY"
+      "cbe": "Existing optional restart-required turret aiming addon now includes weapon-level X5/Y4 AI dispersion for RCWS/HMG/coax, X6/Y7 in their four AI fire modes, and autocannon-base X6/Y5. Existing ceiling0.12 retained. Effective base/mode diagnostics integrated. Player ballistics and native burst lengths/cadence unchanged.",
+      "disposition": "Reference non-terminable machine-gun bursts deliberately replaced with native terminable permission1 in all twelve AI modes. This retains target-death/visibility interruption; immediate stop on every mission order still requires physical verification. Numeric policy parity is not balance or whole-source improvement proof.",
+      "status": "NATIVE_AI_DISPERSION_LAYER_BUILT_PHYSICAL_PENDING"
     },
     "1858070328": {
       "intent": "Broader native RPG target use, range/preference, cadence and dispersion; optional CUP/RHS/SOG class adapters.",
@@ -75,5 +75,31 @@
   "validation": "Six extracted configs read; original PBO and private config hashes reverified. HEMTT first tried absent config.bin; actual PBO members are plaintext config.cpp. Failed probe log retained, extraction outputs explicitly verified. No upstream source executed; raw configs remain private. No runtime change or repeated build.",
   "physicalAcceptance": false,
   "scoresChanged": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "nativeTurretFiringLayer20261024": {
+    "base": "d849a79d99803a079450884c847830ca15b66307",
+    "sourceHashVerified": "80f539bf6c5ade8ffc4bde19e25a61b79d2178ec0637bbd9f270178955598bac",
+    "nativeComparison": "Preserved weapons_f.cpp: LMG_RCWS base X3/Y3; native close/short/medium/far modes have terminable1 and mode-specific burst lengths. CBE preserves those lengths. HMG/coax reopen their original parents; actual merged inheritance remains an engine acceptance item.",
+    "primaryReferences": [
+      "https://community.bistudio.com/wiki/Arma_3:_AI_Config_Reference",
+      "https://community.bistudio.com/wiki/Config_Properties_Megalist"
+    ],
+    "intent": "Native skill-responsive area of fire without forcing uninterrupted fire or changing player ballistics. No new firing controller, loop, scheduler job, mission skill assignment or scripted shot.",
+    "diagnostics": "Read-only on-demand44 weapon/mode/property entries plus existing brain ceiling; missing or overridden base values ERROR. Not every derived weapon.",
+    "productionHashes": {
+      "optionals/turret_aiming/config.cpp": "a6c31e1889edac5f3ff5ba4e43f45f6cf72b276739c35cc6ee08b33f392b52ce",
+      "addons/core/functions/aiGetDiagnostics.sqf": "772ae22879978cb4ca5b9c6340eac3415df84b00e4b3de51d1b12f2184a977d8"
+    },
+    "validation": "Full1497 tests,413 SQF,11 PBOs, config/docs/wiki/parity/FSM/static performance and independent package verify pass. One distinct property-boundary regression case added.",
+    "candidate": ".qa/candidates/turret-native-policy-d849a79d",
+    "fingerprint": "b3b1fb85a8c015c812abd51ebcc0b5986e74f69e0f3d92fe12547e6b7d6f098c",
+    "provenance": "Unsigned dirty development build including preserved unrelated checkout changes. Review and handover postdate package. Earlier clean-e771efcb candidate remains unchanged and excludes this policy extension.",
+    "remaining": [
+      "Physical shot distribution, ammunition economy, target-loss interruption, hold-fire and balance",
+      "Actual merged config and affected descendant weapon coverage, player precision",
+      "Normal/actual-HC locality behaviour and5%median/10%p95 measured budget"
+    ],
+    "audits": "PAUSED; no game staging or launch",
+    "sourceProtection": "Original PBO and private extraction unchanged; no upstream runtime script or asset shipped. Mechanical AI configuration properties independently implemented; this is not source licensing clearance for future script reuse."
+  }
 }

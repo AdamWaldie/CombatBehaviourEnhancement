@@ -304,8 +304,34 @@ private _convoyHandoffMissing=_convoyGroups select {
 private _navalGroups=_groups select {(_x getVariable ["CBE_Cortex_NavalStatus",[]]) isNotEqualTo []};
 private _turretPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_turret_aiming");
 private _turretPolicyCeiling=getNumber (configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components" >> "AIBrainAimingErrorComponent" >> "maxAngularErrorTurrets");
+private _turretPolicyValues=[];
+private _turretPolicyMatches=isNumber (configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components" >> "AIBrainAimingErrorComponent" >> "maxAngularErrorTurrets")
+    && {abs (_turretPolicyCeiling-0.12) < 0.0001};
+if (_turretPolicyLoaded) then {
+    private _recordTurretPolicy={
+        params ["_weapon","_mode","_property","_expected"];
+        private _entry=configFile >> "CfgWeapons" >> _weapon;
+        if (_mode != "") then {_entry=_entry >> _mode};
+        _entry=_entry >> _property;
+        private _actual=getNumber _entry;
+        _turretPolicyValues pushBack [_weapon,_mode,_property,_actual];
+        if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_turretPolicyMatches=false};
+    };
+    {
+        private _weapon=_x;
+        [_weapon,"","aiDispersionCoefX",5] call _recordTurretPolicy;
+        [_weapon,"","aiDispersionCoefY",4] call _recordTurretPolicy;
+        {
+            [_weapon,_x,"aiDispersionCoefX",6] call _recordTurretPolicy;
+            [_weapon,_x,"aiDispersionCoefY",7] call _recordTurretPolicy;
+            [_weapon,_x,"aiBurstTerminable",1] call _recordTurretPolicy;
+        } forEach ["close","short","medium","far"];
+    } forEach ["LMG_RCWS","HMG_127","LMG_coax"];
+    ["autocannon_Base_F","","aiDispersionCoefX",6] call _recordTurretPolicy;
+    ["autocannon_Base_F","","aiDispersionCoefY",5] call _recordTurretPolicy;
+};
 private _turretPolicyState=if (!_turretPolicyLoaded) then {"DISABLED"} else {
-    ["ERROR","LOADED"] select (abs (_turretPolicyCeiling-0.12) < 0.0001)
+    ["ERROR","LOADED"] select _turretPolicyMatches
 };
 // Native policy reads are diagnostics only; no skill or suppression values are written.
 private _suppressionPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_suppression");
@@ -375,7 +401,7 @@ private _launcherPolicyState=if (!_launcherPolicyLoaded) then {"DISABLED"} else 
 private _checks = [
     ["ai","engine-policy-launchers",_launcherPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Native AI policy is global to affected launcher/ammo classes, including actors excluded from CBE. CBA switches cannot unload it. Different effective values indicate config overrides; engagement, ammunition economy and friendly safety require physical verification.",_launcherPolicyLoaded,_launcherPolicyValues]],
     ["ai","engine-policy-suppression",_suppressionPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Global native policy persists while CBA tactics are disabled; different values indicate a config override. Mission skills are unchanged. Balance and recovery timing require physical verification.",_suppressionPolicyLoaded,_suppressionPolicyValues]],
-    ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 restartRequired=true. Runtime CBA gates cannot unload this configuration. A different effective ceiling while loaded indicates a configuration override; physical lethality and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling]],
+    ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 weaponValues=[weapon,mode,property,effective]=%3 restartRequired=true. Native base-class diagnostics include AI dispersion and terminable bursts, not every modded derivative. Runtime CBA gates cannot unload this configuration. ERROR indicates a missing or overridden value; physical balance and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling,_turretPolicyValues]],
     ["ai", "cortex", _passState, format ["enabled=%1 serverActive=%2 serverJobs=%3 paused=%4 includedSides=%5. %6", _passEnabled, _passActive, _passJobs, [] call CBE_fnc_CortexIsPaused, missionNamespace getVariable ["CBE_AIPass_IncludedSides", []], _passHint]],
     ["ai", "cortex-scheduler", if (!_passEnabled) then {"DISABLED"} else {"LOADED"}, format ["sampledJobs=%1 callbackMs=%2 maxQueueLatency=%3 staleProgress=%4",count _schedulerQueue,_schedulerCallbackMs toFixed 3,_schedulerLatency toFixed 2,_schedulerStaleProgress]],
     ["ai", "cortex-regroup", if (_passEnabled && {_regroupEnabled}) then {"LOADED"} else {"DISABLED"}, format ["enabled=%1 serverRegroupsCompleted=%2 serverUnitsJoined=%3", _regroupEnabled, missionNamespace getVariable ["CBE_AIPass_RegroupsCompleted", 0], missionNamespace getVariable ["CBE_AIPass_RegroupJoined", 0]]],
