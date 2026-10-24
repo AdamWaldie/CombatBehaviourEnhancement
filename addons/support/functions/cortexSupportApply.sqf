@@ -19,7 +19,9 @@
  * fight beside one another without ever composing support-by-fire and manoeuvre roles.
  * During assault, each bound leases pursuit features only from its current moving fire team.
  * The covering fire team and other squads retain native target sharing and engagement.
- * Infantry support requires at least three combat-effective dismounts. Mounted passenger groups
+ * New infantry support requires at least three available combat-effective dismounts; dormant,
+ * hidden, fleeing and care-busy members do not qualify. Existing token delivery/adoption retains
+ * its established health roster; later owner execution remains authoritative. Mounted passenger groups
  * and operating vehicle crews reject this lease instead of executing infantry movement in vehicles.
  * In COMPAT SPLIT mode, the finite support lease temporarily pauses COMPAT group manoeuvres for the
  * responder only. The base-of-fire group and every config-only COMPAT add-on remain active.
@@ -67,7 +69,13 @@ private _movementOwner = _movementLease param [0,""];
 private _movementLeaseActive = count _movementLease == 2 && {time < (_movementLease select 1)};
 private _supportOwnsMovement = _same && {_movementOwner in ["SUPPORT_RALLY","COORDINATED_ASSAULT"]};
 private _fit = (units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
+// New admission needs usable actors now. Repeated delivery/adoption preserves the
+// established assignment; its owner-side execution and capacity gates remain separate.
 private _footFit = _fit select {isNull objectParent _x};
+if (!_same) then {
+    _footFit=_footFit select {simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}};
+};
 // Group-level rally destinations also reach native operating crews. A foot subset alone does
 // not make that authority safe: vehicle support retains its own movement operation.
 private _operatingCrew = (units _group) findIf {

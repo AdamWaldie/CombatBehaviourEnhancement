@@ -8,5 +8,14 @@
   "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;static performance zero;full offline build and independent package verify pass",
   "candidate": ".qa/candidates/coordinated-route-availability-a2859f1a",
   "fingerprint": "2734719aa33aee6869df9df6fab10efe03ea86510108a606b156fdf4425808f0",
-  "limits": "Unsigned dirty development candidate. Physical route quality, casualty continuity, normal/HC locality and performance remain UNRUN. Audits PAUSED; full goal incomplete."
+  "limits": "Unsigned dirty development candidate. Physical route quality, casualty continuity, normal/HC locality and performance remain UNRUN. Audits PAUSED; full goal incomplete.",
+  "initialAdmission": {
+    "base_commit": "1ebd127b",
+    "gap": "Initial owner support admission counted health-qualified foot members even when dormant,hidden,fleeing or queued for care",
+    "change": "Filter the foot pool for these temporary states only when the token is not already the current/adopting assignment. Preserve separate whole-group mounted operating-crew rejection and existing adopted-token health threshold.",
+    "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;full offline and independent package verify pass. Mounted-crew regression preserved unchanged.",
+    "candidate": ".qa/candidates/support-admission-availability-1ebd127b",
+    "fingerprint": "ec30da6452262fef622e9c4d34f4960cf1902c070228f5f5ac4f665fd41e15c4",
+    "limits": "Unsigned dirty development; physical admission/refusal/resumption and normal/HC remain UNRUN; audits PAUSED"
+  }
 }
