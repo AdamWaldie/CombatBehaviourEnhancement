@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Shared movement reservations protect pending flight/naval cleanup during contact,
+ * search, consolidation and stalled-actor selection without renewing recovery budgets.
  * Tactical-route and withdrawal retries preserve native STOP; these callers have no owned-stop receipt.
  * Existing finite group movement ownership survives an idle vehicle-layer result. Free actors
  * may still propose bounded indoor work through the existing explicit disjoint-roster boundary;
@@ -524,14 +526,12 @@ if (_movementOwner == "TACTICAL_REPOSITION" && {count _movementLease == 2} && {t
             private _attempts=_current getOrDefault ["recoveryAttempts",createHashMap];
             if (count _members <= 64) then {
                 private _stuck=_members findIf {
-                    private _move=_x getVariable ["CBE_Cortex_ActorMove",[]];
                     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {group _x == _group}
                         && {!(_x in _unavailable)} && {abs speed _x <= 0.5}
                         && {isNull objectParent _x} && {!isPlayer _x} && {isNull remoteControlled _x}
                         && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
                         && {currentCommand _x in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
-                        && {_move isEqualTo [] || {_move isEqualType [] && {count _move == 3}
-                            && {(_move param [2,1e12,[0]]) <= time}}}
+                        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
                         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                         && {_x distance2D _point > 6}
@@ -631,16 +631,7 @@ if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
 };
 private _now = time;
 private _hasLiveActorMove = {
-    private _actorMove = _this getVariable ["CBE_Cortex_ActorMove",[]];
-    if (_actorMove isEqualTo []) exitWith {false};
-    // Unknown ownership is not permission for search, consolidation or contact follow commands.
-    private _expired=_actorMove isEqualType [] && {count _actorMove == 3}
-        && {(_actorMove select 0) isEqualType ""}
-        && {(_actorMove select 1) isEqualType []} && {count (_actorMove select 1) == 3}
-        && {(_actorMove select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-        && {(_actorMove select 2) isEqualType 0} && {finite (_actorMove select 2)}
-        && {_now >= (_actorMove select 2)};
-    !_expired
+    [_this] call CBE_fnc_CortexActorMoveReserved
 };
 private _get = {
     _this params ["_name", "_fallback"];

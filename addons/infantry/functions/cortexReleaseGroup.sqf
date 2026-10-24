@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Post-clear hold recall respects unresolved native movement cleanup through the shared
+ * reservation gate; no hold/retry deadline or successor task is renewed.
  * Pending landed-foot handover is retired by group release even after the boat operation ended.
  * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
  * Contact-only disable may preserve independent jobs after validating its narrow keep-brain scope.
@@ -129,7 +131,7 @@ if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason ==
                 && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-                && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+                && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                 && {!(_x in _priorAttemptActors)}) then {
                 _issuedClear pushBackUnique _x;
                 _x doFollow _anchor;

@@ -1503,6 +1503,38 @@
         ".qa/calm-pending-movement-independent.log"
       ],
       "limits": "Source admission/cleanup correction, not proof of native quiescence, completed handback, physical continuation, normalHC or5/10performance. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. No animation distortion reproduced/fixed. Audits PAUSED; no parity/percentage renewal."
+    },
+    "groupTaskFollowup": {
+      "base": "fd7da136",
+      "finding": "GroupTick search/consolidation/contact helper duplicated ordinary empty/expired ActorMove semantics, missing pending flight/naval journals. Stalled selector similarly picked the first pending actor, which RecoveryStep correctly yielded, starving the single callback selection. ReleaseGroup post-clear hold recall checked only empty ordinary marker.",
+      "change": "Use shared CortexActorMoveReserved in all three selected boundaries. Keep existing native hold, command, owner, operation, retry budget and external gates. No new native command/worker/timer or deadline. Valid expired ordinary markers follow shared semantics.",
+      "reviewedUnchanged": "StaticSupport and StaticDeploy initial candidate selectors already combine raw empty marker with the shared predicate. Routine stance restoration has explicit typed owned-task release intent; not mechanically replaced. Actual RecoveryStep independently rechecks shared reservations before spend and native move. No new defect established there in this scoped trace.",
+      "hashes": {
+        "addons/infantry/functions/cortexGroupTick.sqf": "0d3d852dabb95b7f15857c8ee550a814583466fae9f7b666b01e59d64eef6d22",
+        "addons/infantry/functions/cortexReleaseGroup.sqf": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5",
+        "addons/infantry/functions/cortexStaticSupport.sqf": "01b51524b989837ca8eef504486856949cd80616715ddcc5ae62ef1ba20f9a11",
+        "addons/infantry/functions/cortexStaticDeployStep.sqf": "ec80be30883ee02d452faccaa7c7e488d95e11a3d23c922661249b054065dee6",
+        "addons/infantry/functions/recoveryStep.sqf": "74684a9813990b432d0335ca5125ae83e9cbef16833def66895af6058c4af527",
+        "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "2cb2c1a4c99a0700909096314f386ba092a67037626777a3bc2d82e4328a3e3c",
+        "releaseVerificationAndDeployment/test_cortex_operations.py": "df3242390111d30d3e0d4eb906248722a750bc10d22d70ce1769237aa5a410b5"
+      },
+      "validation": {
+        "focusedExisting": 32,
+        "fullExisting": 1491,
+        "compiledSQF": 412,
+        "PBOs": 9,
+        "newCases": 0,
+        "independentVerification": true
+      },
+      "retainedFailure": "Initial full build .qa/group-task-reservations-build.log failed one old direct-marker spelling assertion. Existing shutdown guard test now requires shared predicate before doFollow; no case removed.",
+      "candidate": ".qa/candidates/group-task-reservations-fd7da136",
+      "fingerprint": "c3091913ad6538babac44f806dad10335ec59160c4db76e1aa068ed458f5d255",
+      "logs": [
+        ".qa/group-task-reservations-focused.log",
+        ".qa/group-task-reservations-final-build.log",
+        ".qa/group-task-reservations-independent.log"
+      ],
+      "limits": "No physical search/consolidation/recovery/hold handback, native stop acknowledgement, normalHC or5/10performance evidence. Shared metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no visual/arm-stretching fix, parity or percentage claim."
     }
   }
 }

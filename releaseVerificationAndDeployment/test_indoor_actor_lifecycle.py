@@ -670,9 +670,12 @@ class IndoorActorLifecycleTests(unittest.TestCase):
     def test_post_contact_and_boarding_treat_unknown_reservations_as_owned(self):
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         predicate=tick.split('private _hasLiveActorMove = {',1)[1].split('private _get =',1)[0]
-        for guard in ('_actorMove isEqualTo []','_actorMove isEqualType []',
-                      'finite (_actorMove select 2)','count (_actorMove select 1) == 3','!_expired'):
-            self.assertIn(guard,predicate)
+        self.assertIn('[_this] call CBE_fnc_CortexActorMoveReserved',predicate)
+        retry=tick.split('private _stuck=_members findIf {',1)[1].split('if (_stuck >= 0)',1)[0]
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',retry)
+        release=(ROOT/'addons/infantry/functions/cortexReleaseGroup.sqf').read_text()
+        hold=release.split('private _holdJob=',1)[1].split('_issuedClear pushBackUnique',1)[0]
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',hold)
         passenger=(ROOT/'addons/vehicles/functions/cortexPassengerReady.sqf').read_text()
         for guard in ('if (_reserved) exitWith {false}','!finite (_reservation select 2)',
                       'count (_reservation select 1) != 3','findIf {!(_x isEqualType 0) || {!finite _x}} >= 0'):

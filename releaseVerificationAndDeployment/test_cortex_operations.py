@@ -12109,9 +12109,10 @@ class CortexOperations(unittest.TestCase):
     def test_post_clear_hold_shutdown_releases_only_owned_stop(self):
         text=source('cortexReleaseGroup')
         branch=text.split('private _clearHold=',1)[1].split('// New curator intent',1)[0]
-        for guard in ['CORTEX_STOPPED','!_externalTakeover','CBE_AIPass_ClearGeneration','CBE_AIPass_Epoch','currentCommand _x == "STOP"','CBE_fnc_CompatibilityExternalControl','CBE_Cortex_ActorMove']:
+        for guard in ['CORTEX_STOPPED','!_externalTakeover','CBE_AIPass_ClearGeneration','CBE_AIPass_Epoch','currentCommand _x == "STOP"','CBE_fnc_CompatibilityExternalControl','CBE_fnc_CortexActorMoveReserved']:
             self.assertIn(guard,branch)
         self.assertLess(branch.index('CBE_Cortex_ClearHold",nil'),branch.index('_x doFollow _anchor'))
+        self.assertLess(branch.index('CortexActorMoveReserved'),branch.index('_x doFollow _anchor'))
     def test_shutdown_hold_retirement_is_finite_and_not_tactical(self):
         cleanup=source('clearHoldCleanupStep')
         stop=source('cortexStop')
