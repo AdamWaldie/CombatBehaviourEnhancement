@@ -99,6 +99,8 @@ if (_purpose == "") exitWith {false};
 // Server-visible eligibility only. Current actor tasks and inventory remain owner checks.
 private _batteryCrewUsable={
     params ["_asset"];
+    private _pending=_asset getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+    if (count _pending > 0 && {(_pending getOrDefault ["phase",""]) != "RETIRED"}) exitWith {false};
     private _gunner=gunner _asset;
     alive _asset && {simulationEnabled _asset} && {!isObjectHidden _asset}
         && {[_gunner] call CBE_fnc_CortexCombatEffective}
@@ -113,9 +115,8 @@ private _mayPosition={
         && {canMove _asset} && {!waterDamaged _asset} && {[_asset] call _batteryCrewUsable}
         && {[driver _asset] call CBE_fnc_CortexCombatEffective}
         && {group driver _asset == group gunner _asset}
-        && {!isPlayer driver _asset} && {vehicle leader group driver _asset == _asset}
+        && {!isPlayer driver _asset}
         && {count units group driver _asset <= 64}
-        && {(units group driver _asset) findIf {alive _x && {vehicle _x != _asset}} < 0}
 };
 if (isNull _battery) then {
     private _candidates = missionNamespace getVariable ["CBE_AIPass_AllArtillery", []];

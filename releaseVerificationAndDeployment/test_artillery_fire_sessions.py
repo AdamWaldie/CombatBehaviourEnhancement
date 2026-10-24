@@ -74,6 +74,23 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertIn(proof,report)
         for forbidden in ('spawn','waitUntil','setPos','setVelocity','doArtilleryFire'):
             self.assertNotIn(forbidden,owner)
+        # Mixed-group readiness must follow exact crew proof at every firing boundary;
+        # the dedicated branch cannot insert a whole-group waypoint or split membership.
+        mixed=owner.split('if (_crewOnly) exitWith {',2)[2].split('private _started=false;',1)[0]
+        self.assertIn('CBE_fnc_ArtilleryCrewMoveStart',mixed)
+        for forbidden in ('CortexGroupMove','OperationStart','joinSilent','addWaypoint'):
+            self.assertNotIn(forbidden,mixed)
+        for body in (owner,report,step,shot):
+            self.assertIn('CBE_fnc_ArtilleryCrewMoveCurrent',body)
+        worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
+        fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
+        self.assertIn('(_executor select 4) != _executorSerial',worker)
+        self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
+        retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
+        self.assertNotIn('doMove',retire)
+        self.assertNotIn('deleteAt',retire)
+        self.assertIn('if !("cleanupUntil" in _journal)',retire)
+        self.assertIn('"release",true',retire)
         self.assertIn('CBE_ArtilleryPosition_Attempt',owner)
         self.assertNotIn('_session set',owner)
         self.assertIn('CBE_Artillery_SmokeFireGeneration',owner)
@@ -87,7 +104,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         gate=shot.split('private _positionCurrent={',1)[1].split('private _operatorAvailable=',1)[0]
         self.assertIn('(_work getOrDefault ["crew",[]]) isEqualTo _seats',gate)
         self.assertEqual(shot.count('call _positionCurrent'),2)
-        ready=owner.split('if (_ours && {_status == "READY"}) then {',1)[1].split('if (_ours && {local _group}',1)[0]
+        ready=owner.split('if (_ours && {_status == "READY"}) then {',1)[1].split('if (_ours && {!_crewOnly}',1)[0]
         self.assertLess(ready.index('if (_readyBefore isEqualTo [])'),ready.index('_work set ["readyGoals",_readyNow]'))
         self.assertIn('_readyBefore isNotEqualTo _readyNow',ready)
         self.assertIn('_status="MOVEMENT_REPLACED"',ready)

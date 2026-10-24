@@ -8,7 +8,8 @@
  * Locality/authority: Server-addressed battery/group/AI-seat owner only. Geometry is a proposal;
  * only physical arrival and fresh native range permit READY. No firing occurs here.
  * Repeat/JIP: Exact original session/deadline and public attempt prevent duplicate movement.
- * Owner migration refuses replay; existing locality cleanup retires the old group operation.
+ * Owner migration refuses replay. Mixed groups use selected-crew movement and retirement;
+ * independent crew-only groups retain the legacy group operation. Neither splits membership.
  * Original driver/effective-commander pair binds movement, READY and subsequent positioned shots.
  * READY freezes both native destination points; later reports cannot rebase that proof.
  * No new scheduler, teleport, repair, inventory change or fixed path is installed.
@@ -25,6 +26,10 @@ _session params ["_magazine","_target","_until","_group","_route","_fireGenerati
 private _work=_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
 private _ours=count _work > 0 && {(_work getOrDefault ["token",""]) == _token}
     && {(_work getOrDefault ["session",[]]) isEqualTo _session};
+// A mixed group must not receive a temporary whole-group waypoint.
+private _crewOnly=if (_ours) then {_work getOrDefault ["crewOnly",false]} else {
+    vehicle leader _group != _battery || {(units _group) findIf {alive _x && {vehicle _x != _battery}} >= 0}
+};
 private _finish={
     params ["_status"];
     if (_ours && {_status == "READY"}) then {
@@ -40,7 +45,10 @@ private _finish={
             if (_readyBefore isNotEqualTo _readyNow) then {_status="MOVEMENT_REPLACED"};
         };
     };
-    if (_ours && {local _group} && {_status != "READY"}) then {
+    if (_ours && {_crewOnly} && {_status != "READY"}) then {
+        [_battery,_token,_work get "generation"] call CBE_fnc_ArtilleryCrewMoveRetire;
+    };
+    if (_ours && {!_crewOnly} && {local _group} && {_status != "READY"}) then {
         private _generation=_work getOrDefault ["generation",-1];
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
         if ((_operation getOrDefault ["generation",-2]) == _generation
@@ -67,6 +75,13 @@ private _finish={
     false
 };
 if (_cancel) exitWith {
+    if (!_ours) then {
+        private _crewWork=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+        if ((_crewWork getOrDefault ["token",""]) == _token
+            && {(_crewWork getOrDefault ["session",[]]) isEqualTo _session}) then {
+            [_battery,_token,_crewWork get "serial"] call CBE_fnc_ArtilleryCrewMoveRetire;
+        };
+    };
     if (_ours) then {
         ["CANCELLED"] call _finish;
         if ((_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap]) isEqualTo _work) then {
@@ -84,9 +99,9 @@ private _current={
         && {local _group} && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
         && {!(_battery getVariable ["CBE_Convoy_Active",false])}
         && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
-        && {vehicle leader _group == _battery}
         && {count units _group <= 64}
-        && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}
+        && {_crewOnly || {vehicle leader _group == _battery
+            && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}}}
         && {group _driver == _group} && {driver _battery == _driver}
         && {(effectiveCommander _battery) in [_operator,objNull]}
         && {simulationEnabled _battery} && {!isObjectHidden _battery}
@@ -118,6 +133,16 @@ if (_ours) exitWith {
     private _status=_work getOrDefault ["status","MOVING"];
 
     private _generation=_work get "generation";
+    if (_crewOnly) exitWith {
+        private _crewWork=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+        if ((_crewWork getOrDefault ["serial",-2]) != _generation
+            || {(_crewWork getOrDefault ["phase",""]) in ["RETIRED","UNRESOLVED"]}) exitWith {["MOVEMENT_REPLACED"] call _finish};
+        if (serverTime >= _until && {_status != "READY"}) exitWith {["ARRIVAL_TIMEOUT"] call _finish};
+        if ([_battery,_token,_session,_generation,_work get "spot"] call CBE_fnc_ArtilleryCrewMoveCurrent) exitWith {
+            [["ARRIVED_OUT_OF_RANGE","READY"] select (_target inRangeOfArtillery [[_battery],_magazine])] call _finish
+        };
+        true
+    };
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     if ((_work get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {["OWNER_CHANGED"] call _finish};
     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
@@ -170,6 +195,19 @@ private _candidates=(_ranked select [0,6]) apply {[+(_x select 1)]};
 private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE",_battery] call CBE_fnc_CortexSelectAvenue;
 if (_selected isEqualTo []) exitWith {["NO_SUPPORTED_POSITION"] call _finish};
 private _spot=_selected select (count _selected-1);
+if (_crewOnly) exitWith {
+    if !(call _current) exitWith {["AUTHORITY_OR_DEADLINE"] call _finish};
+    if !([_battery,_token,_session,_spot] call CBE_fnc_ArtilleryCrewMoveStart) exitWith {["MOVEMENT_REFUSED"] call _finish};
+    private _crewWork=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+    private _generation=_crewWork get "serial";
+    _work=createHashMapFromArray [["token",_token],["session",+_session],["generation",_generation],
+        ["epoch",_crewWork get "epoch"],["spot",+_spot],["status","MOVING"],
+        ["crew",[_driver,_operator]],["crewOnly",true]];
+    _battery setVariable ["CBE_ArtilleryPosition_Work",_work];
+    _battery setVariable ["CBE_ArtilleryPosition_Issued",[_token,+_session,_group,
+        _generation,_work get "epoch",+_spot,clientOwner,[_driver,_operator],"CREW"],true];
+    true
+};
 private _started=false;
 isNil {
     if (call _current && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _route}

@@ -281,6 +281,14 @@ if (!isNil "_civilianCreated") then {
     private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     private _postureOldEpoch=_stoppingGroup getVariable ["CBE_AIPass_Epoch",0];
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // Rebind retirement only AFTER the controlled epoch edge. No outward leg resumes.
+    private _crewReference=_stoppingGroup getVariable ["CBE_ArtilleryCrew_Reference",[]];
+    if (local _stoppingGroup && {count _crewReference == 5}) then {
+        private _crewBattery=_crewReference select 0;
+        if (!isNull _crewBattery && {local _crewBattery}) then {
+            [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
+        };
+    };
     // Carry only this same owner's finite terminal-hold retirement across the controlled stop edge.
     private _retireHold=_stoppingGroup getVariable ["CBE_Cortex_ClearHold",[]];
     private _retireWindow=_stoppingGroup getVariable ["CBE_Cortex_ClearHoldRetire",[]];

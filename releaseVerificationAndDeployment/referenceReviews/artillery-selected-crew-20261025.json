@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "08ccc263de046d2ef40d7420b1747ebb502faa88",
+  "scope": "Mixed-group selected-gun pre-fire positioning and native retirement. Not whole artillery or Protocol source parity.",
+  "userDecision": "Preserve group membership; move only selected gun crew. No group split or group waypoint for attached infantry.",
+  "sourceIntent": {
+    "workshopId": "3801354927",
+    "selectedReference": ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf",
+    "sha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "reviewedScope": "Selected relocation/post-fire branches around108..176; not a whole-source review. Source addresses driver/commander with native doMove; fixed-radius random placement and open wait do not provide CBE lifecycle authority."
+  },
+  "implementation": [
+    "Mixed groups use selected original driver/effective-commander doMove requests, unchanged membership and native group receipt. Independent all-in-battery crews retain legacy group operation.",
+    "One owner-local FSM: ISSUE/REQUESTED/MOVING/HOLD/STOPPING/RETURNING; finite original arrival/hold/reply/cleanup deadlines; two native destination observations and measured linear/angular rest.",
+    "Per-machine execution serial carried in FSM payload fences replaced callbacks with unchanged operation serial. Locality/failed-worker maintenance adopts retirement only, not outward travel; no refreshed cleanup/reply budget.",
+    "Read-only HOLD proof is shared by owner positioning, authenticated server report, server mission continuation and both owner shot gates. Legacy proof remains for independent crew groups. Native shot evidence remains separate.",
+    "Exact pending reference survives ordinary lease expiry and blocks driving/new CBE movement acquisition. GroupTick does not invent a waypoint for it. New fire missions cannot reuse a gun over unresolved movement.",
+    "Shutdown requests cleanup after controlled group epoch change. Changed native route, crew, Zeus or external ownership prevents restoration over newer authority. Terminal unresolved proof remains reserved.",
+    "An ordinary driving brain for another vehicle refuses admission before retirement. No forced seating, physics, skills, posture, inventory or teleport mutation."
+  ],
+  "validation": {
+    "fullBuild": {
+      "log": ".qa/artillery-selected-crew-build-20261025.log",
+      "exit": 0,
+      "tests": 1497,
+      "compiledSqf": 419,
+      "pboCount": 11
+    },
+    "independent": {
+      "log": ".qa/artillery-selected-crew-independent-20261025.log",
+      "exit": 0
+    },
+    "candidate": ".qa/candidates/artillery-selected-crew-08ccc263",
+    "fingerprint": "8da6dfa20fc18a72db5b3946be86db9e056012c0724ad62f5269f87bf4f167c9",
+    "kind": "Unsigned dirty development candidate; base commit plus reviewed runtime source hashes. Not clean release or live acceptance.",
+    "retainedFailure": "First full build failed one existing assertion expecting group ownership to begin with lease-only expression. Extended it to require pending crew-reference ownership while preserving original waypoint cases. Full1497 rerun passed; no test count increase. First failing full log was overwritten by rerun; this retained finding is the available record."
+  },
+  "remaining": [
+    "Physical selected-crew requests/ACK/arrival, point-hold idle/rest, mixed original idle/MOVE native returns, native order/Zeus interruption, failed worker, driver death and repeated mission reuse remain UNRUN.",
+    "Normal and real-provider HC migration/JIP, split owner timing, repeated locality edges, shutdown/re-enable, native uncertainty and the5%median/10%p95 budget remain UNRUN. Audits explicitly PAUSED.",
+    "Shared group movement lease pauses new CBE group manoeuvres and ordinary driving while selected gun work owns movement; unrelated authored native infantry route is not rewritten. Another vehicle active brain refuses admission. Platform-specific concurrent control remains a code gap.",
+    "Mixed-group shoot-and-scoot is not integrated. Existing independent-group scoot remains; pending crew cleanup cannot be bypassed for a scoot.",
+    "Unknown native retirement remains reserved. Casualty/supersession recovery of terminal unknown and seamless original idle/formation continuation require further work/evidence; do not erase proof or count metadata as handback.",
+    "Whole HBQ/Protocol/LAMBS feature integration and all other goal requirements remain active; no source-count or build percentage awarded."
+  ],
+  "runtimeHashes": {
+    "addons/compatibility/functions/cortexOwnershipLease.sqf": "ad84bf3e82b454727d64f94febac9a509728f061a6efe3c49ef517e8e22f5504",
+    "addons/core/functions/cortexDiscover.sqf": "4cd8bdb6cb646dcf77dcbd0d38a796b6dc9b89c42baad7060806c2ad54b64197",
+    "addons/core/functions/cortexLocality.sqf": "325bc9e0c261fbe4c8d16e99f9988c5972a10efbce0653a746c1e20b2a46c6bc",
+    "addons/core/functions/cortexStop.sqf": "6b196f728366c38b58245cffe90e77e955702652fd59dc5bb31250f2058378d3",
+    "addons/infantry/functions/cortexGroupTick.sqf": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078",
+    "addons/main/CfgFunctions.hpp": "6a21bf25c2008be23397e5f47238b7a9b0a815e6394c0283b225935c900fa5ee",
+    "addons/main/fsm/artilleryCrewMove.fsm": "4608666dacc36545974ca8569d746407bdfea87401ab9dad8dc69bf20aca22b5",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "c9657ce52b2f3ef8d8ee9f30baf39cca244478585febdb225a5cf8e8b6067853",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "bf36c93a11196e7d98f646fbaf600a11e2f4770254dc34f0752791dd2ee0a8a8",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "4f6ce93a24abe9519aadabced6bbf5fa9395adfaba5ea774da69bb20e7437608",
+    "addons/support/functions/artilleryCrewMoveCurrent.sqf": "a5dab6b278f681a9e928d4b3202afe71b8a5d66ecbc66c51d75cb64e277feb02",
+    "addons/support/functions/cortexArtilleryFire.sqf": "6483054830a6e4f8f19fbb5f557a392f6e3163171c4e1cbf588c70abec4e174e",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "f01d19d0af633882a726f8b92eb68b34a3e76fccb06a21dcb1bc2f4e5d376345",
+    "addons/support/functions/cortexArtilleryPosition.sqf": "2777e40acb4b8fff6b7c095f52f1eb6d95af798543789b5f29dccdab9bfb4b52",
+    "addons/support/functions/cortexArtilleryPositionReport.sqf": "9906a795444eb6c31614fbd1ebdde0fb6206b6e7fc04947184cc46ed250420bb",
+    "addons/support/functions/cortexArtilleryShot.sqf": "3a3cbb7a5b2c892807ea9c9542cfabd141bab8e3034fcdc913d29378cc2c5cbe",
+    "addons/vehicles/functions/drivingMovementAvailable.sqf": "6b82e06fb13cdbe7ee97ab5a990dd08d615644802343c51136033a6f4dcc109a"
+  }
+}

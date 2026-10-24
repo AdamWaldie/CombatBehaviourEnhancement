@@ -37,6 +37,17 @@ class DrivingStartAdmissionTests(unittest.TestCase):
         self.assertNotIn('serverTime+',entry_cleanup)
         self.assertLess(text.index('private _entryVehicle='),text.index('private _entryRoute='))
     def test_replacement_commit_guards_original_route_epoch_brain_and_yield(self):
+        # An ordinary lease timing out is insufficient while a native selected-crew
+        # retirement journal remains. The readers must refuse without clearing proof.
+        available=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text(encoding='utf-8')
+        acquire=(ROOT/'addons/compatibility/functions/cortexOwnershipLease.sqf').read_text(encoding='utf-8')
+        reservation='CBE_ArtilleryCrew_Reference'
+        self.assertLess(available.index(reservation),available.index('private _lease='))
+        admission=acquire.split('if (_acquire) exitWith {',1)[1].split('// Release the ordinary cap',1)[0]
+        self.assertIn(reservation,admission)
+        self.assertIn('exitWith {false}',admission)
+        self.assertNotIn('setVariable',admission.split('if (_owner ==',1)[0])
+        self.assertNotIn('setVariable',available)
         text=source();commit=text.split('isNil {',1)[1]
         gate=commit.split('private _hasVehicle=',1)[0]
         for proof in ('_epoch ==','DrivingRouteReceipt','isEqualTo _route','CBE_AIPass_Active',

@@ -24,13 +24,18 @@ if (_status == "READY") then {
     private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
     private _seats=[driver _battery,effectiveCommander _battery];
     if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
-    _readyValid=count _issued == 8 && {(_issued select 0) == _token}
+    private _crewOnly=count _issued == 9 && {(_issued select 8) == "CREW"};
+    _readyValid=(count _issued == 8 || {_crewOnly}) && {(_issued select 0) == _token}
         && {(_issued select 1) isEqualTo _session} && {(_issued select 2) == _group}
         && {(_issued select 3) isEqualTo _generation} && {(_issued select 5) isEqualTo _spot}
         && {(_issued select 4) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
         && {(_issued select 6) == _replyOwner}
         && {(_issued select 7) isEqualTo _seats}
         && {group driver _battery == _group}
+        && {if (_crewOnly) then {
+            [_battery,_token,_session,_generation,_spot,true] call CBE_fnc_ArtilleryCrewMoveCurrent
+        } else {
+            true
         && {(_operation getOrDefault ["generation",-2]) == _generation}
         && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_POSITION"}
         && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_operation getOrDefault ["artilleryPositionOrder",[]])}
@@ -38,6 +43,7 @@ if (_status == "READY") then {
         && {(_intent getOrDefault ["waypoint",[]]) isEqualTo [_group,currentWaypoint _group]}
         && {waypointType [_group,currentWaypoint _group] == "HOLD"}
         && {(_intent getOrDefault ["requestedPosition",[]]) isEqualTo _spot}
+        }}
         && {vectorMagnitude velocity _battery < 0.278}
         && {vectorMagnitude angularVelocity _battery < 0.01}
         && {_spot isEqualType []} && {count _spot == 3}

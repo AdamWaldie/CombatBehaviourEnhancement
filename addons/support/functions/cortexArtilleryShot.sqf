@@ -92,6 +92,9 @@ private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner
 private _positionCurrent={
     private _work=_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
     private _session=_battery getVariable ["CBE_ArtilleryPosition_Session",[]];
+    private _crewMovement=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+    if (count _crewMovement > 0 && {(_crewMovement getOrDefault ["phase",""]) != "RETIRED"}
+        && {(_crewMovement getOrDefault ["token",""]) != _token || {count _session != 10}}) exitWith {false};
     if (count _work == 0 && {_session isEqualTo []}) exitWith {true};
     if ((_work getOrDefault ["token",""]) != _token || {count _session != 10}
         || {(_work getOrDefault ["session",[]]) isNotEqualTo _session}
@@ -119,12 +122,17 @@ private _positionCurrent={
             (_seats apply {+((expectedDestination _x) param [0,[],[[]]])})}
         && {serverTime < (_session select 9)}
         && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+        && {if (_work getOrDefault ["crewOnly",false]) then {
+            [_battery,_token,_session,_generation,_work get "spot"] call CBE_fnc_ArtilleryCrewMoveCurrent
+        } else {
+            true
         && {(_operation getOrDefault ["generation",-2]) == _generation}
         && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_POSITION"}
         && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_operation getOrDefault ["artilleryPositionOrder",[]])}
         && {(_intent getOrDefault ["operationGeneration",-2]) == _generation}
         && {(_intent getOrDefault ["waypoint",[]]) isEqualTo [_group,currentWaypoint _group]}
         && {waypointType [_group,currentWaypoint _group] == "HOLD"}
+        }}
         && {vectorMagnitude velocity _battery < 0.278}
         && {vectorMagnitude angularVelocity _battery < 0.01}
 };

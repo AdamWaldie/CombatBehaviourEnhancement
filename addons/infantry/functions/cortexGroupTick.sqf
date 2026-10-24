@@ -555,7 +555,8 @@ if (_movementOwner == "TACTICAL_REPOSITION" && {count _movementLease == 2} && {t
         };
     };
 };
-private _groupMovementOwned = count _movementLease == 2 && {time < (_movementLease select 1)} && {
+private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo [];
+private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2 && {time < (_movementLease select 1)} && {
     switch (_movementOwner) do {
         case "TACTICAL_DRILL": {count (_state getOrDefault ["drill",createHashMap]) > 0};
         case "COORDINATED_ASSAULT": {
@@ -574,7 +575,8 @@ private _groupMovementOwned = count _movementLease == 2 && {time < (_movementLea
             } >= 0
         };
     }
-};
+}};
+
 if (!_groupMovementOwned && {_movementLease isNotEqualTo []}) then {
     private _operationKey = switch (_movementOwner) do {
         case "ARTILLERY_SCOOT": {"artilleryScootOperationGeneration"};

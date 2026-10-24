@@ -11,7 +11,9 @@
  * Acquiring finite movement synchronously retires the ordinary driving FSM and its unchanged
  * speed leases before the new tactical owner is published; later ordinary samples are refused.
  * Pending controlled-vehicle driving journals/cap releases and queue/pass consent or agreement
- * receipts refuse acquisition. Only their producer may retire protocol participation. Absence of metadata
+ * receipts refuse acquisition. A selected artillery crew reference also refuses acquisition
+ * before any driving retirement, even after its ordinary lease expires. Only its exact producer
+ * retires native proof; an acquisition attempt never clears it. Absence of metadata
  * is not proof of native physical quiescence; no cleanup receipt is erased to force handover.
  * Arguments: 0 group <GROUP>; 1 owner <STRING>; 2 acquire <BOOL>, true; 3 expiry <NUMBER>, serverTime + 30.
  * Return Value: Boolean - true when acquired/released, false for invalid locality or competing work.
@@ -34,6 +36,7 @@ private _typed=_lease isEqualType [] && {count _lease == 2}
 if (_lease isNotEqualTo [] && {!_typed}) exitWith {false};
 private _live=_typed && {serverTime < (_lease select 1)};
 if (_acquire) exitWith {
+    if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
     if (_owner == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime}
         || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
     if (_live && {(_lease select 0) != _owner}) exitWith {

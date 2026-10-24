@@ -29,7 +29,7 @@ private _retirePosition={
             _battery setVariable ["CBE_ArtilleryPosition_Attempt",nil,true];
         };
         private _issued=_battery getVariable ["CBE_ArtilleryPosition_Issued",[]];
-        if (count _issued == 8 && {(_issued select 0) == (_mission get "token")} && {(_issued select 1) isEqualTo _session}) then {
+        if (count _issued in [8,9] && {(_issued select 0) == (_mission get "token")} && {(_issued select 1) isEqualTo _session}) then {
             _battery setVariable ["CBE_ArtilleryPosition_Issued",nil,true];
         };
         [_battery,_mission get "token",_session,true] remoteExecCall ["CBE_fnc_CortexArtilleryPosition",owner _battery];
@@ -95,18 +95,25 @@ if ((_mission getOrDefault ["positionSession",[]]) isNotEqualTo [] && {(_mission
     private _intent=_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
     private _seats=[driver _battery,effectiveCommander _battery];
     if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
-    _positionLost=count _issued != 8;
+    private _crewOnly=count _issued == 9 && {(_issued select 8) == "CREW"};
+    _positionLost=!(count _issued == 8 || {_crewOnly});
     if (!_positionLost) then {
         _positionLost=(_issued select 0) != (_mission get "token") || {(_issued select 1) isNotEqualTo _session}
             || {(_issued select 6) != owner _battery}
             || {(_issued select 7) isNotEqualTo _seats}
             || {(_issued select 4) != (_group getVariable ["CBE_AIPass_Epoch",-1])}
+            || {if (_crewOnly) then {
+                !([_battery,_mission get "token",_session,_issued select 3,_issued select 5,true]
+                    call CBE_fnc_ArtilleryCrewMoveCurrent)
+            } else {
+                false
             || {(_operation getOrDefault ["generation",-2]) != (_issued select 3)}
             || {(_operation getOrDefault ["intent",""]) != "ARTILLERY_POSITION"}
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_operation getOrDefault ["artilleryPositionOrder",[]])}
             || {(_intent getOrDefault ["operationGeneration",-2]) != (_issued select 3)}
             || {(_intent getOrDefault ["waypoint",[]]) isNotEqualTo [_group,currentWaypoint _group]}
             || {waypointType [_group,currentWaypoint _group] != "HOLD"}
+            }}
             || {serverTime >= (_session select 9)};
     };
 };

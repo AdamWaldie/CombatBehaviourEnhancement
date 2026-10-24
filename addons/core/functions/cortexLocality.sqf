@@ -619,6 +619,25 @@ if (_withdrawalResumeEligible) then {
             [_group] call CBE_fnc_NativeOrderReceipt],true];
     };
 };
+
+// Retire only the original selected-gun journal when its owner-local executor ended or
+// crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
+private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
+if (count _crewReference == 5) then {
+    private _crewBattery=_crewReference select 0;
+    if (!isNull _crewBattery && {local _crewBattery} && {local _group}) then {
+        private _executor=_crewBattery getVariable ["CBE_ArtilleryCrew_FSM",[]];
+        private _epoch=_group getVariable ["CBE_AIPass_Epoch",-1];
+        private _live=count _executor == 5 && {(_executor select 0) == (_crewReference select 2)}
+            && {(_executor select 2) == clientOwner} && {(_executor select 3) == _epoch}
+            && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
+            && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
+        if (!_live) then {
+            [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
+        };
+    };
+};
+
 // A pending shoot-and-scoot request is durable, but its queued callback belonged to the old owner.
 // Resume it only after calm restoration has removed the old owner's waypoint and transient state;
 // otherwise that cleanup would immediately delete the newly resumed relocation.
