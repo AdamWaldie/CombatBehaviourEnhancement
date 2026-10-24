@@ -1,6 +1,6 @@
 # CBE build-out progress
 
-> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. The SCHED section and the CORE section below were separately reassessed on 2026-10-23; the other historical assessments are not renewed. Physical acceptance remains separate. WITHDRAW was separately reassessed at `aaf4f5b9`; its unchanged score does not renew any other family or the historical overall index. CLEAR was separately reassessed at `4c13c3de`; its ~67% build estimate is current to that source review, while physical acceptance and the historical overall index remain unrenewed.
+> **Historical estimates: source reassessment required (2026-10-23).** At source checkpoint `6cfd4048`, 235 evidence references no longer match their cited source files; none is a newline-only difference. The percentages below are the earlier source assessment, not verified current build-out. Scores have not been reset to zero or refreshed from file counts. Each affected capability needs review before its evidence and estimate can be renewed. The SCHED section and the CORE section below were separately reassessed on 2026-10-23; the other historical assessments are not renewed. LIGHTING was separately reassessed at `dfae5fd6`; its ~88% scoped build estimate does not renew the historical overall index. Physical acceptance remains separate. WITHDRAW was separately reassessed at `aaf4f5b9`; its unchanged score does not renew any other family or the historical overall index. CLEAR was separately reassessed at `4c13c3de`; its ~67% build estimate is current to that source review, while physical acceptance and the historical overall index remain unrenewed.
 
 Build-out measures implemented capability and integration. Acceptance, physical reliability and performance are separate criteria.
 
@@ -68,7 +68,7 @@ These are provisional source-based estimates using explicit, equally weighted ca
 | MULTI-BOUND: Squad and multi-squad bounding overwatch | ~83% | implemented_partial |
 | MULTI-WITHDRAW: Multi-squad screened withdrawal | ~50% | implemented_partial |
 | TRANSITIONS: Combat action transitions | ~83% | implemented_partial |
-| LIGHTING: Automatic darkness, night vision and illumination | ~100% | implemented_partial |
+| LIGHTING: Automatic darkness, night vision and illumination | ~88% | implemented_partial |
 | DRILL-HANDOVER: Moving flank and advance handed to Zeus | ~83% | implemented_partial |
 | DRILL-RECOVERY: Bound continuation and straggler rejoin | ~83% | implemented_partial |
 | COMBINED-ARMS: Contact-led combined-arms opportunity | ~88% | implemented_partial |
@@ -814,15 +814,16 @@ Calculation: 2.5 implemented capability units / 3 scoped units. Acceptance is no
 
 ## LIGHTING: Automatic darkness, night vision and illumination
 
-Source checkpoint: `8fa63881e466bb6599a6aff5a6b35815069e0e44`; reviewed 2026-10-19; confidence: low.
+Source checkpoint: `dfae5fd6047b53707304542617b60ce95e30c3ab`; reviewed 2026-10-24; confidence: medium. Scoped source build-out only; physical illumination, repeatability, ordered receipt delivery and performance remain unverified.
 
 | Capability | Built | Implementation / remaining build gap |
 | --- | ---: | --- |
-| Ambient/NVG/flashlight capability policy | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiLightingStep](../addons/core/functions/aiLightingStep.sqf) |
-| Stable skill refresh without compounding | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiRestoreProfile](../addons/core/functions/aiRestoreProfile.sqf); [aiProfileYield](../addons/core/functions/aiProfileYield.sqf); [aiProfileReceipt](../addons/core/functions/aiProfileReceipt.sqf) |
-| Shared scheduler and specialist exclusion | 1 / 1 | Scoped production path is wired in the referenced implementation. [aiLightingStep](../addons/core/functions/aiLightingStep.sqf) |
+| Ambient/NVG/flashlight capability policy | 0.5 / 1 | Ambient darkness and assigned NVG capability select optional sensing/skill layers. No flashlight controller or flashlight contribution to sensing was found. Remaining: Implement a scoped flashlight capability policy; current ambient/NVG profiling alone does not fulfil this criterion. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiLightingStep](../addons/core/functions/aiLightingStep.sqf) |
+| Stable skill refresh without compounding | 1 / 1 | Recomputes supported skills from captured baselines; stable variance and typed original/applied receipts support exact unchanged-value restoration and yielding to observed mission edits. [aiApplyProfile](../addons/core/functions/aiApplyProfile.sqf); [aiRestoreProfile](../addons/core/functions/aiRestoreProfile.sqf); [aiProfileYield](../addons/core/functions/aiProfileYield.sqf); [aiProfileReceipt](../addons/core/functions/aiProfileReceipt.sqf) |
+| Shared scheduler and specialist exclusion | 1 / 1 | Generation-bound shared scheduler refreshes at most ten registered actors per callback; human, specialist and declared skill ownership block application and retain pending cleanup. [aiLightingStep](../addons/core/functions/aiLightingStep.sqf); [aiRebalanceInit](../addons/core/functions/aiRebalanceInit.sqf) |
+| Finite native UGL illumination and weapon handback | 1 / 1 | Default-off owner-local group callback admits bounded idle grenadiers, uses existing compatible flare ammunition, respects native reload state, observes exact FiredMan release and retires or retains exact unresolved weapon-selection proof. [cortexIlluminationStep](../addons/infantry/functions/cortexIlluminationStep.sqf); [groupBrainStep](../addons/infantry/functions/groupBrainStep.sqf); [cortexLocality](../addons/core/functions/cortexLocality.sqf); [operationStart](../addons/core/functions/operationStart.sqf); [cortexReleaseGroup](../addons/infantry/functions/cortexReleaseGroup.sqf) |
 
-Calculation: 3 implemented capability units / 3 scoped units. Acceptance is not part of this calculation.
+Calculation: 3.5 implemented capability units / 4 scoped units (~88%). Acceptance is not part of this calculation. The added illumination criterion repairs omitted scope; it is not new runtime work.
 
 ## DRILL-HANDOVER: Moving flank and advance handed to Zeus
 

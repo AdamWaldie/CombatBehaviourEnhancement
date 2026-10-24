@@ -3849,18 +3849,22 @@
     {
       "id": "LIGHTING",
       "title": "Automatic darkness, night vision and illumination",
-      "assessment": "provisional_source_assessment",
+      "assessment": "scoped_source_reassessment",
       "criteria": [
         {
           "capability": "Ambient/NVG/flashlight capability policy",
           "weight": 1,
-          "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
-          "remaining_build_gap": "",
+          "built": 0.5,
+          "implemented": "Ambient darkness and assigned NVG capability select optional sensing/skill layers. No flashlight controller or flashlight contribution to sensing was found.",
+          "remaining_build_gap": "Implement a scoped flashlight capability policy; current ambient/NVG profiling alone does not fulfil this criterion.",
           "evidence": [
             {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
               "path": "addons/core/functions/aiLightingStep.sqf",
-              "sha256": "c582fde3c1d26b5544b1b1951ea3218ae230d1f6635d753f7614c708b9826ef2"
+              "sha256": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f"
             }
           ]
         },
@@ -3868,12 +3872,12 @@
           "capability": "Stable skill refresh without compounding",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Recomputes supported skills from captured baselines; stable variance and typed original/applied receipts support exact unchanged-value restoration and yielding to observed mission edits.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/aiApplyProfile.sqf",
-              "sha256": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
             },
             {
               "path": "addons/core/functions/aiRestoreProfile.sqf",
@@ -3893,19 +3897,52 @@
           "capability": "Shared scheduler and specialist exclusion",
           "weight": 1,
           "built": 1,
-          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "implemented": "Generation-bound shared scheduler refreshes at most ten registered actors per callback; human, specialist and declared skill ownership block application and retain pending cleanup.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/aiLightingStep.sqf",
-              "sha256": "c582fde3c1d26b5544b1b1951ea3218ae230d1f6635d753f7614c708b9826ef2"
+              "sha256": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f"
+            },
+            {
+              "path": "addons/core/functions/aiRebalanceInit.sqf",
+              "sha256": "e18473fdbfa977680f66605e777dda0e180344d9082ddf209387c3063094f230"
+            }
+          ]
+        },
+        {
+          "capability": "Finite native UGL illumination and weapon handback",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Default-off owner-local group callback admits bounded idle grenadiers, uses existing compatible flare ammunition, respects native reload state, observes exact FiredMan release and retires or retains exact unresolved weapon-selection proof.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexIlluminationStep.sqf",
+              "sha256": "a506028d593f5adac5ed210500a3fd88c93cf1dc60333661043a860eee2345e3"
+            },
+            {
+              "path": "addons/infantry/functions/groupBrainStep.sqf",
+              "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
+            },
+            {
+              "path": "addons/core/functions/cortexLocality.sqf",
+              "sha256": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
+            },
+            {
+              "path": "addons/core/functions/operationStart.sqf",
+              "sha256": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610"
+            },
+            {
+              "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
+              "sha256": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5"
             }
           ]
         }
       ],
-      "confidence": "low",
-      "reviewed_at": "2026-10-19",
-      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+      "confidence": "medium",
+      "reviewed_at": "2026-10-24",
+      "source_commit": "dfae5fd6047b53707304542617b60ce95e30c3ab"
     },
     {
       "id": "DRILL-HANDOVER",
