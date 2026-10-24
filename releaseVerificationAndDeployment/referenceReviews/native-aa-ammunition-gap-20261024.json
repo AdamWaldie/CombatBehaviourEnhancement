@@ -37,10 +37,25 @@
   ],
   "limits": [
     "No AA fixture was added or launched",
-    "Does not prove all native AA platforms are excluded; actual station/loadout and inheritance still need examination",
     "No claim that custom projectile destruction is valid for explosive cannon rounds",
-    "Existing runtime and last coherent build remain unchanged"
+    "Existing runtime and last coherent build remain unchanged",
+    "Cheetah native configured cannon loadout confirmed; not an inventory of every AA platform or a live merged-config/station validation."
   ],
   "required_next_action": "Separate native AA aiming/firing eligibility from custom fuse eligibility. Inspect actual station/loadout and real hit behaviour before choosing a finite cannon executor; preserve ownership, ROE, friendly safety, same-owner and payload restrictions. Then prepare a real incoming-warning fixture using actual firing events, without synthetic tracks or scripted success.",
-  "audits": "PAUSED by user instruction"
+  "audits": "PAUSED by user instruction",
+  "native_platform_evidence": {
+    "class": "B_APC_Tracked_01_AA_F",
+    "pbo_member": "APC_Tracked_01/config.bin",
+    "private_extract": ".qa/native-aa-config-20261024/apc_tracked_01.cpp",
+    "extract_sha256": "1f9af0ca8b9b7a502aeeb156282a326999967ac2949fc582db69c3e582f50899",
+    "main_turret_weapons": [
+      "autocannon_35mm",
+      "missiles_titan_AA"
+    ],
+    "main_turret_magazine": "680Rnd_35mm_AA_shells_Tracer_Red",
+    "ammo": "B_35mm_AA_Tracer_Red",
+    "ammo_inherits": "B_35mm_AA",
+    "tracer_override": "model only; explosive and indirect hit unchanged",
+    "result": "Native Cheetah cannon loadout is excluded by current interception readiness filter. This is config evidence, not an in-engine run."
+  }
 }
