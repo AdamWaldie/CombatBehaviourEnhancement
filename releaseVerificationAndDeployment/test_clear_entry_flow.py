@@ -23,14 +23,18 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertNotIn(' set [',observation)
         self.assertNotIn('doMove',observation)
         # Planner transitions do not restart the original issue age or grant ownership.
+        planner_states=('INIT','INITFAILED','PLANNING','REPLAN','DELAY','BUSY')
         def awaited(age,owned,state):
-            return age>=0 and (age<2 or (age<30 and owned and state in ('INIT','PLANNING','REPLAN','BUSY')))
-        for state in ('INIT','PLANNING','REPLAN','BUSY'):
+            return age>=0 and (age<2 or (age<30 and owned and state in planner_states))
+        for state in planner_states:
             self.assertTrue(awaited(29,True,state))
             self.assertFalse(awaited(30,True,state))
             self.assertFalse(awaited(10,False,state))
-        for state in ('INITFAILED','DELAY','STOPPED','OK'):
+        for state in ('STOPPED','OK'):
             self.assertFalse(awaited(10,True,state))
+        # The unchanged-request acknowledgement grace is finite, not planner authority.
+        self.assertTrue(awaited(1,False,'STOPPED'))
+        self.assertFalse(awaited(2,False,'STOPPED'))
         self.assertFalse(awaited(-1,True,'REPLAN'))
 
         recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]

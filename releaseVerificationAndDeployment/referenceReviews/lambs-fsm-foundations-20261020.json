@@ -1358,5 +1358,13 @@
     "candidate": ".qa/candidates/clear-buddy-failure-admission-ead1f7c8",
     "fingerprint": "1bc039fd57ee48868cd7391fb78772510df832d5b313c64d519a26c751e1da05",
     "limits": "Unsigned dirty development includes unrelated dirt. Guide/review/handover postdate package. No current visual entry, repeat/modded-house/locality, parity or5/10performance proof. Arm/body distortion remains a defect, not reproduced/fixed here. Audits PAUSED."
+  },
+  "plannerWaitRegressionCorrection20261024": {
+    "base": "707261dd",
+    "finding": "Existing clear-entry source contract required INITFAILED/DELAY as owned finite planner waits, but its independent Python timing model excluded them. Both contradictory assertions passed because the model was detached from the runtime expression.",
+    "change": "Correct existing model to include all six runtime planner states; assert each at29s, expired30s and absent ownership10s. Retain STOPPED/OK exclusion after acknowledgement grace and add explicit1s/2s grace boundary. No runtime or new test cases.",
+    "followupTrace": "Physical room visits already remove matching unreachable/pending indices and reset failure rows. Alternate entry uses physically visited nodes. No additional runtime defect established in these selected paths.",
+    "validation": "13 existing entry-flow tests pass; focused search found no second occurrence of this stale four-state model. No repeated full build: runtime remains last verified clear-buddy-failure-admission-ead1f7c8/1bc039fd57ee48868cd7391fb78772510df832d5b313c64d519a26c751e1da05 with prior full1491/412SQF/9PBO/unsigned dirty limits. Tests/review postdate package.",
+    "limits": "A Python timing model/source contract does not execute SQF or prove native state timing, progress, acknowledgement or physical clearance. Audits PAUSED; no new physical/performance/parity/percentage credit."
   }
 }
