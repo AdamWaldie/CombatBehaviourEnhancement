@@ -35,5 +35,22 @@
   "physicalAcceptance": false,
   "performanceMeasured": false,
   "scoresChanged": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "incompleteLaneMetadata20261024": {
+    "base": "954ad375",
+    "finding": "After two lane workers become unavailable, first recruit may be promoted under the one-VIEW callback budget. Publishing [recruit,unavailable] immediately causes CombatPairsPublish to split the recruit from its intact reserve buddy. The next callback then cannot find that buddy through incumbent preference, defeating prior cohesion integration. Applies to dead or living-unavailable remaining slot.",
+    "change": "Within existing current-job atomic publication, pass only lanes whose members satisfy the same availability/unavailable predicate as casualty replacement to persistent pair metadata. Preserve the complete actual pair snapshot in common operation immediately, including each actual promotion. Existing registry merger retains out-of-scope reserve identity until viable lane reassignment. No hint journal, worker, geometry, timer, retry or route restart.",
+    "authority": "Metadata preference only. Candidate-window fairness, failed-probe rotation, sole VIEW budget, exit-security coverage, native-task/current episode checks and original hard deadline unchanged. If reserve buddy fails normal admission another candidate may still fill the slot.",
+    "validation": "Existing replacement-publication test models dead and living-unavailable second slots, prior destructive split and retained buddy pair; asserts actual common-operation snapshot remains immediate. Existing614 focused tests and full1491, SQF validator, HEMTT412 SQF/9 PBO/all build gates plus independent package verification passed. No new cases. Initial focused log retained import-path harness error; rerun with releaseVerificationAndDeployment on sys.path passed unchanged tests.",
+    "sourceHash": "bf5ba148479b7d3a06357e047e7565815514775f4d3f741e4be7cefe7ca53e8b",
+    "logs": [
+      ".qa/clear-refill-buddy-continuity-focused.log",
+      ".qa/clear-refill-buddy-continuity-final-focused.log",
+      ".qa/clear-refill-buddy-continuity-build.log",
+      ".qa/clear-refill-buddy-continuity-independent.log"
+    ],
+    "candidate": ".qa/candidates/clear-refill-buddy-continuity-954ad375",
+    "fingerprint": "f84f38a8faa13d13deff0ef9dbd3eee4fc2aff7e6282c9607e7eb9604a20da5a",
+    "limits": "Bounded per-lane read-only eligibility checks only on changed roster. Physical pair reunion/coherent entry/casualty relief/repeated use/normal-HC/performance/parity not proved. Whole-pair replacement intent is not complete by this metadata fix. Audits PAUSED. Unsigned dirty development candidate includes unrelated existing dirt; review/notes postdate package. No source score renewal."
+  }
 }

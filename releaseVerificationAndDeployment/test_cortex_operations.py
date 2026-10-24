@@ -11926,7 +11926,27 @@ class CortexOperations(unittest.TestCase):
                       '(_lease select 2)-time <= 6'):
             self.assertIn(proof,text)
         update=text.split('if (_pairRosterChanged) then {',1)[1].split('// Release reservations before selection',1)[0]
-        self.assertIn('[_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish',update)
+        self.assertIn('[_group,_completePairSnapshot] call CBE_fnc_CombatPairsPublish',update)
+        self.assertIn('_x findIf {!([_x] call _actorAvailable) || {_x in _unavailable}} < 0',update)
+        self.assertLess(update.index('if (call _mayIssueMovement)'),update.index('private _completePairSnapshot='))
+        # Model only persistent metadata: the real promotion/VIEW gates remain separate.
+        def publish(active,previous,living):
+            merged=[];seen=set()
+            for row in active+previous:
+                current=[a for a in row if a in living and a not in seen]
+                if current:
+                    merged.append(current);seen.update(current)
+            return merged
+        previous=[['old1','old2'],['recruit','buddy']]
+        for living in ({'recruit','buddy'},{'old2','recruit','buddy'}):
+            lane=['recruit','old2']
+            available={'recruit','buddy'}  # old2 may be alive but unavailable.
+            old=publish([lane],previous,living)
+            complete=[lane] if all(a in available for a in lane) else []
+            current=publish(complete,previous,living)
+            self.assertNotIn(['recruit','buddy'],old)
+            self.assertIn(['recruit','buddy'],current)
+            self.assertIn(['recruit','buddy'],publish([['recruit','buddy']],current,living))
         self.assertIn('_liveOperation set ["pairs",_pairSnapshot]',update)
         self.assertNotIn('_pairRoutes=',update)
         self.assertNotIn('_state set [0',update)

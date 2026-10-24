@@ -146,6 +146,8 @@
  * the existing sixteen-candidate window. Failed VIEW-probe rotation still takes priority
  * over repeated preferences; identity never grants promotion or exterior-cover authority.
  * Whole-pair replacements still restart exterior entry without inherited receipts.
+ * Incomplete casualty lanes do not reassign persistent buddy metadata until their roster is viable;
+ * the common operation still records each actual promotion immediately.
  * Any roster replacement invalidates its lane buddy-entry proposal for fresh occupancy selection. Durable lane
  * mover/position slots map by actor identity into the filtered active pair, preserving survivor
  * baselines across a missing partner without crediting the casualty's old position as motion.
@@ -2412,7 +2414,13 @@ private _delay=call {
                 // Let this callback tail save its completed states even inside the usual cadence.
                 // SAVE still rechecks authority and consumes cadence on refused validation.
                 _job set ["laneJournalAfter",-1];
-                [_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish;
+                // A first recruit into a wholly depleted lane must retain its reserve
+                // buddy identity until the second slot can pass ordinary promotion.
+                // Otherwise publishing [recruit,casualty] splits that intact reserve pair.
+                private _completePairSnapshot=_pairSnapshot select {
+                    _x findIf {!([_x] call _actorAvailable) || {_x in _unavailable}} < 0
+                };
+                [_group,_completePairSnapshot] call CBE_fnc_CombatPairsPublish;
                 private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
                 if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration
                     && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
