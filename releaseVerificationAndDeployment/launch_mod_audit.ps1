@@ -6,7 +6,7 @@ param(
     [ValidateSet('normal','headless')][string]$BatchMode='normal',
     [string]$HeadlessProvider='',
     [string[]]$Mods=@(),
-    [ValidateSet("turret_aiming","suppression")][string[]]$EnginePolicies=@(),
+    [ValidateSet("turret_aiming","suppression","launcher_policy")][string[]]$EnginePolicies=@(),
     [string]$Python='python',
     [int]$Port=24142,
     [int]$ResolutionWidth=3840,

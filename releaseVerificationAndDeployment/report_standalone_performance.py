@@ -19,7 +19,7 @@ def read_run(folder):
             not isinstance(name,str) or not name or not digest(value) for name,value in fixtures.items())):
         raise ValueError('Hashed mission fixture inventory is required')
     policies=manifest.get('enginePolicies')
-    if (not isinstance(policies,list) or any(type(value) is not str or value not in ('turret_aiming','suppression') for value in policies)
+    if (not isinstance(policies,list) or any(type(value) is not str or value not in ('turret_aiming','suppression','launcher_policy') for value in policies)
             or len(policies) != len(set(policies)) or (manifest['native_baseline'] and policies)):
         raise ValueError('Explicit supported engine-policy selection is required; native must be empty')
     logs=list((folder/'server').glob('*.rpt'))

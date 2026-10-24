@@ -249,6 +249,27 @@ class PackagePipelineTests(unittest.TestCase):
         (self.folder/'cbe-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
 
+    def test_optional_launcher_policy_changes_only_native_ai_choices(self):
+        import re
+        text=(ROOT/'optionals/launcher_policy/config.cpp').read_text(encoding='utf-8')
+        body=text.split('class CfgWeapons {',1)[1]
+        props=set(re.findall(r'\b(\w+)\s*=',body))
+        self.assertEqual(props,{'aiDispersionCoefX','aiDispersionCoefY','aiRateOfFire',
+            'aiRateOfFireDispersion','aiRateOfFireDistance','maxRange','maxRangeProbab',
+            'midRange','midRangeProbab','minRange','minRangeProbab','aiAmmoUsageFlags',
+            'allowAgainstInfantry'})
+        flags={name:int(value) for name,value in re.findall(
+            r'class (\w+): RocketBase \{\s*aiAmmoUsageFlags = (\d+);',body)}
+        self.assertEqual(flags,{'R_PG7_F':64+128+256+512,'R_PG32V_F':64+128+256+512,
+            'M_SPG9_HEAT':64+128+512,'R_MRAAWS_HEAT_F':64+128+512})
+        self.assertEqual(body.count('allowAgainstInfantry = 1;'),4)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
+        self.assertIn('engine-policy-launchers',diagnostics)
+        self.assertIn('"CBE_policy_launchers"',diagnostics)
+        self.assertIn('!isNumber _entry',diagnostics)
+        launcher=(ROOT/'releaseVerificationAndDeployment/launch_mod_audit.ps1').read_text()
+        self.assertIn('"launcher_policy"',launcher)
+
     def test_native_suppression_policy_preserves_skill_and_weapon_configuration(self):
         import re
         text=(ROOT/'optionals/suppression/config.cpp').read_text(encoding='utf-8')

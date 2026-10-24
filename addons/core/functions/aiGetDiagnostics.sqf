@@ -327,7 +327,53 @@ private _suppressionPolicyMatches=true;
 private _suppressionPolicyState=if (!_suppressionPolicyLoaded) then {"DISABLED"} else {
     ["ERROR","LOADED"] select _suppressionPolicyMatches
 };
+private _launcherPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_launchers");
+private _launcherPolicyValues=[];
+private _launcherPolicyMatches=true;
+{
+    _x params ["_section","_class","_mode","_property","_expected"];
+    private _root=configFile >> _section >> _class;
+    if (_mode != "") then {_root=_root >> _mode};
+    private _entry=_root >> _property;
+    private _actual=getNumber _entry;
+    _launcherPolicyValues pushBack [_class,_mode,_property,_actual];
+    if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_launcherPolicyMatches=false};
+} forEach [
+    ["CfgWeapons","launch_RPG7_F","Single","aiDispersionCoefX",1.8],
+    ["CfgWeapons","launch_RPG7_F","Single","aiDispersionCoefY",2.4],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFire",5],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFireDispersion",5],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFireDistance",450],
+    ["CfgWeapons","launch_RPG7_F","Single","maxRange",450],
+    ["CfgWeapons","launch_RPG7_F","Single","maxRangeProbab",1.8],
+    ["CfgWeapons","launch_RPG7_F","Single","midRange",200],
+    ["CfgWeapons","launch_RPG7_F","Single","midRangeProbab",2.5],
+    ["CfgWeapons","launch_RPG7_F","Single","minRange",5],
+    ["CfgWeapons","launch_RPG7_F","Single","minRangeProbab",0.6],
+    ["CfgWeapons","launch_RPG32_F","Single","aiDispersionCoefX",1.7],
+    ["CfgWeapons","launch_RPG32_F","Single","aiDispersionCoefY",2.2],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFire",7],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFireDispersion",3],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFireDistance",400],
+    ["CfgWeapons","launch_RPG32_F","Single","maxRange",600],
+    ["CfgWeapons","launch_RPG32_F","Single","maxRangeProbab",1.5],
+    ["CfgWeapons","launch_RPG32_F","Single","midRange",40],
+    ["CfgWeapons","launch_RPG32_F","Single","midRangeProbab",1.1],
+    ["CfgWeapons","launch_RPG32_F","Single","minRange",10],
+    ["CfgWeapons","launch_RPG32_F","Single","minRangeProbab",0.2],
+    ["CfgAmmo","R_PG7_F","","aiAmmoUsageFlags",960],
+    ["CfgAmmo","R_PG7_F","","allowAgainstInfantry",1],
+    ["CfgAmmo","M_SPG9_HEAT","","aiAmmoUsageFlags",704],
+    ["CfgAmmo","M_SPG9_HEAT","","allowAgainstInfantry",1],
+    ["CfgAmmo","R_PG32V_F","","aiAmmoUsageFlags",960],
+    ["CfgAmmo","R_PG32V_F","","allowAgainstInfantry",1],
+    ["CfgAmmo","R_MRAAWS_HEAT_F","","aiAmmoUsageFlags",704],
+    ["CfgAmmo","R_MRAAWS_HEAT_F","","allowAgainstInfantry",1]];
+private _launcherPolicyState=if (!_launcherPolicyLoaded) then {"DISABLED"} else {
+    ["ERROR","LOADED"] select _launcherPolicyMatches
+};
 private _checks = [
+    ["ai","engine-policy-launchers",_launcherPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Native AI policy is global to affected launcher/ammo classes, including actors excluded from CBE. CBA switches cannot unload it. Different effective values indicate config overrides; engagement, ammunition economy and friendly safety require physical verification.",_launcherPolicyLoaded,_launcherPolicyValues]],
     ["ai","engine-policy-suppression",_suppressionPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Global native policy persists while CBA tactics are disabled; different values indicate a config override. Mission skills are unchanged. Balance and recovery timing require physical verification.",_suppressionPolicyLoaded,_suppressionPolicyValues]],
     ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 restartRequired=true. Runtime CBA gates cannot unload this configuration. A different effective ceiling while loaded indicates a configuration override; physical lethality and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling]],
     ["ai", "cortex", _passState, format ["enabled=%1 serverActive=%2 serverJobs=%3 paused=%4 includedSides=%5. %6", _passEnabled, _passActive, _passJobs, [] call CBE_fnc_CortexIsPaused, missionNamespace getVariable ["CBE_AIPass_IncludedSides", []], _passHint]],
