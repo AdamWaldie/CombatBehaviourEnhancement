@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "1964ec3f",
+  "gap": "Known lost exterior post without a movable duplicate had no idle interior worker fallback",
+  "implementation": "Reuse existing exit-relief journal with explicit guard identity and security-only binding; preserve first-use interior relief, task ownership, progress, geometry and deadlines",
+  "corrections": "Offline compiler caught helper-before-definition; moved shared helper before both callers. Removed block-private posts shadowing to preserve ordinary relief selection.",
+  "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify passed",
+  "candidate": ".qa/candidates/cqb-guard-worker-relief-1964ec3f",
+  "fingerprint": "ecdb857c4b118c1dc9cb6e419fa7b540ab80f5420f137fed2e549bcdf526880c",
+  "limits": [
+    "Unsigned dirty development candidate; notes postdate build",
+    "Physical replacement, observation and migration UNRUN",
+    "Audits PAUSED; full goal incomplete"
+  ]
+}

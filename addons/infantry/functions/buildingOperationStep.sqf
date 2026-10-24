@@ -102,6 +102,8 @@
  * Physically arrived early exits observe their selected doorway only after a fresh eye ray;
  * one rotating check per callback maintains the watch without another scheduler or movement.
  * Later exterior assignments preserve these observation lanes and prefer uncovered exits.
+ * Positive guard loss may use an idle progressed interior worker when no duplicated exterior
+ * post can move; the existing relief journal, movement owner and original deadlines apply.
  * New reserve posts spread across native exit bearings after failed/duplicate-exit ranking;
  * only task-ready, available actors with unchanged owned approaches or physically retained
  * posts influence allocation; dormant/quarantined actors never reserve an observation sector.
@@ -1056,6 +1058,9 @@ private _delay=call {
                                 && {(_record param [5,[]]) isEqualTo (_reliefRow select 2)}
                                 && {(_record select 2) == (_reliefRow select 3)}
                         };
+                        // Negative pair index denotes security-only relief. Recovery of its
+                        // original guard ends that leg; it cannot invent an interior vacancy.
+                        if (_pairIndex < 0) exitWith {false};
                         private _stage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _guard,[]];
                         private _pair=(_job get "pairs") param [_pairIndex,[]];
                         (_pair param [_slot,objNull]) == _missing
@@ -1981,8 +1986,28 @@ private _delay=call {
     // idle, physically progressed interior worker; never strip another exterior post.
     // One selection per callback and one attempt per worker/original episode survive migration.
     private _reliefConsidered=false;
+    private _exitAssigned={
+        params ["_exit"];
+        private _found=_reserves findIf {
+            private _actor=_x;
+            private _post=_reserveStages getOrDefault [netId _actor,[]];
+            (_post param [5,[]]) isEqualTo _exit && {[_actor] call _reserveReady}
+                && {((_post param [2,""]) == "APPROACH" && {[_actor] call _ownsCurrentMove})
+                    || {(_post param [2,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                        && {(getPosASL _actor) vectorDistance (AGLToASL (_post select 0)) <= 2}}}
+        } >= 0;
+        _found || {(keys _earlyExits select [0,8]) findIf {
+            private _row=_earlyExits get _x;
+            private _actor=_row param [0,objNull];
+            (_row param [5,[]]) isEqualTo _exit && {[_actor] call _actorAvailable}
+                && {[_actor] call _actorTaskFree} && {!(_actor in _unavailable)}
+                && {((_row param [3,""]) == "MOVING" && {[_actor] call _ownsCurrentMove})
+                    || {(_row param [3,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
+                        && {(getPosASL _actor) vectorDistance (AGLToASL (_row select 1)) <= 2}}}
+        } >= 0}
+    };
     private _requestExitRelief={
-        params ["_waitingPair","_waitingSlot","_waitingMember"];
+        params ["_waitingPair","_waitingSlot","_waitingMember",["_vacantGuardKey","",[""]]];
         if (_reliefConsidered) exitWith {false};
         _reliefConsidered=true;
         private _context=+(_job get "visitContext");
@@ -1995,7 +2020,19 @@ private _delay=call {
                 || {!((_x select 0) isEqualType "")} || {!((_x select 1) isEqualType "")}
                 || {!((_x select 4) isEqualType [])} || {count (_x select 4) != 5}
         } >= 0}) exitWith {false};
-        private _posts=_reserves select {
+        private _posts=[];
+        if (_vacantGuardKey != "") then {
+            // Known lost post only. A missing replication lookup is not death evidence.
+            private _vacantGuard=objectFromNetId _vacantGuardKey;
+            private _vacantStage=_reserveStages getOrDefault [_vacantGuardKey,[]];
+            if ([_vacantGuard,_vacantGuardKey] call _securityCasualtyKnown
+                && {(_vacantStage param [2,""]) == "ARRIVED"}
+                && {count (_vacantStage param [5,[]]) == 3}
+                && {(_vacantStage select 5) in (_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]])}
+                && {!([_vacantStage select 5] call _exitAssigned)}
+                && {_tried findIf {(_x select 1) == _vacantGuardKey} < 0}) then {_posts=[_vacantGuard]};
+        } else {
+        _posts=_reserves select {
             private _postActor=_x;
             [_postActor] call _reserveReady
                 && {((_reserveStages getOrDefault [netId _postActor,[]]) param [2,""]) == "ARRIVED"}
@@ -2008,9 +2045,11 @@ private _delay=call {
                             && {(_row param [5,[]]) isEqualTo _postExit}
                     } < 0}
         };
+        };
         if (_posts isEqualTo []) exitWith {false};
         private _observer=_posts select 0;
-        private _observerStage=+(_reserveStages get (netId _observer));
+        private _observerKey=[_vacantGuardKey,netId _observer] select (_vacantGuardKey == "");
+        private _observerStage=+(_reserveStages get _observerKey);
         private _exit=+(_observerStage select 5);
         private _workers=(_job get "team") select {
             private _worker=_x;
@@ -2029,14 +2068,21 @@ private _delay=call {
         private _workerNative=[currentCommand _worker,expectedDestination _worker,formLeader _worker];
         private _workerPose=getPosASL _worker;
         private _until=(serverTime+45) min (_job get "deadline") min (_job get "hardDeadline");
-        private _observerNative=[currentCommand _observer,expectedDestination _observer,formLeader _observer];
-        private _attempt=[netId _worker,netId _observer,+_exit,_until,
+        private _observerNative=if (isNull _observer) then {[]} else {[currentCommand _observer,expectedDestination _observer,formLeader _observer]};
+        private _observerReliefReady={
+            (_reserveStages getOrDefault [_observerKey,[]]) isEqualTo _observerStage
+                && {if (_vacantGuardKey != "") then {
+                    [_observer,_observerKey] call _securityCasualtyKnown
+                        && {!([_exit] call _exitAssigned)}
+                } else {[_observer] call _reserveReady
+                    && {[currentCommand _observer,expectedDestination _observer,formLeader _observer] isEqualTo _observerNative}}}
+        };
+        private _attempt=[netId _worker,_observerKey,+_exit,_until,
             [_waitingPair,_waitingSlot,_waitingMember,+_observerStage,+_observerNative]];
         private _recorded=false;
         isNil {
             if (call _mayIssueMovement && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
-                && {[_worker] call _roomCommandOwned} && {[_observer] call _reserveReady}
-                && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _observerStage}
+                && {[_worker] call _roomCommandOwned} && {[] call _observerReliefReady}
                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo _journal}
                 && {serverTime < _until}) then {
                 _tried pushBack _attempt;
@@ -2069,11 +2115,11 @@ private _delay=call {
                 && {[_worker] call _roomCommandOwned} && {!(netId _worker in _earlyExits)}
                 && {[currentCommand _worker,expectedDestination _worker,formLeader _worker] isEqualTo _workerNative}
                 && {(getPosASL _worker) vectorDistance _workerPose <= 1}
-                && {[_observer] call _reserveReady}
-                && {(_reserveStages getOrDefault [netId _observer,[]]) isEqualTo _observerStage}
-                && {[currentCommand _observer,expectedDestination _observer,formLeader _observer] isEqualTo _observerNative}
-                && {(((_job get "pairs") param [_waitingPair,[]]) param [_waitingSlot,objNull]) == _waitingMember}
-                && {!([_waitingMember] call _actorAvailable) || {_waitingMember in _unavailable}}
+                && {[] call _observerReliefReady}
+                && {_vacantGuardKey != "" || {
+                    (((_job get "pairs") param [_waitingPair,[]]) param [_waitingSlot,objNull]) == _waitingMember
+                        && {!([_waitingMember] call _actorAvailable) || {_waitingMember in _unavailable}}
+                }}
                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo [_context,_tried]}) then {
                 _earlyExits set [netId _worker,[_worker,+_target,_until,"MOVING",false,+_exit,+(_plan select 2)]];
                 _job set ["earlyExits",_earlyExits];
@@ -2483,26 +2529,6 @@ private _delay=call {
     // the existing allocation and promotion VIEW budgets. Proof, planning and native
     // dispatch complete in this callback; no pending transfer may shed sole coverage.
     private _securityEntries=(_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]]) select [0,16];
-    private _exitAssigned={
-        params ["_exit"];
-        private _found=_reserves findIf {
-            private _actor=_x;
-            private _post=_reserveStages getOrDefault [netId _actor,[]];
-            (_post param [5,[]]) isEqualTo _exit && {[_actor] call _reserveReady}
-                && {((_post param [2,""]) == "APPROACH" && {[_actor] call _ownsCurrentMove})
-                    || {(_post param [2,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
-                        && {(getPosASL _actor) vectorDistance (AGLToASL (_post select 0)) <= 2}}}
-        } >= 0;
-        _found || {(keys _earlyExits select [0,8]) findIf {
-            private _row=_earlyExits get _x;
-            private _actor=_row param [0,objNull];
-            (_row param [5,[]]) isEqualTo _exit && {[_actor] call _actorAvailable}
-                && {[_actor] call _actorTaskFree} && {!(_actor in _unavailable)}
-                && {((_row param [3,""]) == "MOVING" && {[_actor] call _ownsCurrentMove})
-                    || {(_row param [3,""]) == "ARRIVED" && {currentCommand _actor in ["","STOP"]}
-                        && {(getPosASL _actor) vectorDistance (AGLToASL (_row select 1)) <= 2}}}
-        } >= 0}
-    };
     private _lostKeys=keys _reserveStages;
     if (_lostKeys isNotEqualTo []) then {
         private _cursor=(_job getOrDefault ["securityLossCursor",0]) mod count _lostKeys;
@@ -2510,6 +2536,7 @@ private _delay=call {
         _job set ["securityLossCursor",(_cursor+16) mod count _lostKeys];
     };
     private _securityRebalanced=false;
+    private _unfilledSecurityKey="";
     {
         if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0} || {count _reserves > 64}) exitWith {};
         private _lostKey=_x;
@@ -2519,6 +2546,7 @@ private _delay=call {
         private _knownLoss=[_lostGuard,_lostKey] call _securityCasualtyKnown;
         if (_knownLoss && {(_lostStage param [2,""]) == "ARRIVED"}
             && {_lostExit in _securityEntries} && {!([_lostExit] call _exitAssigned)}) then {
+            if (_unfilledSecurityKey == "") then {_unfilledSecurityKey=_lostKey};
             {
                 if (_securityRebalanced || {_promotionViewBudget <= 0} || {_stageSearchBudget <= 0}) exitWith {};
                 private _candidate=_x;
@@ -2605,6 +2633,15 @@ private _delay=call {
             } forEach _promotionCandidates;
         };
     } forEach (_lostKeys select [0,16]);
+    // Interior casualty relief has first use of the existing budget. If no exterior
+    // duplicate can move, an idle progressed worker may replace this positive guard loss.
+    // Reuse the same eight-attempt journal and original clearance/leg deadlines.
+    if (!_securityRebalanced && {!_reliefConsidered} && {_stageSearchBudget > 0}
+        && {_unfilledSecurityKey != ""}) then {
+        _stageSearchBudget=_stageSearchBudget-1;
+        [-1,0,objNull,_unfilledSecurityKey] call _requestExitRelief;
+    };
+
     // Build the migration journal only after an owned stage transition. Idle callbacks
     // retain the published receipt without copying every actor record again.
     if (_stageJournalChanged && {call _mayIssueMovement}) then {
