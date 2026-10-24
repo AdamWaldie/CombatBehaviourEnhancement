@@ -13,6 +13,7 @@
  * A combined request retains its original contact stamp and opportunity expiry;
  * role replacement or expiry revokes it. No role or observation deadline is renewed.
  * Return: STRING REQUESTED/PENDING blocks this routine firing pass; READY/REFUSED does not.
+ * New load proposals require a complete native weapon state and finite magazine reload phase0.
  * READY requires the exact requested magazine, rounds and native magazine reload phase0;
  * it is not permission to fire. A positive phase retains the original pending deadline.
  * Bounds: <=64 crew/128 inventory rows,16 weapons/8 muzzles each,128 compatible classes
@@ -142,8 +143,11 @@ private _proposal=[];private _bestRank=-1;private _queries=0;
                 _x params ["_muzzle","_compatible"];
                 _queries=_queries+1;
                 private _state=weaponState [_asset,_turret,_weapon,_muzzle];
-                if (count _state >= 5 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
-                    && {(_state param [6,0]) <= 0}) then {
+                private _reloadPhase=_state param [6,-1,[0]];
+                // Missing or unknown reload evidence is not permission to replace ammunition.
+                // Retain the same complete native-state/phase-zero boundary as readiness.
+                if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+                    && {finite _reloadPhase} && {_reloadPhase == 0}) then {
                     {
                         private _magazine=_x;
                         private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");

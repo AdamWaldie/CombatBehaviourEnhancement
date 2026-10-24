@@ -10231,6 +10231,11 @@ class CortexOperations(unittest.TestCase):
         acknowledgement=text.split('private _native=weaponState',1)[1].split('// A different native magazine',1)[0]
         self.assertIn('finite _reloadPhase',acknowledgement)
         self.assertIn('_reloadPhase == 0',acknowledgement)
+        proposal=text.split('private _state=weaponState [_asset,_turret,_weapon,_muzzle];',1)[1].split('forEach (_magazines arrayIntersect',1)[0]
+        for proof in ('_state param [6,-1,[0]]','count _state >= 7',
+                      'finite _reloadPhase','_reloadPhase == 0'):
+            self.assertIn(proof,proposal)
+        self.assertNotIn('_state param [6,0]',proposal)
         self.assertNotIn('setWeaponReloadingTime',text)
         self.assertIn('_magazines arrayIntersect _compatible',text)
         self.assertIn('getNumber (_ammo >> "airLock") != 2',text)

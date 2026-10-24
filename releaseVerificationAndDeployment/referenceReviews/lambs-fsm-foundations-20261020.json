@@ -353,14 +353,16 @@
     "sourceIntent": "Full readable brainVehicle plus doSelectWarhead reviewed: source selects AP/tandemHEAT for armour and HE/HEAT otherwise, includes reserve magazine loadMagazine and optional muzzle switch.",
     "change": "CBE existing loaded-station checker now prefers AP/tandemHEAT for armour, explosives for soft vehicles, nonexplosive bullets for infantry after existing config intent restrictions. Suitable fallback retained; ties preserve station order. Selected reload evidence replaces unrelated muzzle reload state. Default no-target and bullet-suppression paths still early-exit. No fire/target/move/load command added; existing selector uses returned actual station receipt.",
     "cost": "At most16 weapons/8muzzles each/32 native state queries unchanged. Nonideal first matches may increase actual work; cost unmeasured. Same-frame failed scan reuse retains target reevaluation.",
-    "remaining": "Reserve magazine switching is not implemented. No topdown mode selection, terminal-effect proof or whole vehicle-domain parity.",
+    "remaining": "Reserve magazine switching is integrated through CortexGroundReload in routine and combined ground callbacks; see groundReserveReload/combinedReserveReload/multiMuzzleReserveReload records below. Topdown mode selection, terminal-effect proof and whole vehicle-domain parity remain unestablished; physical reload and cost remain unverified.",
     "validation": "Full1480/HEMTT/SQF/FSM/docs/package and independent candidate passed; no new test cases.",
     "candidate": ".qa/candidates/ground-loaded-preference-08d2e650",
     "fingerprint": "1dbf543088bb51eb6058925939fcc88593313a42ad3a995eb2be6a1f35816caa",
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "audits": "PAUSED",
-    "scoresChanged": false
+    "scoresChanged": false,
+    "historicalRemaining": "Reserve magazine switching is not implemented. No topdown mode selection, terminal-effect proof or whole vehicle-domain parity.",
+    "reconciled20261024": "Current call sites traced in CortexVehicles, CortexCombinedArmsLocal and CortexCombinedGroundStep. Existing REQUESTED/PENDING paths defer routine firing/capability checks, then revalidate actual loaded state; historical missing-reserve claim is superseded, not new implementation credit."
   },
   "groundReserveReload": {
     "baseline": "bcff764f",
@@ -1366,5 +1368,22 @@
     "followupTrace": "Physical room visits already remove matching unreachable/pending indices and reset failure rows. Alternate entry uses physically visited nodes. No additional runtime defect established in these selected paths.",
     "validation": "13 existing entry-flow tests pass; focused search found no second occurrence of this stale four-state model. No repeated full build: runtime remains last verified clear-buddy-failure-admission-ead1f7c8/1bc039fd57ee48868cd7391fb78772510df832d5b313c64d519a26c751e1da05 with prior full1491/412SQF/9PBO/unsigned dirty limits. Tests/review postdate package.",
     "limits": "A Python timing model/source contract does not execute SQF or prove native state timing, progress, acknowledgement or physical clearance. Audits PAUSED; no new physical/performance/parity/percentage credit."
+  },
+  "reserveLoadNativeProof20261024": {
+    "base": "31041128",
+    "finding": "Reserve proposal selection accepted count>=5 native states and defaulted absent magazine reload phase to0 with<=0 admission. Existing loaded readiness and completed pending requests require complete state and phase exactly0; missing/negative phase was incorrectly treated as selection permission.",
+    "change": "Proposal requires count>=7 and typed finite phase6 exactly0; unavailable phase defaults-1 and refuses. Final exact native-state equality remains. No new query/worker/request/fire/weapon selection/inventory edit/timer/deadline or animation.",
+    "sourceHash": "23593155bc35a5862e4f4e718816d1b6c85f176c6bfc2d58c811e48239e6b523",
+    "validation": {
+      "focusedExistingCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/ground-reload-native-proof-31041128",
+    "fingerprint": "dd79f3ae9b758d355691f78c1bbcbc1d92fa540159d99037dd3ec1f3e70346f8",
+    "limits": "Native-state admission consistency, not observed loading/fire/ammo conservation/visual transition/HC or5/10performance proof. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no new parity/score credit."
   }
 }
