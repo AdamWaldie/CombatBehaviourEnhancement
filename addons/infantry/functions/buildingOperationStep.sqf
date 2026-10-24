@@ -2398,6 +2398,10 @@ private _delay=call {
         private _pairSnapshot=_pairs apply {+_x};
         isNil {
             if (call _mayIssueMovement) then {
+                // A changed actor-slot allocation invalidates the sampled lane identity.
+                // Let this callback tail save its completed states even inside the usual cadence.
+                // SAVE still rechecks authority and consumes cadence on refused validation.
+                _job set ["laneJournalAfter",-1];
                 [_group,_pairSnapshot] call CBE_fnc_CombatPairsPublish;
                 private _liveOperation=_group getVariable ["CBE_Operation",createHashMap];
                 if ((_liveOperation getOrDefault ["generation",-1]) == _operationGeneration

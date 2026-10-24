@@ -8,7 +8,8 @@
  * Original native issue times are observations only; adoption never starts a new grace window.
  * Missing, malformed or mismatched snapshots refuse adoption rather than invent progress.
  * At most8 lanes,2 actors per lane and512 nodes; SAVE is limited to one sample per1.5s
- * on the existing job, including refused samples; changed-only publication. No worker, world query or retry renewal.
+ * on the existing job, including refused samples; a committed lane-roster change invalidates that sample.
+ * Changed-only publication. No worker, world query or retry renewal.
  * Arguments: 0 mode STRING SAVE/ADOPT; 1 job HASHMAP empty.
  * Return: BOOL - latest SAVE result or metadata adopted; throttling retains the prior result.
  * Never native acknowledgement, valid-current-snapshot proof or physical continuity.

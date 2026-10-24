@@ -56,6 +56,11 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('time-(serverTime-(_row select 3))',journal)
         tail=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertLess(tail.index('if (!_tailOwned'),tail.index('if (_liveClear && {_delay >= 0})'))
+        promotion=tail.split('if (_pairRosterChanged) then {',1)[1].split('// Rebalance one duplicated live post',1)[0]
+        self.assertIn('_job set ["laneJournalAfter",-1];',promotion)
+        self.assertLess(promotion.index('if (call _mayIssueMovement)'),promotion.index('_job set ["laneJournalAfter",-1]'))
+        self.assertNotIn('hardDeadline',promotion)
+        self.assertNotIn('pairStates',promotion)
 
     def test_late_public_metadata_and_pair_selection_are_guarded(self):
         text=clear()

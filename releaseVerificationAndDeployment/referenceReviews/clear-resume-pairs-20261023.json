@@ -175,5 +175,28 @@
     "boundary": "An unavailable actor can also change CombatPairs eligible membership/order before adoption. Exact identity rejection prevents old actor slots/request observations from being silently assigned to another actor; removing that guard or blindly filtering dead actors is unsafe.",
     "nextImplementation": "Make episode lane allocation and roster revision coherent at handover. Retain original lane slot identity until validated casualty repair; preserve original retry/request clocks and bounded room partition. Handle delayed/missing/newer publication explicitly. Do not treat publication order as receiver acknowledgement or introduce a second movement controller.",
     "limits": "Source trace only. No code change, new test, candidate rebuild, runtime reproduction, percentage renewal or claim of complete ordered delivery. Audits remain PAUSED."
+  },
+  "casualtyRosterSampleInvalidation20261024": {
+    "base": "bcedfd57",
+    "change": "The existing guarded pair-roster publication invalidates laneJournalAfter. The same callback tail can SAVE completed lane state inside the normal1.5s cadence after actor-slot replacement. Unchanged rosters and refused samples retain the existing cadence; no immediate save of half-updated pair states.",
+    "limits": "Removes deterministic sample throttling after a roster change, not the separate-variable replication window. Exact pair identity and authority checks remain. No native command, new worker/query, retry reset or hard-deadline renewal. Ordered delivery/owner-ready acknowledgement, changed-roster adoption and physical casualty continuity remain incomplete.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "84f232c3653210cafbe21f7b1bfc5b21850e5e9bc0423b7ed30f33c03d090bec",
+      "addons/infantry/functions/buildingLaneJournal.sqf": "c0fcce588f83fa0a1e7e13c442f773f08b2c8e3b1625ee4e17a478353b7c2634"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-roster-snapshot-refresh-bcedfd57",
+    "fingerprint": "6088e0cf6af8b330478f21f3eaeab395a63fa35279f09376478874af0fffbb6e",
+    "logs": [
+      ".qa/clear-roster-snapshot-refresh-build.log",
+      ".qa/clear-roster-snapshot-refresh-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED; no physical/performance/percentage claim."
   }
 }
