@@ -2,7 +2,10 @@
  * Author: WaldoTheWarfighter
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
- * Puts the squad's best anti-tank gunner onto a known armoured vehicle, clear of backblast.
+ * Puts the squad's best ready loaded anti-tank gunner onto known armour, clear of backblast
+ * and the shared forward friendly/civilian cone and magazine-aware blast veto.
+ * Reserve-only or reloading carriers cannot monopolise selection over a ready gunner.
+ * Native weapon selection/reload and mission ammunition overrides remain authoritative.
  *
  * When a tank or armoured vehicle the squad knows about is within 600 m, the
  * launcher gunner with ammunition, least damage and least suppression is ordered to target and fire on
@@ -127,7 +130,7 @@ if (_armourIndex < 0) exitWith {false};
 (_enemies select _armourIndex) params ["_enemyUnit", "_enemyPos"];
 private _armour = vehicle _enemyUnit;
 private _gunners = (units _group) select {
-    ([_x] call _actorAvailable) && {!(_x in _moving)} && {!(_x in _recovering)} && {unitCombatMode _x in ["YELLOW","RED"]} && {isNull objectParent _x} && {"AT" in ([_x] call CBE_fnc_CortexCapabilities)}
+    ([_x] call _actorAvailable) && {!(_x in _moving)} && {!(_x in _recovering)} && {unitCombatMode _x in ["YELLOW","RED"]} && {isNull objectParent _x} && {"AT" in ([_x,false,true] call CBE_fnc_CortexCapabilities)}
 };
 if (_gunners findIf {assignedTarget _x == _armour && {(_x getVariable ["CBE_AIPass_TargetHold", -1]) > _now}} >= 0) exitWith {false};
 private _ranked = [];
@@ -193,6 +196,12 @@ if (_blocked) exitWith {
 };
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
 if !([_gunner] call _actorAvailable) exitWith {false};
+private _fireObservation=createHashMap;
+if !("AT" in ([_gunner,false,true,_fireObservation] call CBE_fnc_CortexCapabilities)) exitWith {false};
+// Use the retained native belief, not the hidden target object's current world pose.
+// The loaded launcher's config supplies blast policy; reserves cannot qualify this request.
+private _firePoint=(ATLToASL _enemyPos) vectorAdd [0,0,1];
+if !([_gunner,_firePoint,_fireObservation get "loadedMagazine"] call CBE_fnc_CortexLineOfFireClear) exitWith {false};
 _gunner doTarget _armour;
 _gunner doFire _armour;
 _gunner setVariable ["CBE_AIPass_TargetHold", _now + 15];

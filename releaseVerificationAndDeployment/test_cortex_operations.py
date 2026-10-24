@@ -4942,6 +4942,30 @@ class CortexOperations(unittest.TestCase):
                       '(_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]'):
             self.assertIn(guard,text)
         self.assertIn('CBE_fnc_CortexCombatEffective', text)
+        self.assertIn('"AT" in ([_x,false,true] call CBE_fnc_CortexCapabilities)',roster)
+        fire=text.split('private _fireObservation=createHashMap;',1)[1]
+        self.assertLess(fire.index('[_gunner,false,true,_fireObservation]'),fire.index('_gunner doTarget'))
+        self.assertLess(fire.index('CBE_fnc_CortexLineOfFireClear'),fire.index('_gunner doTarget'))
+        self.assertIn('_fireObservation get "loadedMagazine"',fire)
+        self.assertIn('(ATLToASL _enemyPos) vectorAdd [0,0,1]',fire)
+        capability=source('cortexCapabilities')
+        for required in ('_loaded=_unit weaponState _weapon','count _loaded < 7',
+                         '(_loaded select 0) != _weapon','(_loaded select 4) <= 0',
+                         '(_loaded select 6) != 0','_loaded select 3,_loaded select 4',
+                         '_observation deleteAt "loadedMagazine"','CBE_AIPass_AmmoCapabilityOverrides'):
+            self.assertIn(required,capability)
+        self.assertNotIn('selectWeapon',capability)
+        # The healthier reserve-only carrier used to win the single ranking slot.
+        # Loading readiness now filters before ranking, so the other AT can respond.
+        candidates=[('unloaded',0.0,0,0),('ready',0.2,1,0),('reloading',0.1,1,0.5)]
+        self.assertEqual(min(candidates,key=lambda r:r[1])[0],'unloaded')
+        ready=[r for r in candidates if r[2]>0 and r[3]==0]
+        self.assertEqual(min(ready,key=lambda r:r[1])[0],'ready')
+        # A friendly ahead is outside the rear-half-plane backblast veto but
+        # inside the existing forward cone: a rear check alone cannot admit fire.
+        along,lateral=25,0
+        self.assertFalse(along<0)
+        self.assertTrue(along>0 and lateral<2+along*.087)
         available=text.split('private _actorAvailable={',1)[1].split('private _now =',1)[0]
         for guard in ('_actor checkAIFeature "FIREWEAPON"','ace_medical_ai_healQueue',
                       'toUpperANSI currentCommand _actor != "MOVE"','abs (speed _actor) < 0.5',
