@@ -6,7 +6,7 @@ def source():return (ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf'
 class RecoveryLocalityRetentionTests(unittest.TestCase):
     def test_retention_requires_exact_issued_context_and_rejects_other_tasks(self):
         text=source()
-        gate=text.split('private _retainAcrossLocality=',1)[1].split('if (_retainAcrossLocality',1)[0]
+        gate=text.split('private _retainAcrossLocality=',1)[1].split('private _holdOwnedRearCap=',1)[0]
         for proof in ('_resume','"REVERSE"','alive _vehicle','driver _vehicle == _driver',
                       '_liveOperator == _operator','getForcedSpeed _vehicle','driverCommand',
                       'expectedDestination _operator','DrivingRouteReceipt','CBE_Convoy_Active',
@@ -17,6 +17,10 @@ class RecoveryLocalityRetentionTests(unittest.TestCase):
         # Nonlocal actor reservation expiry is not inferred on this machine's clock.
         self.assertNotIn('CortexActorMoveReserved',gate)
         self.assertNotIn('serverTime+',gate)
+        cap=text.split('private _holdOwnedRearCap={',1)[1].split('// Pending/expired unchanged destination requests',1)[0]
+        for locality in ('local _group','local _driver','local _operator'):
+            self.assertLess(cap.index(locality),cap.index('CortexActorMoveReserved'))
+        self.assertLess(cap.index('CortexActorMoveReserved'),cap.index('_vehicle forceSpeed 0'))
     def test_split_owner_path_retains_original_journal_without_native_write_or_clock_renewal(self):
         text=source()
         branch=text.split('if (_splitOwner || {_nativeIssuerWaiting}) exitWith {',1)[1].split('// Shutdown can follow an already-issued',1)[0]

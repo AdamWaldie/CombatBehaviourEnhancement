@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Cap-only pending reverse cleanup also respects unresolved actor movement journals;
+ * refusal retains the original reverse proof without granting stop or route replay.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Pending ACE care revokes native reverse handback just as its later HEAL command does; queues remain read-only.
  * Native BACK requires its explicit SIMPLE_BACK journal, original distinct crew and unchanged
@@ -303,6 +305,7 @@ private _holdOwnedRearCap={
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {[_group] call CBE_fnc_DrivingMovementAvailable}
         && {[_driver,_operator] findIf {!([_x] call CBE_fnc_CortexCombatEffective)
+            || {[_x] call CBE_fnc_CortexActorMoveReserved}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} < 0}
         && {(_assistState param [3,grpNull]) == _group}
         && {(_assistState param [0,-2]) == _expiredCap}

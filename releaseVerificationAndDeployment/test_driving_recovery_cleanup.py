@@ -160,7 +160,7 @@ class RecoveryCleanupTests(unittest.TestCase):
         self.assertIn('if (_commandState == "EXPIRED") then {call _holdOwnedRearCap}',pending)
         for proof in ('_expiredCap > 0','local _group',
                       'local _driver','local _operator','CortexZeusHeld','DrivingMovementAvailable',
-                      'CortexCombatEffective','checkAIFeature "MOVE"','checkAIFeature "PATH"',
+                      'CortexCombatEffective','CortexActorMoveReserved','checkAIFeature "MOVE"','checkAIFeature "PATH"',
                       '(_assistState param [3,grpNull]) == _group',
                       '(_assistState param [0,-2]) == _expiredCap',
                       'isEqualTo (_work get "baseline")','isEqualTo _work'):

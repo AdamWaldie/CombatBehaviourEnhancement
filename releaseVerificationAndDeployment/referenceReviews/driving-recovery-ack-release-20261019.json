@@ -60,5 +60,34 @@
   ],
   "newWorkers": 0,
   "newGeometryQueries": 0,
-  "newTestCases": 0
+  "newTestCases": 0,
+  "pendingCapActorReservation20261024": {
+    "base": "641a0d38",
+    "finding": "Confirmed native reverse handback already used shared actor reservation check. The separate cap-only pending/expired native request helper required local crew, effectiveness and MOVE/PATH but omitted pending flight/naval journal ownership; its preceding retention gate checked only ordinary marker.",
+    "change": "Add shared reservation refusal for both actual operating actors inside cap-write gate after local group/driver/operator checks. Do not change retention classification, clear pending journals, infer remote expiry, restore a baseline, stop/replay a route or renew original hard deadline. Pending reverse proof remains for existing cleanup.",
+    "sourceRecheck": "Complete HBQ unstuckLoop/unflipLoop re-read. Earlier hbq-unstuck-loop-20261017.json and hbq-unflip-protection-relocation-20261016.json already record RouteLost guard bypass, relocation/unflip/forced seating departures. These are inherited findings, not newly discovered CBE faults or fresh parity credit. Current ordinary recovery retains mayIssueDriving/mayRecoverOrdinaryRoute guards at each movement issue.",
+    "hashes": {
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "59b681203ef2c27537bb7c6aaab9b49a2d95feab8f082fbba3e761fc74dcc5dd",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+      "releaseVerificationAndDeployment/test_driving_recovery_cleanup.py": "7d4555da715984308b4499d008075ba781b01a7c42f74a37659722ad171e635f",
+      "releaseVerificationAndDeployment/test_driving_recovery_locality_retention.py": "0488c14fc5881c9dcfe53243e4566e0fd0d3aad254c5ef8bf83362be26a2de50"
+    },
+    "validation": {
+      "focusedExisting": 6,
+      "fullExisting": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "newCases": 0,
+      "independentVerification": true
+    },
+    "retainedFailure": "Initial .qa/recovery-cap-pending-actor-build.log failed old locality test whose retention slice included cap writer. Narrowed existing assertion to actual retention gate, preserved no local reservation inference there, added locality-before-reservation-before-cap ordering for actual writer.",
+    "candidate": ".qa/candidates/recovery-cap-pending-actor-641a0d38",
+    "fingerprint": "5d3682a21b0bdad43b2971faf6249bd3a168ef5f28895daa571efd1986b32e02",
+    "logs": [
+      ".qa/recovery-cap-pending-actor-focused.log",
+      ".qa/recovery-cap-pending-actor-final-build.log",
+      ".qa/recovery-cap-pending-actor-independent.log"
+    ],
+    "limits": "No native stop/braking, uncertain reverse quiescence, journal handback, normalHC or5/10performance proof. Cap refusal does not declare continued motion safe. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no animation/whole-source parity/percentage claim."
+  }
 }
