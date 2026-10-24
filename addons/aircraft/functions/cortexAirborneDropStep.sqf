@@ -7,8 +7,9 @@
  * (CBE_fnc_CortexParachuteJump). The drop pauses while the aircraft is below
  * CBE_AIPass_Airborne_MinAltitude or over water, and stops if the aircraft is lost or another
  * controller takes the squad; anyone still aboard then stays with the aircraft.
- * LAND: once every living member of the squad is on the ground (or 180 s after the start), the squad
- * returns to normal pass management. If it has no waypoints of its own left, it gets a SAD waypoint
+ * LAND: once the surviving original cargo still in this group is on the ground (or180s from
+ * the original start), insertion tracking ends. Unrelated pilots/crew/new members cannot count
+ * as jumpers or be retasked by the fallback ground order. A cargo-only group without waypoints gets a SAD waypoint
  * on the enemy position that triggered the drop, so it goes and fights rather than standing where it
  * landed.
  * Locality and authority: runs where the group is local; only local soldiers jump.
@@ -117,14 +118,22 @@ if ((_job get "phase") == "DROP") exitWith {
 };
 
 // LAND
-private _alive = (units _group) select {alive _x};
+// Landing evidence belongs to the original passenger roster, not aircraft crew
+// or later group arrivals. Departed actors remain with their current commander.
+private _roster=_job get "jumpers";
+private _alive = _roster select {alive _x && {group _x == _group}};
 private _landed = _alive findIf {vehicle _x != _x || {!isTouchingGround _x && {((getPosATL _x) select 2) > 2}}} < 0;
 if (!_landed && {time < (_job get "deadline")}) exitWith {3};
 // A landing can take long enough for a curator or another controller to issue an order after the
 // last jumper left. Do not create a SAD waypoint over that replacement order merely because the
 // original automatic drop had no route when it started.
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {call _finish};
-if (_landed && {_alive isNotEqualTo []} && {currentWaypoint _group >= count waypoints _group}) then {
+// A group waypoint controls all its members. Only an entirely inserted cargo
+// group may receive this fallback; preserve mixed crew/cargo and later mission actors.
+private _groundOrderScoped=_landed && {_alive isNotEqualTo []} && {
+    ((units _group) select {alive _x}) findIf {!(_x in _alive)} < 0
+};
+if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}) then {
     private _waypoint = _group addWaypoint [_job get "target", 30];
     _waypoint setWaypointType "SAD";
     _group setCurrentWaypoint _waypoint;

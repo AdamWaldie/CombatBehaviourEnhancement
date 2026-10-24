@@ -2773,3 +2773,10 @@ No new polling job, retry deadline or native command is added. Indefinitely unac
 Natural-route continuation covers the admitted roster of up to64 actors, including its leader. One parent index and bounded queue replace the former16-follower subset and repeated formation passes. Each admitted link is considered once after its actual anchor receives a request; a refused anchor leaves its descendants held. Missing or disconnected/cyclic formation links are not flattened into the squad leader.
 
 Existing actor availability, native STOP/post, original route and one-shot request evidence remain required. This changes terminal handback only, with no new movement task, timer, path search or recurring controller. Actual large-roster movement, acknowledgement, formation quality and callback/performance cost remain unverified while audits are paused.
+
+
+### Airborne landing roster and mixed groups
+
+Insertion landing tracks the original cargo roster still belonging to the insertion group. Pilots, operating crew and later group arrivals do not become jumpers or prevent the inserted passengers from completing their landing observation. An original passenger still airborne or aboard remains pending until the original deadline; departed actors receive no recall.
+
+The fallback SAD waypoint is group-wide, so it is permitted only when every living current member belongs to that landed cargo. Mixed crew/cargo groups and groups with later nonparticipant arrivals receive no fallback waypoint. Existing authored routes and external control still take priority. Completing cargo tracking does not establish a mixed-group ground-combat handover, parachute deployment quality or physical acceptance. Repeated insertion, normal/headless locality and performance remain unverified while audits are paused.

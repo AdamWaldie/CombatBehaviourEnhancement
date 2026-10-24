@@ -40,6 +40,27 @@ class AirborneDropFairnessTests(unittest.TestCase):
         self.assertLess(drop.index('[group _pilot] call CBE_fnc_CortexExternalTakeover'),drop.index('if (_jumpers isEqualTo [])'))
         self.assertLess(drop.index('[_group] call CBE_fnc_CortexExternalTakeover'),drop.index('if (_jumpers isEqualTo [])'))
         self.assertNotIn('_job set ["deadline"',drop)
+        landing=text.split('// LAND\n',1)[1]
+        self.assertIn('_roster=_job get "jumpers"',landing)
+        self.assertIn('_roster select {alive _x && {group _x == _group}}',landing)
+        self.assertIn('findIf {!(_x in _alive)} < 0',landing)
+        self.assertLess(landing.index('private _groundOrderScoped='),landing.index('_group addWaypoint'))
+        self.assertIn('if (_groundOrderScoped &&',landing)
+        # Two original passengers can land while the same-group pilot stays
+        # aboard. That completes cargo tracking but cannot author a crew SAD.
+        roster={'cargo-a','cargo-b'}
+        current=roster|{'pilot'}
+        grounded=set(roster)
+        self.assertFalse(current<=grounded) # former whole-group landing gate
+        def outcome(current,grounded):
+            survivors=roster & current
+            landed=bool(survivors) and survivors<=grounded
+            return landed,landed and current<=survivors
+        self.assertEqual(outcome(current,grounded),(True,False))
+        self.assertEqual(outcome(roster,grounded),(True,True))
+        self.assertEqual(outcome(roster|{'new-member'},grounded|{'new-member'}),(True,False))
+        self.assertEqual(outcome(roster,{'cargo-a'}),(False,False))
+        self.assertEqual(outcome(set(),grounded),(False,False))
 
     def test_attempt_advances_before_exit_and_only_acceptance_refreshes_hold(self):
         text=(ROOT/'addons/aircraft/functions/cortexAirborneDropStep.sqf').read_text()

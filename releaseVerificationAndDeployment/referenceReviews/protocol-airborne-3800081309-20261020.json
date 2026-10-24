@@ -114,5 +114,32 @@
       "Mission-script height or native goal changes with unchanged captured authored route are not inferable from this receipt; no universal external-order detection or restoration claimed.",
       "Actual repeated approach/drop/owner change/arbitration and runtime overhead remain unverified. Audits paused."
     ]
+  },
+  "landingRosterScope20261024": {
+    "base": "82231d27",
+    "finding": "DROP captures cargo/FFV passengers and excludes operating crew, but LAND used every alive current group member. A same-group pilot remaining aboard prevented actual landed cargo from completing tracking. Whole-group fallback SAD also needs a stronger participant boundary because it retasks all members.",
+    "change": "LAND alive roster is original jumpers still alive in original group. An original airborne/aboard member remains pending until original deadline; departed actors are not recalled. Fallback SAD additionally requires every alive current group member to be in that landed cargo, retaining existing no-authored-waypoint and external-control gates. Mixed crew/cargo and later nonparticipant joins get no fallback. No eject, inventory, flight, sensing, deadline, worker or scheduler change.",
+    "sourceIntent": "Original Protocol selects cargo separately from gunners/pilot; CBE retains that roster distinction through landing and rejects whole-group ground orders over unrelated crew. No source copying or full parity claim.",
+    "remainingRequiredScope": "Independent landed-passenger ground-task handover inside a mixed aircrew/cargo group remains unimplemented; withholding a whole-group SAD is not that implementation. Actual insertion, landing/equipment, repeated reuse, HC/replication and overhead remain unverified.",
+    "validation": {
+      "focusedExistingCases": 4,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "models": "Landed cargo plus airborne same-group pilot; cargo-only group; later nonparticipant member; original cargo still airborne; no remaining survivors.",
+      "candidate": ".qa/candidates/airborne-landing-roster-82231d27",
+      "fingerprint": "88af27b80c2efb0660a1b033c6aec38d10a9a4ae1cce85f72ece0c5a5a5d1639",
+      "logs": [
+        ".qa/airborne-landing-roster-focused.log",
+        ".qa/airborne-landing-roster-build.log",
+        ".qa/airborne-landing-roster-independent.log"
+      ]
+    },
+    "sourceHashes": {
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "4a8be64fa8b53f1d00db0c8e65f0c23e8903c1a6a53bd4ba7831d402a13b90cb",
+      "releaseVerificationAndDeployment/test_airborne_drop_fairness.py": "091a05946fcee96ed93ec6e120b058f8db8a8b66330525e54a9524faba57913d"
+    },
+    "limits": "Offline/source/model evidence only; no physical acceptance/performance/parity or percentage credit. Current group membership read only at potential completed landing; native cost remains unmeasured. Unsigned dirty candidate includes unrelated dirt; review/handover postdate package. Audits PAUSED."
   }
 }
