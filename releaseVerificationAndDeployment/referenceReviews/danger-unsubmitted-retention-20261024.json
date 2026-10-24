@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "28e93e9c",
+  "requirement": "Bounded native danger handoff must not erase unsubmitted simultaneous observations",
+  "fault": "FSM forms48-record window and12-record submission including current entry/strongest, then cleared entire native queue. Other still-live window observations were not submitted and were lost.",
+  "change": "Retain window minus submitted records in native queue. Keep selection,12-record expensive submit cap,48-record observation window, source/geometry freshness, original expiries and finite recycle budgets. Runtime FSM and editable bifsm changed together.",
+  "regression": "Updated existing queue contract; total test count unchanged. Editable/runtime graph parity failure caught missing graph update before final successful build.",
+  "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;full offline and independent package verification pass",
+  "candidate": ".qa/candidates/danger-unsubmitted-retention-28e93e9c",
+  "fingerprint": "4abfafef3702d482c975bfd919c2732ada36cc91fe26149c02d192f1dbd86cbb",
+  "limits": [
+    "Unsigned dirty development candidate; notes postdate build",
+    "Backlog may require later existing FSM passes; expired records do not gain fresh lifetime",
+    "No claim every native event survives bounded overflow or expires late enough for handoff",
+    "Dense-contact timing and whole-frame performance UNRUN; audits PAUSED"
+  ]
+}

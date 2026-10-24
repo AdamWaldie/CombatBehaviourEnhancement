@@ -3,6 +3,7 @@
  * Non-finite geometry/timestamps are rejected before selection or observation side effects.
  * Purpose: Select one live engine danger record from at most48 recent records with a bounded
  * priority pass. The FSM separately submits at most12 observations including this selection.
+ * Unsubmitted window records remain in the native queue with unchanged expiry for later passes.
  * Direct hits remain
  * highest, but an actor that can fire retains higher priority than casualty observation, shouting
  * or ambient fire so actionable combat is not displaced by weaker events from the same queue.

@@ -1369,7 +1369,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_records=_window select [((count _window)-10) max 0,10]',engine_fsm)
         self.assertIn('_cbeEntryRecord=[_dangerCause,+_dangerPos,_dangerUntil,_dangerCausedBy]',engine_fsm)
         self.assertIn('_records pushBackUnique _cbeEntryRecord',engine_fsm)
-        self.assertIn('_cbeEntryRecord=[]; _queue=[]',engine_fsm)
+        self.assertIn('_cbeEntryRecord=[]; _queue=_window-_records',engine_fsm)
         # Native queue ordering need not be inferred: the current entry is explicitly
         # prepended by this FSM and could otherwise fall outside the submitted tail.
         current=[0,[10,20,0],30,'contact']
@@ -1403,8 +1403,9 @@ class CortexOperations(unittest.TestCase):
             self.assertLessEqual(len(batch(window[:size],current,strongest)),12)
         self.assertNotIn(current,batch(window[1:],[],strongest))
         self.assertIn('_records pushBackUnique _selected',engine_fsm)
-        self.assertLess(engine_fsm.index('_selected=[_window]'),engine_fsm.index('_queue=[]; _mode='))
-        self.assertIn('_queue=[]',engine_fsm)
+        self.assertLess(engine_fsm.index('_selected=[_window]'),engine_fsm.index('_queue=_window-_records; _mode='))
+        self.assertIn('_queue=_window-_records',engine_fsm)
+        self.assertNotIn('_queue=[]; _mode=',engine_fsm)
         self.assertIn('CBE_fnc_DangerEngineSubmit',engine_fsm)
         self.assertIn('[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit',engine_fsm)
         self.assertIn('CBE_fnc_DangerEngineCanContinue',engine_fsm)

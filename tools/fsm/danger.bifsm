@@ -89,7 +89,7 @@ class GraphItems
 			class ItemInfo
 			{
 				Id=3;
-				InitCode="_recentLimit=48-([0,1] select (_cbeEntryRecord isNotEqualTo [])); _window=_queue select [((count _queue)-_recentLimit) max 0,_recentLimit]; if (_cbeEntryRecord isNotEqualTo []) then {_window pushBackUnique _cbeEntryRecord}; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-10) max 0,10]; if (_cbeEntryRecord isNotEqualTo []) then {_records pushBackUnique _cbeEntryRecord}; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _cbeEntryRecord=[]; _queue=[]; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;";
+				InitCode="_recentLimit=48-([0,1] select (_cbeEntryRecord isNotEqualTo [])); _window=_queue select [((count _queue)-_recentLimit) max 0,_recentLimit]; if (_cbeEntryRecord isNotEqualTo []) then {_window pushBackUnique _cbeEntryRecord}; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-10) max 0,10]; if (_cbeEntryRecord isNotEqualTo []) then {_records pushBackUnique _cbeEntryRecord}; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _cbeEntryRecord=[]; _queue=_window-_records; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;";
 			};
 		};
 		Left=-75;
