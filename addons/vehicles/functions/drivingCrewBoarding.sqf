@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing ends cooperation without cancelling the boarding order.
  * Pending ACE care ends native-boarding cooperation without clearing its queue or renewing seat deadlines.
@@ -60,7 +61,7 @@ if (count _seats > 20) exitWith {false};
 // Boarding permissions are not observable from assignedVehicle alone: orderGetIn false
 // preserves that assignment. Default cooperation requires an actual native GET IN.
 // Optional recall is explicit operator policy, not inferred mission permission.
-private _available=call _mayWait && {alive _vehicle} && {canMove _vehicle} && {simulationEnabled _vehicle}
+private _available=call _mayWait && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle} && {simulationEnabled _vehicle}
     && {!isObjectHidden _vehicle} && {vehicle leader _group == _vehicle}
     && {behaviour leader _group in ["SAFE","AWARE"]}
     && {[_group] call CBE_fnc_DrivingMovementAvailable}

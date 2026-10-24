@@ -1,0 +1,26 @@
+{
+  "baseline": "a4d06f7c",
+  "finding": "Ordinary-driving and finite crew/movement admission checked alive and canMove but did not inspect the native water-damaged engine flag.",
+  "implementation": "Refuse new ordinary-driving/crew/bypass/corridor movement for waterDamaged vehicles. Shared convoy bypass/corridor mobility checks also exclude drowned engines. Leave existing movement ownership and cap/operation cleanup independent of the health check; no repair, damage reset, immunity, new worker, scan or timer.",
+  "source": "https://community.bistudio.com/wiki/waterDamaged",
+  "sourceScope": "Native command describes an engine water-damage flag after drowning. No claim that canMove always remains true, or that an observed audit failure was caused by drowning.",
+  "notImplemented": "No shallow-ford policy, depth calculation or water-crossing permission. Existing dry/static-deck geometry remains required.",
+  "validation": {
+    "tests": 1495,
+    "compiledSQF": 413,
+    "pbo": 10,
+    "candidate": ".qa/candidates/driving-water-health-a4d06f7c",
+    "fingerprint": "6c28baf2de1a5b53d3223546eb91bc8c72f69bf3fb57b5dab3f74db10282f3f3",
+    "independentPackage": "PASS",
+    "live": "UNRUN; audits paused"
+  },
+  "hashes": {
+    "drivingOperationStart": "fd9dc43eb53c9bb27654dea2797a34074ce8c925b1c5dea4eb03a8f4d23f1b87",
+    "drivingAssistStart": "c62d7a05edd70db32207fdec0817f873dfd7a39a0fec3354c8dbcb269cedd0af",
+    "drivingCrewStep": "77e23d35c25ea5f0621cbb5040352926f17e8880e96884771e8e240e6d71fab4",
+    "drivingCrewBoarding": "b5840b4ea8a99c6e4250870e2cdebf915b1843ae2ebf16874684f85c501634b7",
+    "drivingBypassStep": "4d573ce7d9b630aed4e99cd4b994b9f26aa3b59fcbcc1e95b2eeaaae45fcc4d5",
+    "drivingCorridorStep": "f06f228d0ae0f3f152ac0f8c670d7b753206662965bde243d263e2412db78eb5"
+  },
+  "limitations": "No measured runtime performance or physical damage/repair transition proof. Unsigned dirty development candidate includes preserved unrelated dirt; engineering notes postdate package."
+}

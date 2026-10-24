@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Queued ACE treatment vetoes steering before the native medical task appears.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Admission snapshots both native crew commands before geometry, then atomically rechecks
@@ -83,7 +84,7 @@ private _approachTasksReady={
 private _controllerCurrent={
     if (_convoy) exitWith {
         private _mobile=(_configuration param [4,[]]) select {
-            alive _x && {canMove _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
+            alive _x && {canMove _x} && {!waterDamaged _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
                 && {group driver _x == _group}
         };
         (_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _brain
@@ -122,7 +123,7 @@ private _mayWrite={
         && {_convoy || {missionNamespace getVariable ["CBE_AIPass_Active",false]}}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
-        && {alive _vehicle} && {canMove _vehicle}
+        && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {call _crewReady}
         && {driver _vehicle isEqualTo _driver} && {effectiveCommander _vehicle isEqualTo _operator}

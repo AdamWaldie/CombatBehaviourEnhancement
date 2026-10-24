@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Duplicate success requires a live numeric FSM handle. An ended nonterminal worker
  * may replace only its executor metadata; public recovery/crew deadlines are not renewed.
  * At most one ended-worker restart per owner/route is allowed. A failed startup or
@@ -163,7 +164,7 @@ isNil {
     private _hasVehicle=(units _group) findIf {
         private _vehicle=vehicle _x;
         _vehicle != _x && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")}
-            && {alive _vehicle} && {canMove _vehicle}
+            && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle}
             && {[_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
             && {(local _vehicle && {!isNull driver _vehicle} && {group driver _vehicle == _group})
                 || {vehicle leader _group == _vehicle && {[_x] call CBE_fnc_CortexCombatEffective}

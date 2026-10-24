@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Pending ACE treatment queues veto crew admission and each existing seat-action boundary.
  * Purpose: Executes one finite native internal-seat replacement for an ordinary leader vehicle.
  * A dead driver receives one native Eject action. A vacant seat permits MoveToDriver; after
@@ -194,7 +195,7 @@ private _available={
     // Physical vacancy alone does not release a mission-assigned incoming driver.
     private _driverSeat=(fullCrew [_vehicle,"driver",true]) param [0,[]];
     private _assignedDriver=_driverSeat param [5,objNull];
-    local _group && {alive _vehicle} && {canMove _vehicle} && {_motionSafe}
+    local _group && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle} && {_motionSafe}
         && {call _nativeMissionCurrent}
         && {call _crewRecoveryCurrent}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle} && {!lockedDriver _vehicle}

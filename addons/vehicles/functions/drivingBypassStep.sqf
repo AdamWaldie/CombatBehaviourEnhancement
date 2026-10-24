@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Queued ACE treatment vetoes steering before the native medical task appears.
  * Either operating crew member entering native flight vetoes bypass steering.
  * Ordinary admission requires actual approach room before spending work; an inactive
@@ -122,7 +123,7 @@ private _obstacleAvailable={
 private _controllerCurrent={
     if (_convoy) exitWith {
         private _mobile=(_configuration param [4,[]]) select {
-            alive _x && {canMove _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
+            alive _x && {canMove _x} && {!waterDamaged _x} && {[driver _x] call CBE_fnc_CortexCombatEffective}
                 && {group driver _x == _group}
         };
         (_group getVariable ["CBE_Convoy_Brain",createHashMap]) isEqualTo _brain
@@ -156,7 +157,7 @@ private _mayWrite={
         && {call _plainRoute} && {call _authority} && {call _seatsAvailable} && {call _nativePathFree} && {call _queueCurrent}
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
-        && {alive _vehicle} && {canMove _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+        && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle} && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
         && {[_group,["CBE_AIPass_DrivingAssist_Recovery_Enable","CBE_Convoy_RouteRecovery_Enable"] select _convoy,true,_vehicle] call CBE_fnc_CortexFeatureEnabled}
         && {isAISteeringComponentEnabled _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Native boarding/queue holds skip forward traffic discovery and geometry that cannot relax
  * their zero cap. Commit rechecks the hold; release samples fresh before motion. Pedestrian
  * and rear safety remain independent. No stored clear-path or gate-opening permission.
@@ -343,7 +344,7 @@ _brain set ["geometryTracks",_geometryTracks];
     // cap before it can issue a recovery move; the individual driver checks below retain the
     // vehicle-specific local/remote-control safety boundary.
     private _yieldToOwner=[_group] call CBE_fnc_CortexExternalTakeover;
-    if (!_enabled || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)} || {!(call _destinationControlFree)} || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle}
+    if (!_enabled || {!([_group,"CBE_AIPass_DrivingAssist_Enable",true,_vehicle] call CBE_fnc_CortexFeatureEnabled)} || {!(call _destinationControlFree)} || {!local _vehicle} || {!alive _vehicle} || {!canMove _vehicle} || {waterDamaged _vehicle}
         || {!([_driver] call CBE_fnc_CortexCombatEffective)} || {isPlayer _driver}
         || {!isNull (_driver getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {[_driver] call CBE_fnc_CortexExternalOwner != ""}
@@ -379,7 +380,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {local _driver} && {group _driver == _group}
                 && {!isPlayer _driver} && {isNull remoteControlled _driver}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-                && {alive _vehicle} && {canMove _vehicle}
+                && {alive _vehicle} && {canMove _vehicle} && {!waterDamaged _vehicle}
                 && {[_driver] call CBE_fnc_CortexCombatEffective}
                 && {[_movementOperator] call CBE_fnc_CortexCombatEffective}
                 && {local _movementOperator} && {group _movementOperator == _group}
