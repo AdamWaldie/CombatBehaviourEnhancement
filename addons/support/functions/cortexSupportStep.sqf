@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Maintains at most six reserved responders and examines at most eight candidates per request step.
+ * Initial discovery scores eight snapshotted groups per callback, before any reservation.
+ * The complete ranked set retains nearest-first order and stable snapshot tie indices.
+ * Discovery uses the original deadline; interruption/restart never rescans or renews it.
  * Assigns each responder a distinct optional 45 m rally area, with at least 110 m between centres.
  * Six bounded candidate areas lie behind the requester. Occupied areas are excluded, then the
  * shared avenue selector chooses a dry, usable endpoint and rejects a cliff-like or unnecessarily
@@ -84,6 +87,39 @@ if (!_valid) exitWith {
     _requester setVariable ["CBE_Cortex_SupportRequestState",nil,true];
     _requests deleteAt (_job get "key");
     -1
+};
+// Candidate scoring belongs to the same finite DISCOVER executor as reservation,
+// not the remote request callback. No new query or private polling loop is created.
+if (_job getOrDefault ["discoveryPending",false]) exitWith {
+    private _discoveryGroups=_job get "discoveryGroups";
+    private _discoveryCursor=_job get "discoveryCursor";
+    private _discoveryOrigin=_job get "discoveryOrigin";
+    private _discoveryRadius=_job get "discoveryRadius";
+    private _scored=_job get "candidates";
+    {
+        private _candidate=_x;
+        if (!isNull _candidate && {_candidate != _requester}
+            && {side _candidate == side _requester}) then {
+            private _candidateTransmitter=[_candidate] call CBE_fnc_CortexGroupTransmitter;
+            if (!isNull _candidateTransmitter
+                && {_candidateTransmitter distance2D _discoveryOrigin <= _discoveryRadius}
+                && {count ((units _candidate) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}) then {
+                _scored pushBack [_candidateTransmitter distance2D _discoveryOrigin,
+                    _discoveryCursor+_forEachIndex,_candidate];
+            };
+        };
+    } forEach (_discoveryGroups select [_discoveryCursor,8]);
+    _discoveryCursor=(_discoveryCursor+8) min count _discoveryGroups;
+    _job set ["discoveryCursor",_discoveryCursor];
+    _job set ["candidates",_scored];
+    if (_discoveryCursor >= count _discoveryGroups) then {
+        _scored sort true;
+        _job set ["discoveryPending",false];
+        _job deleteAt "discoveryGroups";
+    };
+    // Reservation begins on a later callback even when this was the final slice.
+    // Do not combine two eight-candidate workloads in one scheduler action.
+    0.05
 };
 private _candidates = _job get "candidates";
 private _cursor = _job get "cursor";

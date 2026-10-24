@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Creates a bounded cross-owner support-discovery request or upgrades its remaining capacity for armour.
+ * Snapshot nearby unique groups once; the existing support FSM scores at most eight per callback.
+ * Request creation does not synchronously inspect every candidate transmitter/roster.
  * Locality/authority: server owns reservations; current group owners validate and execute orders.
  * Publishes a bounded responder index on the requester so its owner never scans every group.
  * Only groups with at least three combat-effective dismounts can enter the infantry responder
@@ -68,18 +70,6 @@ private _candidateSeen=createHashMap;
         };
     };
 } forEach (_requesterPosition nearEntities ["Man",_radius]);
-private _candidates = [];
-{
-    private _candidate = _x;
-    private _candidateTransmitter = [_candidate] call CBE_fnc_CortexGroupTransmitter;
-    private _distance = if (isNull _candidateTransmitter) then {-1} else {_candidateTransmitter distance2D _requesterPosition};
-    if (_candidate != _requester && {side _candidate == side _requester} && {!isNull _candidateTransmitter}
-        && {count ((units _candidate) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
-        && {_distance <= _radius}) then {
-        _candidates pushBack [_distance,_forEachIndex,_candidate];
-    };
-} forEach _candidateGroups;
-_candidates sort true;
 private _rallyDirection=_requesterPosition getDir _enemy;
 private _rallyCandidates=[];
 {
@@ -95,7 +85,9 @@ missionNamespace setVariable ["CBE_AIPass_SupportSerial",_serial];
 private _job = createHashMapFromArray [["requester",_requester],["key",_key],["serial",_serial],["at",_at],["maximum",_maximum min 6],
     ["rallyDirection",_rallyDirection],["enemy",+_enemy],
     ["expiry",serverTime+300],["rally",_rally],
-    ["candidates",_candidates],["cursor",0],["leases",[]]];
+    ["candidates",[]],["cursor",0],["leases",[]],
+    ["discoveryGroups",_candidateGroups],["discoveryCursor",0],["discoveryPending",true],
+    ["discoveryOrigin",+_requesterPosition],["discoveryRadius",_radius]];
 // Publish only this request's bounded responder index. Requester owners consume it
 // without scanning allGroups on every contact tick.
 _requester setVariable ["CBE_Cortex_SupportResponders",[],true];

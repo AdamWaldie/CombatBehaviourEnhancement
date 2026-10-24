@@ -5215,7 +5215,8 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('(_status select 1) >= 0',server)
         self.assertIn('[_routeOrigin,_candidateRoutes,_enemy,[_supportOrigin]]',server)
         self.assertIn('([_helper] call CBE_fnc_CortexGroupTransmitter)',server)
-        self.assertIn('[_candidate] call CBE_fnc_CortexGroupTransmitter',source('cortexSupportServer'))
+        self.assertNotIn('[_candidate] call CBE_fnc_CortexGroupTransmitter',source('cortexSupportServer'))
+        self.assertIn('[_candidate] call CBE_fnc_CortexGroupTransmitter',source('cortexSupportStep'))
         self.assertIn('private _groupTransmitter = [_group] call CBE_fnc_CortexGroupTransmitter;',source('cortexSupportApply'))
         self.assertIn('private _directCoordinationPending = _attack isEqualTo []',source('cortexSupportApply'))
         self.assertIn('if (_okay && {_directCoordinationPending}) exitWith {',source('cortexSupportApply'))
@@ -5545,8 +5546,8 @@ class CortexOperations(unittest.TestCase):
         apply=source('cortexSupportApply')
         assault=source('cortexSupportAssaultServer')
         dismount_guard='[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}'
-        self.assertIn(dismount_guard,server)
-        self.assertGreaterEqual(step.count(dismount_guard),2)
+        self.assertIn('["discoveryGroups",_candidateGroups]',server)
+        self.assertGreaterEqual(step.count(dismount_guard),3)
         self.assertIn('private _footFit = _fit select {isNull objectParent _x}',apply)
         self.assertIn('count _footFit >= 3',apply)
         self.assertIn('_footFit findIf {"AT" in',apply)
@@ -5556,8 +5557,10 @@ class CortexOperations(unittest.TestCase):
         names = [
             'cortexClearBuilding', 'cortexSupportApply', 'cortexSupportBoundStart',
             'cortexSupportMaintain', 'cortexSupportStep', 'cortexSupportCoordinateStep',
-            'cortexSupportServer', 'cortexSupportAssaultServer'
+            'cortexSupportAssaultServer'
         ]
+        # The server snapshots groups; on-foot scoring moved to the finite step.
+        self.assertIn('["discoveryGroups",_candidateGroups]',source('cortexSupportServer'))
         texts = [source(name) for name in names]
         for text in texts:
             self.assertIn('objectParent', text)
@@ -5611,7 +5614,18 @@ class CortexOperations(unittest.TestCase):
         for text in [support,reports,combined]:
             self.assertNotIn('} forEach allGroups;',text)
         self.assertIn('_searchArea nearEntities [["Man"],false,true,true]',combined)
-        self.assertIn('} forEach _candidateGroups;',support)
+        step=source('cortexSupportStep')
+        self.assertIn('["discoveryGroups",_candidateGroups]',support)
+        self.assertNotIn('_candidates sort true',support)
+        self.assertIn('if (_job getOrDefault ["discoveryPending",false]) exitWith {',step)
+        discovery=step.split('// Candidate scoring belongs',1)[1].split('private _candidates = _job get "candidates";',1)[0]
+        self.assertIn('select [_discoveryCursor,8]',discovery)
+        self.assertIn('_discoveryCursor+_forEachIndex',discovery)
+        self.assertIn('_scored sort true',discovery)
+        self.assertIn('_job deleteAt "discoveryGroups"',discovery)
+        self.assertNotIn('remoteExec',discovery)
+        self.assertNotIn('"expiry",',discovery)
+        self.assertNotIn('nearEntities',discovery)
         self.assertIn('_receiverArea nearEntities [["Man"],false,true,true]',reports)
         self.assertIn('} forEach _receiverGroups;',reports)
         self.assertIn('} forEach _candidateGroups;',combined)
