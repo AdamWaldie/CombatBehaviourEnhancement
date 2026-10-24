@@ -9,7 +9,8 @@
  * Default rear travel uses nine support samples; longer corridors sample every <=4m
  * (at most48 support samples plus one target ray). Bridge geometry
  * remains eligible independently of terrain water. Vehicle/person and moving-prop surfaces cannot
- * support a reverse, including parent/proxy hits. Discrete samples are not a continuous path proof.
+ * support a reverse, including parent/proxy hits. Every support station rejects submerged ground;
+ * static decks above water remain eligible. Discrete samples are not a continuous path proof.
  * Current relative velocities also project hull occupancy over two seconds before a reverse.
  * Measured reverse yaw adds a conservative full-body actor envelope and sampled corner sweeps.
  * These only veto additional hazards; changing steering/acceleration remains unknown.
@@ -162,8 +163,12 @@ private _clear=true;private _rays=0;
 private _stableSupport={
     params ["_hit"];
     private _support=if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2};
-    isNull _support || {!(_support isKindOf "AllVehicles")
-        && {vectorMagnitude velocity _support <= 0.1}}
+    // Every station must preserve the support layer, not just the final target.
+    // Submerged terrain between two dry deck points is not a traversable bridge.
+    private _drySupport=!(surfaceIsWater (_hit select 0))
+        || {!isNull _support && {((_hit select 0) select 2) > 0.25}};
+    _drySupport && {isNull _support || {!(_support isKindOf "AllVehicles")
+        && {vectorMagnitude velocity _support <= 0.1}}}
 };
 private _supported=true;
 private _supportDistances=[1 min _distance,_distance*0.5,_distance];
@@ -195,9 +200,7 @@ if (_targetHits isEqualTo []) exitWith {[false,"REAR_TARGET_SUPPORT",time,_rays]
 private _targetHit=_targetHits select 0;
 private _destination=ASLToAGL (_targetHit select 0);
 if (((_targetHit select 1) select 2) < 0.7
-    || {!([_targetHit] call _stableSupport)}
-    || {surfaceIsWater _destination && {(_destination select 2) < 0
-        || {isNull (_targetHit select 2) && {isNull (_targetHit select 3)}}}}) exitWith {
+    || {!([_targetHit] call _stableSupport)}) exitWith {
     [false,"REAR_TARGET_SUPPORT",time,_rays]
 };
 

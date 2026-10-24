@@ -119,6 +119,9 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('isNull _support ||',stable)
         self.assertIn('!(_support isKindOf "AllVehicles")',stable)
         self.assertIn('vectorMagnitude velocity _support <= 0.1',stable)
+        self.assertIn('surfaceIsWater (_hit select 0)',stable)
+        self.assertIn('!isNull _support && {((_hit select 0) select 2) > 0.25}',stable)
+        self.assertIn('_drySupport &&',stable)
         self.assertNotIn('lineIntersectsSurfaces',stable)
         self.assertIn('[_hits select 0] call _stableSupport',support)
         target=text.split('private _targetHit=',1)[1].split('forEach _heights;',1)[0]

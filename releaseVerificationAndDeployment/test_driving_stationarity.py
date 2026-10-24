@@ -32,8 +32,10 @@ class DrivingStationarityTests(unittest.TestCase):
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         self.assertIn('modelToWorldWorld [0,-_distance,(_low select 2)+1.2]',rear)
         self.assertIn('private _destination=ASLToAGL (_targetHit select 0);',rear)
-        self.assertIn('surfaceIsWater _destination && {(_destination select 2) < 0',rear)
-        self.assertIn('isNull (_targetHit select 2) && {isNull (_targetHit select 3)}',rear)
+        stable=rear.split('private _stableSupport={',1)[1].split('private _supported=true;',1)[0]
+        self.assertIn('surfaceIsWater (_hit select 0)',stable)
+        self.assertIn('!isNull _support && {((_hit select 0) select 2) > 0.25}',stable)
+        self.assertIn('[_targetHit] call _stableSupport',rear)
         self.assertIn('time,_rays,_destination]',rear)
         self.assertIn('_rear=+(_clearance param [4,[]]);',start)
         self.assertNotIn('surfaceIsWater _rear',start)
