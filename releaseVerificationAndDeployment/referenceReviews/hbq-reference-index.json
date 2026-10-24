@@ -110,6 +110,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/convoy-disabled-movement-20261024.json",
+      "sha256": "15f6d3d75dc60b5234a40a11b6c2f290d42d202bb5164e0e8964eca88451a79e",
+      "scope": "Convoy mission-disabled movement admission/suspension and selected HBQ traffic/refresh-route contrast; not whole controller parity.",
+      "sourceFileMentions": [
+        "functions/fn_refreshRoute.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/convoy-native-leg-continuity-20261018.json",
       "sha256": "abfe1c3773ec7825228a17597631de7404a85f38de170ff0d082b4525f3c2d1f",
       "scope": "owned native convoy straight-leg continuity",

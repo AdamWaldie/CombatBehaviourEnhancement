@@ -75,6 +75,8 @@
  * Exhaustion leaves the native route untouched; only a new revision or authored identity starts anew.
  * Steering HALT resume requires exact seat/native-command/authored-waypoint receipts and
  * the current brain/registry. Missing or changed evidence never authorizes a route recall.
+ * Mission-disabled MOVE/PATH on either actual seat suspends through the existing no-recall
+ * task path before acknowledgement handling. Every new write rechecks both flags; none enables them.
  * Startup and missing-trail holds check both actual seats atomically; refused holds never
  * create path-owner or native-hold receipts. Crew service/reservations retain their commands.
  * Final speed, follower MOVE and steering-path commits recheck two actual seats atomically;
@@ -153,7 +155,8 @@ private _externalCrew = _registered findIf {(crew _x) findIf {[_x] call CBE_fnc_
 private _globalPaused = [] call CBE_fnc_CortexIsPaused;
 private _paused = _globalPaused || {[_group] call CBE_fnc_CompatibilityExternalControl} || {_externalCrew} || {"ALL" in (_group getVariable ["CBE_AIPass_DisabledFeatures",[]])};
 private _playerCrew = _registered findIf {(crew _x) findIf {isPlayer _x || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}} >= 0} >= 0;
-// A driver/commander service task owns movement even when the group still has a convoy route.
+// A driver/commander service task or mission-disabled MOVE/PATH owns movement even
+// when the group still has a convoy route. Never re-enable mission-owned AI features.
 // Observe only actual seats in the registered column; no world scan or passenger task takeover.
 private _nativeCrewTask=_registered findIf {
     private _driver=driver _x;private _operator=effectiveCommander _x;
@@ -161,6 +164,7 @@ private _nativeCrewTask=_registered findIf {
     [_driver,_operator] findIf {
         !isNull _x && {local _x} && {
             [_x] call CBE_fnc_CortexActorMoveReserved
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
             || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
                 "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
         }
@@ -307,6 +311,7 @@ private _mayIssueDriving = {
     [_taskDriver,_taskOperator] findIf {
         !local _x || {group _x != _group} || {vehicle _x != _taskVehicle}
         || {!simulationEnabled _x} || {isObjectHidden _x}
+        || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
         || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
         || {!isNull remoteControlled _x}
