@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * FIREWEAPON and native fleeing gate all throws; fragmentation additionally retains current
+ * Native selected-weapon round/magazine loading, FIREWEAPON and fleeing gate all throws; fragmentation additionally retains current
  * group and individual YELLOW/RED fire permission at admission and every queued callback.
  * Admission, queue commitment and every delayed aim/release retry yield to hidden or
  * simulation-disabled actors and queued medical treatment; no queue or deadline is changed.
@@ -62,9 +62,22 @@ if (!(_kind in ["SMOKE","FRAG"]) || {!([group _unit] call CBE_fnc_CortexIsEligib
 // Smoke does not acquire lethal fire permission; it still respects explicit weapon disable.
 private _fireAllowed={
     params ["_actor","_type"];
-    _actor checkAIFeature "FIREWEAPON" && {!fleeing _actor}
+    private _allowed=_actor checkAIFeature "FIREWEAPON" && {!fleeing _actor}
         && {_type != "FRAG" || {unitCombatMode _actor in ["YELLOW","RED"]
-            && {combatMode group _actor in ["YELLOW","RED"]}}}
+            && {combatMode group _actor in ["YELLOW","RED"]}}};
+    if (!_allowed) exitWith {false};
+    // A throw must not replace native round/magazine loading. Read the selected
+    // weapon only; no selection, reload command or extra worker is needed.
+    // Phase-1 means a removed magazine, not a running reload. Permit that exact
+    // empty state, including an unarmed actor, when magazine loading is settled.
+    private _native=weaponState _actor;
+    _native isEqualType [] && {count _native >= 7}
+        && {[0,1,2,3] findIf {!((_native select _x) isEqualType "")} < 0}
+        && {[4,5,6] findIf {!((_native select _x) isEqualType 0)
+            || {!finite (_native select _x)}} < 0}
+        && {(_native select 4) >= 0} && {(_native select 6) == 0}
+        && {(_native select 5) == 0 || {(_native select 5) == -1
+            && {(_native select 3) == ""} && {(_native select 4) == 0}}}
 };
 if !([_unit,_kind] call _fireAllowed) exitWith {false};
 // Explicit finite callers must not adopt a replacement drill discovered during selection.
@@ -276,6 +289,7 @@ private _thrown = false;
                 isNil {
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                 if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
+                if !([_unit,_kind] call _fireAllowed) exitWith {["FIRE_POLICY_OR_FLIGHT_CHANGED"] call _cancel};
                 if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
                 _unit setVariable ["CBE_Cortex_ThrowDecision",[time,"ALIGNED",_kind,_throwGeneration,[_bodyError,_aimError,_muzzle]]];
                 // Observe the native release once; never steer or replace the projectile.

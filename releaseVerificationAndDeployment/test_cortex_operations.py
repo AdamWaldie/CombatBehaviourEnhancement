@@ -6346,6 +6346,38 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(callback.index('FIRE_POLICY_OR_FLIGHT_CHANGED'),callback.index('_unit doWatch _towards'))
         self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',text)
         self.assertIn('"_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]]',callback)
+        import math
+        # Native weapon activity belongs to the engine before and after queuing.
+        # A settled empty magazine is distinct from a reload; malformed/partial
+        # observations cannot authorize a throw. This model is not engine proof.
+        for guard in ('weaponState _actor','count _native >= 7','finite (_native select _x)',
+                      '(_native select 6) == 0','(_native select 5) == 0',
+                      '(_native select 5) == -1','(_native select 3) == ""'):
+            self.assertIn(guard,policy)
+        final=callback.split('// Safety geometry above stays scheduled.',1)[1]
+        self.assertLess(final.index('call _fireAllowed'),final.index('addEventHandler ["FiredMan"'))
+        self.assertLess(text.index('call _fireAllowed'),text.index('private _throwConfig'))
+        def native_idle(state):
+            numeric=lambda v:type(v) in (int,float) and math.isfinite(v)
+            return (isinstance(state,list) and len(state)>=7
+                    and all(isinstance(v,str) for v in state[:4])
+                    and all(numeric(v) for v in state[4:7])
+                    and state[4]>=0 and state[6]==0
+                    and (state[5]==0 or (state[5]==-1 and state[3]=='' and state[4]==0)))
+        ready=['rifle','rifle','Single','mag',30,0,0]
+        self.assertTrue(native_idle(ready))
+        self.assertTrue(native_idle(['','','','',0,-1,0]))
+        self.assertTrue(native_idle(['rifle','rifle','Single','',0,-1,0]))
+        for index in (5,6):
+            busy=ready.copy();busy[index]=0.5
+            self.assertFalse(native_idle(busy))
+        for index in (4,5,6):
+            for invalid in ('0',True,float('nan'),float('inf')):
+                malformed=ready.copy();malformed[index]=invalid
+                self.assertFalse(native_idle(malformed))
+        removed=ready.copy();removed[5]=-1
+        self.assertFalse(native_idle(removed))
+        self.assertFalse(native_idle(ready[:6]))
 
     def test_retreat_releases_drill_before_capturing_attack_control(self):
         text=source('cortexRetreat')
