@@ -6,6 +6,8 @@
  * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite1s planner/group,
  * <=64 roster actors/16 unique AA platforms/one start attempt per callback. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
+ * Urgent approach ranks first; equal-urgency warnings prefer this responder as victim,
+ * then fewer existing responders and shorter approach time. Only native warnings contribute.
  * Arguments: 0 mode STRING,NOTICE; 1 input OBJECT or HASHMAP,objNull (vehicle or planner state).
  * Return: NOTICE BOOL; STEP NUMBER next delay or -1, not assignment/fire/interception proof.
  * Current caller: CortexAAObserve IncomingMissile and its existing scheduler adapter.
@@ -127,12 +129,15 @@ private _ranked=[];
                 _coverage=_coverage+1;
             };
         } forEach _vehicles;
-        _ranked pushBack [[1,0] select _urgent,_coverage,if (_time > 0) then {_time min 9} else {10},_trackIndex];
+        // Urgency remains first; within that class protect this responder before
+        // another asset, then spread remaining coverage. Never retarget active episodes.
+        _ranked pushBack [[1,0] select _urgent,[1,0] select (_victim == _vehicle),
+            _coverage,if (_time > 0) then {_time min 9} else {10},_trackIndex];
     };
 } forEach _tracks;
 _ranked sort true;
 if (_ranked isNotEqualTo []) then {
-    private _warning=_tracks select ((_ranked select 0) select 3);
+    private _warning=_tracks select ((_ranked select 0) select 4);
     if ([_vehicle,"START",[_warning]] call CBE_fnc_CortexAAIntercept) then {
         // One automatic start/platform/native warning. New planner wakes cannot reset
         // that platform's original shot/step budgets after a terminal response.
