@@ -279,5 +279,15 @@
     "limits": "Default-off experimental feature. Physical aim/shot/interception, native station-change behaviour, normal/HC and5%median/10%p95 remain unverified. Static bound is not measured frame-time improvement. No scores changed.",
     "physicalAcceptance": false,
     "performanceMeasured": false
+  },
+  "observedShotOrigin20261024": {
+    "base_commit": "1dbfd91b",
+    "fault": "SHOT used a configured first memory-point barrel as calibration origin even though real rounds were captured. Prior review wording actual barrel origin was too strong for alternating-barrel platforms.",
+    "change": "Freeze real round ASL and target ASL once in native Fired observation; use that round position as calibration origin and both initial trajectory positions. Initial aiming retains configured barrel approximation.",
+    "bounds": "Existing8 rounds/160 steps/8-second episode,stable-track validation,correction caps and native effect policy unchanged. No projectile creation,steering,new query,worker or fire request.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;independent package verify pass",
+    "candidate": ".qa/candidates/aa-observed-shot-origin-1dbfd91b",
+    "fingerprint": "3d20700b5e45521cda8309d7dd682f0da3d3f4cfde08af387e011d7922455082",
+    "limits": "First observed projectile position is not guaranteed instantaneous muzzle position. Accuracy/convergence/alternating barrels,physical interceptions and frame cost UNRUN. Unsigned dirty development;audits PAUSED."
   }
 }

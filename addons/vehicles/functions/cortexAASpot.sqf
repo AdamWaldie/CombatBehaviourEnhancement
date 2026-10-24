@@ -10,7 +10,7 @@
  * capped0.005s/0.0005rad per sample and0.05s/0.005rad total. No perfect-hit or accuracy guarantee.
  * Arguments: 0 episode HASHMAP,empty; 1 mode STRING,READ (READ/SAMPLE);
  * 2 sample ARRAY,[] [miss vector,actual target ASL,flight time,shot context]. Context is
- * [shot time,target ASL,target velocity,applied correction pair,gun origin ASL].
+ * [shot time,target ASL,target velocity,applied correction pair,first observed round ASL].
  * Return: ARRAY [lead seconds,elevation radians]. Zero when history/admission is unavailable.
  * Current caller: CortexAAIntercept; at most one SAMPLE attempt/captured real round.
  * Example: private _correction=[_state] call CBE_fnc_CortexAASpot;

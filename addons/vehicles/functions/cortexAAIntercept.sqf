@@ -13,6 +13,7 @@
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
  * The fire lease expires at the original deadline even after discarded cleanup.
  * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
+ * Shot calibration uses first observed projectile position, not an assumed first-barrel origin.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
  * Cleanup retains exact fire-owner proof and current actor/platform external-control gates,
  * independently of feature enablement and original epoch. Yielding does not cancel native fire.
@@ -81,14 +82,18 @@ if (_mode == "SHOT") exitWith {
         || {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") != "shotbullet"}) exitWith {false};
     private _rounds=_state get "rounds";
     if (count _rounds >= 8 || {_rounds findIf {(_x select 0) == _round} >= 0}) exitWith {false};
+    // Fired exposes the actual round, including alternating barrels. Freeze the
+    // observed positions once; calibration must not invent its origin from barrel zero.
+    private _roundPosition=getPosASL _round;
+    private _targetPosition=getPosASL (_state get "missile");
     private _shotContext=+(_state getOrDefault ["aimContext",[]]);
     if (count _shotContext == 5) then {
-        _shotContext set [0,time];_shotContext set [1,getPosASL (_state get "missile")];
+        _shotContext set [0,time];_shotContext set [1,+_targetPosition];
         _shotContext set [2,velocity (_state get "missile")];
-        _shotContext set [4,_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "barrel","Memory"])];
+        _shotContext set [4,+_roundPosition];
     };
-    _rounds pushBack [_round,getPosASL _round,getPosASL (_state get "missile"),time,
-        getPosASL _round,vectorDir (_state get "missile"),vectorUp (_state get "missile"),_shotContext,false];
+    _rounds pushBack [_round,+_roundPosition,+_targetPosition,time,
+        +_roundPosition,vectorDir (_state get "missile"),vectorUp (_state get "missile"),_shotContext,false];
     _state set ["shots",(_state get "shots")+1];
     true
 };
