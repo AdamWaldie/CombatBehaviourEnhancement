@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Native bypass retirement precedes its recovery parent so original route proof remains available.
+ * An already-present baseline is acknowledged without a redundant native cap write.
  * Internal arguments: 2 cap-only BOOL false; 3 offered ARRAY [] of
  * [state,baseline,group,issuing epoch,original server deadline,driver,commander,issuer,custodian].
  * Unconfirmed ordinary cap restoration retains exact state/baseline and a finite cap-only
@@ -207,7 +208,8 @@ if (_restore isNotEqualTo [] && {_ownedCap >= 0}
     && {abs ((getForcedSpeed _vehicle)-_ownedCap) <= 0.1}) then {
     private _restoreValue=_restore param [0,-1,[0]];
     if (!finite _restoreValue || {_restoreValue < 0 && {_restoreValue != -1}}) exitWith {_capPending=true};
-    if (!_capOnly || {serverTime < (_offered select 4)}) then {
+    if ((!_capOnly || {serverTime < (_offered select 4)})
+        && {abs ((getForcedSpeed _vehicle)-_restoreValue) > 0.1}) then {
         _vehicle forceSpeed (_restore param [0,-1]);
     };
     if (abs ((getForcedSpeed _vehicle)-_restoreValue) > 0.1) then {

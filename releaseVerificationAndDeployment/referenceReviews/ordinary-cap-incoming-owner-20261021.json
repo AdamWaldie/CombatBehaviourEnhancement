@@ -53,5 +53,20 @@
       "Physically validate both directions,owner return,late receipt delivery,new native route,Zeus/mission/external replacement and exact baseline restoration when audits resume"
     ],
     "limits": "No claim that all Arma owner changes always reset the cap; actual incoming native values remain a physical test requirement. No general cruising-cap or provider-quiescence acceptance. Audits PAUSED."
+  },
+  "baselineAlreadyPresent20261024": {
+    "base": "6b9c6c68",
+    "implemented": "Actual incoming Local-edge custody can adopt the historical release receipt when native cap matches either original applied cap or saved baseline. Existing cleanup rereads native state; a baseline-present value needs no restoration and its stale receipt can retire. No synthetic applied value or new native cap is created by adoption.",
+    "command_boundary": "Release skips a redundant forceSpeed write when its original baseline is already present. Changed third values remain refused; arbitrary incoming -1 does not authorise a different positive baseline.",
+    "unchanged": "Original issuer/custodian,seats,group owner,Local-edge window,original expiry,child exclusion and Zeus/provider guards retained. No new worker,timer,CBA setting or cruising-policy migration.",
+    "validation": "Full1496 offline tests;413 compiled SQF;11 PBOs;static performance0 findings;independent package verify pass. Existing release contract tests pass on final tests; redundant predicate-model additions were removed, no test-count growth.",
+    "candidate": ".qa/candidates/driving-baseline-present-6b9c6c68",
+    "fingerprint": "786aa50f6cecf0f5b3f3160d754ea5aadcdb59d7c21e13b9c8e29fb934ec0018",
+    "limits": [
+      "Unsigned dirty development package; review/handover postdate build",
+      "Physical incoming Local timing,receipt retirement and fresh driving continuation remain unrun",
+      "Different positive-baseline handback over incoming native -1 and general cruising-cap/provider quiescence remain unresolved",
+      "Audits PAUSED; no launch/push/merge"
+    ]
   }
 }
