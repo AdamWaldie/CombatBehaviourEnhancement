@@ -116,5 +116,33 @@
     "validation": "1491 full offline tests/410SQF/9PBO and independent verifier. Candidate .qa/candidates/ground-element-advance-64d99e83 fingerprintef746c6f64c0687e4da51e404035a0169b9a9febeaaba1ce7748d71181ab20bb. Unsigned dirty development snapshot, notes/review postdate package.",
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "finiteGroundContinuation20261024": {
+    "base": "900b81c9",
+    "finding": "The landed mixed-group foot cohort was cleared immediately after the first successful TacticalStart, preventing another eligible child within the still-current landing handover. Scoped drill final return already uses a surviving foot anchor, not the boat leader.",
+    "change": "Retain original public foot cohort until its existing expiry/stale route/epoch/plan/cleanup boundary. Reoffer actor-only assault/advance only with no current drill or common operation. Read existing type feature/cooldown first and skip assessment when neither type is available. Child start does not write/renew original45second expiry, split the group, change leader or give boat a land route.",
+    "sourceIntent": "Builds on the previously reviewed landing-to-ground-combat intent while retaining finite CBE actor executors instead of unowned source leader/formation/force-exit loops. No fresh full upstream rereview or source-parity claim.",
+    "evidenceHashes": {
+      "addons\\vehicles\\functions\\cortexNavalAssault.sqf": "2d9302c42e15b016fe7745bd701fd38805b5938a2f8156021017a1e13e1572ca",
+      "addons\\infantry\\functions\\cortexFlankEnd.sqf": "c3862b375e9fb3bce4dd0724b2b1f80d4e22d4fd240a036dd99d9e5d5f61afb8",
+      "addons\\infantry\\functions\\cortexTacticalStart.sqf": "4e7ddfb89e208b05a20fa5ffe350402eda9afaff71a7f0ee622d56e42521c0de",
+      "addons\\infantry\\functions\\cortexCooldown.sqf": "ac96a59d0965178cbdc6b489c29c421bbfd24437b70c838c463aafb6e3b724f6"
+    },
+    "validation": {
+      "existingOperationCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/naval-ground-continuation-900b81c9",
+    "fingerprint": "7fac10c189108f76cd5c957276f87ad55a284743ada1ad648089abc7ccf91ae3",
+    "logs": [
+      ".qa/naval-ground-continuation-focused.log",
+      ".qa/naval-ground-continuation-build.log",
+      ".qa/naval-ground-continuation-independent.log"
+    ],
+    "limits": "Finite original-window continuation only; no sustained independent ground command or scoped CQB. Actual second manoeuvre, physical anchor return, casualty/task handback, mixed crew/HC transfer and runtime balance/performance remain unverified. Unsigned dirty development includes unrelated dirt; review/handover postdate package. Scores unrenewed; audits PAUSED."
   }
 }

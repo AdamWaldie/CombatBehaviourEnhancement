@@ -10668,6 +10668,16 @@ class CortexOperations(unittest.TestCase):
         for marker in ('CBE_Cortex_NavalGroundElement','_groundEpoch','_groundRoute',
                        '"LANDED"','CBE_fnc_CortexTacticalStart','_groundActors','if (_groundStarted) exitWith {true}'):
             self.assertIn(marker,ground)
+        followup=ground.split('if (!_groundCurrent)',1)[1].split('if (_groundStarted)',1)[0]
+        committed=followup.split('// A committed child',1)[1]
+        self.assertNotIn('setVariable ["CBE_Cortex_NavalGroundElement",nil',committed)
+        self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) == 0',followup)
+        for guard in ('[_state,"advance"] call CBE_fnc_CortexCooldown',
+                      '[_state,"assault"] call CBE_fnc_CortexCooldown',
+                      '_groundAdvance || {_groundAssault}'):
+            self.assertLess(followup.index(guard),followup.index('call CBE_fnc_CortexTacticalStart'))
+        self.assertNotIn('serverTime+',ground)
+        self.assertNotIn('CBE_fnc_CortexGroupMove',ground)
         self.assertIn('["elementScoped",_elementScoped]',source('cortexAssaultStart'))
         self.assertIn('["elementRoster",if (_elementScoped) then {+_element} else {[]}]',source('cortexAssaultStart'))
         advance=source('cortexAdvanceStart')

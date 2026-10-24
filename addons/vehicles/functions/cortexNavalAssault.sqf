@@ -12,7 +12,9 @@
  * is never assigned a land waypoint. Original landing membership survives departure from fullCrew.
  * Successful combined-group egress retains one 45-second semantic foot-element handover,
  * bound to the current native route/owner. It can start only the existing actor-only
- * assault/advance; no group land route, leader switch, group split or new job is introduced.
+ * assault/advance and reconsider a later child within the same original window, after
+ * operation release and existing cooldowns. No group land route, leader switch, group split
+ * or new job is introduced; no child start renews the handover expiry.
  * Existing sparse actor discovery reaps pending native cleanup; no new worker is installed.
  * Disembark requests require current actor task/assignment authority and a low-motion boat.
  *
@@ -129,12 +131,19 @@ if (count _groundElement == 6) then {
         && {(_groundPlan select 1) == _group} && {(_groundPlan select 8) == "LANDED"}
         && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _groundRoute};
     if (!_groundCurrent) then {_group setVariable ["CBE_Cortex_NavalGroundElement",nil,true]} else {
-        if (_enemies isNotEqualTo [] && {count (_state getOrDefault ["drill",createHashMap]) == 0}) then {
-            if ([_group,_state,_enemies,false,
-                [_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled,
-                [_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled,_groundActors]
-                call CBE_fnc_CortexTacticalStart) then {
-                _group setVariable ["CBE_Cortex_NavalGroundElement",nil,true];
+        if (_enemies isNotEqualTo [] && {count (_state getOrDefault ["drill",createHashMap]) == 0}
+            && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+            // Retain the original finite cohort after a child finishes. Do not repeatedly
+            // assess geometry while both existing manoeuvre cooldowns/features refuse.
+            private _groundAdvance=([_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+                && {!([_state,"advance"] call CBE_fnc_CortexCooldown)};
+            private _groundAssault=([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)
+                && {!([_state,"assault"] call CBE_fnc_CortexCooldown)};
+            if ((_groundAdvance || {_groundAssault}) && {
+                [_group,_state,_enemies,false,_groundAdvance,_groundAssault,_groundActors]
+                    call CBE_fnc_CortexTacticalStart}) then {
+                // A committed child owns its own finite lifecycle. The landing handover
+                // keeps its original expiry/route/epoch; starting does not refresh them.
                 _groundStarted=true;
             };
         };
