@@ -44,8 +44,12 @@ class SkillAuthorityTests(unittest.TestCase):
         self.assertLess(lighting.index('call CBE_fnc_AIRestoreProfile'),
                         lighting.index('_signature isNotEqualTo'))
         release_gate=lighting.split('if (local _unit && {_profileBlocked}) then {',1)[1].split('if (local _unit && {alive',1)[0]
+        roster=lighting.split('_units = _units select',1)[1].split('missionNamespace setVariable ["CBE_Cortex_LightingUnits"',1)[0]
         for receipt in ('CBE_AI_OriginalSkills','CBE_AI_AppliedSkills','CBE_AI_OriginalAimCoef','CBE_AI_AppliedAimCoef'):
             self.assertIn(receipt,release_gate)
+            self.assertIn(receipt,roster)
+        self.assertNotIn('skill ',roster)
+        self.assertNotIn('getCustomAimCoef',roster)
         self.assertNotIn('call CBE_fnc_AIProfileYield',lighting)
         self.assertNotIn('setSkill',lighting)
     def test_partial_profile_refresh_plans_from_original_not_native_previous_result(self):

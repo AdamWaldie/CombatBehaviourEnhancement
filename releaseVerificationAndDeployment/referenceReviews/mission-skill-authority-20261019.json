@@ -75,5 +75,24 @@
     },
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "playerReceiptRetention20261024": {
+    "base": "b6c010a6",
+    "finding": "Lighting roster compaction retained players only if OriginalSkills existed. Aim-only or partially delivered applied/aim receipts could be removed before the existing human-control cleanup branch visited the actor.",
+    "change": "Retain local living players while any of the four original/applied skills/aim receipts exists. Reuse existing rotating10actor job and exact-pair restore; no native skill polling during compaction, new query/job/timer, default change or provider edit. Most AI short-circuit the player receipt reads.",
+    "evidence": {
+      "addons/core/functions/aiLightingStep.sqf": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f"
+    },
+    "validation": {
+      "focusedExistingCases": 5,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/skill-takeover-receipt-retention-b6c010a6",
+    "fingerprint": "5e979e4608faecf4f2d755049414ff3e74eba35b895d50212dd62b01565699d2",
+    "limits": "Current CBE code and separate mission wrapper read-only trace, not renewed whole-provider comparison. Partial receipt restoration still waits for valid matching pairs; actual player/JIP/HC timing and performance remain unverified. Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Audits PAUSED."
   }
 }

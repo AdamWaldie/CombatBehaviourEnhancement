@@ -4,7 +4,8 @@
  * Locality / Authority: Runs on the unit owner through the shared budgeted scheduler. No world scan.
  * Repeat/JIP: One generation-bound job per owner; stop invalidates it. Joining owners register local AI.
  * A declared skill owner releases exact CBE effects on the next bounded pass, even when lighting
- * is unchanged. Completed releases do not repeatedly parse absent restoration receipts.
+ * is unchanged. Player-controlled actors remain registered while any skill/aim receipt needs
+ * cleanup, including partial receipt delivery. Completed releases do not repeatedly parse absent receipts.
  * Arguments: 0 state <HASHMAP> containing subsystem SKILLS and generation <NUMBER>.
  * Return Value: NUMBER - next delay in seconds, or -1 when disabled or superseded.
  * Current callers: CBE_fnc_AIRebalanceInit through CBE_fnc_CortexQueueJob.
@@ -16,7 +17,11 @@ if ((_state getOrDefault ["generation", -1]) != (missionNamespace getVariable ["
 private _units = missionNamespace getVariable ["CBE_Cortex_LightingUnits",[]];
 private _cursor = missionNamespace getVariable ["CBE_Cortex_LightingCursor",0];
 if (_cursor >= count _units) then {
-    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x || {!isNil {_x getVariable "CBE_AI_OriginalSkills"}}}};
+    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x
+        || {!isNil {_x getVariable "CBE_AI_OriginalSkills"}}
+        || {!isNil {_x getVariable "CBE_AI_AppliedSkills"}}
+        || {!isNil {_x getVariable "CBE_AI_OriginalAimCoef"}}
+        || {!isNil {_x getVariable "CBE_AI_AppliedAimCoef"}}}};
     missionNamespace setVariable ["CBE_Cortex_LightingUnits",_units];
     _cursor = 0;
 };
