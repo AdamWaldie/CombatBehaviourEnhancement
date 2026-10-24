@@ -80,5 +80,15 @@
       "Native cannon station/memory-point admission, actual shots and impacts still require the paused real-warning audit",
       "No demonstrated custom explosive interception effect or live performance budget result"
     ]
+  },
+  "barrel_origin_support": {
+    "base_commit": "238a8173",
+    "evidence": "Cheetah main turret declares memoryPointGun[] = {usti hlavne 1, usti hlavne 2}; prior executor read only gunBeg",
+    "change": "Use first model-present declared barrel from at most8 array entries, then native gunBeg fallback. Optic and barrel must exist in actual Memory selections. No centre-of-model fallback.",
+    "limits": "Not proof that inherited gunBeg was absent from the Cheetah model. First declared barrel is an approximation for alternating barrels; actual firing geometry and effectiveness unvalidated.",
+    "validation": "Full offline1496 tests,413 compiled SQF,11 PBOs,static performance0 findings; independent package verification pass",
+    "candidate": ".qa/candidates/aa-barrel-origin-238a8173",
+    "fingerprint": "88982deadd880a293db0ea3657edcd66448ae82682084b2524518ce0c4dd2ddb",
+    "audits": "PAUSED"
   }
 }

@@ -148,9 +148,16 @@ if (_mode == "START") exitWith {
     if (!finite _speed || {!finite _gravity} || {_gravity < 0} || {_gravity > 4}) exitWith {false};
     private _turretConfig=configOf _vehicle >> "Turrets";
     private _main=("true" configClasses _turretConfig) param [0,configNull];
-    private _barrel=getText (_main >> "gunBeg");
     private _optic=getText (_main >> "memoryPointGunnerOptics");
     private _selections=_vehicle selectionNames "Memory";
+    // Native multi-barrel turrets may override inherited gunBeg through this array.
+    // Use one declared, physically present origin; never substitute model centre.
+    // A first-barrel origin approximates alternating barrels, not an exact fired position.
+    private _barrels=(getArray (_main >> "memoryPointGun")) select [0,8];
+    _barrels pushBackUnique getText (_main >> "gunBeg");
+    private _barrel="";
+    private _barrelIndex=_barrels findIf {_x isEqualType "" && {_x != ""} && {_x in _selections}};
+    if (_barrelIndex >= 0) then {_barrel=_barrels select _barrelIndex};
     if (_speed < 100 || {_speed > 2000} || {!(_barrel in _selections)} || {!(_optic in _selections)}) exitWith {false};
     private _serial=(_vehicle getVariable ["CBE_AA_InterceptSerial",0])+1;
     _vehicle setVariable ["CBE_AA_InterceptSerial",_serial];

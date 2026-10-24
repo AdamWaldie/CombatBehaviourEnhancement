@@ -113,6 +113,19 @@ class AAObservation(unittest.TestCase):
         self.assertFalse(admitted('shotmissile',100,1,30,aa=True))
         self.assertFalse(admitted('shotshell',100,1,30,aa=True))
         self.assertFalse(admitted('shotbullet',25,.6,19,aa=True))
+        # A native dual-barrel declaration may replace inherited gunBeg. Missing
+        # geometry must refuse rather than inventing a centre-of-model origin.
+        self.assertIn('(getArray (_main >> "memoryPointGun")) select [0,8]',intercept)
+        self.assertIn('_barrels pushBackUnique getText (_main >> "gunBeg")',intercept)
+        self.assertIn('_x in _selections',intercept)
+        def barrel(declared, inherited, actual):
+            return next((point for point in declared[:8]+[inherited]
+                         if isinstance(point,str) and point and point in actual), '')
+        self.assertEqual(barrel(['left','right'],'legacy',['left','right']), 'left')
+        self.assertEqual(barrel(['missing'],'legacy',['legacy']), 'legacy')
+        self.assertEqual(barrel([],'legacy',['legacy']), 'legacy')
+        self.assertEqual(barrel(['missing'],'absent',['optic']), '')
+        self.assertEqual(barrel([None]*8+['left'],'absent',['left']), '')
         self.assertIn('_vehicle selectionNames "Memory"',intercept)
         self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
         release=intercept.split('private _finish={',1)[1].split('if (_mode == "RELEASE")',1)[0]
