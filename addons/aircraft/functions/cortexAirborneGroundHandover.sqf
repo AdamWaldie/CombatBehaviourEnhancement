@@ -9,6 +9,7 @@
  * passive group/result metadata only. Actual join acknowledgements are checked; partial joins
  * are retained and reported without rollback or another split. Empty failed groups are deleted.
  * Group-bound posture/pace receipts defer the join until existing exact cleanup retires them.
+ * Explicit native STOP defers group transfer; a STOP raised by join handlers prevents SAD/brain startup.
  * Original crew, later arrivals and departed passengers never join. No actor is relocated,
  * re-equipped, revealed, force-seated or assigned new skills. Source flight waypoints are untouched.
  * Arguments: 0 insertion job HASHMAP, empty. Requires group/aircraft/episode/jumpers/target/deadline.
@@ -66,7 +67,7 @@ _handoverResult=call {
         || {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}
         || {(_x getVariable ["CBE_Cortex_StanceReceipt",[]]) isNotEqualTo []}
         || {!([_x,_groupContext] call CBE_fnc_IndoorActorGroupAvailable)}
-        || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
+        || {toUpperANSI currentCommand _x in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN",
             "REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID",
             "HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
         } < 0
@@ -117,6 +118,7 @@ _handoverResult=call {
         _result
     };
     if (local _ground && {(units _ground) findIf {!(_x in _joined)} < 0}
+        && {_joined findIf {toUpperANSI currentCommand _x == "STOP"} < 0}
         && {(_ground getVariable ["CBE_Airborne_Origin",[]]) isEqualTo [_group,_episode]}
         && {[_ground,false,true] call CBE_fnc_CortexIsEligible}) then {
         private _waypoint=_ground addWaypoint [+_target,30];

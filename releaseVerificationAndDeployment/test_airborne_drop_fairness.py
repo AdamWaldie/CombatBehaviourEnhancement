@@ -79,6 +79,10 @@ class AirborneDropFairnessTests(unittest.TestCase):
             self.assertIn(marker,before)
         self.assertLess(helper.index('_job set ["groundHandover",_result]'),helper.index('_cargo joinSilent _ground'))
         self.assertIn('private _joined=_cargo select {group _x == _ground}',helper)
+        self.assertIn('currentCommand _x in ["STOP","GET IN"',before)
+        after_join=helper.split('_cargo joinSilent _ground;',1)[1]
+        self.assertLess(after_join.index('currentCommand _x == "STOP"'),after_join.index('_ground addWaypoint'))
+        self.assertIn('_alive findIf {toUpperANSI currentCommand _x == "STOP"} < 0',step)
         self.assertIn('count _joined == count _cargo',helper)
         self.assertIn('[_ground,true] call CBE_fnc_GroupBrainStart',helper)
         self.assertIn('(units _ground) findIf {!(_x in _joined)} < 0',helper)

@@ -14,6 +14,7 @@
  * landed. Mixed operating crew/cargo groups automatically form an independent landed squad
  * through CortexAirborneGroundHandover, without moving actors or retasking the crew.
  * Native join/waypoint acknowledgement is assignment only, not ground combat completion.
+ * A native STOP retains its hold instead of receiving the fallback ground SAD order.
  * Locality and authority: runs where the group is local; only local soldiers jump.
  *
  * Review contract: Both DROP and LAND recheck eligibility. A landing timeout ends tracking without assigning a ground attack to soldiers still airborne.
@@ -142,7 +143,8 @@ if (_landed && {_alive isNotEqualTo []} && {!_groundOrderScoped}) then {
 };
 if ((_groundHandover select 0) == "DEFERRED" && {time < (_job get "deadline")}) exitWith {3};
 private _groundHandoverOK=(_groundHandover select 0) in ["NOT_REQUIRED","ASSIGNED"];
-if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}) then {
+if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}
+    && {_alive findIf {toUpperANSI currentCommand _x == "STOP"} < 0}) then {
     private _groundTarget=((_job get "target") select [0,2])+[0];
     private _waypoint = _group addWaypoint [_groundTarget, 30];
     _waypoint setWaypointType "SAD";

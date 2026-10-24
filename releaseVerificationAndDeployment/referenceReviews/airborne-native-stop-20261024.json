@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "18fe01d0",
+  "requirement": "Landing handoff preserves native holds and newer mission authority",
+  "fault": "Ground cargo readiness excluded protected tasks but accepted STOP. Cargo-only SAD fallback and post-join mixed-squad SAD also lacked STOP refusal; expired Zeus hold metadata alone could not preserve a continuing native STOP.",
+  "change": "STOP defers original cargo transfer within original deadline. Recheck joined actors before SAD/ground brain to respect join-time handlers. Cargo-only fallback SAD refuses if an original live passenger is stopped.",
+  "boundaries": "No STOP clear,formation recall,extra join,retry timer or deadline renewal. Landing completion is separate from ground-task assignment;partial joins retain actual group and diagnostic receipt.",
+  "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;full offline and independent package verify pass. Existing airborne regression strengthened;no new test cases.",
+  "candidate": ".qa/candidates/airborne-native-stop-18fe01d0",
+  "fingerprint": "6ff8356dcafa1c0e8ff5f988f77c78900701d49db33533f137084ce616231819",
+  "limits": "Unsigned dirty development. Native MOVE replacement remains distinguishability-sensitive and is not solved by this STOP-specific guard. Physical join/order/normal-HC and performance UNRUN;audits PAUSED."
+}
