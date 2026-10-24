@@ -18,5 +18,16 @@
     "candidate": ".qa/candidates/airborne-create-order-boundary-e6d1b147",
     "fingerprint": "555f775030412938988c3f41cc15de78c49c3d2646393bb884249af953c030a5",
     "limits": "Unsigned dirty development. Protects observed creation-time changes only;not same-value undeclared commands or all later join-time MOVE/mission-waypoint cases. Physical handover and performance UNRUN;audits PAUSED."
+  },
+  "groundRouteHandover": {
+    "base_commit": "12b9dbf6",
+    "reference": "https://community.bohemia.net/wiki/setCurrentWaypoint",
+    "gap": "A mission handler could supply a ground-group route and explicit CBE values, but handoff appended/selected SAD and unconditionally inherited source group values/posture",
+    "change": "Preserve destination variables already set. Inherit source native posture only without an authored ground route. Afterjoin, count>1 route uses HANDED_OVER if allcargojoined, without adding/selecting SAD; ordinary eligible ground brain may start. LAND accepts HANDED_OVER as ground assignment,not movement/combat proof.",
+    "convention": "Uses existing NativeOrderReceipt convention: index0 implicit/count<=1 no added authored route. Real engine waypoint topology afterjoin must still be validated; in-place edits of index0 are not classified.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify pass. Existing airborne case extended;no new test cases.",
+    "candidate": ".qa/candidates/airborne-ground-route-handover-12b9dbf6",
+    "fingerprint": "032080dabf152df597a3ec93ce5a9fd4bbdcc37208c84df467e1085b9fdc2b03",
+    "limits": "Unsigned dirty development. Physical waypoint/activation/normal-HC behaviour and frame cost UNRUN;audits PAUSED. Not a general proof of every native MOVE,implicit-waypoint edit or undeclared owner handover."
   }
 }

@@ -17,6 +17,7 @@
  * Return: ARRAY [status STRING, ground group GROUP, acknowledged actors ARRAY, brain live BOOL].
  * Status NOT_REQUIRED keeps cargo-only groups unchanged; DEFERRED waits within the original
  * insertion deadline. ASSIGNED proves group/waypoint assignment, not travel or combat success.
+ * HANDED_OVER means every cargo actor joined and an existing authored ground route was retained.
  * PARTIAL retains the actual new squad and exposes an incomplete handover; no repeated join.
  * Current callers: CortexAirborneDropStep LAND on the owning shared scheduler.
  * Example: private _result=[_insertionJob] call CBE_fnc_CortexAirborneGroundHandover;
@@ -96,16 +97,20 @@ _handoverResult=call {
     // Copy intent only, never transient FSMs, leases, checkpoints or flight waypoints.
     {
         private _value=_group getVariable _x;
-        if (!isNil "_value") then {
+        if (!isNil "_value" && {isNil {_ground getVariable _x}}) then {
             if (_value isEqualType []) then {_value=+_value};
             _ground setVariable [_x,_value,true];
         };
     } forEach ["CBE_AIPass_Profile","CBE_AIPass_DisabledFeatures","CBE_AI_Exclude","CBE_AIPass_Exclude",
         "Waldo_Headless_ExcludeGroup","acex_headless_blacklist"];
-    _ground setCombatMode (combatMode _group);
-    _ground setCombatBehaviour (combatBehaviour _group);
-    _ground setSpeedMode (speedMode _group);
-    _ground setFormation (formation _group);
+    // A creation handler supplying an authored ground route also owns its native
+    // posture. Without that route, inherit the source's hold-fire/pace intent.
+    if (count waypoints _ground <= 1) then {
+        _ground setCombatMode (combatMode _group);
+        _ground setCombatBehaviour (combatBehaviour _group);
+        _ground setSpeedMode (speedMode _group);
+        _ground setFormation (formation _group);
+    };
     // GroupCreated mission handlers can synchronously replace authority; recheck before join.
     if (!local _group || {units _ground isNotEqualTo []} || {_episode isNotEqualTo (_group getVariable ["CBE_AIPass_DropEpisode",[]])}
         || {(_job get "ownerEpoch") != (_group getVariable ["CBE_AIPass_Epoch",0])}
@@ -130,11 +135,17 @@ _handoverResult=call {
         && {_joined findIf {toUpperANSI currentCommand _x == "STOP"} < 0}
         && {(_ground getVariable ["CBE_Airborne_Origin",[]]) isEqualTo [_group,_episode]}
         && {[_ground,false,true] call CBE_fnc_CortexIsEligible}) then {
-        private _waypoint=_ground addWaypoint [+_target,30];
-        _waypoint setWaypointType "SAD";
-        _ground setCurrentWaypoint _waypoint;
-        if (count _joined == count _cargo && {waypointType _waypoint == "SAD"}
-            && {currentWaypoint _ground == (_waypoint select 1)}) then {_result set [0,"ASSIGNED"]};
+        // Index zero is the engine initial waypoint. Added mission routes retain
+        // their selected node and activation semantics; never append/select our SAD over them.
+        if (count waypoints _ground > 1) then {
+            if (count _joined == count _cargo) then {_result set [0,"HANDED_OVER"]};
+        } else {
+            private _waypoint=_ground addWaypoint [+_target,30];
+            _waypoint setWaypointType "SAD";
+            _ground setCurrentWaypoint _waypoint;
+            if (count _joined == count _cargo && {waypointType _waypoint == "SAD"}
+                && {currentWaypoint _ground == (_waypoint select 1)}) then {_result set [0,"ASSIGNED"]};
+        };
         _result set [3,[_ground,true] call CBE_fnc_GroupBrainStart];
     };
     _group setVariable ["CBE_Airborne_GroundHandover",[+_episode,_result select 0,_ground,+_joined,serverTime,_result select 3],true];

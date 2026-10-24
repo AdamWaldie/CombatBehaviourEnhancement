@@ -88,6 +88,15 @@ class AirborneDropFairnessTests(unittest.TestCase):
         after_join=helper.split('_cargo joinSilent _ground;',1)[1]
         self.assertLess(after_join.index('currentCommand _x == "STOP"'),after_join.index('_ground addWaypoint'))
         self.assertIn('_alive findIf {toUpperANSI currentCommand _x == "STOP"} < 0',step)
+        mission_route=helper.split('if (count waypoints _ground > 1) then {',1)[1].split('} else {',1)[0]
+        self.assertIn('count _joined == count _cargo',mission_route)
+        self.assertIn('"HANDED_OVER"',mission_route)
+        self.assertNotIn('addWaypoint',mission_route)
+        self.assertNotIn('setCurrentWaypoint',mission_route)
+        self.assertIn('in ["NOT_REQUIRED","ASSIGNED","HANDED_OVER"]',step)
+        self.assertIn('isNil {_ground getVariable _x}',helper)
+        native_policy=helper.split('if (count waypoints _ground <= 1) then {',1)[1].split('// GroupCreated mission handlers',1)[0]
+        self.assertIn('_ground setCombatMode (combatMode _group)',native_policy)
         self.assertIn('count _joined == count _cargo',helper)
         self.assertIn('[_ground,true] call CBE_fnc_GroupBrainStart',helper)
         self.assertIn('(units _ground) findIf {!(_x in _joined)} < 0',helper)

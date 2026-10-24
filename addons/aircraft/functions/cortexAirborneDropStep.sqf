@@ -142,7 +142,7 @@ if (_landed && {_alive isNotEqualTo []} && {!_groundOrderScoped}) then {
     _groundHandover=[_job] call CBE_fnc_CortexAirborneGroundHandover;
 };
 if ((_groundHandover select 0) == "DEFERRED" && {time < (_job get "deadline")}) exitWith {3};
-private _groundHandoverOK=(_groundHandover select 0) in ["NOT_REQUIRED","ASSIGNED"];
+private _groundHandoverOK=(_groundHandover select 0) in ["NOT_REQUIRED","ASSIGNED","HANDED_OVER"];
 if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}
     && {_alive findIf {toUpperANSI currentCommand _x == "STOP"} < 0}) then {
     private _groundTarget=((_job get "target") select [0,2])+[0];
