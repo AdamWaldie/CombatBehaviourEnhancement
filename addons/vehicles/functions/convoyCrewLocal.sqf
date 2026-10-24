@@ -7,7 +7,9 @@
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
  * Explicit mounted fire requests require an available operating crew member and the shared
- * full-corridor position veto. A blocked lane retires only a still-matching convoy target.
+ * full-corridor position veto and the current turret magazine blast exclusion. Empty, unknown
+ * or reloading station state defers explicit fire; native selection and reload stay untouched.
+ * A blocked lane retires only a still-matching convoy target.
  * This five-second upkeep is not continuous fire/blast safety or proof a burst has stopped.
  * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
@@ -138,7 +140,23 @@ private _seats = createHashMap;
                 && {unitCombatMode _unit in ["YELLOW","RED"]}) then {
                 private _report = [_unit] call CBE_fnc_ConvoyThreat;
                 private _enemy=_report param [0,objNull,[objNull]];
-                if (!isNull _enemy && {[_unit,aimPos _enemy] call CBE_fnc_CortexLineOfFireClear}) then {
+                // Read only this occupied turret's selected weapon; another station or a
+                // reserve magazine cannot supply the blast policy for this fire request.
+                private _fireMagazine="";
+                private _stationReady=false;
+                if (!isNull _enemy) then {
+                    private _loaded=weaponState [_vehicle,_turretPath];
+                    _stationReady=count _loaded >= 7
+                        && {[0,1,2,3] findIf {!((_loaded select _x) isEqualType "")
+                            || {(_loaded select _x) == ""}} < 0}
+                        && {[4,5,6] findIf {!((_loaded select _x) isEqualType 0)
+                            || {!finite (_loaded select _x)}} < 0}
+                        && {(_loaded select 4) > 0} && {(_loaded select 5) >= 0}
+                        && {(_loaded select 6) == 0};
+                    if (_stationReady) then {_fireMagazine=_loaded select 3};
+                };
+                if (!isNull _enemy && {_stationReady}
+                    && {[_unit,aimPos _enemy,_fireMagazine] call CBE_fnc_CortexLineOfFireClear}) then {
                     // Target/fire never orders pursuit or changes ROE.
                     if (assignedTarget _unit != _enemy) then {
                         _unit doTarget _enemy;
