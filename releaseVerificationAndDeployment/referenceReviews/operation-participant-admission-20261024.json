@@ -31,5 +31,22 @@
     "candidate": ".qa/candidates/operation-bounded-admission-17c7f3d8",
     "fingerprint": "a6ae3d5a37e1ed0b950054046b8e9d80380cb5f3971dc602ecc5953ad18ee83d",
     "limits": "Admission bounds only, not measured runtime overhead or physical lifecycle proof.512route bound matches existing maximum clearance topology. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "groupScopedPaceCleanup20261024": {
+    "base": "5a9cfdae",
+    "finding": "Requested foreign-group actors were filtered from final operation participants but processed earlier by DangerAttackPace RELEASE; their receipts could also block this group operation. The helper permits local exact receipt retirement and therefore did not enforce the caller group boundary.",
+    "change": "Build bounded nonnull same-group pace actor list inside the existing unscheduled transaction; use it for both release and pending check. Preserve final eligibility filtering, exact restoration and original finite cleanup. No new worker, query, timer or native animation.",
+    "sourceHash": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610",
+    "validation": {
+      "focusedExistingCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/operation-pace-group-scope-5a9cfdae",
+    "fingerprint": "afe8b5784d33ad7851508f40682d73ab9ae794fa58a39132ea5c51b98ae04d78",
+    "limits": "Source authority correction; cross-group physical behaviour and measured performance remain unverified. Unsigned dirty development includes unrelated dirt; review and handover postdate package. Audits PAUSED. No animation distortion reproduced or fixed."
   }
 }

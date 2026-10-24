@@ -80,10 +80,12 @@ private _cbeStartedOperation=createHashMap;
 isNil {
 _cbeStartedOperation=call {
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
-// Retire native attack caps before a committed operation can inherit them as mission limits.
+// Retire native attack caps only within this operation's group. Requested actors from
+// another group are filtered below and grant no authority to release that group's caps.
+private _paceParticipants=_participants select {!isNull _x && {group _x == _group}};
 {if (local _x) then {["RELEASE",_x] call CBE_fnc_DangerAttackPace}}
-    forEach (_participants select [0,64]);
-if (_participants findIf {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []} >= 0) exitWith {createHashMap};
+    forEach _paceParticipants;
+if (_paceParticipants findIf {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []} >= 0) exitWith {createHashMap};
 // Relinquish finite weapon support before changing the original operation proof.
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 private _previous=_group getVariable ["CBE_Operation",createHashMap];
