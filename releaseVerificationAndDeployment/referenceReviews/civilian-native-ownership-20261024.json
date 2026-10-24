@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-24",
+  "base": "508e8485019047c8f1d648432651cfeaf9204818",
+  "scope": "Finite civilian escape admission and recovery task ownership; selected CBE execution trace, not a renewed whole upstream civilian-source review.",
+  "findings": [
+    "Initial escape checked broad external group ownership but not concrete native task, mounted state, disabled movement, actor reservations, queued care or active pause.",
+    "Stall retry issued doMove without checking a replacement native destination or authored route.",
+    "Original settings inheritance during stronger-danger replacement already existed; the initial verbal suspicion of missing inheritance was disproved before edits. It is not new implementation credit."
+  ],
+  "implementation": [
+    "Initial escape preserves native MOVE unless the exact active seven-field escape receipt still matches its generation, route and goal. Native task whitelist admits idle/wait/follow; the existing panic route remains finite.",
+    "Captured command, expected destination and authored route must remain unchanged through one unscheduled issue boundary after terrain planning.",
+    "Existing shared worker checks native task, membership, route and destination before its single stall retry. Three-dimensional arrival permits idle/follow completion without a stale native destination.",
+    "Replacement task ends movement work and retains [generation,originalGroup,originalSettings,reason,serverTime] as CBE_Cortex_CivilianRestorePending. No settings write is made into the new task. New automatic escapes refuse unresolved proof; on-demand diagnostics report the count."
+  ],
+  "notImplemented": [
+    "Automatic resolution of pending civilian settings proof; metadata is not a real native handback or quiescence receipt.",
+    "Shared native group pace arbitration for simultaneous civilian responses; existing CARELESS/FULL/UP policy is otherwise unchanged.",
+    "Complete locality restoration, death/incapacitation and undeclared same-value mission edits.",
+    "HBQ shallow ford: native car/tank water-reference calibration and end-to-end crossing policy remain unresolved. Do not remove wet-path refusal."
+  ],
+  "sourceBoundary": "No original Workshop file, archive or installed game file changed. No new source-family parity or percentage awarded.",
+  "productionHashes": {
+    "addons/infantry/functions/cortexCivilianReact.sqf": "f7c03211abaa10099bb5d59951ec0e981ccb88c6430d2a881bf81ce810e4dd83",
+    "addons/infantry/functions/cortexCivilianStep.sqf": "3f3c044387759c8ce1fa5db9501608d32de05b222ae55a04316c96d5cbc77c27",
+    "addons/core/functions/aiGetDiagnostics.sqf": "c6a133828e724179ed8bd5be1447f781d5ff9ba9c9efe4fcdba9fc45d870e2a5"
+  },
+  "validation": "610 existing operation cases extended/passed; full1497 tests,413 production SQF,11 PBOs,config/docs/wiki/parity/FSM/static-performance gates and independent package verify passed. No added test cases.",
+  "candidate": ".qa/candidates/civilian-native-ownership-508e8485",
+  "fingerprint": "7a5fb19fdb663c84169c9d788f35ef3423299873cfe082ed8b0bd0bab5edc2e5",
+  "provenance": "Unsigned dirty development package; unrelated original checkout changes preserved. Review and handover postdate package. Earlier clean-e771efcb excludes this batch and turret extension.",
+  "physical": "UNRUN; audits PAUSED. Need native STOP/newMOVE/care/boarding, actual destination timing, ordinary arrival, escalation, repeat and locality/performance cases. No engine completion claim."
+}
