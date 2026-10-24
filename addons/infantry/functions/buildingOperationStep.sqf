@@ -10,6 +10,8 @@
  * saved actor poses remain ATL. Both are converted at comparison; terrain-cell height
  * changes cannot become progress or a different floor. No receipt schema or deadline changes.
  * Current visible on-foot workers occupy space even when native tasks revoke movement authority.
+ * Cached buddy entry proposals resample that occupancy before uncommitted work only; owned
+ * or pending native paths retain their target and original recovery budget.
  * Native fleeing retains movement authority through admission, execution and cleanup.
  * Room exhaustion requires failures from every currently capable lane; inactive lane
  * failures cannot replace another lane attempt, and no capable lanes proves no clearance.
@@ -3364,6 +3366,26 @@ private _delay=call {
                         private _entryTargets=_job getOrDefault ["pairEntryTargets",createHashMap];
                         private _entryKey=str _pairIndex;
                         _supportTarget=_entryTargets getOrDefault [_entryKey,[]];
+                        private _entryOccupancy=[];
+                        private _entryOccupancySampled=false;
+                        // A saved proposal is not live occupancy evidence. Reconsider only
+                        // uncommitted entry work; never redirect an owned or pending native path.
+                        if (_supportTarget isNotEqualTo [] && {[_partner] call _actorAvailable}
+                            && {[_partner] call _actorTaskFree}
+                            && {!([_partner] call _ownsCurrentMove)}
+                            && {
+                                // Room-point adjustment may differ from the cached proposal.
+                                // Protect the actual issued request, not a reconstructed target.
+                                private _entryRequest=(_job getOrDefault ["movementRequestTimes",createHashMap]) getOrDefault [netId _partner,[]];
+                                !([_partner,_entryRequest param [0,[],[[]]]] call _nativeMoveAwaited)
+                            }) then {
+                            _entryOccupancy=[[_partner]] call _occupiedRoomTargets;
+                            _entryOccupancySampled=true;
+                            if ([_supportTarget,_entryOccupancy] call _roomTargetOccupied) then {
+                                _entryTargets deleteAt _entryKey;
+                                _supportTarget=[];
+                            };
+                        };
                         if (_supportTarget isEqualTo []) then {
                             private _anchor=_positions select (_route select 0);
                             private _candidates=[];
@@ -3382,7 +3404,9 @@ private _delay=call {
                                     _candidates pushBack _x;
                                 };
                             } forEach _positions;
-                            private _occupied=[[_partner]] call _occupiedRoomTargets;
+                            private _occupied=if (_entryOccupancySampled) then {_entryOccupancy} else {
+                                [[_partner]] call _occupiedRoomTargets
+                            };
                             // Prefer unoccupied native nodes. A blocked straight ray between
                             // rooms is not proof that their native doorway route is inaccessible.
                             private _freeCandidates=_candidates select {

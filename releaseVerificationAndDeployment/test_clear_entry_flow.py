@@ -104,6 +104,39 @@ class ClearEntryFlowTests(unittest.TestCase):
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
         self.assertIn('private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks}',support)
         self.assertIn('if (_supportTarget isEqualTo [])',support)
+        cached=support.split('// A saved proposal is not live occupancy evidence.',1)[1].split('if (_supportTarget isEqualTo [])',1)[0]
+        for guard in ('call _actorAvailable','call _actorTaskFree',
+                      '!([_partner] call _ownsCurrentMove)',
+                      '[_partner,_entryRequest param [0,[],[[]]]] call _nativeMoveAwaited',
+                      '[_supportTarget,_entryOccupancy] call _roomTargetOccupied',
+                      '_entryTargets deleteAt _entryKey'):
+            self.assertIn(guard,cached)
+        self.assertNotIn('doMove',cached)
+        self.assertNotIn('serverTime+',cached)
+        self.assertIn('private _occupied=if (_entryOccupancySampled) then {_entryOccupancy}',support)
+        # A changed body/reservation may invalidate only an uncommitted proposal.
+        # Existing native movement and its original acknowledgement window win.
+        def reselect(occupied,owned=False,pending=False,available=True,task_free=True):
+            return occupied and not owned and not pending and available and task_free
+        self.assertTrue(reselect(True))
+        self.assertFalse(reselect(False))
+        self.assertFalse(reselect(True,owned=True))
+        self.assertFalse(reselect(True,pending=True))
+        self.assertFalse(reselect(True,available=False))
+        self.assertFalse(reselect(True,task_free=False))
+        self.assertIn('"movementRequestTimes"',cached)
+        self.assertNotIn('[_partner,_supportTarget] call _nativeMoveAwaited',cached)
+        # A geometrically adjusted issued point must retain the original pending
+        # protection even when it differs from the cached native-node proposal.
+        proposal=[1,2,0];issued=[1.4,2,0]
+        self.assertNotEqual(proposal,issued)
+        request=(issued,100)
+        def awaiting(target,request,now):
+            return target==request[0] and 0<=now-request[1]<2
+        self.assertFalse(awaiting(proposal,request,101))
+        self.assertTrue(reselect(True,pending=awaiting(proposal,request,101)))
+        self.assertTrue(awaiting(request[0],request,101))
+        self.assertFalse(reselect(True,pending=awaiting(request[0],request,101)))
         # Distinct lead claims alone cannot prevent two buddies choosing the midpoint.
         points=[(0,0),(6,0),(3,0),(3,4)]
         def ranked(anchor,occupied):

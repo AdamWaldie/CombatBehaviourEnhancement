@@ -313,5 +313,46 @@
       ]
     },
     "limits": "Proposal continuity only, not current occupancy or native acknowledgement. Existing proposal-selection occupancy logic unchanged; import does not add fresh occupancy proof. Ordered delivery, latest snapshot, full changed-roster continuity and physical normal/HC flow/performance remain incomplete/unverified. No parity/percentage/acceptance claim. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits paused; no push/CI/merge/publish."
+  },
+  "buddyCacheOccupancy20261024": {
+    "base": "9e7778027c83263a4da1fc2747c46f78bfead4c6",
+    "finding": "Cached initial buddy destination bypassed fresh occupancy ranking before uncommitted entry, including after resume. Other workers can occupy or own the point after selection.",
+    "change": "Before uncommitted cached entry, available/task-free partner with no owned MOVE or actual pending native request resamples existing <=8-worker occupancy. Occupied proposal is invalidated and the existing selector prefers free points using that same sample, not a second roster read. Committed or pending paths are not occupancy-retargeted.",
+    "pendingRequestCorrection": "Initial passing source checked pending window against cached proposal, which may differ from adjusted issued room point. Final source reads original movementRequestTimes target and uses existing nativeMoveAwaited; no new grace. Initial full log retained as superseded.",
+    "boundaries": "No new observer/query API/ray budget/worker/timer/deadline/schema or progress. Added existing bounded roster observation for each qualified cached lane; normal initial selection reuses sample. Existing16geometry budget and finite busy-node fallback retained. Admission preference, not occupancy reservation or continuous collision proof.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingOperationStep.sqf",
+        "sha256": "333dd1bafcf03550bcd72fe2ee2ee0343abb0aefbc4a6e39a512882695f6dd89"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_clear_entry_flow.py",
+        "sha256": "108ded54392927f2ab6ef514e3423e3bb9e2b55d8173baca348a1f19fd9b7cae"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "ac2cceea9a30c8c0df33b171989dc93ac18dc3909d602975ed147ed6241877ff"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 13,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-buddy-cache-occupancy-9e777802",
+      "fingerprint": "f9dc60db03f617f3044116255e192ae4a2f148a18db1b67e657ce435eac84d8a",
+      "logs": [
+        ".qa/clear-buddy-cache-occupancy-focused.log",
+        ".qa/clear-buddy-cache-occupancy-build.log",
+        ".qa/clear-buddy-cache-occupancy-final-focused.log",
+        ".qa/clear-buddy-cache-occupancy-final-build.log",
+        ".qa/clear-buddy-cache-occupancy-model-focused.log",
+        ".qa/clear-buddy-cache-occupancy-independent.log"
+      ],
+      "postBuildTestRefinement": "Existing pending-target model replaced tautological example with explicit before/after proposal-vs-issued counterexample;13 focused cases passed afterward. Production sources unchanged; no redundant compiler/package rebuild."
+    },
+    "limits": "All candidates occupied still permits original finite busy-node fallback. Public snapshot freshness, current access, actual crowding/repeated buddy entry, normal/HC, added native observation cost and5%/10% budget remain unverified. No physical/parity/percentage claim. Unsigned dirty development includes unrelated dirt; test-model refinement/review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
   }
 }
