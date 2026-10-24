@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Refused serials are retained separately from issued shots; later duplicate requests cannot fire.
  * Danger-fix expiry is part of shot identity and rechecked at final native issue; no renewal.
+ * Positioned shots retain the first READY native destination proof for both operating seats.
+ * Changed destinations, native STOP and unavailable movement seats reject instead of rebasing firing authority.
  * Current gunner availability, protected tasks/treatment, simulation and player/specialist
  * control are checked before safety work and again at the atomic native shot boundary.
  * Executes exactly one checked shot on the current battery owner. The server observes the actual firing event.
@@ -102,6 +104,19 @@ private _positionCurrent={
     if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
     local _group && {group gunner _battery == _group}
         && {(_work getOrDefault ["crew",[]]) isEqualTo _seats}
+        && {_seats findIf {isNull _x || {!local _x} || {vehicle _x != _battery}
+            || {group _x != _group} || {isPlayer _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {!simulationEnabled _x} || {isObjectHidden _x}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)}
+            || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CompatibilityExternalControl}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {toUpperANSI currentCommand _x == "STOP"}
+        } < 0}
+        && {(_work getOrDefault ["readyGoals",[]]) isEqualTo
+            (_seats apply {+((expectedDestination _x) param [0,[],[[]]])})}
         && {serverTime < (_session select 9)}
         && {(_work get "epoch") == (_group getVariable ["CBE_AIPass_Epoch",-1])}
         && {(_operation getOrDefault ["generation",-2]) == _generation}

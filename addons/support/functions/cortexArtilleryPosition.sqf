@@ -6,6 +6,7 @@
  * Repeat/JIP: Exact original session/deadline and public attempt prevent duplicate movement.
  * Owner migration refuses replay; existing locality cleanup retires the old group operation.
  * Original driver/effective-commander pair binds movement, READY and subsequent positioned shots.
+ * READY freezes both native destination points; later reports cannot rebase that proof.
  * No new scheduler, teleport, repair, inventory change or fixed path is installed.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 session ARRAY,[];
  * [magazine,targetATL,serverDeadline,group,nativeOrder,fireGeneration,purpose,mode,smokeGeneration,holdUntil].
@@ -22,6 +23,19 @@ private _ours=count _work > 0 && {(_work getOrDefault ["token",""]) == _token}
     && {(_work getOrDefault ["session",[]]) isEqualTo _session};
 private _finish={
     params ["_status"];
+    if (_ours && {_status == "READY"}) then {
+        private _readySeats=_work get "crew";
+        private _readyNow=_readySeats apply {+((expectedDestination _x) param [0,[],[[]]])};
+        private _readyBefore=_work getOrDefault ["readyGoals",[]];
+        private _readyValid=_readyNow findIf {count _x != 3
+            || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0;
+        if (!_readyValid) exitWith {_status="NATIVE_STATE_UNKNOWN"};
+        if (_readyBefore isEqualTo []) then {
+            _work set ["readyGoals",_readyNow];
+        } else {
+            if (_readyBefore isNotEqualTo _readyNow) then {_status="MOVEMENT_REPLACED"};
+        };
+    };
     if (_ours && {local _group} && {_status != "READY"}) then {
         private _generation=_work getOrDefault ["generation",-1];
         private _operation=_group getVariable ["CBE_Operation",createHashMap];

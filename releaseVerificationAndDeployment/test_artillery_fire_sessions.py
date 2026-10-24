@@ -87,6 +87,19 @@ class ArtilleryFireSessions(unittest.TestCase):
         gate=shot.split('private _positionCurrent={',1)[1].split('private _operatorAvailable=',1)[0]
         self.assertIn('(_work getOrDefault ["crew",[]]) isEqualTo _seats',gate)
         self.assertEqual(shot.count('call _positionCurrent'),2)
+        ready=owner.split('if (_ours && {_status == "READY"}) then {',1)[1].split('if (_ours && {local _group}',1)[0]
+        self.assertLess(ready.index('if (_readyBefore isEqualTo [])'),ready.index('_work set ["readyGoals",_readyNow]'))
+        self.assertIn('_readyBefore isNotEqualTo _readyNow',ready)
+        self.assertIn('_status="MOVEMENT_REPLACED"',ready)
+        self.assertIn('getOrDefault ["readyGoals",[]]) isEqualTo',gate)
+        self.assertIn('_seats apply {+((expectedDestination _x) param [0,[],[[]]])}',gate)
+        self.assertIn('toUpperANSI currentCommand _x == "STOP"',gate)
+        self.assertIn('_readyValid',ready)
+        self.assertIn('_status="NATIVE_STATE_UNKNOWN"',ready)
+        for guard in ('!local _x','CortexActorFireTaskAvailable','checkAIFeature "MOVE"',
+                      'checkAIFeature "PATH"','CompatibilityExternalControl'):
+            self.assertIn(guard,gate)
+        self.assertLess(gate.index('!local _x'),gate.index('getOrDefault ["readyGoals",[]]'))
         for text in (report,step,gate):
             self.assertIn('if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]}',text)
 

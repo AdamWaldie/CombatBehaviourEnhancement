@@ -142,5 +142,30 @@
       "addons\\infantry\\functions\\cortexGroupTick.sqf": "f760201420429ba4bebe2a4e9a2f6ef00802ed3748d9fa8a5a357cc7fb1f49fa"
     },
     "limits": "Unsigned dirty development candidate includes pre-existing unrelated working-tree changes. Review/handover postdate package. No physical cancellation/stopping/handback, normal/HC, balance or performance proof. Audits PAUSED. No percentage renewal."
+  },
+  "positionReadyNativeGoals20261024": {
+    "base": "81325b7e",
+    "finding": "READY stopped owner positioning observations once server mission left POSITIONING. Shot rechecked original seats/group HOLD but neither driver current task nor operating-seat native destinations. A newer individual MOVE could leave the same group HOLD and unchanged seats while a queued shot retained stale readiness.",
+    "change": "First physical READY freezes two finite3D destination points locally. Duplicate READY reports cannot rebase them. Positioned shot preflight and final native issue compare fresh points and require both seats local, effective, simulated, nonplayer/nonremote, unreserved/task-available, MOVE/PATH enabled and no native STOP or external actor control. Existing unpositioned mission admission and serial-consumption/rejection path retained.",
+    "deliberateLimit": "Do not freeze currentCommand or planningMode: native gun tasks and planning completion can legitimately change those without a new movement destination. Identical native points cannot establish who authored a repeated identical order. No native task is restored or rewritten here.",
+    "selectedMovementTrace": "Existing DrivingRecoveryCommandState classifies its own recovery/native-return/child journals and cannot grant new artillery authority by constructing a lookalike journal. DrivingMovementAvailable is group-scoped, not selected-platform ownership. OperationRestore intentionally restores owned settings only, not native movement. Replacing CortexGroupMove with doMove alone is insufficient: documented leader arrival reforms the group and subordinate arrival can return to formation. Need explicit selected-platform arrival/hold/return lifecycle and prepared leader/nonleader mixed-group checks, not dual driver/commander writes.",
+    "primaryCommandReferences": [
+      "https://community.bistudio.com/wiki/doMove",
+      "https://community.bistudio.com/wiki/setDestination",
+      "https://community.bistudio.com/wiki/setEffectiveCommander"
+    ],
+    "validation": "8 existing focused artillery cases, full1491, SQF validation, HEMTT412 SQF/9 PBO and all build gates plus independent package verification passed. Existing readiness test extended; no new cases. Command/motion behaviour remains unrun.",
+    "candidate": ".qa/candidates/artillery-ready-native-81325b7e",
+    "fingerprint": "d4a19dd5d1cc65decf19ae329902d5c1dd0cc174bb90829f09fd2c68d9067aa0",
+    "logs": [
+      ".qa/artillery-ready-native-focused.log",
+      ".qa/artillery-ready-native-build.log",
+      ".qa/artillery-ready-native-independent.log"
+    ],
+    "hashes": {
+      "addons\\support\\functions\\cortexArtilleryPosition.sqf": "bcdb1125163d86aef0ebaf9f4613d2b47b22c58c71a5bde8a29a94006608d535",
+      "addons\\support\\functions\\cortexArtilleryShot.sqf": "1003e8c5c5db702b0ee0488489060b04ed8234922071505e2f26e2c35f623439"
+    },
+    "limits": "Fixed two-seat native reads and eligibility calls; no new query loops/workers/deadlines. No physical readiness/repeated fire/false-refusal/handback/performance/parity credit. Selected-battery mixed-group movement remains unimplemented. Audits PAUSED. Unsigned dirty development package includes unrelated existing dirt; review/notes postdate package."
   }
 }
