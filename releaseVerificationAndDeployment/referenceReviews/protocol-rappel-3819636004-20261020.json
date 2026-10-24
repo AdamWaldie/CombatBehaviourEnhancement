@@ -128,5 +128,60 @@
     "validation": "Current source re-read and SHA256 confirmation; no runtime changes, build repetition or audit launch. Existing reference-boundary check validates final engineering notes only.",
     "physicalAcceptance": false,
     "goalStatus": "Incomplete; other offline foundation/source work remains possible. Audits paused."
+  },
+  "workerHandleTrace20261024": {
+    "base": "6a521b9c",
+    "question": "Can a CBE wrapper observe scriptDone on existing provider workers instead of inferring completion from early activity flags?",
+    "finding": "No complete task graph is exposed. Server actor API spawns the movement worker without saving/publishing its handle, then spawns a distinct slot-retirement worker. A last spawned value, if captured from that server call, identifies slot bookkeeping, not the actor task graph. Nonserver dispatch returns remote-wrapper transport semantics, not an actor-worker SCRIPT handle. No provider code executed to infer undocumented return types.",
+    "workers": [
+      {
+        "name": "server actor reservation",
+        "entry": "AR_Rappel_From_Heli",
+        "effect": "Reserves heli slot and publishes actor activity; independently starts actor and slot workers. No episode-scoped accepted/finished response."
+      },
+      {
+        "name": "actor owner movement",
+        "entry": "AR_Client_Rappel_From_Heli",
+        "effect": "Owns movement, physics, ropes/devices and delayed unconditional damage write after public activity clears. Handle unretained by public API."
+      },
+      {
+        "name": "server slot retirement",
+        "entry": "anonymous actor/heli/slot spawn",
+        "effect": "Polls activity/death every2s and clears slot. It can finish while actor damage or animation cleanup remains scheduled."
+      },
+      {
+        "name": "actor animation",
+        "entry": "spawn AR_Enable_Rappelling_Animation_Client",
+        "effect": "Separate ignored handle; toggles simulation, changes animation, installs/removes animation handler; waits on shared activity flag, then resets animation and enables simulation."
+      },
+      {
+        "name": "remote animation replicas",
+        "entry": "AR_Enable_Rappelling_Animation -> remoteExec animation client",
+        "effect": "Additional client workers and nonlocal refresh child with delayed switchMove/switchGesture writes. Main actor SCRIPT completion would not prove these workers retired."
+      },
+      {
+        "name": "AI descent start",
+        "entry": "anonymous actor spawn",
+        "effect": "Unconditional AR_DECEND_PRESSED=true after sleep2; no task serial or late-episode check."
+      },
+      {
+        "name": "overspeed detach observer",
+        "entry": "anonymous actor/heli spawn",
+        "effect": "Polls shared actor activity every2s and may detach. No episode serial, so boolean reuse does not distinguish an old descent from a successor."
+      },
+      {
+        "name": "sound loops",
+        "entry": "AR_Play_Rappelling_Sounds",
+        "effect": "Separate presentation workers; not treated as proof of physical control or terminal cleanup."
+      }
+    ],
+    "implementationDecision": "Do not implement public-API wrapper success from one script handle, remoteExec return, all visible flags false or arbitrary grace. Required finite insertion needs controlled serial-scoped movement/animation/slot workers and actual-owner acceptance/terminal receipts after all actor-state writers retire, plus physical destination and mission-baseline restoration proof. Existing provider marker detection remains incomplete compatibility, not insertion execution.",
+    "repeatabilityRisk": "Shared actor booleans carry no episode identity. An old delayed descent/animation/detach worker may overlap a newly activated descent. Serial guard must be inside the actual writers, not only in a caller wrapper.",
+    "sourceHashes": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+      ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+    },
+    "validation": "Both preserved readable variants hash-verified and relevant worker/cleanup/dispatch bodies inspected; static assertions confirm ignored actor spawn and simulation/descent/damage writers. Original PBO/extractions unchanged. No product runtime changes, new test cases, build repetition or audit.",
+    "limits": "Targeted source contract analysis, not whole-provider runtime validation or claim of reproducing actual overlap. Controlled rappel executor remains required and unimplemented; physical insertion/cleanup/normal-HC/performance remain unverified. Audits PAUSED."
   }
 }
