@@ -2708,3 +2708,6 @@ Missile-defence replacement and shutdown retire the exact old response flight le
 
 
 When a building-clearing lane needs a replacement, eligible reserves now prefer the surviving soldier's registered buddy, followed by an intact reserve pair, within the existing candidate window. Distance remains the fallback. This preference cannot remove the only established exit observer, bypass a newer task, renew the clearance deadline or credit entry that has not happened. A blocked preferred reserve yields to the existing rotating checks. Actual reinforcement movement and pair entry remain unverified.
+
+
+Artillery relocation currently uses a group waypoint and therefore requires the leader and every living group member aboard the selected battery, with at most64 group members. Admission and the final movement transaction recheck this scope; an active relocation cancels if the group gains a living member outside the battery. Other group members are never deliberately recalled or detached to satisfy the restriction. Selected-battery displacement within a mixed group remains unimplemented. Cancellation uses existing generation-scoped operation cleanup; actual vehicle stopping and native handback remain unverified while audits are paused. No settings, retry clocks or background workers are added.

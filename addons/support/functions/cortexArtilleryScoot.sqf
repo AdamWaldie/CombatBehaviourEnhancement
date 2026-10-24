@@ -5,6 +5,8 @@
  * Both actual AI movement seats must remain local, available and free of treatment,
  * protected tasks, direct native STOP and non-route MOVE commands before planning and issue.
  * Geometry cannot grant authority over changed crew or authored route metadata.
+ * The current group-waypoint executor is restricted to a single occupied platform.
+ * Mixed groups are refused until selected-vehicle displacement and handback are implemented.
  * Moves a mobile battery after the last shell flight and warning interval have elapsed. If another
  * Cortex movement owner is active, the relocation waits in five-second steps for at most two minutes
  * instead of replacing that route. Once acquired, the shared movement lease prevents contact,
@@ -90,6 +92,9 @@ private _operator=effectiveCommander _battery;
 if (isNull _operator) then {_operator=_driver};
 private _crewReady={
     local _group && {local _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
+        && {vehicle leader _group == _battery}
+        && {count units _group <= 64}
+        && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}
         && {driver _battery == _driver} && {(effectiveCommander _battery) in [_operator,objNull]}
         && {[_driver,_operator] findIf {
             isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _battery}

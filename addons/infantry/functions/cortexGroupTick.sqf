@@ -454,6 +454,9 @@ if ((_scootLease param [0,""]) == "ARTILLERY_SCOOT") then {
                 if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
                 _valid=_purpose in ["SUPPORT","COUNTER"]
                     && {(_session select 6) isEqualTo _seats}
+                    && {vehicle leader _group == _battery}
+                    && {count units _group <= 64}
+                    && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}
                     && {simulationEnabled _battery} && {!isObjectHidden _battery} && {canMove _battery}
                     && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
                     && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}

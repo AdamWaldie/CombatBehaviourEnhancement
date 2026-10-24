@@ -36,6 +36,13 @@ class ArtilleryScootSession(unittest.TestCase):
         self.assertLess(commit.index('call _sessionCurrent'),commit.index('call CBE_fnc_CortexOwnershipLease'))
         self.assertLess(commit.index('call _sessionCurrent'),commit.index('call CBE_fnc_CortexGroupMove'))
         self.assertTrue(s.rstrip().endswith('_started'))
+        # Group waypoint scope must be refused before planning and rechecked at commit.
+        ready=s.split('private _crewReady={',1)[1].split('private _nativeOrder=',1)[0]
+        for guard in ('vehicle leader _group == _battery','count units _group <= 64',
+                      '(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0'):
+            self.assertIn(guard,ready)
+        self.assertLess(s.index('if !(call _crewReady)'),s.index('private _origin='))
+        self.assertLess(commit.index('call _crewReady'),commit.index('call CBE_fnc_CortexGroupMove'))
         mission=(ROOT/'addons/support/functions/cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
         self.assertIn('[_battery,_scootToken,_scootSession] remoteExecCall',mission)
     def test_active_relocation_keeps_session_and_cancels_only_current_generation(self):
@@ -57,6 +64,9 @@ class ArtilleryScootSession(unittest.TestCase):
                        'CBE_ArtilleryScoot_CounterGeneration','CBE_AIPass_CounterGeneration',
                        'CBE_fnc_CortexFeatureEnabled','SCOOT_SESSION_ENDED'):
             self.assertIn(marker,active)
+        for guard in ('vehicle leader _group == _battery','count units _group <= 64',
+                      '(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0'):
+            self.assertIn(guard,active)
         cleanup=active.split('// Cleanup can call other lifecycle helpers.',1)[1]
         for guard in ('CBE_OperationGeneration','count (_group getVariable ["CBE_Operation"',
                       'isEqualTo _scootLease','isEqualTo _scootAuthority','== _scootGeneration'):

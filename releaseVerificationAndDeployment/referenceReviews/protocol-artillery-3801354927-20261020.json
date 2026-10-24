@@ -123,5 +123,24 @@
       "addons/support/functions/cortexArtilleryShot.sqf": "b7084d5f258b846bafbd140622a7b359b664b02d9bab4b04ac1a2da65aecc94b"
     },
     "limits": "No selected-platform executor implemented, native vehicle command independence/arrival/cancellation or physical behaviour proved. Do not confuse existing task guards and package checks with this missing behaviour. Latest recovery-pause-admission-b9bf422b/cfbb8495b5bf2f796db74ee3dbe34fbd402449eac99480e718aa0990184523df remains prior unsigned dirty runtime checkpoint. No source parity/percentage renewal; audits PAUSED."
+  },
+  "scootGroupScope20261024": {
+    "base": "8e6988ca",
+    "finding": "Earlier selectedBatteryMovement20261024 cbeFinding incorrectly stated both executors restricted single-platform groups. Position did; Scoot lacked isolation despite issuing CortexGroupMove. A mixed crew group could therefore redirect unrelated vehicles or infantry after firing.",
+    "change": "Scoot crewReady now requires leader and every living member aboard selected battery, at most64 members. Existing predicate executes before geometry and in atomic movement admission. GroupTick active scoot validation repeats scope and uses existing exact-generation cancellation when it changes. No detach, recall, new worker, deadline, setting or native command added.",
+    "remaining": "Selected-battery pre/postfire movement in mixed groups remains required and unimplemented. This refusal fixes the current group-waypoint safety defect; it is not an implementation of independent vehicle routing or full Protocol artillery parity.",
+    "validation": "Existing4 scoot session cases extended, full1491 tests, SQF validator, HEMTT412 SQF/9 PBO, other build gates and independent package verification passed. No new test cases.",
+    "candidate": ".qa/candidates/artillery-scoot-group-scope-8e6988ca",
+    "fingerprint": "55bbbca4ef579c2c21251cb0bd3216bf375c8ec22142dd48a2fc7dc8ea228e26",
+    "logs": [
+      ".qa/artillery-scoot-group-scope-focused.log",
+      ".qa/artillery-scoot-group-scope-build.log",
+      ".qa/artillery-scoot-group-scope-independent.log"
+    ],
+    "hashes": {
+      "addons\\support\\functions\\cortexArtilleryScoot.sqf": "c9165f00369684fbe039fb3f8d7976c28b2fd6267f5512c4047ff694bea90920",
+      "addons\\infantry\\functions\\cortexGroupTick.sqf": "f760201420429ba4bebe2a4e9a2f6ef00802ed3748d9fa8a5a357cc7fb1f49fa"
+    },
+    "limits": "Unsigned dirty development candidate includes pre-existing unrelated working-tree changes. Review/handover postdate package. No physical cancellation/stopping/handback, normal/HC, balance or performance proof. Audits PAUSED. No percentage renewal."
   }
 }
