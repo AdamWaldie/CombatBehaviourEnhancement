@@ -15,6 +15,10 @@ if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObject
     || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor} || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count _record < 3}) exitWith {"RELEASE"};
+// A provider may claim only the occupied platform between engine FSM states.
+// Match the waiting gate before classification, observations or action side effects.
+private _parent=objectParent _actor;
+if (!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}) exitWith {"RELEASE"};
 private _group=group _actor;
 if (isNull _group || {!local _group}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}

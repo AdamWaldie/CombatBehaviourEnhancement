@@ -11533,6 +11533,18 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(gate.index('[_parent] call CBE_fnc_CompatibilityExternalControl'),
                         gate.index('private _response='))
 
+        # A platform-only claim can arrive after initial admission. Every later
+        # state boundary must independently yield before observations or commands.
+        for name in ('dangerEngineMode','dangerEngineSubmit','dangerEngineAct'):
+            boundary=source(name).split('private _group=group _actor;',1)[0]
+            self.assertIn('private _parent=objectParent _actor;',boundary)
+            self.assertIn('!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}',boundary)
+        def admitted(actor_claim, platform_claim, aboard):
+            return not actor_claim and not (aboard and platform_claim)
+        self.assertFalse(admitted(False,True,True))
+        self.assertTrue(admitted(False,True,False))
+        self.assertTrue(admitted(False,False,True))
+
     def test_reverse_cleanup_sends_no_stop_into_external_control(self):
         text=source('cortexVehicleReverseStep')
         release=text.split('private _release={',1)[1].split('if (toUpperANSI _mode',1)[0]

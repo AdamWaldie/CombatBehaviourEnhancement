@@ -1,0 +1,21 @@
+{
+  "baseline": "b7342a9d",
+  "scope": "Danger FSM mounted external ownership at separate state boundaries",
+  "finding": "CanContinue checked objectParent ownership, but Mode, Submit and Act checked only actor/group declarations. A platform-only provider claim after admission could reach observation/action state bodies.",
+  "change": "Match existing waiting gate at each boundary: current objectParent only, neutral read-only CompatibilityExternalControl; return RELEASE/false/0 before group observation or native action. No assigned vehicle inheritance, scans, workers, provider marker mutation or new deadlines.",
+  "sourceIntent": "LAMBS forced-exit ownership principle extended to CBE declared vehicle controllers, without suppressing ordinary mounted actors.",
+  "validation": {
+    "existingFocusedCase": "test_cheap_specialist_wait_gate_recognises_runtime_and_animation_ownership",
+    "fullTests": 1491,
+    "compiledSQF": 412,
+    "buildExitCode": 0,
+    "independent": "passed",
+    "candidate": ".qa/candidates/danger-platform-boundaries-b7342a9d",
+    "fingerprint": "9d77ebaff691dc60ff53e02af625083bc71c00b49715f7cc66066927809242f9"
+  },
+  "limits": [
+    "Static boundary proof only; no physical provider handover/quiescence or performance claim.",
+    "Already-issued native actions are not cancelled by this gate.",
+    "Unsigned dirty development candidate includes unrelated pre-existing changes. Review and notes postdate package. Audits paused."
+  ]
+}

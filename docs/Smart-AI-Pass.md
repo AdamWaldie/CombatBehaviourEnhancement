@@ -2787,3 +2787,8 @@ The fallback SAD waypoint is group-wide, so it is permitted only when every livi
 Opportunistic anti-armour orders rank only available actors with a usable loaded secondary launcher. An unloaded or magazine-reloading carrier cannot repeatedly occupy the preferred slot while another ready AT gunner is available. The shared capability classifier uses its existing immutable config cache and live mission overrides for that actual magazine; ordinary force-capability and hostile equipment-potential queries retain their separate meanings. Native weapon selection and reloading are not forced.
 
 After the existing backblast checks, a fresh loaded-launcher observation supplies the shared forward friendly/civilian/captive cone and configured aimpoint-blast veto before an explicit target/fire request. The point comes from retained native belief, not a hidden target's current pose. A refusal leaves native combat permissions and current orders intact. This request-time observation does not pin the engine's later weapon choice, cancel existing fire or guarantee impact/penetration/future-motion safety. Actual launcher response, balance, normal/headless behaviour and added query cost remain unverified while audits are paused.
+
+
+### Mounted danger ownership
+
+The native danger bridge checks the actor's currently occupied platform at classification, observation submission, action execution and waiting. A vehicle-level external-control declaration yields those paths even when the occupants have no individual declaration. Dismounted actors do not inherit ownership from a former or assigned vehicle. These checks issue no provider commands and do not establish that an already-issued native action has stopped.
