@@ -303,6 +303,13 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
             self.assertIn('!(_active isEqualType true) || {_active}',text)
             self.assertNotIn('setVariable',text)
         self.assertLess(owner.index('AR_Is_Rappelling'),owner.index('configOf _unit'))
+        self.assertIn('_unit getVariable ["Waldo_AI_ExternalControl",false]',owner)
+        self.assertIn('(group _unit) getVariable ["Waldo_AI_ExternalControl",false]',owner)
+        self.assertIn('!(_declared isEqualType true)',owner)
+        self.assertIn('!(_groupDeclared isEqualType true)',owner)
+        self.assertIn('exitWith {"DECLARED"}',owner)
+        self.assertLess(owner.index('exitWith {"DECLARED"}'),owner.index('CBE_ExternalOwnerClassCache'))
+
         self.assertLess(owner.index('if (_wbkMarker)'),owner.index('getOrDefault [_class,-1]'))
         cache=owner.split('if (_static isEqualTo -1) then {',1)[1].split('if (_static) exitWith',1)[0]
         self.assertIn('configOf _unit',cache)

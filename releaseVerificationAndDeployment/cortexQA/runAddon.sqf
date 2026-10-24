@@ -32,6 +32,9 @@ createVehicleCrew _platformProbe;
 private _probeDriver=driver _platformProbe;
 private _probeCrew=crew _platformProbe;
 private _probeCrewGroup=group _probeDriver;
+private _declarationBoundary=false;
+private _declarationDetails=[];
+private _probePeer=objNull;
 private _platformBoundary=false;
 private _platformDetails=[];
 if (!isNull _probeDriver && {local _probeDriver} && {local _probeCrewGroup}
@@ -44,11 +47,29 @@ if (!isNull _probeDriver && {local _probeDriver} && {local _probeCrewGroup}
     private _released=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
     _platformBoundary=!_ordinary && {_actorHeld} && {_groupHeld} && {!_released};
     _platformDetails=[_ordinary,_actorHeld,_groupHeld,_released];
+    // The earlier ordinary classification populated the existing class memo.
+    // A later actor claim must still win, without becoming a sibling-wide claim.
+    _probePeer=_probeCrewGroup createUnit ["B_Soldier_F",[105,100,0],[],0,"NONE"];
+    _probeDriver setVariable ["Waldo_AI_ExternalControl",true];
+    private _declaredOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    private _declaredGroup=[_probeCrewGroup] call CBE_fnc_CortexExternalTakeover;
+    private _peerHeld=[_probeCrewGroup,false,_probePeer] call CBE_fnc_CortexExternalTakeover;
+    _probeDriver setVariable ["Waldo_AI_ExternalControl","unknown"];
+    private _malformedOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    _probeDriver setVariable ["Waldo_AI_ExternalControl",false];
+    private _ordinaryOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    _declarationBoundary=!isNull _probePeer && {_declaredOwner == "DECLARED"}
+        && {_declaredGroup} && {!_peerHeld} && {_malformedOwner == "DECLARED"}
+        && {_ordinaryOwner == ""};
+    _declarationDetails=[_declaredOwner,_declaredGroup,_peerHeld,_malformedOwner,_ordinaryOwner];
+
 };
+if (!isNull _probePeer) then {deleteVehicle _probePeer};
 {deleteVehicle _x} forEach _probeCrew;
 deleteVehicle _platformProbe;
 if (!isNull _probeCrewGroup) then {deleteGroup _probeCrewGroup};
 ["ADDON-occupied-platform-boundary",_platformBoundary,str _platformDetails] call _check;
+["ADDON-live-actor-declaration-boundary",_declarationBoundary,str _declarationDetails] call _check;
 
 
 // Configuration visibility only; this does not establish weapon lethality or player accuracy.

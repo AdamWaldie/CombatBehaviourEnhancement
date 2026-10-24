@@ -3,6 +3,7 @@
  * Identifies AI whose movement, animation or combat state belongs to a supported external system.
  * CBE uses this one read-only gate before any tactic so specialist skeletons, creatures, droids and
  * active melee actors never receive competing movement, animation or damage commands.
+ * Actor/group Waldo_AI_ExternalControl declarations are checked live before the class memo.
  * Ordinary infantry remains eligible when those addons are merely loaded. Verified active
  * rappelling markers also yield actor/vehicle control, without assuming descent completion.
  *
@@ -27,6 +28,13 @@
 
 params [["_unit",objNull,[objNull]]];
 if (isNull _unit) exitWith {""};
+// The public actor/group handover declaration is live authority, never class identity.
+// False/absent permits ordinary classification; malformed declarations yield safely.
+private _declared=_unit getVariable ["Waldo_AI_ExternalControl",false];
+private _groupDeclared=(group _unit) getVariable ["Waldo_AI_ExternalControl",false];
+if (!(_declared isEqualType true) || {_declared}
+    || {!(_groupDeclared isEqualType true) || {_groupDeclared}}) exitWith {"DECLARED"};
+
 
 // Verified Advanced Rappelling actor and bulk-helicopter ownership markers.
 // False/absent does not exclude ordinary AI; never clear a provider's active state.
