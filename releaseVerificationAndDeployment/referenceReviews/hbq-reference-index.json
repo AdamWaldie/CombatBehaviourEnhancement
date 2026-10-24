@@ -706,7 +706,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/rear-full-body-entry-20261024.json",
-      "sha256": "e097bb203a001101facafa4aaee6d8e32929a9375f9cc4c89977a696272d89f5",
+      "sha256": "8332f615ddc3a854e3bbe327fa53518ae7e14a8b0b0a35520fe11b8db132cbe3",
       "scope": "Complete40line HBQ rearClear helper and current CBE actor-overlap/prediction path; not renewed whole geometry/controller review.",
       "sourceFileMentions": [
         "functions/fn_rearClear.sqf"

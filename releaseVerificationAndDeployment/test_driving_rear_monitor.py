@@ -215,16 +215,23 @@ class DrivingRearMonitorTests(unittest.TestCase):
                     a,b=(area_lo-hi)/v,(area_hi-lo)/v
                     entry=max(entry,min(a,b));exit=min(exit,max(a,b))
             return entry<=exit and exit>=0 and entry<=2,entry
-        def prediction(x,y,v):
-            rear=[(*x,-1.3,1.3),(*y,-11,-2.5),(0,1.8,-0.3,2.3)]
+        def prediction(x,y,v,distance=8):
+            rear=[(*x,-1.3,1.3),(*y,-3-distance,-2.5),(0,1.8,-0.3,2.3)]
             old=interval(rear,v)[0]
-            body=list(rear);body[1]=(*y,-11,3)
+            body=list(rear);body[1]=(*y,-3-distance,3)
             whole,entry=interval(body,v)
             return old,old or (whole and entry>0)
         self.assertEqual(prediction((-.3,.3),(3.5,4.5),(0,-2,0)),(False,True))
         self.assertEqual(prediction((2.5,3.1),(0,1),(-2,2,0)),(False,True))
         self.assertEqual(prediction((-.3,.3),(3,4),(0,2,0)),(False,False))
         self.assertEqual(prediction((-.3,.3),(-8,-7),(0,0,0)),(True,True))
+        # Short fallback cannot remove a front/side entry veto: the body front
+        # and two-second interval remain independent of the rear travel distance.
+        for distance in (3.5,8,12,26):
+            with self.subTest(rear_distance=distance):
+                self.assertEqual(prediction((-.3,.3),(3.5,4.5),(0,-2,0),distance),(False,True))
+                self.assertEqual(prediction((2.5,3.1),(0,1),(-2,2,0),distance),(False,True))
+                self.assertEqual(prediction((-.3,.3),(3,4),(0,2,0),distance),(False,False))
         self.assertEqual(s.count('nearEntities'),2)
         for forbidden in ('setVariable','sendSimpleCommand','forceSpeed','doMove','setVelocity'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
