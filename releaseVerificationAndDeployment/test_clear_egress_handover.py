@@ -152,13 +152,34 @@ class TerminalContinuationBoundaryTests(unittest.TestCase):
         self.assertLess(block.index('[_x] call _mayContinue'),block.index('_x doFollow'))
         self.assertIn('CBE_Cortex_ClearHold',block)
         self.assertIn('"reserveAdmissionCommands",createHashMap',block)
-        self.assertIn('(_settled-[_leader]) select [0,16]',block)
-        self.assertIn('for "_continuationPass" from 1 to 16',block)
+        self.assertIn('(_settled-[_leader]) select [0,63]',block)
+        self.assertIn('for "_continuationCursor" from 0 to 63',block)
         self.assertIn('_returnLeader in _continued',block)
         self.assertIn('_x doFollow _returnLeader',block)
         self.assertNotIn('_x doFollow _leader',block)
-        self.assertLess(block.index('_considered pushBack _x'),block.index('[_x] call _mayContinue'))
-        self.assertIn('count _followers == _beforeCount',block)
+        self.assertIn('private _children=createHashMap',block)
+        self.assertLess(block.index('_children deleteAt'),block.index('[_x] call _mayContinue'))
+        self.assertIn('isEqualTo _returnLeader',block)
+        self.assertNotIn('private _beforeCount',block)
+        # A64-actor star loses47followers under the former16-follower prefix.
+        # Queue traversal also preserves long reverse-ordered parent chains and
+        # refuses disconnected cycles or descendants of an unavailable anchor.
+        def traverse(parents,blocked=()):
+            children={}
+            for actor,parent in parents:
+                children.setdefault(parent,[]).append(actor)
+            issued=[0]
+            for cursor in range(64):
+                if cursor>=len(issued):break
+                for actor in children.get(issued[cursor],[]):
+                    if actor not in blocked:issued.append(actor)
+            return set(issued)
+        wide=[(i,0) for i in range(1,64)]
+        self.assertEqual(len({0}|{a for a,_ in wide[:16]}),17)
+        self.assertEqual(len(traverse(wide)),64)
+        chain=[(i,i-1) for i in reversed(range(1,64))]
+        self.assertEqual(len(traverse(chain)),64)
+        self.assertEqual(traverse([(1,0),(2,1),(3,4),(4,3)],blocked=(1,)),{0})
         self.assertIn('private _remaining=(_settled-_continued)+_unacknowledged',block)
         self.assertLess(block.index('_leader setVariable ["CBE_Cortex_ClearRecall"'),block.index('_leader doMove'))
         self.assertLess(block.index('_x setVariable ["CBE_Cortex_ClearRecall"'),block.index('_x doFollow'))

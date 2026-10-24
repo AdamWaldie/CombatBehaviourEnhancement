@@ -2766,3 +2766,10 @@ Failed egress cannot grant this handback. The existing exact native route, plain
 Natural-route handback records each actual leader MOVE and admitted formation FOLLOW request using the existing one-shot clearance recall receipt. A request alone does not remove an actor from the terminal hold list: an actor still stopped at its recorded same-floor post retains that evidence. Acknowledged movement or a changed command/pose cannot inherit that old hold. Existing later hold inspection can distinguish an already requested recall without using an expired observation window as replay permission.
 
 No new polling job, retry deadline or native command is added. Indefinitely unacknowledged requests remain unresolved; this is evidence retention, not proof the engine accepted the order or the actor travelled. Normal/headless acknowledgement and physical handback remain unverified while audits are paused.
+
+
+### Clearance formation handback capacity
+
+Natural-route continuation covers the admitted roster of up to64 actors, including its leader. One parent index and bounded queue replace the former16-follower subset and repeated formation passes. Each admitted link is considered once after its actual anchor receives a request; a refused anchor leaves its descendants held. Missing or disconnected/cyclic formation links are not flattened into the squad leader.
+
+Existing actor availability, native STOP/post, original route and one-shot request evidence remain required. This changes terminal handback only, with no new movement task, timer, path search or recurring controller. Actual large-roster movement, acknowledgement, formation quality and callback/performance cost remain unverified while audits are paused.

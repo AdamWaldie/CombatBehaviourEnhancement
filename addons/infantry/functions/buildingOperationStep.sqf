@@ -767,29 +767,39 @@ private _delay=call {
                 // Preserve admitted native subformations. Resolve only chains whose
                 // anchor has already received its continuation request; do not flatten
                 // missing, cyclic or unavailable anchors into the squad leader.
-                private _followers=(_settled-[_leader]) select [0,16];
+                private _followers=(_settled-[_leader]) select [0,63];
                 private _formationAdmission=_job getOrDefault ["reserveAdmissionCommands",createHashMap];
-                for "_continuationPass" from 1 to 16 do {
-                    private _beforeCount=count _followers;
-                    private _considered=[];
+                // One bounded parent index and queue cover the admitted64-actor roster.
+                // Each edge is considered once, rather than truncating to16 followers
+                // or rescanning every held actor for each level of a formation chain.
+                private _children=createHashMap;
+                {
+                    private _admitted=_formationAdmission getOrDefault [netId _x,[]];
+                    private _returnLeader=_admitted param [3,objNull,[objNull]];
+                    if (count _admitted == 4 && {(_admitted select 0) == _x}
+                        && {!isNull _returnLeader} && {group _returnLeader == _group}) then {
+                        private _key=netId _returnLeader;
+                        private _list=_children getOrDefault [_key,[]];
+                        _list pushBack _x;
+                        _children set [_key,_list];
+                    };
+                } forEach _followers;
+                for "_continuationCursor" from 0 to 63 do {
+                    if (_continuationCursor >= count _continued) exitWith {};
+                    private _returnLeader=_continued select _continuationCursor;
+                    private _waiting=_children getOrDefault [netId _returnLeader,[]];
+                    _children deleteAt (netId _returnLeader);
                     {
                         private _admitted=_formationAdmission getOrDefault [netId _x,[]];
-                        private _returnLeader=_admitted param [3,objNull,[objNull]];
-                        if (count _admitted == 4 && {(_admitted select 0) == _x}
-                            && {!isNull _returnLeader} && {group _returnLeader == _group}
-                            && {_returnLeader in _continued}) then {
-                            // Refusal is final for this finish: the remaining hold receipt
-                            // retains the actor, not another pass over its native authority.
-                            _considered pushBack _x;
-                            if ([_x] call _mayContinue && {[_returnLeader] call _actorAvailable}) then {
-                                _x setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_brain get "ownerEpoch",_returnLeader,time+5]];
-                                _x doFollow _returnLeader;
-                                _continued pushBack _x;
-                            };
+                        // Object identity disambiguates a shared/missing native network ID.
+                        if ((_admitted param [3,objNull,[objNull]]) isEqualTo _returnLeader
+                            && {_returnLeader in _continued}
+                            && {[_x] call _mayContinue} && {[_returnLeader] call _actorAvailable}) then {
+                            _x setVariable ["CBE_Cortex_ClearRecall",[_job get "generation",_brain get "ownerEpoch",_returnLeader,time+5]];
+                            _x doFollow _returnLeader;
+                            _continued pushBack _x;
                         };
-                    } forEach _followers;
-                    _followers=_followers-_considered;
-                    if (_followers isEqualTo [] || {count _followers == _beforeCount}) exitWith {};
+                    } forEach _waiting;
                 };
                 // A native request is not acknowledgement. Keep only actors still
                 // stopped at this finish's actual posts; new movement/poses own themselves.
