@@ -1,0 +1,37 @@
+{
+  "base": "40e7eb5e",
+  "scope": "Shallow-ford implementation contract and engine-coordinate uncertainty; selected navigation branch/interfaces, not whole controller re-review",
+  "referenceIntent": "Marked finite navigation area supports an otherwise unusable crossing including a shallow ford, retains collision checks and returns to prior route. The reference branch trusts the marked area; it does not establish vehicle-specific water suitability.",
+  "referenceSource": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "section": "NAVIGABLE AREAS approach/cross/return branch around lines2380..2470"
+  },
+  "currentInterfaces": {
+    "addons/vehicles/functions/drivingCorridorRegister.sqf": "368b99afed31a4d2831f0b0b15684230645f82666a6bf349e7b05fc9155fbff9",
+    "addons/vehicles/functions/drivingCorridorDispatch.sqf": "b368a27a9ed8c99479655c7dadfaebca7e758763929cd648bd684055261ee99f",
+    "addons/vehicles/functions/zenDrivingCorridorModule.sqf": "938d3fd07ac9bd82b150be05a57858927f2bb4e75e40423eda0d0385b911c83c",
+    "addons/vehicles/functions/drivingCorridorGeometry.sqf": "75599fede25241c4bd2bb6ad438ebe2fdec2bb8e51003a8d2ec54b8cd68e03a2",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "ac8f566e08f1eb964bce85f9cc6fedd812b910541a941318d37fbf32ef8a0aa6",
+    "addons/vehicles/functions/drivingPathGeometry.sqf": "b176442ea4ccdcdfea9222a1ed77a5487699ea4647c7f0936acd778b30244281"
+  },
+  "confirmedGap": "CBE task definition is revision/halfLength/halfWidth/speed; interface explicitly advertises dry supported paths. Shared geometry refuses wet unsupported terrain. No fording policy or controller path is implemented.",
+  "primaryEvidence": {
+    "url": "https://dev.arma3.com/post/spotrep-00064",
+    "finding": "Official published engine change documents negative maxFordingDepth for cars/tanks and car measurement from bounding-box centre; helicopter measurement uses land contacts. This invalidates treating the field as a universal positive ground-depth allowance.",
+    "limit": "Historical primary engine-change statement, not fresh current-engine/type calibration. Tank reference-point semantics and modded vehicle behaviour not established here."
+  },
+  "requiredImplementation": [
+    "Use an explicit per-task crossing policy only when its executor supports it; existing dry/deck policy stays default. Do not add a cosmetic module toggle.",
+    "Calculate admissible waterline in the actual vehicle reference frame with a justified safety margin; missing/untrusted configuration is not permission. Resolve present car/tank reference semantics before coding a universal depth rule.",
+    "Screen every convoy member, support station, entry/exit grade and hull/body path; lead-vehicle suitability alone cannot admit a mixed column.",
+    "Carry policy through labelled Zeus/Eden/script payload, server validation, exact definition/revision, owner execution, active safety checks and original finite return/cleanup. Preserve one movement writer.",
+    "No force-float, immunity, teleport, animation/transform correction, unsafe fallback or damage-setting overwrite. Physical crossing/repeat/migration and performance remain separate requirements."
+  ],
+  "disposition": "Research prerequisite clarified; do not implement by deleting WET_SUPPORT or using raw positive maxFordingDepth as ground depth. Requires vehicle-frame policy plus end-to-end task/executor integration.",
+  "validation": "Preserved source/current interface hashes recorded; JSON and HBQ index checked. Runtime unchanged; reuse operation-bounded-admission-17c7f3d8/a6ae3d5a37e1ed0b950054046b8e9d80380cb5f3971dc602ecc5953ad18ee83d offline candidate with existing dirty-source limits. No repeat full build.",
+  "acceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

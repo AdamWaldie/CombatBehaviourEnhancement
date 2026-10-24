@@ -516,6 +516,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-shallow-ford-contract-20261024.json",
+      "sha256": "a9752bdf80ec2ad1af9a2d4c7597b482a360aa531a8db44cb695f0b6facb5c40",
+      "scope": "Shallow-ford implementation contract and engine-coordinate uncertainty; selected navigation branch/interfaces, not whole controller re-review",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-startup-seat-cleanup-20261018.json",
       "sha256": "d4033ad9840f8e5d2a7e2ee16062003d62ec5d3c07d9ad441e2e2e09750ecf00",
       "scope": "HBQ initVehicle/start compared with CBE bootstrap and late native crew cleanup",
