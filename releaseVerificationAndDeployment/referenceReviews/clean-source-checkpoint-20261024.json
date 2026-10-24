@@ -15,5 +15,14 @@
     "5% median/10%p95 performance unmeasured",
     "Existing source build gaps include mixed-group artillery selected movement,rappel real producer retirement and shallow ford calibration",
     "Retain full goal;do not mark complete or self-pause"
-  ]
+  ],
+  "latestCandidate": {
+    "source_commit": "e771efcb5c65a358a4203fb9f26ffd71ef84bde5",
+    "candidate": ".qa/candidates/clean-e771efcb",
+    "fingerprint": "f4be8e6d5ebd051ad5ba9ccbefa6283ea0723da984b6c839ee8b09083b5c58c7",
+    "dirty": false,
+    "signed": false,
+    "validation": "Clean full offline build and independent package verification pass; clean worktree status verified. Includes airborne post-join protected task fix.",
+    "authority": "Audits remain PAUSED; no staging or Arma launch. Pending permission is not approval."
+  }
 }
