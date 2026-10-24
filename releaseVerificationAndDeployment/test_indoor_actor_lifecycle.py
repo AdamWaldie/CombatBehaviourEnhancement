@@ -677,8 +677,9 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         hold=release.split('private _holdJob=',1)[1].split('_issuedClear pushBackUnique',1)[0]
         self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',hold)
         passenger=(ROOT/'addons/vehicles/functions/cortexPassengerReady.sqf').read_text()
-        for guard in ('if (_reserved) exitWith {false}','!finite (_reservation select 2)',
-                      'count (_reservation select 1) != 3','findIf {!(_x isEqualType 0) || {!finite _x}} >= 0'):
+        for guard in ('if (_reserved) exitWith {false}',
+                      'private _reserved=[_unit] call CBE_fnc_CortexActorMoveReserved',
+                      'fleeing _unit','ace_medical_ai_healQueue'):
             self.assertIn(guard,passenger)
 
     def test_failed_indoor_nodes_are_temporary_scoped_observations(self):

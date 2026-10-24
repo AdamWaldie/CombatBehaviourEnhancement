@@ -605,6 +605,12 @@ class SemanticComponentContracts(unittest.TestCase):
     def test_convoy_cover_cleanup_preserves_new_actor_tasks(self):
         source = (ROOT/'addons/vehicles/functions/convoyDismountLocal.sqf').read_text()
         self.assertIn('private _operator = _nativeTask || {_reservedMove}', source)
+        for guard in ('private _reservedMove=[_unit] call CBE_fnc_CortexActorMoveReserved',
+                      'CBE_fnc_CortexCombatEffective','ace_medical_ai_healQueue','fleeing _unit',
+                      'simulationEnabled _unit','isObjectHidden _unit',
+                      'checkAIFeature "MOVE"','checkAIFeature "PATH"'):
+            self.assertLess(source.index(guard),source.index('_unit doFollow'))
+            self.assertLess(source.index(guard),source.index('_unit doMove'))
         self.assertIn('[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover', source)
         self.assertIn('private _ownedExit=_ours', source)
         self.assertLess(source.index('private _nativeTask='), source.index('_unit doFollow'))

@@ -55,7 +55,7 @@ class ConvoyUnloadPolicyTests(unittest.TestCase):
         passenger=src('cortexPassengerReady')
         for marker in ('vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle',
                        '!finite _linearMotion','!finite _angularMotion','_linearMotion >= (1/3.6)',
-                       '_angularMotion >= 0.01','CBE_Cortex_ActorMove','currentCommand _unit',
+                       '_angularMotion >= 0.01','CBE_fnc_CortexActorMoveReserved','currentCommand _unit',
                        'assignedVehicle _unit != _vehicle','fullCrew'):
             self.assertIn(marker,passenger)
         self.assertNotIn('abs speed _vehicle',passenger)

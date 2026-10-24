@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Shared movement reservations retain unresolved flight/naval cleanup even after the
+ * ordinary marker expires; queued care and native fleeing prevent routine seat changes.
  * Checks shared passenger safety before routine unloading or boarding; emergency engine bailouts remain independent.
  * Locality/authority: read-only on the requesting owner unless stated below.
  * Repeat/JIP: no side effects; runtime gates and actor task ownership are read again on every call.
@@ -19,6 +21,7 @@ if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
     || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
     || {!simulationEnabled _unit} || {isObjectHidden _unit}
     || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+    || {fleeing _unit} || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
     || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures", []])}
     || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}
@@ -29,15 +32,7 @@ if (!finite _linearMotion || {!finite _angularMotion}
     || {_linearMotion >= (1/3.6)} || {_angularMotion >= 0.01}) exitWith {false};
 // A finite actor-level task owns this soldier independently of the passenger group's
 // contact episode. Routine dismount/remount must not supersede its cover or recovery move.
-private _reservation=_unit getVariable ["CBE_Cortex_ActorMove",[]];
-private _reserved=_reservation isNotEqualTo [] && {
-    !(_reservation isEqualType []) || {count _reservation != 3}
-        || {!((_reservation select 0) isEqualType "")}
-        || {!((_reservation select 1) isEqualType [])} || {count (_reservation select 1) != 3}
-        || {(_reservation select 1) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
-        || {!((_reservation select 2) isEqualType 0)} || {!finite (_reservation select 2)}
-        || {time < (_reservation select 2)}
-};
+private _reserved=[_unit] call CBE_fnc_CortexActorMoveReserved;
 if (_reserved) exitWith {false};
 // Routine seat changes must not steal an actor's medical, equipment or other authored task.
 // The matching GET IN is our permitted continuation, not permission to replace a different seat.
