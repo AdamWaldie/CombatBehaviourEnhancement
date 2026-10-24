@@ -3,16 +3,15 @@
  * Advances one finite civilian danger escape through CBE's shared owner-local scheduler.
  * The step observes physical progress, permits one recovery reissue after a genuine stall and then
  * retires. New native tasks, routes or destinations end movement without a retry.
- * A superseding task retains passive restoration proof and blocks another automatic escape;
- * it is not permission to restore settings or claim native movement has stopped.
- * Normal completion restores only CARELESS/FULL/UP values still owned by this generation. Zeus, player,
- * locality and specialist/external ownership cancel immediately without issuing another command.
+ * No temporary behaviour, group pace or posture is applied, so retirement restores no settings.
+ * A superseding task retires only this generation's metadata; no restoration or movement replay.
+ * Zeus, player, locality and specialist/external ownership cancel immediately without another command.
  *
  * Locality / Authority: runs only on the current owner of the civilian's group and unit.
  * Repeat/JIP: generation and locality scoped; stale or migrated jobs retire without replay.
  *
  * Arguments:
- * 0: state <HASHMAP> containing unit, group, generation, destination and restore values
+ * 0: state <HASHMAP> containing unit, group, generation, destination and native order receipt
  *
  * Return Value:
  * Number - seconds until the next step, or -1 when the response is finished.
@@ -30,19 +29,10 @@ private _group=_state getOrDefault ["group",grpNull];
 private _generation=_state getOrDefault ["generation",-1];
 private _destination=_state getOrDefault ["destination",[]];
 private _finish={
-    params [["_restoreAllowed",true,[true]],["_reason","FINISHED",[""]]];
+    params [["_reason","FINISHED",[""]]];
     if (!isNull _unit && {local _unit}
         && {_generation == (_unit getVariable ["CBE_Cortex_CivilianGeneration",-2])}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-        private _restore=_state getOrDefault ["restore",[]];
-        if (!_restoreAllowed && {count _restore == 3}) then {
-            _unit setVariable ["CBE_Cortex_CivilianRestorePending",[_generation,_group,+_restore,_reason,serverTime],true];
-        };
-        if (_restoreAllowed && {group _unit == _group} && {count _restore == 3}) then {
-            if (behaviour _unit == "CARELESS") then {_unit setBehaviour (_restore select 0)};
-            if (speedMode _group == "FULL") then {_group setSpeedMode (_restore select 1)};
-            if (unitPos _unit == "UP") then {_unit setUnitPos (_restore select 2)};
-        };
         _unit setVariable ["CBE_Cortex_CivilianReaction",[],true];
         _unit setVariable ["CBE_Cortex_CivilianReactionUntil",nil,true];
         _unit setVariable ["CBE_Cortex_CivilianResult",[_generation,_reason,serverTime],true];
@@ -70,7 +60,7 @@ private _taskOwned=group _unit == _group && {simulationEnabled _unit} && {!isObj
     && {_atDestination && {currentCommand _unit in ["","WAIT","FOLLOW"]}
         || {count _goal == 3 && {_goal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
             && {_goal distance _destination <= 6}}};
-if (!_taskOwned) exitWith {[false,"NATIVE_TASK_OR_ORDER_CHANGED"] call _finish};
+if (!_taskOwned) exitWith {["NATIVE_TASK_OR_ORDER_CHANGED"] call _finish};
 if (!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {[] call _finish};
 if (_destination isEqualTo [] || {serverTime >= (_state getOrDefault ["until",0])}

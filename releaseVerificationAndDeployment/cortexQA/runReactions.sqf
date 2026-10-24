@@ -495,12 +495,16 @@ _civilian setVariable ["acex_headless_blacklist",true,true];
 _civilian setVariable ["CBE_CortexQA_Label","CIVILIAN / DISABLED",true];
 _civilian allowDamage false;
 _objects pushBack _civilian;
+// A group peer exposes accidental group-wide pace or posture changes.
+private _civilianPeer=_civilianGroup createUnit ["C_man_1",[1580,1100,0],[],0,"NONE"];
+_civilianPeer setVariable ["CBE_CortexQA_Label","CIVILIAN / SHARED GROUP",true];
+_objects pushBack _civilianPeer;
 private _civilianThreatGroup=[west] call _newGroup;
 _civilianThreatGroup setVariable ["CBE_AIPass_Exclude",true,true];
 private _civilianThreat=[_civilianThreatGroup,[1600,1120,0],"CIVILIAN THREAT"] call _newUnit;
 _civilianThreat disableAI "PATH";
 _civilianThreat allowDamage false;
-missionNamespace setVariable ["CBE_CortexQA_Actors",[_civilian,_civilianThreat],true];
+missionNamespace setVariable ["CBE_CortexQA_Actors",[_civilian,_civilianPeer,_civilianThreat],true];
 private _civilianOrigin=getPosATL _civilian;
 [createHashMapFromArray [["CBE_AIPass_CivilianReaction_Enable",false]]] call CBE_fnc_CortexTuning;
 [_civilian,true] call CBE_fnc_CortexCivilianSetup;
@@ -518,7 +522,12 @@ sleep 8;
 [_civilian] call CBE_fnc_CortexCivilianSetup;
 _civilian setVariable ["CBE_CortexQA_Label","CIVILIAN / FLEE",true];
 ["Civilian reaction enabled","The same civilian receives the production danger response. Watch real movement away from the nearby threat. No FSM, animation or test waypoint is injected.",_civilianOrigin] call _phase;
+private _nativeCivilianSettings=[speedMode _civilianGroup,unitPos _civilian,unitPos _civilianPeer,
+    getForcedSpeed _civilian,getForcedSpeed _civilianPeer];
 private _enabledIssued=[_civilian,_civilianThreat] call CBE_fnc_CortexCivilianReact;
+private _civilianSettingsPreserved=_nativeCivilianSettings isEqualTo [
+    speedMode _civilianGroup,unitPos _civilian,unitPos _civilianPeer,
+    getForcedSpeed _civilian,getForcedSpeed _civilianPeer];
 // A real explosion is a stronger event than the active FiredNear-equivalent request. The object
 // handler must replace that generation once, then weaker duplicate noise must leave its route alone.
 private _generationBeforeExplosion=_civilian getVariable ["CBE_Cortex_CivilianGeneration",0];
@@ -531,7 +540,7 @@ private _explosionReplaced=[{
 },10] call _wait;
 ["CIVILIAN-real-explosion-priority",_explosionReplaced,format ["before=%1 after=%2 reaction=%3",_generationBeforeExplosion,_civilian getVariable ["CBE_Cortex_CivilianGeneration",0],_civilian getVariable ["CBE_Cortex_CivilianReaction",[]]]] call _check;
 private _fled=[{_civilian distance2D _civilianOrigin >= 25 && {_civilian distance2D _civilianThreat > (_civilianOrigin distance2D _civilianThreat)+20}},35] call _wait;
-["CIVILIAN-enabled-physical-flee",_enabledIssued && {_fled},format ["issued=%1 travel=%2 separation=%3",_enabledIssued,_civilian distance2D _civilianOrigin,_civilian distance2D _civilianThreat]] call _check;
+["CIVILIAN-enabled-physical-flee",_enabledIssued && {_fled} && {_civilianSettingsPreserved},format ["issued=%1 travel=%2 separation=%3 nativePaceAndPosturePreserved=%4",_enabledIssued,_civilian distance2D _civilianOrigin,_civilian distance2D _civilianThreat,_civilianSettingsPreserved]] call _check;
 private _cooldownRefused=!([_civilian,_civilianThreat] call CBE_fnc_CortexCivilianReact);
 ["CIVILIAN-cooldown-no-duplicate",_cooldownRefused] call _check;
 
