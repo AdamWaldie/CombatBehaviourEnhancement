@@ -5,7 +5,9 @@
  * Repeat/JIP: no handlers, state changes or replay. Empty string means no known blocker.
  * Arguments: 0: group <GROUP>, grpNull; 1: order <STRING>, empty; 2: building <OBJECT>, objNull.
  * Return: STRING describing the blocker, or empty when the order may proceed.
- * Current callers: CortexOrderDialog and AIPassOrderLocal.
+ * Current caller: CortexOrderLocal before changing task control.
+ * Airborne preflight observes the same actual cargo/FFV riders as the existing executor,
+ * without requiring the group leader aboard or changing seating, orders or feature settings.
  * Example: [_group,"DEFEND"] call CBE_fnc_CortexOrderReason;
  */
 params [["_group",grpNull,[grpNull]],["_order","",[""]],["_building",objNull,[objNull]]];
@@ -18,11 +20,21 @@ if !(missionNamespace getVariable ["CBE_AIPass_Enable",false]) exitWith {"Cortex
 if (local _group && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}) exitWith {"Cortex is not ready on this squad's owner. Wait for settings to reach that machine and retry."};
 if !([_group,true] call CBE_fnc_CortexIsEligible) exitWith {"This squad is excluded, remote-controlled, outside the configured AI filters, or controlled by another feature. Release that control first."};
 if (_order == "AIRBORNE") exitWith {
-    private _air = vehicle leader _group;
-    if !(_air isKindOf "Air") exitWith {"Select the passenger squad, not the aircraft crew. Its leader must be aboard the aircraft."};
-    if (isNull driver _air || {isPlayer driver _air}) exitWith {"The aircraft needs a living AI pilot."};
-    if ((getPosATL _air select 2) < (missionNamespace getVariable ["CBE_AIPass_Airborne_MinAltitude",100]) || {surfaceIsWater getPosATL _air}) exitWith {"The aircraft must be above the configured jump altitude and over land."};
-    if (_alive findIf {vehicle _x == _air && {(assignedVehicleRole _x) param [0,""] == "cargo"}} < 0) exitWith {"No passengers in this squad are ready to jump."};
+    // Match the executor's first living local airframe, not the leader's possibly ground position.
+    // Non-owner readers can inspect availability; only the current owner may execute a drop.
+    private _riding=_alive select {(!local _group || {local _x})
+        && {(vehicle _x) isKindOf "Air"} && {!((vehicle _x) isKindOf "ParachuteBase")}};
+    if (_riding isEqualTo []) exitWith {"No members of this squad are riding an aircraft."};
+    private _air=vehicle (_riding select 0);
+    private _pilot=driver _air;
+    if (!([_pilot] call CBE_fnc_CortexCombatEffective) || {isPlayer _pilot}
+        || {isPlayer effectiveCommander _air}) exitWith {"The aircraft needs capable AI flight crew."};
+    if ((getPos _air select 2) < (missionNamespace getVariable ["CBE_AIPass_Airborne_MinAltitude",120])
+        || {surfaceIsWater getPos _air}) exitWith {"The aircraft must be above the configured jump altitude and over land."};
+    private _passengers=((fullCrew [_air,"cargo"])
+        +((fullCrew [_air,"turret"]) select {_x select 4})) apply {_x select 0};
+    if (_riding findIf {vehicle _x == _air && {_x in _passengers}
+        && {[_x] call CBE_fnc_CortexCombatEffective}} < 0) exitWith {"No capable cargo or passenger-turret soldiers in this squad are ready to jump."};
     ""
 };
 private _foot = _alive select {vehicle _x == _x && {[_x] call CBE_fnc_CortexCombatEffective}};

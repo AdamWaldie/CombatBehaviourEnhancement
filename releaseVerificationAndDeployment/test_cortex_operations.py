@@ -7619,6 +7619,17 @@ class CortexOperations(unittest.TestCase):
         text = source('cortexOrderLocal')
         self.assertLess(text.index('call CBE_fnc_CortexOrderReason'),text.index('setVariable ["CBE_AIPass_ZeusWaypoints"'))
         self.assertIn('_oldHold',text)
+        airborne=source('cortexOrderReason').split('if (_order == "AIRBORNE") exitWith {',1)[1].split('private _foot =',1)[0]
+        for marker in ('private _riding=_alive select','(!local _group || {local _x})',
+                       'private _air=vehicle (_riding select 0);','fullCrew [_air,"cargo"]',
+                       'fullCrew [_air,"turret"]','select {_x select 4}',
+                       'CBE_fnc_CortexCombatEffective','isPlayer effectiveCommander _air',
+                       '["CBE_AIPass_Airborne_MinAltitude",120]'):
+            self.assertIn(marker,airborne)
+        self.assertNotIn('vehicle leader _group',airborne)
+        self.assertNotIn('assignedVehicleRole',airborne)
+        self.assertNotIn('CBE_fnc_CortexAirborneCheck',airborne)
+
         self.assertIn('false, clientOwner, "The squad changed owner',text)
     def test_exclude_cleans_all_posted_orders_immediately(self):
         text=source('cortexOrderLocal').split('case "EXCLUDE":')[1].split('case "RETURN":')[0]
