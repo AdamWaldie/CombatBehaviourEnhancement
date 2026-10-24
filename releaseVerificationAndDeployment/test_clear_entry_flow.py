@@ -57,6 +57,12 @@ class ClearEntryFlowTests(unittest.TestCase):
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
         for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces','_entryProbes >= 4','_roomGeometryBudget <= 8','_roomGeometryBudget=_roomGeometryBudget-1'):
             self.assertIn(gate,support)
+        candidates=support.split('private _candidates=[];',1)[1].split('private _occupied=',1)[0]
+        for gate in ('_forEachIndex in _unreachable','_supportPairId in (_failedBy select _forEachIndex)',
+                     'forEach _positions','_anchorHeight','_candidates pushBack _x'):
+            self.assertIn(gate,candidates)
+        self.assertNotIn('doMove',candidates)
+        self.assertNotIn('set [',candidates)
         self.assertIn('_entryTargets set [_entryKey,+_supportTarget]',support)
         # Proposal ranking cannot spend the final eight physical-observation probes.
         for initial in range(17):
@@ -110,7 +116,8 @@ class ClearEntryFlowTests(unittest.TestCase):
             self.assertIn('(AGLToASL '+target+') select 2',s)
         self.assertNotIn('abs (((getPosATL _unit) select 2)',s)
         self.assertNotIn('abs (((getPosATL _entryMover) select 2)',s)
-        self.assertIn('abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2))',s)
+        self.assertIn('private _anchorHeight=(AGLToASL _anchor) select 2;',s)
+        self.assertIn('abs (((AGLToASL _x) select 2)-_anchorHeight)',s)
         # Same absolute floor, different terrain cells: old relative-height test rejects it.
         floor=20; terrain_actor=16; terrain_target=18
         self.assertGreater(abs((floor-terrain_actor)-(floor-terrain_target)),1.5)

@@ -3358,10 +3358,22 @@ private _delay=call {
                         _supportTarget=_entryTargets getOrDefault [_entryKey,[]];
                         if (_supportTarget isEqualTo []) then {
                             private _anchor=_positions select (_route select 0);
-                            private _candidates=_positions select {
-                                _x isNotEqualTo _anchor && {abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2)) <= 1.5}
-                                    && {_x distance2D _anchor >= 1.2} && {_x distance2D _anchor <= 8}
-                            };
+                            private _candidates=[];
+                            private _anchorHeight=(AGLToASL _anchor) select 2;
+                            private _supportPairId=format ["PAIR_%1",_pairIndex];
+                            // New buddy proposals obey the same retained failure evidence as
+                            // room claims. Do not send a fresh entrant to a retired room or
+                            // repeat this lane's exhausted request as its support destination.
+                            // Existing owned paths retain their original finite observation.
+                            {
+                                if (!(_forEachIndex in _unreachable)
+                                    && {!(_supportPairId in (_failedBy select _forEachIndex))}
+                                    && {_x isNotEqualTo _anchor}
+                                    && {abs (((AGLToASL _x) select 2)-_anchorHeight) <= 1.5}
+                                    && {_x distance2D _anchor >= 1.2} && {_x distance2D _anchor <= 8}) then {
+                                    _candidates pushBack _x;
+                                };
+                            } forEach _positions;
                             private _occupied=[[_partner]] call _occupiedRoomTargets;
                             // Prefer unoccupied native nodes. A blocked straight ray between
                             // rooms is not proof that their native doorway route is inaccessible.

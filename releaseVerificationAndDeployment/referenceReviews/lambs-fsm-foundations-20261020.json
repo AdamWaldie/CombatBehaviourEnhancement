@@ -1342,5 +1342,21 @@
     "candidate": ".qa/candidates/danger-evasion-reload-f9c8ddac",
     "fingerprint": "a426682482fe670b59e2e73d3efc82dd789e95fae21f306b0a5e9aad583f493a",
     "limits": "No arm stretching reproduced or fixed; no blanket animation-quality acceptance. Actual reload/action sequencing, modded rigs/weapons, HC and measured overhead remain unverified. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "buddyEntryFailureAdmission20261024": {
+    "base": "ead1f7c8",
+    "scope": "Current CQB entry selection and selected LAMBS doAssaultCQB comparison; not whole source parity or a reproduced physical entry failure.",
+    "reference": {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf",
+      "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+      "intent": "Independent native room movement and continuing shared building work. Source pairs doMove with setDestination, uses offsets and can advance its room list probabilistically; these are not copied as physical completion."
+    },
+    "finding": "Current CBE submits both lane actors concurrently using distinct nearby nodes. Buddy initial proposals scanned all positions without the retired-room and lane-failure exclusions already used by room claims. A fresh entrant could repeat known exhausted work. Alternate-entry recovery separately chooses physically visited nodes.",
+    "change": "Indexed existing bounded position scan excludes unreachable indices and current PAIR identity in failedBy before native-node geometry/occupancy ranking. Cache anchor ASL height once. No new ray, worker, command, replan, budget or deadline. Already-owned paths remain finite and unchanged; cached destinations are not force-invalidated.",
+    "sourceHash": "3542ad587bea2480b7a813ea0135e962de1c52302da8fc3de5876c4b1db94f05",
+    "validation": "13 focused existing entry-flow and1491 full offline cases,412 compiled SQF,9PBO,independent verification pass. Initial focused/full failures were old expression/loop syntax assertions, updated to retain ASL and native-node iteration invariants with failure filtering. No new cases or suppressed failures.",
+    "candidate": ".qa/candidates/clear-buddy-failure-admission-ead1f7c8",
+    "fingerprint": "1bc039fd57ee48868cd7391fb78772510df832d5b313c64d519a26c751e1da05",
+    "limits": "Unsigned dirty development includes unrelated dirt. Guide/review/handover postdate package. No current visual entry, repeat/modded-house/locality, parity or5/10performance proof. Arm/body distortion remains a defect, not reproduced/fixed here. Audits PAUSED."
   }
 }

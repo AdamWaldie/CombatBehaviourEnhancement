@@ -19,7 +19,9 @@ class CompactBuddyEntryTests(unittest.TestCase):
         self.assertIn('_ranked resize ((count _ranked) min 24)',block)
         self.assertIn('lineIntersectsSurfaces',block)
         self.assertIn('_supportTarget=if (_connected >= 0)',block)
-        self.assertIn('_positions select {',block)
+        self.assertIn('} forEach _positions;',block)
+        self.assertIn('!(_forEachIndex in _unreachable)',block)
+        self.assertIn('!(_supportPairId in (_failedBy select _forEachIndex))',block)
         self.assertNotIn('getPos [',block)
 
 
