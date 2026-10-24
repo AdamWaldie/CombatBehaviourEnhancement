@@ -257,5 +257,24 @@
     "candidate": ".qa/candidates/clear-singleton-lane-resume-edb57ca1",
     "fingerprint": "0cebb8e0aaba1b34d7c0e2720d8cb663c5b77d22cb3c2b97aebc09a224947ab3",
     "limits": "Offline allocation/admission correction. Changed eligibility can still alter roster and refuse adoption. Ordered delivery, exact-once transfer and physical one/three-person or casualty/HC continuity unverified. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "commonLaneIdentity20261024": {
+    "base": "170ea584",
+    "finding": "OperationStart builds common pairs before final episode-preferred clearance lanes are selected. Job and ClearRoster published those lanes but common operation pairs could retain initial allocation, leaving fallback identity inconsistent. Common operation and movement worker already support singleton participants.",
+    "change": "Existing guarded ClearRoster publication receives current live operation map and synchronises its pairs to final selected lanes. Publishes common state only when allocation differs. No stale outer-map mutation, worker/query/command or deadline change.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "71251912beeb7eab16b8993af13ac93060cdd599c1425555a56f3d4099b34659"
+    },
+    "validation": {
+      "focusedExistingCases": 12,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-common-lane-identity-170ea584",
+    "fingerprint": "3d57668924c13b84bd08f5927952ce8b947ec45493f5750798a8ca5ff99ca952",
+    "limits": "Local publication consistency only; separate-variable ordering and owner-ready acknowledgement remain incomplete. No physical/HC/performance/parity/percentage claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
   }
 }

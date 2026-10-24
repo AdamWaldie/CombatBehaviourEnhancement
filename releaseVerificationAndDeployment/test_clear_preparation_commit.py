@@ -86,7 +86,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertIn('_liveOperation set ["'+field+'"',text)
         self.assertNotIn('_operation set ["participants"',text)
         self.assertIn('[_liveOperation] call _mutation;',text)
-        self.assertEqual(text.count('params ["_liveOperation"];'),2)
+        self.assertEqual(text.count('params ["_liveOperation"];'),3)
         adopted=text.split('_liveOperation set ["phase","EGRESS"]',1)[1].split('}] call _commitPreparation;',1)[0]
         self.assertIn('CBE CLEAR EGRESS ADOPTED',adopted)
         reserve=text.split('// Native intent can change between staged receipt observation and commit.',1)[1].split('}] call _commitPreparation;',1)[0]

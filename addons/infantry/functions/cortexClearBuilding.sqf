@@ -658,6 +658,14 @@ if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4} 
 };
 _job set ["visitContext",+_visitContext];
 [{
+    params ["_liveOperation"];
+    // OperationStart pairs before the episode lane preference is applied. The common
+    // lifecycle and durable roster must retain the final allocation, not that earlier guess.
+    private _committedPairs=_pairs apply {+_x};
+    if ((_liveOperation getOrDefault ["pairs",[]]) isNotEqualTo _committedPairs) then {
+        _liveOperation set ["pairs",_committedPairs];
+        _group setVariable ["CBE_Operation",_liveOperation,true];
+    };
     _group setVariable ["CBE_Cortex_ClearRoster",[+_visitContext,+_team,_pairs apply {+_x},[]],true];
 }] call _commitPreparation;
 // Bind delayed reserve admission to this exact episode, not the first staging callback.

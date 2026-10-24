@@ -63,6 +63,11 @@ class MotionReceiptTests(unittest.TestCase):
         self.assertLess(text.index('"RESUME_ROSTER_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
         self.assertIn('private _pairPreference=if (_useResumeRoster) then {_resumePairs} else {[]}',text)
         self.assertIn('[_group,_team,true,_pairPreference] call CBE_fnc_CombatPairs',text)
+        allocation=text.split('private _committedPairs=',1)[1].split('}] call _commitPreparation;',1)[0]
+        self.assertIn('_liveOperation set ["pairs",_committedPairs]',allocation)
+        self.assertIn('_group setVariable ["CBE_Operation",_liveOperation,true]',allocation)
+        self.assertLess(allocation.index('_liveOperation set ["pairs"'),allocation.index('CBE_Cortex_ClearRoster'))
+        self.assertNotIn('_operation set',allocation)
         pairs=read('combatPairs.sqf')
         self.assertLess(pairs.index('forEach (_preferred select [0,16])'),pairs.index('forEach (_previous select [0,16])'))
         self.assertIn('count _preferred > 16',pairs)
