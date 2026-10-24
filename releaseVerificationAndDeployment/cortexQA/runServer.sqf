@@ -65,6 +65,14 @@ if (_focus == "roadpassing") exitWith {
     missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
     diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
+// Real native AA warning/fire building blocks run separately from normal and HC suites.
+if (_focus == "aa") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAAAIntercept.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
 // Single-carrier static mechanics stay separate from ordinary and HC batches.
 if (_focus == "staticsolo") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAStaticSolo.sqf";

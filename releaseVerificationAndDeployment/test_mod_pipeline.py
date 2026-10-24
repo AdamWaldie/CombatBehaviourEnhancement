@@ -234,6 +234,18 @@ class PackagePipelineTests(unittest.TestCase):
     def test_focuses_follow_real_dispatch_and_invalid_focus_is_rejected(self):
         self.assertIn('performancemixed', supported_focuses())
         self.assertIn('airskills', supported_focuses())
+        self.assertIn('aa', supported_focuses())
+        mission=stage(self.folder,Path(self.temp.name)/'aa-normal','aa',batch_mode='normal')
+        self.assertTrue((mission/'cortexQAAAIntercept.sqf').is_file())
+        manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+        self.assertIn('cortexQAAAIntercept.sqf',manifest['mission_files'])
+        self.assertEqual(manifest['focus'],'aa')
+        evidence=Path(self.temp.name)/'aa-evidence.json'
+        evidence.write_text(json.dumps(dict(focus='aa',status='PASS',complete=True)))
+        with self.assertRaisesRegex(ValueError,'cannot accept a CBE release'):
+            release_gate(self.folder,evidence)
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'aa-hc','aa',batch_mode='headless')
         with self.assertRaises(ValueError): stage(self.folder, Path(self.temp.name)/'bad', 'unknown')
 
     def test_signed_matching_evidence_and_dirty_commit_gate(self):

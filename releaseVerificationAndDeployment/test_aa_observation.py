@@ -86,6 +86,16 @@ class AAObservation(unittest.TestCase):
         self.assertIn('_aaEngagements deleteAt _oldAllocation',reservation)
         self.assertLess(gunnery.index('_gunner doFire _target;'),gunnery.index('private _oldAllocation='))
 
+        fixture=(ROOT/'releaseVerificationAndDeployment/cortexQA/runAAIntercept.sqf').read_text()
+        for guard in ('"IncomingMissile"','"Fired"','CBE_AA_Observer','"shotWindow"',
+                      'CBE_AA_InterceptResult','CBE_CortexQA_HeadlessBatch',
+                      'AA-native-disable-release','No interception pass inferred'):
+            self.assertIn(guard,fixture)
+        for forbidden in ('CortexAAIntercept;', 'CBE_AA_MissileWarning",',
+                          'setVelocity','triggerAmmo','allowDamage','setDamage'):
+            self.assertNotIn(forbidden,fixture)
+        pipeline=(ROOT/'releaseVerificationAndDeployment/mod_pipeline.py').read_text()
+        self.assertIn("focus == 'aa' and batch_mode != 'normal'",pipeline)
         intercept=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
         for bound in ('count _registry >= 4','count _rounds >= 8','time+(8 min','>= 160',
                       '< 16','_dt > 0.2','CBE_AIPass_AAIntercept_Enable',

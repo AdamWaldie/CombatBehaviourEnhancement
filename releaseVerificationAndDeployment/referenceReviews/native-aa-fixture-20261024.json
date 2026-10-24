@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-24",
+  "source_base": "835ca89f",
+  "status": "prepared UNRUN native AA warning/fire/release fixture",
+  "focus": "aa",
+  "batch": "normal only; staging rejects headless",
+  "fixture": "releaseVerificationAndDeployment/cortexQA/runAAIntercept.sqf",
+  "stimulus": "Actual O_static_AT_F gunner receives native reveal/target/fire commands against a native Cheetah. Defender is discovered by production addon; no direct interception START, injected warning, projectile creation/steering, immunity or scripted hit.",
+  "evidence": [
+    "Fired event captures real hostile projectile existence at event time",
+    "IncomingMissile event captures native missile existence at event time",
+    "Actual autocannon Fired event requires a live projectile, active CBE episode token and current fire-request window",
+    "Disable requires finite episode retirement; damage, warnings and outcome are separately logged"
+  ],
+  "limits": [
+    "Unrun: native shooter acquisition, warning availability, Cheetah admission and actual shots remain unproven",
+    "A shot during a CBE fire window is not proof of alignment, hit, missile kill, safe impact or tactical effectiveness",
+    "No Zeus replacement, HC migration, salvo balance or performance acceptance in this focused fixture",
+    "Release gate explicitly rejects this focus as full-addon acceptance"
+  ],
+  "checks": {
+    "complete_offline_build": "pass;1496 tests;413 compiled SQF;11 PBOs;static performance0 findings before final focused stage/release gate assertions",
+    "focused_final_pipeline_tests": "24 passed, including disposable staging/manifest, HC refusal and release refusal",
+    "runtime": "unchanged from835ca89f; use independently verified .qa/candidates/aa-barrel-origin-238a8173 fingerprint88982deadd880a293db0ea3657edcd66448ae82682084b2524518ce0c4dd2ddb"
+  },
+  "audits": "PAUSED; no game launch or staging into installation"
+}
