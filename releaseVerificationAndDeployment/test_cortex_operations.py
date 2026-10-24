@@ -5028,6 +5028,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (isNull _actorContext) then {_members} else {[_actorContext]}',takeover)
         self.assertNotIn('([leader _group] call CBE_fnc_CortexExternalOwner)',takeover)
         self.assertNotIn('isPlayer leader _group',takeover)
+        platform=takeover.split('private _checkedPlatforms=[];',1)[1]
+        self.assertIn('_specialistSubjects findIf',platform)
+        self.assertIn('objectParent _x',platform)
+        self.assertIn('_platform in _checkedPlatforms',platform)
+        self.assertIn('_checkedPlatforms pushBack _platform',platform)
+        self.assertIn('[_platform] call CBE_fnc_CompatibilityExternalControl',platform)
+        self.assertNotIn('assignedVehicle',platform)
+        self.assertNotIn('setVariable',platform)
+        self.assertNotIn('allVehicles',platform)
+        # Actor-local restoration retains that narrow context; group commands keep
+        # the whole occupied footprint. Existing ActorSettings already refuses mounting.
+        release=source('dangerEngineRelease')
+        self.assertIn('[_group,false,_actor] call CBE_fnc_CortexExternalTakeover',release)
+        self.assertLess(release.index('call CBE_fnc_CortexExternalTakeover'),
+                        release.index('_actor setUnitPos "AUTO"'))
+
 
     def test_delayed_vehicle_and_building_release_restore_shutdown_but_yield_to_external_owners(self):
         takeover=source('cortexExternalTakeover')

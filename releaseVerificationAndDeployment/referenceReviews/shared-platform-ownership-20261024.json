@@ -1,0 +1,31 @@
+{
+  "baseline": "0385b7b2",
+  "finding": "Engine danger active state boundaries checked current objectParent declarations, but shared CortexExternalTakeover omitted occupied platforms. DangerEngineRelease uses the shared predicate before exact stance restoration, so a platform-only provider claim could be missed there. ActorSettings pace release already refuses mounted actors; DangerFlight movement requires on-foot availability.",
+  "implementation": "Extend shared read-only takeover predicate with actual occupied platform checks, deduplicated per call across existing specialist subjects. Actor-context calls inspect only that actor parent; group/player/Zeus scope unchanged. Assigned vehicles do not inherit ownership. No provider write, command cancellation, worker, deadline, world scan or retained cache.",
+  "reviewedSources": [
+    "addons/infantry/functions/dangerEngineRelease.sqf",
+    "addons/infantry/functions/dangerAttackPace.sqf",
+    "addons/infantry/functions/dangerFlight.sqf",
+    "addons/core/functions/actorSettings.sqf",
+    "addons/compatibility/functions/compatibilityExternalControl.sqf",
+    "addons/compatibility/functions/cortexExternalTakeover.sqf"
+  ],
+  "sourceIntent": "Current mounted-domain ownership and forced-exit boundary, consistent with retained LAMBS on-foot action gates; not copied animation logic or proof of full source parity.",
+  "validation": {
+    "tests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/shared-platform-ownership-0385b7b2",
+    "fingerprint": "3c425503a22137dbf603507d60011047612ad2ff858dea42ad0e0f8009c9dc82",
+    "preparedUnrun": "runAddon ADDON-occupied-platform-boundary creates actual quadbike crew and checks false/true/false declaration transitions, then deletes fixtures. No forced seating, actor relocation or synthetic parent receipt.",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "No provider shutdown/quiescence, native displacement cancellation or controlled rappel executor",
+    "Per-call platform dedup search scales with existing group footprint; actual frame-time impact unmeasured",
+    "Unsigned dirty development preserves unrelated dirt; private review and handover postdate package"
+  ],
+  "productionSHA256": "7f95e2c408655c8d9e15e1bb065ae3cfb8b54069778178f407ee25a1edec2493"
+}

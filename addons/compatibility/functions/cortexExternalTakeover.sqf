@@ -6,6 +6,8 @@
  * Locality / Authority: Read-only and callable on any machine; callers still issue commands only
  * on the current group owner.
  * Repeat/JIP: Re-evaluates live ownership markers on every call and changes no public state.
+ * Current occupied platforms share declared ownership with their crew. One local per-call set
+ * deduplicates platforms; no assigned-vehicle inheritance, world query or retained permission.
  * Arguments:
  * 0: group <GROUP>, default grpNull.
  * 1: ignore temporary Zeus hold <BOOL>, default false. Direct remote control and all other
@@ -35,4 +37,16 @@ private _specialistSubjects=if (isNull _actorContext) then {_members} else {[_ac
     (_x getVariable ["zen_ai_garrisoned",false]) || {_x getVariable ["zen_ai_isSuppressing",false]}
 } >= 0}
 || {_specialistSubjects findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0}
+|| {
+    // Crew may be ordinary soldiers while only their occupied platform declares control.
+    // Actor-local calls inspect only that actor's current parent; group commands inspect
+    // the actual occupied platforms once each. Assignment alone grants no inheritance.
+    private _checkedPlatforms=[];
+    _specialistSubjects findIf {
+        private _platform=objectParent _x;
+        if (isNull _platform || {_platform in _checkedPlatforms}) exitWith {false};
+        _checkedPlatforms pushBack _platform;
+        [_platform] call CBE_fnc_CompatibilityExternalControl
+    } >= 0
+}
 || {[_group] call CBE_fnc_CompatibilityExternalControl}

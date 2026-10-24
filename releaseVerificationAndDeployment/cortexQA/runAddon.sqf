@@ -25,6 +25,31 @@ private _probeGroup=createGroup [civilian,true];
 private _takeoverResult=[_probeGroup] call CBE_fnc_CortexExternalTakeover;
 deleteGroup _probeGroup;
 ["ADDON-command-boundary-boolean",_takeoverResult isEqualType true,typeName _takeoverResult] call _check;
+// Real occupied-platform identity, not assignedVehicle or a forged parent receipt.
+// Boundary evidence only: this does not claim physical provider handover success.
+private _platformProbe=createVehicle ["B_Quadbike_01_F",[100,100,0],[],0,"NONE"];
+createVehicleCrew _platformProbe;
+private _probeDriver=driver _platformProbe;
+private _probeCrew=crew _platformProbe;
+private _probeCrewGroup=group _probeDriver;
+private _platformBoundary=false;
+private _platformDetails=[];
+if (!isNull _probeDriver && {local _probeDriver} && {local _probeCrewGroup}
+    && {objectParent _probeDriver == _platformProbe}) then {
+    private _ordinary=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    _platformProbe setVariable ["Waldo_AI_ExternalControl",true];
+    private _actorHeld=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    private _groupHeld=[_probeCrewGroup] call CBE_fnc_CortexExternalTakeover;
+    _platformProbe setVariable ["Waldo_AI_ExternalControl",false];
+    private _released=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    _platformBoundary=!_ordinary && {_actorHeld} && {_groupHeld} && {!_released};
+    _platformDetails=[_ordinary,_actorHeld,_groupHeld,_released];
+};
+{deleteVehicle _x} forEach _probeCrew;
+deleteVehicle _platformProbe;
+if (!isNull _probeCrewGroup) then {deleteGroup _probeCrewGroup};
+["ADDON-occupied-platform-boundary",_platformBoundary,str _platformDetails] call _check;
+
 
 // Configuration visibility only; this does not establish weapon lethality or player accuracy.
 private _policyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_turret_aiming");
