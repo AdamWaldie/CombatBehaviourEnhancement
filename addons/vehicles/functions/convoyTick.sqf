@@ -1362,11 +1362,17 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     };
                 };
                 private _recordedDestination=+_destination;
+                private _committedDestination=_progress param [5,[]];
+                private _nativeReceipt=_progress param [10,[],[[]]];
+                private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
+                // A brief dip below the extension threshold must not retract an owned
+                // native goal by40m. Retention never extrapolates a new low-speed leg.
+                private _nativeLookahead=false;
                 // A moving predecessor is not a stopping destination. On an observed
                 // straight MOVE leg, give native planning room beyond that short trail.
                 // Keep bends, holds and waypoint arrival on the actual recorded route.
                 private _routeIndex=currentWaypoint _group;
-                if (_straightPath && {count _path >= 2} && {_frontSpeed > 2}
+                if (_straightPath && {count _path >= 2}
                     && {_routeIndex > 0} && {_routeIndex < count waypoints _group}) then {
                     private _routeWaypoint=[_group,_routeIndex];
                     private _routeEnd=waypointPosition _routeWaypoint;
@@ -1376,15 +1382,34 @@ for "_i" from 1 to (count _vehicles - 1) do {
                     private _remaining=_destination distance2D _routeEnd;
                     if (!_bypassPassageActive && {waypointType _routeWaypoint == "MOVE"} && {_alignment <= 5}
                         && {_remaining > (waypointCompletionRadius _routeWaypoint max 20)+40}) then {
-                        _destination=_destination getPos [40 min (_remaining-20),_routeHeading];
+                        if (_frontSpeed > 2) then {
+                            _destination=_destination getPos [40 min (_remaining-20),_routeHeading];
+                            _nativeLookahead=true;
+                        } else {
+                            private _recordedBefore=_progress param [12,[],[[]]];
+                            if (!_frontReversing && {count _committedDestination == 3}
+                                && {count _recordedBefore == 3} && {count _nativeReceipt == 4}
+                                && {(_progress param [13,[],[[]]]) isEqualTo _nativeRoute}
+                                && {(_nativeReceipt select 0) == driver _vehicle}
+                                && {(_nativeReceipt select 1) == _movementOperator}
+                                && {(expectedDestination driver _vehicle) isEqualTo (_nativeReceipt select 2)}
+                                && {(expectedDestination _movementOperator) isEqualTo (_nativeReceipt select 3)}
+                                && {currentCommand _movementOperator in ["","MOVE"]}
+                                && {_recordedBefore distance2D _committedDestination > 3}
+                                && {abs ((_committedDestination select 2)-(_destination select 2)) <= 1.5}
+                                && {abs ((((_recordedBefore getDir _committedDestination)-_routeHeading+540) mod 360)-180) <= 5}
+                                && {private _ahead=_committedDestination vectorDiff _destination;
+                                    (_ahead select 0)*sin _routeHeading+(_ahead select 1)*cos _routeHeading > 0}) then {
+                                _destination=+_committedDestination;
+                                _nativeLookahead=true;
+                            };
+                        };
                     };
                 };
                 // Native steering does not tolerate a fresh doMove every path-refresh tick: it
                 // cancels braking and steering decisions, producing the visible stop/turn/start
                 // cycle. Retask only when the committed point advances materially or the driver
                 // has actually stopped.
-                private _committedDestination=_progress param [5,[]];
-                private _nativeReceipt=_progress param [10,[],[[]]];
                 private _finishedLeg=count _committedDestination == 3 && {count _nativeReceipt == 4}
                     && {local _vehicle} && {local _movementOperator}
                     && {[_vehicle] call _convoyStopped} && {unitReady _movementOperator}
@@ -1410,10 +1435,9 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 // cancel a native planner that still has approach room. Reuse the existing
                 // four-second reaction/deceleration model; preserve peak leg speed so native
                 // endpoint braking cannot shrink the refresh envelope away from the vehicle.
-                private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;
                 private _goalAdvance=if (count _committedDestination == 3) then {_committedDestination distance2D _destination} else {0};
                 private _refreshNative=_goalAdvance > 8;
-                if (_refreshNative && {_straightPath} && {!_bypassPassageActive} && {_frontSpeed > 2}
+                if (_refreshNative && {_straightPath} && {!_bypassPassageActive} && {_frontSpeed > 2 || {_nativeLookahead}}
                     && {count _committedDestination == 3} && {count _nativeReceipt == 4}
                     && {(_progress param [13,[],[[]]]) isEqualTo _nativeRoute}
                     && {(_nativeReceipt select 0) == driver _vehicle}

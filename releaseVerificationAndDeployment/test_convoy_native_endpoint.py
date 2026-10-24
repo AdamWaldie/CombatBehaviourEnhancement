@@ -100,9 +100,27 @@ class ConvoyNativeIssueEvidenceTests(unittest.TestCase):
                       '_motion max _issuedMotion','2*_deceleration','_remainingNative > _refreshRoom'):
             self.assertIn(guard,gate)
         self.assertIn('_refreshNative=false',gate)
+        retain=gate.split('private _recordedBefore=',1)[1].split('// Native steering does not tolerate',1)[0]
+        for proof in ('!_frontReversing','count _committedDestination == 3','count _recordedBefore == 3',
+                      'count _nativeReceipt == 4','_nativeRoute','expectedDestination driver _vehicle',
+                      'expectedDestination _movementOperator','_recordedBefore distance2D _committedDestination > 3',
+                      'currentCommand _movementOperator','_routeHeading','<= 1.5',
+                      '_destination=+_committedDestination'):
+            self.assertIn(proof,retain)
+        # The old threshold retracts a 40m extension although the unchanged trail
+        # and owned native leg have not changed. Retention is identity-dependent.
+        def goal(front,owned,ahead=True):
+            return 140 if front>2 or (owned and ahead) else 100
+        self.assertEqual(goal(2.001,False)-goal(1.999,False),40)
+        self.assertEqual(goal(2.001,True),goal(1.999,True))
+        self.assertEqual(goal(0,True),140)
+        self.assertEqual(goal(0,False),100)
+        self.assertEqual(goal(0,True,False),100)
+        self.assertIn('{_nativeLookahead}',gate)
         self.assertIn('_progress set [14,_approachSpeed]',gate)
+        gate_code='\n'.join(line.split('//',1)[0] for line in gate.splitlines())
         for forbidden in ('doMove','setDriveOnPath','forceSpeed','setVelocity'):
-            self.assertNotIn(forbidden,gate)
+            self.assertNotIn(forbidden,gate_code)
         recovery=text.split('_movementOperator doMove _recoveryTarget;',1)[1].split('// This is our own successor MOVE',1)[0]
         self.assertIn('_progress set [5,+_recoveryTarget]',recovery)
         self.assertIn('_progress set [13,[_group] call CBE_fnc_NativeOrderReceipt]',recovery)

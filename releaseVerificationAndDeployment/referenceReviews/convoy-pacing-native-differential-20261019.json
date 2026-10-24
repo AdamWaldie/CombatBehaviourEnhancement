@@ -36,5 +36,31 @@
   "leadOnsetCorrection20261023": {
     "review": "convoy-pacing-onset-20261023.json",
     "finding": "A separate exact discontinuity at the initial lead reserve threshold is corrected using the existing gain and bounds. This does not identify the physical mixed-column root cause or justify broad gain tuning. Current native endpoint lifecycle remains implemented and physically unverified."
+  },
+  "lowSpeedLookahead20261024": {
+    "base": "0cee7b3e",
+    "finding": "On a qualifying straight native leg the frontSpeed>2 condition adds up to40m to a recorded destination. Crossing below2 removes that extension despite unchanged route/crew/native receipt, making goalAdvance>8 eligible to retask toward the shorter point. This is a source/analytic discontinuity, not physical mixed-convoy root-cause proof.",
+    "change": "Retain an existing extended native goal below threshold only with original route/seat/native command receipts, actual previous pre-extension point, forward extension still ahead of current recorded goal, compatible heading/floor and no bypass or reversing predecessor. No new extension at low speed. Preserve original >2km/h approach-envelope rule even where no extension was made. No new fields/timers/workers/scans/settings or gain changes.",
+    "referenceDisposition": "HBQ following-versus-stop separation and mass-aware braking retained as complementary intent. Native goal retention is a CBE correction, not a claim HBQ supplies an identical convoy method. Protected driveAssist SHA2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931 reverified.",
+    "samples": {
+      "recordedGoalM": 100,
+      "previousExtendedGoalM": 140,
+      "frontAboveKmh": 2.001,
+      "frontBelowKmh": 1.999,
+      "oldThresholdRetractionM": 40,
+      "newOwnedSameLegRetractionM": 0,
+      "unownedOrPassedGoalRetained": false
+    },
+    "validation": "28 existing native-endpoint/traffic tests extended/passed; full1491, SQF validator, HEMTT412 SQF/9 PBO/all build gates and independent package verification passed. No new cases. Initial focused log retained false failure because moved read-only block included a doMove comment; existing no-command assertion now strips comments and continues checking actual code.",
+    "logs": [
+      ".qa/convoy-low-speed-lookahead-focused.log",
+      ".qa/convoy-low-speed-lookahead-final-focused.log",
+      ".qa/convoy-low-speed-lookahead-build.log",
+      ".qa/convoy-low-speed-lookahead-independent.log"
+    ],
+    "candidate": ".qa/candidates/convoy-low-speed-lookahead-0cee7b3e",
+    "fingerprint": "c83a4ea22ca2c52ec25e91f8f52e71905c6d888b82f9f31375cc4cdd34681fce",
+    "sourceHash": "bfe7d197bae12345fd91617b3733a6b9334aa04a327ce78ed0e5d48e03a33e63",
+    "limits": "Spacing/closing/reverse/obstacle/pedestrian/route arrival constraints unchanged. Analytic example and static coverage do not establish physical continuity, braking safety, actual command cadence or performance. Audits PAUSED; no launch/push/CI/merge/publish. No whole-HBQ parity or percentage renewal. Unsigned dirty candidate includes unrelated pre-existing dirt; review/notes postdate package."
   }
 }
