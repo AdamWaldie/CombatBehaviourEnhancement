@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial active role allocation excludes hidden/simulation-disabled actors without treating them as casualties.
  * Eligible persistent buddies are selected together where element capacity permits;
  * minimum mover/cover fire capacity and existing specialist-role preferences take priority.
  * Admission sizes the moving element from ammunition-qualified rifle capacity and retains
@@ -81,7 +82,7 @@ if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
 // making that soldier a casualty. Minimum-ready admission remains separate below.
 private _strengthFoot=(units _group) select {[_x] call CBE_fnc_CortexCombatEffective && {vehicle _x == _x}};
 private _onFoot = _strengthFoot select {
-    local _x && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+    local _x && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };

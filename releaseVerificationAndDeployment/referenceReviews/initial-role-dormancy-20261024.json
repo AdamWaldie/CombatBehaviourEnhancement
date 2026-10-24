@@ -1,0 +1,29 @@
+{
+  "baseline": "a2353047",
+  "scope": "Initial infantry role allocation across advance/assault/flank; not physical readiness acceptance",
+  "finding": "All three start selectors delegate native-flight/care/task/reservation checks to CortexActorFireTaskAvailable, so duplicate fleeing guards were unnecessary. Their initial on-foot role pools omitted simulationEnabled/isObjectHidden, although tactical assessment and the executor exclude dormancy. A dormant actor could inflate active mover/cover capacity and affect role sizing before execution refused it.",
+  "implementation": "Filter simulation-disabled and hidden actors from the three existing initial on-foot role pools. Preserve shared native-task predicate, weapons/ammo/ROE, buddy-element preferences, minimum cover and role count logic. Keep flank physical-strength/casualty roster separate. No actor simulation/visibility, native flight, deadlines or workers changed.",
+  "validation": {
+    "focusedCases": 1,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/initial-role-dormancy-a2353047",
+    "fingerprint": "727bde76368f38b376fd5026b369906705dbaee348c33c1b097d1c1d4e8c10f9",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "No historical failure attributed solely to this mismatch",
+    "Later dormancy/native task changes still use existing execution/replacement boundaries; this snapshot is not persistent command authority",
+    "Physical small-element covering fire, actual arrival, dormancy return and HC transitions unverified",
+    "No whole source parity or measured performance claim",
+    "Unsigned dirty development includes unrelated dirt; review/handover postdate package"
+  ],
+  "productionSHA256": {
+    "cortexAdvanceStart": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+    "cortexAssaultStart": "eac18a6e5b32fe59caa6f737c9528e8f0add5c680aec7efae2f388f5b17065ee",
+    "cortexFlankStart": "a699ce7932d673f752f3b3d8cb09fab170c1fad1065aaedb5a3636eab60cc7ab"
+  }
+}

@@ -958,6 +958,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('&& {_reservationFree}',roles)
         self.assertNotIn('_x in _existing ||',roles)
         self.assertIn('call CBE_fnc_CortexActorMoveReserved',roles)
+        # Initial role counts must agree with the assessment/executor's dormancy
+        # boundary, while flank casualty strength remains a physical roster.
+        for start_name in ('cortexAdvanceStart','cortexAssaultStart','cortexFlankStart'):
+            start_text=source(start_name)
+            active=start_text.split('private _onFoot',1)[1].split('};',1)[0]
+            self.assertIn('simulationEnabled _x',active)
+            self.assertIn('!isObjectHidden _x',active)
+            self.assertIn('CBE_fnc_CortexActorFireTaskAvailable',active)
+        strength=source('cortexFlankStart').split('private _strengthFoot=',1)[1].split('private _onFoot',1)[0]
+        self.assertNotIn('simulationEnabled',strength)
+        self.assertNotIn('isObjectHidden',strength)
+
         self.assertNotIn('(_reservation param [2,1e12,[0]]) <= time',drill_reserves)
         remnant=source('cortexRegroupStep')
         self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) > 0',remnant)

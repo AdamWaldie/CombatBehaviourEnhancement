@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial active role allocation excludes hidden/simulation-disabled actors without treating them as casualties.
  * Eligible persistent buddies oppose mover/cover roles for synchronised bounds;
  * the fallback fire-team policy keeps buddies together where element capacity permits;
  * minimum mover/cover fire capacity and existing specialist-role preferences take priority.
@@ -112,7 +113,7 @@ private _objective = if (_hasAuthoredObjective) then {
 };
 if (_leader distance2D _objective <= 80) exitWith {["OBJECTIVE_REACHED",[_leader distance2D _objective]] call _refuse};
 private _onFoot = (units _group) select {
-    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {vehicle _x == _x}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {simulationEnabled _x} && {!isObjectHidden _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
         && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
         && {!_elementScoped || {_x in _element}}

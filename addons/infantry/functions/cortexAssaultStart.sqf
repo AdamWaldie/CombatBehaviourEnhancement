@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial active role allocation excludes hidden/simulation-disabled actors without treating them as casualties.
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Eligible persistent buddies stay together where element capacity permits; depleted
  * two/three-person elements retain their minimum mover/cover capacity over pair cohesion.
@@ -87,7 +88,7 @@ if (_waypointIndex < count waypoints _group && {
 }) exitWith {["AUTHORED_OBJECTIVE_TYPE",[waypointType [_group,_waypointIndex]]] call _refuse};
 
 private _onFoot=(units _group) select {
-    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {simulationEnabled _x} && {!isObjectHidden _x} && {isNull objectParent _x}
         && {!_elementScoped || {_x in _element}}
         && {primaryWeapon _x != ""} && {unitCombatMode _x in ["YELLOW","RED"]}
         && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}
