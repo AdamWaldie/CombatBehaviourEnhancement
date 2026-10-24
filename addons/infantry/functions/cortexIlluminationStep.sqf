@@ -9,6 +9,8 @@
  * operation, native route, idle command and actor reservation govern every weapon command.
  * Repeat/JIP: Opt-in; one attempt per60s, <=16 actors/8muzzles/128inventory rows per admission.
  * Original25s deadline, one reload/selection/fire request; no worker or deadline renewal.
+ * Admission/loading/selection/fire require complete settled native weapon and magazine reload state;
+ * an existing rifle or launcher reload is never replaced by an illumination request.
  * Public cleanup receipts survive locality; only the installing machine removes its handler ID.
  * New owners perform cleanup only, never loading, aiming or firing from inherited work.
  * FiredMan observes only the exact flare release and never changes its projectile. Cleanup removes
@@ -38,6 +40,23 @@ private _authority={
         && {[_actor] call CBE_fnc_CortexExternalOwner == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {currentCommand _actor == ""} && {isNull assignedTarget _actor} && {isNull getAttackTarget _actor}
+};
+// Unknown or active native loading is not permission to replace the weapon task.
+// This predicate reads an already sampled state and performs no native command.
+// Native round phase-1 means no magazine: allow only that exact empty admission state,
+// never launcher selection/fire or any positive/incomplete magazine reload.
+private _settledWeapon={
+    params ["_weaponState",["_allowEmpty",false]];
+    _weaponState isEqualType [] && {count _weaponState >= 7}
+        && {[0,1,2] findIf {!((_weaponState select _x) isEqualType "")
+            || {(_weaponState select _x) == ""}} < 0}
+        && {(_weaponState select 3) isEqualType ""}
+        && {[4,5,6] findIf {!((_weaponState select _x) isEqualType 0)
+            || {!finite (_weaponState select _x)}} < 0}
+        && {(_weaponState select 4) >= 0} && {(_weaponState select 6) == 0}
+        && {(_weaponState select 5) == 0 || {_allowEmpty
+            && {(_weaponState select 5) == -1} && {(_weaponState select 3) == ""}
+            && {(_weaponState select 4) == 0}}}
 };
 private _finish={
     params ["_reason"];
@@ -133,6 +152,7 @@ if (count _work == 0) exitWith {
         };
         private _weapon=primaryWeapon _actor;
         if (_weapon == "" || {currentWeapon _actor != _weapon}) then {continue};
+        if (!([weaponState _actor,true] call _settledWeapon)) then {continue};
         private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
         private _inventory=magazinesAmmoFull _actor;
         if (count _muzzles > 8 || {count _inventory > 128}) then {continue};
@@ -150,7 +170,9 @@ if (count _work == 0) exitWith {
                     && {getNumber (_ammo >> "hit") == 0} && {getNumber (_ammo >> "indirectHit") == 0}
                     && {getText (_ammo >> "submunitionAmmo") == ""} && {!isArray (_ammo >> "submunitionAmmo")}) exitWith {_magazine=_class};
             } forEach _inventory;
-            if (_magazine != "") exitWith {_choice=[_actor,_weapon,_muzzle,_magazine]};
+            if (_magazine != "" && {[_actor weaponState _muzzle,true] call _settledWeapon}) exitWith {
+                _choice=[_actor,_weapon,_muzzle,_magazine]
+            };
         } forEach _muzzles;
         if (_choice isNotEqualTo []) exitWith {};
     } forEach ((units _group) select [0,16]);
@@ -158,8 +180,10 @@ if (count _work == 0) exitWith {
     _choice params ["_unit","_weapon","_muzzle","_magazine"];
     _actor=_unit;
     if (!(call _authority) || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {false};
-    private _before=weaponState _actor select [0,3];
-    if (count _before != 3) exitWith {false};
+    private _beforeState=weaponState _actor;
+    private _loaded=_actor weaponState _muzzle;
+    if (!([_beforeState,true] call _settledWeapon) || {!([_loaded,true] call _settledWeapon)}) exitWith {false};
+    private _before=_beforeState select [0,3];
     private _sky=(getPosASL _actor) vectorAdd [80*sin getDir leader _group,80*cos getDir leader _group,150];
     private _deadline=serverTime+25;
     private _lease=["ILLUMINATE",ASLToAGL _sky,time+25];
@@ -193,7 +217,6 @@ if (count _work == 0) exitWith {
         };
     }];
     _work set ["handler",_handler];
-    private _loaded=_actor weaponState _muzzle;
     if ((_loaded param [3,""]) != _magazine || {(_loaded param [4,0]) <= 0}) then {_actor reload [_muzzle,_magazine]};
     _group setVariable ["CBE_Illumination_Work",_work,true];_actor setVariable ["CBE_Illumination_Work",_work,true];
     true
@@ -211,7 +234,7 @@ if (_phase == "LOAD") exitWith {
     if ((weaponState _actor select [0,3]) isNotEqualTo (_work get "before")) exitWith {["WEAPON_CHANGED"] call _finish};
     private _loaded=_actor weaponState (_work get "muzzle");
     if ((_loaded param [3,""]) != (_work get "magazine") || {(_loaded param [4,0]) <= 0}
-        || {(_loaded param [6,1]) != 0}) exitWith {true};
+        || {!([_loaded] call _settledWeapon)}) exitWith {true};
     private _selected=_loaded select [0,3];
     _actor selectWeapon _selected;_work set ["selected",_selected];
     _actor doWatch (ASLToAGL (_work get "sky"));_work set ["phase","AIM"];
@@ -227,7 +250,7 @@ if (_phase == "AIM") exitWith {
         || {terrainIntersectASL [eyePos _actor,_sky]}) exitWith {["OBSTRUCTED"] call _finish};
     private _loaded=_actor weaponState (_work get "muzzle");
     if ((_loaded param [3,""]) != (_work get "magazine") || {(_loaded param [4,0]) <= 0}
-        || {(_loaded param [6,1]) != 0}) exitWith {["AMMO_CHANGED"] call _finish};
+        || {!([_loaded] call _settledWeapon)}) exitWith {["AMMO_CHANGED"] call _finish};
     _work set ["phase","AWAIT_RELEASE"];_work set ["fireUntil",(serverTime+3) min (_work get "deadline")];
     _actor forceWeaponFire [_work get "muzzle",_loaded select 2];
     true

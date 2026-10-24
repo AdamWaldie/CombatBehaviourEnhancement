@@ -35,5 +35,30 @@
     "addons/infantry/functions/cortexIlluminationStep.sqf": "a9f05f81ebb5f42e4190662ede925d79abce33e4d2d13291a42d8f0f7acbedf8",
     "releaseVerificationAndDeployment/test_cortex_operations.py": "9b5d5f1a7a67c47612ed52c782c16e6457a618ba55d1788823c6ea44da814643",
     "releaseVerificationAndDeployment/cortexQA/runIllumination.sqf": "42816596e8d33d9ba1a0d8103b36fd299c095db76260037cb784880923195dba"
+  },
+  "nativeReloadAdmission20261024": {
+    "base": "3849765c",
+    "sourceIntent": "LAMBS doUGL selects a local grenadier and compatible flare (including magazine wells), then changes inventory, dummy target, selection and delayed fire. CBE already implements the finite native illumination contribution without inventory creation/dummy disclosure. Whole helper re-read and stored hash confirmed, no upstream edits.",
+    "finding": "CBE admission did not check active selected-rifle or UGL round/magazine reload states before native reload. LOAD/AIM only checked magazine phase6 and relied on incomplete sampled state. It could replace native weapon work or request fire during round cycling. This is a source admission gap, not reproduced engine interruption.",
+    "implementation": "Local read-only settled-state predicate validates full7field native state, string selections/magazine, finite nonnegative round count and settled magazine phase. Candidate rifle/muzzle and final load admission reject active reloads. LOAD waits within original deadline; AIM rejects changed/busy readiness before the sole native fire request. An exact empty state (no magazine, zero rounds, round phase-1 and magazine phase0) is admitted for loading only, never selection/fire.",
+    "primaryReference": "https://community.bistudio.com/wiki/weaponState",
+    "correctionDuringDevelopment": "Official native state contract identifies round phase-1 as removed magazine, not generic busy. Initial stricter implementation passed static build but would refuse that valid empty-load case; corrected before final candidate, existing test extended to cover it. Initial passing log is historical, final candidate is authoritative.",
+    "authorityAndBalance": "Existing idle/target/ROE/group/actor/owner/epoch/native-route/feature/task/care gates, original25sdeadline,60s admission cadence, carried-ammo semantics, one reload/selection/fire request and actual FiredMan evidence unchanged. Other eligible candidates remain selectable. No native reload cancellation, replay, inventory mutation, timer, extra worker or source method copied.",
+    "cost": "Additional native state reads only within existing opt-in bounded16actor/8muzzle admission and final chosen actor. Muzzle reads require an already found carried flare. Existing active callback reuses the single native muzzle state for readiness. No new world query or unbounded loop; measured engine overhead remains unknown.",
+    "validation": "Existing illumination case extended with incomplete states, both busy/nonfinite/malformed phases and empty-load-only exception. Focused case and full1491 tests, SQF validator, HEMTT412 SQF/9 PBO/all build gates and independent package verification passed. No new test cases.",
+    "hashes": {
+      ".qa\\lambs-2621-review\\main\\functions\\UnitAction\\fnc_doUGL.sqf": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1",
+      "addons\\infantry\\functions\\cortexIlluminationStep.sqf": "a506028d593f5adac5ed210500a3fd88c93cf1dc60333661043a860eee2345e3"
+    },
+    "logs": [
+      ".qa/illumination-native-reload-focused.log",
+      ".qa/illumination-native-reload-final-focused.log",
+      ".qa/illumination-native-reload-build.log",
+      ".qa/illumination-native-reload-final-build.log",
+      ".qa/illumination-native-reload-independent.log"
+    ],
+    "candidate": ".qa/candidates/illumination-native-reload-3849765c",
+    "fingerprint": "4306e20486e0246b26ea68b74698c90e1d5bf871478dd4466d0c9bb581965ac9",
+    "limits": "Unsigned dirty development candidate includes unrelated existing dirt; review/notes postdate package. No physical loading/repeated flare trajectory/light/equipment restoration/normal-HC/performance/parity or percentage proof. Audits PAUSED."
   }
 }

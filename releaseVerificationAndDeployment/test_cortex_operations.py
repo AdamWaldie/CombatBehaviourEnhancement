@@ -8845,7 +8845,7 @@ class CortexOperations(unittest.TestCase):
         for proof in ('serverTime+25','serverTime+60','select [0,16]','count _muzzles > 8',
                       'count _inventory > 128','compatibleMagazines [_weapon,_muzzle]',
                       '"shotilluminating"','_actor reload [_muzzle,_magazine]',
-                      'param [6,1]) != 0','_direction select 2','vectorDotProduct',
+                      'call _settledWeapon','_direction select 2','vectorDotProduct',
                       'addEventHandler ["FiredMan"','removeEventHandler ["FiredMan"',
                       '_thisEventHandler','"AWAIT_RELEASE"','!isNull _projectile',
                       'CBE_AIPass_Epoch','CBE_OperationGeneration','NativeOrderReceipt',
@@ -8855,6 +8855,34 @@ class CortexOperations(unittest.TestCase):
                           'setVelocity','setPos','spawn','sleep','execFSM','setUnitPos'):
             self.assertNotIn(forbidden,text)
         self.assertIn('!fleeing _actor',text)
+        settled=text.split('private _settledWeapon={',1)[1].split('private _finish={',1)[0]
+        for proof in ('count _weaponState >= 7','[0,1,2] findIf','[4,5,6] findIf',
+                      'finite (_weaponState select _x)','(_weaponState select 6) == 0'):
+            self.assertIn(proof,settled)
+        admission=text.split('private _beforeState=',1)[1].split('private _sky=',1)[0]
+        self.assertIn('[_beforeState,true] call _settledWeapon',admission)
+        self.assertIn('[_loaded,true] call _settledWeapon',admission)
+        self.assertIn('[_actor weaponState _muzzle,true] call _settledWeapon',text)
+        import math
+        def ready(state,allow_empty=False):
+            return (len(state)>=7 and all(isinstance(state[i],str) and state[i] for i in (0,1,2))
+                    and isinstance(state[3],str)
+                    and all(isinstance(state[i],(int,float)) and not isinstance(state[i],bool)
+                            and math.isfinite(state[i]) for i in (4,5,6))
+                    and state[4]>=0 and state[6]==0
+                    and (state[5]==0 or (allow_empty and state[5]==-1 and state[3]=='' and state[4]==0)))
+        baseline=['rifle','ugl','single','flare',1,0,0]
+        self.assertTrue(ready(baseline))
+        self.assertFalse(ready(baseline[:6]))
+        for index in (5,6):
+            for value in (.5,-1,float('nan'),'0',False):
+                busy=baseline.copy();busy[index]=value;self.assertFalse(ready(busy))
+        empty=['rifle','ugl','single','',0,-1,0]
+        self.assertTrue(ready(empty,True))
+        self.assertFalse(ready(empty))
+        busy_empty=empty.copy();busy_empty[6]=.25
+        self.assertFalse(ready(busy_empty,True))
+        self.assertEqual(text.count('[_loaded] call _settledWeapon'),2)
         finish=text.split('private _finish={',1)[1].split('if (_release) exitWith',1)[0]
         self.assertIn('if (local _actor)',finish)
         self.assertLess(finish.index('_actor selectWeapon (_work get "before")'),finish.index('_weaponHandback="RESTORED"'))
