@@ -129,7 +129,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/convoy-pacing-native-differential-20261019.json",
-      "sha256": "8cc07f5a5a7b38e84dbc6fd930d2c3b4aceca53cb972cf3ac8f5a4cd30dab0f2",
+      "sha256": "2a36ab8152780b383411abdce5fd8c277f1bfa15e0b1416249f226d290c66bdb",
       "scope": "Mixed convoy pacing versus native route execution; source comparison only",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -164,6 +164,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/driving-held-observation-20261023.json",
+      "sha256": "37e301825446410c7f58c6ac6b022c0b908d92b8107a87bd2a225f2c2330a270",
+      "scope": "Operating-crew retention reference and discarded ordinary-driving observation work; not whole-HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/driving-recovery-gate-scope-20261021.json",
       "sha256": "a29545131cb27bc02eb455aa091aafa7829eba4f5a9877542b2c3e50ab453181",
       "scope": "Recovery lifecycle and remaining gate passage/closure scope",
@@ -184,8 +193,17 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/grade-support-observation-20261023.json",
+      "sha256": "4d3a30f57e0bd7e998ae4679be921c434e451d6bd002842c9862315f39aecdc9",
+      "scope": "Short-range support-relative obstacle observation at native grade transitions",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-controller-handover-20261018.json",
-      "sha256": "e1438dc7d02acf9d50a4e24cda3a8444e4bf3b5bcfaa5582d73da357d5c2b389",
+      "sha256": "66db2618d8d4cdefc5a9fd128aa2ea40d4dddbf17e6fe7749293f6db1726685c",
       "scope": "HBQ whole-vehicle writer lifecycle and exclusive handover preconditions",
       "sourceFileMentions": [
         "functions/fn_crewHold.sqf",
@@ -230,8 +248,20 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-rear-current-20261023.json",
+      "sha256": "7320967197ff6b0fba946717b49847acc44ac8657b1a3d92f663c1344087d891",
+      "scope": "Complete listed HBQ helpers and CBE crew/rear helpers; CortexVehicles dismount caller selectively read. Not whole-HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf",
+        "functions/fn_damageInit.sqf",
+        "functions/fn_protectBriefly.sqf",
+        "functions/fn_rearClear.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-current-gaps-20261021.json",
-      "sha256": "a422eebf7d513d524f6583f3367994f707cdcc0f9aa62675809643955d15f8dd",
+      "sha256": "dce231da832f84812682f6823462be18ddd27e137124660465763b9e133b6830",
       "scope": "Reconcile historical HBQ remaining-code statements against current execution chain",
       "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
@@ -245,7 +275,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "sha256": "c499c131bb265ccf6bc11cf502e4914fb9cf31586a093b4ca853dd6a9f5cb2a5",
+      "sha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e",
       "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -371,7 +401,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-moving-overtake-20261020.json",
-      "sha256": "27aba69a9f62bfd1f5c61bcf25f76e078060628dbace57736444c6c7ab06315e",
+      "sha256": "93d52ea7c60ade4b3b0b54806efd1611f6d7b3b5deadb5ab49afbb5bf01a5f02",
       "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -403,6 +433,16 @@
       "sourceFileMentions": [
         "functions/fn_refreshRoute.sqf",
         "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-pass-recall-authority-20261023.json",
+      "sha256": "6f06e74392bd968ab78b7b1e14caca0a148c674b195cdb33736a7bca7f8b09f3",
+      "scope": "HBQ overtaking route-return intent versus current CBE passing cleanup authority; not whole-source parity",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_refreshRoute.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -462,6 +502,16 @@
       "scope": "HBQ final-route memory branch and CBE convoy endpoint retry command boundary",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-current-20261023.json",
+      "sha256": "9a1cc1c761be51b39d493f924140859bcbb4e7f83b27d9cc8b6b6d9c30f62e8c",
+      "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
+      "sourceFileMentions": [
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -569,10 +619,27 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/local-reference-availability-20261022.json",
+      "sha256": "f2ef0876edfe576b0954f6ab6f7bd42860deaabe282b7608935edea96e8d1402",
+      "scope": "Authoritative local reference availability; no source parity or implementation percentage",
+      "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/local-reference-freshness-20261017.json",
       "sha256": "b8ffc5fffd14338f920cd72c42cb79f76737e940a159a7ab0fd328b9b42ad15e",
       "scope": "Installed PBO comparison for the 11 October source-refresh register; not the complete master mod list or Workshop latest-version verification",
       "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/mounted-command-semantics-20261022.json",
+      "sha256": "b64a25a203212b04ee497a71b81b5b7e628b66d130a02cf91be815c5ba4d8e61",
+      "scope": "Mounted driver/commander native command and fixed-path restoration assumptions",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_refreshRoute.sqf"
+      ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
@@ -620,7 +687,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/source-integration-driving-20261019.json",
-      "sha256": "d68ba5d05538b9696301e00d8558d459376217f7b8d7678054e10ef175a9ae28",
+      "sha256": "d5d1d0081f905e5bad625a4512a794c687474ec5ceb07e4bdec7c6bd37adc491",
       "scope": "Merge complementary source intentions into CBE execution; not source-count parity or completion credit",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
@@ -648,28 +715,6 @@
         "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
-    },
-    {
-      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-rear-current-20261023.json",
-      "sha256": "7320967197ff6b0fba946717b49847acc44ac8657b1a3d92f663c1344087d891",
-      "scope": "Complete four HBQ crew/rear/damage helpers and current CBE crew/rear helpers; not whole-HBQ parity",
-      "sourceFileMentions": [
-        "functions/fn_crewHold.sqf",
-        "functions/fn_rearClear.sqf",
-        "functions/fn_damageInit.sqf",
-        "functions/fn_protectBriefly.sqf"
-      ],
-      "meaning": "Scoped current comparison, not physical acceptance or renewed historical hash coverage."
-    },
-    {
-      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-current-20261023.json",
-      "sha256": "b40576165f5871e726b083c6575a33f90017f8db96828588136a02ea78a4d31c",
-      "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
-      "sourceFileMentions": [
-        "functions/fn_refreshRoute.sqf",
-        "functions/fn_routeWaiting.sqf"
-      ],
-      "meaning": "Scoped current source comparison and first-cleanup expiry fix; not renewed historical hashes or physical acceptance."
     }
   ],
   "historicIndex": {
@@ -858,7 +903,7 @@
       "recordedSha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96",
       "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "currentSha256": "c499c131bb265ccf6bc11cf502e4914fb9cf31586a093b4ca853dd6a9f5cb2a5"
+      "currentSha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e"
     },
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",
