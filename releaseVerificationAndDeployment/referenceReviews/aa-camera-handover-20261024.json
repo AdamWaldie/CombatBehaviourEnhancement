@@ -1,0 +1,29 @@
+{
+  "baseline": "8e9a4e3d",
+  "finding": "Experimental AA interception validates ownership while aiming, but its finish closure only required local unchanged gunner/turret and matching camera value before unlock. Current player/Zeus/external or replacement fire-owner claims could therefore be missed on release.",
+  "implementation": "Require actual vehicle/gunner/current-group locality, unchanged occupied gunner, exact original fire-owner lease, current actor-scoped external-takeover and explicit platform declaration checks before reading/unlocking the exact camera point. Keep cleanup independent of feature gates and original epoch, consistent with existing finite cleanup design. Retire own episode/lease metadata only through existing exact token rules.",
+  "notChanged": [
+    "No radar, target, movement, skill, damage or projectile mutation added",
+    "No epoch-based cleanup refusal that strands ordinary expired locks",
+    "No claim that native fire is cancelled or a provider accepted inherited camera state",
+    "Experimental point defence stays default off; station and physical-interception limitations unchanged"
+  ],
+  "validation": {
+    "focusedCases": 1,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/aa-camera-handover-8e9a4e3d",
+    "fingerprint": "5944fed38443d67ce2eb053825cb56a32132f452bbc1535893d20a986da7ca96",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "No physical player/Zeus/controller interruption, firing retirement or HC migration evidence",
+    "No dedicated real-warning AA interception audit fixture currently identified in cortexQA; current source contracts are not a substitute",
+    "No full Protocol AA/AEGIS parity or measured performance claim",
+    "Unsigned dirty development includes unrelated dirt; review/handover postdate package"
+  ],
+  "productionSHA256": "370180f3ff3384d37a7eaaf3c514df16be8e1f7e6cf856b4a09d6531562eb5f5"
+}

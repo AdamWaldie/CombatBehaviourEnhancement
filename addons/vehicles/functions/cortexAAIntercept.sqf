@@ -12,6 +12,8 @@
  * The fire lease expires at the original deadline even after discarded cleanup.
  * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
+ * Cleanup retains exact fire-owner proof and current actor/platform external-control gates,
+ * independently of feature enablement and original epoch. Yielding does not cancel native fire.
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
  * 2 payload ARRAY,[] (START: [canonical shared warning ARRAY8] or native own receipt;
  * STEP: [job state HASHMAP]; SHOT: native Fired arguments).
@@ -42,7 +44,14 @@ private _finish={
     private _actor=_state get "gunner";private _token=_state get "token";
     private _turret=_state get "turret";
     private _applied=_state getOrDefault ["applied",[]];
-    if (!isNull _actor && {local _actor} && {gunner _vehicle == _actor}
+    private _releaseGroup=group _actor;
+    // Release may remove our exact old lock after feature shutdown or epoch change,
+    // but locality and value equality alone do not override a current controller.
+    if (!isNull _actor && {local _actor} && {local _vehicle} && {gunner _vehicle == _actor}
+        && {!isNull _releaseGroup} && {local _releaseGroup}
+        && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
+        && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
+        && {!([_vehicle] call CBE_fnc_CompatibilityExternalControl)}
         && {_vehicle turretLocal _turret} && {_applied isNotEqualTo []}) then {
         private _lock=_vehicle lockedCameraTo _turret;
         if (!isNil "_lock" && {_lock isEqualTo _applied}) then {

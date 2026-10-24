@@ -96,6 +96,19 @@ class AAObservation(unittest.TestCase):
             self.assertNotIn(forbidden,intercept)
         self.assertIn('_vehicle selectionNames "Memory"',intercept)
         self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
+        release=intercept.split('private _finish={',1)[1].split('if (_mode == "RELEASE")',1)[0]
+        unlock=release.index('_vehicle lockCameraTo [objNull,_turret,false]')
+        for proof in ('local _vehicle','group _actor','local _releaseGroup',
+                      'CBE_AA_InterceptOwner','[_token,_state get "until"]',
+                      '[_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover',
+                      '[_vehicle] call CBE_fnc_CompatibilityExternalControl',
+                      '_lock isEqualTo _applied'):
+            self.assertLess(release.index(proof),unlock)
+        # Ordinary disable/expiry cleanup still removes an exact lock. These are
+        # ownership checks, not permission to keep firing or replay an old action.
+        self.assertNotIn('CBE_AIPass_AAIntercept_Enable',release)
+        self.assertNotIn('CBE_AIPass_Epoch',release)
+
         self.assertIn('_lock isEqualTo _applied',intercept)
         permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
         self.assertIn('finite (_aaLease select 1)',permission)
