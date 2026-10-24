@@ -94,6 +94,25 @@ class AAObservation(unittest.TestCase):
         for forbidden in ('triggerAmmo','deleteVehicle','setDamage','setVelocity','setGroupOwner',
                           'addMagazine','reveal','addPerFrameHandler','nearestObjects'):
             self.assertNotIn(forbidden,intercept)
+        # AA cannon admission is distinct from infantry bullet suppression and from
+        # the scripted direct-pass fuse. Native 35mm HE must not be rejected merely
+        # for explosive damage; missiles/shell simulation cannot borrow this policy.
+        ready=(ROOT/'addons/infantry/functions/cortexGroundFireReady.sqf').read_text()
+        self.assertIn('["_aaCannon",false,[true]]',ready)
+        self.assertIn('!(_bulletSuppression || _aaCannon)',ready)
+        self.assertIn('!_bulletSuppression || {getNumber (_ammo >> "indirectHit") <= 0',ready)
+        self.assertIn('[_vehicle,_gunner,objNull,_observation,false,false,true]',intercept)
+        self.assertIn('_state getOrDefault ["directFuse",false]',intercept)
+        def admitted(simulation, indirect, explosive, rounds, suppression=False, aa=False):
+            return not (suppression or aa) or (simulation == 'shotbullet' and rounds >= 20
+                and (not suppression or (indirect <= 0 and explosive <= 0)))
+        self.assertTrue(admitted('shotbullet',25,.6,680,aa=True))
+        self.assertFalse(admitted('shotbullet',25,.6,680,suppression=True))
+        self.assertFalse(admitted('shotbullet',25,.6,680,suppression=True,aa=True))
+        self.assertTrue(admitted('shotbullet',0,0,100,suppression=True))
+        self.assertFalse(admitted('shotmissile',100,1,30,aa=True))
+        self.assertFalse(admitted('shotshell',100,1,30,aa=True))
+        self.assertFalse(admitted('shotbullet',25,.6,19,aa=True))
         self.assertIn('_vehicle selectionNames "Memory"',intercept)
         self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
         release=intercept.split('private _finish={',1)[1].split('if (_mode == "RELEASE")',1)[0]

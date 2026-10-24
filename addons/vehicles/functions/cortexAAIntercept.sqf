@@ -5,7 +5,9 @@
  * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
  * Locality/authority: Current local AI main turret [0] only. Existing task/ROE/owner checks apply.
  * No radar, skill, movement, ammunition creation or projectile steering is changed.
- * Exact same-owner real bullet passes may request a missile fuse; effect helper owns that policy.
+ * Explosive shotBullet cannons may aim/fire through the loaded-magazine blast safety check.
+ * Only nonexplosive same-owner real bullet passes may request a missile fuse; effect helper owns that policy.
+ * Explosive cannon impacts remain native; shots and closest passes are not interception proof.
  * Repeat/JIP: One eight-second episode/platform, max four local platforms, sixteen fire requests,
  * eight observed rounds and 160 steps. New warnings cannot renew an active episode. No JIP replay.
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
@@ -128,7 +130,7 @@ if (_mode == "START") exitWith {
     private _registry=(missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[objNull];
     if (count _registry >= 4) exitWith {false};
     private _observation=createHashMap;
-    if (!([_vehicle,_gunner,objNull,_observation,false,true] call CBE_fnc_CortexGroundFireReady)
+    if (!([_vehicle,_gunner,objNull,_observation,false,false,true] call CBE_fnc_CortexGroundFireReady)
         || {!((_observation get "loadedTurret") isEqualTo [0])}) exitWith {false};
     private _turret=[0];
     private _lock=_vehicle lockedCameraTo _turret;
@@ -156,7 +158,7 @@ if (_mode == "START") exitWith {
     _state=createHashMapFromArray [["vehicle",_vehicle],["group",_group],["gunner",_gunner],
         ["token",_token],["turret",_turret],["missile",_warning select 4],["source",_warning select 5],
         ["weapon",_observation get "loadedWeapon"],["muzzle",_observation get "loadedMuzzle"],
-        ["magazine",_magazine],["speed",_speed],["gravity",_gravity],["barrel",_barrel],["optic",_optic],
+        ["magazine",_magazine],["directFuse",getNumber (_ammoConfig >> "indirectHit") <= 0 && {getNumber (_ammoConfig >> "explosive") <= 0}],["speed",_speed],["gravity",_gravity],["barrel",_barrel],["optic",_optic],
         ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
         ["route",[_group] call CBE_fnc_NativeOrderReceipt],["command",currentCommand _gunner],
         ["target",getAttackTarget _gunner],["assigned",assignedTarget _gunner],
@@ -250,7 +252,8 @@ for "_i" from ((count _rounds)-1) to 0 step -1 do {
                 };
             };
             // Broad proximity only admits the exact, armed same-owner fuse policy.
-            if (_miss <= 5 && {[_state,_row,_roundPos,_targetPos] call CBE_fnc_CortexAAInterceptEffect}) then {
+            if (_miss <= 5 && {_state getOrDefault ["directFuse",false]}
+                && {[_state,_row,_roundPos,_targetPos] call CBE_fnc_CortexAAInterceptEffect}) then {
                 _effectRequested=true;
             } else {
                 _rounds set [_i,[_round,_roundPos,+_targetPos,time,_row select 4,vectorDir _missile,vectorUp _missile,_row select 7,_row select 8]];

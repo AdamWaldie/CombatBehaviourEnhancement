@@ -18,15 +18,17 @@
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
  * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
  * 5 bullet suppression <BOOL, false>, requires nonexplosive shotBullet and >=20 loaded rounds.
+ * 6 AA cannon <BOOL, false>, permits explosive shotBullet with >=20 loaded rounds; excludes missiles/shell simulation.
+ * Bullet suppression remains nonexplosive even if both policies are requested.
  * Raw selection snapshots are reevaluated against this policy; they never cache permission.
  * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
  * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
- * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
+ * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles and CortexAAIntercept.
  * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]],["_aaCannon",false,[true]]];
 _observation set ["reloadInProgress",false];
 {_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret","loadedPreference"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
@@ -77,10 +79,10 @@ private _evaluateState={
     private _suitable=_magazine != ""
         && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
         && {[_ammo] call _targetSuitable}
-        && {!_bulletSuppression || {
+        && {!(_bulletSuppression || _aaCannon) || {
             toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
-                && {getNumber (_ammo >> "indirectHit") <= 0}
-                && {getNumber (_ammo >> "explosive") <= 0}
+                && {!_bulletSuppression || {getNumber (_ammo >> "indirectHit") <= 0
+                    && {getNumber (_ammo >> "explosive") <= 0}}}
                 && {finite _rounds} && {_rounds >= 20}
         }};
     private _reload=_state param [6,1,[0]];

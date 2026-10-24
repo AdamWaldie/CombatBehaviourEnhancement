@@ -41,7 +41,7 @@
     "Existing runtime and last coherent build remain unchanged",
     "Cheetah native configured cannon loadout confirmed; not an inventory of every AA platform or a live merged-config/station validation."
   ],
-  "required_next_action": "Separate native AA aiming/firing eligibility from custom fuse eligibility. Inspect actual station/loadout and real hit behaviour before choosing a finite cannon executor; preserve ownership, ROE, friendly safety, same-owner and payload restrictions. Then prepare a real incoming-warning fixture using actual firing events, without synthetic tracks or scripted success.",
+  "required_next_action": "Prepare a real native Cheetah incoming-warning/firing fixture to verify station and memory-point admission, actual shots and impacts, owner/Zeus interruption and finite cleanup. Do not synthesize tracks or scripted success. Native explosive interception effectiveness remains an explicit unmet requirement; custom direct-pass fuse stays nonexplosive. Launch only after the user resumes audits.",
   "audits": "PAUSED by user instruction",
   "native_platform_evidence": {
     "class": "B_APC_Tracked_01_AA_F",
@@ -57,5 +57,28 @@
     "ammo_inherits": "B_35mm_AA",
     "tracer_override": "model only; explosive and indirect hit unchanged",
     "result": "Native Cheetah cannon loadout is excluded by current interception readiness filter. This is config evidence, not an in-engine run."
+  },
+  "implementation": {
+    "date": "2026-10-24",
+    "base_commit": "9621ff31",
+    "status": "native cannon admission implemented; physical effectiveness unproven",
+    "changes": [
+      "GroundFireReady optional AA cannon policy accepts shotBullet with at least20 loaded rounds without the infantry nonexplosive restriction; missile, rocket and shell simulation excluded",
+      "Bullet-suppression policy remains nonexplosive, including when both flags are supplied",
+      "AA interception uses cannon policy, binds admitted ammo to directFuse eligibility, and skips custom fuse calls for explosive ammunition",
+      "Actual loaded-magazine firing-lane and aimpoint blast checks unchanged; current owner/task/ROE and finite bounds unchanged"
+    ],
+    "checks": {
+      "focused_aa_regression": "pass",
+      "complete_build": "pass;1496 tests;413 compiled SQF;11 PBOs;static performance0 findings",
+      "independent_package_verify": "pass",
+      "candidate": ".qa/candidates/aa-cannon-admission-9621ff31",
+      "fingerprint": "404d5548be7d47e7bdacb1e9e696d3bb74ac9ccbac10036891a9b266b4ec30dc"
+    },
+    "limits": [
+      "Unsigned dirty development candidate, including pre-existing unrelated working-tree changes",
+      "Native cannon station/memory-point admission, actual shots and impacts still require the paused real-warning audit",
+      "No demonstrated custom explosive interception effect or live performance budget result"
+    ]
   }
 }
