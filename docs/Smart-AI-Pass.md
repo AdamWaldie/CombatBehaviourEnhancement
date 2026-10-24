@@ -2818,3 +2818,6 @@ Disable the checkbox to discard history and prevent new requests; an issued nati
 
 
 Ordinary driving and its finite bypass/corridor and crew paths refuse new control when the engine reports `waterDamaged`, independently of `alive` and `canMove`. Existing cap and operation cleanup remains available; CBE does not repair the engine or change damage protection. This is a current-health check, not permission to enter water or evidence that a ford is safe. Native water damage and repair transitions require an in-engine retest; audits remain paused.
+
+
+Explicit **Clear Release** now uses the clearing actor's recorded formation parent when recalling its unchanged owned move or hold. It no longer directs every participant to the squad anchor. The recorded actor identity and parent must still match the current native formation, and that parent must remain local, on foot, combat-effective and in the same group. Missing/legacy admission proof, a changed assignment or an unavailable parent suppresses recall; settings and job metadata still retire independently. This does not place actors in a new perimeter or prove physical egress. Natural completion retains its existing formation-chain continuation. Both paths require physical repeat-clearance and casualty/handover validation once audits resume.

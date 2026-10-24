@@ -52,7 +52,17 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertIn('currentCommand _x == "MOVE"',guard)
         self.assertIn('_destination vectorDistance _issued <= 0.25',guard)
         self.assertNotIn('!= "MOVE"',guard)
-        self.assertLess(end,s.index('_x doFollow _leader',end))
+        self.assertLess(end,s.index('_x doFollow _returnLeader',end))
+        recall=s[end:s.index('private _retiredWatch=',end)]
+        for proof in ('reserveAdmissionCommands','_admittedFormation select 0','count _admittedFormation == 4',
+                      'formLeader _x isEqualTo _returnLeader','local _returnLeader',
+                      'group _returnLeader == _group','CortexCombatEffective',
+                      'isNull objectParent _returnLeader'):
+            self.assertIn(proof,s if proof == 'reserveAdmissionCommands' else recall)
+        self.assertNotIn('_x doFollow _leader',recall)
+        self.assertLess(recall.index('setVariable ["CBE_Cortex_ClearRecall"'),
+                        recall.index('_x doFollow _returnLeader'))
+
 
 
 class ClearFinishNativeTaskTests(unittest.TestCase):
@@ -159,12 +169,12 @@ class ClearReleaseEpisodeTests(unittest.TestCase):
         self.assertIn('isEqualTo _order',admission)
         self.assertIn('isEqualTo _buildingBrain',admission)
         self.assertIn('if (!_releaseAdmitted) exitWith {false}',admission)
-        retirement=text.split('private _groupRetired=false;',1)[1].split('private _leader=',1)[0]
+        retirement=text.split('private _groupRetired=false;',1)[1].split('if (!_groupRetired) exitWith {false};',1)[0]
         self.assertLess(retirement.index('_releaseGeneration =='),retirement.index('setVariable ["CBE_AIPass_ClearOrder", nil'))
-        self.assertIn('if (!_groupRetired) exitWith {false}',retirement)
-        actors=text.split('private _leader=',1)[1]
+        self.assertIn('if (!_groupRetired) exitWith {false}',text)
+        actors=text.split('if (!_groupRetired) exitWith {false};',1)[1]
         for proof in ('isNil {','_releaseGeneration ==','_entryEpoch ==','group _x == _group'):
-            self.assertLess(actors.index(proof),actors.index('_x doFollow _leader'))
+            self.assertLess(actors.index(proof),actors.index('_x doFollow _returnLeader'))
         self.assertIn('== _entryOperationGeneration',text)
 
 
@@ -181,4 +191,4 @@ class NaturalFinishEpisodeTests(unittest.TestCase):
         self.assertIn('if (!_terminalPublished) exitWith {-1}',commit)
         explicit=(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()
         actors=explicit.split('if (local _group && {local _x}',1)[1]
-        self.assertLess(actors.index('_leader=[_group] call'),actors.index('_x doFollow _leader'))
+        self.assertLess(actors.index('formLeader _x isEqualTo _returnLeader'),actors.index('_x doFollow _returnLeader'))

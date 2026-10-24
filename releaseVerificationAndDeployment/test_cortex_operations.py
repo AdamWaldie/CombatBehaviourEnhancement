@@ -2908,10 +2908,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _leader = [_group] call CBE_fnc_CortexGroupAnchor;',clear)
         self.assertRegex(clear,r'private _leader\s*=\s*\[_group\] call CBE_fnc_CortexGroupAnchor;')
         self.assertIn('if (isNull _leader) then {_leader=leader _group};',clear)
-        self.assertIn('private _leader=[_group] call CBE_fnc_CortexGroupAnchor;',release)
-        self.assertIn('if (isNull _leader) then {_leader=leader _group};',release)
+        self.assertIn('private _returnLeader=_admittedFormation param [3,objNull,[objNull]];',release)
+        self.assertIn('formLeader _x isEqualTo _returnLeader',release)
         self.assertIn('_x doFollow _leader',clear)
-        self.assertIn('_x doFollow _leader',release)
+        self.assertIn('_x doFollow _returnLeader',release)
         self.assertNotIn('_x commandFollow _leader',clear)
         self.assertNotIn('_x commandFollow _leader',release)
         admission=source('cortexClearBuilding').split('private _actorAdmissible=',1)[1].split('private _available =',1)[0]

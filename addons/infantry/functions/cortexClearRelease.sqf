@@ -10,6 +10,8 @@
  * A live MOVE is recalled only when its destination matches this clearance job receipt;
  * newer individual movement survives release even when the caller requests formation restoration.
  * Mounted actors never receive formation recall from their former on-foot clearance job.
+ * Explicit release preserves each actor's admitted current formation parent; missing, changed,
+ * nonlocal, mounted or ineffective parents do not fall back to a squad-anchor wedge.
  * FOLLOW, ATTACK, CBE and other native tasks do not grant recall authority; only idle actors, STOP
  * at this job's recorded same-floor hold, or MOVE to its recorded destination can resume formation.
  * Settings ownership alone cannot recall a stopped actor at a different location.
@@ -45,6 +47,7 @@ private _motionJob=createHashMapFromArray [["group",_group],["visitContext",+(_g
 private _retiredRoster=_group getVariable ["CBE_Cortex_ClearRoster",[]];
 private _releaseJob=_buildingBrain getOrDefault ["job",createHashMap];
 private _movementTargets=_releaseJob getOrDefault ["movementTargets",createHashMap];
+private _formationAdmission=_releaseJob getOrDefault ["reserveAdmissionCommands",createHashMap];
 private _releaseAdmitted=false;
 isNil {
     if (local _group && {_entryEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
@@ -108,8 +111,6 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     };
 };
 if (!_groupRetired) exitWith {false};
-private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
 {
     isNil {
     if (local _group && {local _x} && {!isPlayer _x} && {group _x == _group}
@@ -117,8 +118,6 @@ if (isNull _leader) then {_leader=leader _group};
         && {_releaseGeneration == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
         && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
         && {count (_group getVariable ["CBE_BuildingBrain",createHashMap]) == 0}) then {
-        _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-        if (isNull _leader) then {_leader=leader _group};
         private _heldByJob=[_x,_releaseJob] call CBE_fnc_BuildingActorHoldOwned;
         // Settings can retire independently while the last owned native leg is still running.
         // Its exact live destination also identifies a participant; no settings mirror is needed.
@@ -164,8 +163,19 @@ if (isNull _leader) then {_leader=leader _group};
                 || {currentCommand _x == "MOVE" && {count _issued == 3 && {count _destination == 3}
                     && {_destination vectorDistance _issued <= 0.25}}};
             if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x}) then {
-                _x setVariable ["CBE_Cortex_ClearRecall",[_group getVariable ["CBE_AIPass_ClearGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_leader,time+5]];
-                _x doFollow _leader;
+                // Restore the admitted formation edge, never flatten every actor onto
+                // an interior squad anchor. Missing proof or a newer parent yields.
+                private _admittedFormation=_formationAdmission getOrDefault [netId _x,[]];
+                private _returnLeader=_admittedFormation param [3,objNull,[objNull]];
+                if (count _admittedFormation == 4 && {(_admittedFormation select 0) == _x}
+                    && {!isNull _returnLeader} && {local _returnLeader}
+                    && {group _returnLeader == _group}
+                    && {[_returnLeader] call CBE_fnc_CortexCombatEffective}
+                    && {isNull objectParent _returnLeader}
+                    && {formLeader _x isEqualTo _returnLeader}) then {
+                    _x setVariable ["CBE_Cortex_ClearRecall",[_group getVariable ["CBE_AIPass_ClearGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_returnLeader,time+5]];
+                    _x doFollow _returnLeader;
+                };
             };
         };
         private _retiredWatch=_x getVariable ["CBE_Cortex_ClearExitWatch",[]];
