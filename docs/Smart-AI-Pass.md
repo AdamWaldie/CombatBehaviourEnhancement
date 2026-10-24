@@ -2745,3 +2745,10 @@ Native fleeing vetoes building door interaction at admission and the final share
 Explicit convoy mounted-fire requests read the currently selected weapon state of the occupied turret. A complete loaded station state with no magazine reload is required; another turret or reserve ammunition cannot qualify it. The selected magazine feeds the shared firing-cone and configured aimpoint-blast exclusion, so explosive fire receives the same position-based veto as ordinary ground-vehicle fire. A refusal retires only an unchanged convoy target; native weapon selection, reloading, movement and mission fire policy remain authoritative.
 
 The five-second upkeep is an observation at request time. It does not pin the engine's later weapon choice, cancel an existing burst or guarantee future friendly movement, actual impact safety or damage. Physical mixed-turret firing and performance remain unverified while audits are paused.
+
+
+### Clearance casualty evidence lifetime
+
+An active clearance retains up to64 actual death identities against its exact original building/transform/episode/deadline context. This event-only receipt is separate from the rolling eight-body, five-minute investigation list: later deaths and corpse cleanup cannot evict an earlier guard loss while that clearance remains active. Matching terminal completion/release removes it; owner transfer preserves the current episode receipt. Missing, expired or mismatched evidence still refuses deleted-guard substitution.
+
+This records a loss, not a casualty position or replacement authority. A present living guard defeats old loss evidence. Existing reserve eligibility, physical arrival and exit-observation checks still govern replacement, and no room visit or coverage is inferred. More than64 recorded deaths in one episode retain the first64 without guessing later losses. Replication/locality and physical casualty-replacement behaviour remain unverified while audits are paused.

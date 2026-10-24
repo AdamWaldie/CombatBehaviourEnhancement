@@ -106,28 +106,38 @@ class ClearExitRelief(unittest.TestCase):
         branch=g.split('private _securityLost=',1)[1].split('private _stage=',1)[0]
         known=s.split('private _securityCasualtyKnown={',1)[1].split('// Record only stops',1)[0]
         for guard in ('!isNull _guard','!alive _guard','"INCAPACITATED"','"ACE_isUnconscious"',
-                      'CBE_Danger_Casualties','select [0,8]','count _x == 5',
-                      '(_x select 3) isEqualTo _key','(_x select 4) isEqualTo (_job get "visitContext")',
-                      'serverTime < (_x select 2)','(_x select 2) <= (_x select 1)+300'):
+                      'CBE_Cortex_ClearLosses','count _losses == 2',
+                      '(_losses select 0) isEqualTo _context','serverTime < (_context select 2)',
+                      'count (_losses select 1) <= 64','_key in (_losses select 1)'):
             self.assertIn(guard,known)
         self.assertNotIn('doMove',known)
         capture=(ROOT/'addons/core/functions/cortexInit.sqf').read_text().split('addMissionEventHandler ["EntityKilled"',1)[1].split('CBE_fnc_CortexRegroupOnKill',1)[0]
         self.assertIn('serverTime+300,netId _unit,+_clearContext',capture)
         self.assertIn('"intent",""]) != "CLEAR"',capture)
-        self.assertIn('count _casualties >= 8',capture)
-        # Absence is never death proof; the positive event must match identity,
-        # episode and original expiry. A present living guard defeats old proof.
-        def known_loss(present,dead=False,receipt=None,key='guard',context='episode',now=120):
+        self.assertIn('count _casualties >= 8',capture) # general body list stays bounded
+        self.assertIn('count _ids < 64',capture)
+        self.assertIn('serverTime < (_clearContext select 2)',capture)
+        self.assertIn('["CBE_Cortex_ClearLosses",[+_clearContext,_ids],true]',capture)
+        # First guard loss must survive ninth/later deaths and the general
+        # five-minute body lifetime while the original clearance is still active.
+        context=('building','transform',900,'episode')
+        deaths=['guard']+['other-'+str(i) for i in range(9)]
+        rolling=deaths[-8:]
+        self.assertNotIn('guard',rolling) # previous evidence path loses the real event
+        receipt=(context,list(dict.fromkeys(deaths)))
+        def known_loss(present,dead=False,receipt=None,key='guard',context=context,now=500):
             if present:return dead
-            return receipt is not None and receipt[0]==key and receipt[1]==context and 0<=receipt[2]<=now<receipt[3]<=receipt[2]+300
-        receipt=('guard','episode',100,400)
+            return receipt is not None and receipt[0]==context and now<context[2] and key in receipt[1]
         self.assertTrue(known_loss(False,receipt=receipt))
         self.assertFalse(known_loss(False))
-        self.assertFalse(known_loss(False,receipt=receipt,context='new-episode'))
-        self.assertFalse(known_loss(False,receipt=receipt,key='other-guard'))
-        self.assertFalse(known_loss(False,receipt=receipt,now=400))
+        self.assertFalse(known_loss(False,receipt=receipt,context=('building','transform',900,'new-episode')))
+        self.assertFalse(known_loss(False,receipt=receipt,key='missing-guard'))
+        self.assertFalse(known_loss(False,receipt=receipt,now=900))
         self.assertFalse(known_loss(True,receipt=receipt))
         self.assertTrue(known_loss(True,dead=True))
+        for cleanup in (s,(ROOT/'addons/infantry/functions/cortexClearRelease.sqf').read_text()):
+            retirement=cleanup.split('private _retiredLosses=',1)[1].split('};',1)[0]
+            self.assertLess(retirement.index('isEqualTo'),retirement.index('CBE_Cortex_ClearLosses",nil'))
         for guard in ('[_guard,_reliefRow select 1] call _securityCasualtyKnown',
                       'count _originalStage >= 6','"ARRIVED"','"securityEntries"',
                       '(_record param [5,[]]) isEqualTo (_reliefRow select 2)',

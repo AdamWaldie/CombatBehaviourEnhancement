@@ -7,7 +7,8 @@
  * - one CBA per-frame handler that runs CBE_fnc_CortexSchedulerTick. The due-time cache makes
  *   idle frames constant-time; due work gets one budgeted opportunity per rendered/simulated frame
  *   instead of being capped at four heavy jobs per second;
- * - one EntityKilled mission handler that records up to eight five-minute own-group casualty
+ * - one EntityKilled mission handler retains up to64 death identities for the current finite
+ *   clearance episode, separately from up to eight five-minute own-group casualty
  *   identities and passes kills to survivor regroup. Exact clearance context can corroborate a
  *   deleted exterior guard; public provenance alone never dispatches movement;
  * - the CBE_fnc_CortexDiscover sweep job, which brings local groups under the pass;
@@ -114,6 +115,26 @@ if (isNil {missionNamespace getVariable "CBE_AIPass_KilledHandler"}) then {
                 || {(_clearOperation getOrDefault ["intent",""]) != "CLEAR"}
                 || {(_clearOperation getOrDefault ["phase",""]) == "CANCELLED"}
                 || {(_clearOperation getOrDefault ["objective",objNull]) isNotEqualTo (_clearContext select 0)}) then {_clearContext=[]};
+            // Clearance loss provenance must outlive the rolling body-observation list.
+            // Keep only actual death identities, tied to the original finite episode;
+            // corpse removal or later deaths cannot manufacture or evict its first losses.
+            private _deathId=netId _unit;
+            if (count _clearContext == 4 && {!(_deathId in ["","0:0"])}
+                && {(_clearContext select 2) isEqualType 0} && {finite (_clearContext select 2)}
+                && {serverTime < (_clearContext select 2)}) then {
+                private _losses=_group getVariable ["CBE_Cortex_ClearLosses",[]];
+                private _ids=[];
+                if (_losses isEqualType [] && {count _losses == 2}
+                    && {(_losses select 0) isEqualTo _clearContext}
+                    && {(_losses select 1) isEqualType []} && {count (_losses select 1) <= 64}
+                    && {(_losses select 1) findIf {!(_x isEqualType "") || {_x in ["","0:0"]}} < 0}) then {
+                    _ids=+(_losses select 1);
+                };
+                if (!(_deathId in _ids) && {count _ids < 64}) then {
+                    _ids pushBack _deathId;
+                    _group setVariable ["CBE_Cortex_ClearLosses",[+_clearContext,_ids],true];
+                };
+            };
             _casualties pushBack [_unit,serverTime,serverTime+300,netId _unit,+_clearContext];
             _group setVariable ["CBE_Danger_Casualties",_casualties,true];
         };

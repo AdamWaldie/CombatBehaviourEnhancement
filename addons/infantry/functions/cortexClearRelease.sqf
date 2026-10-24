@@ -62,6 +62,11 @@ isNil {
             && {(_retiredLanes select 2) isEqualTo (_motionJob get "visitContext")}) then {
             _group setVariable ["CBE_Cortex_ClearLanes",nil,true];
         };
+        private _retiredLosses=_group getVariable ["CBE_Cortex_ClearLosses",[]];
+        if (_retiredLosses isEqualType [] && {count _retiredLosses == 2}
+            && {(_retiredLosses select 0) isEqualTo (_motionJob get "visitContext")}) then {
+            _group setVariable ["CBE_Cortex_ClearLosses",nil,true];
+        };
         if (count _buildingBrain > 0) then {
             _buildingBrain set ["cancelled",true];
             _buildingBrain set ["cancelReason","CLEAR_RELEASE"];

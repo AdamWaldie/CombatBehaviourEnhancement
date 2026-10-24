@@ -64,5 +64,35 @@
       ]
     },
     "limits": "No record, original expiry, evicted receipt, missing/non-network ID or mismatched episode means no deleted-guard corroboration. No latest/ordered event delivery guarantee or physical corpse-cleanup/relief, normal/HC, tactical isolation or runtime/network budget proof. Unreleased internal schema5fields; no legacy3field adapter. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. No physical/parity/percentage claim. Audits PAUSED; no launch/push/CI/merge/publish."
+  },
+  "clearanceLossRetention20261024": {
+    "base": "09f51862",
+    "finding": "Deleted-guard relief/rebalance used the general eight-row300s body-provenance list. Nine later deaths can evict the original positive guard identity; its300s expiry can also end during a longer unchanged clearance. Missing corpse lookup then cannot establish the already observed loss.",
+    "change": "Existing owner-local EntityKilled handler additionally records up to64 unique nonempty native death IDs in CBE_Cortex_ClearLosses=[exactClearVisitContext,IDs]. Capture requires active matching CLEAR objective and original unexpired context deadline. No timestamps, positions or synthetic deaths added. Existing general body list/schema/300s policy unchanged. Missing-guard predicate now uses exact episode and original deadline; present living guard still defeats historical proof. Matching terminal finish/release retires this receipt; ownership-loss path preserves it.",
+    "bounds": "Event-only copying/publication of <=64 IDs; bounded scalar validation/membership for missing guards. At capacity retains first64 and refuses unsupported later deleted losses. No new EH, timer, worker, world query, retry window, coverage/room credit or movement permission. Runtime overhead remains unmeasured.",
+    "supersedes": "deletedGuardIdentity20261024 remains historical evidence; its eight-row/300s proof lookup is replaced for clearance security. Body inspection still requires a present observed body.",
+    "sourceHashes": {
+      "addons/core/functions/cortexInit.sqf": "fda6e74990ee50c377c64e79e831baee9bb4c6e6c8a9cf50d8b5fa6b81c43316",
+      "addons/infantry/functions/buildingOperationStep.sqf": "2261ce22671c637ee7ef15c5b336e274612bdb92a63aeb881088f9999e3a92fc",
+      "addons/infantry/functions/cortexClearRelease.sqf": "3c4ef1f79d705c75a4de5330a2bc21a29ee2a2312cc5a559796fd18b8522e4a4",
+      "releaseVerificationAndDeployment/test_clear_exit_relief.py": "23c711a9fad3e5c66a43e492d032ab2cb65030e2b98ebf5f248405772b62d7a5"
+    },
+    "validation": {
+      "focusedCases": 9,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "candidate": ".qa/candidates/clear-loss-retention-09f51862",
+      "fingerprint": "cb65cb2549c3710b9c09cafae3f4d3b577feb893d43b46642ed2382d9f13e195",
+      "logs": [
+        ".qa/clear-loss-retention-focused.log",
+        ".qa/clear-loss-retention-build.log",
+        ".qa/clear-loss-retention-independent.log"
+      ]
+    },
+    "limits": "Offline/source/model evidence only. Deleted guards after later losses/long clears, actual relief/arrival/coverage, migration/replication, repeat and performance remain physically unverified. Unsigned dirty package includes unrelated preexisting dirt; review/handover postdate package. No source-parity or percentage change.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false
   }
 }

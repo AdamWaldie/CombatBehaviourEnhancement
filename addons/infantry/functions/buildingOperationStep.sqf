@@ -138,6 +138,7 @@
  * or active task is preserved. Same-leader FOLLOW can move naturally without a stale point lock.
  * Positive episode-bound death identity survives corpse cleanup for exterior relief; a
  * missing lookup alone never grants casualty or movement authority.
+ * Exact-episode death identities survive rolling body-list eviction until its original deadline.
  * A known exterior casualty can rebalance one duplicated live post using existing
  * coverage proof and allocation budgets, with same-callback native dispatch.
  * Casualty selection prefers the nearest eligible reserve to a surviving buddy, or the
@@ -318,20 +319,15 @@ private _delay=call {
                 || {_guard getVariable ["ACE_isUnconscious",false]}
         };
         if (_key in ["","0:0"]) exitWith {false};
-        private _rows=_group getVariable ["CBE_Danger_Casualties",[]];
-        if !(_rows isEqualType []) exitWith {false};
-        ((_rows select [0,8]) findIf {
-            _x isEqualType [] && {count _x == 5}
-                && {(_x select 0) isEqualType objNull}
-                && {isNull (_x select 0) || {!alive (_x select 0)}}
-                && {(_x select 3) isEqualTo _key}
-                && {(_x select 4) isEqualTo (_job get "visitContext")}
-                && {(_x select 1) isEqualType 0} && {finite (_x select 1)}
-                && {(_x select 2) isEqualType 0} && {finite (_x select 2)}
-                && {(_x select 1) >= 0} && {(_x select 1) <= serverTime}
-                && {serverTime < (_x select 2)} && {(_x select 2) > (_x select 1)}
-                && {(_x select 2) <= (_x select 1)+300}
-        }) >= 0
+        private _losses=_group getVariable ["CBE_Cortex_ClearLosses",[]];
+        private _context=_job get "visitContext";
+        _losses isEqualType [] && {count _losses == 2}
+            && {(_losses select 0) isEqualTo _context}
+            && {count _context == 4} && {(_context select 2) isEqualType 0}
+            && {finite (_context select 2)} && {serverTime < (_context select 2)}
+            && {(_losses select 1) isEqualType []} && {count (_losses select 1) <= 64}
+            && {(_losses select 1) findIf {!(_x isEqualType "") || {_x in ["","0:0"]}} < 0}
+            && {_key in (_losses select 1)}
     };
     // Record only stops actually issued by this callback. Native holds are not inferred
     // from posture/speed settings or an arbitrary later STOP elsewhere.
@@ -552,6 +548,11 @@ private _delay=call {
                     && {(_retiredLanes select 0) == 1}
                     && {(_retiredLanes select 2) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
                     _group setVariable ["CBE_Cortex_ClearLanes",nil,true];
+                };
+                private _retiredLosses=_group getVariable ["CBE_Cortex_ClearLosses",[]];
+                if (_retiredLosses isEqualType [] && {count _retiredLosses == 2}
+                    && {(_retiredLosses select 0) isEqualTo (_job getOrDefault ["visitContext",[]])}) then {
+                    _group setVariable ["CBE_Cortex_ClearLosses",nil,true];
                 };
             };
         };
