@@ -3,6 +3,8 @@
  * New MOVE admission also requires a fresh current-owner COVER ammunition-capacity receipt;
  * bootstrap publishes COVER before movement. In-flight bounds keep their original lifetime.
  * This is the moving squad's capacity, not proof that another squad is firing effectively.
+ * Route centroids exclude dormant, hidden, fleeing and care-busy actors without counting
+ * those temporary states as casualties in the separate permanent-retirement strength check.
  * Coordinates reserved assault squads through short bounds while other squads provide cover.
  * Publishes the original MOVE deadline with token/sequence/point before its role; owners
  * require both matching receipts, never presumed cross-machine event ordering.
@@ -157,7 +159,10 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
+        // Temporary inactivity changes route planning, never the casualty retirement pool.
         _fit=_fit select {
+            if (!simulationEnabled _x || {isObjectHidden _x} || {fleeing _x}
+                || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {false};
             private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
             // Reservation deadlines use the actor owner's clock. The coordinator may inspect
             // an empty remote marker, but cannot declare a remote or malformed lease expired.
