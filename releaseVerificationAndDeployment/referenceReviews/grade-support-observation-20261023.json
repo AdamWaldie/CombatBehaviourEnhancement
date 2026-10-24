@@ -25,5 +25,28 @@
     "At most15 additional short casts on qualifying transitions; measured median/p95 runtime cost remains unverified.",
     "Audits remain paused; no launch, push, CI, release or upload."
   ],
-  "additionalCorrection": "Full gate caught previous native-passing review note legacy product name; corrected note only, retaining safety checks."
+  "additionalCorrection": "Full gate caught previous native-passing review note legacy product name; corrected note only, retaining safety checks.",
+  "nativeGradePolicy20261024": {
+    "base": "18617c1e",
+    "finding": "Fresh owner/route/two-seat native path elevations already feed curvature and0/3/6m geometry support, but not speed policy. Ordinary driving already samples heading-projected terrain at20/45/70m and shared road metadata; convoy followers sample recorded predecessor trail. Those are separate observations, not proof of missing all off-road grade handling.",
+    "contribution": "Accumulate maximum absolute longitudinal grade during the existing bounded six-metre native-path walk and return it as fourth hint field. Ordinary driving and convoy followers lower existing speed requests using road-grade ceilings25km/h above0.12 and18km/h above0.2. Existing terrain policy, road/convoy caps, native authority and final write transactions unchanged. Geometry accepts the fourth field while retaining its original curvature/support positions.",
+    "cost": "Only arithmetic over already-visited native segments plus fixed consumer comparisons. No new engine/world query, ray, native subscription, timer, setting or worker. Same64node event bound, five-second evidence age, six-second subscription lifetime, owner/route/both-seat destinations, forward/floor/ambiguous-stretch guards. Cost not measured in engine.",
+    "scopeLimits": "Local native-plan grade is not physical support, cliff detection, clearance, water permission or full braking-horizon parity. Native paths may omit or misdescribe terrain. Existing heading terrain and road observation remain, including bridge metadata policy. Missing native evidence leaves existing policies authoritative; this change does not increase caps.",
+    "validation": "18 existing geometry/cadence cases extended/passed. Existing model checks ceiling thresholds, ascent/descent absolute grade, dense/sparse equivalent grade and no increase of lower independent cap. Full1491 tests, SQF validator, HEMTT412 SQF/9 PBO/all build gates and independent package verification passed. No new cases. Initial full build retained naming-check failure from prior register note; corrected that note wording instead of weakening the check, final full build passed.",
+    "hashes": {
+      "addons\\vehicles\\functions\\drivingNativePathWatch.sqf": "8e9ec7ca540f16433a540c0ca62a44d47ef66595842f6797054bfbe66a1afd24",
+      "addons\\vehicles\\functions\\drivingGeometryCap.sqf": "5549231a3afbed33a6dee5057dc4ae9145ba8c9e944c0d9d790ce2d6218f0f5b",
+      "addons\\vehicles\\functions\\drivingAssistStart.sqf": "5bbd2186060763ce338ce026955f4b4dad3e13f7fa64c1b7b99537e4b497be98",
+      "addons\\vehicles\\functions\\convoyTick.sqf": "9e9b71c064e148ce4db131118b5b560c0fe4dd7da746647f5b19711f5745c790"
+    },
+    "candidate": ".qa/candidates/native-path-grade-policy-18617c1e",
+    "fingerprint": "3fda9aadb23393da80c852396a2eba9481a72be482fd06ec1423cd977be16a79",
+    "logs": [
+      ".qa/native-path-grade-policy-focused.log",
+      ".qa/native-path-grade-policy-build.log",
+      ".qa/native-path-grade-policy-final-build.log",
+      ".qa/native-path-grade-policy-independent.log"
+    ],
+    "acceptance": "No physical crest/dip/deck/grade-speed/repeated normal-HC or performance proof; no whole-HBQ parity/percentage renewal. Audits PAUSED. Unsigned dirty candidate includes unrelated existing dirt; reference review/index/handover postdate package."
+  }
 }

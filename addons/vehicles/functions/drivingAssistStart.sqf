@@ -793,6 +793,12 @@ _brain set ["geometryTracks",_geometryTracks];
             _geometryTracks set [netId _vehicle,_turn select 1];
             private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
             private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
+            // Fresh native elevation also covers off-road grade; retain the existing
+            // road policy in SI units, without granting support or movement authority.
+            private _nativeGrade=_nativeHint param [3,-1,[0]];
+            if (finite _nativeGrade && {_nativeGrade > 0.2}) then {_capMps=_capMps min (18/3.6)} else {
+                if (finite _nativeGrade && {_nativeGrade > 0.12}) then {_capMps=_capMps min (25/3.6)};
+            };
             private _cornerJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             private _cornerStarted=_cornerJournal getOrDefault ["started",-1];
             private _cornerProbe=!_reverseLeg && {!_crewBoardingHold} && {!_queueHold} && {!_queueNativeActive} && {!_queueCrossing}

@@ -10,6 +10,7 @@
  * 3 measured curvature <ARRAY, []> optional finite inverse-metre value from local track;
  * optional second BOOL permits stopped prediction only for fresh native-path evidence;
  * optional third ARRAY contains three fresh ASL path stations at0/3/6m for support observation.
+ * An optional fourth native-grade value is consumed by speed policy, not geometry clearance.
  * Empty retains instantaneous native-yaw fallback for independent server/script rechecks.
  * 4 near-contact probe BOOL false; a current stationary pose permits twelve low diagonal/side
  * probes. Callers must qualify failed ordinary recovery before enabling them. Gates, actors,
@@ -59,7 +60,7 @@ private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
 if (!finite _yaw || {_velocity <= 1}) then {_yaw=0};
 private _bendLength=(_velocity*2.5) max 8 min _horizon;
 private _curvature=if (_velocity > 1) then {_yaw/_velocity} else {0};
-if (count _measured in [1,2,3] && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
+if (count _measured in [1,2,3,4] && {(_measured select 0) isEqualType 0} && {finite (_measured select 0)}) then {
     _curvature=if (_velocity > 1 || {_measured param [1,false,[true]]}) then {_measured select 0} else {0};
 };
 private _maxCurvature=(70/57.2957795)/_bendLength;

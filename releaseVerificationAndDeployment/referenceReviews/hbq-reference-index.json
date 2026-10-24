@@ -138,7 +138,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/convoy-pacing-native-differential-20261019.json",
-      "sha256": "2a36ab8152780b383411abdce5fd8c277f1bfa15e0b1416249f226d290c66bdb",
+      "sha256": "817a782eaf4000d9fda676de749342f272f1dbf3319193b391cd8f5a111013ae",
       "scope": "Mixed convoy pacing versus native route execution; source comparison only",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -203,7 +203,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/grade-support-observation-20261023.json",
-      "sha256": "4d3a30f57e0bd7e998ae4679be921c434e451d6bd002842c9862315f39aecdc9",
+      "sha256": "a10c9fd78078361a5834676ef4e8e1257449e03f0b9695d6d1b571533067b4b6",
       "scope": "Short-range support-relative obstacle observation at native grade transitions",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -655,7 +655,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/local-reference-freshness-20261017.json",
-      "sha256": "b8ffc5fffd14338f920cd72c42cb79f76737e940a159a7ab0fd328b9b42ad15e",
+      "sha256": "4cd5be50f9f50b195769f7b64ea04646ffe376cc3044b4548f7d6853ae0ec966",
       "scope": "Installed PBO comparison for the 11 October source-refresh register; not the complete master mod list or Workshop latest-version verification",
       "sourceFileMentions": [],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."

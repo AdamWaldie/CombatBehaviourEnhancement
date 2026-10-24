@@ -158,7 +158,26 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('_supportPath=[+_nearPoint]',s)
         self.assertIn('(3-_walked)/_length',s)
         self.assertIn('_walked >= 6 && {count _supportPath == 2}',s)
-        self.assertIn('true,_supportPath]',s)
+        self.assertIn('true,_supportPath,_nativeGrade]',s)
+        self.assertIn('_nativeGrade=_nativeGrade max (abs (_delta select 2)/_length)',selection)
+        for name,variable in (('drivingAssistStart','_capMps'),('convoyTick','_limit')):
+            consumer=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            grade=consumer.split('private _nativeGrade=_nativeHint param [3,-1,[0]];',1)[1].split('};',2)[0]
+            self.assertIn('finite _nativeGrade',grade)
+            self.assertIn('_nativeGrade > 0.2',grade)
+            self.assertIn('_nativeGrade > 0.12',grade)
+            self.assertIn(variable+'='+variable+' min',grade)
+        geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
+        self.assertIn('count _measured in [1,2,3,4]',geometry)
+        # Existing road policy applies symmetrically to observed climbs/descents;
+        # unknown/level metadata cannot raise a stricter independent speed ceiling.
+        def ceiling(requested,grade):
+            return min(requested,18 if grade>.2 else 25 if grade>.12 else requested)
+        for grade,expected in ((-1,50),(0,50),(.12,50),(.13,25),(.2,25),(.21,18)):
+            self.assertEqual(ceiling(50,grade),expected)
+            self.assertLessEqual(ceiling(5,grade),5)
+        self.assertEqual(abs(-1.5)/6,.25)
+        self.assertEqual(abs(.125)/.5,abs(1.5)/6)
 
     def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()

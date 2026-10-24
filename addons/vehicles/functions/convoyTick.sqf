@@ -1103,6 +1103,12 @@ for "_i" from 1 to (count _vehicles - 1) do {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
     } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
     private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
+    // The same native-path grade ceiling as ordinary driving; existing spacing,
+    // closing and obstacle ceilings remain independent and can only lower it.
+    private _nativeGrade=_nativeHint param [3,-1,[0]];
+    if (finite _nativeGrade && {_nativeGrade > 0.2}) then {_limit=_limit min 18} else {
+        if (finite _nativeGrade && {_nativeGrade > 0.12}) then {_limit=_limit min 25};
+    };
     private _vehicleGeometry=if (_pathAssistEnabled) then {[_vehicle,_limit/3.6,false,_curveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
     private _vehicleGate=_vehicleGeometry select 0;private _vehicleObstacle=_vehicleGeometry select 1;
     if (_vehicleGate isNotEqualTo [] && {(_vehicleGate select 0) < (_traffic select 0)}) then {_traffic=_vehicleGate};

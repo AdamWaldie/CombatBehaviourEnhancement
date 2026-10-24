@@ -491,7 +491,7 @@
   "registerRecovery20261024": {
     "baseline": "5579a7be",
     "scope": "Known-checkout and reference-archive lookup of missing master, later additions status reconciliation, archived Pinned Down identity and integrity. No renewed whole-source implementation review.",
-    "masterLedger": "Not located in current CBE tree, two known temporary WAIT checkouts, clean CBE validation tree, managed worktrees or preserved reference archive. GitHub-root enumeration also yielded no match but encountered inaccessible WMP .pytest_cache; that search is not exhaustive.",
+    "masterLedger": "Not located in current CBE tree, two known temporary WAIT checkouts, clean CBE validation tree, managed worktrees or preserved reference archive. GitHub-root enumeration also yielded no match but encountered inaccessible unrelated mission-pack .pytest_cache; that search is not exhaustive.",
     "privateAdditions": ".qa/implementation-register-additions.json",
     "privateBackup": ".qa/implementation-register-additions-before-reconcile-20261024-040621.json",
     "privateBeforeSHA256": "53d8c21a8ce24cbecf48894713680c416f2181fb060b4d82f400b867dada6a4f",
