@@ -11030,6 +11030,13 @@ class CortexOperations(unittest.TestCase):
         for marker in ['CBE_OperationGeneration','CBE_AIPass_Epoch','private _mayRestore','[_x] call _mayRestore']:
             self.assertIn(marker,group_hide)
         release=group_hide.split('private _mayRestore=',1)[1].split('private _release=',1)[0]
+        self.assertIn('!([_unit] call CBE_fnc_CortexActorMoveReserved)',release)
+        for proof in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove',
+                      '(_move select 0) isEqualTo "DANGER_COVER"',
+                      'count (_move select 1) == 3','!finite _x','finite (_move select 2)'):
+            self.assertIn(proof,release)
+        candidates=group_hide.split('private _candidates=',1)[1].split('// Preserve the squad',1)[0]
+        self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',candidates)
         self.assertIn('CBE_Cortex_ActorMove',release)
         self.assertIn('CBE_fnc_CortexCombatEffective',release)
         self.assertIn('CBE_Danger_EngineStanceLease',release)

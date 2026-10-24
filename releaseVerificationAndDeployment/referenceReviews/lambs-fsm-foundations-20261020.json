@@ -1448,5 +1448,35 @@
       ".qa/clear-casualty-evidence-independent.log"
     ],
     "limits": "Prepared procedure UNRUN; production behaviour unchanged. No actual casualty/refill, isolation, room flow, normal/HC, visual or5/10performance acceptance. Unsigned dirty development includes unrelated dirt; review/notes postdate package. No source parity or build-out percentage renewal. Audits PAUSED."
+  },
+  "groupHidePendingMovement20261024": {
+    "base": "89de873c",
+    "referenceScope": "Complete source doGroupHide helper; no renewed doHide/body routing or whole-source parity review.",
+    "sourceIntent": "Group reaction calls individual hide, may apply strong low stance and force movement until readiness or20..60s timeout, then re-hide. CBE retains bounded reaction intent but composes owned weak posture without copying competing movement/forceMove callbacks.",
+    "finding": "New squad posture checked only an empty ActorMove marker. Restoration accepted an empty or expired marker, or an untyped DANGER_COVER. Both missed unresolved flight/naval cleanup journals protected by the existing shared reservation predicate.",
+    "change": "Use CortexActorMoveReserved for admission and restoration. Preserve restoration during cover only for typed three-field finite numeric-position DANGER_COVER and neither pending flight nor naval journal. Malformed/unknown reservations refuse. Original deferred exact-stance cleanup remains; no new movement/animation action/worker/query/timer or lifetime. Valid expired ordinary reservations now follow shared expiry semantics.",
+    "hashes": {
+      "addons/infantry/functions/dangerGroupHideStep.sqf": "42dc3dd38264996c2693fab827308577019aec96e439a1e6205b4495a967d72d",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "d1169997581b3be691b95708cebd9b3db84a069d9700543b438d465f13114566",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "204641d2927b582c2f3d6971431513ad578fd1ac656d0621f51f2942754d0d97",
+      ".qa/lambs-2621-review/main/functions/GroupAction/fnc_doGroupHide.sqf": "c7b588ae613a278129e5998cb10ef124ebbee8fb4450f15192d39b0917af13f8"
+    },
+    "validation": {
+      "focusedExisting": 610,
+      "fullExisting": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "newCases": 0,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/group-hide-reservation-89de873c",
+    "fingerprint": "dcd905042f0f7d421da63c3ddb655a6144dc1e7551e91f3bd784bf6613691c52",
+    "logs": [
+      ".qa/group-hide-reservation-focused.log",
+      ".qa/group-hide-reservation-build.log",
+      ".qa/group-hide-reservation-independent.log"
+    ],
+    "limits": "No physical flight/egress/native stance transition, normalHC or5/10performance evidence. No reproduced/fixed arm-stretching claim. Metadata helper cost unmeasured. Unsigned dirty candidate includes unrelated dirt; guide newline normalization and review/notes postdate package; production runtime unchanged after build. Audits PAUSED; no parity/percentage renewal."
   }
 }

@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Native initialization data waits and delayed search retain planner ownership.
+ * Shared movement reservations include unresolved flight/naval cleanup; only a typed cover
+ * lease without either pending journal permits restoration during reserved movement.
  * Native fleeing blocks both new weak posture and restoration; unchanged proof defers
  * through the finite actor cleanup instead of overwriting the native flight response.
  * New posture admission preserves native INIT/PLANNING/REPLAN movement preparation.
@@ -41,10 +43,18 @@ private _mayRestore={
     params ["_proof"];
     private _unit=_proof param [0,objNull,[objNull]];
     private _move=_unit getVariable ["CBE_Cortex_ActorMove",[]];
-    private _postureFree=_move isEqualTo []
-        || {_move isEqualType [] && {count _move == 3} && {
-            (_move param [2,1e12,[0]]) <= time || {(_move select 0) == "DANGER_COVER"}
-        }};
+    private _postureFree=!([_unit] call CBE_fnc_CortexActorMoveReserved);
+    // Only a typed cover lease permits restoration during owned movement. Pending
+    // flight/naval native cleanup still wins even when its ordinary marker is absent.
+    if (!_postureFree && {_move isEqualType []} && {count _move == 3}
+        && {(_move select 0) isEqualTo "DANGER_COVER"}
+        && {(_move select 1) isEqualType []} && {count (_move select 1) == 3}
+        && {(_move select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_move select 2) isEqualType 0} && {finite (_move select 2)}
+        && {(_unit getVariable ["CBE_Danger_FlightLease",[]]) isEqualTo []}
+        && {(_unit getVariable ["CBE_Cortex_NavalEgressMove",[]]) isEqualTo []}) then {
+        _postureFree=true;
+    };
     [_proof] call _sameOwner
         && {isNull remoteControlled _unit}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
@@ -173,7 +183,7 @@ private _candidates=_members select {
         && {currentCommand _x in ["","ATTACK","FIRE","SUPPRESS"]}
         && {abs (speed _x) <= 0.5}
         && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
-        && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {(_x getVariable ["CBE_Danger_EngineStanceLease",[]]) isEqualTo []}
 };
 // Preserve the squad's immediate anti-armour and anti-air answer. A low-profile danger response
