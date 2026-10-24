@@ -1,0 +1,79 @@
+{
+  "base": "89214cc6",
+  "scope": "Complete plaintext config.cpp text from six installed PBOs: LAMBS Suppression, Turrets and RPG vanilla/CUP/RHS/SOG. Not whole danger FSM, effective merged game config, current Workshop freshness or licence review.",
+  "sources": [
+    {
+      "workshopId": "1808238502",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1808238502\\addons\\lambs_suppression.pbo",
+      "pboSHA256": "a777d7f7f9b6a6cb7dae4fb3acc4fcd4e977b4c84a895dd773c98369ada6e2b0",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_suppression/config.cpp",
+      "configSHA256": "63a1564732b2d577b5676462c920581c866cc3c2fec2db182d8254ae87d4c569"
+    },
+    {
+      "workshopId": "1858070328",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1858070328\\addons\\lambs_rpg.pbo",
+      "pboSHA256": "615eb36a24598593dd3f0ddb097850ec8f9479441195004fd291bab264131341",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_rpg/config.cpp",
+      "configSHA256": "c01f2ded8b80ee150c2a56d5a7e7891d3185fc1f02d2496eb57a40c8109d1daa"
+    },
+    {
+      "workshopId": "1858070328",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1858070328\\addons\\lambs_rpgCUP.pbo",
+      "pboSHA256": "b839d666db2fe3c4fd230e7790c1506af19b020142bb338fc703b5d96771e66d",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_rpgCUP/config.cpp",
+      "configSHA256": "8c71adedf9e074575c9891c7da04ade80bd92d2b7bea485f18f7fcff892ed604"
+    },
+    {
+      "workshopId": "1858070328",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1858070328\\addons\\lambs_rpgRHS.pbo",
+      "pboSHA256": "77e30268fea05306aaebf6e5c1fea72cc72af3d126daca5714a083e074c77edb",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_rpgRHS/config.cpp",
+      "configSHA256": "5899b83babff8e3dcedfb530555519e570145dc35728f5d6839c3aa7d735b777"
+    },
+    {
+      "workshopId": "1858070328",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1858070328\\addons\\lambs_rpgSOG.pbo",
+      "pboSHA256": "1715e6b6150a94ed93e3c983d2dd5737d0bc5822747b0fe2c79878d5fe61f16e",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_rpgSOG/config.cpp",
+      "configSHA256": "fb1b8e9f250bce29399989a527392eabf40cddcae6454cdf52f285bc6f97e038"
+    },
+    {
+      "workshopId": "1862208264",
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1862208264\\addons\\lambs_turrets.pbo",
+      "pboSHA256": "a0b5663bc87ccde314e97762f3ffe4c9e02cd8352482acdf7217243bead93f49",
+      "privateConfig": ".qa/lambs-config-policy-20261024/lambs_turrets/config.cpp",
+      "configSHA256": "80f539bf6c5ade8ffc4bde19e25a61b79d2178ec0637bbd9f270178955598bac"
+    }
+  ],
+  "findings": {
+    "1808238502": {
+      "intent": "Skill-dependent suppression recovery and AI aim-settling/turning response.",
+      "sourcePolicy": "Suppression component worst/best decrease25/4s and explosion weight1.5; aiming-error component worst/best decrease3.5/0.6s and turning influence1.2. Six properties, not six separately delivered features.",
+      "cbe": "Native component policy not implemented in CBE configs. Runtime danger/suppression reactions exist but do not establish equivalent engine decay/aim-settling dynamics.",
+      "status": "CONFIG_REVIEWED_NATIVE_POLICY_NOT_IMPLEMENTED"
+    },
+    "1862208264": {
+      "intent": "Less precise and sustained AI turret fire through brain error plus weapon/mode dispersion and burst policy.",
+      "cbe": "Optional restart-required turret aiming PBO sets maxAngularErrorTurrets0.12 versus source0.15. It does not implement source RCWS/HMG/coax per-mode AI dispersion/nonterminable burst or autocannon dispersion changes. Numerical difference is not proof of improvement.",
+      "disposition": "Selected partial policy exists. Do not import nonterminable bursts without accounting for mission fire policy and friendly-lane changes; physical lethality/balance unverified.",
+      "status": "CONFIG_REVIEWED_SELECTED_OPTIONAL_POLICY_ONLY"
+    },
+    "1858070328": {
+      "intent": "Broader native RPG target use, range/preference, cadence and dispersion; optional CUP/RHS/SOG class adapters.",
+      "cbe": "Scripted anti-armour selection/backblast and capability classification exist; no matching native launcher weapon/ammunition configuration policy. This is not full RPG-source functionality.",
+      "disposition": "AI-only flags/preferences must be evaluated separately from dispersion, recoil/sound and CUP airFriction changes that can affect player weapons/ballistics. No whole-config transplant.",
+      "status": "CONFIG_REVIEWED_NATIVE_LAUNCHER_POLICY_NOT_IMPLEMENTED"
+    }
+  },
+  "confirmedNextRuntimeGap": "CortexAntiArmour checks rear geometry/friendly backblast then doTarget/doFire, but has no shared CortexLineOfFireClear forward/blast veto. Any fix must use actual loaded launcher ammunition and avoid letting an unloaded preferred carrier starve a ready carrier; preserve native selection/reload and mission ammo overrides.",
+  "productionHashes": {
+    "optionals/turret_aiming/config.cpp": "680fc70610673e61353bee9ff30c0638da3df6feefe9a71d61dedd86f8e2ff8b",
+    "addons/infantry/functions/cortexAntiArmour.sqf": "701fdb38a6250229e3d055c81140de59e74c72f37fc63acf5e84ae627fb4f37f",
+    "addons/infantry/functions/cortexCapabilities.sqf": "acd7c02e999eb8dc826f58afea821b348e5e342cda5c6053cd6530589c67bfac",
+    "addons/infantry/functions/cortexLineOfFireClear.sqf": "b2738cda671bbd9d198c0c3b353502bcd4722d9d3d8da9476f14ca0b977349b0"
+  },
+  "validation": "Six extracted configs read; original PBO and private config hashes reverified. HEMTT first tried absent config.bin; actual PBO members are plaintext config.cpp. Failed probe log retained, extraction outputs explicitly verified. No upstream source executed; raw configs remain private. No runtime change or repeated build.",
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}
