@@ -9,8 +9,10 @@
 if !(missionNamespace getVariable ["CBE_CortexQA_OwnerHelpersInstalled",false]) then {
     call compile preprocessFileLineNumbers "cortexQAPerformanceOwner.sqf";
     call compile preprocessFileLineNumbers "cortexQAIndoorActorOwner.sqf";
+    call compile preprocessFileLineNumbers "cortexQANavalOwner.sqf";
     private _installed=!isNil "CBE_CortexQA_PerformanceSampleOwner"
         && {!isNil "CBE_CortexQA_PerformanceDeleteGroup"} && {!isNil "CBE_CortexQA_PerformanceStartGroup"}
+        && {!isNil "CBE_CortexQA_NavalSampleOwner"} && {!isNil "CBE_CortexQA_NavalAckServer"}
         && {!isNil "CBE_CortexQA_IndoorActorOwner"} && {!isNil "CBE_CortexQA_IndoorActorAckServer"};
     missionNamespace setVariable ["CBE_CortexQA_OwnerHelpersInstalled",_installed];
     if (!_installed) then {diag_log "CBE AUDIT ERROR: owner helper bootstrap incomplete"};

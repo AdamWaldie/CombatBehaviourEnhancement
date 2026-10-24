@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-24",
+  "source_base": "9e50b353",
+  "status": "prepared UNRUN coastal normal and real-provider HC naval scenarios",
+  "focuses": {
+    "naval": "Altis,normal batch",
+    "navalhc": "Altis,headless batch,actual companion provider,two actually connected and registered HCs"
+  },
+  "implementation": [
+    "Early focused dispatch avoids unrelated fixed-coordinate VR stations",
+    "Existing separate/combined landing cases transfer to distinct actual HC owners during a measured borrowed stop",
+    "Native provider migration and destination adoption record required; no engine-only fallback",
+    "Read-only owner sampler accepts server requests; server ACK matches current nonce,actual sender,current boat owner and boat identity",
+    "Before/after samples compare actual local cap,public receipt,landing token and original expiry; final owner sample requires nondefault25 cap restored and receipt retired",
+    "Physical water travel,dismount,dry egress,crew retention and finite plan cleanup retained",
+    "Fixture target now has actual hostile crew holding fire; passenger invulnerability removed",
+    "Staging requires appropriate terrain/batch/provider and manifest payload; focused naval reports cannot accept full addon release"
+  ],
+  "checks": {
+    "full_offline": "1496 tests;413 compiled SQF;11 PBOs;static performance0 findings;pass",
+    "independent_package_verify": "pass",
+    "candidate": ".qa/candidates/naval-owner-fixture-9e50b353",
+    "fingerprint": "4cc4258724096a57405b1c96b0b081bce0794df1e3ea7dd31f48543663b8d993",
+    "retained_failure": ".qa/naval-owner-fixture-20261024-build.log rejected absolute legacy product path in prior review metadata. File-level source references/hashes retained without absolute product name; checker unchanged. Final build passed."
+  },
+  "limits": [
+    "No game launch or staging into installed game; fixtures remain UNRUN",
+    "Coast selection,stop capture window,native boat ownership/forced-cap transport and physical egress may still fail",
+    "Known-contact movement diagnostic with hold-fire target is not combat effectiveness proof",
+    "No real controller quiescence,Zeus interruption or performance budget proof",
+    "Unsigned dirty development package; review/handover postdate build",
+    "Audits PAUSED; full production goal incomplete"
+  ]
+}

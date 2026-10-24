@@ -208,6 +208,15 @@ class PackagePipelineTests(unittest.TestCase):
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
         self.assertEqual(manifest['batch_mode'],'headless')
         self.assertEqual(manifest['focus'],'indooractorshc')
+        naval=stage(self.folder,Path(self.temp.name)/'naval-hc','navalhc',batch_mode='headless',headless_provider=provider,world='Altis')
+        self.assertTrue((naval/'cortexQANavalOwner.sqf').is_file())
+        self.assertIn('cortexQANavalOwner.sqf',(naval/'init.sqf').read_text())
+        naval_manifest=json.loads((naval.parent/'audit-manifest.json').read_text())
+        self.assertEqual(naval_manifest['world'],'Altis')
+        self.assertEqual(naval_manifest['batch_mode'],'headless')
+        self.assertIsNotNone(naval_manifest['headless_provider'])
+        with self.assertRaisesRegex(ValueError,'real provider'):
+            stage(self.folder,Path(self.temp.name)/'naval-hc-no-provider','navalhc',batch_mode='headless',world='Altis')
         from mod_pipeline import mission_hashes
         self.assertEqual(mission_hashes(mission),manifest['mission_files'])
 
@@ -234,6 +243,17 @@ class PackagePipelineTests(unittest.TestCase):
     def test_focuses_follow_real_dispatch_and_invalid_focus_is_rejected(self):
         self.assertIn('performancemixed', supported_focuses())
         self.assertIn('airskills', supported_focuses())
+        self.assertIn('navalhc',supported_focuses())
+        naval=stage(self.folder,Path(self.temp.name)/'naval-normal','naval',world='Altis')
+        self.assertTrue((naval/'cortexQANaval.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'Altis coastline'):
+            stage(self.folder,Path(self.temp.name)/'naval-vr','naval')
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'naval-mixed-hc','naval',batch_mode='headless',world='Altis')
+        report=Path(self.temp.name)/'naval-report.json'
+        report.write_text(json.dumps(dict(focus='navalhc',status='PASS',complete=True)))
+        with self.assertRaisesRegex(ValueError,'cannot accept a CBE release'):
+            release_gate(self.folder,report)
         self.assertIn('aa', supported_focuses())
         mission=stage(self.folder,Path(self.temp.name)/'aa-normal','aa',batch_mode='normal')
         self.assertTrue((mission/'cortexQAAAIntercept.sqf').is_file())
