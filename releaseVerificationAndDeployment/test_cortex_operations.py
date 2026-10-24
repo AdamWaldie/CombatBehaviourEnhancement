@@ -11527,7 +11527,7 @@ class CortexOperations(unittest.TestCase):
         text=source('dangerCoverStep')
         cleanup=text.split('if (count _lease >= 4) then {',1)[1].split('_group setVariable ["CBE_Danger_CoverLease",nil];',1)[0]
         self.assertIn('_distance > 2 || {_height > 1.5}',cleanup)
-        self.assertIn('abs ((((expectedDestination _leasedActor) select 0) param [2,0])-(_leasedSpot param [2,0])) <= 1.5',cleanup)
+        self.assertIn('abs (((AGLToASL ((expectedDestination _leasedActor) select 0)) select 2)-((AGLToASL _leasedSpot) select 2)) <= 1.5',cleanup)
         self.assertLess(cleanup.index('_distance > 2 || {_height > 1.5}'),cleanup.index('doFollow'))
 
     def test_remount_progress_removes_completed_passengers_without_extending_deadline(self):
@@ -11590,6 +11590,29 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('((expectedDestination _leasedActor) select 0) distance2D _leasedSpot <= 1',cleanup)
         self.assertIn('group _leasedActor == _group',cleanup)
         self.assertLess(cleanup.index('expectedDestination'),cleanup.index('doFollow'))
+        # Engine destinations are AGL; relative terrain heights can agree while
+        # absolute elevations differ, or differ on the same physical floor.
+        self.assertIn('(_actorMove select 1) isEqualTo _leasedSpot',cleanup)
+        self.assertIn('getPosASL _leasedActor',cleanup)
+        self.assertIn('AGLToASL _leasedSpot',cleanup)
+        retention=text.split('if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4}',1)[1].split('exitWith {true};',1)[0]
+        self.assertIn('(_moveProof select 1) isEqualTo (_lease select 3)',retention)
+        self.assertIn('AGLToASL ((expectedDestination _actor) select 0)',retention)
+        self.assertIn('getPosASL _actor',retention)
+        self.assertIn('(_ownedMove select 1) isEqualTo (_lease select 3)',text)
+        def same_floor(actor_atl,actor_terrain,goal_agl,goal_terrain):
+            return abs(actor_atl+actor_terrain-goal_agl-goal_terrain)<=1.5
+        # Identical relative height at different terrain elevations is not arrival.
+        self.assertTrue(abs(0-0)<=1.5)
+        self.assertFalse(same_floor(0,20,0,22))
+        # Same absolute floor across terrain cells must remain eligible.
+        self.assertFalse(abs(2-0)<=1.5)
+        self.assertTrue(same_floor(2,20,0,22))
+        self.assertTrue(same_floor(0,20,0,20))
+        # Same XY/expiry/type does not make a different stored floor our marker.
+        goal=[100,200,0]
+        self.assertNotEqual(goal,[100,200,3])
+        self.assertNotEqual(goal,[100.5,200,0])
 
     def test_cover_retention_rechecks_live_authority_before_returning_active(self):
         text=source('dangerCoverStep')

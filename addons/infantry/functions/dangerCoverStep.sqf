@@ -15,7 +15,9 @@
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
  * Changed orders and legacy leases retire metadata without return-to-formation commands.
  * A locality or generation change retires it without restoring over newer work. Failed approach cleanup
- * checks both horizontal distance and floor band, and follows only while the expected destination still matches.
+ * checks horizontal distance and absolute-height floor band, and follows only while the native
+ * destination still matches. Stored movement points must match exactly before marker retirement;
+ * horizontal overlap alone cannot identify the CBE move on another floor.
  * Arguments: 0 group <GROUP>; 1 actor <OBJECT>; 2 threat position <ARRAY>; 3 danger generation <NUMBER>;
  * 4 release-only <BOOL>, false - retire the owned lease without recovery or new movement.
  * Return Value: Boolean - true while CBE owns a finite danger-cover move, otherwise false.
@@ -45,7 +47,7 @@ private _clearLease={
             if (count _lease >= 4 && {!isNull _actor} && {local _actor}) then {
                 private _ownedMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
                 if (count _ownedMove == 3 && {(_ownedMove select 0) == "DANGER_COVER"}
-                    && {(_ownedMove select 1) distance2D (_lease select 3) <= 1}
+                    && {(_ownedMove select 1) isEqualTo (_lease select 3)}
                     && {(_ownedMove select 2) == (_lease select 2)}) then {
                     _actor setVariable ["CBE_Cortex_ActorMove",nil];
                 };
@@ -106,11 +108,13 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease s
 if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4} && {(_lease select 0) isEqualTo _actor}
     && {(_lease select 1) == _generation} && {time < (_lease select 2)}
     && {_actor distance2D (_lease select 3) > 2
-        || {abs (((getPosATL _actor) select 2)-((_lease select 3) param [2,0])) > 1.5}}
+        || {abs (((getPosASL _actor) select 2)-((AGLToASL (_lease select 3)) select 2)) > 1.5}}
     && {count _moveProof == 3} && {(_moveProof select 0) == "DANGER_COVER"}
-    && {(_moveProof select 1) distance2D (_lease select 3) <= 1}
+    && {(_moveProof select 1) isEqualTo (_lease select 3)}
     && {(_moveProof select 2) == (_lease select 2)}
     && {((expectedDestination _actor) select 0) distance2D (_lease select 3) <= 1}
+    && {abs (((AGLToASL ((expectedDestination _actor) select 0)) select 2)
+        -((AGLToASL (_lease select 3)) select 2)) <= 1.5}
     && {_generation == (_group getVariable ["CBE_Danger_Generation",0])}
     && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
     && {[_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -130,7 +134,7 @@ private _orderChanged=count _lease >= 4 && {!_leaseContextCurrent};
 if (count _lease >= 4) then {
     _lease params ["_leasedActor","_leasedGeneration","_expires","_leasedSpot"];
     private _distance=if (isNull _leasedActor) then {-1} else {_leasedActor distance2D _leasedSpot};
-    private _height=if (isNull _leasedActor) then {-1} else {abs (((getPosATL _leasedActor) select 2)-(_leasedSpot param [2,0]))};
+    private _height=if (isNull _leasedActor) then {-1} else {abs (((getPosASL _leasedActor) select 2)-((AGLToASL _leasedSpot) select 2))};
     private _endReason=if (_orderChanged) then {"ORDER_CHANGED"} else {if (_releaseOnly) then {"RELEASED"} else {
         if (!isNull _leasedActor && {alive _leasedActor} && {_distance <= 2} && {_height <= 1.5}) then {"AT_DESTINATION"} else {
             ["INTERRUPTED","TIMEOUT"] select (time >= _expires)
@@ -144,7 +148,7 @@ if (count _lease >= 4) then {
         private _actorMove=_leasedActor getVariable ["CBE_Cortex_ActorMove",[]];
         if (local _leasedActor && {count _actorMove == 3}
             && {(_actorMove select 0) == "DANGER_COVER"}
-            && {(_actorMove select 1) distance2D _leasedSpot <= 1}
+            && {(_actorMove select 1) isEqualTo _leasedSpot}
             && {(_actorMove select 2) == _expires}) then {
             _leasedActor setVariable ["CBE_Cortex_ActorMove",nil];
             if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}
@@ -156,7 +160,7 @@ if (count _lease >= 4) then {
                 && {_distance > 2 || {_height > 1.5}}
                 && {_leasedActor checkAIFeature "MOVE"} && {_leasedActor checkAIFeature "PATH"}
                 && {((expectedDestination _leasedActor) select 0) distance2D _leasedSpot <= 1}
-                && {abs ((((expectedDestination _leasedActor) select 0) param [2,0])-(_leasedSpot param [2,0])) <= 1.5}
+                && {abs (((AGLToASL ((expectedDestination _leasedActor) select 0)) select 2)-((AGLToASL _leasedSpot) select 2)) <= 1.5}
                 && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
