@@ -78,6 +78,11 @@ class AirborneDropFairnessTests(unittest.TestCase):
                        'CBE_Danger_EngineStanceLease','CBE_Danger_AttackPace','CBE_Cortex_StanceReceipt'):
             self.assertIn(marker,before)
         self.assertLess(helper.index('_job set ["groundHandover",_result]'),helper.index('_cargo joinSilent _ground'))
+        self.assertLess(helper.index('private _cargoNative='),helper.index('private _ground=createGroup'))
+        commit=helper.split('// GroupCreated mission handlers',1)[1].split('_cargo joinSilent _ground;',1)[0]
+        for proof in ('_cargoNative findIf','currentCommand _actor != _command',
+                      '(expectedDestination _actor) isNotEqualTo _destination','formLeader _actor != _leader'):
+            self.assertIn(proof,commit)
         self.assertIn('private _joined=_cargo select {group _x == _ground}',helper)
         self.assertIn('currentCommand _x in ["STOP","GET IN"',before)
         after_join=helper.split('_cargo joinSilent _ground;',1)[1]

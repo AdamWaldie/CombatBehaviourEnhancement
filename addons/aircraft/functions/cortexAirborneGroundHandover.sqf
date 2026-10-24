@@ -10,6 +10,7 @@
  * are retained and reported without rollback or another split. Empty failed groups are deleted.
  * Group-bound posture/pace receipts defer the join until existing exact cleanup retires them.
  * Explicit native STOP defers group transfer; a STOP raised by join handlers prevents SAD/brain startup.
+ * Creation-handler changes to original passenger commands/destinations/form leaders prevent joining.
  * Original crew, later arrivals and departed passengers never join. No actor is relocated,
  * re-equipped, revealed, force-seated or assigned new skills. Source flight waypoints are untouched.
  * Arguments: 0 insertion job HASHMAP, empty. Requires group/aircraft/episode/jumpers/target/deadline.
@@ -78,6 +79,9 @@ _handoverResult=call {
         || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {["DEFERRED",grpNull,[],false]};
     // Search the ground area below the insertion belief, not its aircraft/floor altitude.
     _target=(_target select [0,2])+[0];
+    // Native mission handlers run synchronously during group creation. A newly
+    // issued MOVE need not change feature/operation ownership, so bind its footprint too.
+    private _cargoNative=_cargo apply {[_x,currentCommand _x,+(expectedDestination _x),formLeader _x]};
     private _ground=createGroup [side _group,true];
     if (isNull _ground) exitWith {["DEFERRED",grpNull,[],false]};
     // Publish a one-shot receipt before join can raise native group-change events.
@@ -105,7 +109,12 @@ _handoverResult=call {
     // GroupCreated mission handlers can synchronously replace authority; recheck before join.
     if (!local _group || {units _ground isNotEqualTo []} || {_episode isNotEqualTo (_group getVariable ["CBE_AIPass_DropEpisode",[]])}
         || {(_job get "ownerEpoch") != (_group getVariable ["CBE_AIPass_Epoch",0])}
-        || {!([_group] call CBE_fnc_CortexIsEligible)} || {!(call _cargoReady)}) exitWith {
+        || {!([_group] call CBE_fnc_CortexIsEligible)} || {!(call _cargoReady)}
+        || {_cargoNative findIf {
+            _x params ["_actor","_command","_destination","_leader"];
+            currentCommand _actor != _command || {(expectedDestination _actor) isNotEqualTo _destination}
+                || {formLeader _actor != _leader}
+        } >= 0}) exitWith {
         if (local _ground && {units _ground isEqualTo []}) then {deleteGroup _ground};
         _result
     };
