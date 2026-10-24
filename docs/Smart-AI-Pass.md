@@ -2792,3 +2792,8 @@ After the existing backblast checks, a fresh loaded-launcher observation supplie
 ### Mounted danger ownership
 
 The native danger bridge checks the actor's currently occupied platform at classification, observation submission, action execution and waiting. A vehicle-level external-control declaration yields those paths even when the occupants have no individual declaration. Dismounted actors do not inherit ownership from a former or assigned vehicle. These checks issue no provider commands and do not establish that an already-issued native action has stopped.
+
+
+### Scheduler failure retirement
+
+A missing, non-numeric or non-finite callback delay cancels its existing job state and clears pending status instead of silently discarding the queue entry. Non-finite initial delays are refused before queue publication. Deadline overflow also retires the job. Finite FSMs observe cancellation through their existing cleanup paths; the scheduler issues no movement or settings restoration commands and does not retry a failed callback. Normal negative completion results and finite retry delays retain their existing meaning.

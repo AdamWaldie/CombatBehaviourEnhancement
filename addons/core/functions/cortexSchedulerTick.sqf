@@ -3,6 +3,9 @@
  * Repeat/JIP: Each invocation processes due jobs within the local budget. Joining owners have independent queues; jobs are not replayed across machines.
  * Runs due Smart AI Pass jobs synchronously from the CBA per-frame handler, unscheduled.
  * The soft time budget is checked between jobs; it cannot pre-empt a running callback.
+ * Invalid callback delays or overflowed deadlines cancel the existing state rather than
+ * silently dropping a pending FSM or publishing an unreachable deadline. No native cleanup
+ * commands are issued by the scheduler; the finite FSM observes cancellation.
  * Recorded canSuspend describes the actual caller context, including direct diagnostic calls.
  *
  * Called by one CBA handler every frame on a machine with an active owner-local subsystem. Ground
@@ -82,6 +85,18 @@ private _postureRetired=false;
 private _settingsRetired=false;
 private _holdsRetired=false;
 private _earliest = -1;
+// A dropped callback must notify its existing FSM, not strand it in pending/watchdog replay.
+// The FSM retains responsibility for generation-scoped physical/settings cleanup.
+private _rejectDelay={
+    params ["_rejectedState"];
+    if (!(_rejectedState getOrDefault ["cancelled",false])) then {
+        _rejectedState set ["cancelled",true];
+        _rejectedState set ["cancelReason","INVALID_JOB_DELAY"];
+    };
+    if ("pending" in _rejectedState) then {_rejectedState set ["pending",false]};
+    if ("completed" in _rejectedState) then {_rejectedState set ["completed",true]};
+    -1
+};
 {
     _x params ["_dueAt", "_job", "_state"];
     _dueAt = _dueAt min (_state getOrDefault ["wakeAt",_dueAt]);
@@ -117,6 +132,9 @@ private _earliest = -1;
         private _callbackCanSuspend=canSuspend;
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
+        if (isNil "_delay" || {!(_delay isEqualType 0)} || {!finite _delay}) then {
+            _delay=[_state] call _rejectDelay;
+        };
         if (_subsystem == "POSTURE_CLEANUP"
             && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_postureRetired=true};
         if (_subsystem == "SETTINGS_CLEANUP"
@@ -168,8 +186,15 @@ private _earliest = -1;
             // A callback can wake its own keyed operation while it runs. Include that wake
             // in the idle cache, otherwise the early-return gate hides it until the long delay.
             private _rescheduledAt = (_now + _delay) min (_state getOrDefault ["wakeAt",_now + _delay]);
-            _rescheduled pushBack [_rescheduledAt, _job, _state];
-            if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
+            if (finite _rescheduledAt) then {
+                _rescheduled pushBack [_rescheduledAt, _job, _state];
+                if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
+            } else {
+                [_state] call _rejectDelay;
+                if (_subsystem == "POSTURE_CLEANUP") then {_postureRetired=true};
+                if (_subsystem == "SETTINGS_CLEANUP") then {_settingsRetired=true};
+                if (_subsystem == "HOLD_CLEANUP") then {_holdsRetired=true};
+            };
         };
     };
 } forEach _jobs;

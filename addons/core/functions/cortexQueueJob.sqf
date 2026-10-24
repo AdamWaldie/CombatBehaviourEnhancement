@@ -13,7 +13,8 @@
  * Arguments:
  * 0: job <CODE> - receives [state] and returns the next delay in seconds or -1
  * 1: state <HASHMAP> - job-owned state carried between runs
- * 2: delay <NUMBER> - seconds before the first run (optional, default: 0)
+ * 2: delay <NUMBER> - finite seconds before the first run (optional, default: 0).
+ * Invalid delay retires the supplied finite state without publishing a queue entry.
  * 3: jobKey <STRING> - optional owner-local key. A later job with this key updates and wakes the existing callback instead of appending a competing callback.
  *
  * Return Value:
@@ -30,19 +31,24 @@
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
 private _group = _state getOrDefault ["group", grpNull];
 private _rejectFiniteBrain={
+    params [["_queueReason","STALE_QUEUE_OWNER",[""]]];
+    _state set ["cancelled",true];
+    _state set ["cancelReason",_queueReason];
     if ("pending" in _state && {"completed" in _state}) then {
         _state set ["pending",false];
         _state set ["completed",true];
         _state set ["cancelled",true];
-        _state set ["cancelReason","STALE_QUEUE_OWNER"];
+        _state set ["cancelReason",_queueReason];
     };
 };
-if ("group" in _state && {isNull _group}) exitWith {call _rejectFiniteBrain};
+// Reject invalid scheduling before owner metadata or queue publication changes.
+if (!finite _delay || {!finite (time + (_delay max 0))}) exitWith {["INVALID_JOB_DELAY"] call _rejectFiniteBrain};
+if ("group" in _state && {isNull _group}) exitWith {[] call _rejectFiniteBrain};
 // A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
 // stamping today's epoch onto an old brain would make stale work appear current.
 if (!isNull _group && {!local _group
     || {(_state getOrDefault ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]])
-        != (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {call _rejectFiniteBrain};
+        != (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {[] call _rejectFiniteBrain};
 if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["CBE_AIPass_Epoch", 0]]};
 if (_jobKey == "") then {_jobKey = _state getOrDefault ["jobKey", ""]};
 if (_jobKey != "") then {_state set ["jobKey", _jobKey]};

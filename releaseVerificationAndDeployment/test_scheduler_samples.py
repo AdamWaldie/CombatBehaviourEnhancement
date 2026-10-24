@@ -20,6 +20,33 @@ class SchedulerSampleTests(unittest.TestCase):
         for forbidden in ('sort ','spawn','remoteExec','nearEntities','allGroups'):
             self.assertNotIn(forbidden,recording)
         self.assertLess(s.index('"CBE_AIPass_CallbackSamples",_samples'),s.index('if (!isNil "_delay"'))
+    def test_invalid_delay_notifies_waiting_fsm_instead_of_silent_drop(self):
+        import math
+        tick=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text(encoding='utf-8')
+        queue=(ROOT/'addons/core/functions/cortexQueueJob.sqf').read_text(encoding='utf-8')
+        rejection=tick.split('private _rejectDelay={',1)[1].split('};\n{',1)[0]
+        for marker in ('["cancelled",true]','["cancelReason","INVALID_JOB_DELAY"]',
+                       '["pending",false]','["completed",true]'):
+            self.assertIn(marker,rejection)
+        self.assertIn('!finite _delay',tick)
+        self.assertIn('if (finite _rescheduledAt) then {',tick)
+        self.assertIn('!finite (time + (_delay max 0))',queue)
+        self.assertLess(queue.index('"INVALID_JOB_DELAY"'),queue.index('_state set ["ownerEpoch"'))
+        self.assertIn('[] call _rejectFiniteBrain',queue)
+        # The old scheduler discarded nil/non-number returns without notifying its brain.
+        old={'pending':True,'completed':False,'cancelled':False}
+        self.assertTrue(old['pending'])
+        for delay in (None,'invalid',float('nan'),float('inf')):
+            state=dict(old)
+            if not isinstance(delay,(int,float)) or not math.isfinite(delay):
+                state.update(pending=False,completed=True,cancelled=True)
+            self.assertFalse(state['pending'])
+            self.assertTrue(state['cancelled'])
+        for delay in (-1,0,0.25,5):
+            self.assertTrue(math.isfinite(delay))  # Ordinary terminal and retry contract retained.
+        for forbidden in ('doMove','doFollow','enableAttack','setUnitPos','remoteExec'):
+            self.assertNotIn(forbidden,rejection)
+
     def test_report_is_on_demand_and_does_not_claim_frame_budget_acceptance(self):
         s=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
         self.assertIn('"cortex-callback-samples"',s)
