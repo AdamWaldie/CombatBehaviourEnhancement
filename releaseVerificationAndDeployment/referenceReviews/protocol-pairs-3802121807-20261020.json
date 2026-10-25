@@ -267,5 +267,25 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "currentExactSourceRecovery20261025": {
+    "base": "d756b1cb",
+    "snapshot": ".qa/protocol-pairs-installed-20261025-d756b1cb",
+    "source": ".qa/protocol-pairs-installed-20261025-d756b1cb/fn_pairs.sqf",
+    "manifest": ".qa/protocol-pairs-installed-20261025-d756b1cb/manifest.json",
+    "pboSha256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff",
+    "memberSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "finding": "Older private extraction path is absent; installed PBO and newly preserved member exactly match the original recorded hashes. This is recovered exact source, not source loss or a new source version.",
+    "executionComparison": "Complete source re-read: consecutive living group pairs alternate doMove and partner position suppression, then immediately flip actorA flag; unslept allGroups outer loop. No arrival/unitReady/wave completion gate. CBE CombatPairElements places buddies in opposite roles; AdvanceStart selects buddyBounds through common operation, and FlankStep uses the existing finite next-bound/recovery/arrival executor. This retains selected synchronous source intent; independent waves remain optional.",
+    "rejectedHypothesis": "Current AdvanceStart armedFoot already filters individual YELLOW/RED plus FIREWEAPON and primary ammunition. Do not infer a missing individual fire-mode gate from partial snippets. No runtime change is justified by this comparison.",
+    "validation": "Installed PBO/private copy/member hashes verified against historical review. Current call paths inspected; no unchanged full build repeated. Existing verified candidate remains .qa/candidates/clear-exterior-resume-probe-d937923e, fingerprint b590cb199d3327754803b459c0190e7f151e8f50a578b80a1d88bdcd4985a4d2.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "currentSourceHashes": {
+      "addons/infantry/functions/combatPairs.sqf": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617",
+      "addons/infantry/functions/combatPairElements.sqf": "e4665ca374783a4f74747761735043f780d3b600384f24529a50609063b21b79",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+      "addons/infantry/functions/cortexFlankStep.sqf": "4bbcab2cf89ee2f3e86def506ae59a44fb91bc1fa39b3f96e4c148ee8dd5fb8d"
+    }
   }
 }

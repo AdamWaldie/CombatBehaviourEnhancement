@@ -86,6 +86,12 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentExactSource20261025": {
+        "snapshot": ".qa/protocol-pairs-installed-20261025-d756b1cb",
+        "memberSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+        "review": "protocol-pairs-3802121807-20261020.json",
+        "scope": "Exact original source privately recovered and current executed synchronous buddy-role path rechecked. No new runtime behaviour or parity/percentage acceptance."
       }
     },
     {
