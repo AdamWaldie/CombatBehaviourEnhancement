@@ -100,6 +100,19 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertEqual(retained,[('friend','west')])
         same_side=[('a','west'),('requester','west'),('b','west')]
         self.assertEqual([r[0] for r in same_side if r[1]=='west' and r[0]!='requester'],['a','b'])
+        # Occupied friendly groups are just as capable of crowding out a free
+        # fallback as hostiles. Keep expired and same-request reservations eligible.
+        busy=[('busy'+str(i),'other',120) for i in range(40)]
+        available=[('free',None,0),('expired','other',99),('ours','current',120)]
+        ranked=busy+available
+        self.assertEqual([x[0] for x in ranked[:32] if x[1] in (None,'current') or x[2]<=100],[])
+        admitted=[x for x in ranked if x[1] in (None,'current') or x[2]<=100][:32]
+        self.assertEqual([x[0] for x in admitted],['free','expired','ours'])
+        busy_filter=discovery.split('// A live role belonging to another request',1)[1]
+        gate=busy_filter.split('private _orderedGroups=[];',1)[0]
+        for receipt in ('CBE_Cortex_CombinedRole','in [7,8]','serverTime >=','== _token'):
+            self.assertIn(receipt,gate)
+        self.assertLess(discovery.index('// A live role belonging to another request'),discovery.index('private _candidateTransmitter='))
 
         self.assertIn('[_replacement,_token,_role,_target,+_opportunity]',ground)
 

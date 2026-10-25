@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Discovery rejects the requester and other sides before transmitter, crew and magazine
- * inspection, so ineligible groups cannot consume the bounded ground fallback pool.
+ * inspection. Live roles reserved by another request are also removed before ranking/truncation;
+ * same-token or expired roles retain their prior admission semantics. Other eligibility remains live at dispatch.
  * Converts a verified fresh contact into finite, independent combined-arms roles.
  * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
  * Delayed role expiry matches the complete dispatched snapshot before clearing reservation state.
@@ -96,6 +97,13 @@ private _candidateSeen=createHashMap;
 // The fallback pool is capped after ranking. Do not let hostile/requester assets
 // occupy those32 slots only to be rejected later, hiding valid friendly replacements.
 _candidateGroups=_candidateGroups select {_x != _requester && {side _x == side _requester}};
+// A live role belonging to another request cannot be dispatched now. Filter before
+// ranking/truncation so occupied friendly assets do not hide free replacements.
+// Dispatch still rechecks this same predicate against the then-current reservation.
+_candidateGroups=_candidateGroups select {
+    private _existingRole=_x getVariable ["CBE_Cortex_CombinedRole",[]];
+    !((count _existingRole) in [7,8]) || {serverTime >= (_existingRole select 5)} || {(_existingRole select 0) == _token}
+};
 private _orderedGroups=[];
 {
     if (!isNull _x) then {

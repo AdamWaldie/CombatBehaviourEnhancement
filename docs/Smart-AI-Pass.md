@@ -2882,3 +2882,8 @@ Naval foot-egress cleanup validates retained journal types, known movement phase
 ### Convoy reversal yield
 
 When a predecessor is observed reversing faster than0.5m/s, its follower retains the existing zero-speed safety cap and suspends fresh trail destinations and steering-path updates. A stopped-speed request alone does not stop native route planning. Pending command acknowledgement and handback continue through their existing receipt paths; the next eligible sample can resume trail selection after the predecessor stops reversing. No spacing thresholds, acceleration limits, route budgets or group membership change. This is an owner-local change in the existing convoy callback, with no new worker, scan or JIP action. Physical reversal/stop/restart, mixed tracked/wheeled flow, locality changes and performance remain unverified while audits are paused.
+
+
+### Combined-arms fallback availability
+
+A group with an unexpired role reserved by another combined-arms request is excluded before support ranking and the32-entry ground fallback limit. Same-request and expired reservations remain eligible. Dispatch still rechecks the current reservation, authority, communications and weapon suitability. This is a discovery snapshot: a group that becomes free later is not automatically added to that request, and no reservation is cancelled or extended. Other ineligible groups can still occupy the snapshot; discovery/ranking cost depends on local population. Actual support substitution and performance remain unverified while audits are paused.
