@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "b961daf5",
+  "scope": "Current group-locality to clearance-discovery/admission and actor-native metadata adoption path. Not all clearance writers, external-provider quiescence or physical handover acceptance.",
+  "sourceHashes": {
+    "addons/core/functions/cortexLocality.sqf": "0d9fae1f0ce61a81b5e8770e6f54b1b441b2fe8d30d9a407ce1d18d8d8fb8503",
+    "addons/core/functions/cortexDiscover.sqf": "4cd8bdb6cb646dcf77dcbd0d38a796b6dc9b89c42baad7060806c2ad54b64197",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "7128ce6ecad9a89e79087c8f5a09b68c58066e171bc4a41e31eeec624f55ae97",
+    "addons/infantry/functions/buildingLaneJournal.sqf": "ee2403666f257f976704c8b34d11751d03781584055a812eb5e37f1c7fbdc975",
+    "addons/infantry/functions/buildingActorMotion.sqf": "7b2387e1ec214c9f697005c40f8bc1139690c48609b31670578a0195c63dcf7b"
+  },
+  "verifiedPath": [
+    "CortexLocality cancels the previous operation, clears local actor ownership metadata/listeners, advances the machine-local CBE_AIPass_Epoch and clears ClearApplied. Group loss exits before gained-owner adoption.",
+    "CortexDiscover reads CBE_AIPass_ClearOrder from local replicated state. With no applied clear it directly calls CortexClearBuilding with resume=true, a copy of that order and the locally observed clear generation. No explicit request/replay/owner-ready gate exists in this inspected call path.",
+    "ClearBuilding now performs full snapshot-bound CHECK and commit equality, then establishes an operation, prepares lane/actor metadata, calls actor ADOPT and lane ADOPT, and starts the building worker. Individual actor ADOPT return values are not an aggregate owner-ready acknowledgement.",
+    "BuildingActorMotion ADOPT requires current actor/group ownership, operation, visit nonce/transform, native route and actual matching MOVE goal or STOP/settled HOLD. It only restores bookkeeping/settings evidence, not native movement. A public motion receipt alone is not an acknowledgement.",
+    "The clearing team concurrency is capped at eight in admission. Its eight-actor adoption loop is not a missing-tail bug for a twelve-person squad; other members have separate exterior/reserve roles."
+  ],
+  "transportFacts": {
+    "groupJournals": {
+      "CBE_AIPass_ClearOrder": "14-field durable order",
+      "CBE_Cortex_ClearVisitContext": "4-field episode/transform/deadline/nonce context",
+      "CBE_Cortex_ClearRoster": "4-field context/team/pairs/unavailable journal",
+      "CBE_Cortex_ClearLanes": "13-field coherent lane journal"
+    },
+    "actorJournal": "CBE_Cortex_ClearMotion: 5 fields, with optional owned-settings triple. Physical visits, exit/reserve and cleanup journals are separate and must be enumerated for phase-specific replay.",
+    "localEpochs": "CBE_AIPass_Epoch and ClearGeneration are advanced locally without a broadcast flag on the inspected path. A future server broker must not assume its own cached numeric epoch is the new owner epoch."
+  },
+  "requiredNextImplementation": [
+    "Enumerate all phase-specific group and actor journals and actual mutation callbacks before claiming complete quiescence; do not infer it from a finished main FSM.",
+    "Choose a coherent producer checkpoint and revision/nonce identity. An arbitrary server read of separately delivered variables is not an ordered snapshot. Avoid duplicating full node/route payloads every frame.",
+    "Use authenticated current groupOwner and request identity for finite request/replay; echo the new owner private epoch for its own validation rather than trusting a server-local epoch.",
+    "Preserve the original hard/stall deadlines, lane cursors, unavailable roster, retries and native request ages; no silent rollback or refreshed budget on replay.",
+    "Before tactical writes, reconcile every selected actor against its actual current locality/native order and exact episode receipt. Distinguish missing/delayed observations, superseded tasks and legitimate unissued entry states. An ignored ADOPT result cannot be treated as ready.",
+    "Only aggregate current-owner readiness after coherent metadata and required native ownership proof. Delivery or a pause flag is not native acknowledgement, and an acknowledgement is not physical travel.",
+    "Reuse finite existing discovery/service work; no permanent per-group network polling worker. Keep normal/actual-provider HC tests separate and wait for audit authorization."
+  ],
+  "validation": "Read-only current-source trace and JSON/hash capture. No runtime changes, new tests, full rebuild, percentage change or physical claim. Latest verified runtime candidate remains clear-lane-preflight-bound-2b2a355d, fingerprint d62134511277fdd7384bf5627efd660115a43130726790a1dbfc2ef28eb80555. Audits paused; whole production goal active/incomplete."
+}
