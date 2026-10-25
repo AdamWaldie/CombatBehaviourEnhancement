@@ -41,6 +41,6 @@
       "disposition": "Useful broad-phase intent, but a60s prop grid can be stale after Zeus movement and global allDead/mission-object refresh costs are population-dependent. Compare current CBE perception caches and active safety boundaries before adding any new spatial index. No replacement of live collision veto by stale cached absence."
     }
   ],
-  "unreviewed": "Five debug/performance/Eden functions fully reviewed in hbq-diagnostics-editor-semantics-20261025.json. XEH_preInit26CBA declarations and resolution helpers reviewed in hbq-settings-controller-policy-20261025.json. Config/Eden per-vehicle attribute registration and full controller branch reconciliation remain pending.29available source members is not full semantic review or implementation parity.",
+  "unreviewed": "Newly omitted helper/debug/performance/Eden/settings/config/metadata bodies now have targeted dated dispositions in hbq-complete-source-inventory, hbq-diagnostics-editor-semantics, hbq-settings-controller-policy and hbq-config-worker-lifecycle reviews. This does not complete full controller/worker branch reconciliation, permitted integration or physical parity.29available source members is an inventory count only.",
   "validation": "Engineering-only metadata/tool change. Exact extraction/hash reconciliation passed; index write/check and deliberate helper-hash mismatch refusal checked. No production change or redundant full build; latest runtime candidate remains combined-discovery-side-6b97d9ec. Physical/performance UNRUN, audits PAUSED."
 }

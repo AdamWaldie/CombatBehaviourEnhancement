@@ -267,7 +267,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-complete-source-inventory-20261025.json",
-      "sha256": "3ec95fc535e6092ef6027f0438de9288a109ac5c8d9f533b142c8460f8c16950",
+      "sha256": "808ad1b39cc06dfa68a2d3c59499d507305a551dec241ead9d44c1bc822c3e33",
       "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
       "sourceFileMentions": [
         "BIS_AddonInfo.hpp",
@@ -280,6 +280,20 @@
         "functions/fn_playersNear.sqf",
         "functions/fn_precision.sqf",
         "XEH_preInit.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-config-worker-lifecycle-20261025.json",
+      "sha256": "e9ba71fea7480110027848914620439f07f0850813003319bc543c97233f7764",
+      "scope": "Full364-line config, addon metadata, startup/postinit bodies and selected delayed crew-writer/cancellation paths. Complete registration/attribute review; not whole-HBQ execution parity.",
+      "sourceFileMentions": [
+        "BIS_AddonInfo.hpp",
+        "config.cpp",
+        "functions/fn_crewHold.sqf",
+        "functions/fn_initVehicle.sqf",
+        "functions/fn_start.sqf",
+        "XEH_postInit.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
