@@ -6,6 +6,8 @@
  * membership, posture, skill, inventory or physics command is issued.
  * Repeat/JIP: Original token, serial and deadlines fence callbacks. STOPPING and RETURNING
  * are observed; unknown retirement retains its public reservation and never grants handover.
+ * A native return may already be WAIT/idle at observation: accept only the matching
+ * destination plus measured rest within2m, never idle alone or an elapsed timer.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1;
  * 3 machine-local executor serial NUMBER,-1, fences a replaced FSM on the same owner.
  * Return: NUMBER next delay, or -1 when this worker is terminal. READY is not a firing event.
@@ -217,9 +219,12 @@ if (_phase == "RETURNING") exitWith {
     private _ack=_returns findIf {
         _x params ["_actor","_point"];
         private _native=(expectedDestination _actor) param [0,[],[[]]];
-        currentCommand _actor != "MOVE" || {count _native != 3}
+        private _command=currentCommand _actor;
+        count _native != 3
             || {_native findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
             || {_native vectorDistance _point > 0.25}
+            || {!(_command == "MOVE" || {_command in ["","WAIT"] && {_rest}
+                && {(getPosATL _battery) vectorDistance _point <= 2}})}
     } < 0;
     if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
     if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};

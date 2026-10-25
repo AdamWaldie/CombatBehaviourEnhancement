@@ -99,6 +99,24 @@ class ArtilleryFireSessions(unittest.TestCase):
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
         self.assertIn('(_executor select 4) != _executorSerial',worker)
+        returning=worker.split('if (_phase == "RETURNING") exitWith {',1)[1]
+        self.assertIn('_command in ["","WAIT"] && {_rest}',returning)
+        self.assertIn('(getPosATL _battery) vectorDistance _point <= 2',returning)
+        self.assertIn('_native vectorDistance _point > 0.25',returning)
+        self.assertNotIn('doMove',returning)
+        # A short native return can complete before the first callback. Idle alone,
+        # a replaced destination, motion or a remote endpoint cannot prove return.
+        def returned(command, destination_error, endpoint_distance, at_rest):
+            return destination_error<=0.25 and (command=='MOVE' or
+                command in ('','WAIT') and at_rest and endpoint_distance<=2)
+        self.assertTrue(returned('MOVE',0,100,False))
+        self.assertTrue(returned('WAIT',0,1,True))
+        self.assertTrue(returned('',0.25,2,True))
+        self.assertFalse(returned('WAIT',0,2.01,True))
+        self.assertFalse(returned('WAIT',0,1,False))
+        self.assertFalse(returned('WAIT',0.26,1,True))
+        self.assertFalse(returned('STOP',0,1,True))
+
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertNotIn('doMove',retire)

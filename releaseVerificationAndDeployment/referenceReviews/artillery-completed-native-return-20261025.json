@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "428a70cb",
+  "scope": "Selected-crew artillery RETURNING observer only; not casualty recovery, complete physical handback or whole source parity.",
+  "failure": "RETURNING required currentCommand MOVE even when a short restored native destination had already completed and settled to WAIT/idle before the callback. The eventual unknown result could leave the shared group reserved despite a matching completed return.",
+  "implementation": "Retain exact native destination match within0.25m and all current original crew/owner/epoch/FSM/route/external-control checks. Accept MOVE as before; additionally accept WAIT/idle only with existing measured linear/angular rest and actual gun ATL distance<=2m to the retained original return point. No new command, timeout, worker, role, group split or waypoint. Deadline timeout still wins before observation. This is completion evidence only for that original point, not proof of travel when MOVE is merely acknowledged.",
+  "sourceIntent": "Protocol3801354927 selected native driver/commander relocation intent. CBE extends its finite owner-local retirement lifecycle rather than copying random displacement/open waits. No additional upstream code read or copied this checkpoint.",
+  "files": {
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "c86de9a107ec9cfe8efa7dabe2313bb6c81f562981e8f37c44b1060c457a7f10"
+  },
+  "validation": {
+    "fullLog": ".qa/artillery-completed-return-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/artillery-completed-return-independent-20261025.log",
+    "candidate": ".qa/candidates/artillery-completed-return-428a70cb",
+    "fingerprint": "054ceaddc778743e658e74322fb290d05af0d81a7a619318e5ed95ef645878c7",
+    "testScope": "Existing artillery positioning regression extended with analytic native MOVE/completed WAIT/idle, mismatched point, outside radius, moving hull and STOP cases plus production wiring. No added test count. Not SQF runtime or physical acceptance."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; no release promotion.",
+    "Driver/operator casualty, unknown native state, idle/formation continuation and peer-vehicle concurrent control remain open; no receipt deletion or timer grants quiescence.",
+    "Physical short/completed/far return, newer Zeus/mission task, repeated operation, normal/HC/JIP and5percent median/10percent p95 remain UNRUN. Audits PAUSED."
+  ]
+}
