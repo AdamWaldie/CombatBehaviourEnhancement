@@ -131,15 +131,6 @@ private _observations=[_observedDriver,_observedOperator] call CBE_fnc_VehicleCr
 if (count _observations != 4) exitWith {
     ["NATIVE_OR_CONTROL_HANDOVER_UNRESOLVED",_phase == "ISSUE"] call _finish
 };
-private _goal=+(_work get "goal");
-private _goalsMatch={
-    params ["_point"];
-    [1,3] findIf {
-        private _position=(_observations select _x) param [0,[],[[]]];
-        count _position != 3 || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
-            || {_position vectorDistance _point > 0.25}
-    } < 0
-};
 private _linearMotion=vectorMagnitude velocity _battery;
 private _angularMotion=vectorMagnitude angularVelocity _battery;
 private _rest=_linearMotion < 0.278 && {_angularMotion < 0.01};
@@ -174,112 +165,14 @@ private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_A
 if (!_sourceCurrent && {!(_phase in ["STOPPING","RETURNING"])}) then {
     _work set ["release",true];
 };
-// Refuse changed native actor orders. An issued MOVE may naturally settle into WAIT/idle.
-if (_phase != "ISSUE" && {!([_goal] call _goalsMatch)}
-    && {!(_phase in ["REQUESTED","STOPPING","RETURNING"])}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
-if (_phase == "REQUESTED" && {([_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
-    call CBE_fnc_VehicleCrewDestinationState) == "LOST"}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
-// A delayed callback cannot mint or issue a retirement stop after the original window.
-// Refuse before changing the goal/before receipt or writing any native command.
-if (_work getOrDefault ["release",false] && {_phase != "ISSUE"}
-    && {!(_phase in ["STOPPING","RETURNING"])}
-    && {serverTime >= (_work getOrDefault ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)])}) exitWith {
-    ["RETIREMENT_TIMEOUT"] call _finish
+// Domain policy remains here: the native kernel neither invents artillery sessions
+// nor publishes HOLD/retirement authority. The owning FSM runs this call unscheduled.
+private _decision=[_battery,_work,"CBE_ArtilleryCrew_Work",_seats,_activeSeats,
+    _observations,_arrivalSample,_sourceCurrent,_rest] call CBE_fnc_VehicleCrewMoveNativePhase;
+_decision params ["_delay","_reason","_retired",["_publish",false]];
+if (_reason != "") exitWith {[_reason,_retired] call _finish};
+if (_phase == "MOVING" && {(_work get "phase") == "HOLD"} && {_scoot}) then {
+    _work set ["scootArrivedAt",serverTime];_work set ["release",true];
 };
-if (_work getOrDefault ["release",false] && {!(_phase in ["STOPPING","RETURNING"])}) then {
-    if (_phase == "ISSUE") exitWith {};
-    private _hold=getPosATL _battery;
-    _work set ["goal",+_hold];_goal=+_hold;
-    _work set ["before",_observations];
-    // A recovered worker inherits the first retirement window; it cannot mint another.
-    if !("cleanupUntil" in _work) then {
-        _work set ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)];
-    };
-    _work set ["replyUntil",serverTime+2];
-    {_x doMove _hold} forEach _activeSeats;
-    _work set ["phase","STOPPING"];_phase="STOPPING";
-    _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-};
-if (_phase == "ISSUE") exitWith {
-    if (!_sourceCurrent || {!canMove _battery} || {waterDamaged _battery}
-        || {_observations isNotEqualTo (_work get "baseline")}) exitWith {["ADMISSION_CHANGED",true] call _finish};
-    _work set ["before",_observations];_work set ["replyUntil",serverTime+2];
-    {_x doMove _goal} forEach _activeSeats;
-    _work set ["phase","REQUESTED"];
-    _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-    0.25
-};
-if (_phase == "REQUESTED") exitWith {
-    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
-        call CBE_fnc_VehicleCrewDestinationState;
-    if (_ack == "OWNED" && {serverTime <= (_work get "replyUntil")}) then {_work set ["phase","MOVING"];_battery setVariable ["CBE_ArtilleryCrew_Work",_work,true]};
-    if (_ack == "LOST") exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
-    if (_ack == "EXPIRED" || {serverTime > (_work get "replyUntil")}) then {_work set ["release",true]};
-    0.25
-};
-if (_phase == "MOVING") exitWith {
-    private _position=getPosASL _battery;
-    if (_position vectorDistance (_work get "progressPosition") >= 3) then {
-        _work set ["progressPosition",_position];_work set ["progressAt",serverTime];
-    };
-    if (_battery distance2D _goal <= 25 && {abs ((getPosATL _battery select 2)-(_goal select 2)) <= 3}
-        && {_rest}) then {
-        _work set ["phase","HOLD"];_work set ["holdObservations",_observations];
-        if (_scoot) then {
-            _work set ["scootArrivedAt",serverTime];_work set ["release",true];
-        };
-        _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-    } else {
-        if (serverTime >= (_work get "moveUntil") || {serverTime-(_work get "progressAt") >= 30}
-            || {!canMove _battery} || {waterDamaged _battery}) then {_work set ["release",true]};
-    };
-    1
-};
-if (_phase == "HOLD") exitWith {
-    if (!_rest || {!([_goal] call _goalsMatch)}) then {_work set ["release",true]};
-    2
-};
-if (_phase in ["STOPPING","RETURNING"] && {serverTime >= (_work get "cleanupUntil")}) exitWith {
-    ["RETIREMENT_TIMEOUT"] call _finish
-};
-if (_phase == "STOPPING") exitWith {
-    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
-        call CBE_fnc_VehicleCrewDestinationState;
-    if (_ack == "LOST" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_REPLACED"] call _finish};
-    if (_ack == "EXPIRED" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_UNKNOWN"] call _finish};
-    if (_rest && {[_goal] call _goalsMatch}
-        && {_activeSeats findIf {!(currentCommand _x in ["","WAIT"])} < 0}) then {
-        private _baseline=_work get "baseline";
-        private _returns=[];
-        {
-            private _index=_forEachIndex*2;
-            private _point=(_baseline select (_index+1)) param [0,[],[[]]];
-            if (!isNull _x && {alive _x} && {_x in _activeSeats} && {(_baseline select _index) == "MOVE"}) then {
-                _x doMove _point;_returns pushBack [_x,+_point];
-            };
-        } forEach (_seats arrayIntersect _seats);
-        _work set ["returns",_returns];_work set ["replyUntil",serverTime+2];
-        _work set ["phase","RETURNING"];
-        _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-    };
-    0.25
-};
-if (_phase == "RETURNING") exitWith {
-    private _returns=_work get "returns";
-    private _ack=_returns findIf {
-        _x params ["_actor","_point"];
-        if (isNull _actor || {!alive _actor}) exitWith {false};
-        private _native=(expectedDestination _actor) param [0,[],[[]]];
-        private _command=currentCommand _actor;
-        count _native != 3
-            || {_native findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
-            || {_native vectorDistance _point > 0.25}
-            || {!(_command == "MOVE" || {_command in ["","WAIT"] && {_rest}
-                && {(_arrivalSample select 0) vectorDistance _point <= 2}
-                && {abs (((_arrivalSample select 0) select 2)-(_point select 2)) <= 0.75}})}
-    } < 0;
-    if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
-    if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};
-    0.25
-};
-["INVALID_PHASE"] call _finish
+if (_publish) then {_battery setVariable ["CBE_ArtilleryCrew_Work",_work,true]};
+_delay

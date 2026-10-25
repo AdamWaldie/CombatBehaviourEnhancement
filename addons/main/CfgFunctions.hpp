@@ -113,6 +113,7 @@ class CfgFunctions {
             class DrivingGateCap {file = "\z\cbe\addons\vehicles\functions\drivingGateCap.sqf";};
             class DrivingFollowingCap {file = "\z\cbe\addons\vehicles\functions\drivingFollowingCap.sqf";};
             class VehicleCrewNativeObservation {file = "\z\cbe\addons\vehicles\functions\vehicleCrewNativeObservation.sqf";};
+            class VehicleCrewMoveNativePhase {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveNativePhase.sqf";};
             class DrivingRearClear {file = "\z\cbe\addons\vehicles\functions\drivingRearClear.sqf";};
             class DrivingRearPlan {file = "\z\cbe\addons\vehicles\functions\drivingRearPlan.sqf";};
             class DrivingDamageReceipt {file = "\z\cbe\addons\vehicles\functions\drivingDamageReceipt.sqf";};

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "775d54d3",
+  "scope": "Executed role-neutral native movement phase extraction, currently used by selected artillery FSM",
+  "implementation": [
+    "Extract ISSUE, REQUESTED, MOVING, HOLD, STOPPING and RETURNING command/observation phases into VehicleCrewMoveNativePhase. Explicit current journal/key, original/active crew, native observation, arrival sample, source validity and rest arguments replace implicit caller scope.",
+    "Kernel returns delay, terminal reason/retirement result and publication flag. Artillery wrapper retains current worker/session/generation/control/casualty policy, finalizer and shoot-and-scoot arrival handling.",
+    "Current journal, group/platform locality, owner epoch and one/two active original actors are validated at kernel entry. No new admission API, replacement crew, worker/FSM, lease renewal or remote executor.",
+    "Five original transition-publication sites become caller-consumed publication flags. Kernel has no setVariable; wrapper publishes only when requested by those transitions. No extra HOLD/every-callback broadcasts."
+  ],
+  "validation": {
+    "focused": "13 existing artillery cases passed; existing source contracts follow the called kernel, no new test count.",
+    "full": "1497 tests,424 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/native-phase-775d54d3",
+    "fingerprint": "f106874012389b4563fd88060c40ef1bcf6e68f2d7a12f10eadec29ccc750ac0",
+    "mechanicalComparison": ".qa/handovers/native-phase-extraction-comparison.json; phase body matches prior source after declared publication and artillery arrival policy extraction"
+  },
+  "limits": [
+    "Not a new armoured selected-platform movement admission/executor, cover relocation or post-shot trigger. Native cancellation reference/ownership exclusion, shutdown/locality/discovery wiring and role-neutral retirement/start extraction remain required.",
+    "Physical phase execution, artillery behaviour after refactor, owner/casualty/Zeus/native-order handling and5%median/10%p95 performance remain unverified; audits paused.",
+    "Additional entry validation reads the existing journal and at most two actors. No measured runtime-cost claim."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "7ab58d6a4c90b29b323f50cc61aac6a5bde90dfe9ea1f074b834a8a9c440494b",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "11c8d737a1b7f490820cebfc186bcbeba9b3cfaf3325f755554a9b1a9dcde0f5",
+    "addons/main/CfgFunctions.hpp": "3e664abc90b275b4cd090da108f7dcfeff829655ebe5b62fad711f4ba5c49c9e",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "f8a8a64a4417072108e6ede07e9ed0272b0be051e95be40c2eb387fc8cf505d7",
+    "releaseVerificationAndDeployment/cortexQA/coverage.json": "1c7429ef7e0795165c95b3f4376f9f465bb50f15a03dc8f5264a70e2cb8bf793"
+  }
+}

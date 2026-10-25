@@ -113,6 +113,17 @@ class ArtilleryFireSessions(unittest.TestCase):
         for check in ('expectedDestination','CBE_fnc_CortexActorFireTaskAvailable','completedFSM'):
             self.assertIn(check,local_hold)
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
+        kernel=(ROOT/'addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf').read_text(encoding='utf-8')
+        self.assertIn('call CBE_fnc_VehicleCrewMoveNativePhase',worker)
+        self.assertNotIn('doMove',worker)
+        self.assertNotIn('CBE_Artillery',kernel)
+        self.assertNotIn('setVariable',kernel)
+        self.assertIn('_battery getVariable [_journalKey,createHashMap]',kernel)
+        self.assertIn('_decision params ["_delay","_reason","_retired",["_publish",false]]',worker)
+        self.assertIn('if (_publish) then {_battery setVariable',worker)
+        self.assertIn('[_nativePhaseResult,"",false,_publish]',kernel)
+        worker+='\n'+kernel
+
         fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
         self.assertIn('(_executor select 4) != _executorSerial',worker)
         casualty=worker.split('// Losing an original operating actor',1)[1].split('private _control=',1)[0]
