@@ -217,7 +217,7 @@
       "selectedMovementFoundation20261025": {
         "review": "armour-selected-standoff-20261025.json",
         "status": "SELECTED_STANDOFF_NATIVE_FSM_INTEGRATED_PHYSICAL_UNVERIFIED",
-        "scope": "Shared observation/native phases/finite retirement are used by selected-platform standoff with original-crew native orders and stop/locality/discovery/ownership integration. Idle mixed groups now admit selected crew without splitting or group waypoints. Existing operations are preserved; unresolved cleanup availability and broader cover/post-shot behaviour remain unfinished.",
+        "scope": "Selected-platform standoff uses shared native observation/phases/finite retirement and original-crew orders. Idle mixed groups preserve membership and waypoints. Actual main-cannon shot receipts can now request one short screened move through that same FSM. Broader authority handovers, platform coverage and physical acceptance remain incomplete.",
         "nativeAcknowledgementRepair": {
           "review": "selected-settled-native-ack-20261025.json",
           "scope": "Existing settled WAIT/idle proof in artillery/driving remains; current selected-standoff integration is tracked by armour-selected-standoff-20261025.json, not inferred from this earlier repair.",
@@ -244,6 +244,11 @@
         "tacticalArrival": {
           "review": "tactical-arrival-radius-20261025.json",
           "scope": "Standoff5m rested arrival, legacy artillery25m area retained; invalid policy retires through existing native lifecycle.",
+          "physicalAcceptance": false
+        },
+        "postShotCover": {
+          "review": "armour-post-shot-cover-20261025.json",
+          "status": "ACTUAL_CANNON_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
           "physicalAcceptance": false
         }
       }

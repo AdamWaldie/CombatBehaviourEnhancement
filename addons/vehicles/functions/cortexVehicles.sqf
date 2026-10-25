@@ -8,7 +8,7 @@
  * Reactive mortar reports carry current native believed geometry and its server-time observation.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
- * Refused standoff waypoint admission releases its exact attempted generation and leases;
+ * Refused standoff native admission releases its exact attempted generation and leases;
  * no moving state is published, and the existing cooldown defers another attempt for eight seconds.
  * Horn exclusion uses config inheritance/simulation, never localised display text.
  * Danger-derived hostile actions retain the original identity expiry/witness; close-range
@@ -911,22 +911,55 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
     // Gunner priorities and standoff (CBE_AIPass_VehicleGunnery_Enable): anti-tank infantry
     // first, then armour, then everything else; armour keeps its distance from known AT teams.
     // Reports older than3s use fixed-position bullet suppression within the existing15s window.
+    // A real main-cannon Fired receipt may request one short screened move while idle;
+    // its original20s deadline and current mission/native order authority remain mandatory.
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
         private _standoffSeats=[driver _vehicle,effectiveCommander _vehicle];
         private _standoff = missionNamespace getVariable ["CBE_AIPass_Vehicles_StandoffDistance", 250];
+        private _postShot=[];private _postShotIndex=-1;
+        if ((_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"})
+            && {!_movementOwned} && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+            && {_state getOrDefault ["phase",""] == "CONTACT"}
+            && {_standoffSeats findIf {isNull _x || {!(currentCommand _x in ["","WAIT"])}} < 0}
+            && {!([_state,"armourCover"] call CBE_fnc_CortexCooldown)}) then {
+            _postShot=[_vehicle,"TAKE"] call CBE_fnc_VehicleArmourShot;
+            if (count _postShot == 4) then {
+                [_state,"armourCover",20] call CBE_fnc_CortexCooldown;
+                _postShotIndex=_enemies findIf {(_x select 0) == (_postShot select 0) && {(_x select 2) <= 3}};
+            };
+        };
         private _atIndex = _enemies findIf {
             (_x select 0) isKindOf "CAManBase" && {(_x select 2) <= 30} && {(_vehicle distance2D (_x select 1)) < _standoff * 0.6}
             && {"AT" in ([_x select 0,true] call CBE_fnc_CortexCapabilities)}
         };
-        if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
+        private _postShotMove=_atIndex < 0 && {_postShotIndex >= 0};
+        if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0 || {_postShotMove}}
             && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}
             && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
-            && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
-            private _atPos = (_enemies select _atIndex) select 1;
-            private _atThreat=(_enemies select _atIndex) select 0;
-            private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
-                call _selectVehicleEscape;
+            && {_postShotMove || {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}}) then {
+            private _threatIndex=[_atIndex,_postShotIndex] select _postShotMove;
+            private _atPos = (_enemies select _threatIndex) select 1;
+            private _atThreat=(_enemies select _threatIndex) select 0;
+            private _height=0;private _eye=[];private _alreadyScreened=false;
+            if (_postShotMove) then {
+                _height=(((boundingBoxReal _vehicle) select 1) select 2) max 1 min 4;
+                _eye=(ATLToASL _atPos) vectorAdd [0,0,1.6];
+                _alreadyScreened=[_eye,(getPosASL _vehicle) vectorAdd [0,0,_height],_vehicle,"COVER",_atThreat]
+                    call CBE_fnc_CortexCoverScreened;
+            };
+            // Do not plan another avenue when the current observation is already screened.
+            private _away=[];
+            if (!_alreadyScreened) then {
+                _away=[_vehicle,_atPos,_atThreat,
+                    if (_postShotMove) then {25} else {(_standoff - (_vehicle distance2D _atPos)) max 60}]
+                    call _selectVehicleEscape;
+            };
+            if (_postShotMove && {_away isNotEqualTo []}) then {
+                // Screening is a point observation, not whole-hull cover or arrival proof.
+                if (!([_eye,(ATLToASL _away) vectorAdd [0,0,_height],_vehicle,"COVER",_atThreat]
+                    call CBE_fnc_CortexCoverScreened)) then {_away=[]};
+            };
             // A stationary support gun may need distance from an AT threat, but its
             // original fire assignment must be retired before routine hull movement.
             // Let the authenticated server replace that slot without refreshing its report.
@@ -941,7 +974,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             };
             // A local synchronous reply also waits for the next callback. The captured
             // role cannot be borrowed as permission to move after requesting its release.
-            private _standoffUntil=serverTime+60;
+            private _standoffUntil=if (_postShotMove) then {_postShot select 2} else {serverTime+60};
             isNil {
             if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
                 && {[] call _mayIssueVehicle}
@@ -955,15 +988,16 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     private _generation=_operation get "generation";
                     // Start captures exact native baseline and rechecks original seats
                     // after synchronous predecessor cleanup. No group waypoint is inserted.
-                    private _accepted=[_group,_vehicle,_away,_standoffSeats,_generation,_standoffUntil]
+                    private _accepted=[_group,_vehicle,_away,_standoffSeats,_generation,_standoffUntil,
+                        if (_postShotMove) then {[(ATLToASL _atPos) vectorAdd [0,0,1.6],_atThreat,gunner _vehicle]} else {[]}]
                         call CBE_fnc_VehicleTacticalMoveStart;
                     if (!_accepted) then {
                         [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
                         [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
-                        [_state,"standoff",8] call CBE_fnc_CortexCooldown;
+                        if (!_postShotMove) then {[_state,"standoff",8] call CBE_fnc_CortexCooldown};
                     } else {
                         _movementOwned=true;_tacticalCommandActors=+_standoffSeats;
-                        [_state,"standoff",60] call CBE_fnc_CortexCooldown;
+                        if (!_postShotMove) then {[_state,"standoff",60] call CBE_fnc_CortexCooldown};
                     };
                 };
             };
@@ -1138,6 +1172,9 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                     // Exact native turret acknowledgement, not selection request, grants fire.
                     if (_muzzleSelected) then {
                         if (_suppressionPoint isEqualTo []) then {
+                            if (!([_state,"armourCover"] call CBE_fnc_CortexCooldown)) then {
+                                [_vehicle,"ARM",[_target,+_targetLanePoint,_fireObservation]] call CBE_fnc_VehicleArmourShot;
+                            };
                             if (assignedTarget _gunner != _target) then {_gunner doTarget _target};
                             _gunner doFire _target;
                         } else {

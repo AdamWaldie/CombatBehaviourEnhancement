@@ -2,7 +2,7 @@
 
 Continue the full production-ready CBE goal. Implement and physically validate infantry, CQB, coordination, combined arms, driving, convoys, aircraft and support through owner-local danger and operation FSMs. Required provider handovers must work. Preserve Zeus and multiplayer authority, and verify the 5% median / 10% p95 performance budget. The goal is active and incomplete.
 
-Latest live usage check on25 October showed14% used /86% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
+Latest live usage check on25 October showed22% used /78% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
 
 ## Repository and checkpoint
 
@@ -227,3 +227,9 @@ Shared CortexActorFireTaskAvailable now refuses active SUPPRESS before new CBE s
 ## Selected tactical arrival precision, 25 October 2026
 
 VehicleTacticalMoveStart records arrivalRadius5; shared VehicleCrewMoveNativePhase MOVING uses typed1..25m policy with25m default for artillery. Rest/vertical/native target ownership remain.6..25m short is no longer tactical arrival/HOLD; stall/deadline and handback remain original. Invalid policy requests existing retirement, not success or abandoned movement. No new controller/query/clock. Review `tactical-arrival-radius-20261025.json`; Protocol armoured foundation updated. Full build and independent verify passed; candidate `.qa/candidates/tactical-arrival-radius-d8c8422e`, fingerprint `415d2a06291b158dde1f1be1a729e2d97d2034c3e9daec97c76bdd44d9da199a`. Logs `.qa/handovers/tactical-arrival-radius-{build,independent}.log`. Physical precision/performance unverified; audits paused; full goal active/incomplete. Provider marker expiry is still not provider quiescence; no new marker-expiry handover added.
+
+## Actual cannon shot to screened reposition, 25 October
+
+Current source integrates `VehicleArmourShot` with routine gunnery and the existing selected-platform tactical FSM. It observes exact native Fired/projectile parents rather than counting fire requests. One original20s episode can request a25m screened move; AT standoff has priority. Cheap nonmatching Fired checks precede authority reads, nonarmour callers skip polling, and already screened hulls skip avenue planning. Screening remains a point observation. No new controller, group split, waypoint, setting, physical recovery shortcut or audit launch.
+
+Review/register: `releaseVerificationAndDeployment/referenceReviews/armour-post-shot-cover-20261025.json` and armoured3822504009 selectedMovementFoundation20261025.postShotCover in the Protocol programme. Build3 and independent verification passed,1497 existing cases; no new case count. Preserved candidate `.qa/candidates/armour-post-shot-4d5940d2`, fingerprint `e964f9ca55057d72cb42bcbcb441cee18f94cafe658d3c2ba7580a9c20070dcf`. Build1 exposed an existing assertion requiring unconditional AT60s; updated to verify original post-shot deadline/unchanged AT60s. Build2 passed; build3 covers the final filtering/planning cost changes. Physical movement, repeated engagements, two-seat admission limits, casualty/controller handover and measured performance remain unverified. Audits stay paused; continue other implementation without claiming full Protocol/LAMBS parity.

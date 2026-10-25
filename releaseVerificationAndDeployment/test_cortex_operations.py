@@ -7126,7 +7126,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["INFANTRY_WITHDRAW","VEHICLE_WITHDRAW"] select',tick)
         vehicles=source('cortexVehicles')
         self.assertIn('[_group,"VEHICLE_WITHDRAW",true,serverTime+120]',vehicles)
-        self.assertIn('private _standoffUntil=serverTime+60',vehicles)
+        self.assertIn('private _standoffUntil=if (_postShotMove) then {_postShot select 2} else {serverTime+60}',vehicles)
         self.assertIn('[_group,"VEHICLE_STANDOFF",true,_standoffUntil]',vehicles)
         combined=source('cortexCombinedArmsLocal')
         combined_end=source('cortexCombinedGroundStep')
@@ -8196,10 +8196,29 @@ class CortexOperations(unittest.TestCase):
         retire=source('vehicleTacticalMoveRetire')
         standoff=vehicles.split('private _standoffSeats=',1)[1].split('private _gunner =',1)[0]
         self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
+        shot=source('vehicleArmourShot')
+        for proof in ('addEventHandler ["Fired"','_thisEventHandler','getShotParents',
+                      '(_event select 7) != _gunner','(_event select 2) != (_state get "muzzle")',
+                      '(_event select 5) != (_state get "magazine")','["shotAt",serverTime]',
+                      'serverTime+20','EXPIRE'):
+            self.assertIn(proof,shot)
+        self.assertNotIn('doMove',shot.split('params [[',1)[1])
+        self.assertNotIn('doFire',shot.split('params [[',1)[1])
+        self.assertIn('((_state get "route") param [1,-2,[0]]) == -1',shot)
+        self.assertIn('waypointType [_group,_index] in ["HOLD","SENTRY"]',shot)
+        self.assertIn('"shotshell"',shot)
+        self.assertIn('call CBE_fnc_VehicleArmourShot',vehicles)
+        self.assertIn('_postShot select 2',standoff)
+        self.assertIn('call CBE_fnc_CortexCoverScreened',standoff)
+        self.assertIn('_postShotIndex',standoff)
+        self.assertIn('"coverContext"',start)
+        self.assertIn('call CBE_fnc_CortexCoverScreened',step)
+        self.assertLess(step.index('private _coverContext='),step.index('if (!_sourceCurrent &&'))
+
         self.assertNotIn('CortexGroupMove',standoff)
         self.assertIn('_standoffSeats arrayIntersect _standoffSeats',standoff)
         self.assertNotIn('(units _group) findIf {alive _x && {vehicle _x == _x}}',standoff)
-        self.assertEqual(standoff.count('count (_group getVariable ["CBE_Operation",createHashMap]) == 0'),2)
+        self.assertEqual(standoff.count('count (_group getVariable ["CBE_Operation",createHashMap]) == 0'),3)
         operation_start=source('operationStart')
         crew_anchor=operation_start.split('// Selected-platform standoff',1)[1].split('private _dangerPosture=',1)[0]
         self.assertIn('toUpperANSI _intent == "VEHICLE_STANDOFF"',crew_anchor)

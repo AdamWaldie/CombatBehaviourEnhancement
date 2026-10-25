@@ -9,20 +9,28 @@
  * before ISSUE retires without native commands. New owners may adopt retirement only.
  * Arguments: group GROUP grpNull; platform OBJECT objNull; goal ARRAY of3 finite NUMBER,[];
  * original driver/commander ARRAY of2 OBJECT,[]; operation generation NUMBER,-1;
- * original server deadline NUMBER,-1, at most60 seconds ahead.
+ * original server deadline NUMBER,-1, at most60 seconds ahead; optional cover context
+ * ARRAY [] or [original threat eye ASL ARRAY3, target OBJECT, original main gunner OBJECT].
+ * Cover context is rechecked at physical arrival/HOLD; it grants no hit or cover immunity.
  * Return: BOOL native worker admitted, never acknowledgement or physical arrival.
  * Current callers: CortexVehicles standoff after OperationStart and movement lease acquisition.
  * Example: [_group,_apc,_point,[driver _apc,effectiveCommander _apc],_generation,_until]
  *     call CBE_fnc_VehicleTacticalMoveStart;
  */
 params [["_group",grpNull,[grpNull]],["_battery",objNull,[objNull]],
-    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]]];
+    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]],["_coverContext",[],[[]]]];
 if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
     || {isNull _battery} || {!local _battery} || {count _spot != 3}
     || {_spot findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {count _seats != 2} || {_seats findIf {!(_x isEqualType objNull)} >= 0}
     || {!finite _generation} || {_generation < 0} || {_generation != floor _generation}
-    || {!finite _until} || {_until <= serverTime} || {_until > serverTime+60}) exitWith {false};
+    || {!finite _until} || {_until <= serverTime} || {_until > serverTime+60}
+    || {_coverContext isNotEqualTo [] && {count _coverContext != 3
+        || {!((_coverContext select 0) isEqualType [])} || {count (_coverContext select 0) != 3}
+        || {(_coverContext select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+        || {!((_coverContext select 1) isEqualType objNull)} || {isNull (_coverContext select 1)}
+        || {!((_coverContext select 2) isEqualType objNull)} || {(_coverContext select 2) != gunner _battery}
+    }}) exitWith {false};
 private _started=false;
 isNil {
     _started=call {
@@ -57,6 +65,8 @@ isNil {
             ["kind","STANDOFF"],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
+            ["coverContext",if (_coverContext isEqualTo []) then {[]} else {
+                [+(_coverContext select 0),_coverContext select 1,_coverContext select 2]}],
             ["goal",+_spot],["spot",+_spot],["arrivalRadius",5],["phase","ISSUE"],["moveUntil",_until],
             ["holdUntil",_until],["localLease",_lease],["progressPosition",getPosASL _battery],
             ["progressAt",serverTime],["release",false],["arrived",false]];

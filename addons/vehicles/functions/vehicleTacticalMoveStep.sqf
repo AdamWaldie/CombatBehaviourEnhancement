@@ -142,6 +142,38 @@ private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_A
     && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _coverContext=_work getOrDefault ["coverContext",[]];
+if (_sourceCurrent && {_coverContext isNotEqualTo []}) then {
+    _sourceCurrent=_coverContext isEqualType [] && {count _coverContext == 3}
+        && {(_coverContext select 0) isEqualType []} && {count (_coverContext select 0) == 3}
+        && {(_coverContext select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_coverContext select 1) isEqualType objNull} && {!isNull (_coverContext select 1)}
+        && {alive (_coverContext select 1)} && {!captive (_coverContext select 1)}
+        && {(side _group) getFriend (side (_coverContext select 1)) < 0.6}
+        && {(_coverContext select 2) isEqualType objNull} && {!isNull (_coverContext select 2)}
+        && {local (_coverContext select 2)} && {!isPlayer (_coverContext select 2)}
+        && {isNull remoteControlled (_coverContext select 2)}
+        && {gunner _battery == (_coverContext select 2)}
+        && {group (_coverContext select 2) == _group}
+        && {[(_coverContext select 2)] call CBE_fnc_CortexCombatEffective}
+        && {([(_coverContext select 2)] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([(_coverContext select 2)] call CBE_fnc_CompatibilityExternalControl)}
+        && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+        && {getAttackTarget (_coverContext select 2) in [objNull,_coverContext select 1]}
+        && {assignedTarget (_coverContext select 2) in [objNull,_coverContext select 1]};
+    if (_sourceCurrent) then {
+        private _believed=(_coverContext select 2) getHideFrom (_coverContext select 1);
+        _sourceCurrent=count _believed == 3 && {_believed isNotEqualTo [0,0,0]}
+            && {_believed findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {(ATLToASL _believed) distance2D (_coverContext select 0) <= 15};
+    };
+    if (_sourceCurrent && {_phase == "HOLD" || {_phase == "MOVING" && {_rest}
+        && {_battery distance2D (_work get "goal") <= 5}}}) then {
+        private _height=(((boundingBoxReal _battery) select 1) select 2) max 1 min 4;
+        _sourceCurrent=[_coverContext select 0,(getPosASL _battery) vectorAdd [0,0,_height],
+            _battery,"COVER",_coverContext select 1] call CBE_fnc_CortexCoverScreened;
+    };
+};
 if (!_sourceCurrent && {!(_phase in ["STOPPING","RETURNING"])}) then {_work set ["release",true]};
 private _decision=[_battery,_work,"CBE_VehicleTacticalMove_Work",_seats,_activeSeats,
     _observations,_arrivalSample,_sourceCurrent,_rest] call CBE_fnc_VehicleCrewMoveNativePhase;

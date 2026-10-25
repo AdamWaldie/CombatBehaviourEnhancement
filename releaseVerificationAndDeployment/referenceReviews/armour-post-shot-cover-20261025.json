@@ -1,0 +1,32 @@
+{
+  "base": "4d5940d2",
+  "status": "ACTUAL_CANNON_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
+  "sourceIntent": "Protocol Armoured Force post-shot manoeuvre, combined with current CBE owner-local finite selected-platform movement. Source fireAtTarget request counters are not treated as actual shots.",
+  "implementation": [
+    "One native vehicle Fired listener observes the exact loaded main turret shotShell weapon/muzzle/ammunition/magazine, original gunner and projectile parents. A matching actual shot consumes that listener; one original20s expiry removes stale state. Repeated ARM does not renew it.",
+    "Only currently idle tanks/APCs without authored route, competing task, combined role or external controller can offer a shot receipt. Current target, group epoch, operation generation, native route, feature gates and original deadline are rechecked before use.",
+    "Existing bounded avenue planner considers a25m move only while currently exposed; its selected point must be screened from the fresh believed threat. Nearby AT standoff retains priority and its existing60s policy.",
+    "Existing selected-crew FSM owns movement,5m rested arrival, stop/return and retirement. Original20s deadline is retained. Lost target belief/ownership or lost point screening at arrival/HOLD requests existing release; no group split or group waypoint.",
+    "Nonmatching machine-gun Fired events reject before full authority checks. Nonarmour vehicles skip receipt polling. Already screened armour skips avenue planning. No permanent scan, separate movement worker, ammo changes, teleport or physics writes."
+  ],
+  "controls": "Existing Vehicles and VehicleGunnery CBA gates; no new setting or Zeus module.",
+  "limitations": [
+    "Point screening is not whole hull cover, ballistic protection, hit/kill proof or successful physical movement.",
+    "Idle driver/commander admission excludes some two-seat vehicles while commander is in FIRE. Does not take over native FIRE/SUPPRESS tasks.",
+    "Main turret shell fire only; artillery, AA, air targets, missiles and authored routes retain their own authority. No general all-platform post-shot parity claim.",
+    "Normal/HC physical flow, repeatability, casualty handover and5%median/10%p95 performance acceptance remain outstanding; audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "build": ".qa/handovers/armour-post-shot-build-3.log",
+    "independent": ".qa/handovers/armour-post-shot-independent.log",
+    "candidate": ".qa/candidates/armour-post-shot-4d5940d2",
+    "fingerprint": "e964f9ca55057d72cb42bcbcb441cee18f94cafe658d3c2ba7580a9c20070dcf",
+    "physicalAcceptance": false
+  },
+  "primaryApiReferences": [
+    "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers",
+    "https://community.bistudio.com/wiki/fireAtTarget"
+  ],
+  "audits": "paused"
+}
