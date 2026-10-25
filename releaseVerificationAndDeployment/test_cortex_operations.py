@@ -10951,6 +10951,29 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_generation,_actor,_goal] call CBE_fnc_RecoveryStep',actor)
         self.assertNotIn('_actor doMove',actor)
         self.assertIn('"STOP_PENDING"',actor)
+        journal=actor.split('_journal params [',1)[1].split('// Active requests are monitored',1)[0]
+        for proof in ('_oldGroup isEqualType grpNull','_token isEqualType ""','_token == ""',
+                      '_generation isEqualType 0','finite _generation','_epoch isEqualType 0',
+                      'finite _epoch','_route isEqualType []','_route isEqualTo []',
+                      '_phase in ["MOVING","STOP_PENDING"]','(_before select 0) isEqualType ""',
+                      '(_before select 1) isEqualType []','(_before select 2) isEqualType objNull',
+                      '_issued isEqualType 0','_issued > _expires','count _reservation != 3',
+                      '(_reservation select 0) isNotEqualTo "NAVAL_EGRESS"',
+                      '(_reservation select 1) isNotEqualTo _goal','finite (_reservation select 2)'):
+            self.assertIn(proof,journal)
+        self.assertIn('exitWith {"UNRESOLVED"}',journal)
+        for forbidden in ('doStop','setVariable','call _retire'):
+            self.assertNotIn(forbidden,journal)
+        self.assertLess(actor.index('_phase in ["MOVING","STOP_PENDING"]'),actor.index('private _sameOwner='))
+        entry=actor.split('_context params [',1)[1].split('private _previousResult=',1)[0]
+        for proof in ('_token isEqualType ""','_token == ""','_boat isEqualType objNull',
+                      '_generation isEqualType 0','finite _generation','_generation < 0',
+                      '_route isEqualType []','_route isEqualTo []'):
+            self.assertIn(proof,entry)
+        self.assertIn('exitWith {"WAIT"}',entry)
+        self.assertNotIn('setVariable',entry)
+
+
         self.assertIn('doStop _actor',actor)
         self.assertIn('serverTime >= _expires+30',actor)
         self.assertNotIn('serverTime+30',actor)

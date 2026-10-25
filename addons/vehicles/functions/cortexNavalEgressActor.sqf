@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Retained journal fields are typed before observation/cleanup. Unknown phases, malformed
+ * command baselines or mismatched reservations remain UNRESOLVED and grant no STOP or retirement.
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Purpose: Own one same-group naval passenger's finite foot egress after physical disembarkation.
  * Locality/authority: Actor and group owner only. Existing naval operation, token, original
@@ -47,6 +49,9 @@ private _journal=_actor getVariable ["CBE_Cortex_NavalEgressMove",[]];
 if (_journal isEqualTo []) exitWith {
     if (_mode != "STEP" || {count _context != 6}) exitWith {"NONE"};
     _context params ["_token","_boat","_goal","_expires","_generation","_route"];
+    if (!(_token isEqualType "") || {_token == ""} || {!(_boat isEqualType objNull)}
+        || {!(_generation isEqualType 0)} || {!finite _generation} || {_generation < 0}
+        || {!(_route isEqualType [])} || {_route isEqualTo []}) exitWith {"WAIT"};
     private _previousResult=_actor getVariable ["CBE_Cortex_NavalEgressResult",[]];
     if (count _previousResult >= 2 && {(_previousResult select 0) == _token}) exitWith {_previousResult select 1};
     if (!(_goal call _vector) || {!(_expires isEqualType 0)} || {!finite _expires}
@@ -90,8 +95,20 @@ if (_journal isEqualTo []) exitWith {
 };
 if (!(_journal isEqualType []) || {count _journal != 11}) exitWith {"UNRESOLVED"};
 _journal params ["_oldGroup","_token","_expires","_generation","_epoch","_route","_goal","_phase","_before","_issued","_reservation"];
-if (!(_goal call _vector) || {!(_expires isEqualType 0)} || {!finite _expires}
-    || {!(_before isEqualType [])} || {count _before != 3}) exitWith {"UNRESOLVED"};
+if (!(_oldGroup isEqualType grpNull) || {!(_token isEqualType "")} || {_token == ""}
+    || {!(_goal call _vector)} || {!(_expires isEqualType 0)} || {!finite _expires}
+    || {!(_generation isEqualType 0)} || {!finite _generation} || {_generation < 0}
+    || {!(_epoch isEqualType 0)} || {!finite _epoch} || {_epoch < 0}
+    || {!(_route isEqualType [])} || {_route isEqualTo []}
+    || {!(_phase in ["MOVING","STOP_PENDING"])}
+    || {!(_before isEqualType [])} || {count _before != 3}
+    || {!((_before select 0) isEqualType "")} || {!((_before select 1) isEqualType [])}
+    || {!((_before select 2) isEqualType objNull)}
+    || {!(_issued isEqualType 0)} || {!finite _issued} || {_issued < 0} || {_issued > _expires}
+    || {!(_reservation isEqualType [])} || {count _reservation != 3}
+    || {(_reservation select 0) isNotEqualTo "NAVAL_EGRESS"}
+    || {(_reservation select 1) isNotEqualTo _goal}
+    || {!((_reservation select 2) isEqualType 0)} || {!finite (_reservation select 2)}) exitWith {"UNRESOLVED"};
 // Active requests are monitored by their group job; discovery only reaps expired/retired work.
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _sameOwner=_group == _oldGroup && {!isNull _group} && {local _group}
