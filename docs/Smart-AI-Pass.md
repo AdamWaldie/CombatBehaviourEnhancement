@@ -2928,3 +2928,10 @@ Ordinary driving and convoy identity checks that request one waypoint now select
 ### Selected-gun HOLD handover validation
 
 The server now rejects a selected gun's retained HOLD evidence as soon as its observed platform has an external driving owner or an active convoy claim, matching the operating owner's checks. This adds two shared marker reads and removes their duplicate owner-only checks; native destination, task and FSM proof remain owner-local. Group membership and unrelated infantry orders are unchanged. Replicated marker observation is not instantaneous, and actual takeover/casualty/fire handback still requires in-engine validation while audits are paused.
+
+
+### Dense traffic observation
+
+Ordinary and convoy following observations no longer refuse every scene containing65..256 discovered vehicles before checking relevance. In the existing unscheduled owner callback, exact padded hull projection can discard a vehicle below the existing0.8m/s crossing-prediction threshold only when its whole hull is behind, outside the lane or vertically separated. Moving or unknown traffic remains eligible for prediction; a long rotated hull that intrudes into the lane is retained.
+
+The observer still refuses more than64 retained candidates or more than256 discovered vehicles. Scheduled direct calls retain the original64-candidate refusal. Dense samples may therefore do more projection work, but never more than64 motion-prediction evaluations; there is no new worker, cache, ray or engine query. Native discovery remains engine-dependent. This improves the bounded admission path, not proof of collision-free dense traffic or the frame-time budget. Physical dense-scene, normal/HC and scaled-hull validation remain unrun while audits are paused.

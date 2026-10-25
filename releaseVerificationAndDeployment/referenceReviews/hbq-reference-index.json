@@ -437,6 +437,13 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-dense-traffic-admission-20261025.json",
+      "sha256": "a03302fe96fcc2b903cf199dbec60b593f0078cc278b2f4cf44718d56d5dd05c",
+      "scope": "Bounded dense-traffic admission within the current following observer; not full HBQ traffic or gameplay acceptance.",
+      "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-diagnostics-editor-semantics-20261025.json",
       "sha256": "5b2f22539ffec2f2870aa427f54373aff14bc96275a64645540e9d7170a173ef",
       "scope": "Complete semantic read of five previously omitted HBQ diagnostic/editor functions; compare intent, lifecycle and cost with current CBE. No runtime parity claim.",

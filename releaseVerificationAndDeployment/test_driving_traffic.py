@@ -40,6 +40,26 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertFalse(occupied(-2,2,2,0,2))
         self.assertFalse(occupied(3,5,8,0,2))
         self.assertFalse(occupied(-2,2,8,5,7))
+        # Dense broad-phase admission may prune a slow separated hull, never moving
+        # crossing traffic or a long hull whose projection still occupies the lane.
+        import math
+        def retained(bounds,speed):
+            return not (math.isfinite(speed) and speed<=0.8 and not occupied(*bounds))
+        parked=[((-2,2,2,0,2),0.0)]*100
+        self.assertEqual(sum(retained(*row) for row in parked),0)
+        conflict=((-2,2,5,0,2),0.0)
+        self.assertEqual(sum(retained(*row) for row in parked+[conflict]),1)
+        self.assertGreater(sum(retained(*row) for row in [conflict]*65),64)
+        self.assertTrue(retained((3,5,8,0,2),10.0))
+        self.assertTrue(retained((-2,2,5,0,2),0.0))
+        self.assertTrue(retained((3,5,8,0,2),float('nan')))
+        self.assertIn('count _candidates > 256',s)
+        self.assertIn('_denseTraffic && {canSuspend}',s)
+        self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)
+        self.assertLess(s.index('if (_denseTraffic && {finite _otherSpeed}'),s.index('_evaluated=_evaluated+1'))
+        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _otherCentre='))
+        self.assertIn('if (_predictionBudgetExceeded) exitWith {[0,_vehicle',s)
+
 
     def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):
         s=src('convoyTick')

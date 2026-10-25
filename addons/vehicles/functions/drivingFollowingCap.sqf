@@ -3,6 +3,9 @@
  * Purpose: Observes vehicle hulls occupying the forward lane and derives a continuous speed cap.
  * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
  * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
+ * Dense unscheduled samples project at most256 hulls, pruning only slow non-occupying hulls
+ * before at most64 motion predictions. More than64 retained candidates still refuse. Scheduled
+ * direct calls retain the original64-candidate refusal; no cross-suspension pruning cache.
  * Moving crossing traffic on the right also constrains approach when projected hull occupancy
  * windows overlap within six seconds. Crossing actors from either side inside nominal stopping
  * room also constrain imminent collision; priority never assumes an unacknowledged peer yields.
@@ -29,7 +32,8 @@
  * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
  * earlier observation only for closing/crossing conflicts; stable same-speed following
  * does not request faster sampling. It grants no speed, clearance or right of way. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
- * a congestion sentinel; at most 64 candidate hulls are evaluated. Four affine transform pairs
+ * a congestion sentinel when discovery or retained-prediction budgets exceed their bounds.
+ * Four affine transform pairs per projected hull
  * represent all eight corners with a0.05m outward model-space rounding pad per boundary.
  * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
  * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
@@ -71,7 +75,12 @@ if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0,true]};
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
-if (count _candidates > 64) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
+private _denseTraffic=count _candidates > 64;
+// Dense scenes retain exact hull projection rather than guessing by centre distance.
+// Scheduled direct callers keep the original refusal: the pruning snapshot is owner
+// callback work, not a cache across a possible suspension. Native query cost is unchanged.
+if (count _candidates > 256 || {_denseTraffic && {canSuspend}}) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
+private _evaluated=0;private _predictionBudgetExceeded=false;
 // Only a current granted QUEUE FOLLOW path can delegate its frozen held hulls
 // to the shared path geometry. Other traffic and the dense-candidate budget remain.
 private _pathHulls=[];
@@ -88,6 +97,7 @@ if (count _queueProof > 0) then {
 };
 private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearConflict=false;
 {
+    if (_predictionBudgetExceeded) exitWith {};
     private _other=_x;
     if (_other != _vehicle && {!isNull _other} && {!(_other in _pathHulls)}) then {
         // Heading selects only the following-speed allowance, never obstacle admission.
@@ -133,6 +143,13 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         // Current lane occupancy below remains independent of this prediction.
         private _otherVelocity=velocity _other;_otherVelocity set [2,0];
         private _otherSpeed=vectorMagnitude _otherVelocity;
+        // Below the existing crossing-prediction threshold, only current occupied-lane
+        // hulls can constrain this observer. Use the full padded projection, not a centre
+        // or nominal size. Moving/unknown actors remain candidates even outside the lane.
+        if (_denseTraffic && {finite _otherSpeed} && {_otherSpeed <= 0.8}
+            && {!(_ahead && {_sameLane} && {_sameHeight})}) then {continue};
+        _evaluated=_evaluated+1;
+        if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true};
         private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
         private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
         private _fromRight=_relative vectorDotProduct _right > 0.25;
@@ -205,4 +222,5 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         };
     };
 } forEach _candidates;
+if (_predictionBudgetExceeded) exitWith {[0,_vehicle,-1,time,count _candidates,true]};
 [_cap,_limiting,_gap,time,count _candidates,_nearConflict]
