@@ -921,7 +921,8 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
             && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}
             && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
-            && {(units _group) findIf {alive _x && {vehicle _x == _x}} < 0} && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
+            && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+            && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
             private _atPos = (_enemies select _atIndex) select 1;
             private _atThreat=(_enemies select _atIndex) select 0;
             private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
@@ -944,6 +945,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             isNil {
             if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
                 && {[] call _mayIssueVehicle}
+                && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
                 && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
                 && {[_group,"VEHICLE_STANDOFF",true,_standoffUntil] call CBE_fnc_CortexOwnershipLease}) then {
                 private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,_standoffSeats arrayIntersect _standoffSeats,[_away],"MOVING"] call CBE_fnc_OperationStart;

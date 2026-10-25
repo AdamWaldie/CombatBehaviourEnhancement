@@ -1,0 +1,27 @@
+{
+  "status": "MIXED_GROUP_SELECTED_STANDOFF_SOURCE_INTEGRATED_PHYSICAL_UNVERIFIED",
+  "problem": "Caller retained an all-mounted restriction after selected native crew execution replaced group waypoints. A foot leader also classified the crew task as infantry posture/progress work.",
+  "implementation": [
+    "Remove only the standoff all-mounted admission guard; require no current CBE operation both before planning and inside commit.",
+    "Keep original driver/effective commander selection and native worker admission, lease, generation, native baseline and retirement checks.",
+    "Use the selected first crew participant as standoff progress anchor. Preserve the original group anchor for existing reaction-proof observations.",
+    "Carry only unchanged original infantry posture cleanup proof across this internal generation; preserve original baselines, danger generation and expiry. No new stance or group order."
+  ],
+  "limits": [
+    "Native engine formation followers can still follow their group leader.",
+    "No independent concurrent CBE operations inside the same group.",
+    "Baseline FIRE still refuses native movement admission.",
+    "Cover/post-shot relocation, physical mixed-group behaviour, migration and performance remain unverified."
+  ],
+  "validation": {
+    "build": ".qa/handovers/mixed-standoff-final-build-2.log",
+    "independent": ".qa/handovers/mixed-standoff-independent.log",
+    "candidate": ".qa/candidates/mixed-standoff-179c1857",
+    "fingerprint": "abbbf13102e27e697ffbabe8c44faefb414369a51d64eeeea5b056f9cea5492c",
+    "physicalAcceptance": false
+  },
+  "sourceFiles": [
+    "addons/vehicles/functions/cortexVehicles.sqf",
+    "addons/core/functions/operationStart.sqf"
+  ]
+}

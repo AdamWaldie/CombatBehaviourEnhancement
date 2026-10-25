@@ -107,6 +107,12 @@ if (count _previous > 0) then {
 // because a lifecycle record starts. Retain the decision so release is equally narrow later.
 private _operationAnchor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _operationAnchor) then {_operationAnchor=leader _group};
+private _postureAnchor=_operationAnchor;
+// Selected-platform standoff owns only its admitted crew. A dismounted group leader
+// must not become its progress anchor or trigger group-wide infantry posture cleanup.
+if (toUpperANSI _intent == "VEHICLE_STANDOFF" && {_paceParticipants isNotEqualTo []}) then {
+    _operationAnchor=_paceParticipants select 0;
+};
 private _dangerPosture=(vehicle _operationAnchor) isEqualTo _operationAnchor;
 private _dangerResponse=_group getVariable ["CBE_Danger_Response",[]];
 private _liveDanger=if (count _dangerResponse == 5
@@ -150,6 +156,10 @@ if (_dangerPosture) then {
         };
     } forEach ((units _group) select [0,64]);
     [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
+};
+// Crew-only standoff leaves infantry posture in place. Preserve its exact cleanup proof
+// through this internal generation change without reapplying stance or renewing expiry.
+if (_dangerPosture || {toUpperANSI _intent == "VEHICLE_STANDOFF"}) then {
     // Both release paths above may defer to a native task. Carry only exact unchanged
     // proof through this internal generation publication, never reapply stance here.
     {
@@ -170,6 +180,25 @@ if (_dangerPosture) then {
             _x setVariable ["CBE_Danger_EngineStanceLease",_successorPosture];
         };
     } forEach ((units _group) select [0,64]);
+    if (!_dangerPosture) then {
+        private _hideLeases=_group getVariable ["CBE_Danger_GroupHideLeases",[]];
+        if (_hideLeases isEqualType [] && {count _hideLeases <= 4}) then {
+            private _successorHide=_hideLeases apply {
+                private _row=_x;
+                if (_row isEqualType [] && {count _row == 6}
+                    && {(_row select 0) isEqualType objNull}
+                    && {!isNull (_row select 0)} && {local (_row select 0)}
+                    && {group (_row select 0) == _group}
+                    && {(_row select 4) isEqualTo (_generation-1)}
+                    && {(_row select 5) isEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}
+                    && {toUpperANSI unitPos (_row select 0) isEqualTo (_row select 2)}) then {
+                    _row=+_row;_row set [4,_generation];
+                };
+                _row
+            };
+            if (_successorHide isNotEqualTo _hideLeases) then {_group setVariable ["CBE_Danger_GroupHideLeases",_successorHide]};
+        };
+    };
     // Carry unresolved group posture through the same internal publication. Confirmed
     // components are already retired; preserve the original baseline and expiry of the rest.
     private _reactionReceipt=_group getVariable ["CBE_Danger_ReactionLease",[]];
@@ -185,7 +214,7 @@ if (_dangerPosture) then {
         && {(_reactionReceipt select 0) != (_reactionReceipt select 1)
             || {(_reactionReceipt select 2) != (_reactionReceipt select 3)}}
         && {(_reactionReceipt select 0) == (_reactionReceipt select 1)
-            || {behaviour _operationAnchor == (_reactionReceipt select 1)}}
+            || {behaviour _postureAnchor == (_reactionReceipt select 1)}}
         && {(_reactionReceipt select 2) == (_reactionReceipt select 3)
             || {combatMode _group == (_reactionReceipt select 3)}}) then {
         private _successorReaction=+_reactionReceipt;

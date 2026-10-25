@@ -212,7 +212,7 @@
       "selectedMovementFoundation20261025": {
         "review": "armour-selected-standoff-20261025.json",
         "status": "SELECTED_STANDOFF_NATIVE_FSM_INTEGRATED_PHYSICAL_UNVERIFIED",
-        "scope": "Shared observation/native phases/finite retirement are used by selected-platform standoff with original-crew native orders and stop/locality/discovery/ownership integration. Original fully-mounted trigger retained; unresolved cleanup availability and broader cover/post-shot behaviour remain unfinished.",
+        "scope": "Shared observation/native phases/finite retirement are used by selected-platform standoff with original-crew native orders and stop/locality/discovery/ownership integration. Idle mixed groups now admit selected crew without splitting or group waypoints. Existing operations are preserved; unresolved cleanup availability and broader cover/post-shot behaviour remain unfinished.",
         "nativeAcknowledgementRepair": {
           "review": "selected-settled-native-ack-20261025.json",
           "scope": "Existing settled WAIT/idle proof in artillery/driving remains; current selected-standoff integration is tracked by armour-selected-standoff-20261025.json, not inferred from this earlier repair.",
@@ -229,6 +229,11 @@
           "review": "selected-deletion-dead-crew-20261025.json",
           "status": "SCOPED_NATIVE_DELETION_DEAD_LOCAL_ORIGINAL_CREW_CLEANUP_INTEGRATED",
           "scope": "Actual deletion callback plus present/local/dead original actors can retire exact old reservation. Newer/unknown public and private leases preserved. Living/missing/nonlocal crew and wider deletion recovery remain unfinished.",
+          "physicalAcceptance": false
+        },
+        "mixedGroupStandoff": {
+          "review": "mixed-group-standoff-20261025.json",
+          "status": "MIXED_GROUP_SELECTED_CREW_ADMISSION_INTEGRATED",
           "physicalAcceptance": false
         }
       }

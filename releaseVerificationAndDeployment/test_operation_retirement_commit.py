@@ -97,10 +97,16 @@ class OperationRetirement(unittest.TestCase):
         self.assertNotIn('_remaining set [4,',restore)
         self.assertNotIn('waitAndExecute',restore)
         start=(ROOT/'addons/core/functions/operationStart.sqf').read_text(encoding='utf-8')
+        self.assertLess(start.index('private _postureAnchor=_operationAnchor;'),start.index('_operationAnchor=_paceParticipants select 0;'))
+        mixed=start.split('if (!_dangerPosture) then {',1)[1].split('// Carry unresolved group posture',1)[0]
+        for proof in ('count _hideLeases <= 4','(_row select 4) isEqualTo (_generation-1)','CBE_AIPass_Epoch','unitPos (_row select 0)','_row set [4,_generation]'):
+            self.assertIn(proof,mixed)
+        self.assertNotIn('setUnitPos',mixed)
+        self.assertNotIn('serverTime+',mixed)
         carry=start.split('// Carry unresolved group posture',1)[1].split('_group setVariable ["CBE_OperationGeneration",_generation,true]',1)[0]
         for proof in ('count _reactionReceipt == 8','(_reactionReceipt select 5) isEqualTo (_generation-1)',
                       'CBE_AIPass_Epoch','(_reactionReceipt select 7) isEqualTo clientOwner',
-                      'behaviour _operationAnchor == (_reactionReceipt select 1)',
+                      'behaviour _postureAnchor == (_reactionReceipt select 1)',
                       'combatMode _group == (_reactionReceipt select 3)',
                       '_successorReaction set [5,_generation]'):
             self.assertIn(proof,carry)

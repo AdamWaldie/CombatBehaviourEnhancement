@@ -8194,6 +8194,12 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
         self.assertNotIn('CortexGroupMove',standoff)
         self.assertIn('_standoffSeats arrayIntersect _standoffSeats',standoff)
+        self.assertNotIn('(units _group) findIf {alive _x && {vehicle _x == _x}}',standoff)
+        self.assertEqual(standoff.count('count (_group getVariable ["CBE_Operation",createHashMap]) == 0'),2)
+        operation_start=source('operationStart')
+        crew_anchor=operation_start.split('// Selected-platform standoff',1)[1].split('private _dangerPosture=',1)[0]
+        self.assertIn('toUpperANSI _intent == "VEHICLE_STANDOFF"',crew_anchor)
+        self.assertIn('_operationAnchor=_paceParticipants select 0;',crew_anchor)
         self.assertIn('CBE_fnc_CortexVehicleCrewAvailable',start)
         self.assertIn('call CBE_fnc_VehicleCrewNativeObservation',start)
         self.assertIn('FSM_START_REFUSED',start)
