@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Advance one finite selected-gun native crew movement, hold and return lifecycle.
  * Locality/authority: Exact original local vehicle/group/crew/epoch and private FSM only.
+ * After the distinct original commander dies, a surviving original driver may only stop and
+ * return its own admitted native order. Replacement seats never inherit outward authority.
  * Commands address only the admitted driver and effective commander. No group waypoint,
  * membership, posture, skill, inventory or physics command is issued.
  * Repeat/JIP: Original token, serial and deadlines fence callbacks. STOPPING and RETURNING
@@ -70,15 +72,32 @@ if (_phase == "ISSUE" && {_work getOrDefault ["release",false]}) exitWith {
 private _driver=_seats select 0;private _operator=_seats select 1;
 private _live=[driver _battery,effectiveCommander _battery];
 if (isNull (_live select 1)) then {_live set [1,_live select 0]};
+// Losing a distinct commander is a retirement trigger, not a new crew admission.
+// Only the original living driver can carry the old native order to a finite stop/return.
+private _retirementOnly=_work getOrDefault ["retirementOnly",false];
+if (_phase != "ISSUE" && {!_retirementOnly} && {!isNull _driver} && {alive _driver}
+    && {_driver isEqualTo (_live select 0)} && {isNull _operator || {!alive _operator}}
+    && {_live findIf {isNull _x || {!alive _x} || {!(_x in _seats)}} < 0}) then {
+    _retirementOnly=true;_work set ["retirementOnly",true];
+    // Preserve the original driver's pre-request observation for the two-seat ack helper.
+    // Current driver and effective commander are now the same original living actor.
+    private _before=_work getOrDefault ["before",[]];
+    if (count _before == 4) then {_work set ["before",[_before select 0,_before select 1,_before select 0,_before select 1]]};
+};
+private _activeSeats=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
 private _control=alive _battery && {simulationEnabled _battery} && {!isObjectHidden _battery}
-    && {_live isEqualTo _seats}
+    && {_live isEqualTo _seats || {_retirementOnly && {alive _driver}
+        && {_driver isEqualTo (_live select 0)}
+        && {_live findIf {isNull _x || {!alive _x} || {!(_x in _seats)}} < 0}}}
     && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
     && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}
     && {!(_battery getVariable ["CBE_Convoy_Active",false])}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!([_group] call CBE_fnc_CortexZeusHeld)}
     && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_work get "route")}
-    && {_seats findIf {isNull _x || {!local _x} || {group _x != _group}
+    && {_seats findIf {
+        if (_retirementOnly && {isNull _x || {!alive _x}}) exitWith {false};
+        isNull _x || {!local _x} || {group _x != _group}
         || {objectParent _x != _battery} || {isPlayer _x} || {!isNull remoteControlled _x}
         || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         || {!simulationEnabled _x} || {isObjectHidden _x}
@@ -91,8 +110,9 @@ private _control=alive _battery && {simulationEnabled _battery} && {!isObjectHid
 if (!_control) exitWith {
     ["NATIVE_OR_CONTROL_HANDOVER_UNRESOLVED",_phase == "ISSUE"] call _finish
 };
+private _observedOperator=if (_retirementOnly) then {_live select 1} else {_operator};
 private _observations=[currentCommand _driver,+(expectedDestination _driver),
-    currentCommand _operator,+(expectedDestination _operator)];
+    currentCommand _observedOperator,+(expectedDestination _observedOperator)];
 private _goal=+(_work get "goal");
 private _goalsMatch={
     params ["_point"];
@@ -107,7 +127,7 @@ private _session=_work get "session";
 private _scoot=(_work getOrDefault ["kind","POSITION"]) == "SCOOT";
 private _purpose=_session select ([6,4] select _scoot);
 private _counter=_purpose == "COUNTER";
-private _sourceCurrent=missionNamespace getVariable ["CBE_AIPass_Active",false]
+private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
     && {!([] call CBE_fnc_CortexIsPaused)} && {serverTime < (_work get "holdUntil")}
     && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     && {[_group,["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter,false]
@@ -136,6 +156,13 @@ if (_phase != "ISSUE" && {!([_goal] call _goalsMatch)}
     && {!(_phase in ["REQUESTED","STOPPING","RETURNING"])}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
 if (_phase == "REQUESTED" && {([_goal,_work get "replyUntil",_work get "before",_observations,serverTime]
     call CBE_fnc_VehicleCrewDestinationState) == "LOST"}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
+// A delayed callback cannot mint or issue a retirement stop after the original window.
+// Refuse before changing the goal/before receipt or writing any native command.
+if (_work getOrDefault ["release",false] && {_phase != "ISSUE"}
+    && {!(_phase in ["STOPPING","RETURNING"])}
+    && {serverTime >= (_work getOrDefault ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)])}) exitWith {
+    ["RETIREMENT_TIMEOUT"] call _finish
+};
 if (_work getOrDefault ["release",false] && {!(_phase in ["STOPPING","RETURNING"])}) then {
     if (_phase == "ISSUE") exitWith {};
     private _hold=getPosATL _battery;
@@ -146,7 +173,7 @@ if (_work getOrDefault ["release",false] && {!(_phase in ["STOPPING","RETURNING"
         _work set ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)];
     };
     _work set ["replyUntil",serverTime+2];
-    {_x doMove _hold} forEach (_seats arrayIntersect _seats);
+    {_x doMove _hold} forEach _activeSeats;
     _work set ["phase","STOPPING"];_phase="STOPPING";
     _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
 };
@@ -154,7 +181,7 @@ if (_phase == "ISSUE") exitWith {
     if (!_sourceCurrent || {!canMove _battery} || {waterDamaged _battery}
         || {_observations isNotEqualTo (_work get "baseline")}) exitWith {["ADMISSION_CHANGED",true] call _finish};
     _work set ["before",_observations];_work set ["replyUntil",serverTime+2];
-    {_x doMove _goal} forEach (_seats arrayIntersect _seats);
+    {_x doMove _goal} forEach _activeSeats;
     _work set ["phase","REQUESTED"];
     _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
     0.25
@@ -198,13 +225,13 @@ if (_phase == "STOPPING") exitWith {
     if (_ack == "LOST" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_REPLACED"] call _finish};
     if (_ack == "EXPIRED" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_UNKNOWN"] call _finish};
     if (_rest && {[_goal] call _goalsMatch}
-        && {_seats findIf {!(currentCommand _x in ["","WAIT"])} < 0}) then {
+        && {_activeSeats findIf {!(currentCommand _x in ["","WAIT"])} < 0}) then {
         private _baseline=_work get "baseline";
         private _returns=[];
         {
             private _index=_forEachIndex*2;
             private _point=(_baseline select (_index+1)) param [0,[],[[]]];
-            if ((_baseline select _index) == "MOVE") then {
+            if (!isNull _x && {alive _x} && {(_baseline select _index) == "MOVE"}) then {
                 _x doMove _point;_returns pushBack [_x,+_point];
             };
         } forEach (_seats arrayIntersect _seats);
@@ -218,6 +245,7 @@ if (_phase == "RETURNING") exitWith {
     private _returns=_work get "returns";
     private _ack=_returns findIf {
         _x params ["_actor","_point"];
+        if (isNull _actor || {!alive _actor}) exitWith {false};
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _command=currentCommand _actor;
         count _native != 3

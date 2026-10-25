@@ -31,5 +31,9 @@
   "followup": {
     "review": "artillery-dead-crew-retirement-20261025.json",
     "status": "Original finding retained as historical source trace. All-original-crew-dead, stationary-platform retirement now implemented; surviving-writer and deleted-platform recovery remain incomplete."
+  },
+  "survivingDriverFollowup": {
+    "review": "artillery-surviving-driver-retirement-20261025.json",
+    "status": "Active worker can now retire through original surviving driver after distinct commander loss. Does not recover already-unresolved surviving-writer work or admit replacement actors."
   }
 }

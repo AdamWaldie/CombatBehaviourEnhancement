@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "cafa794a",
+  "scope": "Active selected-gun episode retirement after loss of a distinct original commander while the original driver remains the sole current operating actor.",
+  "implementation": [
+    "Mark the existing episode retirementOnly when current live seats remain original and the original driver survives in its admitted seat. No replacement or pre-ISSUE casualty inherits outward permission.",
+    "Keep original crew identity, baseline, epoch, serial and deadlines. Compare actual current driver/effective-commander observations; when the driver now occupies both command roles, reuse its original pre-request observation for the acknowledgement helper.",
+    "Force sourceCurrent false for retirementOnly; only existing stop/return phases may proceed. Send commands to living original actors only; preserve original index-to-baseline mapping and omit dead actors from return observation.",
+    "Refuse an already-expired retirement window before rewriting goal/ack receipts or issuing doMove to hold. Existing STOPPING/RETURNING timeout remains authoritative."
+  ],
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "248c40cfeee0d55021758d71245c84631fd6d610275b5520a0659a59c0dcf94a",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "57961aa66ce9522609820417393a2a1495da82a824a35f42217a8d5a5845c77a"
+  },
+  "sourceDisposition": "Continues the selected original operating-crew scope identified in artillery-casualty-retirement-gap-20261025.json. Does not copy unbounded waits, adopt newly seated crew after sleeps, split groups or issue group-wide waypoints.",
+  "validation": {
+    "focusedTests": 4,
+    "fullBuild": "PASS attempt3",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/artillery-surviving-driver-cafa794a",
+    "fingerprint": "df84e3423c88b2e1dd1555411a9159999749f241a16db5db1e12589fee043119",
+    "attemptHistory": "attempt1 passed before deadline-ordering correction; attempt2 rejected a test source-section boundary error; corrected focused checks and complete attempt3 passed. Earlier candidates are not final evidence."
+  },
+  "limits": "Original driver loss, replacement-operator handover, already-unresolved surviving-writer recovery and deleted platforms remain incomplete. No automatic reinforcement seating. No new worker or scan; measured normal/HC/JIP casualty handling and performance budget unverified. Audits paused; whole goal active and incomplete; no percentage claim."
+}

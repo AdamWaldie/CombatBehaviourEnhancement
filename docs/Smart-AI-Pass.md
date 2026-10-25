@@ -2950,3 +2950,7 @@ If every original selected gun operator has died or been deleted, unresolved cre
 ### Road bend observations
 
 After selecting a connected road piece, bend sensing derives its turn from the same endpoint midpoint used for grade and distance. An offset road-object origin cannot substitute for that measured turn. The existing eight-transition and nine-metadata-read bounds are unchanged. Branch selection still uses heading heuristics and is not the native planned route; physical road handling and frame-time cost remain unverified.
+
+### Selected-gun commander casualty
+
+If a distinct original commander dies during active selected-gun movement, the surviving original driver can retire its own movement through the existing finite stop and native-order return. The episode becomes retirement-only: it cannot continue the outward task or adopt a replacement operator. The original baseline and cleanup deadline are preserved; dead actors receive no movement command. Driver loss, a new operator or already-unresolved surviving-writer work remains unresolved. Group membership is unchanged. Physical casualty, repeated use and locality cases remain unverified.

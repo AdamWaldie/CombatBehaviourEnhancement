@@ -115,6 +115,28 @@ class ArtilleryFireSessions(unittest.TestCase):
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
         self.assertIn('(_executor select 4) != _executorSerial',worker)
+        casualty=worker.split('// Losing a distinct commander',1)[1].split('private _control=',1)[0]
+        for check in ('_phase != "ISSUE"','alive _driver','_driver isEqualTo (_live select 0)',
+                      '!(_x in _seats)','"retirementOnly",true'):
+            self.assertIn(check,casualty)
+        self.assertIn('private _sourceCurrent=!_retirementOnly',worker)
+        deadline=worker.split('// A delayed callback cannot mint',1)[1].split('if (_phase == "REQUESTED") exitWith {',1)[0]
+        self.assertLess(deadline.index('["RETIREMENT_TIMEOUT"] call _finish'),deadline.index('_x doMove _hold'))
+        self.assertIn('getOrDefault ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)]',deadline)
+        self.assertIn('if (isNull _actor || {!alive _actor}) exitWith {false}',worker)
+
+        self.assertIn('forEach _activeSeats;',worker)
+        self.assertIn('private _observedOperator=if (_retirementOnly) then {_live select 1}',worker)
+        self.assertIn('!isNull _x && {alive _x} && {(_baseline select _index) == "MOVE"}',worker)
+        # The admitted original driver may retire after its separate commander dies.
+        # An original-driver casualty, replacement operator, or pre-issue casualty
+        # must not turn a seat change into an outward or replacement-crew admission.
+        def casualty_retirement(phase, driver_alive, commander_alive, current_driver_original, all_seats_original):
+            return phase!='ISSUE' and driver_alive and not commander_alive and current_driver_original and all_seats_original
+        self.assertTrue(casualty_retirement('MOVING',True,False,True,True))
+        for args in (('ISSUE',True,False,True,True),('MOVING',False,False,False,True),
+                     ('MOVING',True,False,True,False),('MOVING',True,True,True,True)):
+            self.assertFalse(casualty_retirement(*args))
         returning=worker.split('if (_phase == "RETURNING") exitWith {',1)[1]
         self.assertIn('_command in ["","WAIT"] && {_rest}',returning)
         self.assertIn('(getPosATL _battery) vectorDistance _point <= 2',returning)
