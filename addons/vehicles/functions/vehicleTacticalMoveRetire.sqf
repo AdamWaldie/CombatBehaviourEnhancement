@@ -40,7 +40,7 @@ isNil {
         private _after=_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
         if ((_after getOrDefault ["token",""]) == _token && {(_after getOrDefault ["serial",-2]) == _serial}
             && {(_after getOrDefault ["phase",""]) == "RETIRED"}
-            && {(_after getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"]}) then {
+            && {(_after getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER"]}) then {
             private _generation=_after get "operationGeneration";
             private _reason=_after get "result";
             private _complete=_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"

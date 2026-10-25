@@ -1667,3 +1667,35 @@ bounds remain unchanged. Offline regression/compilation must be checked for this
 candidate; crew-loss/deletion, parent replacement, locality changes and physical
 interception remain unverified while audits are paused. No performance-budget
 acceptance follows from these bounds.
+
+
+### Selected-crew interruption by a newer native STOP
+
+Artillery positioning/scooting and selected-platform tactical movement can retire
+an unresolved reservation after positive evidence of a newer native STOP. The exact
+original machine-local FSM must have completed; its serial, executor serial, owner,
+epoch, group reference and any tactical operation generation must still match.
+Every surviving original operator must remain local, in the original group and
+platform and report native STOP. STOP is a perpetual task; readiness is not required.
+No replacement operating actor is adopted.
+The actual platform must be below 1km/h and 0.01rad/s. An empty surviving crew is not
+STOP evidence; the existing separate dead-crew path retains its own checks.
+
+This passive path issues no stop, return or other native command. It releases only
+the original journal/reference and matching public/local lease. A newer public lease
+is protected even if it uses the same owner label with a different deadline. Artillery
+clears only its exact matching scoot token/session. Tactical interruption reports
+INCOMPLETE, even if the old position had previously been reached; STOP is not a
+successful handback or completion of the requested manoeuvre. Group membership and
+unrelated infantry orders remain untouched.
+
+Existing maintenance performs at most two original-operator command checks and
+one velocity/angular-velocity sample for this proof. There is no new worker, scan
+or timer. Cross-owner termination, different native orders, missing actors and
+replacement crews remain unresolved unless separate positive proof is available.
+Offline checks cannot establish native STOP acknowledgement timing or the total performance
+budget; these require a future authorised physical pass.
+
+The [native STOP command](https://community.bistudio.com/wiki/commandStop) never
+finishes. Requiring `unitReady` here would keep the reservation indefinitely; active
+STOP, measured rest and exact ended-worker evidence serve distinct purposes.

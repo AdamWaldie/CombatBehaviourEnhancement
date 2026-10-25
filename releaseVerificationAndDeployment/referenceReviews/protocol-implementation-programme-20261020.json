@@ -71,6 +71,12 @@
         "limitations": "Not full artillery parity or physical acceptance; group reservation still pauses other CBE manoeuvres/driving, peer concurrency and unknown native recovery remain open. Dated20261024 gap remains historical, superseded only for selected mixed movement source.",
         "physicalAcceptance": false,
         "scoresChanged": false
+      },
+      "selectedNativeStop20261025": {
+        "review": "selected-native-stop-retirement-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
+        "physicalAcceptance": false
       }
     },
     {
@@ -268,6 +274,12 @@
           "status": "ACTUAL_CANNON_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
           "physicalAcceptance": false
         }
+      },
+      "selectedNativeStop20261025": {
+        "review": "selected-native-stop-retirement-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
+        "physicalAcceptance": false
       }
     }
   ],

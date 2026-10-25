@@ -8,7 +8,9 @@
  * Repeat/JIP: Reuses original native reply/cleanup clocks. An exact allocation refusal may retry
  * once within its original window. Other unresolved work stays reserved while an original actor
  * survives or the platform is moving, unless its original private worker has ended and its
- * recorded original return is positively acknowledged. No native command is issued for that proof.
+ * recorded original return is positively acknowledged, or every surviving original operator
+ * accepts a newer active STOP with measured platform rest. No command is issued for
+ * either passive proof; STOP interrupts the task and never reports its physical completion.
  * Dead original crew plus measured rest can retire only the
  * matching reservation and lease. Worker loss is not proof of native quiescence.
  * Arguments: 0 platform OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1;
@@ -63,10 +65,13 @@ isNil {
         private _returnObserved=!_live && {_phase in ["RETURNING","UNRESOLVED"]}
             && {[_battery,_work,_executor,_battery getVariable [_executorSerialKey,-1]]
                 call CBE_fnc_VehicleCrewMoveReturnProof};
+        private _stopObserved=!_live && {_phase == "UNRESOLVED"}
+            && {[_battery,_work,_executor,_battery getVariable [_executorSerialKey,-1],"EXTERNAL_STOP"]
+                call CBE_fnc_VehicleCrewMoveReturnProof};
         // Otherwise only death of every original actor plus measured rest can retire
         // unresolved movement. Never infer handback from expiry, script loss or new seats.
-        if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved}) exitWith {
-            private _nativeRetired=_returnObserved || {call {
+        if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved}) exitWith {
+            private _nativeRetired=_returnObserved || {_stopObserved} || {call {
                 private _originalCrew=_work getOrDefault ["crew",[]];
                 private _linear=vectorMagnitude velocity _battery;
                 private _angular=vectorMagnitude angularVelocity _battery;
@@ -77,7 +82,10 @@ isNil {
             }};
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
             private _localLease=_state getOrDefault ["movementLease",[]];
+            private _publicLease=_group getVariable ["CBE_Cortex_MovementLease",[]];
+            private _expectedPublic=[_leaseOwner,_work getOrDefault ["holdUntil",-1]];
             if (_live || {!_nativeRetired}
+                || {_publicLease isNotEqualTo [] && {_publicLease isNotEqualTo _expectedPublic}}
                 || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {
                 // A passive deletion observer does not adopt this unresolved movement.
                 [_battery,"INSTALL",[_workKey,_referenceKey,_leaseOwner]] call CBE_fnc_VehicleCrewMoveDeletionWatch;
@@ -86,7 +94,9 @@ isNil {
             if !([_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease) exitWith {false};
             private _terminal=+_work;
             _terminal set ["phase","RETIRED"];
-            _terminal set ["result",["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved];
+            _terminal set ["result",if (_stopObserved) then {"NATIVE_STOP_OBSERVED_AFTER_WORKER"} else {
+                ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved
+            }];
             _battery setVariable [_workKey,_terminal,true];
             _group setVariable [_referenceKey,nil,true];
             [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;

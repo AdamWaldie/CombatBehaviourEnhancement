@@ -32,7 +32,7 @@ isNil {
     if (_wasRetiring && {(_work getOrDefault ["token",""]) == _token}
         && {(_work getOrDefault ["serial",-2]) == _serial}
         && {(_work getOrDefault ["phase",""]) == "RETIRED"}
-        && {(_work getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"]}) then {
+        && {(_work getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER"]}) then {
             if ((_work getOrDefault ["kind","POSITION"]) == "SCOOT"
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo (_work get "session")}) then {

@@ -241,6 +241,21 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertNotIn(mutation,proof)
         self.assertIn('call CBE_fnc_VehicleCrewMoveReturnProof',retirement)
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
+        stop=proof.split('if (_mode == "EXTERNAL_STOP") exitWith {',1)[1].split('private _returns=',1)[0]
+        for guard in ('_stoppedWriters isEqualTo []','!local _x','group _x != _group',
+                      'objectParent _x != _battery','currentCommand _x != "STOP"',
+                      'finite _linear','finite _angular',
+                      '_linear < 0.278','_angular < 0.01'):
+            self.assertIn(guard,stop)
+        # Native STOP is perpetual: waiting for readiness would make retirement impossible.
+        self.assertNotIn('unitReady',stop)
+
+        self.assertIn('"EXTERNAL_STOP"]',retirement)
+        self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',retirement)
+        tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text()
+        self.assertIn('_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"',tactical)
+        self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',tactical)
+
         deletion=(ROOT/'addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf').read_text(encoding='utf-8')
         for guard in ('addEventHandler ["Deleted"',
                       '[_entity,"DELETED",[_entity,_thisEvent,_thisEventHandler]]',
@@ -266,12 +281,15 @@ class ArtilleryFireSessions(unittest.TestCase):
         tactical_retire=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertIn('([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")',tactical_retire)
 
-        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
         self.assertIn('alive _x',casualty)
         self.assertIn('!finite _linear',casualty)
         self.assertIn('!finite _angular',casualty)
         self.assertIn('_localLease isNotEqualTo (_work get "localLease")',casualty)
+        self.assertIn('_publicLease isNotEqualTo _expectedPublic',casualty)
+        self.assertIn('[_leaseOwner,_work getOrDefault ["holdUntil",-1]]',casualty)
+
         self.assertLess(casualty.index('call CBE_fnc_CortexOwnershipLease'),casualty.index('"phase","RETIRED"'))
         for forbidden in ('doMove','joinSilent','moveIn','execFSM','setVelocity','cleanupUntil'):
             self.assertNotIn(forbidden,casualty)

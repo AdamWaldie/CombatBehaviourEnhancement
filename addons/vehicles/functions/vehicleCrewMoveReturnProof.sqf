@@ -1,26 +1,33 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Read positive native return evidence after the exact original local worker ended.
+ * Purpose: Read positive native retirement evidence after the exact original local worker ended.
  * Locality/authority: Read-only on current local platform/group/original actors. The producer
  * must still own the exact journal/reference. An actual completed private original FSM,
- * matching local worker serial/owner/episode epoch and recorded original return orders are
- * required; a remote done flag, ended timer or changed seat alone is never sufficient.
+ * matching local worker serial/owner/episode epoch are required. RETURN additionally needs
+ * recorded original return orders. A remote done flag, ended timer or changed seat alone
+ * is never sufficient.
  * Current group epoch and any recorded tactical generation must still match; this passive
  * check grants no new command authority. Caller runs it inside its unscheduled retirement call.
  * Repeat/JIP: No commands, publication, worker, replay or deadline renewal. Late evidence can
  * retire metadata after the old window, never grant another stop/return command. This does
  * not confirm a foreign owner's worker termination or arbitrary native supersession.
+ * EXTERNAL_STOP only observes a newer native STOP on every surviving original operator,
+ * with measured platform rest. STOP is intentionally perpetual, so readiness is not required.
+ * It never restores or cancels that newer order.
  * Arguments: platform OBJECT,objNull; journal HASHMAP,empty; private worker ARRAY,[];
- * current private worker serial NUMBER,-1.
- * Return: BOOL current original return acknowledgement observed, not physical returned travel.
+ * current private worker serial NUMBER,-1; optional evidence mode STRING,RETURN
+ * (EXTERNAL_STOP is restricted to ended UNRESOLVED work).
+ * Return: BOOL original return or explicit newer STOP observed, not physical returned travel.
  * Current callers: VehicleCrewMoveRetire for ended RETURNING/UNRESOLVED episodes.
  * Example: [_vehicle,_work,_privateWorker,_workerSerial] call CBE_fnc_VehicleCrewMoveReturnProof;
  */
 params [["_battery",objNull,[objNull]],["_work",createHashMap,[createHashMap]],
-    ["_executor",[],[[]]],["_executorSerial",-1,[0]]];
+    ["_executor",[],[[]]],["_executorSerial",-1,[0]],["_mode","RETURN",[""]]];
 private _group=_work getOrDefault ["group",grpNull];
 if (isNull _battery || {!local _battery} || {!(_group isEqualType grpNull)}
-    || {isNull _group} || {!local _group} || {!("returns" in _work)}
+    || {isNull _group} || {!local _group} || {!(_mode in ["RETURN","EXTERNAL_STOP"])}
+    || {_mode == "RETURN" && {!("returns" in _work)}}
+    || {_mode == "EXTERNAL_STOP" && {(_work getOrDefault ["phase",""]) != "UNRESOLVED"}}
     || {!((_work getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"])}
     || {count _executor != 5} || {!finite _executorSerial} || {_executorSerial < 0}
     || {[0,1,2,3,4] findIf {!((_executor select _x) isEqualType 0)
@@ -37,6 +44,25 @@ if ("operationGeneration" in _work && {!(_generation isEqualType 0) || {!finite 
     || {_generation < 0} || {_generation != (_group getVariable ["CBE_OperationGeneration",-2])}}) exitWith {false};
 private _seats=_work getOrDefault ["crew",[]];
 private _baseline=_work getOrDefault ["baseline",[]];
+// The producer only admits idle/WAIT/MOVE and issues positional movement. A current
+// STOP is therefore a newer native order, not its own positional hold. Retire
+// metadata only after the exact original private FSM has actually completed.
+if (_mode == "EXTERNAL_STOP") exitWith {
+    if (!(_seats isEqualType []) || {count _seats != 2}
+        || {_seats findIf {!(_x isEqualType objNull)} >= 0}
+        || {!(_baseline isEqualType [])} || {count _baseline != 4}
+        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE"])} >= 0}) exitWith {false};
+    private _stoppedWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
+    if (_stoppedWriters isEqualTo [] || {_stoppedWriters findIf {
+        !local _x || {group _x != _group} || {objectParent _x != _battery}
+            || {currentCommand _x != "STOP"}
+    } >= 0} || {[driver _battery,effectiveCommander _battery] findIf {
+        !isNull _x && {alive _x} && {!(_x in _stoppedWriters)}
+    } >= 0}) exitWith {false};
+    private _linear=vectorMagnitude velocity _battery;
+    private _angular=vectorMagnitude angularVelocity _battery;
+    finite _linear && {finite _angular} && {_linear < 0.278} && {_angular < 0.01}
+};
 private _returns=_work get "returns";
 private _until=_work getOrDefault ["replyUntil",-1];
 private _cleanup=_work getOrDefault ["cleanupUntil",-1];
