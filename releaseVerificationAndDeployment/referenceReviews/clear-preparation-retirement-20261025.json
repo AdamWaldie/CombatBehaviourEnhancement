@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "fddc70a432bd58d35cea96f907e0859e23f2652f",
+  "scope": "Fresh clearance preparation result and received settings-issuer cleanup window. Not coherent missing-record/owner-ready transport.",
+  "defects": [
+    "Fresh startup ignored CortexClearSettingsApply PREPARE results, including PENDING from exact predecessor restoration. It could admit a worker whose old canonical settings context still blocked application.",
+    "CortexClearSettingsRelease group pending window was keyed by current clear generation/epoch and recreated serverTime+30 whenever either changed. The same unresolved old actor issuer could receive a renewed automatic cleanup window. Existing cleanup callbacks themselves retained their window, but re-admission could replace it."
+  ],
+  "implementation": [
+    "Count every original-authority actor preparation, including fresh starts. Fresh startup requires ABSENT/PREPARED; other results use ACTOR_PREPARATION_UNAVAILABLE and existing scoped release before worker startup. Resume retains preceding ADOPTED/known-settings/motion checks.",
+    "New actor CBE_Cortex_ClearSettingRetireUntil is [settingsIssuer,originalUntil]. Same-issuer received windows survive group pending-generation rebinding; the group window uses that originalUntil rather than serverTime+30. A distinct issuer may establish its own window.",
+    "Malformed nonempty windows and received same-issuer expired windows refuse before automatic ActorSettings RELEASE; no new window is minted from those records. Exact successful restoration removes only its captured matching marker.",
+    "Uses existing shared cleanup service, existing at-most-eight preparation roster and unchanged one-actor cleanup callback. No new worker, scan, movement, target, group membership or fresh native task."
+  ],
+  "validation": {
+    "focused": "16 existing preparation, settings and native-motion cases passed; existing cases extended without increasing total test count. Source contracts, not native partial-readback simulation.",
+    "full": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-preparation-retirement-fddc70a4",
+    "fingerprint": "1fe53cd20bbbf599fddaca84a9bcfff7509d9e9dd9564089f45a286188e43205",
+    "history": "First complete build passed. Final build-2 includes the explicit missing/delayed receipt limitation in the packaged guide; it is the selected source/package."
+  },
+  "limits": [
+    "When a new owner has no retire-window receipt, current independent replication does not prove genuine absence. This change cannot guarantee no renewal across missing/delayed producer delivery; full coherent authenticated checkpoint transport remains incomplete.",
+    "A new explicit task PREPARE may attempt exact predecessor release through the normal helper; it does not renew the automatic cleanup window. Refused startup is not a deferred accepted task or proof of restored settings.",
+    "Partial/unknown canonical records and expired windows retain unresolved evidence. Historical marker may remain after a different direct preparation path completes; a distinct issuer does not inherit that old budget.",
+    "Actual partial native readback, repeated requests, locality, Zeus/casualty flow and5%median/10%p95 performance remain unverified. Audits paused. No source parity/build percentage is raised."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "691eb5e59fe71a06f45e3c13a62cdb098b24e38429942cfd53528673f183b6f2",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "d8d3f7a0bca2d2865dac961f6c32acdeb346d8a47c7cfe6f98cab891f4f76d19",
+    "addons/infantry/functions/cortexClearSettingsApply.sqf": "1d8ecad947c707470cd26d1987d61d63d06bcbf8f0dbc35064f1799a242c58d8",
+    "addons/core/functions/actorSettingsCleanupStep.sqf": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "a91d7e03d2048cbfbc03983c30290523b99776f8b51cd704b4ae79b756e6a2fd",
+    "releaseVerificationAndDeployment/test_clear_settings_release.py": "ec7c408bd2e379bb280056a6c580622599a1cbfcd2b8a7b857f38001db0a03bb",
+    "docs/Smart-AI-Pass.md": "cb538a36f65453eeb209c0ffd63c3373e49fb352158c9c94aca3219109876552"
+  }
+}

@@ -44,6 +44,15 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertIn('_pending select 0,_pending select 1,false',block)
         self.assertIn('serverTime >= (_pending select 2)',block)
         self.assertNotIn('serverTime+30',block)
+        release=read('addons/infantry/functions/cortexClearSettingsRelease.sqf')
+        self.assertIn('CBE_Cortex_ClearSettingRetireUntil',release)
+        self.assertIn('(_window select 0) isEqualTo _issuer && {serverTime >= (_window select 1)}',release)
+        self.assertLess(release.index('private _window='),release.index('call CBE_fnc_ActorSettings'))
+        self.assertIn('_windowValid && {(_window select 0) isNotEqualTo _issuer}',release)
+        self.assertIn('[_generation,_epoch,_until,0]',release)
+        self.assertNotIn('[_generation,_epoch,serverTime+30,0]',release)
+        self.assertIn('isEqualTo _window',release)
+
         self.assertNotIn('CBE_AIPass_Active',block)
         self.assertNotIn('CortexIsPaused',block)
         for command in ('doMove','doFollow','doStop','forceSpeed','setUnitPos'):

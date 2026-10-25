@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Resume startup refuses known actor settings/motion adoption failures; this is not
  * complete cross-owner readiness or proof that missing inherited records never existed.
+ * Fresh startup also consumes settings PREPARE results; pending predecessor restoration
+ * refuses worker startup and uses the existing scoped release/cleanup service.
  * True resume gives its episode-bound lane pairs precedence over lagging general buddy
  * metadata. Pair identity never bypasses current participant or actor admission.
  * Version4 exit journals retain server-time progress/motion clocks and the ASL motion
@@ -1083,11 +1085,13 @@ private _reconcileFailure="";
             if (!(_settingsOutcome in ["ADOPTED","ABSENT"])
                 || {_settingsRequired && {_settingsOutcome != "ADOPTED"}}) then {_reconcileFailure="ACTOR_SETTINGS_UNAVAILABLE"};
             if (!(_motionAdopted isEqualTo true)) then {_reconcileFailure="ACTOR_MOTION_UNAVAILABLE"};
-            _reconciledActors=_reconciledActors+1;
+        } else {
+            if (!(_settingsOutcome in ["ABSENT","PREPARED"])) then {_reconcileFailure="ACTOR_PREPARATION_UNAVAILABLE"};
         };
+        _reconciledActors=_reconciledActors+1;
     }] call _commitPreparation;
 } forEach (_team select [0,8]);
-if (_resume && {_reconcileFailure != "" || {_reconciledActors != (count _team min 8)}}) exitWith {
+if (_reconcileFailure != "" || {_reconciledActors != (count _team min 8)}) exitWith {
     [{
         [[_reconcileFailure,"ACTOR_RECONCILIATION_INTERRUPTED"] select (_reconcileFailure == "")] call _refuse;
         [_group,false] call CBE_fnc_CortexClearRelease;
