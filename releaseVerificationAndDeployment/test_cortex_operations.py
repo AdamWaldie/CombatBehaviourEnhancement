@@ -2455,6 +2455,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_Driving_DisabledFeatures',feature)
         self.assertIn('_vehicleDisabled isEqualType []',feature)
         self.assertIn('_setting in _vehicleDisabled',feature)
+        self.assertIn('CBE_Driving_EditorDisabledFeatures',feature)
+        self.assertIn('_setting in _editorDisabled',feature)
+        attribute=source('drivingAttributeApply')
+        for guard in ('!isServer','remoteExecutedOwner > 0','_feature in [','_after pushBackUnique _feature','_after=_after-[_feature]'):
+            self.assertIn(guard,attribute)
+        self.assertNotIn('"CBE_Driving_DisabledFeatures"',attribute)
+        self.assertIn('_after,true]',attribute)
+        config=(ROOT/'addons/main/config.cpp').read_text(encoding='utf-8')
+        import re
+        controls=re.findall(r"""expression = "\[_this,'([^']+)',_value\] call CBE_fnc_DrivingAttributeApply""" ,config)
+        self.assertEqual(len(controls),8)
+        self.assertEqual(len(set(controls)),8)
+        for control in controls:
+            self.assertIn('"'+control+'"',attribute)
+
         self.assertLess(feature.index('!_enabled'),feature.index('CBE_Driving_DisabledFeatures'))
         convoy=source('convoyTick')
         self.assertIn('"CBE_Convoy_DrivingAssist_Enable",true,_lead] call',convoy)

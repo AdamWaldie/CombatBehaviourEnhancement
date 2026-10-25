@@ -6,7 +6,7 @@
  * Empty names, non-boolean settings and malformed exclusion containers refuse the feature.
  * Explicit exclusions return before the existing ownership marker check.
  * Arguments: 0: group <GROUP>, grpNull; 1: setting name <STRING>, empty; 2: fallback <BOOL>, false.
- * 3: optional driving vehicle <OBJECT>, objNull; its exclusion list can only disable an enabled aid.
+ * 3: optional driving vehicle <OBJECT>, objNull; its script and editor exclusion lists can only disable an enabled aid.
  * Return Value: Boolean.
  * Current callers: AI behaviours, convoy controller and shared passenger checks.
  * Example: [_group, "CBE_AIPass_Reinforce_Enable", true] call CBE_fnc_CortexFeatureEnabled;
@@ -21,5 +21,9 @@ if (!isNull _vehicle) then {
     private _vehicleDisabled=_vehicle getVariable ["CBE_Driving_DisabledFeatures",[]];
     if (!(_vehicleDisabled isEqualType []) || {"ALL" in _vehicleDisabled}
         || {_setting in _vehicleDisabled}) exitWith {_enabled=false};
+    // Eden owns a separate list: restoring inheritance must not clear mission exclusions.
+    private _editorDisabled=_vehicle getVariable ["CBE_Driving_EditorDisabledFeatures",[]];
+    if (!(_editorDisabled isEqualType []) || {"ALL" in _editorDisabled}
+        || {_setting in _editorDisabled}) exitWith {_enabled=false};
 };
 _enabled && {isNull _group || {!([_group] call CBE_fnc_CompatibilityExternalControl)}}

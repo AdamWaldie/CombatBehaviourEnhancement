@@ -164,8 +164,98 @@ class Extended_DisplayLoad_EventHandlers {
     };
 };
 
-// Editor presentation only; behaviour registration remains server-owned.
+// Editor controls publish server-owned exclusions; preview hooks remain presentation only.
 class Cfg3DEN {
+    class Object {
+        class AttributeCategories {
+            class CBE_DrivingPolicy {
+                displayName = "CBE driving exclusions";
+                collapsed = 1;
+                class Attributes {
+                class CBE_DrivingDisableOrdinary {
+                    displayName = "Disable ordinary driving assistance";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableOrdinary";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableRecovery {
+                    displayName = "Disable ordinary route recovery";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableRecovery";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_Recovery_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableCrewRecall {
+                    displayName = "Disable optional crew recall";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableCrewRecall";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_CrewRecall_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisablePassing {
+                    displayName = "Disable experimental passing";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisablePassing";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_Passing_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableQueue {
+                    displayName = "Disable experimental queue negotiation";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableQueue";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_Queue_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableCloseGates {
+                    displayName = "Disable optional gate closure";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableCloseGates";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_AIPass_DrivingAssist_CloseGates_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableConvoy {
+                    displayName = "Disable convoy driving assistance";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableConvoy";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_Convoy_DrivingAssist_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                class CBE_DrivingDisableConvoyRecovery {
+                    displayName = "Disable convoy route recovery";
+                    tooltip = "Checked: exclude this vehicle. Unchecked: inherit CBA and mission policy. Does not force-enable an aid or cancel a native leg already issued.";
+                    property = "CBE_DrivingDisableConvoyRecovery";
+                    control = "Checkbox";
+                    expression = "[_this,'CBE_Convoy_RouteRecovery_Enable',_value] call CBE_fnc_DrivingAttributeApply";
+                    defaultValue = "false";
+                    typeName = "BOOL";
+                    condition = "objectVehicle";
+                };
+                };
+            };
+        };
+    };
     class EventHandlers {
         class CBE_CorridorPreview {
             onMissionLoad = "['INSTALL'] call CBE_fnc_EdenDrivingCorridorPreview";

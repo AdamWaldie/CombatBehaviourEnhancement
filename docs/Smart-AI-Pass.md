@@ -2902,3 +2902,12 @@ The group brain validates its private next-wake delay and resulting deadline bef
 ### Group FSM low-FPS pacing
 
 Below the existing owner-machine low-FPS threshold, non-urgent group decision delays now double at their private FSM wake boundary. A live danger responsiveness lease bypasses that backoff. Illumination maintenance still caps the resulting delay at1s, and an active coordinated COVER role at2s, so the backoff cannot outlast their protocol deadlines. The shared scheduler continues to pace retry-return jobs; group decisions return -1 and therefore need this separate application of the same policy. Finite-delay/deadline rejection also runs after scaling. No new setting, timer, scan or movement owner is introduced. Actual responsiveness, frame overhead and multiplayer behaviour remain unverified while audits are paused.
+
+
+### Per-vehicle Eden driving exclusions
+
+Vehicle attributes now include **CBE driving exclusions**. All eight checkboxes default to unchecked (inherit CBA and mission policy): ordinary assistance, ordinary recovery, optional crew recall, experimental passing, experimental queue negotiation, optional gate closure, convoy assistance and convoy recovery. Checking a box disables only that aid on that vehicle. It never enables a globally disabled feature. These controls do not change formation, group membership or mission orders.
+
+The server applies attributes through `CBE_fnc_DrivingAttributeApply`; current and later owners read public `CBE_Driving_EditorDisabledFeatures` metadata through the existing feature gate. Mission-authored `CBE_Driving_DisabledFeatures` exclusions remain separate and dominant. Reapplying an unchecked attribute removes only its editor exclusion. No additional worker, scan or movement controller is installed. Native legs already issued retain their existing finite cleanup/handback rules; an opt-out is not an immediate physical stop.
+
+Server script example: `[truck1,"CBE_AIPass_DrivingAssist_Recovery_Enable",true] call CBE_fnc_DrivingAttributeApply;` Pass false to restore inheritance for that editor-owned entry. The helper rejects clients, remote execution, non-ground vehicles and unknown feature names. Eden save/load, repeated application, JIP and owner migration remain in-engine retests while audits are paused. These attributes do not add automatic repair, unflip, immunity or teleport shortcuts.
