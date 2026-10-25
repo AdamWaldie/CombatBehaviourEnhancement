@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "10074edb",
+  "scope": "Clearance entry/sweep resume preflight-to-operation-start lane journal consistency.",
+  "finding": "Preflight required a matching 13-field lane journal, but commit only rechecked common order/generation, visit context and roster. A different/disappeared journal could pass the commit and fail later ADOPT after startup had consumed the durable order.",
+  "executionContext": "Normal discovery and remoteExecCall callers are unscheduled; no ordinary intra-call suspension is claimed for them. The public script call also supports scheduled execution, where preflight can precede a scheduler suspension and delivery/update before the later isNil commit. The new equality check is inside that existing atomic mutation boundary.",
+  "implementation": "Capture the preflight-admitted journal and compare it again before release/setup/OperationStart. Changed or missing data returns RESUME_LANES_CHANGED without consuming the durable order or renewing deadlines. Completed-room egress does not gain an unnecessary lane requirement. No payload schema, worker, retry, world query or native command change.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "5eaa27e81839c689c012e82b9078053dc6a7165d0167d6ef288139139c13c216",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "f8ed116caf5db28eb14618a150987b0a3c8ef5f6ed5e65e6fb8c28cfbc751c7b"
+  },
+  "validation": {
+    "focusedTests": 3,
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-lane-admission-10074edb",
+    "fingerprint": "86e85656ec3e4d632a42e6f9d8e81df084454f97c945d464b985844d1e99725c"
+  },
+  "limits": "This is one admission consistency guard, not the complete ordered snapshot/owner-ready contract. It relies on the existing producer replacing coherent lane snapshots rather than mutating their nested arrays in place. Later preparation/adoption, changed-roster migration, actor-local native acknowledgement, physical CQB flow and performance remain incomplete/unverified. Audits paused; no percentage increase or whole parity claim."
+}

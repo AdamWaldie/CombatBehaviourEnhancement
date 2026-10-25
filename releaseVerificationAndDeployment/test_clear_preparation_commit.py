@@ -83,6 +83,13 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for proof in ('!_useResumeRoster','count _resumeLanes != 13','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
             self.assertIn(proof,preflight)
         self.assertIn('if (_resumeLanePending) exitWith {false};',preflight)
+        self.assertIn('_resumeLaneReceipt=+_resumeLanes',preflight)
+        commit=text.split('private _handoffFailure="HANDOFF_CHANGED";',1)[1].split('if (!_handoffAccepted)',1)[0]
+        self.assertIn('isNotEqualTo _resumeLaneReceipt',commit)
+        self.assertLess(commit.index('"RESUME_LANES_CHANGED"'),commit.index('call CBE_fnc_OperationStart'))
+        lane_guard=commit.split('if (_resumeLaneReceipt isNotEqualTo []',1)[1].split('_handoffFailure="RESUME_LANES_CHANGED"',1)[0]
+        for mutation in ('setVariable','CortexClearRelease','OperationStart','serverTime+'):
+            self.assertNotIn(mutation,lane_guard)
         for forbidden in ('setVariable','_retireResume','_refuse','CortexClearRelease','serverTime+'):
             self.assertNotIn(forbidden,preflight)
         self.assertLess(text.index('serverTime >= (_deadline min _hardDeadline)'),text.index('private _resumeLanePending=false;'))

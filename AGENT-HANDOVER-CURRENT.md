@@ -10,7 +10,7 @@ Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, branch `Adam/cb
 
 The push result will be recorded in `.qa/handovers/low-usage-push-20261025.json`. Check that receipt and the live remote before assuming the checkpoint was pushed. Historical notes remain in `AGENT-HANDOVER.md`; the current entry supersedes earlier proposed next tasks.
 
-The latest exact unsigned development candidate is `.qa/candidates/artillery-surviving-driver-cafa794a`, fingerprint `df84e3423c88b2e1dd1555411a9159999749f241a16db5db1e12589fee043119`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
+The latest exact unsigned development candidate is `.qa/candidates/clear-lane-admission-10074edb`, fingerprint `86e85656ec3e4d632a42e6f9d8e81df084454f97c945d464b985844d1e99725c`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
 
 Private group wakes now reject non-finite deadlines and apply the existing low-FPS policy. Live danger responsiveness bypasses backoff; illumination and COVER caps apply afterward. Do not implement that task again. Recent work also covers selected artillery crew positioning without group splitting, remote HOLD readiness, convoy reversal navigation yield, reserved-support discovery filtering and clearance-owned grenade interruption. Physical reliability remains unverified.
 
@@ -33,6 +33,8 @@ Artillery casualty recovery now has a traced blocking path: `UNRESOLVED` retains
 Road sensing now measures each selected segment turn using its already-read endpoint midpoint, consistent with grade and distance. See `hbq-road-endpoint-turn-20261025.json`. Source branch-selection heuristics, CBE conservative thresholds and physical/performance limits remain explicit. No extra road reads. Do not repeat the already-recorded navigation/precision review as new parity progress.
 
 Active artillery work now enters retirement-only when its distinct original commander is lost and the original driver is still the sole current operating actor. It stops/returns only living original actors, preserves baseline indices and deadlines, and refuses expired retirement before the native stop request. See `artillery-surviving-driver-retirement-20261025.json`. Original driver loss, replacement operator, already-unresolved surviving-writer recovery and deleted-platform cases remain incomplete. Final build attempt3 and independent verification passed; attempt2 failed a corrected regression source-section boundary.
+
+CQB entry/sweep resume now binds the atomic operation-start commit to its preflight-admitted lane journal. A changed or missing journal defers before consuming the durable order or renewing deadlines. See `clear-lane-admission-20261025.json` for exact scheduled-caller context and hashes. Normal unscheduled callbacks do not acquire a fictional suspension race. This does not complete the ordered owner-ready delivery contract; later adoption/native acknowledgement remain open.
 
 ## Next work and evidence
 

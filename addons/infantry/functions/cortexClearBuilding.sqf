@@ -70,7 +70,8 @@
  * Locality and authority: call where the group is local, or on the server, which forwards to the
  * owner. Non-server, non-owner copies do nothing.
  *
- * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; matching coherent lane snapshots are adopted without a fresh progress age; missing entry/sweep snapshots refuse startup.
+ * Review contract: Local job generations prevent replaced jobs from issuing orders. Eligibility is checked before dispatch and on each step. Public visited and unreachable position indices, retry/failure evidence, progress-renewed stall deadline, immutable episode deadline and original behaviour survive handover; matching coherent lane snapshots are adopted without a fresh progress age; missing entry/sweep snapshots refuse startup. The admitted lane journal is rechecked before
+ * operation startup; a changed journal defers rather than consuming the durable order.
  *
  * Arguments:
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
@@ -378,6 +379,7 @@ if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] cal
 // A delayed lane/roster publication must not consume the durable order by entering
 // setup and failing adoption afterward. Discovery retries this read-only admission under
 // the original stall/hard deadlines above. Completed room work uses its separate exit journal.
+private _resumeLaneReceipt=[];
 private _resumeLanePending=false;
 if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreachable)) < count _positions}) then {
     private _resumeLanes=_group getVariable ["CBE_Cortex_ClearLanes",[]];
@@ -388,6 +390,7 @@ if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreach
         || {(_resumeLanes select 2) isNotEqualTo _resumeRosterContext}
         || {(_resumeLanes select 3) isNotEqualTo _positions}
         || {(_resumeLanes select 4) isNotEqualTo _resumePairs};
+    if (!_resumeLanePending) then {_resumeLaneReceipt=+_resumeLanes};
 };
 if (_resumeLanePending) exitWith {false};
 private _generation=-1;
@@ -412,6 +415,11 @@ isNil {
         || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {};
     if (_resume && {!(call _resumeCurrent)}) exitWith {_handoffFailure="RESUME_ORDER_CHANGED"};
     if !(call _admissionStable) exitWith {_handoffFailure="TARGET_CHANGED_DURING_ADMISSION"};
+    // Scheduled script callers may suspend before this commit. Do not consume a
+    // durable order against a different lane journal than the preflight admitted.
+    if (_resumeLaneReceipt isNotEqualTo [] && {
+        (_group getVariable ["CBE_Cortex_ClearLanes",[]]) isNotEqualTo _resumeLaneReceipt
+    }) exitWith {_handoffFailure="RESUME_LANES_CHANGED"};
     // These arrays can change without a new common generation. Never commit a roster
     // selected before a replacement or changed visit episode arrived during planning.
     if (_useResumeRoster && {

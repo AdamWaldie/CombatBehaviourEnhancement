@@ -2954,3 +2954,7 @@ After selecting a connected road piece, bend sensing derives its turn from the s
 ### Selected-gun commander casualty
 
 If a distinct original commander dies during active selected-gun movement, the surviving original driver can retire its own movement through the existing finite stop and native-order return. The episode becomes retirement-only: it cannot continue the outward task or adopt a replacement operator. The original baseline and cleanup deadline are preserved; dead actors receive no movement command. Driver loss, a new operator or already-unresolved surviving-writer work remains unresolved. Group membership is unchanged. Physical casualty, repeated use and locality cases remain unverified.
+
+### Clearance resume admission
+
+Entry/sweep resumption retains the lane journal admitted during preflight and compares it again before starting a replacement operation. If that journal changed or disappeared, startup defers and preserves the durable order and its deadlines for retry. This protects scheduled script callers as well as the existing owner path; it does not complete ordered snapshot delivery or establish native movement acknowledgement.
