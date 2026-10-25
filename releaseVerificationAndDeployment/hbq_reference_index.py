@@ -13,7 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REVIEWS = ROOT / "releaseVerificationAndDeployment/referenceReviews"
 OUTPUT = REVIEWS / "hbq-reference-index.json"
-SOURCE = ROOT / ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai"
+SOURCE = ROOT / ".qa/hbq-complete-source-20261025"
+SOURCE_MANIFEST = REVIEWS / "hbq-local-package-freshness-20261017.json"
 HISTORIC = ROOT / ".qa/workshop-comparison-20261014/HBQ-SEMANTIC-REVIEWS.json"
 CONTROLLER_SHA = "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
 
@@ -30,6 +31,11 @@ def inventory() -> dict:
     if not HISTORIC.is_file():
         raise ValueError("Historic private review index is unavailable; do not infer its coverage.")
     source_files = sorted(p for p in SOURCE.rglob("*") if p.is_file() and p.suffix.lower() in {".sqf", ".cpp", ".hpp", ".fsm"})
+    manifest = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8-sig"))
+    expected = {row["path"]: row["sha256"] for row in manifest["rows"]}
+    actual = {p.relative_to(SOURCE).as_posix(): digest(p) for p in source_files}
+    if actual != expected:
+        raise ValueError("Complete HBQ source membership or hashes differ from the protected package manifest; do not index a partial snapshot.")
     current = []
     for path in sorted(REVIEWS.glob("*.json")):
         if path == OUTPUT:
@@ -61,6 +67,9 @@ def inventory() -> dict:
         history.append(row)
     return {"schema": 1, "workshopId": "3812620045", "sourceRoot": relative(SOURCE),
             "sourceControllerSha256": CONTROLLER_SHA,
+            "sourceManifest": {"path": relative(SOURCE_MANIFEST), "sha256": digest(SOURCE_MANIFEST),
+                               "packageSha256": manifest["packageSHA256"],
+                               "meaning": "Exact extracted source membership and hashes, not semantic review or implementation coverage."},
             "sourceFiles": [{"path": p.relative_to(SOURCE).as_posix(), "sha256": digest(p)} for p in source_files],
             "readableReviewPointers": current,
             "historicIndex": {"path": relative(HISTORIC), "sha256": digest(HISTORIC)},
