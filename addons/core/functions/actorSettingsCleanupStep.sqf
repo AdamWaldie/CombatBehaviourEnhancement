@@ -6,6 +6,8 @@
  * Repeat/JIP: One keyed shared-scheduler job per cleanup kind; original30s windows are never renewed.
  * At most64 members/queued actors are inspected and one actor is offered per callback. No movement,
  * targeting, task replay, world query or per-actor worker. Expiry retains actor proof.
+ * A canonical lease with the matching original clearance-retirement issuer stays eligible
+ * even if convenience mirrors are absent; unrelated canonical settings are not clearance work.
  * Arguments: 0 job HASHMAP, empty; group GROUP, ownerEpoch NUMBER, generation NUMBER; kind STRING CLEAR/GARRISON (CLEAR default).
  * Return: NUMBER .25 while pending, otherwise -1 to retire.
  * Current callers: CortexSchedulerTick, queued by settings release, CortexStop and CortexLocality.
@@ -65,6 +67,17 @@ private _actors=_members select {
     !isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}
         || {!isNil {_x getVariable "CBE_Cortex_ClearStance"}}
         || {!isNil {_x getVariable "CBE_Cortex_ClearSettingToken"}}
+        || {
+            private _clearWindow=_x getVariable ["CBE_Cortex_ClearSettingRetireUntil",[]];
+            private _canonical=_x getVariable ["CBE_ActorSettings",[]];
+            _clearWindow isEqualType [] && {count _clearWindow == 2}
+                && {(_clearWindow select 0) isEqualType ""} && {(_clearWindow select 0) != ""}
+                && {(_clearWindow select 1) isEqualType 0} && {finite (_clearWindow select 1)}
+                && {_canonical isEqualType []} && {count _canonical == 3}
+                && {(_canonical select 0) isEqualType []} && {count (_canonical select 0) == 5}
+                && {((_canonical select 0) select 0) isEqualTo _group}
+                && {((_canonical select 0) select 1) isEqualTo (_clearWindow select 0)}
+        }
 };
 if (_actors isEqualTo []) exitWith {
     _group setVariable ["CBE_Cortex_ClearSettingsPending",nil,true];

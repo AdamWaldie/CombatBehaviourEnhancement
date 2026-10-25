@@ -48,10 +48,21 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertIn('CBE_Cortex_ClearSettingRetireUntil',release)
         self.assertIn('(_window select 0) isEqualTo _issuer && {serverTime >= (_window select 1)}',release)
         self.assertLess(release.index('private _window='),release.index('call CBE_fnc_ActorSettings'))
-        self.assertIn('_windowValid && {(_window select 0) isNotEqualTo _issuer}',release)
+        self.assertIn('_windowValid && {(_window select 0) isNotEqualTo _issuer} && {_canonicalIssuerMatches}',release)
         self.assertIn('[_generation,_epoch,_until,0]',release)
         self.assertNotIn('[_generation,_epoch,serverTime+30,0]',release)
         self.assertIn('isEqualTo _window',release)
+        actor_selection=block.split('private _actors=_members select {',1)[1].split('if (_actors isEqualTo [])',1)[0]
+        self.assertIn('"CBE_ActorSettings",[]',actor_selection)
+        self.assertIn('"CBE_Cortex_ClearSettingRetireUntil",[]',actor_selection)
+        self.assertIn('((_canonical select 0) select 0) isEqualTo _group',actor_selection)
+        self.assertIn('((_canonical select 0) select 1) isEqualTo (_clearWindow select 0)',actor_selection)
+        recovery=release.split('if (_issuer isEqualTo ""',1)[1].split('if (_window isNotEqualTo []',1)[0]
+        self.assertIn('((_lease select 0) select 0) isEqualTo _group',recovery)
+        self.assertIn('((_lease select 0) select 1) isEqualTo (_window select 0)',recovery)
+        self.assertIn('_issuer=_window select 0',recovery)
+        self.assertNotIn('setVariable',recovery)
+
 
         self.assertNotIn('CBE_AIPass_Active',block)
         self.assertNotIn('CortexIsPaused',block)

@@ -8,6 +8,8 @@
  * Its actor issuer/deadline survives group generation/epoch changes; expired or malformed
  * nonempty windows cannot authorize further automatic restoration or be reset by re-admission.
  * One keyed cleanup callback survives tactical shutdown; no native movement, target or formation command.
+ * Missing convenience-token metadata may use only a canonical lease whose group/issuer
+ * agrees with the retained clearance-retirement window; no baseline is reconstructed.
  * Arguments: 0 actor OBJECT objNull;1 group GROUP grpNull;2 clear generation NUMBER -1;
  * 3 owner epoch NUMBER -1;4 allow finite deferral BOOL true.
  * Return: BOOL settings retired or absent; false retains baseline without changing controls.
@@ -32,6 +34,15 @@ isNil {
     private _windowValid=_window isEqualType [] && {count _window == 2}
         && {(_window select 0) isEqualType ""} && {(_window select 1) isEqualType 0}
         && {finite (_window select 1)};
+    if (_issuer isEqualTo "" && {_windowValid} && {(_window select 0) != ""}
+        && {_lease isEqualType []} && {count _lease == 3}
+        && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 5}
+        && {((_lease select 0) select 0) isEqualTo _group}
+        && {((_lease select 0) select 1) isEqualTo (_window select 0)}) then {
+        // The canonical context retains the actual baseline. This window identifies
+        // clearance retirement only; it grants no new application or deadline.
+        _issuer=_window select 0;
+    };
     if (_window isNotEqualTo [] && {!_windowValid
         || {(_window select 0) isEqualTo _issuer && {serverTime >= (_window select 1)}}}) exitWith {};
     if (_lease isEqualType [] && {count _lease == 3}
@@ -55,7 +66,11 @@ isNil {
     };
     // Unknown/missing canonical state cannot turn surviving mirrors into a new baseline.
     if (!_retired && {_defer} && {_issuer isEqualType ""}) then {
-        if (_window isEqualTo [] || {_windowValid && {(_window select 0) isNotEqualTo _issuer}}) then {
+        private _canonicalIssuerMatches=_lease isEqualType [] && {count _lease == 3}
+            && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 5}
+            && {((_lease select 0) select 0) isEqualTo _group}
+            && {((_lease select 0) select 1) isEqualTo _issuer};
+        if (_window isEqualTo [] || {_windowValid && {(_window select 0) isNotEqualTo _issuer} && {_canonicalIssuerMatches}}) then {
             _window=[_issuer,serverTime+30];
             _actor setVariable ["CBE_Cortex_ClearSettingRetireUntil",_window,true];
         };
