@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Restore a temporarily selected driver leader only from the exact original task/actor
+ * receipt, while still applied, alive and in-group; newer leadership/Zeus control wins.
  * Purpose: Restores recorded formation, attack permission, vehicle speed and unload settings;
  * Both driver and movement-operator destination receipts must match before path stop/handback.
  * Older incomplete path receipts grant no native cleanup authority.
@@ -36,6 +38,7 @@ private _releaseEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _releaseToken=_group getVariable ["CBE_Convoy_LocalJobToken",""];
 private _releaseRegistry=missionNamespace getVariable ["CBE_Convoy_ReceivedRevision",-1];
 private _releaseBaseline=_group getVariable ["CBE_Convoy_Restore",[]];
+private _releaseLeaderLease=_group getVariable ["CBE_Convoy_LeaderLease",[]];
 private _brainRetired=false;
 if (_expectedToken != "" && {(_brain getOrDefault ["jobToken",""]) != _expectedToken || {_releaseToken != _expectedToken}}) exitWith {};
 private _releaseCurrent={
@@ -93,6 +96,19 @@ if (_restore isNotEqualTo []) then {
     private _mayRestoreGroup=local _group && {!_externalTakeover};
     isNil {
         if (!(call _releaseCurrent) || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+        if (_mayRestoreGroup && {!_preserveMoves} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+            && {_releaseLeaderLease isEqualType []} && {count _releaseLeaderLease == 3}
+            && {(_group getVariable ["CBE_Convoy_LeaderLease",[]]) isEqualTo _releaseLeaderLease}
+            && {(_releaseLeaderLease select 0) isEqualTo (_restore param [4,-1,[0]])}
+            && {(_releaseLeaderLease select 1) isEqualTo (_restore param [3,objNull,[objNull]])}
+            && {(_releaseLeaderLease select 1) isEqualType objNull}
+            && {(_releaseLeaderLease select 2) isEqualType objNull}) then {
+            private _originalLeader=_releaseLeaderLease select 1;
+            private _appliedLeader=_releaseLeaderLease select 2;
+            if (alive _originalLeader && {group _originalLeader == _group} && {leader _group == _appliedLeader}) then {
+                _group selectLeader _originalLeader;
+            };
+        };
         if (_mayRestoreGroup && {!_preserveMoves}) then {
             if (formation _group == "COLUMN") then {_group setFormation _formation};
             if (!attackEnabled _group) then {_group enableAttack _attack};
@@ -252,6 +268,15 @@ if (_restore isNotEqualTo []) then {
 };
 isNil {
     if !(call _releaseCurrent) exitWith {};
+    // Retire only this captured receipt after actual restoration or supersession.
+    // An unchanged applied leader after a refused restoration retains the evidence.
+    if (_releaseLeaderLease isEqualType [] && {count _releaseLeaderLease == 3}
+        && {(_releaseLeaderLease select 1) isEqualType objNull}
+        && {(_releaseLeaderLease select 2) isEqualType objNull}
+        && {(_group getVariable ["CBE_Convoy_LeaderLease",[]]) isEqualTo _releaseLeaderLease}
+        && {leader _group != (_releaseLeaderLease select 2) || {!alive (_releaseLeaderLease select 1)}}) then {
+        _group setVariable ["CBE_Convoy_LeaderLease",nil,true];
+    };
     _group setVariable ["CBE_Convoy_LocalState", nil];
     if (_forget) then {_group setVariable ["CBE_Convoy_Restore", nil]};
 };

@@ -58,4 +58,20 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         self.assertLess(recall.index('if (_index > 0'),recall.index('waypointStatements _waypoint'))
         self.assertIn('checkAIFeature "MOVE"',s)
         self.assertIn('checkAIFeature "PATH"',s)
+        register=(ROOT/'addons/vehicles/functions/simpleAiConvoy.sqf').read_text(encoding='utf-8')
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        self.assertIn('[formation _group, attackEnabled _group, [], leader _group, _revision]',register)
+        self.assertIn('_old select 7',register)
+        self.assertIn('_yieldReason="LEADER_CHANGED"',tick)
+        self.assertIn('alive (_leaderLease select 2)',tick)
+        issue=tick.split('_group selectLeader driver _lead;',1)[0].rsplit('isNil {',1)[1]
+        self.assertIn('call _mayIssueDriving',issue)
+        self.assertIn('CortexZeusHeld',issue)
+        self.assertIn('[_leaderTask,_originalLeader,driver _lead]',issue)
+        restore=s.split('_group selectLeader _originalLeader;',1)[0].rsplit('isNil {',1)[1]
+        for guard in ('!_preserveMoves','CortexZeusHeld','_restore param [4,-1,[0]]',
+                      'alive _originalLeader','group _originalLeader == _group','leader _group == _appliedLeader'):
+            self.assertIn(guard,restore)
+        self.assertIn('leader _group != (_releaseLeaderLease select 2)',s)
+
 if __name__=='__main__': unittest.main()

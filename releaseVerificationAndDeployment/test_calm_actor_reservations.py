@@ -888,7 +888,11 @@ class ConvoyCleanupContextTests(unittest.TestCase):
             self.assertIn(proof,source.split('private _releaseCurrent={',1)[1].split('};',1)[0])
         self.assertGreaterEqual(source.count('call _releaseCurrent'),5)
         self.assertIn('isNil {\n        if !(call _releaseCurrent) exitWith {};',source)
-        self.assertIn('isNil {\n    if !(call _releaseCurrent) exitWith {};\n    _group setVariable ["CBE_Convoy_LocalState", nil]',source)
+        final=source.rsplit('\nisNil {',1)[1]
+        self.assertTrue(final.lstrip().startswith('if !(call _releaseCurrent) exitWith {};'))
+        self.assertIn('_group setVariable ["CBE_Convoy_LocalState", nil]',final)
+        self.assertIn('isEqualTo _releaseLeaderLease',final)
+        self.assertLess(final.index('call _releaseCurrent'),final.index('CBE_Convoy_LeaderLease'))
         fsm=(ROOT/'addons/main/fsm/convoyOperation.fsm').read_text().replace('""','"')
         self.assertIn('_reason,_brain getOrDefault ["jobToken",""]] call CBE_fnc_ConvoyReleaseLocal',fsm)
 

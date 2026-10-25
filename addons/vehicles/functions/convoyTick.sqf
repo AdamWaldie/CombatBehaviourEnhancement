@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Temporary driver leadership retains the original task/leader receipt. A later selection
+ * of another living leader yields this revision rather than repeatedly replacing it.
  * Follower smoothing fades in across the existing lower tolerance band; hard closing/reverse caps remain final.
  * Reversing predecessors suspend fresh follower trail destinations/paths, not pending handback.
  * Size-aware spacing uses facing hull extents from model origins, not symmetric half-lengths.
@@ -193,8 +195,20 @@ _group setVariable ["CBE_Convoy_Suspended", false];
 // revision yielded across later ticks and owner migration; only a new server revision may re-admit.
 private _nativePendingVehicles=[];
 private _commandYield=_group getVariable ["CBE_Convoy_CommandYield",[]];
+private _leaderLease=_group getVariable ["CBE_Convoy_LeaderLease",[]];
+private _leaderTask=_restore param [4,-1,[0]];
+private _originalLeader=_restore param [3,objNull,[objNull]];
+private _leaderLeaseCurrent=_leaderLease isEqualType [] && {count _leaderLease == 3}
+    && {(_leaderLease select 0) isEqualTo _leaderTask} && {_leaderTask >= 0} && {finite _leaderTask}
+    && {(_leaderLease select 1) isEqualTo _originalLeader}
+    && {(_leaderLease select 2) isEqualType objNull};
 if ((_commandYield param [0,-1]) != _revision) then {
     private _diverted=objNull;private _diversion=[];private _yieldReason="NEW_NATIVE_ORDER";
+    if (_leaderLeaseCurrent && {alive (_leaderLease select 2)}
+        && {leader _group != (_leaderLease select 2)}) then {
+        _diverted=_registered param [0,objNull,[objNull]];
+        _diversion=getPosATL leader _group;_yieldReason="LEADER_CHANGED";
+    };
     {
         private _vehicle=_x;private _receipt=_vehicle getVariable ["CBE_Convoy_MovementReceipt",[]];
         private _operator=effectiveCommander _vehicle;
@@ -421,7 +435,20 @@ if (!isNull _previousLead && {_previousLead != _lead} && {local _previousLead}) 
 };
 private _leadOperator=effectiveCommander _lead;
 if (isNull _leadOperator) then {_leadOperator=driver _lead};
-if (!(vehicle leader _group in _vehicles)) then {_group selectLeader driver _lead};
+// Native formation needs a mounted leader, but that is a temporary policy write.
+// Unknown/foreign receipts grant no write. A dead applied driver may be replaced
+// within the same original task without treating casualty succession as a new order.
+if (!(vehicle leader _group in _vehicles) && {finite _leaderTask} && {_leaderTask >= 0}
+    && {_leaderTask == floor _leaderTask} && {alive _originalLeader} && {group _originalLeader == _group}
+    && {(_leaderLease isEqualTo [] && {leader _group == _originalLeader})
+        || {_leaderLeaseCurrent && {leader _group == (_leaderLease select 2) || {!alive (_leaderLease select 2)}}}}) then {
+    isNil {
+        if (!([_lead,_leadOperator] call _mayIssueDriving) || {[_group] call CBE_fnc_CortexZeusHeld}
+            || {(_group getVariable ["CBE_Convoy_LeaderLease",[]]) isNotEqualTo _leaderLease}) exitWith {};
+        _group setVariable ["CBE_Convoy_LeaderLease",[_leaderTask,_originalLeader,driver _lead],true];
+        _group selectLeader driver _lead;
+    };
+};
 if ((_state getOrDefault ["revision", -1]) != _revision || {(_state getOrDefault ["lead", objNull]) != _lead} || {_vehicles isNotEqualTo (_state getOrDefault ["vehicles", []])}) then {
     // A local halt/resume or speed edit must not discard the predecessor route.
     // Only a changed vehicle order or a new owner needs fresh trail acquisition.
