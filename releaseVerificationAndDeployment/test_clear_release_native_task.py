@@ -14,6 +14,16 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertFalse(owned("STOP",False))
         self.assertTrue(owned("STOP",False,True))
         self.assertTrue(owned("",False))
+        # A finished issued leg is distinct from an arbitrary native WAIT. Test the
+        # retirement boundary against a newer episode/order, floor and moving actor.
+        def settled_wait(*,same_visit=True,same_route=True,same_target=True,
+                         command="WAIT",speed=0,remaining=1,height=.2):
+            return (command=="WAIT" and same_visit and same_route and same_target
+                    and speed < .278 and remaining <= 1.5 and abs(height) <= .75)
+        self.assertTrue(settled_wait())
+        for change in ({"same_visit":False},{"same_route":False},{"same_target":False},
+                       {"command":"STOP"},{"speed":.3},{"remaining":2},{"height":1}):
+            self.assertFalse(settled_wait(**change),change)
         # A settings lease or a previous stop elsewhere is not a current spatial hold.
         def same_hold(pose,post):
             return sum((a-b)**2 for a,b in zip(pose,post)) <= 1.5**2 and abs(pose[2]-post[2]) <= .75
@@ -60,6 +70,15 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertIn('_releaseMoveDestination vectorDistance _releaseMoveTarget <= 0.25',recognition)
         self.assertIn('private _ownedActor=_heldByJob || {_ownedMove}',recognition)
         self.assertIn('!finite _x',recognition)
+        settled=recognition.split('private _settledMove=',1)[1].split('private _ownedActor=',1)[0]
+        for proof in ('currentCommand _x == "WAIT"','count _motionReceipt == 5',
+                      '(_motionReceipt select 1) isEqualTo _retiringContext',
+                      '(_motionReceipt select 3) isEqualTo _releaseMoveTarget',
+                      'vectorMagnitude velocity _x < 0.278','<= 1.5','<= 0.75',
+                      'call CBE_fnc_NativeOrderReceipt'):
+            self.assertIn(proof,settled)
+        self.assertNotIn('doFollow',settled)
+        self.assertIn('|| {_settledMove}',s)
         start=s.index('private _movementOwned=')
         end=s.index('if (_restore && {_taskFree} && {_movementOwned} && {isNull objectParent _x})',start)
         guard=s[start:end]

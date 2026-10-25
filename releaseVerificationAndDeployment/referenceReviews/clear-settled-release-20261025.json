@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "97fb7915",
+  "scope": "Explicit clearance release of a completed own MOVE observed as WAIT; not complete owner migration or physical flow acceptance.",
+  "before": "CortexClearRelease recognised active MOVE and recorded STOP holds, but not a completed same-visit MOVE observed as WAIT. The executor/adoption paths already allowed a proven settled leg. The release path could therefore leave such an actor without formation handback.",
+  "implementation": "Within the existing atomic per-actor release block, recognise WAIT only with a typed five-field original MOVE receipt, exact private retiring visit context and private movement target, finite unchanged expected destination within0.25m, finite speed below0.278m/s, ASL-to-native-AGL target proximity within1.5m and vertical difference within0.75m, and unchanged nonempty native mission-order receipt. This proof grants actor recognition and the existing movement handback gate only. Existing on-foot/task/medical/external ownership, restore option and admitted formation-parent checks still apply. No new destination, teleport, retry, timer or worker.",
+  "validation": {
+    "focused": "10 existing native-task release tests passed; extended the existing boundary case for foreign visit/route/target, STOP, movement, distance and wrong floor.",
+    "full": "1497 tests, 422 SQF, 11 PBOs, terminal0",
+    "independent": "terminal0, fingerprint matched",
+    "candidate": ".qa/candidates/clear-settled-release-97fb7915",
+    "fingerprint": "1f2e73399a614282c80651c3bda3cd0ba34f4cf803db1e4b6955baca012ba745"
+  },
+  "limits": [
+    "Offline evidence only; audits paused. Not proof of physical following, coherent entry/exit or performance budget.",
+    "Only explicit release path changed; no claim that this explains all historical stragglers.",
+    "WAIT-only additional receipt/position/route observations use the existing bounded actor loop; cost unmeasured.",
+    "Producer checkpoint/replay, aggregate owner-ready proof and external controller handovers remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearRelease.sqf": "a64d95e358c090dee7bc6c42e13dcfae1a4f7a51f43f113b53bbe762c2ad3581",
+    "releaseVerificationAndDeployment/test_clear_release_native_task.py": "97c6460c9761acba9ed20b8f187ba5b9fec6d3c4a320770d105ff9355aa50b39"
+  }
+}

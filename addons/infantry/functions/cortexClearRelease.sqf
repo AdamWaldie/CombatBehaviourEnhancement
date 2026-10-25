@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Native fleeing retains movement authority through admission, execution and cleanup.
  * Release commands preserve live or malformed actor reservations; only typed finite leases expire.
+ * Exact same-visit settled WAIT legs can hand back only with unchanged native route/endpoint,
+ * measured rest and same-floor arrival. Other WAIT orders remain protected.
  * Cancels a clearing order immediately and resumes formation after doStop. Clearance does not own
  * group behaviour or combat mode, so release preserves any contact or Zeus change made during it.
  * Individual player, remote-control and external-owner actors never receive restoration commands.
@@ -143,7 +145,29 @@ if (!_groupRetired) exitWith {false};
             && {count _releaseMoveDestination == 3}
             && {_releaseMoveDestination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
             && {_releaseMoveDestination vectorDistance _releaseMoveTarget <= 0.25};
-        private _ownedActor=_heldByJob || {_ownedMove} || !isNil {_x getVariable "CBE_Cortex_ClearStance"}
+        // Native AI may finish an issued room leg as WAIT. Retirement must recognise
+        // that exact settled leg without treating another native WAIT as our movement.
+        private _motionReceipt=_x getVariable ["CBE_Cortex_ClearMotion",[]];
+        private _retiringContext=_motionJob get "visitContext";
+        private _retiringRoute=_releaseJob getOrDefault ["nativeOrderReceipt",[]];
+        private _settledMove=currentCommand _x == "WAIT"
+            && {_motionReceipt isEqualType []} && {count _motionReceipt == 5}
+            && {count _retiringContext == 4}
+            && {(_motionReceipt select 0) isEqualTo _group}
+            && {(_motionReceipt select 1) isEqualTo _retiringContext}
+            && {(_motionReceipt select 2) isEqualTo "MOVE"}
+            && {_releaseMoveTarget isEqualType []} && {count _releaseMoveTarget == 3}
+            && {_releaseMoveTarget findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {(_motionReceipt select 3) isEqualTo _releaseMoveTarget}
+            && {count _releaseMoveDestination == 3}
+            && {_releaseMoveDestination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_releaseMoveDestination vectorDistance _releaseMoveTarget <= 0.25}
+            && {finite vectorMagnitude velocity _x} && {vectorMagnitude velocity _x < 0.278}
+            && {(getPosASL _x) vectorDistance (AGLToASL _releaseMoveTarget) <= 1.5}
+            && {abs (((getPosASL _x) select 2)-((AGLToASL _releaseMoveTarget) select 2)) <= 0.75}
+            && {_retiringRoute isNotEqualTo []}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _retiringRoute};
+        private _ownedActor=_heldByJob || {_ownedMove} || {_settledMove} || !isNil {_x getVariable "CBE_Cortex_ClearStance"}
             || {!isNil {_x getVariable "CBE_Cortex_ClearForcedSpeed"}}
             || {private _stage=_x getVariable ["CBE_Cortex_ClearReserve",[]]; count _stage == 3
                 && {(_stage select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])-1}
@@ -173,6 +197,7 @@ if (!_groupRetired) exitWith {false};
             private _issued=_movementTargets getOrDefault [netId _x,[]];
             private _destination=(expectedDestination _x) param [0,[]];
             private _movementOwned=currentCommand _x == ""
+                || {_settledMove}
                 || {[_x,_releaseJob] call CBE_fnc_BuildingActorHoldOwned}
                 || {currentCommand _x == "MOVE" && {count _issued == 3 && {count _destination == 3}
                     && {_destination vectorDistance _issued <= 0.25}}};

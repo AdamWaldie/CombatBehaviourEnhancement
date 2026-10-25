@@ -2977,3 +2977,8 @@ Normal completion and cancellation remove only phase records bearing the retirin
 ### Clearance auxiliary phase admission — 2026-10-25
 
 Resume now captures early-exit and reserve-admission journals before startup alongside the other phase journals. Nonempty records must match the exact visit and retain bounded row arrays; final startup equality includes both records, including prior absence. Existing row/native ownership checks remain authoritative. This does not establish coherent replay or owner readiness. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs), with independent candidate verification: `.qa/candidates/clear-auxiliary-preflight-2c54605d`, fingerprint `2d4aefed5c0a122fb55dcd284c816182a3303c89f23a434dc8d2d9e711db1437`. Physical audits remain paused. Engineering review: `clear-auxiliary-preflight-20261025.json`.
+
+
+### Completed clearance leg release — 2026-10-25
+
+Explicit release now recognises an original clearance MOVE settled as WAIT only with the exact retiring visit, unchanged private/native target and mission-order receipt, measured rest and same-floor arrival. It then uses the existing task-safe admitted formation-parent handback; foreign WAIT remains protected. No new controller or retry is created. Full offline gates passed: 1497 tests, 422 SQF files, 11 PBOs. Independently verified candidate `.qa/candidates/clear-settled-release-97fb7915`, fingerprint `1f2e73399a614282c80651c3bda3cd0ba34f4cf803db1e4b6955baca012ba745`. Audits remain paused, so physical following and performance are unverified. See `clear-settled-release-20261025.json`.
