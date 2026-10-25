@@ -6,6 +6,9 @@
  * Exterior security is admitted only by its exact current generation/epoch/post reserve receipt;
  * MOVE must match that post and HOLD must remain within2m/0.75m vertically. The interior
  * participant cap does not make an already assigned exterior guard an unowned actor.
+ * Preparation may supply a private exact-context exterior-post proposal for CHECK only;
+ * original motion receipt and actual native MOVE/settled WAIT remain required. A proposal
+ * cannot publish/adopt metadata or authorize commands.
  * Writes require the actual live building brain and unexpired job. Adoption changes metadata only.
  * An original MOVE receipt may already be WAIT/idle: ADOPT/CHECK accept its unchanged native
  * endpoint plus measured rest within1.5m and0.75m vertically. CHECK reuses that proof
@@ -90,6 +93,18 @@ isNil {
                     && {(ATLToASL _target) vectorDistance (AGLToASL (_reserve select 2)) <= 2}
                     && {abs (((ATLToASL _target) select 2)-((AGLToASL (_reserve select 2)) select 2)) <= 0.75}
             }};
+        // Preparation may check an original exterior post before creating its new local
+        // reserve marker. This private, exact-context proposal is CHECK-only: actual native
+        // MOVE/settled WAIT and the retained motion receipt below still provide the proof.
+        // It can never publish or ADOPT motion, settings, a post or a new movement order.
+        private _reserveProbeRole=false;
+        if (_mode == "CHECK") then {
+            private _probe=_job getOrDefault ["reserveMotionProbe",[]];
+            _reserveProbeRole=_probe isEqualType [] && {count _probe == 3}
+                && {(_probe select 0) isEqualTo _context} && {(_probe select 1) isEqualTo _actor}
+                && {(_probe select 2) call _positionValid}
+                && {_kind == "MOVE"} && {_target isEqualTo (_probe select 2)};
+        };
         private _building=_job getOrDefault ["building",objNull];
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
         if (!local _group || {group _actor != _group} || {isPlayer _actor} || {!isNull objectParent _actor}
@@ -109,7 +124,7 @@ isNil {
             || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
             || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
             || {(_operation getOrDefault ["objective",objNull]) isNotEqualTo _building}
-            || {!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole}}
+            || {!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole} && {!_reserveProbeRole}}
             || {_actor in (_operation getOrDefault ["unavailable",[]])}
             || {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _context}
             || {(_context select 0) isNotEqualTo _building}

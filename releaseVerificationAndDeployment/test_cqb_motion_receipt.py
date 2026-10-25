@@ -23,6 +23,13 @@ class MotionReceiptTests(unittest.TestCase):
                       'vectorDistance (AGLToASL (_reserve select 2)) <= 2', '<= 0.75'):
             self.assertIn(proof,role)
         self.assertIn('!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole}',text)
+        probe=text.split('private _reserveProbeRole=false;',1)[1].split('private _building=',1)[0]
+        for proof in ('if (_mode == "CHECK")','count _probe == 3',
+                      '(_probe select 0) isEqualTo _context','(_probe select 1) isEqualTo _actor',
+                      '_kind == "MOVE"','_target isEqualTo (_probe select 2)'):
+            self.assertIn(proof,probe)
+        for forbidden in ('setVariable','doMove','doStop','ADOPT"'):
+            self.assertNotIn(forbidden,probe)
         # Publisher still requires a live brain; role proof does not supply native intent.
         self.assertLess(text.index('private _reserveRole='),text.index('private _matches='))
         move=text.split('private _matches=if (_kind == "MOVE") then {',1)[1].split('} else {',1)[0]
@@ -80,6 +87,19 @@ class MotionReceiptTests(unittest.TestCase):
         text=read('cortexClearBuilding.sqf')
         adopt=text.index('["ADOPT",_motionActor,_job]')
         self.assertLess(adopt,text.index('call CBE_fnc_BuildingOperationStart'))
+        reserve=text.split('private _checkResumeReserveMotion={',1)[1].split('private _actors=createHashMap;',1)[0]
+        self.assertIn('count (_stageBudget select 3) > 64',reserve)
+        self.assertIn('_stageBudget isNotEqualTo (_group getVariable ["CBE_Cortex_ClearStageBudget",[]])',reserve)
+        self.assertLess(reserve.index('set ["reserveMotionProbe"'),reserve.index('["CHECK",_probeActor'))
+        self.assertLess(reserve.index('["CHECK",_probeActor'),reserve.index('deleteAt "reserveMotionProbe"'))
+        self.assertNotIn('setVariable',reserve)
+        self.assertNotIn('serverTime+',reserve)
+        self.assertEqual(text.count('call _checkResumeReserveMotion'),2)
+        commit=text.split('private _postCommitted=false;',1)[1].split('} forEach ((_stageBudget select 3)',1)[0]
+        self.assertLess(commit.index('setVariable ["CBE_Cortex_ClearReserve"'),commit.index('_postCommitted=true'))
+        self.assertLess(commit.index('call _commitPreparation'),commit.index('if (_postCommitted) then'))
+        self.assertLess(commit.index('if (_postCommitted) then'),commit.index('_stages set [_key,+_stage]'))
+        self.assertLess(commit.index('if (_postCommitted) then'),commit.index('_moves set [_key,+_target]'))
         preparation=text.split('private _reconciledActors=0;',1)[1].split('private _laneAdopted=',1)[0]
         self.assertLess(preparation.index('if (_resume) then {'),preparation.index('["ADOPT",_motionActor,_job]'))
         self.assertIn('if (_motionRequired) then',preparation)

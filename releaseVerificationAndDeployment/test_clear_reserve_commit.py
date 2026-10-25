@@ -58,8 +58,9 @@ class ReserveCommitTests(unittest.TestCase):
         self.assertLess(arrival.index('call CBE_fnc_BuildingActorMotion'),arrival.index('doStop _reserve'))
         adoption=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
         self.assertIn('["CHECK",_actor,_job,_leg]',adoption)
-        self.assertIn('["CHECK",_actor,_job,_stage select 0]',adoption)
-        self.assertIn('["CHECK",_actor,_job,_target]',adoption)
+        self.assertIn('[_actor,_stage select 0] call _checkResumeReserveMotion',adoption)
+        self.assertIn('[_actor,_target] call _checkResumeReserveMotion',adoption)
+        self.assertIn('["CHECK",_probeActor,_job,_probeTarget] call CBE_fnc_BuildingActorMotion',adoption)
         self.assertIn('!finite _x',gate)
         self.assertIn('"reserveAdmissionCommands"',gate)
 

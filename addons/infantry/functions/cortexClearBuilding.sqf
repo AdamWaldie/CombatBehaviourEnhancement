@@ -1006,6 +1006,19 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
     private _triedEntries=createHashMap;
     private _stages=createHashMap;
     private _moves=_job getOrDefault ["movementTargets",createHashMap];
+    // This proposal exists only during a read-only native check of this validated
+    // phase journal. It is removed before any marker commit or worker admission.
+    private _checkResumeReserveMotion={
+        params ["_probeActor","_probeTarget"];
+        if (!(_probeTarget isEqualType []) || {count _probeTarget != 3}
+            || {_probeTarget findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            || {count (_stageBudget select 3) > 64}
+            || {_stageBudget isNotEqualTo (_group getVariable ["CBE_Cortex_ClearStageBudget",[]])}) exitWith {false};
+        _job set ["reserveMotionProbe",[+_visitContext,_probeActor,+_probeTarget]];
+        private _matched=["CHECK",_probeActor,_job,_probeTarget] call CBE_fnc_BuildingActorMotion;
+        _job deleteAt "reserveMotionProbe";
+        _matched isEqualTo true
+    };
     private _actors=createHashMap;
     {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
     {
@@ -1038,7 +1051,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
             && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"
                     || {currentCommand _actor == "WAIT"
-                        && {["CHECK",_actor,_job,_stage select 0] call CBE_fnc_BuildingActorMotion}}})
+                        && {[_actor,_stage select 0] call _checkResumeReserveMotion}}})
                 || {(_stage select 2) != "APPROACH" && {currentCommand _actor == "STOP"}
                     && {count (_stage select 0) == 3}
                     && {(getPosASL _actor) vectorDistance (AGLToASL (_stage select 0)) <= 2}
@@ -1051,8 +1064,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
             }) then {
                 // Adopt bookkeeping only: an approach retains its exact engine route.
                 // A stopped physical arrival has no live MOVE endpoint to compare.
-                _stages set [_key,+_stage];
-                _moves set [_key,+_target];
+                private _postCommitted=false;
                 [{
                     // Native intent can change between staged receipt observation and commit.
                     private _now=(expectedDestination _actor) param [0,[]];
@@ -1062,13 +1074,18 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
                         && {isNull remoteControlled _actor}
                         && {currentCommand _actor == "MOVE" && {count _now == 3} && {_now vectorDistance _target <= 0.25}
                             || {currentCommand _actor == "WAIT"
-                                && {["CHECK",_actor,_job,_target] call CBE_fnc_BuildingActorMotion}}
+                                && {[_actor,_target] call _checkResumeReserveMotion}}
                             || {currentCommand _actor == "STOP" && {(_stage select 2) != "APPROACH"}
                                 && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
                                 && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}) then {
                         _actor setVariable ["CBE_Cortex_ClearReserve",[_generation,_preparationEpoch,+_target]];
+                        _postCommitted=true;
                     };
                 }] call _commitPreparation;
+                if (_postCommitted) then {
+                    _stages set [_key,+_stage];
+                    _moves set [_key,+_target];
+                };
             };
         };
     } forEach ((_stageBudget select 3) select [0,64]);
