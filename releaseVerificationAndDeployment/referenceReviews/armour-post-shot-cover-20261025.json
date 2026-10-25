@@ -28,5 +28,17 @@
     "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers",
     "https://community.bistudio.com/wiki/fireAtTarget"
   ],
-  "audits": "paused"
+  "audits": "paused",
+  "screenedCandidateAdmission": {
+    "finding": "Optional cover scoring could let an exposed terrain/road winner suppress a screened alternative, because the post-shot caller rejected only the selected endpoint.",
+    "implementation": "Optional requireScreenedEndpoint false by default. The post-shot caller alone enables it. Final existing three upper-envelope material probes must all screen before scoring. Missing/oversized platform bounds refuse mandatory mode. Five escape candidates and existing per-leg query budgets retained. No second search.",
+    "validation": {
+      "tests": 1497,
+      "build": ".qa/handovers/armour-screened-selection-build.log",
+      "independent": ".qa/handovers/armour-screened-selection-independent.log",
+      "candidate": ".qa/candidates/armour-screened-selection-d83a8a99",
+      "fingerprint": "37855079ba656068a64c0c62dc2a1b534e5f2c63415d52b4a6183aa795d39f76",
+      "physicalAcceptance": false
+    }
+  }
 }

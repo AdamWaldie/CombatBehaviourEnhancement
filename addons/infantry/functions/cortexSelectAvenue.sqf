@@ -39,6 +39,10 @@
  * bushes, partial screening or unavailable/oversized bounds earn no endpoint credit.
  * Terrain/lane admission remains independent. This is sparse screening, not hull clearance,
  * ballistic protection, future heading/tilt prediction or firing-position proof.
+ * 7: require screened endpoint <BOOL>, default false. Vehicle callers may require the final
+ * endpoint to pass all three existing upper-envelope cover probes. Missing/invalid bounds
+ * refuse this mode; an unscreened high-scoring route cannot hide a screened alternative.
+ * This admits sparse observations only, not physical cover or a traversable native path.
  * Cost: one bounds/scale observation per platform plan; at most three cover probes per leg,
  * replacing existing route probes. No extra ray budget, scan, command, worker or cache.
  *
@@ -63,7 +67,8 @@ params [
     ["_supportOrigins",[],[[]]],
     ["_threatObject",objNull,[objNull]],
     ["_mobility","INFANTRY",[""]],
-    ["_platform",objNull,[objNull]]
+    ["_platform",objNull,[objNull]],
+    ["_requireScreenedEndpoint",false,[false]]
 ];
 if (count _start < 2 || {count _threat < 2} || {_candidates isEqualTo []}) exitWith {[]};
 _mobility=toUpper _mobility;
@@ -87,6 +92,7 @@ if (_vehicleScreening && {_platform isKindOf "LandVehicle"}) then {
         };
     };
 };
+if (_requireScreenedEndpoint && {!_vehicleScreening || {_envelope isEqualTo []}}) exitWith {[]};
 private _minimumSurfaceUp=[0.55,0.8] select _vehicleRoute;
 private _maximumGrade=[1.25,0.7] select _vehicleRoute;
 
@@ -102,6 +108,7 @@ private _bestScore=1e12;
             || {surfaceIsWater _x}} < 0};
     private _routeLength=0;
     private _hardScreen=0;
+    private _lastEndpointScreened=false;
     private _concealed=0;
     private _screenSamples=0;
     private _terrainPenalty=0;
@@ -207,6 +214,7 @@ private _bestScore=1e12;
                         if (!([_threatASL,_sampleASL,_platform,"COVER",_threatObject]
                             call CBE_fnc_CortexCoverScreened)) exitWith {_screened=false};
                     } forEach [-1,0,1];
+                    _lastEndpointScreened=_screened;
                     if (_screened) then {_hardScreen=_hardScreen+3};
                 };
             } else {
@@ -233,7 +241,7 @@ private _bestScore=1e12;
             _from=_to;
         } forEach _route;
     };
-    if (_valid) then {
+    if (_valid && {!_requireScreenedEndpoint || {_lastEndpointScreened}}) then {
         private _score=_routeLength
             -70*(_hardScreen/(_screenSamples max 1))
             -25*(_concealed/(_screenSamples max 1))

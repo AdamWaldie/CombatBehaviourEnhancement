@@ -780,14 +780,14 @@ _state set ["airGunneryProbeCursor",(_airProbeStart+2) mod _airProbeCount];
 private _airRange=missionNamespace getVariable ["CBE_AIPass_EngageRange",800];
 private _enemyPos = (_enemies select 0) select 1;
 private _selectVehicleEscape = {
-    params ["_vehicle","_threatPosition","_threatObject","_distance"];
+    params ["_vehicle","_threatPosition","_threatObject","_distance",["_requireScreenedEndpoint",false]];
     private _origin=getPosATL _vehicle;
     private _awayBearing=_threatPosition getDir _origin;
     private _candidates=[];
     {
         _candidates pushBack [_origin getPos [_distance,_awayBearing+_x]];
     } forEach [0,-25,25,-45,45];
-    private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE",_vehicle]
+    private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE",_vehicle,_requireScreenedEndpoint]
         call CBE_fnc_CortexSelectAvenue;
     if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
 };
@@ -952,7 +952,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             private _away=[];
             if (!_alreadyScreened) then {
                 _away=[_vehicle,_atPos,_atThreat,
-                    if (_postShotMove) then {25} else {(_standoff - (_vehicle distance2D _atPos)) max 60}]
+                    if (_postShotMove) then {25} else {(_standoff - (_vehicle distance2D _atPos)) max 60},_postShotMove]
                     call _selectVehicleEscape;
             };
             if (_postShotMove && {_away isNotEqualTo []}) then {

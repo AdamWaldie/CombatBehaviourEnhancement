@@ -4190,6 +4190,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('getObjectScale _platform',selector)
         self.assertIn('_radius <= 30',selector)
         self.assertIn('_height <= 20',selector)
+        # Mandatory post-shot cover admission reuses existing envelope observations before
+        # score selection, allowing another screened candidate to win without a second plan.
+        self.assertIn('["_requireScreenedEndpoint",false,[false]]',selector)
+        self.assertIn('if (_requireScreenedEndpoint && {!_vehicleScreening || {_envelope isEqualTo []}}) exitWith {[]}',selector)
+        self.assertIn('_lastEndpointScreened=_screened;',selector)
+        self.assertIn('if (_valid && {!_requireScreenedEndpoint || {_lastEndpointScreened}}) then {',selector)
+        self.assertIn('max 60},_postShotMove]',source('cortexVehicles'))
         self.assertIn('_threatObject,"VEHICLE",_vehicle',source('cortexVehicles'))
         self.assertIn('objNull,"VEHICLE",_vehicle',source('cortexAARelocate'))
         for name in ('cortexArtilleryPosition','cortexArtilleryScoot'):
