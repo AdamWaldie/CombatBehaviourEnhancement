@@ -85,6 +85,19 @@ class GroupCommunicationTests(unittest.TestCase):
                         roster=[(i,i%eligible_stride==0,i==free) for i in range(count)]
                         self.assertEqual(streamed(roster,leader),previous(roster,leader))
         self.assertIn('[_x] call CBE_fnc_CortexCanTransmit', transmitter)
+        self.assertIn('[_leader] call CBE_fnc_CortexCombatEffective',transmitter)
+        self.assertIn('[_x] call CBE_fnc_CortexCombatEffective',transmitter)
+        radio=source('cortexCanTransmit')
+        self.assertLess(radio.index('[_unit] call CBE_fnc_CortexCombatEffective'),radio.index('private _hook'))
+        self.assertLess(transmitter.index('[_x] call CBE_fnc_CortexCombatEffective'),transmitter.index('_checked=_checked+1'))
+        readiness=source('cortexCombatEffective')
+        for guard in ('alive _unit','ACE_isUnconscious','INCAPACITATED','captive _unit',
+                      'ace_captives_isSurrendering','ace_captives_isHandcuffed'):
+            self.assertIn(guard,readiness)
+        self.assertNotIn('damage _unit',readiness)
+        self.assertIn('_factor < 0.5',radio)
+        self.assertIn('if (isNil "_factor") exitWith {true}',radio)
+
         for forbidden in ['reveal ', 'doMove', 'doFollow', 'setVariable']:
             self.assertNotIn(forbidden, transmitter)
 

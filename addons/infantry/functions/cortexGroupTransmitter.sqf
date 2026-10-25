@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Finds one living group member that can pass a report or support request, preferring the leader while
+ * Finds one combat-effective group member that can pass a report or support request, preferring the leader while
  * allowing an observing wingman to maintain communication when the leader is unavailable or jammed.
  * Locality/authority: read-only; callable on any machine. At most twelve eligible actors
  * reach the transmission hook. The roster walk stops on success or that limit, but may
@@ -16,14 +16,14 @@ params [["_group", grpNull, [grpNull]]];
 if (isNull _group) exitWith {objNull};
 private _leader = leader _group;
 private _leaderEligible=!isNull _leader && {group _leader == _group}
-    && {alive _leader} && {!isPlayer _leader} && {lifeState _leader != "INCAPACITATED"};
+    && {!isPlayer _leader} && {[_leader] call CBE_fnc_CortexCombatEffective};
 // Most calls finish here without constructing or filtering the group's roster.
 if (_leaderEligible && {[_leader] call CBE_fnc_CortexCanTransmit}) exitWith {_leader};
 private _checked=if (_leaderEligible) then {1} else {0};
 private _transmitter = objNull;
 {
     if (_checked >= 12) exitWith {};
-    if (_x != _leader && {alive _x} && {!isPlayer _x} && {lifeState _x != "INCAPACITATED"}) then {
+    if (_x != _leader && {!isPlayer _x} && {[_x] call CBE_fnc_CortexCombatEffective}) then {
         _checked=_checked+1;
         if ([_x] call CBE_fnc_CortexCanTransmit) then {_transmitter = _x};
     };
