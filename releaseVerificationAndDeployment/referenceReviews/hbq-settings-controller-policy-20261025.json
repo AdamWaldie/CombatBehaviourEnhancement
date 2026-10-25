@@ -1,0 +1,458 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "2a1e0caf",
+  "workshopId": "3812620045",
+  "scope": "Full read of all26 HBQ CBA declarations, settings resolution helpers and selected actual controller consumers; explicit selected/rejected/pending policy, not whole source parity.",
+  "sourceHashes": {
+    "XEH_preInit.sqf": "93f18618cd7e637730b66180e66578513bd313d91f48f0012a4a65ad11c14244",
+    "functions/fn_enabled.sqf": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+    "functions/fn_feature.sqf": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+    "functions/fn_precision.sqf": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+    "functions/fn_initVehicle.sqf": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+    "functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  },
+  "settingDispositions": [
+    {
+      "setting": "HBQAD_Enabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_debugTextClient.sqf",
+          "lines": [
+            13
+          ]
+        },
+        {
+          "path": "functions/fn_driveAssistDebug.sqf",
+          "lines": [
+            27
+          ]
+        },
+        {
+          "path": "functions/fn_enabled.sqf",
+          "lines": [
+            18
+          ]
+        }
+      ],
+      "disposition": "Select explicit enable/disable and mission ownership intent. Source five-second startup exit skips Local handler installation entirely when disabled then; do not copy startup-only re-enable semantics. CBE live feature admission and finite handback already differ deliberately."
+    },
+    {
+      "setting": "HBQAD_ObstacleAvoidanceEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            114
+          ]
+        }
+      ],
+      "disposition": "Selected intent implemented in CBE live hull geometry, obstacle caps and bounded native bypass. No helper props or physical pushes. Branch parity and actual travel remain unverified."
+    },
+    {
+      "setting": "HBQAD_GateLogicEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            115
+          ]
+        }
+      ],
+      "disposition": "Selected intent implemented in CBE gate observation/opening and optional finite closure-after-passage. Native lock/pose/current task guards retained; actual crossing/closure unverified."
+    },
+    {
+      "setting": "HBQAD_CollisionAvoidanceEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            116,
+            1194
+          ]
+        }
+      ],
+      "disposition": "Selected intent implemented through live traffic observation, following caps and finite cooperative owner consent; not a collision-free guarantee."
+    },
+    {
+      "setting": "HBQAD_OvertakingEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            117
+          ]
+        }
+      ],
+      "disposition": "CBE experimental passing is separately optional, default off. Geometry/current route/owner consent and real native movement replace source steering shortcuts; actual passing reliability unverified."
+    },
+    {
+      "setting": "HBQAD_JamResolvingEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            119
+          ]
+        }
+      ],
+      "disposition": "CBE optional cooperative queue/reverse/crossing intent built, default off. Do not port Side Push or borrow another vehicle owner from a shared flag. Native queue cleanup/traffic physical verification remains."
+    },
+    {
+      "setting": "HBQAD_UnstuckEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            2371,
+            2582
+          ]
+        },
+        {
+          "path": "functions/fn_feature.sqf",
+          "lines": [
+            11
+          ]
+        },
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            58
+          ]
+        }
+      ],
+      "disposition": "Select finite native route refresh and checked reverse/handback. Reject telemetry-concealed teleport, flip, repair and fuel/seat shortcuts. CBE unresolved native orders retain authority rather than fabricate arrival."
+    },
+    {
+      "setting": "HBQAD_DamageReductionEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_damageInit.sqf",
+          "lines": [
+            44
+          ]
+        }
+      ],
+      "disposition": "Reject collision immunity. CBE braking/geometry/recovery must work with native damage. No damage-suppression setting planned."
+    },
+    {
+      "setting": "HBQAD_Precision",
+      "literalReferences": [
+        {
+          "path": "functions/fn_precision.sqf",
+          "lines": [
+            23,
+            29
+          ]
+        }
+      ],
+      "disposition": "Useful workload-policy intent; source caches tier for5s and changes obstacle/traffic cadence, gate scans and helper retention. CBE already4s cruise/1s constrained cadence; do not claim these rates are equivalent or tune without physical/profile evidence."
+    },
+    {
+      "setting": "HBQAD_RayCount",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            131
+          ]
+        }
+      ],
+      "disposition": "Source1/3/5 centre/fan rays are a cost knob, not complete swept-hull coverage. CBE uses bounded full hull rows; no arbitrary low-count mode that silently weakens required safety evidence."
+    },
+    {
+      "setting": "HBQAD_CollisionRaySpread",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            133
+          ]
+        }
+      ],
+      "disposition": "Select coverage of near-side obstacles/rear travel, not source numeric fan parity. CBE hull/curved/rear geometry already distinct; actual narrow geometry coverage unverified."
+    },
+    {
+      "setting": "HBQAD_AlertEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            132
+          ]
+        }
+      ],
+      "disposition": "Select faster constrained observations. CBE already1s constrained vs4s cruise; source0.25/0.4s times precision differs materially. Responsiveness/frame budget needs measured comparison, not settings-count parity."
+    },
+    {
+      "setting": "HBQAD_AutoLowPrecisionDistance",
+      "literalReferences": [
+        {
+          "path": "functions/fn_precision.sqf",
+          "lines": [
+            30
+          ]
+        }
+      ],
+      "disposition": "Optional relevance-based sensing remains unimplemented. Source global player query/cached tier must not become route clearance or suppress current owner/crew/obstacle guards. Native engine query and large-player cost must be measured."
+    },
+    {
+      "setting": "HBQAD_RayBending",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            130
+          ]
+        }
+      ],
+      "disposition": "Selected curved sensing built with CBE actual-track curvature and bounded native-yaw fallback; at most2.5s curved portion then tangent,70degree clamp. Source toggle off by default; CBE sensing policy is independently integrated. Actual turn/braking coverage unverified."
+    },
+    {
+      "setting": "HBQAD_RayLengthFactor",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            134
+          ]
+        }
+      ],
+      "disposition": "Do not expose arbitrary range multiplier that can undercut stopping envelope. CBE horizon derives requested/current speed, reaction and mass-based braking; those assumptions still require physical calibration."
+    },
+    {
+      "setting": "HBQAD_CrossingSlowdown",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            118
+          ]
+        }
+      ],
+      "disposition": "Source conditional crossing traffic45km/h differs from CBE conservative shared junction30km/h cap. Explicit gameplay departure; no assertion of balance equivalence. Current road-walk chooses heading heuristically, not native route."
+    },
+    {
+      "setting": "HBQAD_SidePushEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            1408
+          ]
+        }
+      ],
+      "disposition": "Reject direct sideways physics pushes. CBE uses bounded native reverse/crossing/passing with owner/task receipts; a failed physical route remains a failure."
+    },
+    {
+      "setting": "HBQAD_PreventDisembarkEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_crewHold.sqf",
+          "lines": [
+            29,
+            55
+          ]
+        }
+      ],
+      "disposition": "Select usable operating-crew continuity, preserve native danger and mission authority. Source full crew worker needs its own lifecycle/handover proof; never infer retirement from main driving flag. CBE recall is not full no-bail parity."
+    },
+    {
+      "setting": "HBQAD_UnflipEnabled",
+      "literalReferences": [
+        {
+          "path": "functions/fn_unflipLoop.sqf",
+          "lines": [
+            43
+          ]
+        }
+      ],
+      "disposition": "Reject forced unflip, reposition and timed force-seat. Native damaged/overturned vehicle state remains authoritative."
+    },
+    {
+      "setting": "HBQAD_UnstuckSafetyRadius",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            127,
+            1409
+          ]
+        },
+        {
+          "path": "functions/fn_unflipLoop.sqf",
+          "lines": [
+            32
+          ]
+        },
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            85,
+            104
+          ]
+        }
+      ],
+      "disposition": "Do not use player absence to permit forbidden teleport/repair/push. General relevance-based workload is separate and currently unimplemented."
+    },
+    {
+      "setting": "HBQAD_UnstuckWatchDirection",
+      "literalReferences": [
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            128,
+            1409
+          ]
+        },
+        {
+          "path": "functions/fn_unflipLoop.sqf",
+          "lines": [
+            32
+          ]
+        },
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            85,
+            104
+          ]
+        }
+      ],
+      "disposition": "Do not use player facing to hide physics shortcuts. No source concealment toggle added."
+    },
+    {
+      "setting": "HBQAD_UnstuckRepair",
+      "literalReferences": [
+        {
+          "path": "functions/fn_vehicleUnstuck.sqf",
+          "lines": [
+            90
+          ]
+        }
+      ],
+      "disposition": "Reject automatic mobility repair. Preserve mission damage/logistics semantics."
+    },
+    {
+      "setting": "HBQAD_UnstuckDelete",
+      "literalReferences": [
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            129
+          ]
+        }
+      ],
+      "disposition": "Reject deletion of vehicle/crew to resolve repeated recovery failure. Finite failure reporting and cancellation remain required."
+    },
+    {
+      "setting": "HBQAD_Debug",
+      "literalReferences": [
+        {
+          "path": "functions/fn_debugTextClient.sqf",
+          "lines": [
+            14
+          ]
+        },
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            121
+          ]
+        },
+        {
+          "path": "functions/fn_driveAssistDebug.sqf",
+          "lines": [
+            28
+          ]
+        },
+        {
+          "path": "functions/fn_unflipLoop.sqf",
+          "lines": [
+            77
+          ]
+        },
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            42
+          ]
+        }
+      ],
+      "disposition": "Selected coalesced diagnostic intent reviewed separately; no full debug overlay parity. CBE diagnostics must remain read-only, bounded and lifecycle-scoped."
+    },
+    {
+      "setting": "HBQAD_PerfMonitor",
+      "literalReferences": [
+        {
+          "path": "functions/fn_perfMonitor.sqf",
+          "lines": [
+            50
+          ]
+        }
+      ],
+      "disposition": "Source setting is LOCAL (global flag0), unlike file header all-global claim. Do not copy permanent monitor worker or treat scheduler wake lag as matched frame overhead. CBE bounded owner-local callback samples already implemented; aggregate sensing counters/remote demand remain absent."
+    },
+    {
+      "setting": "HBQAD_DetailedDebug",
+      "literalReferences": [
+        {
+          "path": "functions/fn_debugTextClient.sqf",
+          "lines": [
+            14
+          ]
+        },
+        {
+          "path": "functions/fn_driveAssist.sqf",
+          "lines": [
+            120
+          ]
+        },
+        {
+          "path": "functions/fn_driveAssistDebug.sqf",
+          "lines": [
+            28,
+            30,
+            89
+          ]
+        },
+        {
+          "path": "functions/fn_edenDraw.sqf",
+          "lines": [
+            17
+          ]
+        },
+        {
+          "path": "functions/fn_unflipLoop.sqf",
+          "lines": [
+            77
+          ]
+        },
+        {
+          "path": "functions/fn_unstuckLoop.sqf",
+          "lines": [
+            42
+          ]
+        }
+      ],
+      "disposition": "Runtime ray/obstacle overlay not implemented. Selected Eden corridor guide now built separately, not proof of runtime debug parity. Replaced source terrain-projected preview with current CBE selected plane; visual acceptance unrun."
+    }
+  ],
+  "resolution": "fn_enabled gives per-vehicle HBQAD_Enable precedence over global, but HBQAD_Disable always vetoes. fn_feature combines enable with per-vehicle branch flag then CBA fallback. Main controller _fnc_Settings reads most current values each loop. Precision separately caches5s; explicit vehicle precision bypasses automatic player-distance low tier. No assertion that per-vehicle overrides can safely negate every CBE master gate.",
+  "foundationFindings": [
+    "Source init marks InitDone before5s wait; disabled-at-that-time returns before Local handler installation. Later settings change alone does not install missing source workers. CBE current FSM live admission/retirement should not reproduce this startup trap.",
+    "Source turning rays integrate measured arc only over2.5s/min8m then tangent; segments1..3 and70degree clamp constrain work. CBE current DrivingTurnTrack/DrivingGeometryCap already implement related intent. Official angularVelocityModelSpace documentation explicitly says clockwise rad/s; no sign bug established and no runtime edit made.",
+    "CBE4s cruise/1s constrained callback is not source0.4/0.25s scaled precision. Its reaction/braking horizon does not prove responsiveness to late dynamic hazards. Physical comparison and actual owner workload profiling remain necessary before tuning cadence or claiming improvement."
+  ],
+  "cbeEvidence": [
+    "addons/vehicles/functions/drivingOperationStep.sqf",
+    "addons/vehicles/functions/drivingGeometryCap.sqf",
+    "addons/vehicles/functions/drivingTurnTrack.sqf",
+    "addons/vehicles/functions/drivingRoadCap.sqf",
+    "addons/core/functions/cortexTuningSpec.sqf"
+  ],
+  "primaryDocumentation": [
+    "https://community.bistudio.com/wiki/angularVelocityModelSpace"
+  ],
+  "validation": "26 unique declarations have26 explicit dispositions; literal references are navigational pointers, not full consumer review. Protected source hashes checked by local HBQ inventory tool; index regenerated and checked. Engineering-only checkpoint, no runtime change, new tests/build or audit.",
+  "remaining": "HBQ config/Eden per-vehicle attribute registration and full controller branch reconciliation still pending. No percentage derived from26settings or29sourcefiles. Latest runtime candidate corridor-editor-preview-76a2f973 remains unchanged. Physical/performance UNRUN; audits PAUSED."
+}

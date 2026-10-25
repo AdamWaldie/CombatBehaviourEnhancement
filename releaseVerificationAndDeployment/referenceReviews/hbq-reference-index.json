@@ -267,7 +267,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-complete-source-inventory-20261025.json",
-      "sha256": "99ad96cda1b829c10ff83e04678a95f9fc6db951eae60a6d0d976d25b00d07db",
+      "sha256": "3ec95fc535e6092ef6027f0438de9288a109ac5c8d9f533b142c8460f8c16950",
       "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
       "sourceFileMentions": [
         "BIS_AddonInfo.hpp",
@@ -677,6 +677,29 @@
       "sourceFileMentions": [
         "functions/fn_refreshRoute.sqf",
         "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-settings-controller-policy-20261025.json",
+      "sha256": "04058bd3276d1c8d46dc3449b1d62d01599b115d688ffeb5651135cd7933838b",
+      "scope": "Full read of all26 HBQ CBA declarations, settings resolution helpers and selected actual controller consumers; explicit selected/rejected/pending policy, not whole source parity.",
+      "sourceFileMentions": [
+        "functions/fn_crewHold.sqf",
+        "functions/fn_damageInit.sqf",
+        "functions/fn_debugTextClient.sqf",
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_driveAssistDebug.sqf",
+        "functions/fn_edenDraw.sqf",
+        "functions/fn_enabled.sqf",
+        "functions/fn_feature.sqf",
+        "functions/fn_initVehicle.sqf",
+        "functions/fn_perfMonitor.sqf",
+        "functions/fn_precision.sqf",
+        "functions/fn_unflipLoop.sqf",
+        "functions/fn_unstuckLoop.sqf",
+        "functions/fn_vehicleUnstuck.sqf",
+        "XEH_preInit.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
