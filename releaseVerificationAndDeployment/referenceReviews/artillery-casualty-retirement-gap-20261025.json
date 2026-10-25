@@ -27,5 +27,9 @@
     "consequence": "Automatic subsequent CBE movement acquisition for this group remains refused. This is a deliberate fail-closed authority boundary with an unfinished recovery path, not verified physical quiescence."
   },
   "requiredImplementation": "Separate retired/dead original actors from live original native writers. Admit a finite owner/epoch/serial-scoped observation and retirement path for surviving original selected crew, with no automatic command to replacement crew or unrelated infantry. Release only on current native-task supersession or positively observed original writer retirement. Preserve original cleanup deadline; no timer-only success, force seating, group split or blanket reference deletion. Determine an explicit terminal disposition for destroyed/deleted platforms while preserving original actor authority.",
-  "validation": "Static call-path inspection only. No runtime change, new tests, build rerun, physical claim or percentage increase. Audit runs remain paused."
+  "validation": "Static call-path inspection only. No runtime change, new tests, build rerun, physical claim or percentage increase. Audit runs remain paused.",
+  "followup": {
+    "review": "artillery-dead-crew-retirement-20261025.json",
+    "status": "Original finding retained as historical source trace. All-original-crew-dead, stationary-platform retirement now implemented; surviving-writer and deleted-platform recovery remain incomplete."
+  }
 }

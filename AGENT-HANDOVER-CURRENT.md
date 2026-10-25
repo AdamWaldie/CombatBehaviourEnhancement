@@ -2,7 +2,7 @@
 
 Continue the full production-ready CBE goal. Implement and physically validate infantry, CQB, coordination, combined arms, driving, convoys, aircraft and support through owner-local danger and operation FSMs. Required provider handovers must work. Preserve Zeus and multiplayer authority, and verify the 5% median / 10% p95 performance budget. The goal is active and incomplete.
 
-Usage was 91% consumed in the weekly window at handover. The user requires a commit, PR update and handover below 10% remaining. A handover was pushed at `65fccad6`; subsequent goal continuations added the scoped vehicle editor controls below. The pause/continue question remains unanswered. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
+Latest usage check showed 97% consumed (3% remaining) in the weekly window. The user requires a commit, PR update and handover below 10% remaining. A handover was pushed at `65fccad6`; subsequent goal continuations added the scoped vehicle editor controls below. The pause/continue question remains unanswered. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
 
 ## Repository and checkpoint
 
@@ -10,7 +10,7 @@ Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, branch `Adam/cb
 
 The push result will be recorded in `.qa/handovers/low-usage-push-20261025.json`. Check that receipt and the live remote before assuming the checkpoint was pushed. Historical notes remain in `AGENT-HANDOVER.md`; the current entry supersedes earlier proposed next tasks.
 
-The latest exact unsigned development candidate is `.qa/candidates/combined-fallback-eligibility-87a43649`, fingerprint `39692c0405fc66b7582197c81f8a08121bb15e36dfd1c8c25edf21fb32254c72`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
+The latest exact unsigned development candidate is `.qa/candidates/artillery-dead-crew-f5bee188`, fingerprint `2edf500ae295ed250f6bdb7dea1d3726667ecde7c56e17e64c19f1bb86e41ba6`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
 
 Private group wakes now reject non-finite deadlines and apply the existing low-FPS policy. Live danger responsiveness bypasses backoff; illumination and COVER caps apply afterward. Do not implement that task again. Recent work also covers selected artillery crew positioning without group splitting, remote HOLD readiness, convoy reversal navigation yield, reserved-support discovery filtering and clearance-owned grenade interruption. Physical reliability remains unverified.
 
@@ -28,7 +28,7 @@ Dense traffic admission now projects at most256 raw candidates in an unscheduled
 
 Ground replacement discovery now filters existing convoy, vehicle/gunnery feature and group eligibility before its 32-entry shortlist cap. Execution still rechecks live authority and suitability. See `releaseVerificationAndDeployment/referenceReviews/combined-fallback-eligibility-20261025.json`. This prevents those excluded entries hiding a valid later replacement; other later rejection conditions and physical dispatch remain unverified. Preserve artillery group membership and move only the selected gun crew, as reconfirmed by the user.
 
-Artillery casualty recovery now has a traced blocking path: `UNRESOLVED` retains the group reference, discovery retries retirement, but retirement rejects that phase and ownership acquisition refuses the reference even after lease expiry. See `releaseVerificationAndDeployment/referenceReviews/artillery-casualty-retirement-gap-20261025.json` for current source hashes, selected Protocol source comparison and the finite surviving-writer recovery requirement. No runtime fix or physical validation is claimed; never clear the reference merely to permit a new controller.
+Artillery casualty recovery now has a traced blocking path: `UNRESOLVED` retains the group reference, discovery retries retirement, but retirement rejects that phase and ownership acquisition refuses the reference even after lease expiry. See `releaseVerificationAndDeployment/referenceReviews/artillery-casualty-retirement-gap-20261025.json` for current source hashes, selected Protocol source comparison and the finite surviving-writer recovery requirement. That original trace is now partially superseded by `artillery-dead-crew-retirement-20261025.json`: unresolved work can retire when every original actor is dead/deleted, the original current worker ended, platform rest is measured and exact lease release succeeds. No commands or replacement adoption occur. Surviving original writers and deleted platforms remain incomplete; never clear references just to permit another controller. Physical validation remains unrun.
 
 ## Next work and evidence
 

@@ -6,7 +6,9 @@
  * A locality change or failed worker can resume STOPPING/RETURNING observation, never outward
  * movement. Crew, original native route and external-control gates remain in the worker.
  * Repeat/JIP: Exact token/serial/public reference, private owner/epoch/handle and original
- * deadlines. Unresolved terminal evidence stays reserved; retry cannot clear it or refresh time.
+ * deadlines. Unresolved work stays reserved while any original crew member survives or the gun
+ * is moving. Once every original actor is dead/deleted and the gun is at rest, maintenance can
+ * retire that exact reference without commands, replacement crew adoption or deadline renewal.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1.
  * Return: BOOL retirement worker active, not native stop, physical rest or returned authority.
  * Current callers: Position cancellation, CortexDiscover/CortexLocality maintenance and CortexStop.
@@ -26,7 +28,7 @@ isNil {
         private _phase=_work getOrDefault ["phase",""];
         if (isNull _group || {!local _group} || {count _reference != 5}
             || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo _reference}
-            || {!(_phase in ["ISSUE","REQUESTED","MOVING","HOLD","STOPPING","RETURNING"])}) exitWith {false};
+            || {!(_phase in ["ISSUE","REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED"])}) exitWith {false};
         private _epoch=_group getVariable ["CBE_AIPass_Epoch",-1];
         if (_epoch < 0) exitWith {false};
         private _executor=_battery getVariable ["CBE_ArtilleryCrew_FSM",[]];
@@ -35,6 +37,34 @@ isNil {
             && {(_work get "owner") == clientOwner} && {(_work get "epoch") == _epoch}
             && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
             && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
+        // No living original actor can retain our native movement order in this case.
+        // Rest is measured independently: a dead driver alone does not stop a rolling gun.
+        // Never adopt a replacement crew or remove a different operation's lease.
+        if (_phase == "UNRESOLVED") exitWith {
+            private _originalCrew=_work getOrDefault ["crew",[]];
+            private _linear=vectorMagnitude velocity _battery;
+            private _angular=vectorMagnitude angularVelocity _battery;
+            private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
+            private _localLease=_state getOrDefault ["movementLease",[]];
+            if (_live || {count _originalCrew != 2}
+                || {_originalCrew findIf {!(_x isEqualType objNull) || {!isNull _x && {alive _x}}} >= 0}
+                || {!finite _linear} || {!finite _angular} || {_linear >= 0.278} || {_angular >= 0.01}
+                || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {false};
+            if !([_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease) exitWith {false};
+            private _terminal=+_work;
+            _terminal set ["phase","RETIRED"];
+            _terminal set ["result","ORIGINAL_CREW_LOST_AT_REST"];
+            _battery setVariable ["CBE_ArtilleryCrew_Work",_terminal,true];
+            _group setVariable ["CBE_ArtilleryCrew_Reference",nil,true];
+            if (_localLease isNotEqualTo []) then {_state deleteAt "movementLease"};
+            if ((_work getOrDefault ["kind","POSITION"]) == "SCOOT"
+                && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
+                && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo (_work get "session")}) then {
+                {_battery setVariable [_x,nil,true]} forEach ["CBE_Cortex_ArtilleryScootToken",
+                    "CBE_Cortex_ArtilleryScootSession","CBE_Cortex_ArtilleryScootDeadline","CBE_Cortex_ArtilleryScootPurpose"];
+            };
+            false
+        };
         private _journal=+_work;
         _journal set ["release",true];
         if !("cleanupUntil" in _journal) then {

@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "f5bee188",
+  "workshopId": "3801354927",
+  "scope": "Retirement of unresolved selected-gun work after every original crew actor is dead/deleted and measured platform rest.",
+  "implementation": "Discovery can enter the existing retirement function with UNRESOLVED phase. An ended current worker, exactly two typed original seat records with no living actor, finite linear speed below 0.278m/s, angular speed below 0.01, matching local reservation and successful shared lease release are required. No movement, seating, group membership, physics command, new worker or refreshed deadline. Clear only exact original reference, local lease and matching scoot markers; return false because no retirement worker was started.",
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "4932a38b3aef03bdcceecc3434fd612028b45e0909c702a6156693a925f2872a",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "de9427ee14de47a3c4920311d5d4373fb30306552452d0275a2c83b371f92318"
+  },
+  "sourceDisposition": "Preserves selected driver/commander scope from the source relocation intent; does not copy its unbounded relocation wait or automatically adopt replacement crew after sleeps. See artillery-casualty-retirement-gap-20261025.json for the selected source hashes and wider unresolved path.",
+  "validation": {
+    "focusedTests": 4,
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/artillery-dead-crew-f5bee188",
+    "fingerprint": "2edf500ae295ed250f6bdb7dea1d3726667ecde7c56e17e64c19f1bb86e41ba6",
+    "logs": [
+      ".qa/handovers/artillery-dead-crew-build-20261025-attempt1.log",
+      ".qa/handovers/artillery-dead-crew-independent-20261025.log"
+    ]
+  },
+  "limits": "Partial-crew loss with surviving original native writers remains unresolved. Deleted platform lookup, physical replacement/reboarding, locality/JIP acceptance and performance budget remain unverified. No whole casualty-recovery/parity percentage claim. Audits paused; full goal incomplete."
+}

@@ -136,7 +136,22 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertNotIn('doMove',retire)
-        self.assertNotIn('deleteAt',retire)
+        casualty=retire.split('if (_phase == "UNRESOLVED") exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
+        self.assertIn('alive _x',casualty)
+        self.assertIn('!finite _linear',casualty)
+        self.assertIn('!finite _angular',casualty)
+        self.assertIn('_localLease isNotEqualTo (_work get "localLease")',casualty)
+        self.assertLess(casualty.index('call CBE_fnc_CortexOwnershipLease'),casualty.index('"phase","RETIRED"'))
+        for forbidden in ('doMove','joinSilent','moveIn','execFSM','setVelocity','cleanupUntil'):
+            self.assertNotIn(forbidden,casualty)
+        # Dead/deleted original actors plus measured rest, never one casualty or a timer.
+        def released(living, linear, angular, other_lease=False, worker_live=False):
+            import math
+            return not living and math.isfinite(linear) and math.isfinite(angular) and linear<0.278 and angular<0.01 and not other_lease and not worker_live
+        self.assertTrue(released(0,0,0))
+        for args in ((1,0,0),(0,1,0),(0,0,0.02),(0,float('nan'),0),(0,0,float('nan')),(0,0,0,True),(0,0,0,False,True)):
+            self.assertFalse(released(*args))
         self.assertIn('if !("cleanupUntil" in _journal)',retire)
         self.assertIn('"release",true',retire)
         self.assertIn('CBE_ArtilleryPosition_Attempt',owner)

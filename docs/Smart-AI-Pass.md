@@ -2942,3 +2942,7 @@ The observer still refuses more than64 retained candidates or more than256 disco
 The ranked ground fallback pool now excludes currently ineligible groups, active convoy assets and groups with vehicle or gunnery support disabled before retaining its32 candidates. Those entries can no longer crowd out an otherwise eligible replacement at discovery. Fallback execution still rechecks current group/crew authority, reservations, communications and weapon suitability; discovery does not reserve an asset or grant firing permission.
 
 The extra snapshot checks occur only on the existing support request, with no new worker, scan or retry. Discovery population and membership-query cost remain engine/scenario-dependent. Later changes can make a retained candidate unavailable, and groups becoming eligible after discovery wait for a fresh request. Live replacement success and large-battle performance remain unverified while audits are paused.
+
+### Lost selected artillery crew
+
+If every original selected gun operator has died or been deleted, unresolved crew movement can retire once the gun is measured at rest and its original worker is no longer live. This removes only the matching artillery reservation; it does not move, seat or adopt replacement crew, change group membership, or renew a deadline. A surviving original operator, moving gun, unknown velocity or conflicting lease keeps the reservation unresolved. Partial-crew casualty recovery and physical replacement remain incomplete and require in-engine validation.
