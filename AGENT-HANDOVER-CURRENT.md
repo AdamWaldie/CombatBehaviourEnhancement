@@ -28,6 +28,8 @@ Dense traffic admission now projects at most256 raw candidates in an unscheduled
 
 Ground replacement discovery now filters existing convoy, vehicle/gunnery feature and group eligibility before its 32-entry shortlist cap. Execution still rechecks live authority and suitability. See `releaseVerificationAndDeployment/referenceReviews/combined-fallback-eligibility-20261025.json`. This prevents those excluded entries hiding a valid later replacement; other later rejection conditions and physical dispatch remain unverified. Preserve artillery group membership and move only the selected gun crew, as reconfirmed by the user.
 
+Artillery casualty recovery now has a traced blocking path: `UNRESOLVED` retains the group reference, discovery retries retirement, but retirement rejects that phase and ownership acquisition refuses the reference even after lease expiry. See `releaseVerificationAndDeployment/referenceReviews/artillery-casualty-retirement-gap-20261025.json` for current source hashes, selected Protocol source comparison and the finite surviving-writer recovery requirement. No runtime fix or physical validation is claimed; never clear the reference merely to permit a new controller.
+
 ## Next work and evidence
 
 Prioritise foundations/FSM lifecycle and the entire HBQ driving intent, then individual behaviours and composition. Use LAMBS as an implementation baseline without requiring it as a dependency. Protocol work remains incomplete, including controlled rappelling, artillery casualty/native handback, CQB ordered owner-ready replay and finite post-clear consolidation. Mixed-convoy tuning needs physical traces when audits are authorised. Do not replace those gaps with more detection or packaging claims.
