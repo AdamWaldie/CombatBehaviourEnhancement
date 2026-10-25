@@ -2935,3 +2935,10 @@ The server now rejects a selected gun's retained HOLD evidence as soon as its ob
 Ordinary and convoy following observations no longer refuse every scene containing65..256 discovered vehicles before checking relevance. In the existing unscheduled owner callback, exact padded hull projection can discard a vehicle below the existing0.8m/s crossing-prediction threshold only when its whole hull is behind, outside the lane or vertically separated. Moving or unknown traffic remains eligible for prediction; a long rotated hull that intrudes into the lane is retained.
 
 The observer still refuses more than64 retained candidates or more than256 discovered vehicles. Scheduled direct calls retain the original64-candidate refusal. Dense samples may therefore do more projection work, but never more than64 motion-prediction evaluations; there is no new worker, cache, ray or engine query. Native discovery remains engine-dependent. This improves the bounded admission path, not proof of collision-free dense traffic or the frame-time budget. Physical dense-scene, normal/HC and scaled-hull validation remain unrun while audits are paused.
+
+
+### Combined-arms ground replacement selection
+
+The ranked ground fallback pool now excludes currently ineligible groups, active convoy assets and groups with vehicle or gunnery support disabled before retaining its32 candidates. Those entries can no longer crowd out an otherwise eligible replacement at discovery. Fallback execution still rechecks current group/crew authority, reservations, communications and weapon suitability; discovery does not reserve an asset or grant firing permission.
+
+The extra snapshot checks occur only on the existing support request, with no new worker, scan or retry. Discovery population and membership-query cost remain engine/scenario-dependent. Later changes can make a retained candidate unavailable, and groups becoming eligible after discovery wait for a fresh request. Live replacement success and large-battle performance remain unverified while audits are paused.

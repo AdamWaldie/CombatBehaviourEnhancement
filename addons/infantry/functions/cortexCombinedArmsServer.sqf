@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Discovery rejects the requester and other sides before transmitter, crew and magazine
  * inspection. Live roles reserved by another request are also removed before ranking/truncation;
- * same-token or expired roles retain their prior admission semantics. Other eligibility remains live at dispatch.
+ * same-token or expired roles retain their prior admission semantics. The ground fallback pool
+ * also removes currently excluded/feature-disabled groups before its32-slot cap; live dispatch
+ * and fallback execution still recheck current eligibility, communication and weapon suitability.
  * Converts a verified fresh contact into finite, independent combined-arms roles.
  * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
  * Delayed role expiry matches the complete dispatched snapshot before clearing reservation state.
@@ -145,9 +147,15 @@ _orderedGroups sort true;
 // Retain a bounded ranked ground pool before dispatch. Replacements use this
 // discovery snapshot, but their owners must still prove current weapon suitability.
 private _groundCandidates=(_orderedGroups select {
-    private _asset=_x select 2;
+    private _asset=_x select 2;private _fallbackGroup=_x select 1;
     !isNull _asset && {_asset isKindOf "LandVehicle"} && {!(_asset isKindOf "StaticWeapon")}
         && {alive _asset} && {canFire _asset}
+        // These are the same current exclusions the fallback executor rechecks later.
+        // An excluded/disabled group must not consume one of the32 retained slots.
+        && {!(_asset getVariable ["CBE_Convoy_Active",false])}
+        && {[_fallbackGroup,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_fallbackGroup,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_fallbackGroup] call CBE_fnc_CortexIsEligible}
 }) apply {[_x select 1,_x select 2]};
 _groundCandidates resize ((count _groundCandidates) min 32);
 _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_position,_expiry,_groundCandidates,0,+_contactReceipt],true];

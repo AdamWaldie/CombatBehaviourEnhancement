@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "87a43649",
+  "scope": "Ground replacement shortlist eligibility before the existing 32-entry cap.",
+  "finding": "Excluded groups, convoy assets and disabled vehicle/gunnery features could consume the shortlist before the executor rejected them, hiding a later eligible replacement.",
+  "implementation": "Apply the existing live fallback eligibility predicates before shortlist truncation. The executor still rechecks authority, current eligibility, communications, reservation and weapon suitability.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexCombinedArmsServer.sqf": "55bf646d1ea6e485bac91233c14f1a4e2544b7c91ce86ccc7b0bce4933b36fb9",
+    "releaseVerificationAndDeployment/test_air_contact_geometry.py": "9cc24ac326bbbef197540698512d609656564a85c8185054467f2dcdc15b5dce"
+  },
+  "validation": {
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/combined-fallback-eligibility-87a43649",
+    "fingerprint": "39692c0405fc66b7582197c81f8a08121bb15e36dfd1c8c25edf21fb32254c72"
+  },
+  "limits": "Other later executor rejections can still crowd the shortlist. Additional eligibility checks have no measured frame-time result. Physical support dispatch, normal/HC behaviour and the performance budget remain unverified. Audits paused; whole production goal incomplete. No percentage increase."
+}

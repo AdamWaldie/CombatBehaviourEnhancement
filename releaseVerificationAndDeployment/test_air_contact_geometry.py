@@ -114,6 +114,15 @@ class AirContactGeometryTests(unittest.TestCase):
             self.assertIn(receipt,gate)
         self.assertLess(discovery.index('// A live role belonging to another request'),discovery.index('private _candidateTransmitter='))
 
+
+        pool=server.split('private _groundCandidates=',1)[1].split('_groundCandidates resize',1)[0]
+        for guard in ('CBE_Convoy_Active','CBE_AIPass_Vehicles_Enable',
+                      'CBE_AIPass_VehicleGunnery_Enable','CBE_fnc_CortexIsEligible'):
+            self.assertIn(guard,pool)
+            self.assertIn(guard,ground)
+        disabled=[('blocked'+str(i),False) for i in range(40)]+[('replacement',True)]
+        self.assertEqual([r for r in disabled[:32] if r[1]],[])
+        self.assertEqual([r[0] for r in disabled if r[1]][:32],['replacement'])
         self.assertIn('[_replacement,_token,_role,_target,+_opportunity]',ground)
 
 if __name__=='__main__': unittest.main()
