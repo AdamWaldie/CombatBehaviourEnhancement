@@ -22,6 +22,8 @@ The indexed authored-route reader now slices a single handle before metadata fil
 
 Selected-gun HOLD validation now checks current platform convoy/external-driving markers before accepting a remote owner HOLD. Native task/destination/FSM proof remains owner-local. See `releaseVerificationAndDeployment/referenceReviews/artillery-hold-platform-20261025.json`. This closes a shared receipt-validation omission, not the remaining physical casualty/handback work. Current mixed-convoy smoothing trace is `.qa/handovers/mixed-convoy-current-control-20261025.json`; no coefficient change was justified without runtime traces.
 
+HBQ reference reconciliation now links the editor controls, legacy channels, selected route-watchdog comparison and four complete recovery/damage helper dispositions. `hbq-config-worker-lifecycle-20261025.json` retains its original historical read and an explicit follow-up; do not mistake its older frontend/candidate statements for current status. `hbq-reference-index.json` is a source-integrity/readable-evidence index only, never parity or build-out percentages. No runtime/package change was made by this metadata reconciliation.
+
 ## Next work and evidence
 
 Prioritise foundations/FSM lifecycle and the entire HBQ driving intent, then individual behaviours and composition. Use LAMBS as an implementation baseline without requiring it as a dependency. Protocol work remains incomplete, including controlled rappelling, artillery casualty/native handback, CQB ordered owner-ready replay and finite post-clear consolidation. Mixed-convoy tuning needs physical traces when audits are authorised. Do not replace those gaps with more detection or packaging claims.

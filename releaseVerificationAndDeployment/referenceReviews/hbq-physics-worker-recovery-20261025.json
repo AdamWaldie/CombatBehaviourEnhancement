@@ -1,0 +1,41 @@
+{
+  "checkpoint": "c95a7b4d",
+  "scope": "Full four helper bodies and selected CBE replacement paths; not full driveAssist parity",
+  "sourceHashes": {
+    "fn_damageInit.sqf": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+    "fn_protectBriefly.sqf": "a5968313440ea8292bd0e997547cc6ad10bf7e4f1cd402f75337889717092ba7",
+    "fn_rearClear.sqf": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+    "fn_push.sqf": "b3a7710202b7d049b5ffd78d3acd45cd1366f3dccda347f138475bea1cf0f871"
+  },
+  "dispositions": [
+    {
+      "source": "fn_damageInit.sqf",
+      "decision": "Reject damage suppression",
+      "reason": "HandleDamage returns previous hitpoint/global damage for AI low-speed events without ammo/instigator. Jitter counter can stop suppression after300 events in3s for15s. EH identifier is not retained; a boolean installation marker cannot remove/reinstall it after external removal."
+    },
+    {
+      "source": "fn_protectBriefly.sqf",
+      "decision": "Reject immunity workaround",
+      "reason": "Captures initial damage permission and later restores true only for originally allowed objects. Originally invulnerable objects stay protected, but no current lease/task check prevents overwriting a later mission-owned false. No cancellation/locality/episode receipt binds spawned restoration."
+    },
+    {
+      "source": "fn_push.sqf",
+      "decision": "Replace with native finite manoeuvres",
+      "reason": "One permanent machine EachFrame EH traverses push list; each vehicle can get3 contact rays plus model velocity and sideways yaw writes per frame. Alive/local/time/forward speed govern continuation, not current mission task, master enable or operation identity. End also overwrites lateral/backward velocity. No list size bound."
+    },
+    {
+      "source": "fn_rearClear.sqf",
+      "decision": "Retain clearance intent through CBE real-hull observations",
+      "reason": "Source has rear-sector live-entity checks and6 GEOM/FIRE rays, without explicit support or dead-hull proof. CBE rear observer uses finite distances, capped actor processing, dead vehicle hulls, support and turning envelopes. Neither static geometry source establishes collision-free travel."
+    }
+  ],
+  "cbeEvidence": [
+    "addons/vehicles/functions/drivingRearClear.sqf",
+    "addons/vehicles/functions/drivingDamageReceipt.sqf",
+    "addons/vehicles/functions/drivingAssistStart.sqf:620-677"
+  ],
+  "productionChange": "None; existing replacement paths inspected, no new defect established",
+  "limits": "Normal/HC native recovery, collision behaviour, damage abort and median/p95 costs remain physically unverified. No parity percentage increase. Audits paused.",
+  "workshopId": "3812620045",
+  "recordType": "Full four-helper source dispositions, selected CBE replacement trace; no runtime change or full controller parity."
+}

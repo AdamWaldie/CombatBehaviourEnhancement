@@ -49,5 +49,17 @@
     "addons/vehicles/functions/drivingAssistRelease.sqf"
   ],
   "validation": "All config/start/postinit/metadata bodies read;14 unique attribute properties verified and source hashes recorded. Selected actual delayed seat writer inspected. Existing CBE finish/release receipt paths read; no newly demonstrated product defect and no speculative runtime change. Source/index integrity check PASS. No redundant build/test growth or audit.",
-  "remaining": "Full controller/worker branch reconciliation and physically proved external quiescence/resume still incomplete. Source frontend semantics do not establish reliable runtime behaviour. Current candidate corridor-editor-preview-76a2f973 unchanged. Audits PAUSED; full goal active/incomplete."
+  "remaining": "Full controller/worker branch reconciliation and physically proved external quiescence/resume still incomplete. Source frontend semantics do not establish reliable runtime behaviour. Current candidate corridor-editor-preview-76a2f973 unchanged. Audits PAUSED; full goal active/incomplete.",
+  "followup20261025": {
+    "checkpoint": "98bf2996",
+    "editorControls": "Eight opt-out checkboxes implemented through separate server-owned editor exclusions. This is partial frontend intent, not fourteen original controls or force-enable/numeric precision parity.",
+    "legacyGateChannels": "Source-empty paired indexed literal animate channels now implemented through open/passage/close; arbitrary models and physical operation remain unverified.",
+    "references": [
+      "hbq-vehicle-editor-exclusions-20261025.json",
+      "hbq-legacy-gate-channels-20261025.json",
+      "hbq-physics-worker-recovery-20261025.json",
+      "route-index-receipt-20261025.json"
+    ],
+    "remaining": "Full main-controller branch comparison and actual external quiescence/resume remain incomplete. Original review above is historical; its old candidate and unimplemented frontend statements predate these follow-ups."
+  }
 }

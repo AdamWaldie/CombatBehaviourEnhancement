@@ -285,7 +285,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-config-worker-lifecycle-20261025.json",
-      "sha256": "e9ba71fea7480110027848914620439f07f0850813003319bc543c97233f7764",
+      "sha256": "b27c037bff73e058fab219ff7336e4e513527c8c14133e8a37f848b47cff025b",
       "scope": "Full364-line config, addon metadata, startup/postinit bodies and selected delayed crew-writer/cancellation paths. Complete registration/attribute review; not whole-HBQ execution parity.",
       "sourceFileMentions": [
         "BIS_AddonInfo.hpp",
@@ -528,6 +528,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-legacy-gate-channels-20261025.json",
+      "sha256": "41f15b08f5e564b1ada515365a5fb36603ff1bf312dbbd471a804b2a4af8b59d",
+      "scope": "Partial legacy gate channel implementation through existing server open/passage/close lifecycle, not arbitrary gate or full HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-local-package-freshness-20261017.json",
       "sha256": "f5a6dacc6fd9d7b78f4f997f4aa734511399f16d517dd1f4b56a949d822ab9f6",
       "scope": "Read the record for its exact scope.",
@@ -620,6 +629,18 @@
         "functions/fn_perfMonitor.sqf",
         "functions/fn_playersNear.sqf",
         "functions/fn_precision.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-physics-worker-recovery-20261025.json",
+      "sha256": "35c7c8f93067d40466d16b737d6c3aa1840425b729f392f6a9b1ecc4d2835dd7",
+      "scope": "Full four helper bodies and selected CBE replacement paths; not full driveAssist parity",
+      "sourceFileMentions": [
+        "functions/fn_damageInit.sqf",
+        "functions/fn_protectBriefly.sqf",
+        "functions/fn_push.sqf",
+        "functions/fn_rearClear.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -793,6 +814,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-vehicle-editor-exclusions-20261025.json",
+      "sha256": "f7fcaf474fb678a4bfcbb8f60cabc37f1cb9d600fe230bfea15fc60324abca26",
+      "scope": "HBQ-inspired vehicle opt-out frontend for eight existing CBE driving gates; not full HBQ frontend or behavioural parity.",
+      "sourceFileMentions": [
+        "config.cpp"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-vehicle-feature-exclusions-20261019.json",
       "sha256": "6f04f0b4bb25f9bb6ef3c2e8ba5686b4bf0717aca56b78fcd4045ed794a207de",
       "scope": "HBQ per-vehicle feature intent applied to existing CBE driving-aid scopes",
@@ -902,6 +932,15 @@
       "scope": "Damage-aware native rear interruption; not whole HBQ damage handling parity",
       "sourceFileMentions": [
         "functions/fn_damageInit.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/route-index-receipt-20261025.json",
+      "sha256": "4052c571820ff020f3dbf9af96b4cb3db7ea4efa1622b19bd5fd38247fd1f0de",
+      "scope": "Shared authored-route indexed read hot path; selected HBQ main-loop/watchdog disposition, not full controller review.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
