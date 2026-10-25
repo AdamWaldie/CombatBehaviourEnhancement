@@ -7,6 +7,7 @@
  * An original MOVE receipt may already be WAIT/idle: ADOPT/CHECK accept its unchanged native
  * endpoint plus measured rest within1.5m and0.75m vertically. CHECK reuses that proof
  * without changing metadata, so a settled WAIT can continue through the existing executor.
+ * CHECK may supply an exact expected target; an invalid, empty or different supplied target refuses.
  * Idle alone is never ownership.
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
@@ -30,6 +31,8 @@ private _positionValid={
     _this isEqualType [] && {count _this == 3}
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
 };
+private _checkTargetRequired=_mode == "CHECK" && {count _this > 3};
+private _checkTarget=+_target;
 private _result=false;
 isNil {
     _result=call {
@@ -96,7 +99,9 @@ isNil {
                 && {abs (((getPosASL _actor) select 2)-((ATLToASL _target) select 2)) <= 0.75}
         };
         if (!_matches) exitWith {false};
-        if (_mode == "CHECK") exitWith {true};
+        if (_mode == "CHECK") exitWith {
+            !_checkTargetRequired || {_checkTarget call _positionValid && {_checkTarget isEqualTo _target}}
+        };
         if (_mode != "ADOPT") exitWith {
             private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
             if ((_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job

@@ -1604,7 +1604,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             && {(_stageReceipt select 0) == (_job get "generation")}
             && {(_stageReceipt select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])};
         private _command=toUpperANSI currentCommand _candidate;
-        private _stageCommandFree=_command == "" || {[_candidate] call _ownsCurrentMove};
+        private _stageCommandFree=_command == "" || {[_candidate] call _ownsCurrentMove}
+            || {_stagedHere && {_command == "WAIT"}
+                && {["CHECK",_candidate,_job,_stageReceipt select 2] call CBE_fnc_BuildingActorMotion}};
         if (!_stageCommandFree && {_stagedHere} && {_command == "STOP"}) then {
             private _post=_stageReceipt select 2;
             _stageCommandFree=_post isEqualType [] && {count _post == 3}
@@ -1640,7 +1642,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     // but exact target/episode ownership still permits one stop and bounded failed-stage retirement.
     private _reserveLegOwned={
         params ["_actor","_target"];
-        if (!(toUpperANSI currentCommand _actor in ["","MOVE"])) exitWith {false};
+        if (!(toUpperANSI currentCommand _actor in ["","MOVE"])
+            && {!(currentCommand _actor == "WAIT"
+                && {["CHECK",_actor,_job,_target] call CBE_fnc_BuildingActorMotion})}) exitWith {false};
         private _issued=(_job getOrDefault ["movementTargets",createHashMap]) getOrDefault [netId _actor,[]];
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _stamp=_actor getVariable ["CBE_Cortex_ClearReserve",[]];
@@ -1877,7 +1881,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         if (_stage isNotEqualTo [] && {!(_stage select 1)}
             && {(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2}
             && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
-            && {currentCommand _reserve in ["", "STOP"] || {[_reserve] call _ownsCurrentMove}}
+            && {currentCommand _reserve in ["", "STOP"] || {[_reserve] call _ownsCurrentMove}
+                || {currentCommand _reserve == "WAIT"
+                    && {["CHECK",_reserve,_job,_stage select 0] call CBE_fnc_BuildingActorMotion}}}
             && {!([_reserve] call _activeOwnMove)}
             && {[_reserve] call _reserveReady} && {call _mayIssueMovement}) then {
             isNil {
@@ -1885,7 +1891,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                     && {[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve] isEqualTo _arrivalNative}
                     && {(getPosASL _reserve) vectorDistance (AGLToASL (_stage select 0)) <= 2}
                     && {abs (((getPosASL _reserve) select 2)-((AGLToASL (_stage select 0)) select 2)) <= 0.75}
-                    && {currentCommand _reserve in ["","STOP"] || {[_reserve] call _ownsCurrentMove}}
+                    && {currentCommand _reserve in ["","STOP"] || {[_reserve] call _ownsCurrentMove}
+                        || {currentCommand _reserve == "WAIT"
+                            && {["CHECK",_reserve,_job,_stage select 0] call CBE_fnc_BuildingActorMotion}}}
                     && {!([_reserve] call _activeOwnMove)}) then {
                     doStop _reserve; [_reserve] call _rememberHold;
                     _stage set [1,true];

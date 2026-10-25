@@ -862,8 +862,10 @@ if (_resume && {count _egressJournal == 14} && {(_egressJournal select 0) == "EG
             private _atTarget=count _target == 3
                 && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1}
                 && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 1.5};
-            private _ownsLeg=currentCommand _actor == "MOVE" && {count _leg == 3}
-                && {count _live == 3} && {_live vectorDistance _leg <= 0.25};
+            private _ownsLeg=(currentCommand _actor == "MOVE" && {count _leg == 3}
+                && {count _live == 3} && {_live vectorDistance _leg <= 0.25})
+                || {currentCommand _actor == "WAIT" && {count _leg == 3}
+                    && {["CHECK",_actor,_job,_leg] call CBE_fnc_BuildingActorMotion}};
             private _holdsArrival=_arrived && {_atTarget} && {currentCommand _actor in ["","STOP"]};
             if (_actor in _available && {group _actor == _group}
                 && {(_assignments apply {_x select 0}) findIf {_x == _actor} < 0}
@@ -900,7 +902,9 @@ if (_resume && {count _egressJournal == 14} && {(_egressJournal select 0) == "EG
                 private _live=(expectedDestination _actor) param [0,[]];
                 private _owned=currentCommand _actor in ["","STOP"]
                     || {currentCommand _actor == "MOVE" && {_leg isEqualType []} && {count _leg == 3}
-                        && {count _live == 3} && {_live vectorDistance _leg <= 0.25}};
+                        && {count _live == 3} && {_live vectorDistance _leg <= 0.25}}
+                    || {currentCommand _actor == "WAIT" && {count _leg == 3}
+                        && {["CHECK",_actor,_job,_leg] call CBE_fnc_BuildingActorMotion}};
                 if (_actor in _available && {group _actor == _group} && {_leg isEqualType []}
                     && {_owned} && {!(_actor in ((_assignments+_pending) apply {_x select 0}))}) then {
                     _pending pushBack [_actor,+_leg,_planAttempts,_nextPlanAt];
@@ -1013,7 +1017,9 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
             && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
-            && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"})
+            && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"
+                    || {currentCommand _actor == "WAIT"
+                        && {["CHECK",_actor,_job,_stage select 0] call CBE_fnc_BuildingActorMotion}}})
                 || {(_stage select 2) != "APPROACH" && {currentCommand _actor == "STOP"}
                     && {count (_stage select 0) == 3}
                     && {(getPosASL _actor) vectorDistance (AGLToASL (_stage select 0)) <= 2}
@@ -1036,6 +1042,8 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
                         && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
                         && {isNull remoteControlled _actor}
                         && {currentCommand _actor == "MOVE" && {count _now == 3} && {_now vectorDistance _target <= 0.25}
+                            || {currentCommand _actor == "WAIT"
+                                && {["CHECK",_actor,_job,_target] call CBE_fnc_BuildingActorMotion}}
                             || {currentCommand _actor == "STOP" && {(_stage select 2) != "APPROACH"}
                                 && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
                                 && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}) then {

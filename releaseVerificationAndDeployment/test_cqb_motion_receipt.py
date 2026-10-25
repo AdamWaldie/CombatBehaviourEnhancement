@@ -27,8 +27,21 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertIn(proof,move)
         self.assertNotIn('serverTime+',move)
         self.assertNotIn('"STOP"',move)
-        self.assertLess(text.index('if (_mode == "CHECK") exitWith {true};'),text.index('if (_mode != "ADOPT") exitWith {'))
-        self.assertLess(text.index('if (_mode == "CHECK") exitWith {true};'),text.index('_moves set [netId _actor'))
+        self.assertLess(text.index('if (_mode == "CHECK") exitWith {'),text.index('if (_mode != "ADOPT") exitWith {'))
+        self.assertLess(text.index('if (_mode == "CHECK") exitWith {'),text.index('_moves set [netId _actor'))
+        check=text.split('if (_mode == "CHECK") exitWith {',1)[1].split('if (_mode != "ADOPT")',1)[0]
+        self.assertIn('!_checkTargetRequired',check)
+        self.assertIn('_checkTarget call _positionValid',check)
+        self.assertIn('_checkTarget isEqualTo _target',check)
+        self.assertNotIn('setVariable',check)
+        def exact_target(supplied,receipt):
+            import math
+            return (isinstance(supplied,list) and len(supplied)==3
+                    and all(type(v) in (int,float) and math.isfinite(v) for v in supplied)
+                    and supplied==receipt)
+        self.assertTrue(exact_target([1,2,3],[1,2,3]))
+        for changed in ([],[1,2],[1,2,4],[1,2,float('nan')],"123"):
+            self.assertFalse(exact_target(changed,[1,2,3]))
         step=read('buildingOperationStep.sqf')
         room=step.split('private _roomCommandOwned={',1)[1].split('private _exitMovementOwned={',1)[0]
         exit_guard=step.split('private _exitMovementOwned={',1)[1].split('private _activeOwnMove={',1)[0]

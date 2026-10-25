@@ -51,6 +51,15 @@ class ReserveCommitTests(unittest.TestCase):
         self.assertIn('_stagedHere} && {_command == "STOP"}',gate)
         self.assertIn('vectorDistance (AGLToASL _post) <= 2',gate)
         self.assertIn('<= 0.75',gate)
+        self.assertIn('_stagedHere && {_command == "WAIT"}',gate)
+        self.assertIn('["CHECK",_candidate,_job,_stageReceipt select 2]',gate)
+        arrival=source().split('// Arrival proximity',1)[1].split('// Revalidate one actual eye ray',1)[0]
+        self.assertEqual(arrival.count('["CHECK",_reserve,_job,_stage select 0]'),2)
+        self.assertLess(arrival.index('call CBE_fnc_BuildingActorMotion'),arrival.index('doStop _reserve'))
+        adoption=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('["CHECK",_actor,_job,_leg]',adoption)
+        self.assertIn('["CHECK",_actor,_job,_stage select 0]',adoption)
+        self.assertIn('["CHECK",_actor,_job,_target]',adoption)
         self.assertIn('!finite _x',gate)
         self.assertIn('"reserveAdmissionCommands"',gate)
 

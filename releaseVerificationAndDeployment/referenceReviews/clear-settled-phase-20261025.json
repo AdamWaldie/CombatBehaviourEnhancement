@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "03262164",
+  "scope": "Complete the inspected settled-MOVE WAIT path for exterior reserves and final-egress adoption. Not coherent producer transport or physical acceptance.",
+  "defects": [
+    "Reserve readiness rejected a completed issued staging MOVE in WAIT, preventing the reserve service from recording its physical arrival and issuing its owned arrival hold.",
+    "Final-egress assigned/pending adoption and reserve APPROACH adoption accepted actual MOVE but omitted the same exact completed leg in WAIT. This could discard an otherwise valid inherited record."
+  ],
+  "implementation": [
+    "BuildingActorMotion CHECK can optionally require an exact caller-supplied target. Supplying an invalid, empty or different target refuses; existing three-argument observation keeps its prior behaviour. This is read-only and retains operation/visit/endpoint/rest/floor/native-order checks.",
+    "Current staged WAIT requires its current stage generation/epoch marker plus CHECK of that recorded post. Both reserve arrival boundaries repeat target-specific proof before the existing doStop/hold. Finite failed-stage retirement uses the same proof and original clocks.",
+    "Final egress assigned and pending rows retain original progress/retry/deadline state when their exact issued leg is proven settled. Reserve APPROACH admission and commit can retain the same leg without issuing movement or claiming arrival.",
+    "No workers, queries, retry budgets, deadlines or arrival-credit shortcuts added. WAIT-only exact proof repeats bounded native/context observations; performance unmeasured."
+  ],
+  "validation": {
+    "focused": "127 existing clearance and9 motion receipt cases passed; no new test count. Existing cases extended for invalid/foreign target and both reserve native-write boundaries.",
+    "full": "1497 tests, 422 SQF, 11 PBOs, terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-settled-phase-03262164",
+    "fingerprint": "928d711ca6cc82296c85c02556fd07a0a51155cef563459aafef1af7be55ce08"
+  },
+  "remaining": [
+    "Authenticated outgoing producer seal/request/replay and aggregate incoming native/settings reconciliation remain unimplemented.",
+    "A blind private-job copy is not an implemented transfer mechanism. The constructor/step maintain many private phase maps beyond public journals; preserve consumed state deliberately rather than assume a full map is safe to replay.",
+    "Audits remain paused. Physical staging, egress, provider migration and5%median/10%p95 acceptance remain unverified."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "4de829c0a8e440b93badd7a1efcb7b8383446708b3f80dff8f11eeb4dbe887ff",
+    "addons/infantry/functions/buildingOperationStep.sqf": "05979a7e1d81dc09c57f40306b20a82ae5ea7bcc72f1d256dbf133608ec993ec",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "5841afdc63730b7cd0ab1027898da41857e9c119db255075b67c3ec95e995c11",
+    "releaseVerificationAndDeployment/test_clear_reserve_commit.py": "c98b55c88c7b08082b2c53af27b9a9e2cc333926b40efcd9e7a26a56d5b430c2",
+    "releaseVerificationAndDeployment/test_cqb_motion_receipt.py": "a8ac6c2d88f42161a4093f324473b336d295c00c3ea8a23be4ce15d37943510f"
+  }
+}
