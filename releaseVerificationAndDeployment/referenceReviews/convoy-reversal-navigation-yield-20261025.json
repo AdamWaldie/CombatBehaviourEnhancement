@@ -18,5 +18,16 @@
     "independentLog": ".qa/convoy-reversal-yield-independent-20261025.log",
     "kind": "Unsigned dirty development. Notes postdate package; base commit plus runtime hashes identify covered source."
   },
-  "limits": "Source boundary correction, not reproduced engine turn/stop behaviour or physical handback. Current forceSpeed/path/native planner semantics, mixed tracked/wheeled reversal/restart/cleanup/Zeus/normal-HC/locality and5percent median/10percent p95 overhead remain unverified. Audits PAUSED; full goal active/incomplete."
+  "limits": "Source boundary correction, not reproduced engine turn/stop behaviour or physical handback. Current forceSpeed/path/native planner semantics, mixed tracked/wheeled reversal/restart/cleanup/Zeus/normal-HC/locality and5percent median/10percent p95 overhead remain unverified. Audits PAUSED; full goal active/incomplete.",
+  "documentationCorrection": {
+    "sourceBase": "2d38b5ca",
+    "cause": "Windows default text decoding in the first guide edit rewrote existing non-ASCII text; found during postcommit diff inspection.",
+    "fix": "Restore exact parent Git blob bytes and append only intended ASCII convoy paragraph; byte-prefix assertion PASS. No runtime or test change.",
+    "candidate": ".qa/candidates/convoy-reversal-yield-docfix-2d38b5ca",
+    "fingerprint": "4da4cd6b11db8b1237e0bad723b593c944e293a17c1c7ef1ccfd6f5d787abf3c",
+    "validation": "Second full1497tests/420SQF/11PBO build terminal0; corrected candidate independent verify terminal0. Original candidate/log retained, superseded for use.",
+    "buildLog": ".qa/convoy-reversal-yield-build-20261025-attempt2.log",
+    "independentLog": ".qa/convoy-reversal-yield-docfix-independent-20261025.log",
+    "guideSha256": "5eda584011f208a6536a023cdb5c32369a83b38932486ee1319f7abd3c510b15"
+  }
 }
