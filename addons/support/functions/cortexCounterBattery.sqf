@@ -61,7 +61,7 @@ private _sides = [];
             {
                 if (side group gunner _x == _side && {
                     [_x, _position, 30, "HE", missionNamespace getVariable ["CBE_AIPass_CounterBattery_Rounds", 4],
-                        missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle,grpNull,_observedAt] call CBE_fnc_CortexArtilleryFire
+                        missionNamespace getVariable ["CBE_AIPass_CounterBattery_ShootAndScoot", true], "COUNTER", objNull, _vehicle,grpNull,_observedAt,_generation] call CBE_fnc_CortexArtilleryFire
                 }) exitWith {};
             } forEach (missionNamespace getVariable ["CBE_AIPass_AllArtillery", []]);
         }, [_vehicle, _side, +_position, _counterGeneration, _observedAt], _delay] call CBA_fnc_waitAndExecute;
@@ -77,7 +77,7 @@ if (_eventDue && {_sides isNotEqualTo []}) then {
             || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
             || {!(missionNamespace getVariable ["CBE_AIPass_CounterBattery_Enable",false])}
             || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
-        [_vehicle] remoteExecCall ["CBE_fnc_CortexCounterObserve",0];
+        [_vehicle,_generation,serverTime+15] remoteExecCall ["CBE_fnc_CortexCounterObserve",0];
     },[_vehicle,_counterGeneration],
         (missionNamespace getVariable ["CBE_AIPass_CounterBattery_Delay",60]) max 1] call CBA_fnc_waitAndExecute;
 };

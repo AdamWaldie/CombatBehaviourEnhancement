@@ -24,7 +24,8 @@
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
  * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: danger belief/counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
- * Counter missions retain the server cancellation generation through their queued shots.
+ * 11: counter observation generation <NUMBER>, -1 (required on remote COUNTER requests;
+ * local server scripts may omit it). Counter missions retain that generation through queued shots.
  * Target coordinates must be finite ATL pairs/triples; error, rounds and numeric scoot
  * defaults must be finite before planning or reservation. Invalid input has no busy/cooldown effect.
  * Return Value: Boolean, request queued or accepted.
@@ -32,7 +33,7 @@
  * Example: [_gun, _reportedPosition, 40] call CBE_fnc_CortexArtilleryFire;
  */
 params [["_battery", objNull, [objNull]], ["_target", [], [[]]], ["_error", 0, [0]], ["_mode", "HE", [""]],
-    ["_rounds", -1, [0]], ["_scoot", -1, [0, true]], ["_purpose", "SUPPORT", [""]], ["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_requester", grpNull, [grpNull]], ["_observedAt",-1,[0]]];
+    ["_rounds", -1, [0]], ["_scoot", -1, [0, true]], ["_purpose", "SUPPORT", [""]], ["_spotter", objNull, [objNull]], ["_enemy", objNull, [objNull]], ["_requester", grpNull, [grpNull]], ["_observedAt",-1,[0]], ["_counterObservationGeneration",-1,[0]]];
 if (!isServer) exitWith {_this remoteExecCall ["CBE_fnc_CortexArtilleryFire", 2]; true};
 // Capture before planning so an off/on during admission cannot adopt the new session.
 private _fireEpochs=[missionNamespace getVariable ["CBE_Artillery_SupportFireGeneration",0],
@@ -58,6 +59,17 @@ if (_retreatSmoke && {isNull ([_requester] call CBE_fnc_CortexGroupTransmitter)
     || {!([_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {false};
 private _requestSide = if (_retreatSmoke) then {side _requester} else {side group _spotter};
 private _counter = _purpose == "COUNTER";
+// A delayed observer reply must not join a later enable session. Only a direct server
+// script may omit the envelope; remote callers must retain their original generation.
+if (_counter) then {
+    if (_counterObservationGeneration == -1 && {!isRemoteExecuted}) then {
+        _counterObservationGeneration=_fireEpochs select 3;
+    };
+    if (!finite _counterObservationGeneration || {_counterObservationGeneration < 0}
+        || {_counterObservationGeneration != floor _counterObservationGeneration}
+        || {_counterObservationGeneration != (_fireEpochs select 3)}) then {_purpose=""};
+};
+if (_purpose == "") exitWith {false};
 // Preserve observation age across owner/server delivery, before reserving any battery.
 if (_counter && {!isNull _spotter}) then {
     if (_observedAt == -1 && {local _spotter} && {!isNull _enemy}) then {
