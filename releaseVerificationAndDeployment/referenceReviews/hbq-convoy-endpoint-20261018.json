@@ -39,5 +39,10 @@
     "Slow mixed tracked/wheeled step-off, stop/start, curves, bridges and explicit STOP/changed seat/destination physical cases.",
     "Configured spacing and mass-adjusted braking are provisional, not measured guarantees.",
     "Median/p95 performance budget and whole-HBQ parity remain unaccepted."
-  ]
+  ],
+  "settledWaitFollowup20261025": {
+    "review": "convoy-settled-wait-20261025.json",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "scope": "Native pending acknowledgement and short-leg continuation now admit exact ready/rested same-floor WAIT with original two-seat receipts. Physical semantics, mixed-vehicle pacing and performance remain unverified."
+  }
 }

@@ -19,6 +19,9 @@
  * 0.01rad/s angular motion for every vehicle; non-finite samples reset that window.
  * A stopped, exactly owned steering endpoint can continue onto fresh ordered trail after
  * more than3m endpoint advance; moving legs retain the8m refresh threshold.
+ * A completed exact native leg may be observed as WAIT only with readiness and measured
+ * same-floor endpoint rest. WAIT without original endpoint/crew proof and native STOP
+ * grant no continuation; identical replacement native orders remain indistinguishable.
  * Ongoing native/steering receipts bind both crew destinations. A distinct driver order
  * yields the current revision before commander acknowledgement can adopt it as our own.
  * Driver and movement-operator commands yield while either actual seat actor is dormant,
@@ -188,6 +191,14 @@ if (_paused || {_playerCrew} || {_zeus} || {_nativeCrewTask}) exitWith {
     };
 };
 _group setVariable ["CBE_Convoy_Suspended", false];
+// Native acknowledgement and later endpoint continuation share actual total rest.
+private _convoyStopped={
+    params ["_candidate"];
+    private _linear=vectorMagnitude velocity _candidate;
+    if !(finite _linear && {_linear*3.6 < 1}) exitWith {false};
+    private _angular=vectorMagnitude angularVelocity _candidate;
+    finite _angular && {_angular < 0.01}
+};
 // Both crew destinations bind ongoing control. A distinct driver replacement wins even
 // when our commander goal acknowledges in the same tick; acknowledgement cannot mint that
 // driver order as our own. Same-actor acknowledgement updates its one destination receipt.
@@ -237,8 +248,17 @@ if ((_commandYield param [0,-1]) != _revision) then {
                     && {(_request select 2) isEqualType ""};
                 private _nativeNow=expectedDestination _operator;
                 private _position=_nativeNow param [0,[],[[]]];
-                private _acknowledged=_validRequest && {currentCommand _operator in ["","MOVE"]}
-                    && {count _position == 3} && {_position vectorDistance (_request select 0) <= 0.25};
+                // A short native leg can settle before its next observation. WAIT alone
+                // is not acknowledgement: retain the exact goal, ready operator and
+                // measured same-floor endpoint. A permanent STOP never qualifies.
+                private _goalAcknowledged=_validRequest && {count _position == 3}
+                    && {_position vectorDistance (_request select 0) <= 0.25};
+                private _settledAck=_goalAcknowledged && {currentCommand _operator == "WAIT"}
+                    && {unitReady _operator} && {_vehicle distance2D (_request select 0) <= 3}
+                    && {abs (((getPosASL _vehicle) select 2)-((ATLToASL (_request select 0)) select 2)) <= 1.5}
+                    && {[_vehicle] call _convoyStopped};
+                private _acknowledged=_goalAcknowledged
+                    && {currentCommand _operator in ["","MOVE"] || {_settledAck}};
                 if (_acknowledged) then {
                     // Accept only our originally issued goal, not any changed destination.
                     // This consumes the request; neither movement nor its clock is replayed.
@@ -963,13 +983,6 @@ if (!_leadCapConfirmed) exitWith {};
 // after ten seconds without progress, while a real route destination remains active.
 // Forward-axis speed alone labels a turning/sliding vehicle as stopped. Native retry and
 // endpoint completion require finite total linear and angular rest; no velocity is changed.
-private _convoyStopped={
-    params ["_candidate"];
-    private _linear=vectorMagnitude velocity _candidate;
-    if !(finite _linear && {_linear*3.6 < 1}) exitWith {false};
-    private _angular=vectorMagnitude angularVelocity _candidate;
-    finite _angular && {_angular < 0.01}
-};
 private _leadProgress = _state getOrDefault ["leadProgress", [getPosATL _lead, time, 0]];
 private _waypointIndex = currentWaypoint _group;
 private _leadRouteReceipt=[_group,"",false,_waypointIndex] call CBE_fnc_AuthoredRouteReceipt;
@@ -1450,7 +1463,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
                 private _finishedLeg=count _committedDestination == 3 && {count _nativeReceipt == 4}
                     && {local _vehicle} && {local _movementOperator}
                     && {[_vehicle] call _convoyStopped} && {unitReady _movementOperator}
-                    && {currentCommand _movementOperator in ["","MOVE"]}
+                    && {currentCommand _movementOperator in ["","MOVE","WAIT"]}
                     && {_vehicle distance2D _committedDestination <= 3}
                     && {abs (((getPosASL _vehicle) select 2)-((ATLToASL _committedDestination) select 2)) <= 1.5}
                     && {_committedDestination distance2D _destination > 3}

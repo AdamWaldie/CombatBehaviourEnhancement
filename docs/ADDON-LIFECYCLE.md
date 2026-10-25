@@ -1723,3 +1723,29 @@ limits remain unchanged. A transfer may recheck earlier than the last local due 
 if it was not part of a published transition, but cannot reset the original blocked
 start time. Physical isolation, native movement and measured overhead remain pending
 an authorised game pass; this is not proof of complete perimeter coverage.
+
+
+### Convoy native endpoint observed as settled WAIT
+
+A short native convoy MOVE can finish before the next owner callback. Its exact
+recorded endpoint may then report WAIT. The native request acknowledgement and
+short-leg continuation now retain this case only when the original movement
+operator is ready, both original crew/destination receipts still match, and the
+actual vehicle rests within 3m horizontally and 1.5m vertically of the issued point.
+Rest retains the existing finite total-linear-speed and angular-speed limits.
+Unchanged native endpoint geometry is checked before extra motion sampling.
+
+This permits the existing continuation after more than 3m of fresh ordered trail,
+including advances below the moving-leg refresh threshold of 8m. It does not request
+a new path on every callback. Native STOP still yields the convoy revision; altered
+crew goals, other native tasks, moving vehicles and a different floor cannot use
+this settled acknowledgement. Identical replacement native orders remain
+observationally indistinguishable.
+
+The same rest helper serves acknowledgement and continuation. No worker, world
+scan, timer, speed-policy change or acknowledgement-deadline renewal is added.
+Pending exact WAIT acknowledgement may add one measured velocity/angular-velocity
+sample after the cheap endpoint/proximity tests pass. The existing audit fixture
+can observe WAIT at a recorded endpoint but still requires subsequent physical
+travel. Audits remain paused; native ready/WAIT timing, mixed-convoy flow and the
+5% median / 10% p95 performance budget are not established by offline checks.

@@ -303,7 +303,7 @@ if (!_diagnostic && {!_columnOnly} && {!_trackedOnly}) then {
                             && {_advance > 3} && {_advance <= 8}
                             && {_pose distance2D (ATLToASL _old) <= 3}
                             && {abs ((_pose select 2)-((ATLToASL _old) select 2)) <= 1.5}
-                            && {abs _speedAt < 1} && {_readyAt} && {_commandAt in ["","MOVE"]}
+                            && {abs _speedAt < 1} && {_readyAt} && {_commandAt in ["","MOVE","WAIT"]}
                             && {finite vectorMagnitude _velocityAt} && {finite vectorMagnitude _angularAt}
                             && {(vectorMagnitude _velocityAt)*3.6 < 1} && {vectorMagnitude _angularAt < 0.01};
                         if (_valid) then {

@@ -201,6 +201,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/convoy-settled-wait-20261025.json",
+      "sha256": "92effc413245677890083be50673e7676f5331eb2b30598b466534c303e5438f",
+      "scope": "Read the record for its exact scope.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/crew-recall-20261024.json",
       "sha256": "5208da0205594dfa7d51ff2368185dc37bc9f3ad25ab3d1b3a88c418a03cf51c",
       "scope": "Optional HBQ-style normal crew recall",
@@ -325,7 +334,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-endpoint-20261018.json",
-      "sha256": "970ae3e71688143460ea2aa618d8555dcf2b2932fd29e277e0cc56f1aa074283",
+      "sha256": "771b38ed260acdde6e32e98b176467fb4ace8c190ed2ea96fd78ef6d341783ae",
       "scope": "HBQ traffic hold intent compared with native convoy endpoint admission",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

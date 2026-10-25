@@ -8,7 +8,7 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         block=text.split('private _finishedLeg=',1)[1].split('if (count _committedDestination < 2',1)[0]
         for guard in ('count _committedDestination == 3','count _nativeReceipt == 4',
                       'local _vehicle','local _movementOperator','[_vehicle] call _convoyStopped',
-                      'unitReady _movementOperator','currentCommand _movementOperator in ["","MOVE"]',
+                      'unitReady _movementOperator','currentCommand _movementOperator in ["","MOVE","WAIT"]',
                       '_vehicle distance2D _committedDestination <= 3','ATLToASL _committedDestination',
                       '_committedDestination distance2D _destination > 3',
                       '(_nativeReceipt select 0) == driver _vehicle',
@@ -20,10 +20,30 @@ class ConvoyNativeEndpointTests(unittest.TestCase):
         branch=text.split('count _committedDestination < 2 || {_refreshNative} || {_finishedLeg}',1)[1].split('_progress set [2, time + 1]',1)[0]
         self.assertLess(branch.index('call _mayIssueDriving'),branch.index('_movementOperator doMove'))
         self.assertIn('_progress set [10,[driver _vehicle,_movementOperator',branch)
+        ack=text.split('private _goalAcknowledged=',1)[1].split('if (_acknowledged)',1)[0]
+        for proof in ('currentCommand _operator == "WAIT"','unitReady _operator',
+                      '[_vehicle] call _convoyStopped','_vehicle distance2D (_request select 0) <= 3',
+                      'ATLToASL (_request select 0)','<= 1.5',
+                      '_position vectorDistance (_request select 0) <= 0.25'):
+            self.assertIn(proof,ack)
+        self.assertLess(text.index('private _convoyStopped='),text.index('private _settledAck='))
+        self.assertLess(text.index('if (!_driverUnchanged)'),text.index('private _settledAck='))
+        # WAIT is usable only for the exact rested completed leg. STOP and other
+        # native tasks retain their separate authority even at the same coordinates.
+        def settled(command,ready,linear,angular,distance,height,endpoint_matches):
+            return (command=='WAIT' and ready and linear*3.6<1 and angular<0.01
+                    and distance<=3 and abs(height)<=1.5 and endpoint_matches)
+        self.assertTrue(settled('WAIT',True,0,0,1,0,True))
+        for args in (('STOP',True,0,0,1,0,True),('FOLLOW',True,0,0,1,0,True),
+                     ('WAIT',False,0,0,1,0,True),('WAIT',True,2,0,1,0,True),
+                     ('WAIT',True,0,0.1,1,0,True),('WAIT',True,0,0,8,0,True),
+                     ('WAIT',True,0,0,1,3,True),('WAIT',True,0,0,1,0,False)):
+            self.assertFalse(settled(*args))
+
 
     def test_native_retry_and_endpoint_share_finite_total_motion_gate(self):
         text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
-        gate=text.split('private _convoyStopped={',1)[1].split('private _leadProgress',1)[0]
+        gate=text.split('private _convoyStopped={',1)[1].split('\n};',1)[0]
         for guard in ('vectorMagnitude velocity _candidate','vectorMagnitude angularVelocity _candidate',
                       'finite _linear','finite _angular','_linear*3.6 < 1','_angular < 0.01'):
             self.assertIn(guard,gate)
