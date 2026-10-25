@@ -10451,6 +10451,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_magazines arrayIntersect _compatible',text)
         self.assertIn('getNumber (_ammo >> "airLock") != 2',text)
         self.assertIn('getNumber (_ammo >> "laserLock") <= 0',text)
+        legacy=proposal.split('private _legacyMissile=',1)[1].split('if (_magazine !=',1)[0]
+        for guard in ('_flag == 512','_warhead == ""','"loadedPreference",-1]) < 0',
+                      '"simulation") == "shotmissile"','getNumber (_ammo >> "hit") >= 100'):
+            self.assertIn(guard,legacy)
+        self.assertIn('_warhead in _desired || {_legacyMissile}',proposal)
+        self.assertIn('if (_legacyMissile) then {0.5} else',proposal)
+
 
         self.assertIn('(_x select 0) != _muzzle && {_magazine in (_x select 1)}',text)
         self.assertIn('count _compatible > 128',text)

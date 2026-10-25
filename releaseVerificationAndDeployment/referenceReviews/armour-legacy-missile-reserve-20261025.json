@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "ba1549729953d4d2b3d4db9459255240a79b684c",
+  "scope": "Selected Protocol armoured missile-use intent: reserve availability for unlabelled legacy ground missiles. Not full armoured behaviour implementation.",
+  "workshopId": "3822504009",
+  "reference": ".qa/protocol-armour-3822504009-review/functions/fn_armored_force.sqf",
+  "referenceSHA256": "f0b14982dca5aa4a574520ddf287730ec26f12a1bd8b571f6eccab106a087355",
+  "sourceIntent": "Use available anti-tank missiles in vehicle contact, alongside main weapons. Reference searches weapon/magazine names and vehicle-wide magazines, then requests fire; it does not establish exact loaded station state. Its cover/reverse/manoeuvre workers overlap and are not ported.",
+  "cbeGap": "GroundFireReady already permits legacy heavy shotMissile ammunition against armour when configured target/domain intent permits it. GroundReload required explicit AP/TANDEMHEAT/HEAT warheadName, so the same unlabelled missile could qualify when loaded but never be proposed from reserve.",
+  "implementation": [
+    "Unlabelled shotMissile reserve ammunition with configured hit>=100 may qualify for armoured target flag512 only when the existing loaded observation has no usable target-suitable result. No class/display-name heuristics.",
+    "Existing usage flags, non-air-only/non-laser policy, positive inventory, exact turret, unambiguous compatible muzzle, actual complete native weapon state/reload phase0 and current owner/task/target/ROE/role safeguards remain. No new shots, target/weapon-selection requests or ammunition creation.",
+    "Fallback reserve rank0.5 remains below explicit HEAT1/tandem2/AP3. Any usable loaded fallback suppresses the legacy branch; current reload-in-progress refusal remains ahead of proposals.",
+    "Uses existing scans and query budgets. Added config comparisons only inside existing compatible positive-reserve candidates. Native acknowledgement and later normal fire admission remain required."
+  ],
+  "validation": {
+    "focused": "610 existing operation cases passed; existing reserve-loading case extended, total count unchanged. Static contracts, not simulated native reload.",
+    "full": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/armour-legacy-missile-reserve-ba154972",
+    "fingerprint": "ab40f621e966519a9b3f18a46e0569ab013b14db04d701043488c0a1d84dbbe8"
+  },
+  "limits": [
+    "Configured hit/simulation/usage are ammunition intent, not guidance, penetration, probability of hit, actual weapon effectiveness or balance proof. Unknown warhead rockets/shells are not newly enabled by this reserve fallback.",
+    "Air-only and laser-dependent rounds remain excluded from this automatic loading path. Empty same-class magazines retain existing native reload policy; this is not all reserve/loading parity.",
+    "No random cover moves, reveal, vehicle-wide selection, per-shot detached workers or physics shortcuts copied. Cover/exposure/relocation and broader Protocol integration remain incomplete; original archive untouched and licensing separate.",
+    "Actual modded-station loading, acknowledgement, selection, shots, MP/locality/cancellation and5%median/10%p95 performance remain unverified. Audits paused; no whole-source percentage raised."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexGroundReload.sqf": "05c887f84a8272c83ce5aff00642eb4bf4cf4893360400775fc0b74792751bfe",
+    "addons/infantry/functions/cortexGroundFireReady.sqf": "bde93eab31965cf5bd7b07a1cd3240f0db6a98e0acb68aa70230cf431b444e0c",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "87a627d5dd627359a72ac4b3e304405f132e3daac8c9433dbcecfd3047e12f98",
+    "docs/Smart-AI-Pass.md": "f939e4751a5da34c215632a5d49450695ed183b3d07ffa82bea94eb7280dbb2a"
+  }
+}

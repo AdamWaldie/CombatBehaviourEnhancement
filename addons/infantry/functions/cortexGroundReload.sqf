@@ -14,6 +14,9 @@
  * role replacement or expiry revokes it. No role or observation deadline is renewed.
  * Return: STRING REQUESTED/PENDING blocks this routine firing pass; READY/REFUSED does not.
  * New load proposals require a complete native weapon state and finite magazine reload phase0.
+ * Unlabelled legacy ground missiles may be reserve fallbacks against armour only when
+ * no target-suitable loaded round exists. Explicit AP/HEAT warheads rank higher;
+ * simulation/damage/target flags replace weapon-name guesses, not penetration evidence.
  * READY requires the exact requested magazine, rounds and native magazine reload phase0;
  * it is not permission to fire. A positive phase retains the original pending deadline.
  * Bounds: <=64 crew/128 inventory rows,16 weapons/8 muzzles each,128 compatible classes
@@ -155,11 +158,17 @@ private _proposal=[];private _bestRank=-1;private _queries=0;
                         private _flags=getNumber (_ammo >> "aiAmmoUsageFlags");
                         private _suitable=_flags <= 0 || {(floor (_flags/_flag) mod 2) == 1};
                         if (_flag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")} && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) then {_suitable=false};
-                        if (_magazine != (_state select 3) && {_warhead in _desired}
+                        // Match the loaded-station legacy heavy-missile policy without
+                        // replacing a usable loaded fallback or guessing translated names.
+                        private _legacyMissile=_flag == 512 && {_warhead == ""}
+                            && {(_loaded getOrDefault ["loadedPreference",-1]) < 0}
+                            && {toLowerANSI getText (_ammo >> "simulation") == "shotmissile"}
+                            && {getNumber (_ammo >> "hit") >= 100};
+                        if (_magazine != (_state select 3) && {_warhead in _desired || {_legacyMissile}}
                             && {_suitable} && {getNumber (_ammo >> "airLock") != 2} && {getNumber (_ammo >> "laserLock") <= 0}
                             && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
                             && {!isClass (_ammo >> "Components" >> "SensorsManagerComponent" >> "Components" >> "LaserSensorComponent")}) then {
-                            private _rank=(count _desired)-(_desired find _warhead);
+                            private _rank=if (_legacyMissile) then {0.5} else {(count _desired)-(_desired find _warhead)};
                             // loadMagazine names a weapon, not a muzzle. Accept only when no
                             // different muzzle of that weapon can consume this magazine class.
                             if (_rank > _bestRank && {_muzzleRows findIf {

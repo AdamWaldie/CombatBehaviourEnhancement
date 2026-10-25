@@ -179,7 +179,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Selected countermeasure-station intent and original CBE vehicle foundations now include language-independent horn exclusion and exact jink control-seat authority/cancellation. Continue suitable ATGM/cover/exposure/relocation integration; actual shots, tactical movement, owner handback and performance remain unverified. Binary registration/declarations reviewed; runtime/provider dependencies and licensing remain separate.",
+      "remaining": "Selected countermeasure-station intent, horn exclusion, exact jink seat authority and an unlabelled legacy ground-missile reserve fallback are integrated in code. Continue cover/exposure/relocation and broader suitable ATGM integration. Actual loading, shots, movement, owner handback and performance remain unverified; dependencies and licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -191,6 +191,13 @@
           "vehicleHornClassification20261021",
           "jinkCrewOwnership20261021"
         ],
+        "physicalAcceptance": false,
+        "performanceMeasured": false
+      },
+      "currentCodeEvidence20261025": {
+        "base": "ba154972",
+        "review": "armour-legacy-missile-reserve-20261025.json",
+        "scope": "Unlabelled legacy ground-missile reserve fallback only; not whole-mod parity",
         "physicalAcceptance": false,
         "performanceMeasured": false
       }
