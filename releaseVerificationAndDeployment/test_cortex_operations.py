@@ -904,6 +904,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _screenDistance=(0.5 * (_origin distance2D _screenThreat)) min 18;',danger_smoke)
         self.assertNotIn('getPos [18,_origin getDir _screenThreat]',danger_smoke)
         self.assertIn('_unit distance2D _contact <= _unit distance2D _towards',source('cortexThrowGrenade'))
+        smoke_cancel=source('cortexThrowGrenade').split('private _cancel = {',1)[1].split('if (time > _expires)',1)[0]
+        for marker in ['CBE_Cortex_ThrowGeneration','CBE_OperationGeneration','CBE_AIPass_Epoch','(_smokeLease select 0) isEqualTo (_context select 1)','(_smokeLease select 1) isEqualTo _unit','((_smokeLease select 2)+45)','["CBE_Danger_SmokeLease",nil,true]','["CBE_Danger_SmokeAfter",time+3]']:
+            self.assertIn(marker,smoke_cancel)
         self.assertIn('if (!(_state getOrDefault ["contactKnowledge",false]) || {count _contact < 2}) exitWith {false};',danger_smoke)
         self.assertNotIn('sleep ',danger_smoke)
         self.assertNotIn('waitUntil',danger_smoke)

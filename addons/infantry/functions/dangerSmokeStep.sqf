@@ -83,8 +83,9 @@ if (!_queued) exitWith {
     _group setVariable ["CBE_Danger_SmokeAfter",time+3];
     false
 };
-_group setVariable ["CBE_Danger_SmokeLease",[_generation,_thrower,time],true];
-_group setVariable ["CBE_Danger_SmokeAfter",time+45];
+private _queuedAt=time;
+_group setVariable ["CBE_Danger_SmokeLease",[_generation,_thrower,_queuedAt],true];
+_group setVariable ["CBE_Danger_SmokeAfter",_queuedAt+45];
 private _stats=_group getVariable ["CBE_Danger_EngineStats",createHashMap];
 _stats set ["smokeResponses",((_stats getOrDefault ["smokeResponses",0])+1) min 100000];
 _stats set ["lastSmokeActor",_thrower];

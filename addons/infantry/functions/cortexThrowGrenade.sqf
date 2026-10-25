@@ -176,6 +176,23 @@ private _thrown = false;
                 private _cancel = {
                     params [["_reason","OWNERSHIP_OR_SAFETY",[""]],["_details",[],[[]]]];
                     _unit setVariable ["CBE_Cortex_ThrowDecision",[time,_reason,_kind,_throwGeneration,_details]];
+                    // A queued request is not a fired grenade. Retire only this danger
+                    // carrier's unchanged reservation; never shorten a newer request's cooldown.
+                    if (_kind == "SMOKE" && {count _context == 3} && {(_context select 0) == "DANGER"}
+                        && {local _group} && {local _unit} && {group _unit == _group}
+                        && {(_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) == _throwGeneration}
+                        && {(_group getVariable ["CBE_OperationGeneration",0]) == _operationGeneration}
+                        && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _ownerEpoch}) then {
+                        private _smokeLease=_group getVariable ["CBE_Danger_SmokeLease",[]];
+                        if (_smokeLease isEqualType [] && {count _smokeLease == 3}
+                            && {(_smokeLease select 0) isEqualTo (_context select 1)}
+                            && {(_smokeLease select 1) isEqualTo _unit}
+                            && {(_smokeLease select 2) isEqualType 0} && {finite (_smokeLease select 2)}
+                            && {(_group getVariable ["CBE_Danger_SmokeAfter",-1]) isEqualTo ((_smokeLease select 2)+45)}) then {
+                            _group setVariable ["CBE_Danger_SmokeLease",nil,true];
+                            _group setVariable ["CBE_Danger_SmokeAfter",time+3];
+                        };
+                    };
                     if (_kind == "FRAG" && {_drillToken != ""}) then {
                         _unit setVariable ["CBE_Cortex_FragCancelled",_drillToken];
                     };
