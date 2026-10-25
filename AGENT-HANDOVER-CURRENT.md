@@ -78,3 +78,8 @@ Resume now captures early-exit and reserve-admission journals before startup alo
 ### Completed clearance leg release — 2026-10-25
 
 Explicit release now recognises an original clearance MOVE settled as WAIT only with the exact retiring visit, unchanged private/native target and mission-order receipt, measured rest and same-floor arrival. It then uses the existing task-safe admitted formation-parent handback; foreign WAIT remains protected. No new controller or retry is created. Full offline gates passed: 1497 tests, 422 SQF files, 11 PBOs. Independently verified candidate `.qa/candidates/clear-settled-release-97fb7915`, fingerprint `1f2e73399a614282c80651c3bda3cd0ba34f4cf803db1e4b6955baca012ba745`. Audits remain paused, so physical following and performance are unverified. See `clear-settled-release-20261025.json`.
+
+
+### Outgoing clearance checkpoint integration trace
+
+`clear-producer-seal-path-20261025.json` identifies the existing group Local EH and the outgoing private-brain retirement edge. Reuse that edge for an authenticated final producer seal; do not add polling or infer coherent delivery from current public journals. Destination provider notifications are post-transfer observations, not old-owner quiescence. Full ordered request/replay and actor reconciliation remain unimplemented. The exact latest offline-validated runtime remains a8016028 and candidate clear-settled-release-97fb7915. No new runtime or physical claim.
