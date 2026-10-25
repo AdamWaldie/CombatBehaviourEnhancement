@@ -268,18 +268,20 @@
           "capability": "Shared due-job queue and callback budget",
           "weight": 1,
           "built": 1,
-          "implemented": "Keyed due-job admission preserves supplied owner epoch, coalesces current generation work and maintains the earliest wake. Tick rotates retained jobs and checks elapsed callback budget between jobs; individual SQF callbacks are not preempted. No measured frame-time claim.",
+          "implemented": "2026-10-25 current-source reassessment: keyed admission preserves supplied group owner epoch, rejects non-finite initial delays and coalesces only matching key/group/generation/epoch live states. Tick rotates retained jobs, merges in-callback wakes and checks elapsed soft budget between jobs. Callback delay/deadline overflow signals finite-state cancellation rather than stranding pending work. Latest256 executed callbacks retain owner-local timing/context samples. Queue traversal and individual callback time are not hard-capped or pre-empted; no measured frame-overhead claim.",
           "remaining_build_gap": "",
           "evidence": [
             {
               "path": "addons/core/functions/cortexQueueJob.sqf",
-              "sha256": "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11"
+              "sha256": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
             },
             {
               "path": "addons/core/functions/cortexSchedulerTick.sqf",
-              "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
+              "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-25",
+          "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
         },
         {
           "capability": "Pause/distance/cooldown policy",
@@ -310,7 +312,7 @@
           "capability": "Runtime reconciliation and retirement",
           "weight": 1,
           "built": 1,
-          "implemented": "Reconcile retains only enabled owner-local runtimes and finite cleanup categories, installs one shared CBA handler and removes it when none remain. Tick now admits hold-cleanup-only work as well as posture/settings categories; terminal cleanup invokes reconciliation. Physical shutdown/HC retirement and measured overhead remain unverified.",
+          "implemented": "2026-10-25 current-source reassessment: Reconcile retains enabled owner-local runtime categories and exact finite posture/settings/hold cleanup, includes retained wakeAt deadlines, installs one CBA handler and removes it when no runtime remains. Tick counts pending aircraft successors before retirement and reconciles terminal cleanup categories. No native restoration command belongs to the scheduler itself. Physical shutdown/migration and5percent median/10percent p95 frame overhead remain unverified.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -319,9 +321,11 @@
             },
             {
               "path": "addons/core/functions/cortexSchedulerTick.sqf",
-              "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
+              "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
             }
-          ]
+          ],
+          "reviewed_at": "2026-10-25",
+          "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
         }
       ],
       "confidence": "low",

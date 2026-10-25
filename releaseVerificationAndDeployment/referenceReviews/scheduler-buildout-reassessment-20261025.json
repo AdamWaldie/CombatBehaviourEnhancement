@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "4fd3d13da6258f8323aa4352eacaa86dd34780d5",
+  "scope": "Fresh full current-body review of CortexQueueJob, CortexSchedulerTick and SchedulerReconcile for two SCHED criteria only. Pause/distance/cooldown and other families not reassessed.",
+  "criteria": [
+    {
+      "before": {
+        "capability": "Shared due-job queue and callback budget",
+        "weight": 1,
+        "built": 1,
+        "implemented": "Keyed due-job admission preserves supplied owner epoch, coalesces current generation work and maintains the earliest wake. Tick rotates retained jobs and checks elapsed callback budget between jobs; individual SQF callbacks are not preempted. No measured frame-time claim.",
+        "remaining_build_gap": "",
+        "evidence": [
+          {
+            "path": "addons/core/functions/cortexQueueJob.sqf",
+            "sha256": "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11"
+          },
+          {
+            "path": "addons/core/functions/cortexSchedulerTick.sqf",
+            "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
+          }
+        ]
+      },
+      "after": {
+        "capability": "Shared due-job queue and callback budget",
+        "weight": 1,
+        "built": 1,
+        "implemented": "2026-10-25 current-source reassessment: keyed admission preserves supplied group owner epoch, rejects non-finite initial delays and coalesces only matching key/group/generation/epoch live states. Tick rotates retained jobs, merges in-callback wakes and checks elapsed soft budget between jobs. Callback delay/deadline overflow signals finite-state cancellation rather than stranding pending work. Latest256 executed callbacks retain owner-local timing/context samples. Queue traversal and individual callback time are not hard-capped or pre-empted; no measured frame-overhead claim.",
+        "remaining_build_gap": "",
+        "evidence": [
+          {
+            "path": "addons/core/functions/cortexQueueJob.sqf",
+            "sha256": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
+          },
+          {
+            "path": "addons/core/functions/cortexSchedulerTick.sqf",
+            "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
+          }
+        ],
+        "reviewed_at": "2026-10-25",
+        "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
+      }
+    },
+    {
+      "before": {
+        "capability": "Runtime reconciliation and retirement",
+        "weight": 1,
+        "built": 1,
+        "implemented": "Reconcile retains only enabled owner-local runtimes and finite cleanup categories, installs one shared CBA handler and removes it when none remain. Tick now admits hold-cleanup-only work as well as posture/settings categories; terminal cleanup invokes reconciliation. Physical shutdown/HC retirement and measured overhead remain unverified.",
+        "remaining_build_gap": "",
+        "evidence": [
+          {
+            "path": "addons/core/functions/schedulerReconcile.sqf",
+            "sha256": "a90aed26ee4185b376ff0b7f607e175980f4221d42cf7258697f6ad209ee9c69"
+          },
+          {
+            "path": "addons/core/functions/cortexSchedulerTick.sqf",
+            "sha256": "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
+          }
+        ]
+      },
+      "after": {
+        "capability": "Runtime reconciliation and retirement",
+        "weight": 1,
+        "built": 1,
+        "implemented": "2026-10-25 current-source reassessment: Reconcile retains enabled owner-local runtime categories and exact finite posture/settings/hold cleanup, includes retained wakeAt deadlines, installs one CBA handler and removes it when no runtime remains. Tick counts pending aircraft successors before retirement and reconciles terminal cleanup categories. No native restoration command belongs to the scheduler itself. Physical shutdown/migration and5percent median/10percent p95 frame overhead remain unverified.",
+        "remaining_build_gap": "",
+        "evidence": [
+          {
+            "path": "addons/core/functions/schedulerReconcile.sqf",
+            "sha256": "a90aed26ee4185b376ff0b7f607e175980f4221d42cf7258697f6ad209ee9c69"
+          },
+          {
+            "path": "addons/core/functions/cortexSchedulerTick.sqf",
+            "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
+          }
+        ],
+        "reviewed_at": "2026-10-25",
+        "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
+      }
+    }
+  ],
+  "historicalLimit": "Family source_commit a2f2c7ce does not reproduce the recorded hashes for these files. Baseline metadata mismatch checked; no claim of exact historical body comparison. Fresh current-source assessment replaces only selected criterion evidence, preserving old rows here.",
+  "reviewFindings": [
+    "Queue key search excludes cancelled/finished/done states, binds key/group/generation/owner epoch, preserves supplied authority and does not stamp stale epochs current. Same-state merge preserves earliest wake; independent requests remain separate.",
+    "Tick is normally synchronous unscheduled CBA work; real canSuspend sampled. At least one due entry is processed before soft budget gates further entries. Full queue traversal persists; individual callbacks cannot be pre-empted. Non-finite callback/doubled-delay deadlines cancel finite state and signal its pending/completed fields.",
+    "Current callback-local timing ring bounded256, key text160chars. Paused/stale skips do not become timing samples. Statistics are not matched frame overhead.",
+    "Reconcile preserves exact owner-local finite cleanup while tactical runtime stops, includes keyed wake deadlines and controls one CBA handle. Pending aircraft successors are included in final-runtime retirement. Native cleanup remains each guarded finite executor responsibility."
+  ],
+  "validation": {
+    "scorePolicy": "All scores/weights/denominators asserted unchanged. No bulk evidence refresh.",
+    "sourceIntegrity": "Current raw byte hashes captured after complete body review. Line-ending-only hypothesis separately rejected across baseline:0 stale path/hash pairs match LF/CRLF variants;146 distinct stale path/hash pairs over138source paths before this update.",
+    "remainingUniqueStaleSources": 136,
+    "trackerCheck": "Still expected to FAIL on unrelated stale cortexAdvanceStart; generated report deliberately not renewed or certified.",
+    "runtime": "No runtime changes, added tests/build or audit. Last exact candidate artillery-shared-readiness-90abe257 unchanged."
+  },
+  "limits": "Two current criteria reassessed, not whole scheduler family or whole mod. Physical ownership/shutdown/normal-HC/JIP/provider handovers and performance unverified. Audits PAUSED; full goal active/incomplete."
+}
