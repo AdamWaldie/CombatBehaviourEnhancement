@@ -23,6 +23,12 @@ class ConvoyWaypointGateTests(unittest.TestCase):
         helper=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
         self.assertIn('["_waypointIndex",-1,[0]]',helper)
         self.assertIn('(_x select 1) == _waypointIndex',helper)
+        self.assertIn('!finite _waypointIndex',helper)
+        self.assertIn('_waypointIndex == floor _waypointIndex',helper)
+        self.assertIn('_waypointIndex < count _authored',helper)
+        self.assertLess(helper.index('_authored select [_waypointIndex,1]'),helper.index('_authored=_authored select'))
+        self.assertLess(helper.index('(_x select 1) == _waypointIndex'),helper.index('_authored apply'))
+
     def test_implicit_waypoint_and_movement_operator_are_not_recalled(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
         self.assertIn('(_waypoint select 1) > 0',s)

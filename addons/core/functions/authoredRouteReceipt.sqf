@@ -9,17 +9,28 @@
  * Arguments: 0 group <GROUP>, grpNull; 1 owned waypoint name <STRING>, empty (exclude none).
  * 2 owned-only <BOOL>, false: read only the named operation waypoint instead of excluding it.
  * 3 waypoint engine index <NUMBER>, -1: negative reads all; otherwise read only that handle.
- * Return: ARRAY of waypoint metadata rows; empty for null/no authored entries. Cost is proportional
- * to waypoint count (fixed reads per row), not a world scan; large-route costs require profiling.
+ * Return: ARRAY of waypoint metadata rows; empty for null/no authored entries or invalid index.
+ * A nonnegative index slices at most one handle before filtering/metadata reads. Full-route mode
+ * retains all authored rows. Engine waypoint-array retrieval still depends on route size; no
+ * world scan, constant-time engine claim or measured frame-time improvement is implied.
  * Current callers: CortexAirAttack admission/owner callback, ConvoyTick recovery,
  * DrivingRouteReceipt and NativeOrderReceipt task/CQB guards.
  * Example: private _receipt=[group pilot1,"CBE_AIR_ownedToken"] call CBE_fnc_AuthoredRouteReceipt;
  */
 params [["_group",grpNull,[grpNull]],["_ownedName","",[""]],["_ownedOnly",false,[true]],["_waypointIndex",-1,[0]]];
-if (isNull _group) exitWith {[]};
-private _authored=(waypoints _group select {_waypointIndex < 0 || {(_x select 1) == _waypointIndex}}) select {if (_ownedOnly) then {
+if (isNull _group || {!finite _waypointIndex}) exitWith {[]};
+private _authored=waypoints _group;
+// A single-waypoint consumer does not need a SQF predicate over the full route.
+// The engine array retrieval still scales with route size. Validate the selected
+// handle below before reading metadata; malformed/nonintegral indices grant no receipt.
+if (_waypointIndex >= 0) then {
+    _authored=if (_waypointIndex == floor _waypointIndex && {_waypointIndex < count _authored}) then {
+        _authored select [_waypointIndex,1]
+    } else {[]};
+};
+_authored=_authored select {(_waypointIndex < 0 || {(_x select 1) == _waypointIndex}) && {if (_ownedOnly) then {
     _ownedName != "" && {waypointName _x == _ownedName}
-} else {_ownedName == "" || {waypointName _x != _ownedName}}};
+} else {_ownedName == "" || {waypointName _x != _ownedName}}}};
 _authored apply {
     private _waypoint=_x;
     private _vehicle=waypointAttachedVehicle _waypoint;
