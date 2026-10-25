@@ -57,7 +57,7 @@ isNil {
             ["kind","STANDOFF"],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
-            ["goal",+_spot],["spot",+_spot],["phase","ISSUE"],["moveUntil",_until],
+            ["goal",+_spot],["spot",+_spot],["arrivalRadius",5],["phase","ISSUE"],["moveUntil",_until],
             ["holdUntil",_until],["localLease",_lease],["progressPosition",getPosASL _battery],
             ["progressAt",serverTime],["release",false],["arrived",false]];
         _battery setVariable ["CBE_VehicleTacticalMove_Serial",_serial,true];

@@ -240,6 +240,11 @@
           "review": "mixed-group-standoff-20261025.json",
           "status": "MIXED_GROUP_SELECTED_CREW_ADMISSION_INTEGRATED",
           "physicalAcceptance": false
+        },
+        "tacticalArrival": {
+          "review": "tactical-arrival-radius-20261025.json",
+          "scope": "Standoff5m rested arrival, legacy artillery25m area retained; invalid policy retires through existing native lifecycle.",
+          "physicalAcceptance": false
         }
       }
     }

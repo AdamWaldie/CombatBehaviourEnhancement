@@ -8206,6 +8206,14 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_operationAnchor=_paceParticipants select 0;',crew_anchor)
         self.assertIn('CBE_fnc_CortexVehicleCrewAvailable',start)
         self.assertIn('call CBE_fnc_VehicleCrewNativeObservation',start)
+        self.assertIn('["arrivalRadius",5]',start)
+        native_phase=source('vehicleCrewMoveNativePhase')
+        moving=native_phase.split('if (_phase == "MOVING") exitWith {',1)[1].split('if (_phase == "HOLD")',1)[0]
+        self.assertIn('getOrDefault ["arrivalRadius",25]',moving)
+        self.assertIn('_battery distance2D _goal <= _arrivalRadius',moving)
+        self.assertIn('_arrivalRadius < 1',moving)
+        self.assertIn('_arrivalRadius > 25',moving)
+        self.assertLess(moving.index('_work set ["release",true]'),moving.index('_work set ["phase","HOLD"]'))
         self.assertIn('FSM_START_REFUSED',start)
         self.assertIn('execFSM "\\z\\cbe\\addons\\main\\fsm\\vehicleTacticalMove.fsm"',start)
         for forbidden in ('addWaypoint','setCurrentWaypoint','joinSilent','doMove'):

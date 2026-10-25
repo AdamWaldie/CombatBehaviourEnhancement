@@ -3,7 +3,9 @@
  * Purpose: Execute one native phase of an already admitted finite selected-platform crew move.
  * Locality/authority: Internal current-owner executor only, never remote execution. The caller
  * validates its worker, exact original seats, task/native-route/Zeus/external authority and
- * supplies current native observations plus physical samples. The current journal, owner,
+ * supplies current native observations plus physical samples. Work arrivalRadius may narrow
+ * the legacy25m artillery arrival area to1..25m; invalid policy requests normal retirement.
+ * The current journal, owner,
  * epoch and at most two original active local crew are checked again before native writes.
  * This is not movement admission and cannot mint a session, lease, replacement crew or worker.
  * Repeat/JIP: One synchronous phase, original goal/baseline/reply/cleanup clocks retained.
@@ -15,7 +17,7 @@
  * 7 original source still current BOOL,false; 8 measured platform at rest BOOL,false.
  * Return: ARRAY [next delay NUMBER, terminal reason STRING, retirement proved BOOL, publish journal BOOL].
  * Empty reason means continuation; nonempty reason must enter the caller's exact finalizer.
- * Current callers: ArtilleryCrewMoveStep, inside artilleryCrewMove.fsm's unscheduled callback.
+ * Current callers: ArtilleryCrewMoveStep and VehicleTacticalMoveStep, inside their unscheduled FSM callbacks.
  * Example: private _decision=[_vehicle,_work,_key,_seats,_active,_native,_arrival,
  *     _sourceCurrent,_rest] call CBE_fnc_VehicleCrewMoveNativePhase;
  */
@@ -88,11 +90,16 @@ if (_phase == "REQUESTED") exitWith {
     0.25
 };
 if (_phase == "MOVING") exitWith {
+    private _arrivalRadius=_work getOrDefault ["arrivalRadius",25];
+    if (!(_arrivalRadius isEqualType 0) || {!finite _arrivalRadius}
+        || {_arrivalRadius < 1} || {_arrivalRadius > 25}) exitWith {
+        _work set ["release",true];_publish=true;0.25
+    };
     private _position=getPosASL _battery;
     if (_position vectorDistance (_work get "progressPosition") >= 3) then {
         _work set ["progressPosition",_position];_work set ["progressAt",serverTime];
     };
-    if (_battery distance2D _goal <= 25 && {abs ((getPosATL _battery select 2)-(_goal select 2)) <= 3}
+    if (_battery distance2D _goal <= _arrivalRadius && {abs ((getPosATL _battery select 2)-(_goal select 2)) <= 3}
         && {_rest}) then {
         _work set ["phase","HOLD"];_work set ["holdObservations",_observations];_publish=true;
         } else {
