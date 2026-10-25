@@ -64,5 +64,10 @@
   "maintenanceRule": "Keep historical findings intact; use this current reconciliation and named later entries before selecting new work. An old remaining list must not justify adding a duplicate executor.",
   "validation": "Recorded current file hashes rechecked locally. No production edit, new test case, unchanged build rerun or physical audit.",
   "audits": "paused",
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "trafficFrameFollowup": {
+    "review": "hbq-traffic-world-frame-20261025.json",
+    "scope": "Own/other hull geometry now shares horizontal world metres with course/velocity/braking comparisons. Earlier hashes remain historical. No physical/performance/parity acceptance.",
+    "physicalAcceptance": false
+  }
 }

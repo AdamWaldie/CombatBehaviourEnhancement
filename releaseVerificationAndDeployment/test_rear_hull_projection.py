@@ -71,16 +71,20 @@ class RearHullProjectionTests(unittest.TestCase):
 
     def test_traffic_uses_the_same_full_hull_identity_without_weakening_admission(self):
         source=(ROOT/'addons/vehicles/functions/drivingFollowingCap.sqf').read_text(encoding='utf-8')
-        block=source.split('// Project the full box',1)[1].split('// A long sideways hull',1)[0]
-        self.assertEqual(block.count('worldToModel'),2)
-        self.assertEqual(block.count('modelToWorld'),2)
-        for endpoint in ('[_otherHigh select 0,_otherLow select 1,_otherLow select 2]',
-                         '[_otherLow select 0,_otherHigh select 1,_otherLow select 2]',
-                         '[_otherLow select 0,_otherLow select 1,_otherHigh select 2]'):
+        block=source.split('private _projectTrafficHull={',1)[1].split('private _ownHull=',1)[0]
+        self.assertNotIn('worldToModel',block)
+        self.assertEqual(block.count('modelToWorldWorld'),2)
+        for endpoint in ('[_hullHigh select 0,_hullLow select 1,_hullLow select 2]',
+                         '[_hullLow select 0,_hullHigh select 1,_hullLow select 2]',
+                         '[_hullLow select 0,_hullLow select 1,_hullHigh select 2]'):
             self.assertIn(endpoint,block)
+        self.assertIn('_corner vectorDotProduct _right,_corner vectorDotProduct _forward,_corner select 2',block)
+        self.assertIn('_edge vectorDotProduct _right,_edge vectorDotProduct _forward,_edge select 2',block)
+        self.assertIn('[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull',source)
+        self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',source)
         for axis in range(3):
-            self.assertIn(f'(_projectedLow select {axis})-0.05',block)
-            self.assertIn(f'(_projectedHigh select {axis})+0.05',block)
+            self.assertIn(f'(_projectedLow select {axis})-0.05',source)
+            self.assertIn(f'(_projectedHigh select {axis})+0.05',source)
         for guard in ('count _candidates > 64','_sameHeight','_sameLane',
                       'if (_ahead && {_sameLane} && {_sameHeight})',
                       'if (_sameHeight && {_otherSpeed > 0.8})',

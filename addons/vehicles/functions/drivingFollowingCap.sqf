@@ -33,8 +33,10 @@
  * earlier observation only for closing/crossing conflicts; stable same-speed following
  * does not request faster sampling. It grants no speed, clearance or right of way. Gap is bumper room or predicted crossing stop room. Dense sets return zero and the vehicle itself as
  * a congestion sentinel when discovery or retained-prediction budgets exceed their bounds.
- * Four affine transform pairs per projected hull
- * represent all eight corners with a0.05m outward model-space rounding pad per boundary.
+ * Four world transforms per hull represent all eight corners in one horizontal world-metre
+ * frame, with a0.05m outward pad per other-hull boundary. The observing hull is projected once
+ * in the same frame. Pitch/roll and object scale cannot turn metre gaps into model units or
+ * tilt the vertical-overlap axis. Scale support remains subject to engine simulation limits.
  * Discovery includes six seconds of own travel plus a nominal 35 m/s opposing/crossing
  * approach and 20 m hull margin, capped at 500 m. An over-budget envelope refuses before
  * querying. Faster approaching traffic and unusually large modded hulls remain limitations.
@@ -46,15 +48,38 @@ params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",obj
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0,false]};
 private _box=boundingBoxReal _vehicle;
-private _low=_box select 0;private _high=_box select 1;
-private _front=_high select 1;
+private _modelLow=_box select 0;private _modelHigh=_box select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
 if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0,false]};
 _forward=vectorNormalized _forward;
 private _right=[_forward select 1,-(_forward select 0),0];
+private _ownCentre=_vehicle modelToWorldWorld ((_modelLow vectorAdd _modelHigh) vectorMultiply 0.5);
+// Both hulls use horizontal forward/right and absolute vertical axes. Their extents, gaps,
+// crossing windows and measured velocity therefore share metres even on pitched/rolled hulls.
+private _projectTrafficHull={
+    params ["_hull","_hullLow","_hullHigh"];
+    private _corner=(_hull modelToWorldWorld _hullLow) vectorDiff _ownCentre;
+    private _origin=[_corner vectorDotProduct _right,_corner vectorDotProduct _forward,_corner select 2];
+    private _projectedLow=+_origin;private _projectedHigh=+_origin;
+    {
+        private _edge=(_hull modelToWorldWorld _x) vectorDiff _ownCentre;
+        _edge=[_edge vectorDotProduct _right,_edge vectorDotProduct _forward,_edge select 2];
+        _edge=_edge vectorDiff _origin;
+        for "_axis" from 0 to 2 do {
+            private _component=_edge select _axis;
+            _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
+            _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
+        };
+    } forEach [[_hullHigh select 0,_hullLow select 1,_hullLow select 2],
+        [_hullLow select 0,_hullHigh select 1,_hullLow select 2],
+        [_hullLow select 0,_hullLow select 1,_hullHigh select 2]];
+    [_projectedLow,_projectedHigh]
+};
+private _ownHull=[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull;
+private _low=_ownHull select 0;private _high=_ownHull select 1;
+private _front=_high select 1;
 private _halfWidth=((_high select 0)-(_low select 0))*0.5;
 private _halfLength=((_high select 1)-(_low select 1))*0.5;
-private _ownCentre=_vehicle modelToWorldWorld ((_low vectorAdd _high) vectorMultiply 0.5);
 private _plannedSpeed=0;
 private _ownForward=((velocity _vehicle) vectorDotProduct _forward) max 0;
 // Heavy vehicles get a lower nominal deceleration. Account for the ordinary four-second
@@ -114,21 +139,10 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         } else {0};
         private _otherBox=boundingBoxReal _other;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        // Project the full box with one corner and three edges. Model transforms are affine:
-        // each axis extremum is origin plus the negative/positive components of those edges.
-        // This represents all eight corners with four transform pairs, including tilt/scale.
-        private _origin=_vehicle worldToModel (_other modelToWorld _otherLow);
-        private _projectedLow=+_origin;private _projectedHigh=+_origin;
-        {
-            private _edge=(_vehicle worldToModel (_other modelToWorld _x)) vectorDiff _origin;
-            for "_axis" from 0 to 2 do {
-                private _component=_edge select _axis;
-                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
-                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
-            };
-        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
-            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
-            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
+        // One affine corner and three edges represent every hull corner in the same
+        // horizontal world frame as our own hull, crossing course and braking distances.
+        private _otherHull=[_other,_otherLow,_otherHigh] call _projectTrafficHull;
+        private _projectedLow=_otherHull select 0;private _projectedHigh=_otherHull select 1;
         // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
         private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
         private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;

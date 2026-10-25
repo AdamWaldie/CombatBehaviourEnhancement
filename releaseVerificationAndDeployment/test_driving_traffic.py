@@ -32,6 +32,32 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('} else {0}',s)
         self.assertIn('private _ahead=_maxY > _front-0.25',s)
         self.assertNotIn('private _centre=',s)
+        self.assertIn('[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull',s)
+        self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
+        self.assertIn('_corner vectorDotProduct _right,_corner vectorDotProduct _forward,_corner select 2',s)
+        self.assertNotIn('worldToModel',s)
+        self.assertNotIn(' modelToWorld ',s)
+        # Independent exhaustive corners establish common metre bounds for a scaled,
+        # pitched observer and a level peer; a body-coordinate gap mixes height/scale.
+        from itertools import product
+        import math
+        def world_bounds(low,high,scale,pitch,shift):
+            angle=math.radians(pitch); c=math.cos(angle); t=math.sin(angle)
+            points=[(shift[0]+scale*x,shift[1]+scale*(c*y-t*z),
+                     shift[2]+scale*(t*y+c*z)) for x,y,z in product(*zip(low,high))]
+            return tuple(min(p[i] for p in points) for i in range(3)), tuple(max(p[i] for p in points) for i in range(3))
+        for scale in (.5,1,2):
+            own=world_bounds((-1,-3,-1),(1,3,1),scale,30,(0,0,0))
+            peer=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,0))
+            actual_gap=peer[0][1]-own[1][1]
+            self.assertAlmostEqual(actual_gap,17-scale*(3*math.cos(math.radians(30))+.5))
+            # The old own-model Y projection differs from horizontal metre separation.
+            old_gap=(17*math.cos(math.radians(30))-math.sin(math.radians(30)))/scale-3
+            self.assertNotAlmostEqual(actual_gap,old_gap)
+            self.assertGreaterEqual(peer[1][2],own[0][2])
+            self.assertLessEqual(peer[0][2],own[1][2])
+        above=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,10))
+        self.assertGreater(above[0][2],own[1][2])
         # Forward projection must admit a long rotated hull whose centre is behind
         # our bumper, while excluding a hull entirely behind or above the corridor.
         def occupied(min_x,max_x,max_y,min_z,max_z):

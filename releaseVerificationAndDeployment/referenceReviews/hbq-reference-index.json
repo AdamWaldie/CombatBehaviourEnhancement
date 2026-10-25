@@ -591,7 +591,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-implementation-current-20261025.json",
-      "sha256": "d271b523f3b43904a65cd3a85c1666493a6a0ca492d2d56281fb830bc11a0398",
+      "sha256": "e0b6f9c44d67538ccd327578ee5bfdd7113897be3f1482a105947827906d5f73",
       "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_vehicleUnstuck.sqf"
@@ -825,6 +825,15 @@
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-prediction-20261016.json",
       "sha256": "1c4768d4f9513c60c252d6b858d516b66168aa326350eb8dd4c3461af80c07c1",
       "scope": "TrafficCap prediction, FromLeft and TrafficRays classification; called curvature helpers remain separately scoped",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-world-frame-20261025.json",
+      "sha256": "ff8b191de37a0337e0881498fb1bf08f77a73fbd154e7883abaddf7a11d10e24",
+      "scope": "Read the record for its exact scope.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
       ],

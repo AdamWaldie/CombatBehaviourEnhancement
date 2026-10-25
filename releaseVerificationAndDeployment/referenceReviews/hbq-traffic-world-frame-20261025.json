@@ -1,0 +1,37 @@
+{
+  "base": "cbcabe48",
+  "status": "TRAFFIC_HULL_WORLD_METRE_FRAME_SOURCE_INTEGRATED",
+  "finding": "FollowingCap projected other hulls into observer model coordinates, then combined those model-unit/tilted extents with world-metre course separation and velocity-based braking windows. Own scale changed gap units, and pitch/roll changed vertical-overlap axes.",
+  "implementation": "Project both own and other full hulls through one affine helper into horizontal right/forward and world vertical relative to own bounding-box centre. One corner plus three transformed edges covers all8 corners. The existing0.05m other-boundary pad now has metre units. Own half widths/lengths and front are derived once in that same frame.",
+  "sourceIntent": "HBQ predictive traffic/following and crossing-window intent; improve CBE geometry consistency without copying physical push/teleport/repair shortcuts. Not full HBQ parity.",
+  "preserved": [
+    "Single existing nearEntities discovery;256 dense projection ceiling and64 retained prediction limit; dense/scheduled refusal.",
+    "Six-second horizon, nominal35m/s approaching envelope, reaction/braking coefficients, crossing priority and occupied-hull refusal.",
+    "Registered predecessor delegation, queue path consent, caller movement leases and native authority. No movement write in this observer."
+  ],
+  "cost": "Own hull gains4 world transforms once per callback. Each other hull uses4 modelToWorldWorld transforms instead of4 modelToWorld/worldToModel pairs; centre observation remains. Script dot products replace inverse native transforms. No extra world query, persistent cache or worker. Runtime cost unmeasured.",
+  "validation": {
+    "tests": 1497,
+    "numerical": "Extended existing angled-hull case with exhaustive eight-corner world bounds for30-degree pitch and0.5/1/2 scales, distinct body-coordinate versus horizontal gaps, and vertical separation; existing affine oracle retained. Static/numerical evidence only.",
+    "firstBuild": "Failed existing RearHullProjection source-contract slice anchored to the removed inline block. Updated it to verify both real helper callers, horizontal projection, all three edge endpoints, outward padding and unchanged authority/discovery bounds.",
+    "build": ".qa/handovers/traffic-world-frame-build-2.log",
+    "independent": ".qa/handovers/traffic-world-frame-independent.log",
+    "candidate": ".qa/candidates/traffic-world-frame-cbcabe48",
+    "fingerprint": "bb025895528044f92812dae8a378e23d1f8f6d989c7ea7693224646bdf2a4f68",
+    "physicalAcceptance": false,
+    "hbqIndex": "Initial check detected changed reviewed inputs; explicitly refreshed and rechecked:29 source files,89 readable pointers,31 unresolved historic texts. Counts do not imply parity."
+  },
+  "limitations": [
+    "No demonstrated resolution of historical convoy stalls/gaps. Pitch/roll geometry is corrected, but actual hull/path/physics and traffic outcomes require live evidence.",
+    "Arbitrary scaled simulated vehicles remain subject to engine support limitations; this correction does not make unsupported scaling reliable.",
+    "Whole-mod5%median/10%p95 cost, dense scenes, normal/provider-HC and repeated traffic interactions remain unverified. Audits paused."
+  ],
+  "primaryApiReferences": [
+    "https://community.bistudio.com/wiki/modelToWorldWorld",
+    "https://community.bistudio.com/wiki/worldToModel"
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "5d3af4960952ea7c7961cc677b4502176ce51113e91052f9314085da6a59430e",
+    ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  }
+}
