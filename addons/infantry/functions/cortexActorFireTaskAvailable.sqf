@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Native fleeing owns the actor even before its command label changes.
+ * A native SUPPRESS burst retains fire ownership until the engine ends it;
+ * neither a CBE cooldown nor an expired lease proves that burst has stopped.
  * Purpose: Refuse scripted fire assignment while an actor has a protected native task or movement reservation.
  * Vehicle movement starts reuse the same native-task/reservation check for driver admission.
  * Locality/authority: Read-only on the actor owner. Callers retain health, ROE, station and target authority.
@@ -25,7 +27,7 @@ if (isNull _actor || {!local _actor} || {fleeing _actor}
     || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {false};
 !(toUpperANSI currentCommand _actor in [
-    "GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+    "SUPPRESS","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
     "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED",
     "ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"
 ])

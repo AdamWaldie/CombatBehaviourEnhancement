@@ -24,6 +24,10 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(restore.index('getVariable ["CBE_FlightLease"'),restore.index('_actor enableAI'))
         task=source('cortexActorFireTaskAvailable')
         self.assertIn('"GET OUT"',task)
+        native_tasks=task.split('!(toUpperANSI currentCommand _actor in [',1)[1]
+        self.assertIn('"SUPPRESS"',native_tasks)
+        for forbidden in ('doTarget','doFire','doStop','setVariable','waitAndExecute'):
+            self.assertNotIn(forbidden,task.split('params [[',1)[1])
 
     def test_air_stale_lease_retirement_requires_original_issuer_and_airframe_authority(self):
         release=source('cortexAirPilotFeatureRelease')

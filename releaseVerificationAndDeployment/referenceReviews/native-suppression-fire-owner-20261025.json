@@ -1,0 +1,20 @@
+{
+  "base": "8a31691f",
+  "status": "ACTIVE_NATIVE_SUPPRESS_ADMISSION_PROTECTED",
+  "source": "https://community.bohemia.net/wiki/doSuppressiveFire",
+  "sourceFinding": "Command documentation describes an engine-chosen number of rounds and no early stopping while that burst completes; fixed position targets remain fixed. Do not infer native termination from a CBE timeout.",
+  "implementation": "Shared CortexActorFireTaskAvailable now refuses currentCommand SUPPRESS, alongside other protected native tasks. Existing callers for gunnery, combined support, convoy targeting and selected movement admission defer instead of stacking new scripted requests. No native cancellation, timer, worker or fake ACK.",
+  "limits": [
+    "Only current native task admission is checked. A later changed command is not proof of all animation/projectile/controller quiescence.",
+    "Full finite point-fire/destructive building task is not implemented by this guard.",
+    "Physical responsiveness, actual burst completion, MP timing and overhead remain unverified."
+  ],
+  "validation": {
+    "build": ".qa/handovers/native-suppression-owner-build.log",
+    "independent": ".qa/handovers/native-suppression-owner-independent.log",
+    "candidate": ".qa/candidates/native-suppression-owner-8a31691f",
+    "fingerprint": "c90b2cf58288434f52d183bb145b0838392b2b78185223b27ded5ba43129c082",
+    "physicalAcceptance": false
+  },
+  "audits": "paused"
+}
