@@ -163,3 +163,15 @@ class Extended_DisplayLoad_EventHandlers {
         CBE_AI_Tweaks = "call (missionNamespace getVariable ['CBE_AIPass_ZeusInstallLocal', {}])";
     };
 };
+
+// Editor presentation only; behaviour registration remains server-owned.
+class Cfg3DEN {
+    class EventHandlers {
+        class CBE_CorridorPreview {
+            onMissionLoad = "['INSTALL'] call CBE_fnc_EdenDrivingCorridorPreview";
+            onMissionNew = "['INSTALL'] call CBE_fnc_EdenDrivingCorridorPreview";
+            onMissionPreviewEnd = "['INSTALL'] call CBE_fnc_EdenDrivingCorridorPreview";
+            onMissionPreview = "['STOP'] call CBE_fnc_EdenDrivingCorridorPreview";
+        };
+    };
+};

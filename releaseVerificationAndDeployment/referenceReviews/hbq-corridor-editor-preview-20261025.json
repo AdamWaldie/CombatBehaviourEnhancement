@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "76a2f973",
+  "workshopId": "3812620045",
+  "scope": "Implement selected HBQ Eden corridor preview intent against current CBE corridor plane; editor presentation only, no steering or support acceptance.",
+  "selectedIntent": "Read-only live rectangle and direction arrow for authored navigation area. Original fn_edenDraw reviewed in hbq-diagnostics-editor-semantics-20261025.json; independent CBE implementation, no upstream source copy.",
+  "implementation": [
+    "Cfg3DEN unique CBE section installs on mission load/new/preview return; preview start invalidates active receipt. Renderer refuses non-editor/non-interface/missing editor display.",
+    "uiNamespace receipt retains active handler ID, editor display, capped selection and refresh tick. Replaced/invalid draw handlers remove their own engine-provided ID on next callback, avoiding removal by stale retained numeric IDs. No sleeping child or marker objects.",
+    "Refresh first16 selected logics every0.25s, filter exact CBE mission corridor class, re-read current dimensions/position/orientation each render. get3DENSelected still returns the engine selection array before truncation; no claim of zero population cost for huge selection. No all3DENEntities scan.",
+    "Seven lines and one label per valid corridor. At most112 lines/16 labels per frame; invalid dimensions/vertical axis/excessive tilt suppressed. Grade is native vectorDir z divided by horizontal length, width uses horizontal perpendicular, centre preserves selected ASL+0.08 visual offset. No terrain projection, support ray, task write, network, actor/group command or new CBA setting.",
+    "Label explicitly marks proposal/support unchecked. Current actual DrivingCorridorGeometry and owner executor remain unchanged; outline never becomes accepted route."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/edenDrivingCorridorPreview.sqf": "9163361bc6f280c569b26d5c71064e28708b325110b80acfaf69d09827525c3e",
+    "addons/main/CfgFunctions.hpp": "949596d52ee015dd6a08e0e96345c101f90d4c24253bd11b32b6c9460fd6a393",
+    "addons/main/config.cpp": "6f896a4e2b022138de9e2e6cc9b4914c823a8af2a0e40e4edc83f6525f5a98c8"
+  },
+  "primaryDocumentation": [
+    "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers:_Eden_Editor",
+    "https://community.bistudio.com/wiki/get3DENSelected"
+  ],
+  "validation": {
+    "focused": "Existing25 corridor tests PASS; no test count growth.",
+    "full": "1497 tests PASS;420 compiled SQF/11 PBO; complete offline build terminal0. Existing unrelated lint findings remain.",
+    "buildLog": ".qa/corridor-preview-build-20261025-attempt1.log",
+    "independentLog": ".qa/corridor-preview-independent-20261025.log",
+    "candidate": ".qa/candidates/corridor-editor-preview-76a2f973",
+    "fingerprint": "fae5376539e86c51fa5c0dd22d998214fb8e13edca0190988ec3ad81566456a9",
+    "kind": "Unsigned dirty development package. Source base plus hashes identifies runtime; engineering notes postdate package."
+  },
+  "limits": "Not physically or visually verified: Eden event order, display313 lifecycle, add/remove/undo/preview-return, selected geometry on bridge/ramp, direct editor launch and frame/render cost. Audits PAUSED. Runtime observer driving/ray overlay remains absent. No whole-HBQ parity or5percent median/10percent p95 budget claim. No new behaviour completion percentage."
+}

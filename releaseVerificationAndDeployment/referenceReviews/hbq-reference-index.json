@@ -328,6 +328,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-editor-preview-20261025.json",
+      "sha256": "7874913b4e576d2bfc3794895fc92bd3d91ba3938ab244ec0c636c5305605e8d",
+      "scope": "Implement selected HBQ Eden corridor preview intent against current CBE corridor plane; editor presentation only, no steering or support acceptance.",
+      "sourceFileMentions": [
+        "config.cpp"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-exit-floor-20261025.json",
       "sha256": "d2242d6cdb40ddd1722f61984be6b4581e83a754d09311c5ad2e1ba1fa014f75",
       "scope": "Current approved floor at corridor exit for ordinary lead and convoy tail; not physical crossing acceptance or whole-HBQ parity.",

@@ -863,7 +863,8 @@
         "addons/vehicles/functions/drivingGateOwnerEvidence.sqf",
         "addons/vehicles/functions/drivingGateRouteMatches.sqf",
         "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf",
-        "addons/vehicles/functions/vehicleCrewDestinationState.sqf"
+        "addons/vehicles/functions/vehicleCrewDestinationState.sqf",
+        "addons/vehicles/functions/edenDrivingCorridorPreview.sqf"
       ]
     },
     {
