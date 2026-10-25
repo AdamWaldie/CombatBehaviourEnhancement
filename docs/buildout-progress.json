@@ -287,7 +287,7 @@
           "capability": "Pause/distance/cooldown policy",
           "weight": 1,
           "built": 1,
-          "implemented": "2026-10-25 scoped reassessment: GroupTick reads cached player positions for near/mid/far4/8/20s defaults and finite native-danger/contact promotion. GroupBrainStep publishes its private wake after finite-delay/deadline validation, caps illumination at1s and active COVER maintenance at2s. ENDEX/SafeStart defer ordinary tactics; shared scheduler retains narrow cleanup/safety categories. Named cooldown writes now refuse non-finite durations/deadlines without replacing existing state. This criterion covers listed pause/distance/cooldown paths, not complete low-FPS policy or frame-overhead acceptance.",
+          "implemented": "2026-10-25 scoped reassessment: cached-player near/mid/far4/8/20s defaults and finite native-danger/contact promotion feed the group FSM private wake. Non-urgent private delays now double below the existing owner FPS threshold; the current responsiveUntil danger lease bypasses backoff. Illumination1s and active COVER2s caps apply afterward. Finite delay/deadline rejection runs after scaling. ENDEX/SafeStart defer ordinary tactics; cleanup/safety categories retain narrow exceptions. Named cooldown new writes refuse non-finite durations/deadlines. These are implemented policy paths, not measured responsiveness or frame-overhead acceptance.",
           "remaining_build_gap": "",
           "evidence": [
             {
@@ -304,11 +304,11 @@
             },
             {
               "path": "addons/infantry/functions/groupBrainStep.sqf",
-              "sha256": "77ffdce31244f28285a7942533dabb117048a29ba6aebc214e7fbf23d8603127"
+              "sha256": "f8ab8285c660d541ea24480be3ce5f2f40666826f07825ef9533f1b2ff18fba3"
             }
           ],
           "reviewed_at": "2026-10-25",
-          "source_commit": "32994d00 + private-timer-deadlines-32994d00 (exact runtime hashes)"
+          "source_commit": "67bfbf79 + group-private-backoff-67bfbf79 (exact runtime hashes)"
         },
         {
           "capability": "Runtime reconciliation and retirement",

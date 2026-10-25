@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "67bfbf79",
+  "scope": "Apply existing low-FPS backoff policy to private owner-local group FSM wake; preserve danger urgency and protocol/reflex caps.",
+  "failure": "CortexSchedulerTick scales nonnegative callback retry returns, but GroupBrainStep is one-shot and always returns-1 while storing nextAt/wakeAt. GroupTick/Queue/groupTactics.fsm contain no equivalent low-FPS policy. Non-urgent group decisions therefore bypassed the existing threshold despite setting intent.",
+  "implementation": "After ordinary finite result/negative-retirement admission, compare current owner FPS with existing CBE_AIPass_LowFpsThreshold and current brain responsiveUntil. Non-urgent delay doubles below threshold. Reject non-finite scaled delay/prospective deadline before post-tick helpers. Existing illumination cap1s and active COVER cap2s follow pacing, preserving protocol work. No new setting, global scan, scheduler, callback or movement owner. Generic retry pacing remains unchanged; group callback still returns-1, so it is not doubled twice.",
+  "sourceHashes": {
+    "addons/infantry/functions/groupBrainStep.sqf": "f8ab8285c660d541ea24480be3ce5f2f40666826f07825ef9533f1b2ff18fba3",
+    "releaseVerificationAndDeployment/test_scheduler_samples.py": "640acb6e81a658a6614a1037584bc253116d4593280dfcd8b7669d5447c26a94"
+  },
+  "criterionReassessment": {
+    "before": {
+      "capability": "Pause/distance/cooldown policy",
+      "weight": 1,
+      "built": 1,
+      "implemented": "2026-10-25 scoped reassessment: GroupTick reads cached player positions for near/mid/far4/8/20s defaults and finite native-danger/contact promotion. GroupBrainStep publishes its private wake after finite-delay/deadline validation, caps illumination at1s and active COVER maintenance at2s. ENDEX/SafeStart defer ordinary tactics; shared scheduler retains narrow cleanup/safety categories. Named cooldown writes now refuse non-finite durations/deadlines without replacing existing state. This criterion covers listed pause/distance/cooldown paths, not complete low-FPS policy or frame-overhead acceptance.",
+      "remaining_build_gap": "",
+      "evidence": [
+        {
+          "path": "addons/infantry/functions/cortexCooldown.sqf",
+          "sha256": "bf0bfedd9a39afb9c4d90d60d97cebb5d1d49e165fdfd58c7905e0f4ff3bfea0"
+        },
+        {
+          "path": "addons/infantry/functions/cortexIsPaused.sqf",
+          "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+        },
+        {
+          "path": "addons/infantry/functions/cortexGroupTick.sqf",
+          "sha256": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078"
+        },
+        {
+          "path": "addons/infantry/functions/groupBrainStep.sqf",
+          "sha256": "77ffdce31244f28285a7942533dabb117048a29ba6aebc214e7fbf23d8603127"
+        }
+      ],
+      "reviewed_at": "2026-10-25",
+      "source_commit": "32994d00 + private-timer-deadlines-32994d00 (exact runtime hashes)"
+    },
+    "after": {
+      "capability": "Pause/distance/cooldown policy",
+      "weight": 1,
+      "built": 1,
+      "implemented": "2026-10-25 scoped reassessment: cached-player near/mid/far4/8/20s defaults and finite native-danger/contact promotion feed the group FSM private wake. Non-urgent private delays now double below the existing owner FPS threshold; the current responsiveUntil danger lease bypasses backoff. Illumination1s and active COVER2s caps apply afterward. Finite delay/deadline rejection runs after scaling. ENDEX/SafeStart defer ordinary tactics; cleanup/safety categories retain narrow exceptions. Named cooldown new writes refuse non-finite durations/deadlines. These are implemented policy paths, not measured responsiveness or frame-overhead acceptance.",
+      "remaining_build_gap": "",
+      "evidence": [
+        {
+          "path": "addons/infantry/functions/cortexCooldown.sqf",
+          "sha256": "bf0bfedd9a39afb9c4d90d60d97cebb5d1d49e165fdfd58c7905e0f4ff3bfea0"
+        },
+        {
+          "path": "addons/infantry/functions/cortexIsPaused.sqf",
+          "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+        },
+        {
+          "path": "addons/infantry/functions/cortexGroupTick.sqf",
+          "sha256": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078"
+        },
+        {
+          "path": "addons/infantry/functions/groupBrainStep.sqf",
+          "sha256": "f8ab8285c660d541ea24480be3ce5f2f40666826f07825ef9533f1b2ff18fba3"
+        }
+      ],
+      "reviewed_at": "2026-10-25",
+      "source_commit": "67bfbf79 + group-private-backoff-67bfbf79 (exact runtime hashes)"
+    },
+    "policy": "Score/weight unchanged. Fresh source evidence only for this scope; other stale tracker criteria remain unreviewed and global report uncertified."
+  },
+  "validation": {
+    "focused": "Existing7 scheduler checks PASS. Existing delay case extended with slow/urgent/ordinary combinations and cap ordering; no new test count.",
+    "full": "1497 tests PASS;420compiledSQF/11PBO; full build terminal0.",
+    "independent": "Candidate verify terminal0.",
+    "candidate": ".qa/candidates/group-private-backoff-67bfbf79",
+    "fingerprint": "00111b7aa55b992e8dec7f33dd5871c0c971fd01ce408fd3b611c4e815b14ee5",
+    "buildLog": ".qa/group-private-backoff-build-20261025-attempt1.log",
+    "independentLog": ".qa/group-private-backoff-independent-20261025.log",
+    "kind": "Unsigned dirty development, source base+hashes identify runtime; engineering tracker/review notes postdate package."
+  },
+  "limits": "No physical responsiveness/performance benefit established. Existing4s ordinary driving cadence is a distinct controller and not changed. Actual SafeStart/ENDEX/resumption, urgent events/COVER/illumination, normal-HC/JIP/Zeus and5percent median/10percent p95 overhead remain unverified. Audits PAUSED; full goal active/incomplete."
+}

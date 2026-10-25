@@ -2897,3 +2897,8 @@ Server acceptance of a remotely owned positioned gun now rechecks the actual dri
 ### Finite tactical timers
 
 The group brain validates its private next-wake delay and resulting deadline before publishing them; a non-finite value cancels that brain with INVALID_GROUP_DELAY. The ordinary negative retirement return remains unchanged. The shared scheduler cannot validate this private wake from the callback return because group decisions are one-shot jobs returning -1. Named cooldown writes reject non-finite durations or overflowed deadlines without changing an existing cooldown. No scheduling interval, cooldown duration, worker or movement command is added. Already corrupted stored cooldowns are not silently repaired by this change. Physical restart and performance remain unverified while audits are paused.
+
+
+### Group FSM low-FPS pacing
+
+Below the existing owner-machine low-FPS threshold, non-urgent group decision delays now double at their private FSM wake boundary. A live danger responsiveness lease bypasses that backoff. Illumination maintenance still caps the resulting delay at1s, and an active coordinated COVER role at2s, so the backoff cannot outlast their protocol deadlines. The shared scheduler continues to pace retry-return jobs; group decisions return -1 and therefore need this separate application of the same policy. Finite-delay/deadline rejection also runs after scaling. No new setting, timer, scan or movement owner is introduced. Actual responsiveness, frame overhead and multiplayer behaviour remain unverified while audits are paused.

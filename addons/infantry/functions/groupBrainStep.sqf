@@ -16,6 +16,8 @@
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
  * committed delay or a danger wake. Live coordinated COVER maintenance caps that delay at two
  * seconds so distance/reaction tuning cannot outlast its six-second capacity report. No new worker.
+ * Low-FPS backoff applies to this private wake before illumination/COVER caps; a live finite
+ * danger responsiveness lease bypasses backoff. The shared scheduler cannot pace a -1 retry.
  * A migrated or superseded callback records cancellation only. Non-finite private next-wake
  * delays cancel this brain; its one-shot -1 return cannot validate that embedded deadline.
  * A callback whose FSM ended retires its queue flags without running decisions or cleanup;
@@ -176,6 +178,12 @@ if (_delay < 0) exitWith {
     [if (_group getVariable ["CBE_AIPass_Managed",false]) then {"RETIRED"} else {"RELEASED"}] call _cancel
 };
 
+// Group decisions are one-shot queue jobs, so retry-return backoff in the shared
+// scheduler never reaches this private FSM wake. Apply the same non-urgent policy
+// here, before the protocol/reflex caps below. Read the current danger lease.
+if (diag_fps < (missionNamespace getVariable ["CBE_AIPass_LowFpsThreshold",25])
+    && {time >= (_brain getOrDefault ["responsiveUntil",0])}) then {_delay=_delay*2};
+if (!finite _delay || {!finite (time+_delay)}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
 private _state=[_group] call CBE_fnc_CortexGroupState;
 if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1};
 // Capacity freshness is a protocol deadline, not tactical reaction tuning. Keep only

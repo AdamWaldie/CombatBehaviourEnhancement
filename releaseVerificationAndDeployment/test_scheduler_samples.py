@@ -39,6 +39,25 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertLess(private_wake.index('INVALID_GROUP_DELAY'),private_wake.index('CBE_fnc_CortexIlluminationStep'))
         self.assertLess(private_wake.index('!finite (time+(_delay max 0))'),private_wake.index('_brain set ["nextAt"'))
         self.assertIn('if (_delay < 0) exitWith',private_wake)
+        # The adapter returns -1, so the shared retry multiplier cannot pace it.
+        # Backoff must precede live protocol/reflex caps and final wake publication.
+        pacing=private_wake.index('CBE_AIPass_LowFpsThreshold')
+        self.assertLess(private_wake.index('if (_delay < 0) exitWith'),pacing)
+        self.assertLess(pacing,private_wake.index('CBE_fnc_CortexIlluminationStep'))
+        self.assertLess(pacing,private_wake.index('_delay=_delay min 2'))
+        self.assertIn('time >= (_brain getOrDefault ["responsiveUntil",0])',private_wake)
+        self.assertLess(private_wake.index('!finite (time+_delay)'),private_wake.index('_brain set ["nextAt"'))
+        def wake(base,slow,urgent,illumination=False,cover=False):
+            delay=base*2 if slow and not urgent else base
+            if illumination:delay=min(delay,1)
+            if cover:delay=min(delay,2)
+            return delay
+        self.assertEqual(wake(20,True,False),40)
+        self.assertEqual(wake(2,True,True),2)
+        self.assertEqual(wake(20,True,False,cover=True),2)
+        self.assertEqual(wake(20,True,False,illumination=True),1)
+        self.assertEqual(wake(8,False,False),8)
+
         self.assertIn('_seconds >= 0 && {finite _seconds}',cooldown)
         self.assertLess(cooldown.index('if (finite _until)'),cooldown.index('_cooldowns set'))
         # A one-shot callback has a valid terminal return even while its separately
