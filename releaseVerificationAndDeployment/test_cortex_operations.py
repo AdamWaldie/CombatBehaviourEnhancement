@@ -9139,6 +9139,31 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('selectWeapon',unresolved)
         self.assertNotIn('serverTime+',unresolved)
         self.assertEqual(text.count('forceWeaponFire'),1)
+        selection=text.split('private _illuminationRoster=',1)[1].split('if (_choice isEqualTo [])',1)[0]
+        self.assertIn('(units _group) select [0,16]',selection)
+        self.assertIn('_illuminationLeader in _illuminationRoster',selection)
+        self.assertIn('_illuminationRoster=_illuminationRoster-[_illuminationLeader]',selection)
+        self.assertIn('_illuminationRoster pushBack _illuminationLeader',selection)
+        self.assertNotIn('_actor == leader _group',selection)
+        self.assertIn('forEach _illuminationRoster',selection)
+        self.assertIn('unitReady _actor',selection)
+        authority=text.split('private _authority={',1)[1].split('private _settledWeapon=',1)[0]
+        self.assertIn('currentCommand _actor == ""',authority)
+        self.assertIn('isNull assignedTarget _actor',authority)
+        def roster(pool,leader):
+            return [x for x in pool if x!=leader]+[leader] if leader in pool else pool[:]
+        self.assertEqual(roster(['leader','grenadier','rifleman'],'leader'),['grenadier','rifleman','leader'])
+        self.assertEqual(roster(['leader'],'leader'),['leader'])
+        self.assertEqual(roster(['a','b'],'outside'),['a','b'])
+        pool=['leader']+list(range(15))
+        ordered=roster(pool,'leader')
+        self.assertEqual(len(ordered),16)
+        self.assertEqual(set(ordered),set(pool))
+        # Eligibility still determines selection: unavailable nonleaders permit fallback,
+        # while an available nonleader launcher remains first.
+        self.assertEqual(next(x for x in ordered if x in {'leader',2}),2)
+        self.assertEqual(next(x for x in ordered if x in {'leader'}),'leader')
+
         self.assertLess(text.index('if (count _work == 0 &&'),text.index('call CBE_fnc_NativeOrderReceipt'))
         start=source('operationStart')
         self.assertLess(start.index('call CBE_fnc_CortexIlluminationStep'),start.index('private _generation='))

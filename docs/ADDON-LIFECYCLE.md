@@ -1749,3 +1749,25 @@ sample after the cheap endpoint/proximity tests pass. The existing audit fixture
 can observe WAIT at a recorded endpoint but still requires subsequent physical
 travel. Audits remain paused; native ready/WAIT timing, mixed-convoy flow and the
 5% median / 10% p95 performance budget are not established by offline checks.
+
+
+### Infantry illumination candidate priority
+
+Opt-in autonomous illumination now tries available nonleaders before the leader
+within the same first-16-actor roster. If only the leader has an eligible loaded or
+carried flare, that actor can use the existing finite native illumination action.
+No candidate is removed to make room: a leader outside the original prefix is not
+appended. A player, remote-controlled, busy or otherwise ineligible leader still
+refuses through the same actor and weapon checks.
+
+The feature remains off by default. Native idle command, no assigned/attack target,
+readiness, settled planner/reload state, ROE, visibility, suppression, actor reservation
+and group-operation checks remain in force. This does not admit native STOP or WAIT,
+or interrupt a commander who is already moving or engaging. Flare load/selection,
+aim, actual FiredMan observation and weapon handback retain the original deadlines
+and receipts. No movement, seating, group-leadership or inventory shortcut is added.
+
+Reordering at most 16 existing entries replaces repeated leader reads with one
+selection-time read. There is no new worker, timer or world query. Static candidate
+selection does not prove actual upward aim, release, illumination effect, weapon
+restoration or the frame-time budget; those remain pending a physical pass.

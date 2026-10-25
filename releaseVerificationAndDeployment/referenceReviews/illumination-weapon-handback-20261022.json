@@ -60,5 +60,21 @@
     "candidate": ".qa/candidates/illumination-native-reload-3849765c",
     "fingerprint": "4306e20486e0246b26ea68b74698c90e1d5bf871478dd4466d0c9bb581965ac9",
     "limits": "Unsigned dirty development candidate includes unrelated existing dirt; review/notes postdate package. No physical loading/repeated flare trajectory/light/equipment restoration/normal-HC/performance/parity or percentage proof. Audits PAUSED."
+  },
+  "leaderFallback20261025": {
+    "review": "illumination-leader-fallback-20261025.json",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "scope": "Leader already in the original first16 roster is last-choice instead of categorically excluded. No new candidate budget or change to native idle/weapon authority.",
+    "currentReadableMainSources": [
+      {
+        "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findReadyUnits.sqf",
+        "sha256": "5be4706ade968c0a081308ce6f18bc67de75ff0c9481b797bb1923163f2caf43"
+      },
+      {
+        "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doUGL.sqf",
+        "sha256": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1"
+      }
+    ],
+    "historicalSourceNote": "Older .qa/lambs-2621-review/main path is absent. Current installed-main snapshot is separately hashed; do not infer byte identity or whole-version parity from shared purpose."
   }
 }

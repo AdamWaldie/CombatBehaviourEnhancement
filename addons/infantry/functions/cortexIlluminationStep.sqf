@@ -8,6 +8,8 @@
  * Locality/authority: Group/actor owner, existing groupTactics FSM callback; original epoch,
  * operation, native route, idle command and actor reservation govern every weapon command.
  * Repeat/JIP: Opt-in; one attempt per60s, <=16 actors/8muzzles/128inventory rows per admission.
+ * The same bounded roster tries nonleaders first, then its leader if otherwise eligible.
+ * Leader fallback adds no movement order, membership change or candidate search beyond that limit.
  * Original25s deadline, one reload/selection/fire request; no worker or deadline renewal.
  * Admission/loading/selection/fire require complete settled native weapon and magazine reload state;
  * an existing rifle or launcher reload is never replaced by an illumination request.
@@ -124,9 +126,17 @@ if (count _work == 0) exitWith {
     if (serverTime < (_group getVariable ["CBE_Illumination_After",0])) exitWith {false};
     _group setVariable ["CBE_Illumination_After",serverTime+60,true];
     private _choice=[];
+    private _illuminationRoster=(units _group) select [0,16];
+    private _illuminationLeader=leader _group;
+    // Preserve every original bounded candidate. Commanding actors are last-choice,
+    // not excluded when they are the group's only otherwise eligible launcher.
+    if (_illuminationLeader in _illuminationRoster) then {
+        _illuminationRoster=_illuminationRoster-[_illuminationLeader];
+        _illuminationRoster pushBack _illuminationLeader;
+    };
     {
         _actor=_x;
-        if (!(call _authority) || {_actor == leader _group} || {abs speed _actor > 0.5}
+        if (!(call _authority) || {abs speed _actor > 0.5}
             || {!unitReady _actor} || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]}
             || {[_actor] call CBE_fnc_CortexActorMoveReserved}
             || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}
@@ -175,7 +185,7 @@ if (count _work == 0) exitWith {
             };
         } forEach _muzzles;
         if (_choice isNotEqualTo []) exitWith {};
-    } forEach ((units _group) select [0,16]);
+    } forEach _illuminationRoster;
     if (_choice isEqualTo []) exitWith {false};
     _choice params ["_unit","_weapon","_muzzle","_magazine"];
     _actor=_unit;
