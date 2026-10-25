@@ -1,9 +1,9 @@
 {
   "added": "2026-10-20",
-  "status": "REGISTERED_PENDING_SOURCE_EVALUATION",
+  "status": "SELECTED_BEHAVIOUR_SOURCE_REVIEWED_IMPLEMENTATION_PENDING",
   "licence": "UNVERIFIED; inspect before incorporating code.",
   "sourceProtection": "Installed originals and archives are read-only. Keep raw source outside product packages.",
-  "acceptance": "Not implemented or physically validated. Audits remain PAUSED.",
+  "acceptance": "Selected source intent evaluated; no new air-support behaviour implemented or physically validated. Audits remain PAUSED.",
   "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
   "workshopId": "3818040165",
   "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3818040165",
@@ -25,5 +25,6 @@
     "mod.cpp": "8625ba7c200401261fc1cb3d186ae6732cf506ad30e3bd064b7209a03738496a",
     "meta.cpp": "00ef71347c3cbcfc98e5968b1551061696821d4f971ca05def9b8fa5476949fa",
     "addons\\vanilla_air_support.pbo": "1667ad921aaaf73333f5d383c6ef92216803ce68e8294203ddecf29d4a5c2820"
-  }
+  },
+  "selectedSourceReview": "emergency-air-support-intent-20261025.json"
 }
