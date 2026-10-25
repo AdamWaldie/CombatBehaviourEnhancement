@@ -663,12 +663,25 @@ private _delay=call {
             isNil {
             if (call _finishCurrent) then {
             _group setVariable ["CBE_AIPass_ClearBuilding", nil, true];
-            _group setVariable ["CBE_Cortex_ClearEgress",nil,true];
-            _group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true];
-            _group setVariable ["CBE_Cortex_ClearReserveAdmission",nil,true];
+            // Retire only this visit's phase records; foreign/delayed episodes are not ours.
+            private _phaseContext=_job getOrDefault ["visitContext",[]];
+            if (_phaseContext isEqualType [] && {count _phaseContext == 4}) then {
+                {
+                    _x params ["_phaseKey","_phaseSize","_contextIndex"];
+                    private _phaseReceipt=_group getVariable [_phaseKey,[]];
+                    if (_phaseReceipt isEqualType [] && {count _phaseReceipt == _phaseSize}
+                        && {(_phaseReceipt select _contextIndex) isEqualTo _phaseContext}) then {
+                        _group setVariable [_phaseKey,nil,true];
+                    };
+                } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
+                    ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
+                    ["CBE_Cortex_ClearReserveAdmission",2,0]];
+            };
+
+
             _group setVariable ["CBE_AIPass_ClearOrder", nil, true];
-            _group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true];
-            _group setVariable ["CBE_AIPass_ClearApplied", nil];
+
+_group setVariable ["CBE_AIPass_ClearApplied", nil];
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];
         if (_reason == "COMPLETE" && {_restore} && {_settled isNotEqualTo []}) then {
             // Record only actors this finish actually stopped. A diverted or service actor
@@ -2659,7 +2672,7 @@ private _delay=call {
         private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
             [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]]),+(_stageTriedEntries getOrDefault [_x,[]])]
         };
-        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows];
+        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows,+(_job get "visitContext")];
         isNil {
             if (call _mayIssueMovement
                 && {(_group getVariable ["CBE_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
@@ -4301,7 +4314,7 @@ private _delay=call {
                 [_x,+(_followFailures get _x),_x in _exhaustedIds]
             };
             _group setVariable ["CBE_Cortex_ClearFollowBudget",[
-                _building,_job get "hardDeadline",_job get "buildingTransform",_rows],true];
+                _building,_job get "hardDeadline",_job get "buildingTransform",_rows,+(_job get "visitContext")],true];
         };
     };
     // Complete physical coverage and participation retire obsolete owned room legs.
@@ -4363,9 +4376,10 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
     private _journal=["EGRESS",_rows apply {_x select 1},_job get "egressStartedServer",_rows,
         _job get "building",_job get "buildingTransform",_job get "hardDeadline",
         _job get "egressDeadlineServer",_job getOrDefault ["egressFailed",false],
-        _job getOrDefault ["entryFailed",false],4,
+        _job getOrDefault ["entryFailed",false],5,
         +(_job getOrDefault ["egressPending",[]]),
-        ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]})];
+        ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]}),
+        +(_job get "visitContext")];
     if ((_group getVariable ["CBE_Cortex_ClearEgress",[]]) isNotEqualTo _journal) then {
         _group setVariable ["CBE_Cortex_ClearEgress",_journal,true];
     };

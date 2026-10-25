@@ -402,6 +402,36 @@ if (_entries isNotEqualTo []) then {
     _securityEntries=+_entries;
     _entries resize ((count _entries) min 4);
 };
+// Nonempty phase journals must belong to this exact visit, not only a matching
+// building/deadline. Defer before startup rather than silently resetting spent budgets.
+private _resumePhaseReceipts=[];
+private _resumePhasePending=false;
+if (_resume) then {
+    private _contextValid=_resumeRosterContext isEqualType [] && {count _resumeRosterContext == 4}
+        && {(_resumeRosterContext select [0,3]) isEqualTo [_building,_admissionTransform,_hardDeadline]}
+        && {(_resumeRosterContext select 3) isEqualType ""} && {(_resumeRosterContext select 3) != ""};
+    {
+        _x params ["_key","_size","_contextIndex"];
+        private _receipt=_group getVariable [_key,[]];
+        _resumePhaseReceipts pushBack [_key,_receipt];
+        if (_receipt isNotEqualTo []) then {
+            if (!_contextValid || {!(_receipt isEqualType [])} || {count _receipt != _size}
+                || {(_receipt select _contextIndex) isNotEqualTo _resumeRosterContext}) then {
+                _resumePhasePending=true;
+            } else {
+                private _identity=if (_key == "CBE_Cortex_ClearEgress") then {
+                    (_receipt select 0) == "EGRESS" && {(_receipt select 10) == 5}
+                        && {(_receipt select [4,3]) isEqualTo [_building,_admissionTransform,_hardDeadline]}
+                } else {
+                    (_receipt select [0,3]) isEqualTo [_building,_hardDeadline,_admissionTransform]
+                };
+                if (!_identity) then {_resumePhasePending=true};
+            };
+        };
+    } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
+        ["CBE_Cortex_ClearStageBudget",5,4]];
+};
+if (_resumePhasePending) exitWith {false};
 private _resumeLaneReceipt=[];
 private _resumeLanePending=false;
 if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreachable)) < count _positions}) then {
@@ -452,6 +482,9 @@ isNil {
     if (_resumeLaneReceipt isNotEqualTo [] && {
         (_group getVariable ["CBE_Cortex_ClearLanes",[]]) isNotEqualTo _resumeLaneReceipt
     }) exitWith {_handoffFailure="RESUME_LANES_CHANGED"};
+    if (_resumePhaseReceipts findIf {
+        (_group getVariable [_x select 0,[]]) isNotEqualTo (_x select 1)
+    } >= 0) exitWith {_handoffFailure="RESUME_PHASE_CHANGED"};
     // These arrays can change without a new common generation. Never commit a roster
     // selected before a replacement or changed visit episode arrived during planning.
     if (_useResumeRoster && {
@@ -786,25 +819,27 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
 // native destination owns the actor now and must not inherit an old exit receipt.
 private _egressJournal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearEgress",nil,true]}] call _commitPreparation};
-if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) == "EGRESS"}
+if (_resume && {count _egressJournal == 14} && {(_egressJournal select 0) == "EGRESS"}
     && {(_egressJournal select 4) == _building}
     && {(_egressJournal select 5) isEqualTo (_job get "buildingTransform")}
     && {(_egressJournal select 6) == _hardDeadline}
     && {(_egressJournal select 7) isEqualType 0} && {finite (_egressJournal select 7)}
     && {count (_egressJournal select 3) <= 8}
-    && {count _egressJournal == 10 || {(_egressJournal select 10) in [2,3,4]
-        && {(_egressJournal select 11) isEqualType []} && {(_egressJournal select 12) isEqualType []} && {count (_egressJournal select 12) <= 4}
-        && {count (_egressJournal select 11)+count (_egressJournal select 3) <= 8}}}) then {
+    && {(_egressJournal select 13) isEqualTo _visitContext}
+    && {(_egressJournal select 10) == 5}
+    && {(_egressJournal select 11) isEqualType []} && {(_egressJournal select 12) isEqualType []}
+    && {count (_egressJournal select 12) <= 4}
+    && {count (_egressJournal select 11)+count (_egressJournal select 3) <= 8}) then {
     private _assignments=[];
     private _records=[];
     private _moves=createHashMap;
     private _failed=(_egressJournal select 8) || {_job getOrDefault ["egressFailed",false]};
-    private _progressVersion=count _egressJournal == 13 && {(_egressJournal select 10) == 4};
+    private _progressVersion=count _egressJournal == 14 && {(_egressJournal select 10) == 5};
     private _exitRowSize=[6,10] select _progressVersion;
     {
         if (_x isEqualType [] && {count _x == _exitRowSize}) then {
-            // A malformed current receipt cannot acquire fresh progress clocks. Legacy
-            // rows have no saved clocks and retain their documented observation baseline.
+            // A malformed current receipt cannot acquire fresh progress clocks. The nonce-bound
+            // version retains original server-time progress and motion observations.
             if (_progressVersion && {(_x select [6,3]) findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0}} >= 0
                 || {(_x select 7) > serverTime+1} || {(_x select 8) > serverTime+1}
                 || {(_x select 7) > (_egressJournal select 7)} || {(_x select 8) > (_egressJournal select 7)}
@@ -833,14 +868,14 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
             } else {_failed=true};
         } else {_failed=true};
     } forEach (_egressJournal select 3);
-    // Version 2 appends pending legs/use counts; versions3/4 retain allocation attempts and next server time.
-    // Version4 adds stable server-time progress clocks and motion evidence to assigned rows.
-    // Legacy ten-field journals have no pending work. Adoption never issues movement.
+    // Version5 binds the existing progress, pending allocations and use counts to the
+    // exact visit nonce. Unbound older records defer before startup, never grant fresh clocks.
+    // Adoption never issues movement.
     private _pending=[];
     private _uses=createHashMap;
-    if (count _egressJournal == 13) then {
+    if (count _egressJournal == 14) then {
         {
-            private _pendingSize=[2,4] select ((_egressJournal select 10) in [3,4]);
+            private _pendingSize=[2,4] select ((_egressJournal select 10) == 5);
             if (_x isEqualType [] && {count _x == _pendingSize}
                 && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType []}
                 && {count (_x select 1) in [0,3]}
@@ -898,9 +933,10 @@ if (_resume && {count _egressJournal in [10,13]} && {(_egressJournal select 0) =
 // Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
 private _followBudget=_group getVariable ["CBE_Cortex_ClearFollowBudget",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true]}] call _commitPreparation};
-if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _building}
+if (_resume && {count _followBudget == 5} && {(_followBudget select 0) == _building}
     && {(_followBudget select 1) == _hardDeadline}
-    && {(_followBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    && {(_followBudget select 2) isEqualTo (_job get "buildingTransform")}
+    && {(_followBudget select 4) isEqualTo _visitContext}) then {
     private _failures=createHashMap;
     private _exhausted=[];
     private _actors=createHashMap;
@@ -926,9 +962,10 @@ if (_resume && {count _followBudget == 4} && {(_followBudget select 0) == _build
 };
 private _stageBudget=_group getVariable ["CBE_Cortex_ClearStageBudget",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearStageBudget",nil,true]}] call _commitPreparation};
-if (_resume && {count _stageBudget == 4} && {(_stageBudget select 0) == _building}
+if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _building}
     && {(_stageBudget select 1) == _hardDeadline}
-    && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}) then {
+    && {(_stageBudget select 2) isEqualTo (_job get "buildingTransform")}
+    && {(_stageBudget select 4) isEqualTo _visitContext}) then {
     private _counts=createHashMap;
     private _tried=createHashMap;
     private _triedEntries=createHashMap;

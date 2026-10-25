@@ -16,9 +16,11 @@ class ClearEgressHandoverTests(unittest.TestCase):
         hold = finish.split('if (_reason == "COMPLETE" && {_restore}',1)[1]
         self.assertIn('_settled isNotEqualTo []',hold)
         self.assertIn('CBE_fnc_NativeOrderReceipt,+_settled,+_settledPosts]',hold)
-        self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',finish)
+        self.assertIn('["CBE_Cortex_ClearEarlyExits",2,0]',finish)
+        self.assertIn('setVariable [_phaseKey,nil,true]',finish)
         release = (ROOT / 'addons/infantry/functions/cortexClearRelease.sqf').read_text(encoding='utf-8')
-        self.assertIn('CBE_Cortex_ClearEarlyExits",nil,true',release)
+        self.assertIn('["CBE_Cortex_ClearEarlyExits",2,0]',release)
+        self.assertIn('setVariable [_phaseKey,nil,true]',release)
 
     def test_transition_preserves_replacement_before_first_exit_order(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')

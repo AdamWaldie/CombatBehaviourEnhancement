@@ -31,7 +31,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
 
     def test_pending_adoption_is_typed_unique_and_cannot_renew_or_issue_movement(self):
         replay=self.start.split('// Adopt a transform/episode-bound exit journal',1)[1].split('// Keep reserve search consumption',1)[0]
-        for marker in ('count _egressJournal in [10,13]', 'in [2,3,4]',
+        for marker in ('count _egressJournal == 14', '(_egressJournal select 10) == 5', '(_egressJournal select 13) isEqualTo _visitContext',
                        'count (_egressJournal select 11)+count (_egressJournal select 3) <= 8',
                        '(_x select 0) isEqualType objNull','count (_x select 1) in [0,3]',
                        '_assignments+_pending','_live vectorDistance _leg <= 0.25',
@@ -53,7 +53,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
         self.assertNotIn(' doMove ',retry)
         self.assertNotIn('set ["egressDeadline',retry)
         self.assertIn('false,[],2*_planAttempts] call _chooseExteriorExit',block)
-        replay=self.start.split('// Version 2 appends pending',1)[1].split('if (_assignments isEqualTo',1)[0]
+        replay=self.start.split('// Version5 binds the existing progress',1)[1].split('if (_assignments isEqualTo',1)[0]
         for guard in ('private _pendingSize=[2,4]','(_x select 2) in [0,1,2]',
                       'finite (_x select 3)','(_x select 3) <= (_egressJournal select 7)',
                       '_pending pushBack [_actor,+_leg,_planAttempts,_nextPlanAt]'):
@@ -66,7 +66,7 @@ class ClearEgressBatchingTests(unittest.TestCase):
         self.assertIn('"egressExitUses",createHashMap',journal)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         observation=qa.split('private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
-        self.assertIn('count _exit in [4,10,13]',observation)
+        self.assertIn('count _exit in [4,10,13,14]',observation)
         self.assertIn('_egressAssignments findIf',observation)
         self.assertIn('_egressAssignments pushBack +_x',observation)
         self.assertNotIn('!_egressSeen',observation)

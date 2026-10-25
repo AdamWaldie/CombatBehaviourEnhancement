@@ -84,6 +84,14 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertIn(proof,preflight)
         self.assertIn('if (_resumeLanePending) exitWith {false};',preflight)
         self.assertIn('_resumeLaneReceipt=+_resumeLanes',preflight)
+        phase=text.split('private _resumePhaseReceipts=[];',1)[1].split('private _resumeLaneReceipt=[];',1)[0]
+        for key,size,slot in (('ClearEgress',14,13),('ClearFollowBudget',5,4),('ClearStageBudget',5,4)):
+            self.assertIn('["CBE_Cortex_'+key+'",'+str(size)+','+str(slot)+']',phase)
+        for forbidden in ('setVariable','OperationStart','CortexClearRelease','serverTime+'):
+            self.assertNotIn(forbidden,phase)
+        self.assertIn('if (_resumePhasePending) exitWith {false};',phase)
+        self.assertLess(text.index('"RESUME_PHASE_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
+
         self.assertIn('["CHECK",_laneCheck] call CBE_fnc_BuildingLaneJournal',preflight)
         self.assertIn('["expectedSnapshot",_resumeLanes]',preflight)
         self.assertIn('_snapshot isNotEqualTo (_job getOrDefault ["expectedSnapshot",[]])',journal)

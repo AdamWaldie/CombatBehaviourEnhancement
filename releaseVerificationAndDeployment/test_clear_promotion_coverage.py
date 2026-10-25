@@ -121,7 +121,13 @@ class ClearReserveAdmissionTests(unittest.TestCase):
     def test_reserve_admission_retires_on_terminal_or_explicit_release(self):
         for name in ('buildingOperationStep.sqf','cortexClearRelease.sqf'):
             source=(ROOT/'addons/infantry/functions'/name).read_text()
-            self.assertIn('setVariable ["CBE_Cortex_ClearReserveAdmission",nil,true]',source)
+            cleanup=source.split('// Retire only this visit',1)[1].split('};',2)[0]
+            self.assertIn('["CBE_Cortex_ClearReserveAdmission",2,0]',source)
+            self.assertIn('(_phaseReceipt select _contextIndex) isEqualTo _phaseContext',cleanup)
+            self.assertIn('setVariable [_phaseKey,nil,true]',cleanup)
+            if name=='cortexClearRelease.sqf':
+                self.assertIn('+(_releaseJob getOrDefault ["visitContext",[]])',source)
+
 
 class ClearReplacementEntryTests(unittest.TestCase):
     def test_historical_entry_needs_a_live_original_interior_survivor(self):

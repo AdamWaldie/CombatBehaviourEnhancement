@@ -43,9 +43,10 @@ private _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _releaseGeneration=_entryClearGeneration+1;
 private _entryOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _entryOperationGeneration=_entryOperation getOrDefault ["generation",-1];
-private _motionJob=createHashMapFromArray [["group",_group],["visitContext",+(_group getVariable ["CBE_Cortex_ClearVisitContext",[]])]];
 private _retiredRoster=_group getVariable ["CBE_Cortex_ClearRoster",[]];
 private _releaseJob=_buildingBrain getOrDefault ["job",createHashMap];
+// Retire the admitted private job context, never a later separately delivered public context.
+private _motionJob=createHashMapFromArray [["group",_group],["visitContext",+(_releaseJob getOrDefault ["visitContext",[]])]];
 private _movementTargets=_releaseJob getOrDefault ["movementTargets",createHashMap];
 private _formationAdmission=_releaseJob getOrDefault ["reserveAdmissionCommands",createHashMap];
 private _releaseAdmitted=false;
@@ -101,11 +102,24 @@ isNil {
 _group setVariable ["CBE_Cortex_ClearResult",["CANCELLED",count (_order select 1),_roomCount],true];
 _group setVariable ["CBE_Cortex_ClearEvidence",[+(_order param [1,[]]),+(_order param [4,[]]),+(_order param [5,[]]),+(_order param [6,[]]),_order param [2,serverTime],_order param [7,serverTime]],true];
 _group setVariable ["CBE_AIPass_ClearOrder", nil, true];
-_group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true];
+
 _group setVariable ["CBE_AIPass_ClearBuilding", nil, true];
-_group setVariable ["CBE_Cortex_ClearEgress",nil,true];
-_group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true];
-_group setVariable ["CBE_Cortex_ClearReserveAdmission",nil,true];
+// Retire only this visit's phase records; foreign/delayed episodes are not ours.
+            private _phaseContext=_motionJob getOrDefault ["visitContext",[]];
+            if (_phaseContext isEqualType [] && {count _phaseContext == 4}) then {
+                {
+                    _x params ["_phaseKey","_phaseSize","_contextIndex"];
+                    private _phaseReceipt=_group getVariable [_phaseKey,[]];
+                    if (_phaseReceipt isEqualType [] && {count _phaseReceipt == _phaseSize}
+                        && {(_phaseReceipt select _contextIndex) isEqualTo _phaseContext}) then {
+                        _group setVariable [_phaseKey,nil,true];
+                    };
+                } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
+                    ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
+                    ["CBE_Cortex_ClearReserveAdmission",2,0]];
+            };
+
+
 _group setVariable ["CBE_AIPass_ClearApplied", nil];
         _groupRetired=true;
     };

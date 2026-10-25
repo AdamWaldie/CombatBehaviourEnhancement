@@ -813,7 +813,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             } forEach _members;
             private _journal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
             private _inside=false;
-            if (count _journal in [10,13]) then {
+            if (count _journal == 14) then {
                 private _bounds=boundingBoxReal _house;
                 {
                     private _actor=_x select 0;
@@ -827,7 +827,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
                 } forEach (_journal select 3);
                 // Pending-only egress is a real migration boundary too. Observe the actual
                 // actor inside the house; no fixture timer or injected movement creates it.
-                if (count _journal == 13 && {(_journal select 10) == 2}
+                if (count _journal == 14 && {(_journal select 10) == 5}
                     && {(_journal select 11) isNotEqualTo []}) then {
                     {
                         private _actor=_x select 0;
@@ -843,8 +843,8 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             };
             _inside || {((_group getVariable ["CBE_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]}
         },300] call _wait;
-        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before in [10,13]},str [_before,_visits]] call _check;
-        if (count _before in [10,13]) then {
+        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before == 14},str [_before,_visits]] call _check;
+        if (count _before == 14) then {
             private _pendingBefore=+(_before select 11);
             private _expectedActors=((_before select 3)+_pendingBefore) apply {_x select 0};
             private _rosterComplete=count _expectedActors == count _members
@@ -868,11 +868,12 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             private _seenReplay=false;
             private _terminal=[{
                 private _journal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
-                if (count _journal in [10,13] && {groupOwner _group == _owner}) then {
+                if (count _journal == 14 && {groupOwner _group == _owner}) then {
                     _seenReplay=true;
                     if ((_journal select 7) != (_before select 7) || {(_journal select 6) != (_before select 6)}
-                        || {(_journal select 5) isNotEqualTo (_before select 5)}) then {_preserved=false};
-                    private _pending=if (count _journal == 13) then {_journal select 11} else {[]};
+                        || {(_journal select 5) isNotEqualTo (_before select 5)}
+                        || {(_journal select 13) isNotEqualTo (_before select 13)}) then {_preserved=false};
+                    private _pending=if (count _journal == 14) then {_journal select 11} else {[]};
                     private _currentActors=((_journal select 3)+_pending) apply {_x select 0};
                     if (count _currentActors != count _expectedActors
                         || {count (_currentActors arrayIntersect _currentActors) != count _expectedActors}
@@ -1136,7 +1137,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             };
         } forEach _members;
         private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];
-        if (count _exit in [4,10,13] && {(_exit select 0) == "EGRESS"}) then {
+        if (count _exit in [4,10,13,14] && {(_exit select 0) == "EGRESS"}) then {
             {
                 private _actor=_x select 0;
                 if (_egressAssignments findIf {(_x select 0) == _actor} < 0) then {

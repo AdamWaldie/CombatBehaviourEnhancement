@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "86b30ed7",
+  "scope": "Exact visit binding for final egress and follow/stage budgets across publication, resume admission, adoption and scoped retirement.",
+  "implementation": [
+    "Final egress now publishes14-field version5 including visitContext at index13. Existing10-field actor progress rows, pending allocation rows, original server clocks and retry/use budgets retain their indices and values. Follow/stage records append visitContext at index4 and are five fields.",
+    "Resume preflight captures all three phase values, including empty observations. Nonempty records must have the current shape, exact visit nonce and outer building/transform/hard-deadline identity. Stale/unbound records defer before operation startup without clearing the durable order or renewing budgets. The atomic startup commit repeats equality against captured values.",
+    "Adoption requires the current context-bound shapes. Older unbound records are not movement authority; this is a first-release internal journal change.",
+    "Normal completion and explicit release retire only matching-context egress/follow/stage/early-exit/reserve-admission records inside their existing authority commit. Foreign/unrecognised records remain. Explicit release obtains actor retirement context from its admitted private job rather than a separately delivered public context.",
+    "Existing HC fixture reads current version5 and checks nonce preservation together with original deadlines/roster. Diagnostic observation also recognises14 fields; no test-side completion was inserted. HC fixture remains unrun."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "29eea717f71e80866cf563c0db0b608bc3a66d7e337980a5121e5e7410a8bdc0",
+    "addons/infantry/functions/buildingOperationStep.sqf": "ef947bd8a997e48b675e3078e882431c24f7c01c9720a516611cc08e9edafe5e",
+    "addons/infantry/functions/cortexClearRelease.sqf": "a6c81729d080a65f7e018c1ed1533723ddbe5756b8e3b7c42ae2c64a96d4f75d",
+    "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf": "74c2f11b507b8002c1db930819d68866ea1e5a48ac0c4b4ee3a6d381d7004104",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "3ef4d74ecaef8f2089acc3a53d578ff78a854615271b0f33ae0a065ab8d31794",
+    "releaseVerificationAndDeployment/test_clear_egress_batching.py": "ce9f8bc43aabf316a0729f886c007c685e64219a7f8127027b1bf10b9e64eaf0",
+    "releaseVerificationAndDeployment/test_clear_egress_handover.py": "96e945884bd0f740727acbc49621b924d658a283ac2c6ce54d4e2d5f87f10960",
+    "releaseVerificationAndDeployment/test_clear_promotion_coverage.py": "250c962d18b6c167cf74f465b5932e64c447c5d81f42ffa2ff70703a8d05cb42",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "2e43c0e6c921d9dd89df39b9852c8bb78c33becc275c1f3dba3eb84a97840f1e"
+  },
+  "validation": {
+    "focusedClearanceTests": 127,
+    "fullBuild": "PASS attempt3",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-phase-nonce-86b30ed7",
+    "fingerprint": "2bdc9c9b783b5bd3fabbcee5a3300b8586594df7166e6a3e31e9f5ddf2d52dc9",
+    "history": "Focused failures were old source-section/schema assertions, updated to current shape/scoped retirement. Full attempt1 found a duplicate old diagnostic assertion; corrected. Attempt2 passed before scoped cleanup; final attempt3 includes cleanup/private retirement-context changes and passed."
+  },
+  "cost": "Three bounded phase-record reads/comparisons on resume and scoped record comparisons during terminal cleanup; no new worker or world query. Larger payloads add the existing four-field context. Runtime/network cost unmeasured.",
+  "limits": "This closes explicit identity omissions for selected nonempty journals, not a complete coherent replay or old-owner/native readiness protocol. Empty/missing phase data is not proof of zero spent work and still needs producer checkpoint/replay. Full payload validity, broader core/actor/loss journals, physical normal/HC/JIP/flow and5%median/10%p95 remain incomplete/unverified. Audits paused; whole goal active/incomplete; no percentage claim."
+}

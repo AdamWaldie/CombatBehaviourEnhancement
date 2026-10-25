@@ -3250,7 +3250,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job get "egressDeadlineServer"',publish)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         observe=qa.split('private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
-        self.assertIn('count _exit in [4,10,13]',observe)
+        self.assertIn('count _exit in [4,10,13,14]',observe)
         self.assertIn('_egressAssignments pushBack +_x',observe)
         self.assertIn('_egressVisits set [_forEachIndex,true]',observe)
 

@@ -2966,3 +2966,9 @@ Clearance resume preflight also runs the shared full lane validator before opera
 A native movement leg may finish before the new owner observes it. Metadata adoption can retain the original same-episode MOVE receipt when the actor is now idle or waiting, its native endpoint is unchanged, and measured rest and three-dimensional endpoint proximity agree. This issues no movement and grants no room-visit credit. Fresh MOVE receipts still require an actual MOVE command; STOP, changed endpoints, motion or another floor refuse completed-leg adoption. Physical migration and repeated CQB flow remain unverified.
 
 The room-command and exit guards reuse that proof through a read-only ownership check when the current command is WAIT. A settled original leg can therefore proceed to its next existing step without treating WAIT as an active move or accepting an arbitrary wait. The check changes no metadata, native command, room-visit evidence or deadline.
+
+### Clearance phase identity
+
+Final egress, follow-through failures and reserve-stage budgets now carry the exact visit context, including its nonce. Resume checks nonempty records before startup and checks them again at commit. Stale or unbound records defer with the original order intact; they do not grant fresh retry or exit time. Egress version5 retains the existing server progress clocks and pending allocations. This is a first-release journal change; unbound older records are not movement authority. Complete ordered replay/readiness and physical handover remain unfinished.
+
+Normal completion and cancellation remove only phase records bearing the retiring visit context. Records from a different nonce, and unrecognised records, remain untouched by that cleanup.

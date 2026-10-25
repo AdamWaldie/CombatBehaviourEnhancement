@@ -63,5 +63,9 @@
   "bindingFinding": "Egress/follow/stage records do not carry the same unique visitContext used by entry/sweep. Matching building/transform/deadline is not an explicit nonce binding. No actual cross-episode collision or physical failure is established by this source trace. Treat this as an identity-contract gap to resolve before calling a replay envelope coherent.",
   "requiredNextImplementation": "Version producer and consumer bindings together for all selected weakly-bound phase journals, with exact visit context/nonce. Reconcile before startup and actor writes. Reject stale/unbound records without silently resetting spent budgets or renewing egress clocks. Then complete coherent checkpoint/replay and actual owner/actor readiness. Do not add a version/ready flag while retaining mixed-phase payload authority.",
   "remainingInventory": "Per-actor visit/settings/evasion receipts, loss identity retention, generic operation state and every transitive mutation/cleanup helper remain to be included in the complete transport inventory. This selected map is not full parity or quiescence proof.",
-  "validation": "Read-only source-schema inspection, current hashes, JSON parse and diff check. No runtime change or repeat build. Verified runtime remains86057e0e, candidate clear-settled-execution-6fe0c3cb/fingerprint5a0a3a63863b1089db1096233878781d593af76be75c5f273b669780440c8e9b. Audits paused; goal active/incomplete; no percentage change."
+  "validation": "Read-only source-schema inspection, current hashes, JSON parse and diff check. No runtime change or repeat build. Verified runtime remains86057e0e, candidate clear-settled-execution-6fe0c3cb/fingerprint5a0a3a63863b1089db1096233878781d593af76be75c5f273b669780440c8e9b. Audits paused; goal active/incomplete; no percentage change.",
+  "nonceFollowup": {
+    "review": "clear-phase-nonce-20261025.json",
+    "status": "Selected egress/follow/stage nonce omissions now implemented across producer, preflight, adoption and matching-context cleanup. This map retains historical source hashes. Full replay/readiness and missing-data ambiguity remain incomplete."
+  }
 }
