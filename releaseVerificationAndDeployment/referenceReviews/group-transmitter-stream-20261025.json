@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "3377c81a",
+  "scope": "Shared communications read-only candidate discovery; no changed jamming policy, new driving precision tier, controller or physical behaviour claim.",
+  "finding": "CortexGroupTransmitter filtered every member for alive/player/life state, rebuilt leader-preferred array, then tried at most12 eligible actors. Most successful leader queries paid the entire roster scan/allocation first. The previous header also ambiguously called this a bounded twelve-member scan, though eligibility examined every member.",
+  "implementation": "Try eligible current group leader first. If jammed/unavailable, walk units in original order, skipping leader, stop at first transmitter or12 total eligible candidates (including an eligible jammed leader). No filtering/reordering allocation. All sparse eligibility retains the full roster search needed for the original first12 eligible candidates; no arbitrary member truncation.",
+  "cost": "Ordinary eligible leader success avoids units query and roster filtering. Fallback stops after first success or12 eligible candidates; total eligibility walk may still reach every member. At most12 transmission-hook calls unchanged. No new world/network query, persistent state, job or timer. No live frame-time improvement measured.",
+  "authority": "Read-only result remains a candidate, not permission. Existing callers retain sender/communications/current-order/owner validation. A mission jamming CODE hook can mutate world state despite its documented read-only contract; unchanged-value or changes during that hook are not solved by this optimisation. Stable roster selection equivalence is the tested scope.",
+  "files": {
+    "addons/infantry/functions/cortexGroupTransmitter.sqf": "d6013caf8a7ef3eddc58b15d248d7fbfa515cb675f0c587c61c71a8a3c1eaa7d"
+  },
+  "validation": {
+    "fullLog": ".qa/communication-stream-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/communication-stream-independent-20261025.log",
+    "candidate": ".qa/candidates/communication-stream-3377c81a",
+    "fingerprint": "4a3a7dbb267c67a8d396c9b49e1a53beec211673525dce4aca2965321edc5da8",
+    "testScope": "Existing communication-selection regression extended with old-vs-streamed analytical comparison across empty/small/large rosters, absent/end leaders, sparse eligibility and candidates beyond12; source wiring preserves no movement/public mutation. No additional test count. Not SQF runtime."
+  },
+  "limits": [
+    "Unsigned dirty development candidate. Physical communication/coordination/normal-HC/JIP/Zeus and5percent median/10percent p95 UNRUN; audits PAUSED.",
+    "Existing driving cadence remains four-second cruise/one-second constrained. No new distance-to-player low-precision tier introduced without physical safety evidence.",
+    "No source inventory/review count converted into implementation parity or whole-mod completion."
+  ]
+}

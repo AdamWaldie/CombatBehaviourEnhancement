@@ -57,8 +57,33 @@ class GroupCommunicationTests(unittest.TestCase):
     def test_group_transmitter_prefers_leader_but_falls_back_to_a_living_wingman(self):
         transmitter = source("cortexGroupTransmitter")
         self.assertIn('private _leader = leader _group;', transmitter)
-        self.assertIn('_members = [_leader] + (_members - [_leader]);', transmitter)
-        self.assertIn('(_members select [0, 12])', transmitter)
+        self.assertIn('_checked >= 12', transmitter)
+        self.assertIn('if (_leaderEligible && {[_leader] call CBE_fnc_CortexCanTransmit}) exitWith {_leader}',transmitter)
+        self.assertLess(transmitter.index('exitWith {_leader}'),transmitter.index('forEach (units _group)'))
+        self.assertNotIn(' select {',transmitter)
+        def previous(roster,leader):
+            eligible=[r for r in roster if r[1]]
+            lead=next((r for r in eligible if r[0]==leader),None)
+            if lead: eligible=[lead]+[r for r in eligible if r[0]!=leader]
+            return next((r[0] for r in eligible[:12] if r[2]),None)
+        def streamed(roster,leader):
+            lead=next((r for r in roster if r[0]==leader and r[1]),None)
+            if lead and lead[2]: return lead[0]
+            checked=int(lead is not None)
+            for r in roster:
+                if checked>=12: break
+                if r[0]!=leader and r[1]:
+                    checked+=1
+                    if r[2]: return r[0]
+            return None
+        # Stable rosters preserve the original first12 eligible candidates, including
+        # unavailable leaders, sparse eligible members and a13th jam-free candidate.
+        for count in (0,1,6,12,13,64):
+            for leader in (-1,0,count-1):
+                for eligible_stride in (1,2,5):
+                    for free in (-1,0,1,11,12,63):
+                        roster=[(i,i%eligible_stride==0,i==free) for i in range(count)]
+                        self.assertEqual(streamed(roster,leader),previous(roster,leader))
         self.assertIn('[_x] call CBE_fnc_CortexCanTransmit', transmitter)
         for forbidden in ['reveal ', 'doMove', 'doFollow', 'setVariable']:
             self.assertNotIn(forbidden, transmitter)
