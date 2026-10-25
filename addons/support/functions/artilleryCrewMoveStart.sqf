@@ -104,10 +104,32 @@ isNil {
                 || {!(currentCommand _x in ["","MOVE","WAIT"])}} < 0
         };
         if (!(call _sourceCurrent) || {!(call _crewCurrent)}) exitWith {false};
-        // The shared driving brain may control a DIFFERENT vehicle in a mixed group.
-        // Refuse rather than stopping that vehicle as a side effect of this gun's admission.
+        // Ordinary driving is group-scoped: authored receipts are waypoint metadata, not
+        // NATIVE_MOVE's nine-field vehicle receipt. Retire only a current gun-only brain.
+        // Check both the tracked cleanup roster and current operating seats before the
+        // common handover can call DrivingOperationFinish over every tracked vehicle.
         private _driving=_group getVariable ["CBE_Driving_Brain",createHashMap];
-        if (count _driving > 0 && {((_driving getOrDefault ["route",[]]) param [2,objNull]) != _battery}) exitWith {false};
+        private _drivingGunOnly=true;
+        if (count _driving > 0) then {
+            private _route=_driving getOrDefault ["route",[]];
+            private _controlled=_group getVariable ["CBE_DrivingAssist_Vehicles",[]];
+            private _members=units _group;
+            private _crewVehicle=_driving getOrDefault ["crewVehicle",objNull];
+            _drivingGunOnly=_route isEqualType [] && {_route isNotEqualTo []}
+                && {_controlled isEqualType []} && {count _controlled <= 64} && {count _members <= 64}
+                && {_controlled findIf {!(_x isEqualType objNull) || {!isNull _x && {_x != _battery}}} < 0}
+                && {_crewVehicle isEqualType objNull} && {isNull _crewVehicle || {_crewVehicle == _battery}}
+                && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
+                && {(_route param [0,"",[""]]) != "NATIVE_MOVE"
+                    || {count _route == 9 && {(_route select 2) isEqualTo _battery}}}
+                && {_members findIf {
+                    private _occupied=objectParent _x;
+                    !isNull _occupied && {_occupied != _battery}
+                        && {_occupied isKindOf "LandVehicle"} && {!(_occupied isKindOf "StaticWeapon")}
+                        && {driver _occupied in _members || {effectiveCommander _occupied in _members}}
+                } < 0};
+        };
+        if (!_drivingGunOnly) exitWith {false};
         if !([_group,"ARTILLERY_CREW",true,_holdUntil] call CBE_fnc_CortexOwnershipLease) exitWith {false};
         private _refuse={[_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease;false};
         if (!(call _sourceCurrent) || {!(call _crewCurrent)} || {driver _battery != _driver}

@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "2ee13634",
+  "scope": "Correct false refusal of an authored-route ordinary driving brain whose entire cleanup/movement scope is the selected gun. Does not implement same-group peer concurrency.",
+  "finding": "The prior starter compared route param2 with the gun for every ordinary brain. Only NATIVE_MOVE uses the9-field vehicle receipt; authored routes carry waypoint metadata. A same-gun authored-route controller was therefore refused. DrivingAssistStart and DrivingOperationFinish actually enumerate a group-scoped vehicle roster, so removing the guard would risk retiring peer controllers.",
+  "sourceIntent": {
+    "workshopId": "3801354927",
+    "selectedReference": ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf",
+    "sha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "readScope": "Selected post-fire driver/commander relocation only; not whole source parity."
+  },
+  "tracedCbeCallPath": [
+    "ArtilleryCrewMoveStart -> CortexOwnershipLease -> DrivingOperationFinish",
+    "DrivingAssistStart: current units -> distinct operating LandVehicles -> CBE_DrivingAssist_Vehicles",
+    "DrivingOperationFinish: tracked queue/pass cleanup, DrivingCrewStep release, DrivingAssistRelease over tracked roster",
+    "DrivingRouteReceipt -> AuthoredRouteReceipt or DrivingNativeRouteReceipt"
+  ],
+  "change": [
+    "Before common driving retirement, require a typed bounded tracked vehicle roster and current member roster, with no other controlled land vehicle. Inspect retained crewVehicle too.",
+    "Require exact current DrivingRouteReceipt. Interpret slot2 as vehicle only under the explicit NATIVE_MOVE prefix and9-field schema; authored routes keep their actual format.",
+    "Allow gun-only authored driving handover, while peer/unknown cleanup scope still refuses before any retirement. Reuse existing lease/journal/native cleanup; no new controller, scan job or setting.",
+    "Extended the existing prefire handoff regression method without increasing total test count. Source assertions are not engine execution."
+  ],
+  "validation": {
+    "focused": ".qa/artillery-gun-only-handover-focused-20261025-attempt1.log",
+    "focusedCount": 4,
+    "full": ".qa/artillery-gun-only-handover-build-20261025-attempt1.log",
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pboCount": 11,
+    "independent": ".qa/artillery-gun-only-handover-independent-20261025.log",
+    "candidate": ".qa/candidates/artillery-gun-only-handover-2ee13634",
+    "fingerprint": "1087205658d7751cc6a85feeedf9d22f0d7da0b7e8c2dc34e7443034bf9a0ec3",
+    "result": "PASS offline build and independent unsigned dirty-development package verification. No physical acceptance."
+  },
+  "remaining": [
+    "True same-group platform-specific concurrency remains unimplemented. Ordinary driving uses group admission plus per-vehicle writers/cleanup; changing the group lease reader alone is unsafe. All actual native/speed/crew/queue/pass writers would need a coherent scoped contract.",
+    "Current selected task still pauses new CBE group manoeuvres/ordinary driving for its group, while preserving unrelated authored infantry route. Peer operating vehicles or unknown cleanup roster refuse admission.",
+    "Native gun-only authored handover, prefire-to-scoot, ACK/rest/return, terminal uncertainty/casualty, original idle/formation continuation and repeated use remain UNRUN.",
+    "Normal/HC/JIP/Zeus/shutdown and5%median/10%p95 budget UNRUN; audits PAUSED. Full CBE/HBQ/Protocol/LAMBS scope remains active/incomplete, no parity/percentage awarded."
+  ],
+  "runtimeHashes": {
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "afea7472324bf0970ea5466a2126dccb7be537b660555edfa181c36722aaf555"
+  }
+}

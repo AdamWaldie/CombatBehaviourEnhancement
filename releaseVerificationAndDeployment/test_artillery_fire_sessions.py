@@ -78,6 +78,20 @@ class ArtilleryFireSessions(unittest.TestCase):
         # the dedicated branch cannot insert a whole-group waypoint or split membership.
         mixed=owner.split('if (_crewOnly) exitWith {',2)[2].split('private _started=false;',1)[0]
         self.assertIn('CBE_fnc_ArtilleryCrewMoveStart',mixed)
+        starter=(base/'artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
+        handover=starter.split('private _driving=',1)[1].split('call CBE_fnc_CortexOwnershipLease',1)[0]
+        # Authored route rows are not the native receipt's vehicle slot. Current live
+        # seats and all tracked cleanup vehicles must be gun-only before group finish.
+        self.assertIn('CBE_DrivingAssist_Vehicles',handover)
+        self.assertIn('count _controlled <= 64',handover)
+        self.assertIn('count _members <= 64',handover)
+        self.assertIn('_controlled findIf',handover)
+        self.assertIn('_members findIf',handover)
+        self.assertIn('CBE_fnc_DrivingRouteReceipt',handover)
+        self.assertIn('count _route == 9 && {(_route select 2) isEqualTo _battery}',handover)
+        self.assertNotIn('param [2,objNull]',handover)
+        self.assertNotIn('DrivingOperationFinish',handover)
+
         for forbidden in ('CortexGroupMove','OperationStart','joinSilent','addWaypoint'):
             self.assertNotIn(forbidden,mixed)
         for body in (owner,report,step,shot):
