@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "7852615c",
+  "scope": "Shared same-group AA warning voice/radio admission; not new detection, autonomous warning transfer or physical layered-defence acceptance.",
+  "failure": "CortexAAWarningLink returned true for voice distance before sender/receiver health checks. Its radio cache could retain a previous positive transmission result after incapacitation. An existing native asset warning could continue through a dead/incapacitated gunner still in the seat/group.",
+  "implementation": "Shared link now requires actual receiving gunner seat/group and non-null platform/group, then current CombatEffective plus simulation/visibility for sender and receiver before either voice or radio-cache use. Wounded conscious actors remain available through the existing predicate; dead/incapacitated/captive/surrendered/handcuffed actors do not. Own-vehicle native-warning link remains a separate early branch: caller still owns full firing admission.",
+  "authority": "Read-only link grants communication only. No fire, aim, movement, target sharing, reveal, mutation or new worker. Existing interceptor checks physical victim, crew ownership/native order, limited warning lifetime and current fire policy separately. Already-received warning withdrawal has existing one-second link maintenance; no instantaneous external-state claim.",
+  "cost": "Two existing combat-effectiveness predicates and finite crew/visibility reads before shared warning success. Radio cache remains<=32 actors and own-vehicle branch unchanged. Actual event/planner cost and performance budget unmeasured.",
+  "files": {
+    "addons/vehicles/functions/cortexAAWarningLink.sqf": "d31db19388e307af75a41334ddc8043c71e46db94d1ec3247bbd374a7e9ad5c7"
+  },
+  "validation": {
+    "fullLog": ".qa/aa-warning-crew-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/aa-warning-crew-independent-20261025.log",
+    "candidate": ".qa/candidates/aa-warning-crew-7852615c",
+    "fingerprint": "3cc949b543c377e52c220422fa2cd2e6a222fff299ec08018e6fb1ce45b2a1c6",
+    "testScope": "Existing AA regression requires readiness checks before voice/cache, preserves own-vehicle early branch and no command/public mutation. No new case count. Static wiring, not engine execution."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; engineering notes postdate package.",
+    "Physical casualties/unconsciousness/capture, sim transitions, communications/Zeus/normal-HC/JIP and5percent median/10percent p95 remain UNRUN. Audits PAUSED.",
+    "Whole AEGIS/Protocol functionality, gameplay balance and layered interception effectiveness remain incomplete/unverified. No completion scores awarded."
+  ]
+}

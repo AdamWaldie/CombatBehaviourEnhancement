@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Qualify same-group native warning delivery by existing voice/radio/jamming rules.
+ * Shared warnings require current combat-effective, simulated visible sender/receiver crew
+ * before voice or cached-radio acceptance. Own-vehicle defence retains its separate admission.
  * Locality/authority: Read-only world query; caller owns admission. Never acquires actor control.
  * Repeat/JIP: No worker or public state. Optional caller-local cache holds<=32 transmitter reads
  * for one finite planner<=1s; interceptor admission/rechecks pass no cache and read current hooks.
@@ -13,9 +15,17 @@
 params [["_vehicle",objNull,[objNull]],["_gunner",objNull,[objNull]],
     ["_group",grpNull,[grpNull]],["_victim",objNull,[objNull]],["_cache",[],[[]]]];
 if (_victim == _vehicle && {!isNull _vehicle}) exitWith {true};
-if (isNull _victim || {!alive _victim} || {isNull _gunner} || {group gunner _victim != _group}
+if (isNull _vehicle || {isNull _group} || {isNull _victim} || {!alive _victim}
+    || {isNull _gunner} || {gunner _vehicle != _gunner} || {group _gunner != _group}
+    || {group gunner _victim != _group}
     || {!([_group,"CBE_AIPass_ContactReports_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 private _sender=gunner _victim;
+// A nearby body cannot voice a warning, and cached radio availability cannot
+// resurrect an incapacitated crew member during this finite planner.
+if (!([_sender] call CBE_fnc_CortexCombatEffective)
+    || {!([_gunner] call CBE_fnc_CortexCombatEffective)}
+    || {!simulationEnabled _sender} || {isObjectHidden _sender}
+    || {!simulationEnabled _gunner} || {isObjectHidden _gunner}) exitWith {false};
 private _voice=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 if ((getPosASL _sender) distance (getPosASL _gunner) <= _voice) exitWith {true};
 private _range=missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500];

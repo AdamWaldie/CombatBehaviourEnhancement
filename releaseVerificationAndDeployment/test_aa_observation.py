@@ -267,6 +267,22 @@ class AAObservation(unittest.TestCase):
                       'CBE_AIPass_ContactReports_Radius','CortexCanTransmit','count _cache < 32'):
             self.assertIn(guard,link)
         self.assertIn('CortexAAWarningLink',intercept)
+        # Readiness must precede both bypasses: voice and the request-local radio
+        # cache. A retained positive jamming result cannot grant a dead crew link.
+        voice=link.index('private _voice=')
+        cached=link.index('private _transmit=')
+        for guard in ('gunner _vehicle != _gunner','group _gunner != _group',
+                      '[_sender] call CBE_fnc_CortexCombatEffective',
+                      '[_gunner] call CBE_fnc_CortexCombatEffective',
+                      '!simulationEnabled _sender','isObjectHidden _sender',
+                      '!simulationEnabled _gunner','isObjectHidden _gunner'):
+            self.assertLess(link.index(guard),voice)
+            self.assertLess(link.index(guard),cached)
+        own=link.split('if (_victim == _vehicle',1)[1].split('if (isNull _vehicle',1)[0]
+        self.assertIn('exitWith {true}',own)
+        for forbidden in ('doFire','reveal','remoteExec','setVariable'):
+            self.assertNotIn(forbidden,link)
+
         self.assertIn('vehicle _homing != _victim',intercept)
         self.assertIn('DEFENDED_ASSET_LOST',intercept)
         self.assertIn('"linkDue",time+1',intercept)
