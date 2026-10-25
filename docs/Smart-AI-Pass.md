@@ -2982,3 +2982,8 @@ Resume now captures early-exit and reserve-admission journals before startup alo
 ### Completed clearance leg release — 2026-10-25
 
 Explicit release now recognises an original clearance MOVE settled as WAIT only with the exact retiring visit, unchanged private/native target and mission-order receipt, measured rest and same-floor arrival. It then uses the existing task-safe admitted formation-parent handback; foreign WAIT remains protected. No new controller or retry is created. Full offline gates passed: 1497 tests, 422 SQF files, 11 PBOs. Independently verified candidate `.qa/candidates/clear-settled-release-97fb7915`, fingerprint `1f2e73399a614282c80651c3bda3cd0ba34f4cf803db1e4b6955baca012ba745`. Audits remain paused, so physical following and performance are unverified. See `clear-settled-release-20261025.json`.
+
+
+### Early exterior exit replay — 2026-10-25
+
+Resume now validates exterior entrances against the full bounded security topology rather than only the four assault entrances. A completed same-visit exit MOVE observed as WAIT can retain its original arrival through the read-only motion ownership check and exact target match; ordinary/foreign WAIT still diverts. Original deadline/retry state is retained. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs) and independent candidate verification matched: `.qa/candidates/clear-early-adoption-75e966cd`, fingerprint `3bc590df0f46af3d356263a8b8b53ae8ee1743af33ad0336b511260914c3b94e`. No physical or performance claim. Authenticated producer transport remains unimplemented; audits stay paused. Review: `clear-early-adoption-20261025.json`.

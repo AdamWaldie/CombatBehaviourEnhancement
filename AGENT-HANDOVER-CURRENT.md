@@ -83,3 +83,8 @@ Explicit release now recognises an original clearance MOVE settled as WAIT only 
 ### Outgoing clearance checkpoint integration trace
 
 `clear-producer-seal-path-20261025.json` identifies the existing group Local EH and the outgoing private-brain retirement edge. Reuse that edge for an authenticated final producer seal; do not add polling or infer coherent delivery from current public journals. Destination provider notifications are post-transfer observations, not old-owner quiescence. Full ordered request/replay and actor reconciliation remain unimplemented. The exact latest offline-validated runtime remains a8016028 and candidate clear-settled-release-97fb7915. No new runtime or physical claim.
+
+
+### Early exterior exit replay — 2026-10-25
+
+Resume now validates exterior entrances against the full bounded security topology rather than only the four assault entrances. A completed same-visit exit MOVE observed as WAIT can retain its original arrival through the read-only motion ownership check and exact target match; ordinary/foreign WAIT still diverts. Original deadline/retry state is retained. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs) and independent candidate verification matched: `.qa/candidates/clear-early-adoption-75e966cd`, fingerprint `3bc590df0f46af3d356263a8b8b53ae8ee1743af33ad0336b511260914c3b94e`. No physical or performance claim. Authenticated producer transport remains unimplemented; audits stay paused. Review: `clear-early-adoption-20261025.json`.

@@ -75,6 +75,27 @@ class ClearEarlyExitTests(unittest.TestCase):
             self.assertIn(required,block)
         self.assertNotIn('doMove',block)
         self.assertNotIn('serverTime+',block)
+        self.assertIn('_entry in _securityEntries',block)
+        self.assertNotIn('_entry in _entries',block)
+        self.assertIn('private _settledExit=currentCommand _actor == "WAIT"',block)
+        self.assertIn('["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion',block)
+        self.assertIn('select 3) isEqualTo _target',block)
+        self.assertIn('|| {_settledExit}',block)
+        # Four assault lanes are a concurrency bound, not the full exterior topology.
+        all_entries=[(n,0,0) for n in range(12)]
+        assault=all_entries[:4]
+        journal_entry=all_entries[9]
+        self.assertNotIn(journal_entry,assault)
+        self.assertIn(journal_entry,all_entries)
+        # Replayed arrival keeps the original deadline/retry state; a rejected
+        # native observation cannot turn into a fresh exit request.
+        journal={"deadline":40,"retryUsed":True,"state":"ARRIVED"}
+        for command,receipt_ok in (("WAIT",True),("WAIT",False),("ATTACK",True)):
+            adopted=journal.copy()
+            if not (command=="WAIT" and receipt_ok):adopted["state"]="DIVERTED"
+            self.assertEqual(adopted["deadline"],40)
+            self.assertTrue(adopted["retryUsed"])
+            self.assertEqual(adopted["state"],"ARRIVED" if receipt_ok and command=="WAIT" else "DIVERTED")
 
 if __name__ == '__main__':
     unittest.main()

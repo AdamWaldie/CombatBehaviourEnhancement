@@ -797,12 +797,18 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
                 && {(_entry isEqualTo [] && {_watch isEqualTo []}) || {
                     count _entry == 3 && {count _watch == 3}
                         && {(_entry+_watch) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-                        && {_entry in _entries}
+                        && {_entry in _securityEntries}
                 }}
                 && {_state in ["MOVING","ARRIVED","FAILED","DIVERTED"]}) then {
                 private _live=(expectedDestination _actor) param [0,[]];
                 private _owned=currentCommand _actor == "MOVE" && {count _live == 3} && {_live vectorDistance _target <= 0.25};
-                private _held=currentCommand _actor in ["","STOP"]
+                // Exterior security may use entrances beyond the four assault lanes.
+                // A finished native exit MOVE can settle as WAIT; only its exact
+                // same-visit motion receipt may acknowledge that state as our arrival.
+                private _settledExit=currentCommand _actor == "WAIT"
+                    && {["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion}
+                    && {((_actor getVariable ["CBE_Cortex_ClearMotion",[]]) select 3) isEqualTo _target};
+                private _held=(currentCommand _actor in ["","STOP"] || {_settledExit})
                     && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1};
                 if (_state == "DIVERTED" || {!(_owned || {_held})}) then {
                     _state="DIVERTED";
