@@ -2972,3 +2972,8 @@ The room-command and exit guards reuse that proof through a read-only ownership 
 Final egress, follow-through failures and reserve-stage budgets now carry the exact visit context, including its nonce. Resume checks nonempty records before startup and checks them again at commit. Stale or unbound records defer with the original order intact; they do not grant fresh retry or exit time. Egress version5 retains the existing server progress clocks and pending allocations. This is a first-release journal change; unbound older records are not movement authority. Complete ordered replay/readiness and physical handover remain unfinished.
 
 Normal completion and cancellation remove only phase records bearing the retiring visit context. Records from a different nonce, and unrecognised records, remain untouched by that cleanup.
+
+
+### Clearance auxiliary phase admission — 2026-10-25
+
+Resume now captures early-exit and reserve-admission journals before startup alongside the other phase journals. Nonempty records must match the exact visit and retain bounded row arrays; final startup equality includes both records, including prior absence. Existing row/native ownership checks remain authoritative. This does not establish coherent replay or owner readiness. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs), with independent candidate verification: `.qa/candidates/clear-auxiliary-preflight-2c54605d`, fingerprint `2d4aefed5c0a122fb55dcd284c816182a3303c89f23a434dc8d2d9e711db1437`. Physical audits remain paused. Engineering review: `clear-auxiliary-preflight-20261025.json`.

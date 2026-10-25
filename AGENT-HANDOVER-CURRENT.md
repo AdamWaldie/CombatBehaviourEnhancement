@@ -68,3 +68,8 @@ Prioritise foundations/FSM lifecycle and the entire HBQ driving intent, then ind
 Never edit installed Workshop sources or preserved archives. Use new disposable copies and retain provenance. Keep private inventories and source assets out of commits and packages. IKMS, WBK Droids and WBK Zombies are compatibility-only and last. CBA owns settings; Zeus/ZEN modules issue behaviours. Avoid forced poses, teleport recovery, repair, immunity and physics pushes. Preserve mission skill ownership. Normal and actual-provider HC audits must remain separate when authorised.
 
 Preserve the existing unrelated deletions under `.github`, artwork and branding, the deleted deployment requirements file, and the dirty `docs/PERFORMANCE-VALIDATION.md`. Every Python text edit must specify UTF-8 or preserve raw bytes. A default-decoding error was repaired; do not repeat it.
+
+
+### Clearance auxiliary phase admission — 2026-10-25
+
+Resume now captures early-exit and reserve-admission journals before startup alongside the other phase journals. Nonempty records must match the exact visit and retain bounded row arrays; final startup equality includes both records, including prior absence. Existing row/native ownership checks remain authoritative. This does not establish coherent replay or owner readiness. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs), with independent candidate verification: `.qa/candidates/clear-auxiliary-preflight-2c54605d`, fingerprint `2d4aefed5c0a122fb55dcd284c816182a3303c89f23a434dc8d2d9e711db1437`. Physical audits remain paused. Engineering review: `clear-auxiliary-preflight-20261025.json`.
