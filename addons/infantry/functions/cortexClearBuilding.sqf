@@ -379,6 +379,29 @@ if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] cal
 // A delayed lane/roster publication must not consume the durable order by entering
 // setup and failing adoption afterward. Discovery retries this read-only admission under
 // the original stall/hard deadlines above. Completed room work uses its separate exit journal.
+// Read the existing bounded exit inventory before resume journal validation/startup.
+private _entries=[];
+private _securityEntries=[];
+for "_exitIndex" from 0 to 15 do {
+    private _candidate=_building buildingExit _exitIndex;
+    // Model exit nodes can be buried below terrain after placement. Do not
+    // make one an obligatory recovery destination or flatten it into a fake exit.
+    private _candidateASL=AGLToASL _candidate;
+    private _aboveTerrain=(_candidateASL select 2) >= (getTerrainHeightASL _candidate)-0.05;
+    if (_candidate isNotEqualTo [0,0,0] && {_candidate distance2D _building < 50}
+        && {_aboveTerrain}
+        && {_entries findIf {_x distance2D _candidate < 1} < 0}) then {
+        _entries pushBack _candidate;
+    };
+};
+if (_entries isNotEqualTo []) then {
+    private _entryOrigin=getPosATL _leader;
+    _entries=[_entries,[],{_x distance2D _entryOrigin},"ASCEND"] call BIS_fnc_sortBy;
+    // Interior entry remains bounded to four nearby choices. Exterior observation must
+    // retain the other native exits already discovered, rather than silently dropping them.
+    _securityEntries=+_entries;
+    _entries resize ((count _entries) min 4);
+};
 private _resumeLaneReceipt=[];
 private _resumeLanePending=false;
 if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreachable)) < count _positions}) then {
@@ -390,7 +413,16 @@ if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreach
         || {(_resumeLanes select 2) isNotEqualTo _resumeRosterContext}
         || {(_resumeLanes select 3) isNotEqualTo _positions}
         || {(_resumeLanes select 4) isNotEqualTo _resumePairs};
-    if (!_resumeLanePending) then {_resumeLaneReceipt=+_resumeLanes};
+    if (!_resumeLanePending) then {
+        private _laneCheck=createHashMapFromArray [["group",_group],["building",_building],
+            ["visitContext",_resumeRosterContext],["hardDeadline",_hardDeadline],
+            ["generation",_admissionGeneration],["ownerEpoch",_admissionEpoch],
+            ["positions",_positions],["pairs",_resumePairs],["securityEntries",_securityEntries],
+            ["expectedSnapshot",_resumeLanes],
+            ["cleared",_cleared],["unreachable",_unreachable]];
+        _resumeLanePending=!( ["CHECK",_laneCheck] call CBE_fnc_BuildingLaneJournal );
+        if (!_resumeLanePending) then {_resumeLaneReceipt=+_resumeLanes};
+    };
 };
 if (_resumeLanePending) exitWith {false};
 private _generation=-1;
@@ -553,28 +585,6 @@ if (!_attackPolicyReady) exitWith {
     // A replaced preparation cannot retire its successor. The commit gate repeats its proof.
     [{[_group,false] call CBE_fnc_CortexClearRelease}] call _commitPreparation;
     ["ATTACK_POLICY_REFUSED"] call _refuse
-};
-private _entries=[];
-private _securityEntries=[];
-for "_exitIndex" from 0 to 15 do {
-    private _candidate=_building buildingExit _exitIndex;
-    // Model exit nodes can be buried below terrain after placement. Do not
-    // make one an obligatory recovery destination or flatten it into a fake exit.
-    private _candidateASL=AGLToASL _candidate;
-    private _aboveTerrain=(_candidateASL select 2) >= (getTerrainHeightASL _candidate)-0.05;
-    if (_candidate isNotEqualTo [0,0,0] && {_candidate distance2D _building < 50}
-        && {_aboveTerrain}
-        && {_entries findIf {_x distance2D _candidate < 1} < 0}) then {
-        _entries pushBack _candidate;
-    };
-};
-if (_entries isNotEqualTo []) then {
-    private _entryOrigin=getPosATL _leader;
-    _entries=[_entries,[],{_x distance2D _entryOrigin},"ASCEND"] call BIS_fnc_sortBy;
-    // Interior entry remains bounded to four nearby choices. Exterior observation must
-    // retain the other native exits already discovered, rather than silently dropping them.
-    _securityEntries=+_entries;
-    _entries resize ((count _entries) min 4);
 };
 private _entryRoute=if (_entries isEqualTo []) then {[]} else {
     private _centroid=[0,0,0];

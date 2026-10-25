@@ -74,7 +74,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                         [[0.5,[1,2,3]]],[[0,[1,2]]],[[0,[1,2,float('nan')]]]):
             self.assertFalse(valid_targets(invalid,2))
         self.assertEqual(journal.count('_job set ["laneJournalAfter",serverTime+1.5]'),1)
-        self.assertLess(journal.index('"CANCELLED"}) exitWith {false};'),journal.index('_job set ["laneJournalAfter"'))
+        self.assertLess(journal.index('if (_mode != "CHECK" && {'),journal.index('_job set ["laneJournalAfter"'))
         self.assertLess(journal.index('_job set ["laneJournalAfter"'),journal.index('private _positions='))
         self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
@@ -84,6 +84,18 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertIn(proof,preflight)
         self.assertIn('if (_resumeLanePending) exitWith {false};',preflight)
         self.assertIn('_resumeLaneReceipt=+_resumeLanes',preflight)
+        self.assertIn('["CHECK",_laneCheck] call CBE_fnc_BuildingLaneJournal',preflight)
+        self.assertIn('["expectedSnapshot",_resumeLanes]',preflight)
+        self.assertIn('_snapshot isNotEqualTo (_job getOrDefault ["expectedSnapshot",[]])',journal)
+
+        self.assertLess(text.index('private _securityEntries=[];'),text.index('private _resumeLanePending=false;'))
+        self.assertEqual(text.count('_building buildingExit _exitIndex'),1)
+        self.assertIn('if (_mode in ["ADOPT","CHECK"]) then {',journal)
+        self.assertLess(journal.index('if (_mode == "CHECK") exitWith {true};'),journal.index('_job set ["pairEntryTargets"'))
+        common=journal.split('if (_mode != "CHECK" && {',1)[0]
+        for guard in ('CBE_Cortex_ClearVisitContext','CBE_AIPass_ClearGeneration','CBE_AIPass_Epoch','serverTime >='):
+            self.assertIn(guard,common)
+
         commit=text.split('private _handoffFailure="HANDOFF_CHANGED";',1)[1].split('if (!_handoffAccepted)',1)[0]
         self.assertIn('isNotEqualTo _resumeLaneReceipt',commit)
         self.assertLess(commit.index('"RESUME_LANES_CHANGED"'),commit.index('call CBE_fnc_OperationStart'))

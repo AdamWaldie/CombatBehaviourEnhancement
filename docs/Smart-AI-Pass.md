@@ -2958,3 +2958,5 @@ If a distinct original commander dies during active selected-gun movement, the s
 ### Clearance resume admission
 
 Entry/sweep resumption retains the lane journal admitted during preflight and compares it again before starting a replacement operation. If that journal changed or disappeared, startup defers and preserves the durable order and its deadlines for retry. This protects scheduled script callers as well as the existing owner path; it does not complete ordered snapshot delivery or establish native movement acknowledgement.
+
+Clearance resume preflight also runs the shared full lane validator before operation startup. Invalid routes, cursors, entry-node references, buddy targets or request ages defer without consuming the durable order. The read-only check reuses the same bounded exit inventory and validator as adoption; it publishes no state or native command. Owner-ready transport and native movement acknowledgement are still separate unfinished requirements.

@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Save/adopt one coherent clearance lane allocation and progress observation.
- * Locality/authority: Current group owner and current CLEAR generation/epoch only.
+ * Locality/authority: Current group owner and current CLEAR generation/epoch. CHECK validates
+ * prospective resume data before an operation exists; SAVE/ADOPT also require its exact operation.
  * Adoption retains lane-bound buddy destination proposals as well as request ages and progress.
  * It changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
@@ -11,14 +12,15 @@
  * At most8 lanes,2 actors per lane and512 nodes; SAVE is limited to one sample per1.5s
  * on the existing job, including refused samples; a committed lane-roster change invalidates that sample.
  * Changed-only publication. No worker, world query or retry renewal.
- * Arguments: 0 mode STRING SAVE/ADOPT; 1 job HASHMAP empty.
- * Return: BOOL - latest SAVE result or metadata adopted; throttling retains the prior result.
+ * Arguments: 0 mode STRING SAVE/ADOPT/CHECK; 1 job HASHMAP empty.
+ * Return: BOOL - CHECK validity without mutation, latest SAVE result or metadata adopted;
+ * throttling retains the prior SAVE result. CHECK never publishes or changes job metadata.
  * Never native acknowledgement, valid-current-snapshot proof or physical continuity.
  * Callers: CortexClearBuilding and BuildingOperationStep existing callback tail.
  * Example: ["SAVE",_job] call CBE_fnc_BuildingLaneJournal;
  */
 params [["_mode","SAVE",[""]],["_job",createHashMap,[createHashMap]]];
-if (!(_mode in ["SAVE","ADOPT"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
+if (!(_mode in ["SAVE","ADOPT","CHECK"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 private _group=_job getOrDefault ["group",grpNull];
 if (isNull _group || {!local _group}) exitWith {false};
 private _phase=_job getOrDefault ["phase","ENTRY"];
@@ -37,11 +39,13 @@ _result=call {
         || {(_context select 2) isNotEqualTo (_job getOrDefault ["hardDeadline",-1])}
         || {serverTime >= (_job getOrDefault ["hardDeadline",-1])}
         || {(_job getOrDefault ["generation",-1]) != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
-        || {(_job getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
-        || {(_operation getOrDefault ["generation",-2]) != (_job getOrDefault ["operationGeneration",-1])}
+        || {(_job getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
+    if (_mode != "CHECK" && {
+        (_operation getOrDefault ["generation",-2]) != (_job getOrDefault ["operationGeneration",-1])
         || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
         || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
-        || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}) exitWith {false};
+        || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}
+    }) exitWith {false};
     // Budget this admitted observation even when its data later refuses. A bad lane
     // cannot turn every short callback into another complete snapshot validation.
     if (_mode == "SAVE") then {
@@ -56,7 +60,8 @@ _result=call {
     private _entryNodes=_job getOrDefault ["entries",[]];
     private _entryGoal=_job getOrDefault ["entry",[]];
     private _snapshot=_group getVariable ["CBE_Cortex_ClearLanes",[]];
-    if (_mode == "ADOPT") then {
+    if (_mode == "CHECK" && {_snapshot isNotEqualTo (_job getOrDefault ["expectedSnapshot",[]])}) exitWith {false};
+    if (_mode in ["ADOPT","CHECK"]) then {
         if (!(_snapshot isEqualType []) || {count _snapshot != 13}
             || {(_snapshot select 0) != 1} || {(_snapshot select 1) isNotEqualTo _group}
             || {(_snapshot select 2) isNotEqualTo _context}
@@ -194,6 +199,7 @@ _result=call {
         _requestTimes set [netId _actor,[+(_request select 0),_request select 1]];
     } forEach _requests;
     if (!_valid) exitWith {false};
+    if (_mode == "CHECK") exitWith {true};
     if (_mode == "ADOPT") exitWith {
         _job set ["pairEntryTargets",_copyEntryTargets];
         _job set ["movementRequestTimes",_requestTimes];
