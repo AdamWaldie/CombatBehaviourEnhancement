@@ -12149,6 +12149,21 @@ class CortexOperations(unittest.TestCase):
                       '_reservation isEqualTo [] ||'):
             self.assertIn(proof,handback)
         self.assertIn('private _unitIssue=_issue || {[_unit] call _evasionReturnOwned}',text)
+        grenade=source('cortexGrenadeCheck')
+        hold=grenade.split('private _clearHoldOwned={',1)[1].split('\n};',1)[0]
+        for proof in ('CBE_BuildingBrain','"cancelled"','"finished"','CBE_AIPass_Epoch',
+                      'CBE_AIPass_ClearGeneration','"operationGeneration"','"CLEAR"',
+                      '"cancelReason"','"deadline"','"hardDeadline"','CBE_fnc_BuildingActorHoldOwned'):
+            self.assertIn(proof,hold)
+        self.assertIn('(_motion select 2) == "HOLD"',hold)
+        self.assertIn('|| {_ownedClearHold}',grenade)
+        self.assertIn('_ownedClearHold && {!([_unit,_group] call _clearHoldOwned)}',grenade)
+        self.assertIn('_ownedClearHold && {(_clearMotion select 2) == "HOLD"}',grenade)
+        self.assertIn('(_receipt select 2) == "HOLD"',retention)
+        self.assertIn('CBE_fnc_BuildingActorHoldOwned',retention)
+        self.assertNotIn('doMove',handback)
+        self.assertNotIn('setVariable',handback)
+
         for proof in ('private _evadingWorkers=', '[_x,true] call _actorAvailable',
                       'if (_pair findIf {_x in _evadingWorkers} >= 0) then {continue}',
                       'if (_laneRoster findIf {_x in _evadingWorkers} >= 0) then {continue}',

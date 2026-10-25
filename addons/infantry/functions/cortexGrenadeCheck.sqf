@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * A current clearance-owned native STOP may evade and retain its exact episode return
+ * context. Foreign stops remain protected; clearance resumes through its existing writer.
  * Lets nearby AI react to a live hand grenade by moving away from it into cover.
  *
  * Grenade evasion is queued by the
@@ -103,6 +105,27 @@ private _checkedGroups = [];
 private _checkedResults = [];
 private _reacted = 0;
 private _regroupActors = [];
+private _clearHoldOwned={
+    params ["_actor","_actorGroup"];
+    private _brain=_actorGroup getVariable ["CBE_BuildingBrain",createHashMap];
+    private _clearJob=_brain getOrDefault ["job",createHashMap];
+    private _operation=_actorGroup getVariable ["CBE_Operation",createHashMap];
+    private _motion=_actor getVariable ["CBE_Cortex_ClearMotion",[]];
+    private _context=_clearJob getOrDefault ["visitContext",[]];
+    local _actorGroup && {count _clearJob > 0} && {currentCommand _actor == "STOP"}
+        && {!(_brain getOrDefault ["cancelled",false])} && {!(_brain getOrDefault ["finished",false])}
+        && {(_clearJob getOrDefault ["group",grpNull]) == _actorGroup}
+        && {(_clearJob getOrDefault ["ownerEpoch",-1]) == (_actorGroup getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_clearJob getOrDefault ["generation",-1]) == (_actorGroup getVariable ["CBE_AIPass_ClearGeneration",-2])}
+        && {(_operation getOrDefault ["generation",-2]) == (_clearJob getOrDefault ["operationGeneration",-1])}
+        && {(_operation getOrDefault ["intent",""]) == "CLEAR"}
+        && {(_operation getOrDefault ["cancelReason",""]) == ""}
+        && {serverTime < ((_clearJob getOrDefault ["deadline",-1]) min (_clearJob getOrDefault ["hardDeadline",-1]))}
+        && {count _motion == 5} && {count _context == 4}
+        && {(_motion select 0) isEqualTo _actorGroup} && {(_motion select 1) isEqualTo _context}
+        && {(_motion select 2) == "HOLD"}
+        && {[_actor,_clearJob] call CBE_fnc_BuildingActorHoldOwned}
+};
 {
     private _unit = _x;
     private _group = group _unit;
@@ -115,6 +138,7 @@ private _regroupActors = [];
     private _state = _group getVariable ["CBE_AIPass_State",createHashMap];
     private _drillUnits = (_state getOrDefault ["drill", createHashMap]) getOrDefault ["units", []];
     private _supportHeld = _state getOrDefault ["supportHeld",[]];
+    private _ownedClearHold=currentCommand _unit == "STOP" && {[_unit,_group] call _clearHoldOwned};
     private _supportPathOwned=_unit in _supportHeld
         && {(_unit getVariable ["CBE_Cortex_SupportPathHold",false]) isEqualTo true};
     if (local _unit && {!isPlayer _unit} && {isNull remoteControlled _unit}
@@ -123,7 +147,7 @@ private _regroupActors = [];
         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
-        && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
+        && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"] || {_ownedClearHold}}
         && {_unit checkAIFeature "MOVE"}
         && {_unit checkAIFeature "PATH" || {_supportPathOwned}}
         && {!(_unit in _drillUnits)} && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
@@ -146,10 +170,12 @@ private _regroupActors = [];
             private _beforeEscape=(expectedDestination _unit) param [0,[]];
             // Local proposal only. The clearing executor rechecks every receipt before use.
             private _clearReturn=[];
+            if (_ownedClearHold && {!([_unit,_group] call _clearHoldOwned)}) then {continue};
             if (count _clearMotion == 5 && {(_clearMotion select 0) isEqualTo _group}
                 && {(_clearMotion select 1) isEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
-                && {(_clearMotion select 2) == "MOVE"} && {count _beforeEscape == 3}
-                && {_beforeEscape isEqualTo (_clearMotion select 3)}) then {
+                && {((_clearMotion select 2) == "MOVE" && {count _beforeEscape == 3}
+                    && {_beforeEscape isEqualTo (_clearMotion select 3)})
+                    || {_ownedClearHold && {(_clearMotion select 2) == "HOLD"}}}) then {
                 _clearReturn=[+_clearMotion,+_spot,_expires,
                     _group getVariable ["CBE_AIPass_Epoch",0],
                     _group getVariable ["CBE_OperationGeneration",0],clientOwner];

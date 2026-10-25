@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Grenade evasion retains an exact owned HOLD during its initial native-ack wait;
+ * after the same escape lease expires, the existing room writer chooses the current leg.
  * roomHolds and sampled native/fallback holds store ATL. Native room destinations stay
  * AGL and convert explicitly when compared with or recorded as a hold, including over water.
  * Partner entry recovery retains actor-local public observation/spent-budget receipts bound
@@ -275,7 +277,8 @@ private _delay=call {
             && {(_lease select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
             && {(_lease select 2) isEqualType 0} && {finite (_lease select 2)}
             && {time < (_lease select 2)} && {(_lease select 2)-time <= 6}
-            && {count _native == 3} && {currentCommand _actor in ["","MOVE"]}
+            && {count _native == 3} && {currentCommand _actor in ["","MOVE"]
+                || {currentCommand _actor == "STOP" && {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}}}
             && {simulationEnabled _actor} && {!isObjectHidden _actor}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []};
         if (!_valid) exitWith {false};
@@ -294,7 +297,9 @@ private _delay=call {
             && {(_return select 3) == (_job get "ownerEpoch")}
             && {(_return select 4) == (_job get "operationGeneration")}
             && {(_return select 5) == clientOwner}
-            && {_native isEqualTo (_receipt select 3)}
+            && {(_receipt select 2) == "MOVE" && {_native isEqualTo (_receipt select 3)}
+                || {(_receipt select 2) == "HOLD" && {currentCommand _actor == "STOP"}
+                    && {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}}}
     };
     private _actorAvailable={
         params ["_actor",["_retainEvasion",false]];
