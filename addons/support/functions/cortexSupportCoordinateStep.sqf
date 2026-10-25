@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * New MOVE admission also requires a fresh current-owner COVER ammunition-capacity receipt;
  * bootstrap publishes COVER before movement. In-flight bounds keep their original lifetime.
+ * Capacity binds to the published actual-owner parent generation/epoch/token/expiry, not this
+ * server machine's private epoch. It is rechecked when consumed, not only when received.
  * This is the moving squad's capacity, not proof that another squad is firing effectively.
  * Route centroids exclude dormant, hidden, fleeing and care-busy actors without counting
  * those temporary states as casualties in the separate permanent-retirement strength check.
@@ -133,9 +135,20 @@ private _capacityReady={
     private _entry=_capacities getOrDefault [_token,[]];
     if (count _entry != 3 || {(_entry select 0) != _group} || {(_entry select 1) != groupOwner _group}) exitWith {false};
     private _report=_entry select 2;
-    count _report == 7 && {(_report select 1) isEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}
+    private _parent=_group getVariable ["CBE_Operation",createHashMap];
+    private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+    if (!(_parent isEqualType createHashMap) || {count _lease != 6}) exitWith {false};
+    count _report == 8 && {(_report select 0) == 2} && {(_report select 1) isEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}
         && {((_report select 1) select 2) == "COVER"}
-        && {(_report select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {!local _group || {(_report select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}}
+        && {(_report select 7) == (_group getVariable ["CBE_OperationGeneration",-1])}
+        && {(_report select 7) == (_parent getOrDefault ["generation",-1])}
+        && {(_report select 2) == (_parent getOrDefault ["ownerEpoch",-1])}
+        && {(_parent getOrDefault ["supportOwner",-1]) == groupOwner _group}
+        && {(_parent getOrDefault ["supportToken",""]) == _token}
+        && {(_parent getOrDefault ["supportExpiry",-1]) == (_lease select 2)}
+        && {(_parent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+        && {(_parent getOrDefault ["phase",""]) != "CANCELLED"}
         && {serverTime < (_report select 4)} && {(_report select 5) >= 3} && {(_report select 6) >= 3}
 };
 private _cursor=_job getOrDefault ["boundCursor",0];

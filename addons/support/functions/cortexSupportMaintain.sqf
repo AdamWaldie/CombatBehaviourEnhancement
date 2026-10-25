@@ -498,7 +498,19 @@ if (_coordinating) then {
 
 // Observe only the current local COVER roster, on this existing maintenance cadence.
 // Capacity is not a hold/arrival acknowledgement or proof of effective covering fire.
+// Bind it to this actual-owner parent, never a remote machine's private epoch.
+private _capacityParent=_group getVariable ["CBE_Operation",createHashMap];
 if (_coordinating && {!_moving} && {(_role select 2) == "COVER"}
+    && {_capacityParent isEqualType createHashMap}
+    && {_operationGeneration >= 0}
+    && {(_capacityParent getOrDefault ["generation",-1]) == _operationGeneration}
+    && {(_group getVariable ["CBE_OperationGeneration",-1]) == _operationGeneration}
+    && {(_capacityParent getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_capacityParent getOrDefault ["supportOwner",-1]) == clientOwner}
+    && {(_capacityParent getOrDefault ["supportToken",""]) == _token}
+    && {(_capacityParent getOrDefault ["supportExpiry",-1]) == (_lease select 2)}
+    && {(_capacityParent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+    && {(_capacityParent getOrDefault ["phase",""]) != "CANCELLED"}
     && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _role}
     && {(_group getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo _lease}
     && {serverTime < (_lease select 2)}
@@ -525,8 +537,8 @@ if (_coordinating && {!_moving} && {(_role select 2) == "COVER"}
             && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}} count _fit
     } else {0};
     private _observed=serverTime;
-    private _capacity=[1,+_role,_group getVariable ["CBE_AIPass_Epoch",0],_observed,
-        (_observed+6) min (_lease select 2),count _fit,_armed];
+    private _capacity=[2,+_role,_group getVariable ["CBE_AIPass_Epoch",0],_observed,
+        (_observed+6) min (_lease select 2),count _fit,_armed,_operationGeneration];
     [_group,_token,true,_lease,clientOwner,_capacity] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     _state set ["supportCapacityRole",+_role];
     _state set ["supportCapacityNextAt",_observed+2];

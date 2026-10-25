@@ -5,10 +5,12 @@
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Arguments: 0: helper <GROUP>, grpNull; 1: token <STRING>, empty; 2: accepted <BOOL>, false; 3: exact lease snapshot <ARRAY>, [].
  * 4: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
- * 5: optional capacity <ARRAY,[]> [1,exact COVER role,owner epoch,observed server time,
- * expiry,fit count,main-ammunition count]. Stored only in the server job; cannot renew a lease.
+ * 5: optional capacity <ARRAY,[]> [2,exact COVER role,owner epoch,observed server time,
+ * expiry,fit count,main-ammunition count,parent generation]. Stored only in the server job; cannot renew a lease.
  * Capacity replies authenticate through the same sender and exact lease checks, then require
- * the current role/epoch, accepted token and an original observation window of at most six seconds.
+ * the current role and published parent identity, accepted token and at most six seconds of freshness.
+ * The owner epoch is private on each machine: only local groups compare it directly. Remote
+ * reports bind to the published operation epoch/generation/owner/token/original expiry instead.
  * Return Value: Nothing.
  * Current callers: SupportApply and SupportMaintain owner capacity observation.
  * Example: [_group, _token, true, _lease, clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck", 2];
@@ -22,14 +24,25 @@ private _job = _requests getOrDefault [netId (_lease select 1),createHashMap];
 if (count _job == 0) exitWith {};
 // Capacity is an authenticated owner observation, not another reservation acceptance.
 if (_capacity isNotEqualTo []) exitWith {
-    if (!_accepted || {count _capacity != 7} || {(_capacity select 0) isNotEqualTo 1}
+    if (!_accepted || {count _capacity != 8} || {(_capacity select 0) isNotEqualTo 2}
         || {!((_capacity select 1) isEqualType [])}
-        || {[2,3,4,5,6] findIf {!((_capacity select _x) isEqualType 0) || {!finite (_capacity select _x)}} >= 0}) exitWith {};
-    _capacity params ["","_role","_epoch","_observed","_until","_fit","_armed"];
+        || {[2,3,4,5,6,7] findIf {!((_capacity select _x) isEqualType 0) || {!finite (_capacity select _x)}} >= 0}) exitWith {};
+    _capacity params ["","_role","_epoch","_observed","_until","_fit","_armed","_generation"];
+    private _parent=_group getVariable ["CBE_Operation",createHashMap];
+    if !(_parent isEqualType createHashMap) exitWith {};
     private _leases=_job get "leases";
     if (count _role != 5 || {(_role select 0) isNotEqualTo _token} || {(_role select 2) != "COVER"}
         || {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role}
-        || {_epoch < 1} || {_epoch != floor _epoch} || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_epoch < 1} || {_epoch != floor _epoch} || {local _group && {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}}
+        || {_generation < 0} || {_generation != floor _generation}
+        || {_generation != (_group getVariable ["CBE_OperationGeneration",-1])}
+        || {_generation != (_parent getOrDefault ["generation",-1])}
+        || {_epoch != (_parent getOrDefault ["ownerEpoch",-1])}
+        || {(_parent getOrDefault ["supportOwner",-1]) != groupOwner _group}
+        || {(_parent getOrDefault ["supportToken",""]) != _token}
+        || {(_parent getOrDefault ["supportExpiry",-1]) != (_lease select 2)}
+        || {(_parent getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
+        || {(_parent getOrDefault ["phase",""]) == "CANCELLED"}
         || {_observed > serverTime+0.25} || {_observed < serverTime-6}
         || {_until <= serverTime} || {_until <= _observed} || {_until > _observed+6}
         || {serverTime >= (_lease select 2)} || {serverTime >= (_job get "expiry")}

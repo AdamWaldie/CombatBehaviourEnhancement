@@ -105,7 +105,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_token,groupOwner _group,_lease select 2]',ack)
         self.assertIn('CBE_Cortex_SupportPreparedReceipt',ack)
         report=ack.split('if (_capacity isNotEqualTo []) exitWith {',1)[1].split('// A delayed owner reply',1)[0]
-        for proof in ('count _capacity != 7','_epoch != (_group getVariable',
+        for proof in ('count _capacity != 8','local _group && {_epoch != (_group getVariable',
                       '_until > _observed+6','_armed > _fit','capacityByToken',
                       '(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role'):
             self.assertIn(proof,report)
@@ -122,6 +122,38 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('CortexPrimaryAmmoAvailable',coordinator)
         self.assertIn('(_entry select 1) != groupOwner _group',coordinator)
         self.assertIn('serverTime < (_report select 4)',coordinator)
+        # A remote owner's epoch is not the server's private epoch. Bind the report
+        # to the existing published parent at both receipt and use, including a
+        # generation replacement that keeps the same lease and COVER role.
+        for code in (report,coordinator):
+            for field in ('generation','ownerEpoch','supportOwner','supportToken','supportExpiry','intent','phase'):
+                self.assertIn('_parent getOrDefault ["'+field+'"',code)
+            self.assertIn('CBE_OperationGeneration',code)
+            self.assertIn('COORDINATED_ASSAULT',code)
+        self.assertIn('!local _group || {(_report select 2)',coordinator)
+        self.assertIn('count _report == 8',coordinator)
+        self.assertIn('private _capacity=[2,+_role',maintain)
+        self.assertIn('count _fit,_armed,_operationGeneration]',maintain)
+        for field in ('generation','ownerEpoch','supportOwner','supportToken','supportExpiry'):
+            self.assertIn('_capacityParent getOrDefault ["'+field+'"',maintain)
+        def parent_bound(*, local=False, private_epoch=0, report_epoch=7,
+                         report_generation=12, generation=12, published_generation=12,
+                         parent_epoch=7, owner=4, current_owner=4, token='lease',
+                         current_token='lease', expiry=90, lease_expiry=90,
+                         intent='COORDINATED_ASSAULT', phase='ACCEPTED'):
+            return ((not local or private_epoch==report_epoch)
+                    and report_generation==generation==published_generation
+                    and report_epoch==parent_epoch and owner==current_owner
+                    and token==current_token and expiry==lease_expiry
+                    and intent=='COORDINATED_ASSAULT' and phase!='CANCELLED')
+        self.assertTrue(parent_bound())  # HC epoch7, server private epoch0.
+        self.assertTrue(parent_bound(local=True,private_epoch=7))
+        for change in ({'local':True}, {'parent_epoch':8}, {'generation':13},
+                       {'published_generation':13}, {'current_owner':5},
+                       {'current_token':'new'}, {'lease_expiry':91},
+                       {'intent':'SUPPORT_RALLY'}, {'phase':'CANCELLED'}):
+            with self.subTest(change=change):
+                self.assertFalse(parent_bound(**change))
         def capacity(owner,current_owner,role,current_role,epoch,current_epoch,now,until,fit,armed):
             return owner==current_owner and role==current_role and epoch==current_epoch and now<until and fit>=3 and armed>=3
         self.assertTrue(capacity(4,4,'cover1','cover1',2,2,1,6,4,3))
