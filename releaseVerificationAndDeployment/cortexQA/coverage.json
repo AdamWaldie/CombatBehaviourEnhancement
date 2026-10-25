@@ -1109,7 +1109,8 @@
         "addons/support/functions/artilleryCrewMoveRetire.sqf",
         "addons/support/functions/artilleryCrewMoveCurrent.sqf",
         "addons/vehicles/functions/vehicleCrewNativeObservation.sqf",
-          "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf"
+          "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf",
+          "addons/vehicles/functions/vehicleCrewMoveRetire.sqf"
       ]
     },
     {

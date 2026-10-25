@@ -211,6 +211,16 @@ class ArtilleryFireSessions(unittest.TestCase):
 
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
+        retirement=(ROOT/'addons/vehicles/functions/vehicleCrewMoveRetire.sqf').read_text(encoding='utf-8')
+        self.assertIn('call CBE_fnc_VehicleCrewMoveRetire',retire)
+        self.assertNotIn('execFSM',retire)
+        self.assertNotIn('CBE_Artillery',retirement)
+        self.assertIn('count _contract != 6',retirement)
+        self.assertIn('execFSM _fsmPath',retirement)
+        self.assertIn('_wasUnresolved &&',retire)
+        self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',retire)
+        retire+='\n'+retirement
+
         self.assertNotIn('doMove',retire)
         casualty=retire.split('if (_phase == "UNRESOLVED" && {!_retryRefused}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)

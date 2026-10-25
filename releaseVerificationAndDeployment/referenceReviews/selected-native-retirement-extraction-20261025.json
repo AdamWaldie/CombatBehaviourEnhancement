@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "3aa0961be05a7b600c3f0d553372e274457473c6",
+  "scope": "Executed role-neutral selected-crew finite retirement, currently used by artillery maintenance/cancellation",
+  "implementation": [
+    "VehicleCrewMoveRetire consumes the producer fixed six-string storage/reference/worker/serial/lease/FSM contract; validates it before selecting state. Platform/group locality, exact token/serial/reference, current owner/epoch and live worker gates remain.",
+    "ArtilleryCrewMoveRetire delegates from one unscheduled callback. It retains artillery-only scoot token/session cleanup, gated on the exact unresolved-to-retired ORIGINAL_CREW_LOST_AT_REST outcome and original token/serial/session.",
+    "Original release/deadline policy, one exact allocation-refusal retry, retirement-only adoption, live worker reuse, measured dead-crew rest and exact lease release remain in shared executed code. No new movement command, recurring observer or extra worker.",
+    "Native phase execution from3aa0961b remains used by the original artillery worker. The shared retirement path uses its original worker path through the fixed caller contract; no artificial artillery authority is created for armour."
+  ],
+  "validation": {
+    "focused": "13 existing artillery cases passed, existing source contract extended, no test count growth.",
+    "full": "1497 tests,425 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/native-retire-3aa0961b",
+    "fingerprint": "d427bf4cc04c93b7a42c77587b554376d3c114213f15b4cc7565d24607f37d4e",
+    "mechanicalComparison": ".qa/handovers/native-retire-extraction-comparison.json; prior retirement body matches after declared producer-contract substitution and artillery session cleanup extraction."
+  },
+  "limits": [
+    "Armoured selected-platform admission/worker and acquisition exclusion, shutdown/locality/discovery wiring are not implemented by this extraction.",
+    "Physical retirement, native movement quiescence, casualty, owner transfer, repeated use and Zeus/native-order cases remain unverified; audits paused.",
+    "The fixed descriptor allocation, call boundary and wrapper post-read add bounded work per retirement request;5%median/10%p95 performance is unmeasured.",
+    "No whole-source parity, build-out percentage or behavioural acceptance is claimed."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "a401c9c86ee27b36a47a8582addb3435022a7d442cc8f9508b77ad54c1015370",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "c0872b27dfc31bfe3e5bb8600cb7b5796e9c5685e946276e474853f905e7f995",
+    "addons/main/CfgFunctions.hpp": "d6a4830540951dd646c6c54643e84ce928c33cbe1eaa282ababb1b952ba3f9a1",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "6d3a23707097bf152e059711d736c77bfa8323b6aa1ca9468ed5f414b6deae3e",
+    "releaseVerificationAndDeployment/cortexQA/coverage.json": "43b1fbc6d70a9104115db920d91573226d871df2e8af2a873395f070e3a5fd99"
+  }
+}
