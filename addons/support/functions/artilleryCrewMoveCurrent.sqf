@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Read current selected-gun physical HOLD evidence for positioned fire admission.
  * Locality/authority: Current vehicle/group owner; trusted server may inspect published owner
- * proof plus its own position/range and currently replicated crew-readiness checks.
+ * proof plus its own position/range, replicated crew readiness and platform ownership markers.
  * Only the owner reads native destinations/tasks/FSM proof; replicated readiness is not instantaneous.
  * Repeat/JIP: No commands, mutation, deadline renewal or rebasing. HOLD is not a fired round.
  * Arguments: battery OBJECT,objNull; token STRING,""; original session ARRAY,[];
@@ -34,6 +34,8 @@ if (isNull _group || {(_work getOrDefault ["token",""]) != _token}
     || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo _reference}
     || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_session select 4)}
     || {serverTime >= (_session select 9)} || {!alive _battery}
+    || {!isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
+    || {_battery getVariable ["CBE_Convoy_Active",false]}
     || {!simulationEnabled _battery} || {isObjectHidden _battery}
     || {_battery distance2D _spot > 25}
     || {abs (((getPosATL _battery) select 2)-(_spot select 2)) > 3}
@@ -41,6 +43,7 @@ if (isNull _group || {(_work getOrDefault ["token",""]) != _token}
     || {vectorMagnitude angularVelocity _battery >= 0.01}) exitWith {false};
 // Shared readiness precedes the remote server's HOLD acceptance. A published pose
 // cannot keep an incapacitated/captive/player-operated crew usable until owner refresh.
+// Platform takeover/convoy markers above likewise veto stale remote HOLD receipts.
 // This reads currently replicated state only; native tasks/commands stay owner-local.
 if (_seats findIf {
     isNull _x || {group _x != _group} || {objectParent _x != _battery}
@@ -52,8 +55,6 @@ private _executor=_battery getVariable ["CBE_ArtilleryCrew_FSM",[]];
 local _group && {(_work get "owner") == clientOwner}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!([_group] call CBE_fnc_CortexZeusHeld)}
-    && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
-    && {!(_battery getVariable ["CBE_Convoy_Active",false])}
     && {count _executor == 5} && {(_executor select 0) == _serial}
     && {(_executor select 2) == clientOwner} && {(_executor select 3) == (_work get "epoch")}
     && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}

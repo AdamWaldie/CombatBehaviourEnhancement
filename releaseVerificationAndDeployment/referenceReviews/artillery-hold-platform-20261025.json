@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "616cbc0c",
+  "scope": "Shared selected-gun HOLD platform ownership validation, not physical artillery handback.",
+  "finding": "Remote server HOLD validation returned true before owner-only CBE_ExternalDrivingOwner and CBE_Convoy_Active checks. PositionReport and positioned MissionStep could accept a still-published HOLD after one of those currently observed platform claims changed, until owner work retired. Owner firing already rechecked the helper; no unsafe-shot occurrence is claimed.",
+  "implementation": "Move the same two cheap marker checks into common validation before remote-server return and remove their owner-only duplicates. Native destinations, actor task/FSM authority and local group checks remain owner-only. No group split, waypoint, movement, timeout or worker changes.",
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveCurrent.sqf": "5b12637c4cec6d5860200d942a847b09b4b464712f0be5592cc8b2db6b01d1e5",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "3d5d2f14f8f6d7a0523d8360d18b2c219f00c4160044f27edd5c11b21e7eabed"
+  },
+  "validation": {
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/artillery-hold-platform-616cbc0c",
+    "fingerprint": "8dd62cdaedd1488946a953ba6e3b5aac38b2648cac0d03bef57bd1e0503d7a5d",
+    "logs": [
+      ".qa/handovers/artillery-hold-platform-build-20261025-attempt1.log",
+      ".qa/handovers/artillery-hold-platform-independent-20261025.log"
+    ]
+  },
+  "limits": "Readiness/markers are replicated observations, not instantaneous owner state. Actual convoy/external handover, casualty replacement, physical return/fire, normal/HC/JIP and performance budget remain unverified. Audits paused; full goal incomplete; broader buildout evidence stale. No parity percentage increase."
+}

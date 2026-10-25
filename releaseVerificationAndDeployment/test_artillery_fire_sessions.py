@@ -102,9 +102,14 @@ class ArtilleryFireSessions(unittest.TestCase):
         # A remote owner's old HOLD packet must not bypass current replicated
         # crew readiness. Native destination/task and FSM proof remain owner-only.
         for check in ('CBE_fnc_CortexCombatEffective','group _x != _group',
-                      'objectParent _x != _battery','isPlayer _x','remoteControlled _x'):
+                      'objectParent _x != _battery','isPlayer _x','remoteControlled _x',
+                      'CBE_ExternalDrivingOwner','CBE_Convoy_Active'):
             self.assertIn(check,shared)
         self.assertNotIn('expectedDestination',shared.split('params [[',1)[1])
+        for marker in ('CBE_ExternalDrivingOwner','CBE_Convoy_Active'):
+            self.assertNotIn(marker,local_hold)
+            self.assertEqual(hold.count(marker),1)
+
         for check in ('expectedDestination','CBE_fnc_CortexActorFireTaskAvailable','completedFSM'):
             self.assertIn(check,local_hold)
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')

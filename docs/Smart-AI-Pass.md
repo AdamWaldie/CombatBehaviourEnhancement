@@ -2923,3 +2923,8 @@ The server retains the selected animation channel through opening, passage and c
 ### Current-waypoint identity cost
 
 Ordinary driving and convoy identity checks that request one waypoint now select that single handle before applying the shared metadata filter. Full-route checks retain the complete authored route. Non-finite, fractional nonnegative and out-of-range indices return no receipt; selected handles are still checked against the requested engine index. Mission conditions, attachments, synchronisation and other metadata remain part of identity, without executing waypoint code. No CBA control, worker or scheduling cadence changes. The native waypoint-array retrieval still depends on route size; frame-time savings and large-route performance remain unmeasured while audits are paused.
+
+
+### Selected-gun HOLD handover validation
+
+The server now rejects a selected gun's retained HOLD evidence as soon as its observed platform has an external driving owner or an active convoy claim, matching the operating owner's checks. This adds two shared marker reads and removes their duplicate owner-only checks; native destination, task and FSM proof remain owner-local. Group membership and unrelated infantry orders are unchanged. Replicated marker observation is not instantaneous, and actual takeover/casualty/fire handback still requires in-engine validation while audits are paused.
