@@ -103,3 +103,8 @@ Reserve staging readiness and both arrival-write boundaries now recognise WAIT o
 ### Visit-bound recovery budgets — 2026-10-25
 
 Alternative-entry records now append the exact visit context (7 fields); yield history now uses `[visitContext, yieldedActorIds]`, with at most64 unique identities. Unknown or unbound records cannot grant fresh search/yield attempts. Relief/Yield join resume capture/startup equality and matching-context group cleanup. Current-owner motion retirement also removes only matching-context actor entry-recovery/alternative records. Original search limits and progress clocks remain unchanged. Full offline gates passed:1497 tests,422 SQF,11 PBOs; independent candidate `.qa/candidates/clear-recovery-nonce-f16e8407` matched fingerprint `b97e068b11b8ab229ec4459bf56d2ab9f76d0fafe1e0eeaac56da5d8f0bfd43f`. Internal first-release schemas changed; no old-session budget reset is provided. Authenticated producer transport, physical repeated-use/HC evidence and performance remain incomplete. Audits remain paused. Review:`clear-recovery-nonce-20261025.json`.
+
+
+### Current HBQ route/precision comparison
+
+`hbq-route-precision-current-20261025.json` verifies current authored-wait/route-refresh dispositions and keeps distance/precision observation LOD explicitly unimplemented. CBE4s cruise/1s constrained phase scheduling is not HBQ precision parity; current collision prediction accounts for4s reaction time. Do not copy waypoint recreation, global native-feature release or visibility-based recovery shortcuts. No runtime change or new acceptance. Latest verified implementation remains09ff6f83. Audits remain paused.
