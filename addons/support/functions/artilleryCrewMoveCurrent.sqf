@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Read current selected-gun physical HOLD evidence for positioned fire admission.
  * Locality/authority: Current vehicle/group owner; trusted server may inspect published owner
- * proof plus its own position/range checks. Only the owner reads local native crew destinations.
+ * proof plus its own position/range and currently replicated crew-readiness checks.
+ * Only the owner reads native destinations/tasks/FSM proof; replicated readiness is not instantaneous.
  * Repeat/JIP: No commands, mutation, deadline renewal or rebasing. HOLD is not a fired round.
  * Arguments: battery OBJECT,objNull; token STRING,""; original session ARRAY,[];
  * serial NUMBER,-1; supported spot ARRAY,[]; server recheck BOOL,false (server only).
@@ -38,6 +39,14 @@ if (isNull _group || {(_work getOrDefault ["token",""]) != _token}
     || {abs (((getPosATL _battery) select 2)-(_spot select 2)) > 3}
     || {vectorMagnitude velocity _battery >= 0.278}
     || {vectorMagnitude angularVelocity _battery >= 0.01}) exitWith {false};
+// Shared readiness precedes the remote server's HOLD acceptance. A published pose
+// cannot keep an incapacitated/captive/player-operated crew usable until owner refresh.
+// This reads currently replicated state only; native tasks/commands stay owner-local.
+if (_seats findIf {
+    isNull _x || {group _x != _group} || {objectParent _x != _battery}
+        || {isPlayer _x} || {!isNull remoteControlled _x}
+        || {!([_x] call CBE_fnc_CortexCombatEffective)}
+} >= 0) exitWith {false};
 if (_serverCheck && {isServer} && {!local _battery}) exitWith {true};
 private _executor=_battery getVariable ["CBE_ArtilleryCrew_FSM",[]];
 local _group && {(_work get "owner") == clientOwner}
@@ -51,10 +60,7 @@ local _group && {(_work get "owner") == clientOwner}
     && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)}
     && {_seats findIf {
         private _point=(expectedDestination _x) param [0,[],[[]]];
-        isNull _x || {!local _x} || {group _x != _group} || {objectParent _x != _battery}
-            || {isPlayer _x} || {!isNull remoteControlled _x}
-            || {!([_x] call CBE_fnc_CortexCombatEffective)}
-            || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+        !local _x || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
             || {currentCommand _x == "STOP"} || {count _point != 3}
             || {_point findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
             || {_point vectorDistance _spot > 0.25}

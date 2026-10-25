@@ -2887,3 +2887,8 @@ When a predecessor is observed reversing faster than0.5m/s, its follower retains
 ### Combined-arms fallback availability
 
 A group with an unexpired role reserved by another combined-arms request is excluded before support ranking and the32-entry ground fallback limit. Same-request and expired reservations remain eligible. Dispatch still rechecks the current reservation, authority, communications and weapon suitability. This is a discovery snapshot: a group that becomes free later is not automatically added to that request, and no reservation is cancelled or extended. Other ineligible groups can still occupy the snapshot; discovery/ranking cost depends on local population. Actual support substitution and performance remain unverified while audits are paused.
+
+
+### Selected artillery crew readiness
+
+Server acceptance of a remotely owned positioned gun now rechecks the actual driver/commander identities, group and vehicle membership, player/remote control and combat-effective state before accepting its published HOLD evidence. Incapacitated, captive, surrendered or handcuffed operators do not remain ready through an older pose receipt. Wounded conscious crew remain eligible. Native destination, protected-task and live FSM proof stay owner-local; the server reads current replicated state and cannot guarantee instant casualty propagation. No crew is moved, replaced or split by this check. Physical casualty/handback, HC migration and performance remain unverified while audits are paused.

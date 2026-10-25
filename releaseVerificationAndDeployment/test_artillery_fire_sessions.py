@@ -96,6 +96,17 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertNotIn(forbidden,mixed)
         for body in (owner,report,step,shot):
             self.assertIn('CBE_fnc_ArtilleryCrewMoveCurrent',body)
+        hold=(base/'artilleryCrewMoveCurrent.sqf').read_text(encoding='utf-8')
+        server_return='if (_serverCheck && {isServer} && {!local _battery}) exitWith {true};'
+        shared,local_hold=hold.split(server_return,1)
+        # A remote owner's old HOLD packet must not bypass current replicated
+        # crew readiness. Native destination/task and FSM proof remain owner-only.
+        for check in ('CBE_fnc_CortexCombatEffective','group _x != _group',
+                      'objectParent _x != _battery','isPlayer _x','remoteControlled _x'):
+            self.assertIn(check,shared)
+        self.assertNotIn('expectedDestination',shared.split('params [[',1)[1])
+        for check in ('expectedDestination','CBE_fnc_CortexActorFireTaskAvailable','completedFSM'):
+            self.assertIn(check,local_hold)
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
         self.assertIn('(_executor select 4) != _executorSerial',worker)
