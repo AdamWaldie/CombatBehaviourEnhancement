@@ -137,6 +137,11 @@
           "addons/vehicles/functions/cortexAARelocate.sqf": "6a732377b0a236cf4acb633ad10134ec1a1ad6df97ef4940a62e5f2c03553c78"
         },
         "limits": "Code presence and bounded intended execution only. START/fire/fuse requests are not physical arrival, firing, destruction, balance or performance proof. No source parity or percentage credit."
+      },
+      "liveAllocationCoverage20261025": {
+        "review": "aa-live-allocation-coverage-20261025.json",
+        "scope": "Finished or replaced original-gunner/fire-lease state is not counted as current reservation coverage. Existing one-start callback and original warning budgets unchanged.",
+        "physicalAcceptance": false
       }
     },
     {

@@ -7,7 +7,8 @@
  * <=64 roster actors/16 unique AA platforms/one start attempt per callback. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
  * Urgent approach ranks first; equal-urgency warnings prefer this responder as victim,
- * then fewer existing responders and shorter approach time. Only native warnings contribute.
+ * then fewer existing responders and shorter approach time. Coverage counts only unfinished
+ * responses retaining their original local gunner and exact fire lease. Only native warnings contribute.
  * Arguments: 0 mode STRING,NOTICE; 1 input OBJECT or HASHMAP,objNull (vehicle or planner state).
  * Return: NOTICE BOOL; STEP NUMBER next delay or -1, not assignment/fire/interception proof.
  * Current caller: CortexAAObserve IncomingMissile and its existing scheduler adapter.
@@ -124,8 +125,17 @@ private _ranked=[];
         private _coverage=0;
         {
             private _active=_x getVariable ["CBE_AA_Intercept",createHashMap];
-            if (_x != _vehicle && {count _active > 0} && {time < (_active get "until")}
-                && {(_active get "ownerEpoch") == _epoch} && {(_active get "missile") == _missile}) then {
+            if (_x != _vehicle && {_active isEqualType createHashMap} && {count _active > 0}
+                && {!(_active getOrDefault ["finished",false])}
+                && {time < (_active get "until")}
+                && {(_active get "ownerEpoch") == _epoch} && {(_active get "missile") == _missile}
+                && {alive _x} && {local _x}
+                && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
+                    !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
+                        && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}
+                        && {(_coverageGunner getVariable ["CBE_AA_InterceptOwner",[]])
+                            isEqualTo [_active get "token",_active get "until"]}
+                }) then {
                 _coverage=_coverage+1;
             };
         } forEach _vehicles;

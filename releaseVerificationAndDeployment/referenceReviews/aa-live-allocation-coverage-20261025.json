@@ -1,0 +1,19 @@
+{
+  "base": "db700571",
+  "status": "LIVE_ALLOCATION_COVERAGE_SOURCE_INTEGRATED",
+  "finding": "Allocation counted any retained matching interceptor state until its original deadline, including finished state. Changed gunner or released fire lease could therefore still discourage coverage of that missile.",
+  "implementation": "Coverage retains original bounded platform list and requires unfinished state, original matching missile/epoch/deadline, living local platform, original living local main gunner in group, and exact original fire lease. No current episode is retargeted or renewed.",
+  "limits": [
+    "Coverage is a current reservation observation, not native fire, hit or interception evidence.",
+    "Existing default-off experimental main-turret scope and warning/shot/step budgets remain.",
+    "No physical multi-AA/interception/balance/MP/performance acceptance."
+  ],
+  "validation": {
+    "build": ".qa/handovers/aa-live-coverage-build.log",
+    "independent": ".qa/handovers/aa-live-coverage-independent.log",
+    "candidate": ".qa/candidates/aa-live-coverage-db700571",
+    "fingerprint": "738aa28b82d9ac944349852840142249b4fb4a5bd5383110922b8b7ad6ec0779",
+    "physicalAcceptance": false
+  },
+  "audits": "paused"
+}
