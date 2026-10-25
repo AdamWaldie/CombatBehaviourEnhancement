@@ -403,6 +403,7 @@ private _delay=call {
             && {([_actor,_job,4,"CHECK"] call CBE_fnc_CortexClearSettingsApply) != "OWNED"}) exitWith {false};
         private _command=toUpperANSI currentCommand _actor;
         if ([_actor] call _ownsCurrentMove || {_command == ""}) exitWith {true};
+        if (_command == "WAIT" && {["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion}) exitWith {true};
         private _ownedHold=[_actor,_job] call CBE_fnc_BuildingActorHoldOwned;
         if (_ownedHold) exitWith {true};
         if ([_actor] call _evasionReturnOwned) exitWith {true};
@@ -423,7 +424,8 @@ private _delay=call {
         // An unchanged move/hold receipt is not permission to interrupt queued care.
         [_actor] call _actorTaskFree && {currentCommand _actor == ""
             || {[_actor,_job] call CBE_fnc_BuildingActorHoldOwned}
-            || {[_actor] call _ownsCurrentMove}}
+            || {[_actor] call _ownsCurrentMove}
+            || {currentCommand _actor == "WAIT" && {["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion}}}
     };
     private _activeOwnMove={
         params ["_actor"];

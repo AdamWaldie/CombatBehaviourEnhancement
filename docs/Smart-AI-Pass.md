@@ -2964,3 +2964,5 @@ Clearance resume preflight also runs the shared full lane validator before opera
 ### Completed clearance movement during handover
 
 A native movement leg may finish before the new owner observes it. Metadata adoption can retain the original same-episode MOVE receipt when the actor is now idle or waiting, its native endpoint is unchanged, and measured rest and three-dimensional endpoint proximity agree. This issues no movement and grants no room-visit credit. Fresh MOVE receipts still require an actual MOVE command; STOP, changed endpoints, motion or another floor refuse completed-leg adoption. Physical migration and repeated CQB flow remain unverified.
+
+The room-command and exit guards reuse that proof through a read-only ownership check when the current command is WAIT. A settled original leg can therefore proceed to its next existing step without treating WAIT as an active move or accepting an arbitrary wait. The check changes no metadata, native command, room-visit evidence or deadline.

@@ -19,7 +19,7 @@ class MotionReceiptTests(unittest.TestCase):
         # A completed short leg may be idle before migration is observed. Its
         # durable receipt, native endpoint, floor and measured rest still bind it;
         # publishing a fresh MOVE receipt must retain actual MOVE-only permission.
-        for proof in ('_mode == "ADOPT"','_command in ["","WAIT"]',
+        for proof in ('_mode in ["ADOPT","CHECK"]','_command in ["","WAIT"]',
                       'vectorMagnitude velocity _actor < 0.278',
                       'vectorDistance (AGLToASL _target) <= 1.5',
                       '((AGLToASL _target) select 2)) <= 0.75',
@@ -27,6 +27,18 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertIn(proof,move)
         self.assertNotIn('serverTime+',move)
         self.assertNotIn('"STOP"',move)
+        self.assertLess(text.index('if (_mode == "CHECK") exitWith {true};'),text.index('if (_mode != "ADOPT") exitWith {'))
+        self.assertLess(text.index('if (_mode == "CHECK") exitWith {true};'),text.index('_moves set [netId _actor'))
+        step=read('buildingOperationStep.sqf')
+        room=step.split('private _roomCommandOwned={',1)[1].split('private _exitMovementOwned={',1)[0]
+        exit_guard=step.split('private _exitMovementOwned={',1)[1].split('private _activeOwnMove={',1)[0]
+        for guard in (room,exit_guard):
+            self.assertIn('"WAIT"',guard)
+            self.assertIn('["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion',guard)
+        active=step.split('private _ownsCurrentMove={',1)[1].split('private _evasionReturnOwned={',1)[0]
+        self.assertIn('currentCommand _actor == "MOVE"',active)
+        self.assertNotIn('"WAIT"',active)
+
 
     def test_publishing_is_live_job_bound_and_coalesced(self):
         text=read('buildingActorMotion.sqf')

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "6fe0c3cb",
+  "scope": "Integrate settled original MOVE ownership into room-command and exit execution guards.",
+  "finding": "The previous completed-leg ADOPT restored metadata, but BuildingOperationStep still classified current WAIT as neither owned MOVE nor hold and could refuse continuation for an already-started actor. An adoption-only patch was not complete executor integration.",
+  "implementation": "Add read-only CHECK mode to BuildingActorMotion using the same current operation/actor/episode/route/native proof and settled-leg exception as ADOPT. CHECK exits after proof and before any publication or job metadata writes. Room-command and exit predicates invoke it only for WAIT. Active-move ownership remains actual MOVE-only; no arbitrary WAIT, native command, visit credit, request age or deadline change.",
+  "sourceHashes": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "7e023e4c19d0a33ab479b787c6f90890561c172b3d4d823a0ade26c4beac114a",
+    "addons/infantry/functions/buildingOperationStep.sqf": "5ab7e281c11b47d9346130da1eea7524df970a2b8cf9ac67a5375cead432d026",
+    "releaseVerificationAndDeployment/test_cqb_motion_receipt.py": "99b79d511ea59d36d4001247cb68b2167dddcae2f0240fe7247796315adc8e01"
+  },
+  "cost": "No new worker, scan or replay queue. WAIT guards now execute existing operation/route/native proof; they may repeat in a callback and their cost is unmeasured. Do not describe the added predicate cost as zero or claim performance budget compliance.",
+  "validation": {
+    "focusedTests": 9,
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-settled-execution-6fe0c3cb",
+    "fingerprint": "5a0a3a63863b1089db1096233878781d593af76be75c5f273b669780440c8e9b"
+  },
+  "limits": "Code integration, not live tactical acceptance. Physical room/exit flow, normal/HC/JIP, replay/owner-ready transport and 5%median/10%p95 budget remain unverified/incomplete. Audits paused; whole goal active/incomplete; no percentage claim."
+}

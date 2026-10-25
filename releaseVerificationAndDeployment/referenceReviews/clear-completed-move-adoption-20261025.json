@@ -18,5 +18,9 @@
     "candidate": ".qa/candidates/clear-completed-move-9bc5a40b",
     "fingerprint": "696feb7f8e3561a88461d0f20922a8bc4988e8176ccd501c7cd0f6a642c3cd93"
   },
-  "limits": "Metadata continuity only, not owner-ready transport, old-writer quiescence, physical room clearance or future permission. Identical native observations cannot distinguish an externally reissued same-goal order without an ownership marker. Physical normal/HC/JIP and repeated CQB flow/performance unverified; audits paused. Whole goal incomplete; no percentage claim."
+  "limits": "Metadata continuity only, not owner-ready transport, old-writer quiescence, physical room clearance or future permission. Identical native observations cannot distinguish an externally reissued same-goal order without an ownership marker. Physical normal/HC/JIP and repeated CQB flow/performance unverified; audits paused. Whole goal incomplete; no percentage claim.",
+  "executorFollowup": {
+    "review": "clear-settled-execution-20261025.json",
+    "status": "Read-only CHECK now integrates settled WAIT ownership with room-command and exit predicates. The prior ADOPT-only checkpoint remains historical; no physical continuity claim."
+  }
 }

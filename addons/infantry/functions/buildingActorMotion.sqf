@@ -4,21 +4,24 @@
  * Locality / Authority: Current actor owner; ADOPT/write also require current local CLEAR
  * operation, actor membership/eligibility, original visit nonce, building transform and route.
  * Writes require the actual live building brain and unexpired job. Adoption changes metadata only.
- * An original MOVE receipt may already be WAIT/idle: ADOPT alone accepts its unchanged native
- * endpoint plus measured rest within1.5m and0.75m vertically. Idle alone is never ownership.
+ * An original MOVE receipt may already be WAIT/idle: ADOPT/CHECK accept its unchanged native
+ * endpoint plus measured rest within1.5m and0.75m vertically. CHECK reuses that proof
+ * without changing metadata, so a settled WAIT can continue through the existing executor.
+ * Idle alone is never ownership.
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
- * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE; 1 actor <OBJECT, objNull>;
+ * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE/CHECK; 1 actor <OBJECT, objNull>;
  * 2 job <HASHMAP, empty>; 3 target <ARRAY, []>: native AGL for MOVE, sampled ATL for HOLD.
  * Receipt: [group, visitContext, MOVE/HOLD, target (MOVE AGL / HOLD ATL), optional owned-settings triple].
- * Return Value: BOOL - matching metadata recorded/adopted/retired, never physical progress.
+ * Return Value: BOOL - CHECK ownership observation or matching metadata recorded/adopted/retired;
+ * CHECK performs no mutation. No mode grants physical room-visit progress.
  * Current callers: BuildingOperationStep, CortexClearBuilding resume and clearance cleanup.
  * Example: ["ADOPT",soldier1,_job] call CBE_fnc_BuildingActorMotion;
  */
 params [["_mode","ADOPT",[""]],["_actor",objNull,[objNull]],
     ["_job",createHashMap,[createHashMap]],["_target",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}
-    || {isNull _actor} || {!local _actor} || {!(_mode in ["MOVE","HOLD","ADOPT","RETIRE"])}) exitWith {false};
+    || {isNull _actor} || {!local _actor} || {!(_mode in ["MOVE","HOLD","ADOPT","RETIRE","CHECK"])}) exitWith {false};
 private _group=_job getOrDefault ["group",grpNull];
 private _context=_job getOrDefault ["visitContext",[]];
 if (isNull _group || {!(_context isEqualType [])} || {count _context != 4}
@@ -70,7 +73,7 @@ isNil {
             || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) exitWith {false};
         private _kind=_mode;
         private _settings=[];
-        if (_mode == "ADOPT") then {
+        if (_mode in ["ADOPT","CHECK"]) then {
             if (_receipt isEqualType [] && {count _receipt == 5}
                 && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}
                 && {(_receipt select 2) in ["MOVE","HOLD"]}
@@ -84,7 +87,7 @@ isNil {
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _matches=if (_kind == "MOVE") then {
             _native call _positionValid && {_native vectorDistance _target <= 0.25}
-                && {_command == "MOVE" || {_mode == "ADOPT" && {_command in ["","WAIT"]}
+                && {_command == "MOVE" || {_mode in ["ADOPT","CHECK"] && {_command in ["","WAIT"]}
                     && {vectorMagnitude velocity _actor < 0.278}
                     && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
                     && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}
@@ -93,6 +96,7 @@ isNil {
                 && {abs (((getPosASL _actor) select 2)-((ATLToASL _target) select 2)) <= 0.75}
         };
         if (!_matches) exitWith {false};
+        if (_mode == "CHECK") exitWith {true};
         if (_mode != "ADOPT") exitWith {
             private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
             if ((_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job
