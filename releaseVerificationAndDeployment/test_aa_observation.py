@@ -177,6 +177,16 @@ class AAObservation(unittest.TestCase):
             changed=valid.copy();changed[index]=value;self.assertFalse(same_muzzle(changed))
         self.assertFalse(same_muzzle(valid[:5]))
         self.assertIn('_operator != (_state get "gunner")',intercept)
+        capture=intercept.split('if (_mode == "SHOT") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
+        for guard in ('!local _operator','gunner _vehicle != _operator','group _operator != _shotGroup',
+                      'isPlayer _operator','remoteControlled _operator','CBE_AIPass_Epoch','CBE_AA_InterceptOwner',
+                      'CortexActorFireTaskAvailable','CortexExternalTakeover','CompatibilityExternalControl',
+                      'CortexIsPaused','unitCombatMode _operator','CBE_fnc_NativeOrderReceipt',
+                      'getAttackTarget _operator','assignedTarget _operator','!alive (_state get "missile")'):
+            self.assertLess(capture.index(guard),capture.index('_rounds pushBack'))
+        self.assertLess(capture.index('count _rounds >= 8'),capture.index('private _shotGroup='))
+        self.assertNotIn('triggerAmmo',capture)
+        self.assertNotIn('lockCameraTo',capture)
         self.assertIn('_muzzle != (_state get "muzzle")',intercept)
         fire_handler=source.split('private _handler=',1)[1].split('private _warningHandler=',1)[0]
         self.assertLess(fire_handler.index('"SHOT",_this'),fire_handler.index('CBE_AA_ObserveDue'))

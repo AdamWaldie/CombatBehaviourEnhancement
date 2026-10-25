@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Fired capture rechecks exact AI crew/epoch/fire ownership and live policy before
+ * admitting a round; a successor or player shot cannot populate the old calibration episode.
  * START searches bounded station capability; each STEP freshly reads only its exact admitted muzzle.
  * Purpose: Finite experimental point-defence aiming and real-shot observation for a native
  * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
@@ -82,6 +84,29 @@ if (_mode == "SHOT") exitWith {
         || {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") != "shotbullet"}) exitWith {false};
     private _rounds=_state get "rounds";
     if (count _rounds >= 8 || {_rounds findIf {(_x select 0) == _round} >= 0}) exitWith {false};
+    private _shotGroup=_state get "group";
+    private _shotToken=_state get "token";
+    if (time >= (_state get "until") || {_state getOrDefault ["finished",false]}
+        || {!local _operator} || {!local _shotGroup} || {gunner _vehicle != _operator}
+        || {group _operator != _shotGroup} || {isPlayer _operator}
+        || {!isNull remoteControlled _operator}
+        || {!isNull (_operator getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+        || {(_shotGroup getVariable ["CBE_AIPass_Epoch",0]) != (_state get "ownerEpoch")}
+        || {(_operator getVariable ["CBE_AA_InterceptOwner",[]]) isNotEqualTo [_shotToken,_state get "until"]}
+        || {!([_operator] call CBE_fnc_CortexCombatEffective)}
+        || {!([_operator,_shotToken] call CBE_fnc_CortexActorFireTaskAvailable)}
+        || {[_shotGroup,false,_operator] call CBE_fnc_CortexExternalTakeover}
+        || {[_vehicle] call CBE_fnc_CompatibilityExternalControl}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {[] call CBE_fnc_CortexIsPaused}
+        || {!([_shotGroup,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_shotGroup,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_shotGroup,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {!(combatMode _shotGroup in ["YELLOW","RED"])} || {!(unitCombatMode _operator in ["YELLOW","RED"])}
+        || {([_shotGroup] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_state get "route")}
+        || {currentCommand _operator != (_state get "command")}
+        || {getAttackTarget _operator != (_state get "target")} || {assignedTarget _operator != (_state get "assigned")}
+        || {isNull (_state get "missile")} || {!alive (_state get "missile")}) exitWith {false};
     // Fired exposes the actual round, including alternating barrels. Freeze the
     // observed positions once; calibration must not invent its origin from barrel zero.
     private _roundPosition=getPosASL _round;

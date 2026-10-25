@@ -43,5 +43,9 @@
   "sourceProtection": "Read installed originals only; preserve archives and provenance. Keep raw upstream material private and outside CBE packages.",
   "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md absent; preserve addition separately for reconciliation.",
   "acceptance": "No implementation, parity or physical validation claimed; audits PAUSED.",
-  "focusedReview": "aegism-interception-mechanism-20261020.json"
+  "focusedReview": "aegism-interception-mechanism-20261020.json",
+  "captureAuthorityFollowup20261025": {
+    "review": "aa-shot-capture-authority-20261025.json",
+    "scope": "Current original AI authority at native Fired capture; offline validated, physical UNRUN. No whole-source status/percentage change."
+  }
 }
