@@ -35,5 +35,9 @@
     "Only aggregate current-owner readiness after coherent metadata and required native ownership proof. Delivery or a pause flag is not native acknowledgement, and an acknowledgement is not physical travel.",
     "Reuse finite existing discovery/service work; no permanent per-group network polling worker. Keep normal/actual-provider HC tests separate and wait for audit authorization."
   ],
-  "validation": "Read-only current-source trace and JSON/hash capture. No runtime changes, new tests, full rebuild, percentage change or physical claim. Latest verified runtime candidate remains clear-lane-preflight-bound-2b2a355d, fingerprint d62134511277fdd7384bf5627efd660115a43130726790a1dbfc2ef28eb80555. Audits paused; whole production goal active/incomplete."
+  "validation": "Read-only current-source trace and JSON/hash capture. No runtime changes, new tests, full rebuild, percentage change or physical claim. Latest verified runtime candidate remains clear-lane-preflight-bound-2b2a355d, fingerprint d62134511277fdd7384bf5627efd660115a43130726790a1dbfc2ef28eb80555. Audits paused; whole production goal active/incomplete.",
+  "completedMoveFollowup": {
+    "review": "clear-completed-move-adoption-20261025.json",
+    "status": "Actor ADOPT now also accepts a settled WAIT/idle observation of the original same-episode MOVE receipt with unchanged endpoint and measured rest/proximity. The original source trace remains historical. Replay/readiness transport is still absent."
+  }
 }

@@ -2960,3 +2960,7 @@ If a distinct original commander dies during active selected-gun movement, the s
 Entry/sweep resumption retains the lane journal admitted during preflight and compares it again before starting a replacement operation. If that journal changed or disappeared, startup defers and preserves the durable order and its deadlines for retry. This protects scheduled script callers as well as the existing owner path; it does not complete ordered snapshot delivery or establish native movement acknowledgement.
 
 Clearance resume preflight also runs the shared full lane validator before operation startup. Invalid routes, cursors, entry-node references, buddy targets or request ages defer without consuming the durable order. The read-only check reuses the same bounded exit inventory and validator as adoption; it publishes no state or native command. Owner-ready transport and native movement acknowledgement are still separate unfinished requirements.
+
+### Completed clearance movement during handover
+
+A native movement leg may finish before the new owner observes it. Metadata adoption can retain the original same-episode MOVE receipt when the actor is now idle or waiting, its native endpoint is unchanged, and measured rest and three-dimensional endpoint proximity agree. This issues no movement and grants no room-visit credit. Fresh MOVE receipts still require an actual MOVE command; STOP, changed endpoints, motion or another floor refuse completed-leg adoption. Physical migration and repeated CQB flow remain unverified.

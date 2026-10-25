@@ -15,6 +15,19 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertIn(proof,text)
         self.assertIn('(_receipt select 1) isEqualTo _context',text)
         self.assertIn('(_context select 3) == ""',text)
+        move=text.split('private _matches=if (_kind == "MOVE") then {',1)[1].split('} else {',1)[0]
+        # A completed short leg may be idle before migration is observed. Its
+        # durable receipt, native endpoint, floor and measured rest still bind it;
+        # publishing a fresh MOVE receipt must retain actual MOVE-only permission.
+        for proof in ('_mode == "ADOPT"','_command in ["","WAIT"]',
+                      'vectorMagnitude velocity _actor < 0.278',
+                      'vectorDistance (AGLToASL _target) <= 1.5',
+                      '((AGLToASL _target) select 2)) <= 0.75',
+                      '_native vectorDistance _target <= 0.25'):
+            self.assertIn(proof,move)
+        self.assertNotIn('serverTime+',move)
+        self.assertNotIn('"STOP"',move)
+
     def test_publishing_is_live_job_bound_and_coalesced(self):
         text=read('buildingActorMotion.sqf')
         store=text.split('if (_mode != "ADOPT") exitWith {',1)[1].split('if (_kind == "MOVE") then',1)[0]

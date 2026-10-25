@@ -4,6 +4,8 @@
  * Locality / Authority: Current actor owner; ADOPT/write also require current local CLEAR
  * operation, actor membership/eligibility, original visit nonce, building transform and route.
  * Writes require the actual live building brain and unexpired job. Adoption changes metadata only.
+ * An original MOVE receipt may already be WAIT/idle: ADOPT alone accepts its unchanged native
+ * endpoint plus measured rest within1.5m and0.75m vertically. Idle alone is never ownership.
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
  * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE; 1 actor <OBJECT, objNull>;
@@ -81,7 +83,11 @@ isNil {
         private _command=toUpperANSI currentCommand _actor;
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _matches=if (_kind == "MOVE") then {
-            _command == "MOVE" && {_native call _positionValid} && {_native vectorDistance _target <= 0.25}
+            _native call _positionValid && {_native vectorDistance _target <= 0.25}
+                && {_command == "MOVE" || {_mode == "ADOPT" && {_command in ["","WAIT"]}
+                    && {vectorMagnitude velocity _actor < 0.278}
+                    && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
+                    && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}
         } else {
             _command == "STOP" && {(getPosASL _actor) vectorDistance (ATLToASL _target) <= 1.5}
                 && {abs (((getPosASL _actor) select 2)-((ATLToASL _target) select 2)) <= 0.75}

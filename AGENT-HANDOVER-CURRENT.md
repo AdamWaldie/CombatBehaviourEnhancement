@@ -2,7 +2,7 @@
 
 Continue the full production-ready CBE goal. Implement and physically validate infantry, CQB, coordination, combined arms, driving, convoys, aircraft and support through owner-local danger and operation FSMs. Required provider handovers must work. Preserve Zeus and multiplayer authority, and verify the 5% median / 10% p95 performance budget. The goal is active and incomplete.
 
-Latest usage check showed 97% consumed (3% remaining) in the weekly window. The user requires a commit, PR update and handover below 10% remaining. A handover was pushed at `65fccad6`; subsequent goal continuations added the scoped vehicle editor controls below. The pause/continue question remains unanswered. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
+Latest usage check showed 99% consumed (1% remaining) in the weekly window. The user requires a commit, PR update and handover below 10% remaining. A handover was pushed at `65fccad6`; subsequent goal continuations added the scoped vehicle editor controls below. The pause/continue question remains unanswered. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
 
 ## Repository and checkpoint
 
@@ -10,7 +10,7 @@ Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, branch `Adam/cb
 
 The push result will be recorded in `.qa/handovers/low-usage-push-20261025.json`. Check that receipt and the live remote before assuming the checkpoint was pushed. Historical notes remain in `AGENT-HANDOVER.md`; the current entry supersedes earlier proposed next tasks.
 
-The latest exact unsigned development candidate is `.qa/candidates/clear-lane-preflight-bound-2b2a355d`, fingerprint `d62134511277fdd7384bf5627efd660115a43130726790a1dbfc2ef28eb80555`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
+The latest exact unsigned development candidate is `.qa/candidates/clear-completed-move-9bc5a40b`, fingerprint `696feb7f8e3561a88461d0f20922a8bc4988e8176ccd501c7cd0f6a642c3cd93`. Its source is the named base plus recorded runtime hashes, with a dirty development checkout. It passed 1,497 offline tests, compilation of 422 SQF files, 11 PBO builds and independent package verification. Engineering notes and tracker edits postdate the package. They do not turn it into a clean signed release or physical acceptance.
 
 Private group wakes now reject non-finite deadlines and apply the existing low-FPS policy. Live danger responsiveness bypasses backoff; illumination and COVER caps apply afterward. Do not implement that task again. Recent work also covers selected artillery crew positioning without group splitting, remote HOLD readiness, convoy reversal navigation yield, reserved-support discovery filtering and clearance-owned grenade interruption. Physical reliability remains unverified.
 
@@ -39,6 +39,8 @@ CQB entry/sweep resume now binds the atomic operation-start commit to its prefli
 CQB resume now runs the shared full lane validator in read-only CHECK mode before operation startup, bound to the exact preflight snapshot. Existing exit discovery moved earlier and is reused; no second scan, worker or command. Invalid route/state/entry/target/request data defers with the durable order intact. See `clear-lane-preflight-20261025.json`. Extra bounded resume validation cost is unmeasured, and owner-ready delivery/native acknowledgement remain incomplete. Final full build attempt2 and independent verification passed; attempt1 predates explicit snapshot binding.
 
 The next owner-ready work now has a current source trace in `clear-owner-ready-path-20261025.json`: locality -> discovery directly resumes locally delivered order/journals; actor ADOPT already verifies native MOVE/HOLD but its results are not aggregated. Local epoch/generation values are not server-broadcast epochs. Do not add a broker that reads mixed public variables and calls that an ordered snapshot, or classify the eight-actor loop as missing squad members (admission caps concurrent team at eight). Phase-specific journal/writer enumeration and coherent checkpoint/replay/native readiness remain the next substantive implementation, not another detection flag. No runtime change in this trace.
+
+Actor-native continuity now also adopts a completed MOVE observed as WAIT/idle, but only from the original same-episode receipt with unchanged native endpoint, measured rest and same-floor proximity. Fresh MOVE publication remains MOVE-only; no commands, visit credit or clocks change. See `clear-completed-move-adoption-20261025.json`. Full offline build/independent verification passed; owner-ready delivery and physical continuity remain unfinished. The owner-ready source trace has an explicit historical follow-up rather than silently renewed hashes.
 
 ## Next work and evidence
 
