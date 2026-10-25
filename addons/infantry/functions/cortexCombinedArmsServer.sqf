@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Discovery rejects the requester and other sides before transmitter, crew and magazine
+ * inspection, so ineligible groups cannot consume the bounded ground fallback pool.
  * Converts a verified fresh contact into finite, independent combined-arms roles.
  * Protected captives, surrendering and handcuffed actors cannot reserve support assets.
  * Delayed role expiry matches the complete dispatched snapshot before clearing reservation state.
@@ -91,6 +93,9 @@ private _candidateSeen=createHashMap;
         };
     };
 } forEach (_searchArea nearEntities [["Man"],false,true,true]);
+// The fallback pool is capped after ranking. Do not let hostile/requester assets
+// occupy those32 slots only to be rejected later, hiding valid friendly replacements.
+_candidateGroups=_candidateGroups select {_x != _requester && {side _x == side _requester}};
 private _orderedGroups=[];
 {
     if (!isNull _x) then {

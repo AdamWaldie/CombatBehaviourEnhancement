@@ -86,6 +86,21 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertIn('(_liveFallback select 6) isEqualTo (_originalFallback select 6)',server)
         self.assertIn('count _originalFallback == 7',server)
         self.assertIn('isEqualTo _originalRole',ground)
+        discovery=server.split('private _candidateGroups=[];',1)[1].split('private _groundCandidates=',1)[0]
+        side_filter='_candidateGroups=_candidateGroups select {_x != _requester && {side _x == side _requester}};'
+        self.assertIn(side_filter,discovery)
+        self.assertLess(discovery.index(side_filter),discovery.index('private _candidateTransmitter='))
+        self.assertLess(discovery.index(side_filter),discovery.index('magazinesAllTurrets'))
+        # Armed hostile groups previously filled all32 retained slots before the
+        # fallback admission filtered side. The eligible friendly pool must survive.
+        ranked=[('enemy'+str(i),'east') for i in range(40)]+[('requester','west'),('friend','west')]
+        previous=[r for r in ranked[:32] if r[1]=='west' and r[0]!='requester']
+        retained=[r for r in ranked if r[1]=='west' and r[0]!='requester'][:32]
+        self.assertEqual(previous,[])
+        self.assertEqual(retained,[('friend','west')])
+        same_side=[('a','west'),('requester','west'),('b','west')]
+        self.assertEqual([r[0] for r in same_side if r[1]=='west' and r[0]!='requester'],['a','b'])
+
         self.assertIn('[_replacement,_token,_role,_target,+_opportunity]',ground)
 
 if __name__=='__main__': unittest.main()
