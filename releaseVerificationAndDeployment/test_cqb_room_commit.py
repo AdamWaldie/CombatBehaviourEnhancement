@@ -27,7 +27,7 @@ class RoomCommitTests(unittest.TestCase):
         owned=source().split('private _roomCommandOwned={',1)[1].split('// Native task ownership also applies',1)[0]
         helper=(ROOT/'addons/infantry/functions/buildingActorHoldOwned.sqf').read_text()
         for proof in ('currentCommand _actor != "STOP"','"roomHolds"','"formationFallbackHolds"',
-                      'vectorDistance (AGLToASL _x) <= 1.5','<= 0.75'):
+                      'vectorDistance (ATLToASL _x) <= 1.5','<= 0.75'):
             self.assertIn(proof,helper)
         for requirement in ('call _ownsCurrentMove','call CBE_fnc_BuildingActorHoldOwned',
                             'if (_ownedHold) exitWith {true}',

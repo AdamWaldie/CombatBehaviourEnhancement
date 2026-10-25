@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "501a6ee5",
+  "scope": "CQB hold coordinate contract, especially over sea. Not proof or diagnosis of prior land-building navigation failures.",
+  "currentFlowReconciliation": "Current buildingOperationStep already proposes distinct same-floor buddy entry targets without waiting for first-room visit and has allWorkersEntered/follow-through logic. No new serial-entry defect established by this read; stale high-level comments alone are not runtime evidence.",
+  "finding": "Native/admission/fallback HOLD posts and public HOLD motion receipts are sampled getPosATL, but BuildingActorMotion HOLD and BuildingActorHoldOwned converted with AGLToASL. roomHolds also mixed sampled ATL posts with native AGL speedTarget nodes. ATL and AGL share reference over land but differ over water; a seabed-relative held actor can be compared to an incorrect ASL height offshore.",
+  "primarySources": [
+    "https://community.bistudio.com/wiki/Position",
+    "https://community.bistudio.com/wiki/ATLToASL"
+  ],
+  "implementation": "Hold comparison uses ATLToASL for actual sampled ATL receipt/posts. Normalise the one native room target writer to ATL and compare native room goals through explicit AGLToASL->ASLToATL at both room-hold comparisons. MOVE receipts and native movement targets stay AGL. Mode already disambiguates public receipt target type; no new schema, migration replay, waypoint, command, room node, support tolerance or visit credit.",
+  "cost": "Finite coordinate conversions in existing at-most8-worker callback; no scene query, ray, worker, timer or new cache. Live cost unmeasured.",
+  "files": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "7b2387e1ec214c9f697005c40f8bc1139690c48609b31670578a0195c63dcf7b",
+    "addons/infantry/functions/buildingActorHoldOwned.sqf": "5e83cedf41354d051f7c8a9a7caa2b80a86048cdd0fa42b39ff01dcee8230d82",
+    "addons/infantry/functions/buildingOperationStep.sqf": "5f18623994fd68908fedf4fcf4251a2726eb5bffabf55a6cb0abac99d3ec9638"
+  },
+  "validation": {
+    "retainedFailureLog": ".qa/cqb-hold-coordinates-build-20261025-attempt1.log",
+    "firstFailure": "Two existing regressions encoded old AGL hold conversion and raw speedTarget hold storage. Updated exact format assertions, retaining physical arrival/floor/stranded-worker checks. No assertions removed or case-count increase.",
+    "fullLog": ".qa/cqb-hold-coordinates-build-20261025-attempt2.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/cqb-hold-coordinates-independent-20261025.log",
+    "candidate": ".qa/candidates/cqb-hold-coordinates-501a6ee5",
+    "fingerprint": "3b75bc29fd044b64141c3a63b0ebd5f894894d70392a9cfbf9ab514e0131bee9",
+    "testScope": "Existing hold-release case extended with land/deep-seabed/multiple-height coordinate fixtures and producer/consumer type wiring. Existing room arrival and native task proof updated in place. Static/analytical, not Arma execution."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; metadata postdates package.",
+    "This does not explain land CQB failures: ATL/AGL coincide there. No entry timing/route topology improvement claimed.",
+    "Physical offshore holds/cleanup/adoption/egress, modded inaccessible room nodes, repeated paired clearance, Zeus/normal-HC/JIP and5percent median/10percent p95 remain UNRUN. Audits PAUSED. Full objective active/incomplete."
+  ]
+}

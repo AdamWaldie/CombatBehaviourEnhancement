@@ -21,7 +21,23 @@ class ClearReleaseNativeTaskTests(unittest.TestCase):
         self.assertFalse(same_hold((0,0,0),(2,0,0)))
         self.assertFalse(same_hold((0,0,0),(0,0,1)))
         helper=(ROOT/'addons/infantry/functions/buildingActorHoldOwned.sqf').read_text()
-        self.assertIn('vectorDistance (AGLToASL _x) <= 1.5',helper)
+        self.assertIn('vectorDistance (ATLToASL _x) <= 1.5',helper)
+        motion=(ROOT/'addons/infantry/functions/buildingActorMotion.sqf').read_text()
+        self.assertIn('vectorDistance (ATLToASL _target) <= 1.5',motion)
+        step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        self.assertIn('_roomHoldATL=ASLToATL (AGLToASL _speedTarget)',step)
+        self.assertIn('_roomHolds set [_holdKey,+_roomHoldATL]',step)
+        self.assertIn('isNotEqualTo (ASLToATL (AGLToASL _unitTarget))',step)
+        # Over sea terrain-relative and native AGL differ. A30m-deep seabed
+        # must not turn a correctly held6m-high actor into a36m ASL pose.
+        for terrain,water,absolute in ((100,100,106),(-30,0,6),(-30,0,12)):
+            atl=absolute-terrain
+            agl=absolute-water
+            self.assertEqual(atl+terrain,absolute)
+            self.assertEqual((agl+water)-terrain,atl)
+            if terrain!=water:
+                self.assertGreater(abs((atl+water)-absolute),1.5)
+
         self.assertIn('<= 0.75',helper)
         self.assertIn('(_receipt select 1) isEqualTo _context',helper)
         for command in ('doMove','doStop','doFollow'):

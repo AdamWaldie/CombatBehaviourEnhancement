@@ -7,8 +7,8 @@
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
  * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE; 1 actor <OBJECT, objNull>;
- * 2 job <HASHMAP, empty>; 3 native target ATL <ARRAY, []> for MOVE/HOLD.
- * Receipt: [group, visitContext, MOVE/HOLD, target ATL, optional owned-settings triple].
+ * 2 job <HASHMAP, empty>; 3 target <ARRAY, []>: native AGL for MOVE, sampled ATL for HOLD.
+ * Receipt: [group, visitContext, MOVE/HOLD, target (MOVE AGL / HOLD ATL), optional owned-settings triple].
  * Return Value: BOOL - matching metadata recorded/adopted/retired, never physical progress.
  * Current callers: BuildingOperationStep, CortexClearBuilding resume and clearance cleanup.
  * Example: ["ADOPT",soldier1,_job] call CBE_fnc_BuildingActorMotion;
@@ -83,8 +83,8 @@ isNil {
         private _matches=if (_kind == "MOVE") then {
             _command == "MOVE" && {_native call _positionValid} && {_native vectorDistance _target <= 0.25}
         } else {
-            _command == "STOP" && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
-                && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}
+            _command == "STOP" && {(getPosASL _actor) vectorDistance (ATLToASL _target) <= 1.5}
+                && {abs (((getPosASL _actor) select 2)-((ATLToASL _target) select 2)) <= 0.75}
         };
         if (!_matches) exitWith {false};
         if (_mode != "ADOPT") exitWith {

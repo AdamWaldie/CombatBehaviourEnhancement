@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * roomHolds and sampled native/fallback holds store ATL. Native room destinations stay
+ * AGL and convert explicitly when compared with or recorded as a hold, including over water.
  * Partner entry recovery retains actor-local public observation/spent-budget receipts bound
  * to group and clearance episode. Server-time observations survive owner/slot changes;
  * malformed matching proof defers the lane instead of granting a fresh retry. No command replay.
@@ -3700,7 +3702,7 @@ private _delay=call {
                                         }};
                                     if (!_sameActiveTarget && {call _mayIssueMovement} && {[_unit] call _actorTaskFree}) then {
                                         // An unchanged active path or support hold already satisfies this handoff.
-                                        if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo _unitTarget
+                                        if (((_job getOrDefault ["roomHolds",createHashMap]) getOrDefault [netId _unit,[]]) isNotEqualTo (ASLToATL (AGLToASL _unitTarget))
                                             || {currentCommand _unit != "STOP"}
                                             || {(getPosASL _unit) vectorDistance (AGLToASL _unitTarget) > 1.5}) then {
                                             _unit doMove _unitTarget;
@@ -3738,14 +3740,15 @@ private _delay=call {
                                     // room request replaces it through the existing movement writer.
                                     private _roomHolds=_job getOrDefault ["roomHolds",createHashMap];
                                     private _holdKey=netId _unit;
-                                    if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _speedTarget
+                                    private _roomHoldATL=ASLToATL (AGLToASL _speedTarget);
+                                    if ((_roomHolds getOrDefault [_holdKey,[]]) isNotEqualTo _roomHoldATL
                                         && {(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5}
                                         && {abs (((getPosASL _unit) select 2)-((AGLToASL _speedTarget) select 2)) <= 0.75}
                                         && {_arrivalSegment} && {(getPosASL _unit) vectorDistance _arrivalPose <= 0.25}
                                         && {currentCommand _unit != "MOVE" || {[_unit] call _ownsCurrentMove}}
                                         && {!([_unit] call _activeOwnMove)}) then {
                                         doStop _unit; [_unit] call _rememberHold;
-                                        _roomHolds set [_holdKey,+_speedTarget];
+                                        _roomHolds set [_holdKey,+_roomHoldATL];
                                         _job set ["roomHolds",_roomHolds];
                                     };
                                 };

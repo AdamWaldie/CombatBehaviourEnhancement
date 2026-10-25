@@ -6,7 +6,8 @@
  * Repeat/JIP: No writes, requests or replay. Resume may use the exact portable HOLD context.
  * Arguments: 0 actor <OBJECT, objNull>; 1 clearance job <HASHMAP, empty>.
  * Return: BOOL - current STOP at a recorded same-floor hold, never general movement permission.
- * Cost: At most four recorded positions, one current pose, no geometry query/timer/worker.
+ * Cost: At most four recorded ATL positions, one current ASL pose, no geometry query/timer/worker.
+ * Terrain-relative hold samples use ATLToASL, including over water; native MOVE nodes remain AGL.
  * Current callers: BuildingOperationStep, CortexClearRelease, GroupBrainStep and CortexReleaseGroup.
  * Example: private _held=[soldier1,_job] call CBE_fnc_BuildingActorHoldOwned;
  */
@@ -29,6 +30,6 @@ if (_receipt isEqualType [] && {count _receipt == 5} && {count _context == 4}
 private _pose=getPosASL _actor;
 _posts findIf {
     _x isEqualType [] && {count _x == 3} && {_x findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-        && {_pose vectorDistance (AGLToASL _x) <= 1.5}
-        && {abs ((_pose select 2)-((AGLToASL _x) select 2)) <= 0.75}
+        && {_pose vectorDistance (ATLToASL _x) <= 1.5}
+        && {abs ((_pose select 2)-((ATLToASL _x) select 2)) <= 0.75}
 } >= 0

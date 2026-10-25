@@ -12533,10 +12533,11 @@ class CortexOperations(unittest.TestCase):
         retired=text.split('private _quarantineHeld=',1)[1].split('private _reserveReady=',1)[0]
         self.assertIn('_job set ["entryFailed",true]',retired)
         arrival=text.split('// Native formation must not reclaim',1)[1].split('_assigned set',1)[0]
-        self.assertIn('isNotEqualTo _speedTarget',arrival)
+        self.assertIn('isNotEqualTo _roomHoldATL',arrival)
+        self.assertIn('_roomHoldATL=ASLToATL (AGLToASL _speedTarget)',arrival)
         self.assertIn('(getPosASL _unit) vectorDistance (AGLToASL _speedTarget) <= 1.5',arrival)
         self.assertIn('doStop _unit',arrival)
-        self.assertIn('_roomHolds set [_holdKey,+_speedTarget]',arrival)
+        self.assertIn('_roomHolds set [_holdKey,+_roomHoldATL]',arrival)
         handover=text.split('if (_reason == "NEW_ORDER"',1)[1].split('_group setVariable ["CBE_Cortex_ClearResult"',1)[0]
         self.assertIn('netId _x in _roomHolds',handover)
 

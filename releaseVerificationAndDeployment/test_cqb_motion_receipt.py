@@ -11,7 +11,7 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertNotIn(forbidden,text)
         for proof in ('CBE_Cortex_ClearVisitContext','operationGeneration','ownerEpoch','objective',
                       'CortexActorMoveReserved','CortexZeusHeld','NativeOrderReceipt',
-                      '_native vectorDistance _target <= 0.25','vectorDistance (AGLToASL _target) <= 1.5'):
+                      '_native vectorDistance _target <= 0.25','vectorDistance (ATLToASL _target) <= 1.5'):
             self.assertIn(proof,text)
         self.assertIn('(_receipt select 1) isEqualTo _context',text)
         self.assertIn('(_context select 3) == ""',text)
