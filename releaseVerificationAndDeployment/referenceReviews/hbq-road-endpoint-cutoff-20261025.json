@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "479cf125",
+  "scope": "Road endpoint-based continuation cutoff only; candidate ranking remains a heuristic.",
+  "protectedSource": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangeReviewed": "RoadAhead helper around836..875; not another complete controller review",
+    "intent": "Bounded road walk estimates bend/junction speed demand from connected pieces without writing the route. Source uses model-origin bearings for selection and continuation."
+  },
+  "defect": "CBE measured accepted curvature from endpoint midpoints but terminated the walk before metadata observation when model-origin bestTurn exceeded110degrees. An offset origin behind the current piece could therefore hide a real forward segment/bend/grade.",
+  "implementation": "Only null candidate ends before metadata. The110degree continuation cutoff now uses the actual endpoint-midpoint segment bearing before accepting next-piece grade/curvature. Candidate ranking, thresholds, eight transitions, nine metadata reads and sixteen connections per node remain unchanged. No route choice is written.",
+  "validation": {
+    "focused": "5 existing road observer tests passed. Expanded the existing synthetic geometry case: origin behind180degrees, actual midpoint90degrees; genuine backward endpoint still refuses.",
+    "full": "1497 tests, 422 SQF, 11 PBOs, terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/road-endpoint-cutoff-479cf125",
+    "fingerprint": "fec7dbf5ae0fb91210e0399e88ed8f88c403bc8b4278bf6908e04c524803496f"
+  },
+  "limits": [
+    "No physical driving or convoy proof while audits paused.",
+    "A previously origin-rejected candidate now incurs one metadata observation within the same worst-case nine-read limit; average cost unmeasured.",
+    "Model-origin candidate ranking still cannot establish the native chosen junction branch. This is not a complete route-graph disambiguator.",
+    "Full combined workload5%median/10%p95 performance remains unverified. No source-parity or percentage change."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingRoadCap.sqf": "52e0b493c427e92216927183307d852933d2fcaa0102231ccf999377fd1e8637",
+    "releaseVerificationAndDeployment/test_driving_road_cap.py": "4c5e8abdb74c07073bdf443cb97b0475c472239a95fb72a7354f2e3e6555274f"
+  }
+}

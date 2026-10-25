@@ -692,6 +692,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-endpoint-cutoff-20261025.json",
+      "sha256": "0b6cadc9b7f668ea7d0ff60622ce21e9606ba0c5f5e4de40c9edc6fcfdc9bd8b",
+      "scope": "Road endpoint-based continuation cutoff only; candidate ranking remains a heuristic.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-endpoint-turn-20261025.json",
       "sha256": "0a353cf104de657fbfd4fa82176228f495437e7baa99bb381ff58687d07ecdcf",
       "scope": "Selected RoadAhead helper lines836..868 and crossing/curve consumer2868..2894; CBE full road observer. Not renewed whole-source parity.",
@@ -718,6 +727,18 @@
       "scope": "HBQ final-route memory branch and CBE convoy endpoint retry command boundary",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-precision-current-20261025.json",
+      "sha256": "741950cbb3cc7c0e2c115e643b76f0d7996be58dfa5f62b01f84472844cae2d3",
+      "scope": "Current route-wait/refresh helper comparison and explicit precision gap; not another full29-file/controller review.",
+      "sourceFileMentions": [
+        "functions/fn_playersNear.sqf",
+        "functions/fn_precision.sqf",
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

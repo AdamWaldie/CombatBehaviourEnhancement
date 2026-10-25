@@ -108,3 +108,8 @@ Alternative-entry records now append the exact visit context (7 fields); yield h
 ### Current HBQ route/precision comparison
 
 `hbq-route-precision-current-20261025.json` verifies current authored-wait/route-refresh dispositions and keeps distance/precision observation LOD explicitly unimplemented. CBE4s cruise/1s constrained phase scheduling is not HBQ precision parity; current collision prediction accounts for4s reaction time. Do not copy waypoint recreation, global native-feature release or visibility-based recovery shortcuts. No runtime change or new acceptance. Latest verified implementation remains09ff6f83. Audits remain paused.
+
+
+### Road continuation geometry — 2026-10-25
+
+Road look-ahead now applies its110degree continuation cutoff to the endpoint-midpoint segment used for curvature/grade, rather than the candidate object origin. An offset origin cannot terminate observation before the actual segment is measured. Candidate ranking and all speed/read bounds remain unchanged; this is not a native route planner. Full offline gates passed (1497 tests,422 SQF,11 PBOs) and independent candidate `.qa/candidates/road-endpoint-cutoff-479cf125` matched fingerprint `fec7dbf5ae0fb91210e0399e88ed8f88c403bc8b4278bf6908e04c524803496f`. Physical driving/convoy behaviour and performance remain unverified; audits paused. Review:`hbq-road-endpoint-cutoff-20261025.json`.

@@ -84,6 +84,18 @@ class DrivingRoadCapTests(unittest.TestCase):
         self.assertLess(approach,25)
         self.assertEqual(cap(70,max(origin_turn,approach),0,False),70)
         self.assertEqual(cap(70,max(endpoint_turn,approach),0,False),18)
+        # A road origin behind the current piece must not terminate the walk
+        # before its real endpoint midpoint is read. A genuine backwards segment
+        # still ends look-ahead; no native route selection is inferred.
+        behind_origin=(0,40)
+        self.assertGreater(abs(bearing(previous,behind_origin)),110)
+        self.assertLessEqual(endpoint_turn,110)
+        self.assertGreater(abs(bearing(previous,(0,30))),110)
+        self.assertNotIn('_bestTurn > 110',source)
+        cutoff=source.index('if (_segmentTurn > 110) exitWith {};')
+        self.assertLess(source.index('private _nextGeometry='),cutoff)
+        self.assertLess(cutoff,source.index('_maximumGrade=_maximumGrade max (_nextGeometry select 1)'))
+        self.assertEqual(source.count('private _segmentHeading='),1)
 
 if __name__=='__main__':unittest.main()
 
