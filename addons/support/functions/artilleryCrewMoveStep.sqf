@@ -2,8 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Advance one finite selected-gun native crew movement, hold and return lifecycle.
  * Locality/authority: Exact original local vehicle/group/crew/epoch and private FSM only.
- * After the distinct original commander dies, a surviving original driver may only stop and
- * return its own admitted native order. Replacement seats never inherit outward authority.
+ * After either distinct original operator dies, the surviving original seated actor may only
+ * stop and return its own admitted native order. No replacement seat inherits outward authority.
  * Commands address only the admitted driver and effective commander. No group waypoint,
  * membership, posture, skill, inventory or physics command is issued.
  * Repeat/JIP: Original token, serial and deadlines fence callbacks. STOPPING and RETURNING
@@ -72,23 +72,36 @@ if (_phase == "ISSUE" && {_work getOrDefault ["release",false]}) exitWith {
 private _driver=_seats select 0;private _operator=_seats select 1;
 private _live=[driver _battery,effectiveCommander _battery];
 if (isNull (_live select 1)) then {_live set [1,_live select 0]};
-// Losing a distinct commander is a retirement trigger, not a new crew admission.
-// Only the original living driver can carry the old native order to a finite stop/return.
+// Losing an original operating actor is a retirement trigger, not a new crew admission.
+// Keep the first survivor identity: a later replacement or resurrection cannot switch writers.
+private _driverOnly=!isNull _driver && {alive _driver} && {_driver isEqualTo (_live select 0)}
+    && {isNull _operator || {!alive _operator}}
+    && {_live findIf {isNull _x || {!alive _x} || {!(_x in _seats)}} < 0};
+private _operatorOnly=!isNull _operator && {alive _operator} && {_operator isNotEqualTo _driver}
+    && {isNull _driver || {!alive _driver}}
+    && {(_live select 1) isEqualTo _operator}
+    && {isNull (_live select 0) || {(_live select 0) isEqualTo _driver && {!alive _driver}}};
 private _retirementOnly=_work getOrDefault ["retirementOnly",false];
-if (_phase != "ISSUE" && {!_retirementOnly} && {!isNull _driver} && {alive _driver}
-    && {_driver isEqualTo (_live select 0)} && {isNull _operator || {!alive _operator}}
-    && {_live findIf {isNull _x || {!alive _x} || {!(_x in _seats)}} < 0}) then {
+private _retirementActor=_work getOrDefault ["retirementActor",objNull];
+if (_phase != "ISSUE" && {!_retirementOnly} && {_driverOnly || {_operatorOnly}}) then {
     _retirementOnly=true;_work set ["retirementOnly",true];
-    // Preserve the original driver's pre-request observation for the two-seat ack helper.
-    // Current driver and effective commander are now the same original living actor.
+    _retirementActor=[_operator,_driver] select _driverOnly;
+    _work set ["retirementActor",_retirementActor];
+    // The shared two-seat acknowledgement observes the same one surviving actor.
+    // Preserve that actor's original pre-request frame; do not sample a fresh baseline.
     private _before=_work getOrDefault ["before",[]];
-    if (count _before == 4) then {_work set ["before",[_before select 0,_before select 1,_before select 0,_before select 1]]};
+    private _offset=[2,0] select _driverOnly;
+    if (count _before == 4) then {_work set ["before",[
+        _before select _offset,+(_before select (_offset+1)),
+        _before select _offset,+(_before select (_offset+1))]]};
 };
-private _activeSeats=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
+private _retirementCurrent=(_driverOnly && {_retirementActor isEqualTo _driver})
+    || {_operatorOnly && {_retirementActor isEqualTo _operator}};
+private _activeSeats=if (_retirementOnly) then {
+    [_retirementActor] select {!isNull _x && {alive _x}}
+} else {(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}}};
 private _control=alive _battery && {simulationEnabled _battery} && {!isObjectHidden _battery}
-    && {_live isEqualTo _seats || {_retirementOnly && {alive _driver}
-        && {_driver isEqualTo (_live select 0)}
-        && {_live findIf {isNull _x || {!alive _x} || {!(_x in _seats)}} < 0}}}
+    && {(!_retirementOnly && {_live isEqualTo _seats}) || {_retirementOnly && {_retirementCurrent}}}
     && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
     && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}
     && {!(_battery getVariable ["CBE_Convoy_Active",false])}
@@ -110,8 +123,9 @@ private _control=alive _battery && {simulationEnabled _battery} && {!isObjectHid
 if (!_control) exitWith {
     ["NATIVE_OR_CONTROL_HANDOVER_UNRESOLVED",_phase == "ISSUE"] call _finish
 };
-private _observedOperator=if (_retirementOnly) then {_live select 1} else {_operator};
-private _observations=[currentCommand _driver,+(expectedDestination _driver),
+private _observedDriver=if (_retirementOnly) then {_retirementActor} else {_driver};
+private _observedOperator=if (_retirementOnly) then {_retirementActor} else {_operator};
+private _observations=[currentCommand _observedDriver,+(expectedDestination _observedDriver),
     currentCommand _observedOperator,+(expectedDestination _observedOperator)];
 private _goal=+(_work get "goal");
 private _goalsMatch={
@@ -231,7 +245,7 @@ if (_phase == "STOPPING") exitWith {
         {
             private _index=_forEachIndex*2;
             private _point=(_baseline select (_index+1)) param [0,[],[[]]];
-            if (!isNull _x && {alive _x} && {(_baseline select _index) == "MOVE"}) then {
+            if (!isNull _x && {alive _x} && {_x in _activeSeats} && {(_baseline select _index) == "MOVE"}) then {
                 _x doMove _point;_returns pushBack [_x,+_point];
             };
         } forEach (_seats arrayIntersect _seats);

@@ -3001,4 +3001,9 @@ Alternative-entry records now append the exact visit context (7 fields); yield h
 
 ### Road continuation geometry — 2026-10-25
 
-Road look-ahead now applies its110degree continuation cutoff to the endpoint-midpoint segment used for curvature/grade, rather than the candidate object origin. An offset origin cannot terminate observation before the actual segment is measured. Candidate ranking and all speed/read bounds remain unchanged; this is not a native route planner. Full offline gates passed (1497 tests,422 SQF,11 PBOs) and independent candidate `.qa/candidates/road-endpoint-cutoff-479cf125` matched fingerprint `fec7dbf5ae0fb91210e0399e88ed8f88c403bc8b4278bf6908e04c524803496f`. Physical driving/convoy behaviour and performance remain unverified; audits paused. Review:`hbq-road-endpoint-cutoff-20261025.json`.
+Road look-ahead now applies its110degree continuation cutoff to the endpoint-midpoint segment used for curvature/grade, rather than the candidate object origin. An offset origin cannot terminate observation before the actual segment is measured. Candidate ranking and all speed/read bounds remain unchanged; this is not a native route planner. Full offline gates passed (1497 tests,422 SQF,11 PBOs) and independent candidate `.qa/candidates/road-endpoint-cutoff-479cf125` matched fingerprint `fec7dbf5ae0fb91210e0399e88ed8f88c403bc8b4278bf6908e04c524803496f`. Physical driving/convoy behaviour and performance remain unverified; audits paused.
+
+
+### Selected-gun retirement after an operating casualty
+
+If either original operating actor dies during an existing gun movement, the original survivor may stop that episode and return to its own admitted native order. The survivor must remain in the original seat arrangement; a new driver or commander cannot inherit the movement. Group membership and unrelated infantry orders remain unchanged. The first survivor identity is retained throughout cleanup, with the original deadlines. A failed stop or return acknowledgement keeps the operation unresolved rather than granting another controller permission.

@@ -115,7 +115,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         worker=(base/'artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
         fsm=(ROOT/'addons/main/fsm/artilleryCrewMove.fsm').read_text(encoding='utf-8')
         self.assertIn('(_executor select 4) != _executorSerial',worker)
-        casualty=worker.split('// Losing a distinct commander',1)[1].split('private _control=',1)[0]
+        casualty=worker.split('// Losing an original operating actor',1)[1].split('private _control=',1)[0]
         for check in ('_phase != "ISSUE"','alive _driver','_driver isEqualTo (_live select 0)',
                       '!(_x in _seats)','"retirementOnly",true'):
             self.assertIn(check,casualty)
@@ -126,17 +126,36 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('if (isNull _actor || {!alive _actor}) exitWith {false}',worker)
 
         self.assertIn('forEach _activeSeats;',worker)
-        self.assertIn('private _observedOperator=if (_retirementOnly) then {_live select 1}',worker)
-        self.assertIn('!isNull _x && {alive _x} && {(_baseline select _index) == "MOVE"}',worker)
+        self.assertIn('private _observedOperator=if (_retirementOnly) then {_retirementActor}',worker)
+        self.assertIn('private _observedDriver=if (_retirementOnly) then {_retirementActor}',worker)
+        self.assertIn('_work set ["retirementActor",_retirementActor]',worker)
+        self.assertIn('private _offset=[2,0] select _driverOnly',worker)
+        self.assertIn('!isNull _x && {alive _x} && {_x in _activeSeats} && {(_baseline select _index) == "MOVE"}',worker)
         # The admitted original driver may retire after its separate commander dies.
-        # An original-driver casualty, replacement operator, or pre-issue casualty
-        # must not turn a seat change into an outward or replacement-crew admission.
+        # Either original seated survivor can retire only; no replacement seat or
+        # pre-issue casualty can gain an outward movement admission.
         def casualty_retirement(phase, driver_alive, commander_alive, current_driver_original, all_seats_original):
             return phase!='ISSUE' and driver_alive and not commander_alive and current_driver_original and all_seats_original
         self.assertTrue(casualty_retirement('MOVING',True,False,True,True))
         for args in (('ISSUE',True,False,True,True),('MOVING',False,False,False,True),
                      ('MOVING',True,False,True,False),('MOVING',True,True,True,True)):
             self.assertFalse(casualty_retirement(*args))
+        def operator_only(phase,driver_alive,operator_alive,driver_vacant_or_original_dead,operator_original):
+            return phase!='ISSUE' and not driver_alive and operator_alive and driver_vacant_or_original_dead and operator_original
+        self.assertTrue(operator_only('MOVING',False,True,True,True))
+        for args in (('ISSUE',False,True,True,True),('MOVING',True,True,True,True),
+                     ('MOVING',False,False,True,True),('MOVING',False,True,False,True),
+                     ('MOVING',False,True,True,False)):
+            self.assertFalse(operator_only(*args))
+        self.assertIn('(_live select 1) isEqualTo _operator',casualty)
+        self.assertIn('(_live select 0) isEqualTo _driver && {!alive _driver}',casualty)
+        self.assertIn('[_retirementActor] select',casualty)
+        # Keep baseline slots0/2 in the original crew order even after one actor dies.
+        baseline=['MOVE',['driver-goal'],'MOVE',['operator-goal']]
+        for survivor,offset in (('driver',0),('operator',2)):
+            before=[baseline[offset],baseline[offset+1]]*2
+            self.assertEqual(before[1],[survivor+'-goal'])
+            self.assertEqual(before[3],before[1])
         returning=worker.split('if (_phase == "RETURNING") exitWith {',1)[1]
         self.assertIn('_command in ["","WAIT"] && {_rest}',returning)
         self.assertIn('(getPosATL _battery) vectorDistance _point <= 2',returning)
