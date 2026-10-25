@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "70deddd7bb995945daa5f44656cb5ef8cac1bff6",
+  "scope": "Honor known admitted-assault actor reconciliation failures before clearance resume worker startup. One prerequisite, not complete coherent owner-ready handover.",
+  "defect": "CortexClearBuilding called CortexClearSettingsApply ADOPT and BuildingActorMotion ADOPT for up to eight admitted assault actors, ignored both results, and then started the worker. A known nonempty inherited motion record that failed actual native matching, or refused/changed/pending settings, could therefore coexist with accepted worker startup. Existing movement helpers still provided their own guards; this review does not assert a demonstrated foreign native overwrite.",
+  "implementation": [
+    "Capture settings result inside each original-authority commit. Resume accepts ADOPTED or genuinely unrequired ABSENT only; known motion settings require ADOPTED even if the canonical lease is absent.",
+    "Only nonempty inherited motion records require native ADOPT success. A false result refuses startup; malformed/foreign nonempty records are not recast as absent. No invented successful MOVE is required for actors without a motion record.",
+    "Count each actor check only when the original preparation transaction executes. Failed reconciliation or an incomplete bounded count returns false before lane adoption and BuildingOperationStart. Scoped failure/release uses the same original-authority wrapper, so a lost generation cannot release its successor.",
+    "No new movement, fresh original deadlines, retry window, polling worker, world query or network protocol. Existing at-most-eight assault actor loop is reused."
+  ],
+  "validation": {
+    "focused": "12 existing preparation/motion tests passed with extended result-consumption, missing-known-settings and authority-boundary contracts; no count growth.",
+    "full": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-adoption-refusal-settings-70deddd7",
+    "fingerprint": "362a0470841b554484dc1289f1ac5190f805c58c9d0e31d50ef4b40d4cb80f36",
+    "history": "Initial narrower candidate passed complete gates and independent verification but is superseded. Adding known motion settings/missing canonical lease exposed one old220-character adjacency assertion; replaced that window with the actual resume preparation boundary. Final full build-3 and independent-2 are current."
+  },
+  "limits": [
+    "Absent records alone still do not establish that native work/settings were never issued. Coherent producer checkpoints, authenticated finite delivery/replay, original consumed budgets and all-actor reconciliation remain incomplete.",
+    "The bounded assault roster is at most eight; exterior stage/exit actors have separate paths and are not covered by an aggregate owner-ready result here. No owner-ready result is claimed.",
+    "Fresh PREPARE status handling remains unchanged. Existing partial metadata adoption can occur before another actor refuses; scoped release is used, not a rollback over successors.",
+    "No physical repeated-use, migration, casualty/Zeus/network behaviour or5%median/10%p95 performance acceptance. Audits remain paused. No source parity percentage is raised."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "1dd99a6dc97fee08b86d22277f162b0dd890c0338c7b5c3470e16b173ce7d3f1",
+    "addons/infantry/functions/buildingActorMotion.sqf": "dcfbc0e76ee1513aa1f5445d5c335416d154358237d5be660669460791242bda",
+    "addons/infantry/functions/cortexClearSettingsApply.sqf": "1d8ecad947c707470cd26d1987d61d63d06bcbf8f0dbc35064f1799a242c58d8",
+    "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "10aaf75d29a5ccbefd0f4258cc9ef505f07b0d79716fd8fb2417b6aa25344a7a",
+    "releaseVerificationAndDeployment/test_cqb_motion_receipt.py": "3504878389bc1a1c3685b891270d6c5ba867f52ae2b88edeffd3a050c4114fa7",
+    "docs/Smart-AI-Pass.md": "37f76dc282c9bb67a9414a5dfb54979126372787f5075b8a6f8e1c6d5de6f637"
+  }
+}

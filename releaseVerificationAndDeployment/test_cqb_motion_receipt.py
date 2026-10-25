@@ -63,7 +63,9 @@ class MotionReceiptTests(unittest.TestCase):
         text=read('cortexClearBuilding.sqf')
         adopt=text.index('["ADOPT",_motionActor,_job]')
         self.assertLess(adopt,text.index('call CBE_fnc_BuildingOperationStart'))
-        self.assertIn('if (_resume) then {',text[:adopt][-220:])
+        preparation=text.split('private _reconciledActors=0;',1)[1].split('private _laneAdopted=',1)[0]
+        self.assertLess(preparation.index('if (_resume) then {'),preparation.index('["ADOPT",_motionActor,_job]'))
+        self.assertIn('if (_motionRequired) then',preparation)
         step=read('buildingOperationStep.sqf')
         self.assertIn('if !([_unit] call _ownsCurrentMove) then {doStop _unit; [_unit] call _rememberHold}',step)
         self.assertIn('// Synchronise only already-owned native work.',step)

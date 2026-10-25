@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Resume startup refuses known actor settings/motion adoption failures; this is not
+ * complete cross-owner readiness or proof that missing inherited records never existed.
  * True resume gives its episode-bound lane pairs precedence over lagging general buddy
  * metadata. Pair identity never bypasses current participant or actor admission.
  * Version4 exit journals retain server-time progress/motion clocks and the ASL motion
@@ -1063,13 +1065,35 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
     _job set ["securityActors",(units _group) select {netId _x in _stages}];
 };
 // Resume restores native-work bookkeeping only, never commands, visits or deadlines.
+// A known inherited receipt that refuses reconciliation cannot be treated as absent
+// or ignored while a fresh worker starts. Absence itself is not complete owner-ready
+// proof: coherent producer delivery and the exterior roster remain separate requirements.
+private _reconciledActors=0;
+private _reconcileFailure="";
 {
     private _motionActor=_x;
     [{
-        [_motionActor,_job,4,if (_resume) then {"ADOPT"} else {"PREPARE"}] call CBE_fnc_CortexClearSettingsApply;
-        if (_resume) then {["ADOPT",_motionActor,_job] call CBE_fnc_BuildingActorMotion};
+        private _settingsOutcome=[_motionActor,_job,4,if (_resume) then {"ADOPT"} else {"PREPARE"}] call CBE_fnc_CortexClearSettingsApply;
+        if (_resume) then {
+            private _motionReceipt=_motionActor getVariable ["CBE_Cortex_ClearMotion",[]];
+            private _motionRequired=_motionReceipt isNotEqualTo [];
+            private _settingsRequired=_motionReceipt isEqualType [] && {count _motionReceipt == 5}
+                && {(_motionReceipt param [4,[],[[]]]) isNotEqualTo []};
+            private _motionAdopted=if (_motionRequired) then {["ADOPT",_motionActor,_job] call CBE_fnc_BuildingActorMotion} else {true};
+            if (!(_settingsOutcome in ["ADOPTED","ABSENT"])
+                || {_settingsRequired && {_settingsOutcome != "ADOPTED"}}) then {_reconcileFailure="ACTOR_SETTINGS_UNAVAILABLE"};
+            if (!(_motionAdopted isEqualTo true)) then {_reconcileFailure="ACTOR_MOTION_UNAVAILABLE"};
+            _reconciledActors=_reconciledActors+1;
+        };
     }] call _commitPreparation;
 } forEach (_team select [0,8]);
+if (_resume && {_reconcileFailure != "" || {_reconciledActors != (count _team min 8)}}) exitWith {
+    [{
+        [[_reconcileFailure,"ACTOR_RECONCILIATION_INTERRUPTED"] select (_reconcileFailure == "")] call _refuse;
+        [_group,false] call CBE_fnc_CortexClearRelease;
+    }] call _commitPreparation;
+    false
+};
 private _laneAdopted=!_resume;
 if (_resume) then {[{_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal}] call _commitPreparation};
 if (!_laneAdopted) exitWith {

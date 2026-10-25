@@ -29,6 +29,18 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for forbidden in (' doMove ',' doFollow ','doStop ','setUnitPos','setVariable ["CBE_Cortex_ClearVisits"'):
             self.assertNotIn(forbidden,journal)
         self.assertIn('_laneAdopted=["ADOPT",_job] call CBE_fnc_BuildingLaneJournal',text)
+        adoption=text.split('private _reconciledActors=0;',1)[1].split('private _laneAdopted=',1)[0]
+        self.assertIn('private _motionRequired=_motionReceipt isNotEqualTo []',adoption)
+        self.assertIn('_motionReceipt param [4,[],[[]]]',adoption)
+        self.assertIn('_settingsRequired && {_settingsOutcome != "ADOPTED"}',adoption)
+        self.assertIn('_settingsOutcome in ["ADOPTED","ABSENT"]',adoption)
+        self.assertIn('if (_motionRequired) then {["ADOPT",_motionActor,_job]',adoption)
+        self.assertIn('!(_motionAdopted isEqualTo true)',adoption)
+        self.assertIn('_reconciledActors != (count _team min 8)',adoption)
+        self.assertIn('ACTOR_RECONCILIATION_INTERRUPTED',adoption)
+        self.assertIn('[_group,false] call CBE_fnc_CortexClearRelease',adoption)
+        self.assertLess(text.index('private _reconciledActors=0;'),text.index('if !([_job] call CBE_fnc_BuildingOperationStart)'))
+
         self.assertIn('"securityEntries"',journal)
         self.assertIn('_job set ["entries",_entryNodes apply {+_x}]',journal)
         self.assertIn('count _snapshot != 13',journal)
