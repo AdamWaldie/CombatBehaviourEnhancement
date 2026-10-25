@@ -35,5 +35,9 @@
     "fingerprint": "7e2a8f51add66037719b6460d25168b80accfc14be6e8aa011090480c27f4b6d",
     "log": ".qa/native-return-cleanup-build-final.log",
     "limits": "No physical execution or timing evidence; audits paused."
+  },
+  "currentReconciliation20261025": {
+    "review": "hbq-native-implementation-current-20261025.json",
+    "meaning": "Historical absent/unsupported statements are superseded where later named source implementations exist. Keep original findings as point-in-time evidence; no physical parity claim."
   }
 }

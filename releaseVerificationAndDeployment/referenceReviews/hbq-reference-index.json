@@ -590,6 +590,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-implementation-current-20261025.json",
+      "sha256": "d271b523f3b43904a65cd3a85c1666493a6a0ca492d2d56281fb830bc11a0398",
+      "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_vehicleUnstuck.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-navigation-floor-20261018.json",
       "sha256": "c013310621eb4838c5460197f127cdee84f1a94d786669d5b4ccb2e2ccdbb485",
       "scope": "HBQ navigation-area main-loop branch compared with current CBE crossing execution",
@@ -834,7 +843,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-unstuck-helper-20261016.json",
-      "sha256": "7a30a996567bab202ad661603ef4e4b8d97b9afed04ab8947c42f9bd6450ce37",
+      "sha256": "ed5637940cb9551def89a2583b35715f7e0acb75517234c55593e198020401cd",
       "scope": "Complete vehicleUnstuck helper and WAIT ordinary recovery issue/handback branches; not whole HBQ parity",
       "sourceFileMentions": [
         "functions/fn_vehicleUnstuck.sqf"
@@ -1211,9 +1220,9 @@
     {
       "recordedPath": "releaseVerificationAndDeployment/referenceReviews/hbq-unstuck-helper-20261016.json",
       "recordedSha256": "7a30a996567bab202ad661603ef4e4b8d97b9afed04ab8947c42f9bd6450ce37",
-      "status": "exact-historic-hash",
+      "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-unstuck-helper-20261016.json",
-      "currentSha256": "7a30a996567bab202ad661603ef4e4b8d97b9afed04ab8947c42f9bd6450ce37"
+      "currentSha256": "ed5637940cb9551def89a2583b35715f7e0acb75517234c55593e198020401cd"
     },
     {
       "recordedPath": "releaseVerificationAndDeployment/referenceReviews/hbq-performance-precision-20261016.json",
