@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-25",
+  "base": "c4f25639",
+  "scope": "Selected main danger-brain decision branches, not complete LAMBS addon/source-tree parity. No runtime or performance acceptance.",
+  "sourceHashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    "addons/infantry/functions/dangerEngineSelect.sqf": "0667bd663f771807246a2c08c2a14d3834a6aa29124dac443f9a31d74b2ca9f6",
+    "addons/infantry/functions/dangerEngineMode.sqf": "e852e9a322ebccc70e90f2c4ed155b1b49a7d36243ce16f5d1cedcb28d1b7f8b",
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "1dac2a9ffaba7a82e2027d72310a8feb7ef51d4b35b4194c93f5b935a27f16f6",
+    "addons/infantry/functions/dangerEngineAct.sqf": "e64af6cee1f276aabb6af4e288aa90ce875e7acee6836022741e92c14d1aca10",
+    "addons/infantry/functions/dangerStep.sqf": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b",
+    "addons/infantry/functions/cortexGroupTick.sqf": "93437a096693d2c7b2f3b31763e7798851b8a071a23d1bec0f070bbc420e9327",
+    "addons/infantry/functions/indoorActorDispatch.sqf": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c",
+    "addons/core/functions/cortexFireControl.sqf": "dd9219e66d935dfd156f77a56aa7f7735653cbe8474e4a40d965d039c855bf8d"
+  },
+  "branches": [
+    {
+      "branch": "Priority and cause classification",
+      "source": "brain classifies native causes into immediate, hide, engage and assess; empty queue synthesises ASSESS.",
+      "cbe": "DangerEngineSelect bounds48 records; DangerEngineMode classifies local native task/domain before cause. DangerEngineSubmit forwards at most12 observations with original expiry and separate source witness.",
+      "disposition": "Implemented source intent with bounded intake and stricter evidence; not a timing or behavioural equivalence claim."
+    },
+    {
+      "branch": "Immediate danger",
+      "source": "brain selects fire/hit/explosion/bullet-close immediate response, conditional on friendly source and suppression.",
+      "cbe": "DangerEngineAct applies finite weak posture and gated native evasions; DangerStep wakes group planning; CortexGroupTick calls DangerCoverStep. Movement and owned tasks remain separate authority.",
+      "disposition": "Execution paths exist. Full brainReact/doCover/doDodge descendants are outside this selected review; do not mark complete parity."
+    },
+    {
+      "branch": "Engage and close assault",
+      "source": "brainEngage invokes doAssault directly for a nearby living foot target; STEALTH/hold-fire/fast target/unknown target/planner state defer.",
+      "cbe": "Actor FSM handles posture; CONTACT group branch gives coordinated assault first refusal, then CortexBuildingContact, then IndoorActorDispatch for available actors. Native beliefs and per-actor executor authority are retained.",
+      "disposition": "Different execution placement. A direct doAssault-equivalent call in DangerEngineAct would introduce another movement owner. Real path readiness/latency/flow remain unverified."
+    },
+    {
+      "branch": "Firing opportunity suppression",
+      "source": "brainEngage invokes doSuppress for a still, ready CANFIRE actor beyond minimum range, except tight formations.",
+      "cbe": "CortexFireControl consumes matching finite CANFIRE/contact evidence through group scheduling, with bounded actor lanes, ammo/fire-policy/native-task gates.",
+      "disposition": "Existing suppression executor is the intended owner. Source eligibility/balance and actual suppression cadence are not established by registration or presence of a CANFIRE label."
+    },
+    {
+      "branch": "Casualty/body/scream",
+      "source": "brainHide watches a scream position, investigates own-group casualty, seeds building memory on another body, and otherwise lowers stance; rare indoor reposition.",
+      "cbe": "DangerEngineAct uses finite glance/stance and PointActorOperation for corroborated own-group casualties. DangerStep seeds bounded BODY_FOUND clue; group observation/search paths dispatch indoor work.",
+      "disposition": "Actor/group evidence split is intentional. Missing body object is not death provenance. Physical investigation and repeated entry/return still require evidence."
+    },
+    {
+      "branch": "Assessment and shared building memory",
+      "source": "brainAssess consumes groupMemory via doAssaultMemory, can randomly reposition indoors, otherwise sets weak middle stance.",
+      "cbe": "ASSESS does not manufacture fresh group threat evidence. Search and clue memory are consumed by finite indoor actor/group tasks; known-contact dispatcher has an8s selection interval and2-actor capacity.",
+      "disposition": "Deliberate redesign instead of random unleased movement or unconditional authored-stance replacement. The2-actor investigation capacity is not whole-squad CLEAR capacity; do not conflate them."
+    },
+    {
+      "branch": "Forced/native tasks",
+      "source": "brainForced handles fleeing, forced movement and ATTACK pacing/stance; removes a SuppressTarget attack object.",
+      "cbe": "DangerEngineMode preserves concrete boarding/care/action/supply tasks; ordinary ATTACK remains combat-enabled. DangerFlight and DangerAttackPace supply finite response/restoration paths.",
+      "disposition": "Do not copy unconditional target deletion/watch reset. Required external-controller handover and retained native order retirement are separate unresolved contracts."
+    }
+  ],
+  "currentTimingEvidence": {
+    "dangerWake": "DangerStep sets existing brain wakeAt/nextAt to current time at most once per0.5s and carries responsiveUntil; not measured execution latency.",
+    "indoorAdmission": "IndoorActorDispatch admits at most2 individual investigators, selection throttled8s. Whole-group clearance is a separate task.",
+    "performance": "No measurements while audits paused; bounded loops alone do not prove5% median/10% p95."
+  },
+  "nextImplementationBoundary": "Continue required native operation/controller handover and coherent CQB actor-ready ownership, rather than adding a second direct actor movement/suppression writer merely to mirror LAMBS function placement.",
+  "audits": "paused",
+  "wholeLAMBSParity": false,
+  "physicalAcceptance": false
+}
