@@ -423,9 +423,10 @@ if (_resume) then {
                     (_receipt select 0) == "EGRESS" && {(_receipt select 10) == 5}
                         && {(_receipt select [4,3]) isEqualTo [_building,_admissionTransform,_hardDeadline]}
                 } else {
-                    if (_key in ["CBE_Cortex_ClearEarlyExits","CBE_Cortex_ClearReserveAdmission"]) then {
+                    if (_key in ["CBE_Cortex_ClearEarlyExits","CBE_Cortex_ClearReserveAdmission",
+                        "CBE_Cortex_ClearYield","CBE_Cortex_ClearRelief"]) then {
                         (_receipt select 1) isEqualType []
-                            && {count (_receipt select 1) <= (if (_key == "CBE_Cortex_ClearEarlyExits") then {8} else {64})}
+                            && {count (_receipt select 1) <= (if (_key in ["CBE_Cortex_ClearEarlyExits","CBE_Cortex_ClearRelief"]) then {8} else {64})}
                     } else {
                         (_receipt select [0,3]) isEqualTo [_building,_hardDeadline,_admissionTransform]
                     }
@@ -435,7 +436,8 @@ if (_resume) then {
         };
     } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
         ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
-        ["CBE_Cortex_ClearReserveAdmission",2,0]];
+        ["CBE_Cortex_ClearReserveAdmission",2,0],["CBE_Cortex_ClearYield",2,0],
+        ["CBE_Cortex_ClearRelief",2,0]];
 };
 if (_resumePhasePending) exitWith {false};
 private _resumeLaneReceipt=[];

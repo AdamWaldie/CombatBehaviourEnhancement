@@ -20,6 +20,22 @@ class PartnerEntryCommitTests(unittest.TestCase):
         self.assertNotIn('setVelocity',atomic)
         self.assertIn('formLeader _partner',atomic)
         self.assertNotIn('formationLeader _partner',source)
+        receipt=source.split('private _alternativeReceipt=',1)[1].split('private _alternativeSearches=',1)[0]
+        for proof in ('count _alternativeReceipt == 7','(_alternativeReceipt select 6) isEqualTo (_job get "visitContext")',
+                      'private _alternativeUnbound=','_alternativeReceipt select 4) <= 3'):
+            self.assertIn(proof,receipt)
+        self.assertIn('+(_job get "visitContext")],true]',atomic)
+        self.assertIn('private _alternativeUsed=_alternativeUnbound ||',source)
+        motion=(ROOT/'addons/infantry/functions/buildingActorMotion.sqf').read_text(encoding='utf-8')
+        self.assertIn('["CBE_Cortex_ClearEntryAlternative",7,6]',motion)
+        self.assertIn('["CBE_Cortex_ClearEntryRecovery",3,1]',motion)
+        self.assertIn('(_budget select _contextIndex) isEqualTo _context',motion)
+        # Matching geometry/deadline does not merge two visits' spent search history.
+        a=['house',240,'transform',[],3,4,['house','transform',240,'a']]
+        b=['house','transform',240,'b']
+        self.assertEqual(a[:3],['house',240,'transform'])
+        self.assertNotEqual(a[6],b)
+        self.assertEqual(a[4],3)
     def test_geometry_and_ownership_remain_distinct(self):
         source=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         section=source.split('private _entryAlternativeBefore=',1)[1].split('_entryRecovery set [_key,_receipt]',1)[0]

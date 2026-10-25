@@ -86,7 +86,8 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_resumeLaneReceipt=+_resumeLanes',preflight)
         phase=text.split('private _resumePhaseReceipts=[];',1)[1].split('private _resumeLaneReceipt=[];',1)[0]
         for key,size,slot in (('ClearEgress',14,13),('ClearFollowBudget',5,4),('ClearStageBudget',5,4),
-                              ('ClearEarlyExits',2,0),('ClearReserveAdmission',2,0)):
+                              ('ClearEarlyExits',2,0),('ClearReserveAdmission',2,0),
+                              ('ClearYield',2,0),('ClearRelief',2,0)):
             self.assertIn('["CBE_Cortex_'+key+'",'+str(size)+','+str(slot)+']',phase)
         for forbidden in ('setVariable','OperationStart','CortexClearRelease','serverTime+'):
             self.assertNotIn(forbidden,phase)

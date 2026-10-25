@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "f16e8407",
+  "scope": "Visit identity and monotonic refusal for alternative-entry and yielding recovery budgets, with Relief/Yield resume capture and exact-context retirement. Not full coherent handover.",
+  "implementation": [
+    "Actor ClearEntryAlternative is now7 fields, appending the exact visitContext to the original building/deadline/transform/target/search-count/coverage record. Current records validate finite integer search/coverage bounds and finite optional target. Nonempty unknown/unbound records cannot grant a fresh search; valid history from a different original header remains history.",
+    "Group ClearYield is now [visitContext, yieldedActorIds]. Current records require <=64 unique valid network identities. Unknown/foreign nonempty state prevents another yield instead of assuming zero spent membership; reaching64 also refuses more yields. Original per-actor once-per-visit membership remains retained.",
+    "Group Relief and Yield join existing pre-start phase capture and final startup equality. Original row-level relief/native observation checks remain in their consumers.",
+    "Normal finish/explicit release remove only matching-context Relief/Yield group records. Motion RETIRE on the current group owner also removes matching-context7-field actor alternative and3-field actor entry recovery records, independently of whether a motion receipt remains. Foreign/malformed records survive; no native command is issued by this retirement."
+  ],
+  "validation": {
+    "focused": "127 existing clearance tests and4 partner-entry tests passed; extended existing boundary/schema cases, no new test count.",
+    "full": "1497 tests, 422 SQF, 11 PBOs, terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-recovery-nonce-f16e8407",
+    "fingerprint": "b97e068b11b8ab229ec4459bf56d2ab9f76d0fafe1e0eeaac56da5d8f0bfd43f"
+  },
+  "limits": [
+    "Internal first-release journal shapes changed. Old/unbound records do not receive an implicit budget reset; no cross-version running-session migration is claimed.",
+    "The payload inventory still needs integration into authenticated final producer seal/request/replay and aggregate actor readiness. This batch does not implement it.",
+    "No worker, world scan or deadline renewal. Extra bounded validation and terminal metadata reads are unmeasured runtime cost.",
+    "Audits remain paused; physical CQB/repeated use, actual-provider HC migration and5%median/10%p95 acceptance remain unverified."
+  ],
+  "previousEvidence": "clear-private-job-budget-map-20261025.json records the source omissions before this implementation; retained as historical evidence.",
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "440b15507e90c0aee427a90047b969e4c69096a64cd0c8cf5c845758a103d355",
+    "addons/infantry/functions/buildingActorMotion.sqf": "dcfbc0e76ee1513aa1f5445d5c335416d154358237d5be660669460791242bda",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "9434788e06845d8749019d7dae6ba5f9fbe3aa46a13c69a33219448efbbcb738",
+    "addons/infantry/functions/cortexClearRelease.sqf": "e4ccb03fd436e01e9813a1ee4f86baaecf789571387e68a0fb22edafb52942a3",
+    "releaseVerificationAndDeployment/test_clear_followthrough_occupancy.py": "f48c6dcc50e98db5a540cbd016345aab370f530f0517f59e227dda1fc06506c2",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "b54186ba93c57cb1391fb34183a1f3c96dd1096ae0c1dd3e557e3c47d371e014",
+    "releaseVerificationAndDeployment/test_cqb_partner_entry_commit.py": "a75dc053427a29745b33cb30d399bc7fe127ac572216a62855ea17ba1985f4f6"
+  }
+}

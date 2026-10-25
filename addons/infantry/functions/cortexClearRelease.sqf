@@ -118,7 +118,8 @@ _group setVariable ["CBE_AIPass_ClearBuilding", nil, true];
                     };
                 } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
                     ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
-                    ["CBE_Cortex_ClearReserveAdmission",2,0]];
+                    ["CBE_Cortex_ClearReserveAdmission",2,0],["CBE_Cortex_ClearYield",2,0],
+                    ["CBE_Cortex_ClearRelief",2,0]];
             };
 
 

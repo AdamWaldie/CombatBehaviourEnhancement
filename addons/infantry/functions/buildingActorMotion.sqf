@@ -11,6 +11,8 @@
  * Idle alone is never ownership.
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
+ * On the current group owner it also retires exact-context entry recovery/alternative budgets;
+ * malformed or foreign records remain untouched.
  * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE/CHECK; 1 actor <OBJECT, objNull>;
  * 2 job <HASHMAP, empty>; 3 target <ARRAY, []>: native AGL for MOVE, sampled ATL for HOLD.
  * Receipt: [group, visitContext, MOVE/HOLD, target (MOVE AGL / HOLD ATL), optional owned-settings triple].
@@ -38,6 +40,19 @@ isNil {
     _result=call {
         private _receipt=_actor getVariable ["CBE_Cortex_ClearMotion",[]];
         if (_mode == "RETIRE") exitWith {
+            private _retiredBudgets=false;
+            if (local _group && {group _actor == _group}) then {
+                {
+                    _x params ["_key","_size","_contextIndex"];
+                    private _budget=_actor getVariable [_key,[]];
+                    if (_budget isEqualType [] && {count _budget == _size}
+                        && {(_budget select _contextIndex) isEqualTo _context}
+                        && {_key != "CBE_Cortex_ClearEntryRecovery" || {(_budget select 0) isEqualTo _group}}) then {
+                        _actor setVariable [_key,nil,true];
+                        _retiredBudgets=true;
+                    };
+                } forEach [["CBE_Cortex_ClearEntryAlternative",7,6],["CBE_Cortex_ClearEntryRecovery",3,1]];
+            };
             if (_receipt isEqualType [] && {count _receipt == 5}
                 && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}) then {
                 private _return=_actor getVariable ["CBE_Cortex_ClearEvasionReturn",[]];
@@ -45,7 +60,7 @@ isNil {
                     _actor setVariable ["CBE_Cortex_ClearEvasionReturn",nil];
                 };
                 _actor setVariable ["CBE_Cortex_ClearMotion",nil,true];true
-            } else {false}
+            } else {_retiredBudgets}
         };
         private _building=_job getOrDefault ["building",objNull];
         private _operation=_group getVariable ["CBE_Operation",createHashMap];

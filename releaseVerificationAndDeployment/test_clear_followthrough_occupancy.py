@@ -41,8 +41,16 @@ class FollowThroughOccupancyTests(unittest.TestCase):
         self.assertNotIn('set ["deadline"',block)
         self.assertNotIn('call CBE_fnc_RecoveryStep',block)
         self.assertNotIn('_failedTargets pushBack',block)
-        self.assertIn('_yieldContext+[+_yielded]',block)
-        self.assertIn('(_yieldReceipt select [0,3]) isEqualTo _yieldContext',source)
+        self.assertIn('[+_yieldContext,+_yielded]',block)
+        self.assertIn('(_yieldReceipt select 0) isEqualTo _yieldContext',source)
+        self.assertIn('(_yieldReceipt isNotEqualTo [] && {!_yieldValid})',source)
+        self.assertIn('count _yielded >= 64',source)
+        self.assertIn('count (_yieldReceipt select 1) <= 64',source)
+        context=['house','transform',240,'visit-b']
+        old=[['house','transform',240,'visit-a'],['actor']]
+        self.assertNotEqual(old[0],context)
+        spent=[context,['actor']]
+        self.assertIn('actor',spent[1])
         arrival=source.split('if (_arrived isNotEqualTo []',1)[1].split('doStop _unit;',1)[0]
         self.assertIn('vectorDistance (AGLToASL (_positions select (_arrived select 0))) <= 1.5',arrival)
         self.assertIn('call _roomSegmentClear',arrival)

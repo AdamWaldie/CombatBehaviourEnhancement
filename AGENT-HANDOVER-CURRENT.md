@@ -98,3 +98,8 @@ Reserve staging readiness and both arrival-write boundaries now recognise WAIT o
 ### Additional clearance transfer budgets
 
 `clear-private-job-budget-map-20261025.json` identifies actor EntryRecovery/EntryAlternative and group Relief/Yield state outside the proposed private-job transfer. EntryAlternative and Yield currently omit visit-nonce binding. Preserve their spent retry/search/yield history in the same coherent envelope; a private-job-only copy is incomplete. Callback-local geometry caches are not transferable authority. This is source evidence only; no transport implementation or new runtime validation. Latest verified runtime remains c555e8b4.
+
+
+### Visit-bound recovery budgets — 2026-10-25
+
+Alternative-entry records now append the exact visit context (7 fields); yield history now uses `[visitContext, yieldedActorIds]`, with at most64 unique identities. Unknown or unbound records cannot grant fresh search/yield attempts. Relief/Yield join resume capture/startup equality and matching-context group cleanup. Current-owner motion retirement also removes only matching-context actor entry-recovery/alternative records. Original search limits and progress clocks remain unchanged. Full offline gates passed:1497 tests,422 SQF,11 PBOs; independent candidate `.qa/candidates/clear-recovery-nonce-f16e8407` matched fingerprint `b97e068b11b8ab229ec4459bf56d2ab9f76d0fafe1e0eeaac56da5d8f0bfd43f`. Internal first-release schemas changed; no old-session budget reset is provided. Authenticated producer transport, physical repeated-use/HC evidence and performance remain incomplete. Audits remain paused. Review:`clear-recovery-nonce-20261025.json`.

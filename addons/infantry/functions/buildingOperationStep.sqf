@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Alternative-entry and yielding budgets require the exact visit nonce; unbound records
+ * cannot grant fresh work. Search/yield limits and original server clocks remain finite.
  * Grenade evasion retains an exact owned HOLD during its initial native-ack wait;
  * after the same escape lease expires, the existing room writer chooses the current leg.
  * roomHolds and sampled native/fallback holds store ATL. Native room destinations stay
@@ -675,7 +677,8 @@ private _delay=call {
                     };
                 } forEach [["CBE_Cortex_ClearEgress",14,13],["CBE_Cortex_ClearFollowBudget",5,4],
                     ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
-                    ["CBE_Cortex_ClearReserveAdmission",2,0]];
+                    ["CBE_Cortex_ClearReserveAdmission",2,0],["CBE_Cortex_ClearYield",2,0],
+                    ["CBE_Cortex_ClearRelief",2,0]];
             };
 
 
@@ -2999,10 +3002,25 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                         // shared pair target before issuing it, even if this lane's room queue
                         // has ended. Later pair steps recognize and preserve the active path.
                         private _alternativeReceipt=_partner getVariable ["CBE_Cortex_ClearEntryAlternative",[]];
-                        private _sameAlternativeEpisode=count _alternativeReceipt >= 4
-                            && {(_alternativeReceipt select 0) == _building}
-                            && {(_alternativeReceipt select 1) == (_job get "hardDeadline")}
-                            && {(_alternativeReceipt select 2) isEqualTo (_job get "buildingTransform")};
+                        private _alternativeValid=_alternativeReceipt isEqualType [] && {count _alternativeReceipt == 7}
+                            && {(_alternativeReceipt select 6) isEqualType []} && {count (_alternativeReceipt select 6) == 4}
+                            && {(_alternativeReceipt select 3) isEqualType []} && {count (_alternativeReceipt select 3) in [0,3]}
+                            && {(_alternativeReceipt select 3) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {[4,5] findIf {private _n=_alternativeReceipt select _x;
+                                !(_n isEqualType 0) || {!finite _n} || {_n < 0} || {_n != floor _n}} < 0}
+                            && {(_alternativeReceipt select 4) <= 3} && {(_alternativeReceipt select 5) <= 512}
+                            && {(_alternativeReceipt select [0,3]) isEqualTo [
+                                (_alternativeReceipt select 6) select 0,(_alternativeReceipt select 6) select 2,
+                                (_alternativeReceipt select 6) select 1]};
+                        private _sameAlternativeEpisode=_alternativeValid
+                            && {(_alternativeReceipt select 6) isEqualTo (_job get "visitContext")};
+                        // Unknown/unbound data is not an unused search budget. A valid
+                        // different visit with a different original header remains history.
+                        private _alternativeUnbound=_alternativeReceipt isNotEqualTo [] && {
+                            !_alternativeValid || {(_alternativeReceipt select [0,3]) isEqualTo [
+                                _building,_job get "hardDeadline",_job get "buildingTransform"]
+                                && {!_sameAlternativeEpisode}}
+                        };
                         private _alternativeSearches=if (_sameAlternativeEpisode) then {
                             _alternativeReceipt param [4,1,[0]]
                         } else {0};
@@ -3012,11 +3030,11 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                         // A failed selection can become useful after another lane proves a
                         // new point. Reassess only on increased coverage, at most three times.
                         // A successful alternative still consumes the one movement alternative.
-                        private _alternativeUsed=_sameAlternativeEpisode && {
+                        private _alternativeUsed=_alternativeUnbound || {_sameAlternativeEpisode && {
                             (_alternativeReceipt select 3) isNotEqualTo []
                                 || {_alternativeSearches >= 3}
                                 || {_alternativeCoverage >= count _cleared}
-                        };
+                        }};
                         if ((_receipt select 2) && {serverTime-(_receipt select 1) >= 24}
                             && {!_alternativeUsed} && {_cleared isNotEqualTo []}
                             && {!([_partner,_entryTarget] call _nativeMoveAwaited)}
@@ -3063,7 +3081,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                     }}) then {
                                     _partner setVariable ["CBE_Cortex_ClearEntryAlternative",[
                                         _building,_job get "hardDeadline",_job get "buildingTransform",
-                                        +_alternative,_alternativeSearches+1,count _cleared],true];
+                                        +_alternative,_alternativeSearches+1,count _cleared,+(_job get "visitContext")],true];
                                     diag_log format ["CBE CLEAR PARTNER ENTRY SEARCH: %1",[
                                         _job get "generation",_pairIndex,netId _partner,
                                         _alternativeSearches+1,count _cleared,+_alternative]];
@@ -4055,11 +4073,15 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         // One completed worker may yield per callback, once per original episode.
         // The public attempt receipt survives locality adoption without renewing deadlines.
         private _yieldReceipt=_group getVariable ["CBE_Cortex_ClearYield",[]];
-        private _yieldContext=[_job get "building",_job get "buildingTransform",_job get "hardDeadline"];
-        private _yielded=if (count _yieldReceipt == 4 && {(_yieldReceipt select [0,3]) isEqualTo _yieldContext}) then {
-            +(_yieldReceipt select 3)
-        } else {[]};
-        private _yieldConsidered=false;
+        private _yieldContext=+(_job get "visitContext");
+        private _yieldValid=_yieldReceipt isEqualType [] && {count _yieldReceipt == 2}
+            && {(_yieldReceipt select 0) isEqualTo _yieldContext}
+            && {(_yieldReceipt select 1) isEqualType []} && {count (_yieldReceipt select 1) <= 64}
+            && {(_yieldReceipt select 1) findIf {!(_x isEqualType "") || {_x in ["","0:0"]}} < 0}
+            && {count ((_yieldReceipt select 1) arrayIntersect (_yieldReceipt select 1)) == count (_yieldReceipt select 1)};
+        private _yielded=if (_yieldValid) then {+(_yieldReceipt select 1)} else {[]};
+        // Refuse an unknown spent-membership record; never silently mint another yield.
+        private _yieldConsidered=(_yieldReceipt isNotEqualTo [] && {!_yieldValid}) || {count _yielded >= 64};
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -4183,7 +4205,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                         [_blocker,_yieldTarget] call _rememberMove;
                                         _follow set [_blockerKey,[_yieldIndex,0,_now,false,false,[],_now,getPosASL _blocker]];
                                         _yielded pushBackUnique _blockerKey;
-                                        _group setVariable ["CBE_Cortex_ClearYield",_yieldContext+[+_yielded],true];
+                                        _group setVariable ["CBE_Cortex_ClearYield",[+_yieldContext,+_yielded],true];
                                         private _slot=_followReservations findIf {(_x select 0) == _blockerKey};
                                         if (_slot >= 0) then {(_followReservations select _slot) set [2,AGLToASL _yieldTarget]};
                                     };
@@ -4216,7 +4238,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                     private _exitTarget=_exitPlan select 0;
                                     if (call _mayIssueMovement) then {
                                         _yielded pushBackUnique _blockerKey;
-                                        _group setVariable ["CBE_Cortex_ClearYield",_yieldContext+[+_yielded],true];
+                                        _group setVariable ["CBE_Cortex_ClearYield",[+_yieldContext,+_yielded],true];
                                     };
                                     if (count _exitTarget == 3 && {[_blocker] call _actorAvailable}
                                         && {[_blocker] call _actorTaskFree} && {currentCommand _blocker in ["","STOP"]}
