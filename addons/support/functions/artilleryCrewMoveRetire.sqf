@@ -6,7 +6,9 @@
  * A locality change or failed worker can resume STOPPING/RETURNING observation, never outward
  * movement. Crew, original native route and external-control gates remain in the worker.
  * Repeat/JIP: Exact token/serial/public reference, private owner/epoch/handle and original
- * deadlines. Unresolved work stays reserved while any original crew member survives or the gun
+ * deadlines. One exact retirement-FSM creation refusal may retry inside its original cleanup
+ * window, retaining the saved phase/native observations. No other unresolved reason reopens.
+ * Unresolved work stays reserved while any original crew member survives or the gun
  * is moving. Once every original actor is dead/deleted and the gun is at rest, maintenance can
  * retire that exact reference without commands, replacement crew adoption or deadline renewal.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1.
@@ -37,10 +39,24 @@ isNil {
             && {(_work get "owner") == clientOwner} && {(_work get "epoch") == _epoch}
             && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
             && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
+        // A refused FSM allocation never became a native stop/return observer. One
+        // replacement may continue the exact saved retirement phase, not a fresh task.
+        private _resumePhase=_work getOrDefault ["retirementResumePhase",""];
+        private _retryCrew=_work getOrDefault ["crew",[]];
+        private _retryUntil=_work getOrDefault ["cleanupUntil",-1];
+        private _retryRefused=_phase == "UNRESOLVED" && {!_live}
+            && {(_work getOrDefault ["result",""]) == "RETIREMENT_FSM_REFUSED"}
+            && {(_work getOrDefault ["retirementFsmRetries",0]) isEqualTo 0}
+            && {(_work getOrDefault ["release",false]) isEqualTo true}
+            && {_resumePhase in ["ISSUE","REQUESTED","MOVING","HOLD","STOPPING","RETURNING"]}
+            && {_retryUntil isEqualType 0} && {finite _retryUntil} && {serverTime < _retryUntil}
+            && {_retryCrew isEqualType []} && {count _retryCrew == 2}
+            && {_retryCrew findIf {!(_x isEqualType objNull)} < 0}
+            && {_retryCrew findIf {!isNull _x && {alive _x}} >= 0};
         // No living original actor can retain our native movement order in this case.
         // Rest is measured independently: a dead driver alone does not stop a rolling gun.
         // Never adopt a replacement crew or remove a different operation's lease.
-        if (_phase == "UNRESOLVED") exitWith {
+        if (_phase == "UNRESOLVED" && {!_retryRefused}) exitWith {
             private _originalCrew=_work getOrDefault ["crew",[]];
             private _linear=vectorMagnitude velocity _battery;
             private _angular=vectorMagnitude angularVelocity _battery;
@@ -66,6 +82,11 @@ isNil {
             false
         };
         private _journal=+_work;
+        if (_retryRefused) then {
+            _journal set ["phase",_resumePhase];
+            _journal set ["retirementFsmRetries",1];
+            _journal set ["result","RETIREMENT_FSM_RETRY_PENDING"];
+        };
         _journal set ["release",true];
         if !("cleanupUntil" in _journal) then {
             _journal set ["cleanupUntil",(serverTime+30) min ((_work get "holdUntil")+30)];
@@ -89,9 +110,11 @@ isNil {
         _group setVariable ["CBE_ArtilleryCrew_Reference",_adoptedReference,true];
         private _executorSerial=(_battery getVariable ["CBE_ArtilleryCrew_ExecutorSerial",0])+1;
         _battery setVariable ["CBE_ArtilleryCrew_ExecutorSerial",_executorSerial];
+        private _retirementPhase=_journal get "phase";
         private _handle=[_battery,_token,_serial,_executorSerial] execFSM "\z\cbe\addons\main\fsm\artilleryCrewMove.fsm";
         _battery setVariable ["CBE_ArtilleryCrew_FSM",[_serial,_handle,clientOwner,_epoch,_executorSerial]];
         if (!(_handle isEqualType 0) || {!finite _handle} || {_handle < 0}) exitWith {
+            _journal set ["retirementResumePhase",_retirementPhase];
             _journal set ["phase","UNRESOLVED"];
             _journal set ["result","RETIREMENT_FSM_REFUSED"];
             _battery setVariable ["CBE_ArtilleryCrew_Work",_journal,true];

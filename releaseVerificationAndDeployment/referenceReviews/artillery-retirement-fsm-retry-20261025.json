@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "22682add",
+  "scope": "One replacement after an exact retirement-FSM allocation refusal, within original cleanup authority. Not general unresolved-writer recovery.",
+  "defect": "The retirement helper marked a failed execFSM allocation UNRESOLVED and thereafter refused every retry while original crew survived. It discarded the pre-failure phase identity, so the finite cleanup observer could not recover even with its original window still valid.",
+  "implementation": [
+    "Record retirementResumePhase on native FSM-handle refusal. A later existing maintenance call may retry only for exact result RETIREMENT_FSM_REFUSED, release=true, a known original phase, no current live executor, one living original actor and a finite unexpired cleanupUntil.",
+    "Spend retirementFsmRetries=1 before publishing/replacing the executor; retain original before/baseline, survivor identity, native reply deadline, cleanup deadline, token/serial and lease. Never refresh the window.",
+    "New owner/executor identity uses the existing retirement-only reconstruction and executor-serial fences. The worker still validates actual crew/native/Zeus/mission control before commands. No retry acknowledgement is treated as native handback or travel.",
+    "A second allocation failure, unknown reason/phase, replaced actor order, expired window or live current executor does not receive this restart. Existing all-original-dead at-rest metadata retirement remains separate."
+  ],
+  "validation": {
+    "focused": "4 existing fire-session cases passed, extended for exact-reason/phase, expiry, missing live original, live executor and retry-spent boundaries. No new test count.",
+    "full": "1497 tests,422 SQF,11 PBOs, terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/artillery-retirement-fsm-retry-22682add",
+    "fingerprint": "937b6f6e3c52771987ee363b20aeddeaf4ed0f2e716cbd2b1488274737e788a5"
+  },
+  "limits": [
+    "No native FSM allocation failure or actual physical retirement was reproduced; offline source/contracts and package evidence only.",
+    "Broader UNRESOLVED surviving writers, required controller handovers and deleted-platform cases remain incomplete.",
+    "Uses existing maintenance; no polling worker, outward movement, replacement crew, group split or new lifetime. One additional allocation is possible only after the exact failure.",
+    "Audits paused; physical and5%median/10%p95 acceptance remain unverified."
+  ],
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "dcf3991cce568f3d8b976b37ae7981175e3c4c17029a4eddaef3d4b08bd223c9",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "2d4c4f0c5f21ddfa4a269ad274575ae2f170003eb3e0bb447bb22c4b87f84dac",
+    "docs/Smart-AI-Pass.md": "988d7e449ead199c4ce9431067f4b77bea36ad422a64a793cea72d5db66e1d64"
+  }
+}

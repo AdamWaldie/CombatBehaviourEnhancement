@@ -177,7 +177,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertNotIn('doMove',retire)
-        casualty=retire.split('if (_phase == "UNRESOLVED") exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        casualty=retire.split('if (_phase == "UNRESOLVED" && {!_retryRefused}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
         self.assertIn('alive _x',casualty)
         self.assertIn('!finite _linear',casualty)
@@ -193,6 +193,26 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertTrue(released(0,0,0))
         for args in ((1,0,0),(0,1,0),(0,0,0.02),(0,float('nan'),0),(0,0,float('nan')),(0,0,0,True),(0,0,0,False,True)):
             self.assertFalse(released(*args))
+        retry=retire.split('private _resumePhase=',1)[1].split('// No living original actor',1)[0]
+        for proof in ('!_live','"RETIREMENT_FSM_REFUSED"','"retirementFsmRetries",0','isEqualTo 0',
+                      'serverTime < _retryUntil','finite _retryUntil','"release",false',
+                      '_retryCrew findIf {!isNull _x && {alive _x}} >= 0'):
+            self.assertIn(proof,retry)
+        self.assertNotIn('serverTime+',retry)
+        self.assertNotIn('execFSM',retry)
+        self.assertIn('_journal set ["retirementResumePhase",_retirementPhase]',retire)
+        self.assertLess(retire.index('_journal set ["retirementFsmRetries",1]'),retire.index('execFSM'))
+        # Only one allocation refusal can reopen, inside the unchanged cleanup window.
+        def may_retry(reason='RETIREMENT_FSM_REFUSED',phase='STOPPING',now=10,until=20,
+                      retries=0,live=False,releasing=True,living_original=True):
+            import math
+            return (reason=='RETIREMENT_FSM_REFUSED' and phase in ('ISSUE','REQUESTED','MOVING','HOLD','STOPPING','RETURNING')
+                    and math.isfinite(until) and now<until and retries==0 and not live and releasing and living_original)
+        self.assertTrue(may_retry())
+        for changed in ({'reason':'ACTOR_ORDER_REPLACED'},{'phase':'UNKNOWN'},{'now':20},
+                        {'until':float('nan')},{'retries':1},{'live':True},{'releasing':False},
+                        {'living_original':False}):
+            self.assertFalse(may_retry(**changed),changed)
         self.assertIn('if !("cleanupUntil" in _journal)',retire)
         self.assertIn('"release",true',retire)
         self.assertIn('CBE_ArtilleryPosition_Attempt',owner)

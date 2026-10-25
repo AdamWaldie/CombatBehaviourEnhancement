@@ -3007,3 +3007,8 @@ Road look-ahead now applies its110degree continuation cutoff to the endpoint-mid
 ### Selected-gun retirement after an operating casualty
 
 If either original operating actor dies during an existing gun movement, the original survivor may stop that episode and return to its own admitted native order. The survivor must remain in the original seat arrangement; a new driver or commander cannot inherit the movement. Group membership and unrelated infantry orders remain unchanged. The first survivor identity is retained throughout cleanup, with the original deadlines. A failed stop or return acknowledgement keeps the operation unresolved rather than granting another controller permission.
+
+
+### Selected-gun cleanup executor recovery
+
+A failed cleanup executor allocation may be replaced once within its original cleanup window. The replacement retains the original phase, crew, native observations and deadlines, and runs only the existing stop/return checks. Changed native orders, replacement seats, expired windows and other unresolved reasons do not gain a restart or movement permission. A second allocation failure remains unresolved.
