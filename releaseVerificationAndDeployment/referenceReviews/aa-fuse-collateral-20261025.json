@@ -1,0 +1,31 @@
+{
+  "base": "bbf769e3",
+  "status": "SAME_OWNER_AA_FUSE_WARHEAD_COLLATERAL_VETO_INTEGRATED",
+  "finding": "The scripted direct-pass fuse triggers the incoming warhead at its current position. Existing checks protected the AA platform/victim by30m and source by3m, but did not consider other nearby friendly/civilian/captive entities or larger configured blast ranges.",
+  "implementation": [
+    "After confirmed same-owner direct-pass/arming geometry, read actual incoming CfgAmmo indirectHitRange/indirectHit/explosive. Reject malformed/negative/nonfinite metadata and unsupported radius>250m. Damaging/explosive warheads use the existing fire-safety policy max12m/four times indirectHitRange.",
+    "One current-position nearEntities sphere includes living infantry, land vehicles, aircraft, ships and occupants. More than64 results or any friendly/civilian/captive blocks the scripted fuse. Infantry uses underlying group side; other objects use native object side, which also classifies empty vehicles as civilian. No hull/obstruction damage guarantee.",
+    "Negative result is retained only at current engine time in the exact private episode, preventing other observed rounds in that sample repeating the query. No clearance result survives. Native firing/projectile flight remains unchanged.",
+    "Effect now refuses scheduled direct calls. Actual caller is CortexAAIntercept STEP queued through CortexQueueJob; its current-owner callback is unscheduled. No stale scheduled geometry is carried into triggerAmmo. No new timer/worker/network API or ownership transfer."
+  ],
+  "cost": "One additional native radius query only after a real qualified pass and only for damaging/explosive warheads. At most64 candidates evaluated; denser results refuse after native discovery. Negative same-sample coalescing bounds repeated round effects. Native query cost and whole-mod overhead remain unmeasured.",
+  "validation": {
+    "tests": 1497,
+    "build": ".qa/handovers/aa-fuse-collateral-build.log",
+    "independent": ".qa/handovers/aa-fuse-collateral-independent.log",
+    "candidate": ".qa/candidates/aa-fuse-collateral-bbf769e3",
+    "fingerprint": "03a2c5f0871289d6d06d14988df2102dd59baabad480aa998c2c33286783f0e4",
+    "physicalAcceptance": false
+  },
+  "limits": [
+    "Scripted fuse approximation remains optional/default-off, same-owner and non-submunition only. No cross-owner effect or interception completion handover implemented.",
+    "Position/radius protection is conservative and not complete hull, wall, blast/fragment or civilian-identification modelling. Native impacts are not controlled by this veto.",
+    "Actual protected-unit/empty/mixed-crew aircraft/ship cases, successful interceptions, balance, normal/provider-HC and5%median/10%p95 overhead remain unverified. Audits paused."
+  ],
+  "primaryApiReferences": [
+    "https://community.bistudio.com/wiki/triggerAmmo",
+    "https://community.bistudio.com/wiki/nearEntities",
+    "https://community.bistudio.com/wiki/side"
+  ],
+  "sourceSha256": "205e57aad7011eadb2261bf21aad9b95233c2ebefcecf0ff27ff82f5349a557f"
+}

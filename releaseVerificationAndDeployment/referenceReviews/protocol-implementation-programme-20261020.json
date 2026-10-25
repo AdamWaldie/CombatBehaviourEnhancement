@@ -148,6 +148,11 @@
         "review": "aa-live-allocation-coverage-20261025.json",
         "scope": "Finished or replaced original-gunner/fire-lease state is not counted as current reservation coverage. Existing one-start callback and original warning budgets unchanged.",
         "physicalAcceptance": false
+      },
+      "warheadCollateralSafety20261025": {
+        "review": "aa-fuse-collateral-20261025.json",
+        "scope": "Same-owner scripted fuse checks actual incoming-warhead radius against protected entities, including aircraft/ship occupants. Default-off/native-fire/cross-owner limits retained.",
+        "physicalAcceptance": false
       }
     },
     {
@@ -186,11 +191,11 @@
       "name": "PROTOCOL AI ARMORED FORCE",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
       "metadataSHA256": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628",
-      "status": "READABLE_SOURCE_REVIEWED_SELECTED_STATION_INTENT_INTEGRATED",
+      "status": "SCOPED_STATION_AND_SELECTED_MOVEMENT_CODE_INTEGRATED_PHYSICAL_PENDING",
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Selected countermeasure intent, horn exclusion, jink authority, legacy missile reserve fallback and selected-platform native standoff are integrated in code. Robust proven-supersession/deleted-platform cleanup, cover/exposure/post-shot relocation and broader suitable ATGM integration remain. Actual shots, loading, native travel/handback, repeated use, owner migration, balance and performance are unverified; dependencies/licensing remain separate.",
+      "remaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"

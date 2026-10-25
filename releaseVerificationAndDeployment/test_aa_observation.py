@@ -201,6 +201,24 @@ class AAObservation(unittest.TestCase):
             self.assertIn(guard,effect)
         self.assertEqual(effect.count('\ntriggerAmmo _missile;'),1)
         self.assertLess(effect.index('_distance > _radius'),effect.index('triggerAmmo _missile;'))
+        # An actual same-owner pass is still not permission to burst the hostile warhead
+        # beside other protected entities. Query only after measured pass/arming checks.
+        collateral=effect.split('private _blastRange=',1)[1].split('// Both native projectiles',1)[0]
+        for proof in ('"indirectHitRange"','"indirectHit"','"explosive"',
+                      '12 max (4*_blastRange)','_blastRadius > 250','count _near > 64',
+                      '["CAManBase","LandVehicle","Air","Ship"],false,true,true',
+                      'captive _other','ace_captives_isSurrendering','ace_captives_isHandcuffed',
+                      '_otherSide == civilian','_side getFriend _otherSide >= 0.6'):
+            self.assertIn(proof,collateral)
+        self.assertIn('remoteExecutedOwner > 0 || {canSuspend}',effect)
+        self.assertIn('if (_other isKindOf "CAManBase") then {side group _other} else {side _other}',collateral)
+        self.assertEqual(effect.count('nearEntities'),1)
+        self.assertLess(effect.index('_distance > _radius'),effect.index('nearEntities'))
+        self.assertLess(collateral.index('fuseCollateralVetoAt'),collateral.index('nearEntities'))
+        refusal='if ((_episode getOrDefault ["fuseCollateralVetoAt",-1]) == time) exitWith {false};'
+        self.assertIn(refusal,effect)
+        self.assertLess(effect.index(refusal),effect.index('setVariable ["CBE_AA_FuseReceipt"'))
+        self.assertLess(effect.index(refusal),effect.index('triggerAmmo _missile;'))
         self.assertIn('CortexAAInterceptEffect',intercept)
         self.assertNotRegex(effect,r'\bremoteExec(?:Call)?\b')
         for forbidden in ('nearestObjects','createVehicle','deleteVehicle','setPos','setVelocity'):

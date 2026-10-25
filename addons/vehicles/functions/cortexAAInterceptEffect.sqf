@@ -2,11 +2,15 @@
  * Author: WaldoTheWarfighter
  * Purpose: Apply one scripted direct-pass fuse effect from a captured real AA bullet.
  * This is an explicit gameplay fuse approximation, never a claim of native projectile collision.
- * Locality/authority: Both round and warned missile must be local to the current AI turret owner.
+ * Locality/authority: Unscheduled current turret-owner callback only; both round and warned
+ * missile must be local. Scheduled direct calls refuse rather than carry stale geometry to effect.
  * Exact private episode, native shot parents, original deadlines, actual current positions and
  * armed real-shot state qualify the effect. No remote identity guess or nearest copy fallback.
  * Repeat/JIP: One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
  * turning over5deg, submunition payloads or cross-owner projectiles refuse without effects.
+ * A damaging warhead checks protected entities at its current position: max12m/four times
+ * indirectHitRange, <=250m; at most64 entries evaluated. One veto per engine time sample prevents
+ * repeated scans by other rounds in the same episode/frame. No clear result is cached.
  * Arguments: 0 episode HASHMAP,empty; 1 captured row ARRAY,empty, [round,previous round ASL,
  * previous missile ASL,time,shot origin ASL,previous missile direction,previous missile up,shot context,spot attempted];
  * 2 current round ASL ARRAY,[]; 3 current missile ASL ARRAY,[].
@@ -16,7 +20,7 @@
  */
 params [["_episode",createHashMap,[createHashMap]],["_row",[],[[]]],
     ["_roundPos",[],[[]]],["_targetPos",[],[[]]]];
-if (remoteExecutedOwner > 0 || {count _row != 9}) exitWith {false};
+if (remoteExecutedOwner > 0 || {canSuspend} || {count _row != 9}) exitWith {false};
 _row params ["_round","_previousRound","_previousMissile","_at","_origin","_previousDir","_previousUp"];
 private _vehicle=_episode getOrDefault ["vehicle",objNull];
 private _missile=_episode getOrDefault ["missile",objNull];
@@ -108,6 +112,36 @@ private _arming=getNumber (_ammo >> "fuseDistance");
 if (_pass distance _origin < (_arming max 3) || {_pass distance (getPosASL _vehicle) < 30}
     || {_pass distance (getPosASL _victim) < 30}
     || {_pass distance (getPosASL _source) < 3}) exitWith {false};
+// A scripted fuse detonates the incoming warhead here, not merely our harmless bullet.
+// Reuse the loaded-fire policy's conservative radius, including aircraft/ship occupants.
+// Only a confirmed direct pass reaches this query; no clear result grants later permission.
+private _blastRange=getNumber (_targetAmmo >> "indirectHitRange");
+private _blastDamage=getNumber (_targetAmmo >> "indirectHit");
+private _explosive=getNumber (_targetAmmo >> "explosive");
+if (!finite _blastRange || {_blastRange < 0} || {!finite _blastDamage} || {_blastDamage < 0}
+    || {!finite _explosive} || {_explosive < 0}) exitWith {false};
+private _blastRadius=if (_blastDamage > 0 || {_explosive > 0}) then {12 max (4*_blastRange)} else {0};
+if (_blastRadius > 250) exitWith {false};
+if (_blastRadius > 0) then {
+    if ((_episode getOrDefault ["fuseCollateralVetoAt",-1]) != time) then {
+        private _area=[ASLToAGL _targetPos,_blastRadius,_blastRadius,0,false,_blastRadius];
+        private _near=_area nearEntities [["CAManBase","LandVehicle","Air","Ship"],false,true,true];
+        private _unsafe=count _near > 64;
+        if (!_unsafe) then {
+            private _side=side _group;
+            _unsafe=_near findIf {
+                private _other=_x;
+                private _otherSide=if (_other isKindOf "CAManBase") then {side group _other} else {side _other};
+                alive _other && {captive _other || {_other getVariable ["ace_captives_isSurrendering",false]}
+                    || {_other getVariable ["ace_captives_isHandcuffed",false]}
+                    || {_otherSide == civilian} || {_side getFriend _otherSide >= 0.6}}
+            } >= 0;
+        };
+        if (_unsafe) then {_episode set ["fuseCollateralVetoAt",time]};
+    };
+};
+// Keep this refusal at function scope: exiting the if block would still trigger the warhead.
+if ((_episode getOrDefault ["fuseCollateralVetoAt",-1]) == time) exitWith {false};
 // Both native projectiles and their actual same-owner samples still exist here. This
 // command detonates the warhead where it is NOW, not at the historical closest pass.
 // Record that latency; never teleport it, spawn an explosion copy or infer a vanished shot.
