@@ -52,6 +52,7 @@ class CfgFunctions {
             class DrivingGateOpenServer {file = "\z\cbe\addons\vehicles\functions\drivingGateOpenServer.sqf";};
             class DrivingCorridorDispatch {file = "\z\cbe\addons\vehicles\functions\drivingCorridorDispatch.sqf";};
             class ZenDrivingCorridorModule {file = "\z\cbe\addons\vehicles\functions\zenDrivingCorridorModule.sqf";};
+            class DrivingGateLegacyLeaves {file = "\z\cbe\addons\vehicles\functions\drivingGateLegacyLeaves.sqf";};
             class DrivingAttributeApply {file = "\z\cbe\addons\vehicles\functions\drivingAttributeApply.sqf";};
             class EdenDrivingCorridorPreview {file = "\z\cbe\addons\vehicles\functions\edenDrivingCorridorPreview.sqf";};
             class ModuleDrivingCorridorMission {file = "\z\cbe\addons\vehicles\functions\moduleDrivingCorridorMission.sqf";};

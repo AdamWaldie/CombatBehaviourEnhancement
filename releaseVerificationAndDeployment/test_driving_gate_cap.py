@@ -29,8 +29,22 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('private _classKey=typeOf _object',geometry)
         ranking=server.split('private _preferredSources=createHashMap;',1)[1].split('for "_index" from 1 to 8 do',1)[0]
         self.assertNotIn('animationSourcePhase',ranking)
-        selected=server.split('for "_index" from 1 to 8 do',1)[1].split('private _locked={',1)[0]
+        selected=server.split('for "_index" from 1 to 8 do',1)[1].split('// Keep one channel mode',1)[0]
         self.assertEqual(selected.count('animationSourcePhase'),1)
+        legacy=(ROOT/'addons/vehicles/functions/drivingGateLegacyLeaves.sqf').read_text(encoding='utf-8')
+        for guard in ('count _actions > 32','count _animations > 128','count _statement > 512',
+                      '"thisanimate"','count _arguments != 2','_name in _animations',
+                      '(_pair select 0) isNotEqualTo (_pair select 1)','_leaves findIf','"ANIM"'):
+            self.assertIn(guard,legacy)
+        for forbidden in ('compile','parseSimpleArray','call compile','spawn','setVariable'):
+            self.assertNotIn(forbidden,legacy)
+        self.assertIn('if (_sources isEqualTo []) then {_sources=[_gate]',server)
+        closing=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text(encoding='utf-8')
+        for channel in (server,closing):
+            self.assertIn('_gate animationPhase (_leaf select 1)',channel)
+            self.assertIn('_gate animationSourcePhase (_leaf select 1)',channel)
+            self.assertIn('_x param [3,"SOURCE"]',channel)
+
 
     def test_indexed_gate_aliases_choose_one_sound_preferred_source_per_leaf(self):
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
@@ -159,7 +173,7 @@ class DrivingGateMutationTests(unittest.TestCase):
                       '_liveConfig select 5','_liveCommander != _requestedCommander',
                       'owner _driver','owner _liveCommander','call _locked',
                       'CBE_ExternalDrivingOwner','CortexIsPaused','DrivingGateRouteMatches',
-                      'animationSourcePhase','isObjectHidden _vehicle'):
+                      'call _leafPhase','isObjectHidden _vehicle'):
             self.assertLess(body.index(guard),body.index('animateSource'))
         self.assertIn('private _currentOpening=',body)
         self.assertIn('"SHARED_OPENING",_currentOpening select 2',body)

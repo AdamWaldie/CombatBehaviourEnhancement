@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "78f6be2a",
+  "scope": "Partial legacy gate channel implementation through existing server open/passage/close lifecycle, not arbitrary gate or full HBQ parity.",
+  "references": [
+    ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf:216-280",
+    "https://community.bohemia.net/wiki/animationNames?useskin=vector",
+    "https://community.bohemia.net/wiki/animate?useskin=darkvector"
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingGateLegacyLeaves.sqf": "6ddeb76362e0034aa5f828c34bc70c9a724d7b15a1dd97733d7dfc213919cd69",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "dcfd378e618f619bafc2c6cd8c53b1470ff9654645050feaf5d49cf9a13c53d9",
+    "addons/vehicles/functions/drivingGateCloseServer.sqf": "d0cdc799467033cc72438f6cb70428d38ff8077376b3d596d91c4b8b20343284",
+    "releaseVerificationAndDeployment/test_driving_gate_cap.py": "2d39747fc296991c27275bbf033c7668df8ec3ca8074371060d8c91e1633cf98"
+  },
+  "implementation": [
+    "Only source-empty openings use legacy model channels. Existing supported source leaves retain their path; no mixed mode within an opening.",
+    "Recognise indexed Open/CloseDoor_N or Open/CloseGate_N matching pairs, literal this animate [name,0/1], exact existing model animation, unique leaf/name mapping. Do not compile/evaluate action statements.",
+    "Bound32 actions,512 characters per statement,128 model animation names and8 leaves. Partial/ambiguous/malformed pairs refuse. Existing locks and gate classification stay authoritative.",
+    "Retain ANIM channel in leaf rows through current-phase mutation checks, original-phase closure and observed closure. Existing admission/owner/route/geometry/traffic/deadline checks remain.",
+    "No additional worker, per-frame discovery or world mutation from the metadata reader. Existing gate jobs and phase reads perform the commands."
+  ],
+  "validation": {
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/legacy-gate-channels-78f6be2a",
+    "fingerprint": "7f44e732bdc82cf8720380586eb560cbef4d3a3f2108109cbcc932d7b25a45e5",
+    "logs": [
+      ".qa/handovers/legacy-gate-build-20261025-attempt1.log",
+      ".qa/handovers/legacy-gate-independent-20261025.log"
+    ],
+    "physical": "UNRUN: supported legacy fixtures, rejected mappings, real opening/passability/closure, queued traffic, JIP/owner migration and frame-time cost. Audits paused."
+  },
+  "limits": [
+    "Unindexed/nonliteral/reversed-phase/custom-script actions remain unsupported. Geometry must already classify the object as a gate.",
+    "animationNames presence does not establish script-exposed animatability or actual physical passage; engine evidence remains required.",
+    "Not a clean signed-release build. Review and handover metadata postdate package. No build-out percentage increase; wider source evidence freshness remains unresolved."
+  ]
+}

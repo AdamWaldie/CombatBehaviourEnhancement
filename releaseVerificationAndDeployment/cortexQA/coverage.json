@@ -865,7 +865,8 @@
         "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf",
         "addons/vehicles/functions/vehicleCrewDestinationState.sqf",
         "addons/vehicles/functions/edenDrivingCorridorPreview.sqf",
-        "addons/vehicles/functions/drivingAttributeApply.sqf"
+        "addons/vehicles/functions/drivingAttributeApply.sqf",
+        "addons/vehicles/functions/drivingGateLegacyLeaves.sqf"
       ]
     },
     {

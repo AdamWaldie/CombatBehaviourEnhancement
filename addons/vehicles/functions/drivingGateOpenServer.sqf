@@ -21,7 +21,7 @@
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
  * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime, unlockReceipt NUMBER (-1 or original LOCKED result timestamp).
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
- * Exact indexed Door/Gate_N_sound_source or Door/Gate_N_source metadata, N=1..8.
+ * Exact indexed Door/Gate_N sources, or source-empty paired legacy action/model channels, N=1..8.
  * At most64 definitions and8 initial native phase reads; one preferred source per leaf, sound before plain.
  * Current callers: DrivingGateRequest; DrivingGateOwnerEvidence authenticates one remote-owner reply.
  * Optional argument1 is an internal single-use server witness token, never caller authority.
@@ -211,6 +211,11 @@ for "_index" from 1 to 8 do {
         _sources pushBack [_preferred select 1,_sourceName,_gate animationSourcePhase _sourceName];
     };
 };
+// Keep one channel mode for the entire opening: legacy actions never supplement sources.
+if (_sources isEqualTo []) then {_sources=[_gate] call CBE_fnc_DrivingGateLegacyLeaves};
+private _leafPhase={params ["_leaf"];if ((_leaf param [3,"SOURCE"]) == "ANIM") then {
+    _gate animationPhase (_leaf select 1)
+} else {_gate animationSourcePhase (_leaf select 1)}};
 private _locked={
     (_gate getVariable ["bis_disabled_Door",0]) isNotEqualTo 0
         || {_sources findIf {(_gate getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) isNotEqualTo 0} >= 0}
@@ -267,7 +272,7 @@ isNil {
         || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateRouteMatches)}
         || {[] call CBE_fnc_CortexIsPaused}
         || {[_group] call CBE_fnc_CortexExternalTakeover}
-        || {_sources findIf {abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02} >= 0}) exitWith {
+        || {_sources findIf {abs (([_x] call _leafPhase)-(_x select 2)) > 0.02} >= 0}) exitWith {
         ["REQUEST_REPLACED",serverTime] call _publishResult;
     };
     // Another vehicle may have opened this gate while this request was planning.
@@ -278,7 +283,10 @@ isNil {
     };
     _gate setVariable ["CBE_DrivingGate_ServerOpening",[+_transform,+_sources,serverTime+12,_group]];
     {
-        if ((_x select 2) < 0.1) then {_gate animateSource [_x select 1,1]};
+        if ((_x select 2) < 0.1) then {
+            if ((_x param [3,"SOURCE"]) == "ANIM") then {_gate animate [_x select 1,1]}
+                else {_gate animateSource [_x select 1,1]};
+        };
     } forEach _sources;
     // Closure is separately opt-in and requires a complete pre-passage observation.
     // Opening still succeeds when geometry/capacity cannot admit safe closure work.

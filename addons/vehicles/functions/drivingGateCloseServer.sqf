@@ -13,6 +13,7 @@
  * Passage requires an observed bounded segment through the gate aperture and current whole-hull
  * clearance. Moving sampled pedestrians retain an open gate; stationary guards and static
  * weapons block only through their closure footprint, not through a busy emplacement task.
+ * The retained leaf channel selects animate/animationPhase or animateSource/animationSourcePhase.
  * Sampled traffic clearance is not continuous collision proof. CLOSE_REQUESTED is
  * separate from CLOSED_OBSERVED. An indistinguishable intervening same-value gate edit is unknown.
  */
@@ -20,6 +21,9 @@ params [["_job",createHashMap,[createHashMap]]];
 if (!isServer || {canSuspend} || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {-1};
 private _gate=_job getOrDefault ["gate",objNull];
 private _vehicle=_job getOrDefault ["vehicle",objNull];
+private _leafPhase={params ["_leaf"];if ((_leaf param [3,"SOURCE"]) == "ANIM") then {
+    _gate animationPhase (_leaf select 1)
+} else {_gate animationSourcePhase (_leaf select 1)}};
 private _taskGroup=_job getOrDefault ["taskGroup",grpNull];
 private _retire={
     params ["_reason"];
@@ -47,7 +51,7 @@ if ((_job get "phase") == "CLOSING") exitWith {
     if ((_job get "transform") isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]
         || {(_gate getVariable ["CBE_DrivingGate_ServerOpening",[]]) isNotEqualTo (_job get "opening")}) exitWith {["CLOSURE_CONTEXT_CHANGED"] call _retire};
     private _closed=true;
-    {if (abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02) then {_closed=false}} forEach (_job get "leaves");
+    {if (abs (([_x] call _leafPhase)-(_x select 2)) > 0.02) then {_closed=false}} forEach (_job get "leaves");
     if (_closed) then {["CLOSED_OBSERVED"] call _retire} else {1}
 };
 if (isNull _vehicle || {isNull _taskGroup} || {!alive _vehicle}
@@ -89,10 +93,10 @@ if (!_enabled) exitWith {["DRIVING_ENDED"] call _retire};
 // Do not sample expectedDestination for nonlocal crew during server passage observation.
 if (_revision >= 0 && {((_taskGroup getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-2]) == _revision}) exitWith {["NATIVE_ORDER_CHANGED"] call _retire};
 
-if ((_job get "otherLeaves") findIf {abs ((_gate animationSourcePhase (_x select 1))-(_x select 2)) > 0.02} >= 0) exitWith {["OTHER_LEAF_CHANGED"] call _retire};
+if ((_job get "otherLeaves") findIf {abs (([_x] call _leafPhase)-(_x select 2)) > 0.02} >= 0) exitWith {["OTHER_LEAF_CHANGED"] call _retire};
 private _leaves=_job get "leaves";
 if (_leaves findIf {(_gate getVariable [format ["bis_disabled_Door_%1",_x select 0],0]) isNotEqualTo 0} >= 0) exitWith {["LOCKED"] call _retire};
-private _phases=_leaves apply {_gate animationSourcePhase (_x select 1)};
+private _phases=_leaves apply {[_x] call _leafPhase};
 
 private _lastPhases=_job get "lastPhases";
 private _animationChanged=false;
@@ -175,7 +179,10 @@ _job deleteAt "ownerReply";
 _job set ["native",+(_closeFrame select 0)];_job set ["nativeTasks",+(_closeFrame select 1)];
 // This callback is unscheduled. No wait separates the exact phase/ownership checks,
 // the sampled clearance above and this single native closure request.
-{_gate animateSource [_x select 1,_x select 2]} forEach _leaves;
+{
+    if ((_x param [3,"SOURCE"]) == "ANIM") then {_gate animate [_x select 1,_x select 2]}
+        else {_gate animateSource [_x select 1,_x select 2]};
+} forEach _leaves;
 _job set ["phase","CLOSING"];
 _gate setVariable ["CBE_DrivingGate_CloseResult",["CLOSE_REQUESTED",serverTime,_vehicle,_job get "until"],true];
 1
