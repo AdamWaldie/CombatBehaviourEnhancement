@@ -226,7 +226,8 @@ private _thrown = false;
                     if (!_contactChanged) then {
                         private _contactBearing=_unit getDir _contact;
                         private _throwBearing=_unit getDir _towards;
-                        _contactChanged=abs (((_throwBearing-_contactBearing+540) % 360)-180) > 60;
+                        _contactChanged=abs (((_throwBearing-_contactBearing+540) % 360)-180) > 60
+                            || {_unit distance2D _contact <= _unit distance2D _towards};
                     };
                 };
                 if (_contactChanged) exitWith {["CONTACT_CHANGED",[+_towards]] call _cancel};

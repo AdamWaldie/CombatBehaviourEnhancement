@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Dormant/hidden actors and queued medical healers are excluded before inventory work.
  * Direction requires retained native contact; an impact without contact cannot define a throw bearing.
+ * The screen stays halfway to close contacts, capped at18m, rather than passing the threat.
  * Purpose: Opportunistically deploy one carried smoke grenade during a severe finite danger response without delaying cover, movement, firing or the group operation state.
  * Locality / Authority: Runs inside the owner-local group-brain scheduler. It selects one local foot soldier and queues one local throw after rechecking CBE, Zeus, specialist and generation ownership.
  * Selection inspects at most 64 members and tries at most three ordinary carriers; unavailable inventory backs off without blocking the group.
@@ -70,7 +71,8 @@ private _queued=false;
     private _candidate=_x select 2;
     private _origin=getPosATL _candidate;
     if (_origin distance2D _screenThreat >= 3) then {
-        private _screen=_origin getPos [18,_origin getDir _screenThreat];
+        private _screenDistance=(0.5 * (_origin distance2D _screenThreat)) min 18;
+        private _screen=_origin getPos [_screenDistance,_origin getDir _screenThreat];
         _screen set [2,_origin select 2];
         _queued=[_candidate,_screen,"SMOKE",["DANGER",_generation,_expires]] call CBE_fnc_CortexThrowGrenade;
     };
