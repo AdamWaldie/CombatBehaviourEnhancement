@@ -12388,7 +12388,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,replay)
         self.assertIn('select [0,64]',replay)
         self.assertIn('(_count max 0) min 3',replay)
-        history=replay.split('// A known casualty',1)[1].split('if (count _stage in [4,7]',1)[0]
+        history=replay.split('// A known casualty',1)[1].split('if (_viewReceiptValid && {count _stage in [4,7]}',1)[0]
         for gate in ('count _stage == 7','"ARRIVED"','!isNull _historicGuard',
                      '!alive _historicGuard','"INCAPACITATED"','"ACE_isUnconscious"',
                      '_stage select 0,_stage select 4,_stage select 5','!finite _x',

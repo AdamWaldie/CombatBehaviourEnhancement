@@ -54,5 +54,10 @@
     "review": "clear-exterior-resume-probe-20261025.json",
     "scope": "Exact-context CHECK-only proposal resolves dependency on new reserve marker during old settled MOVE validation. Bookkeeping requires actual final marker commit. Full ordered producer delivery/aggregate readiness/quiescence remains unfinished.",
     "physicalAcceptance": false
+  },
+  "postViewHistory20261025": {
+    "review": "clear-post-view-history-20261025.json",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "scope": "Exact arrived-post/watch obstruction start time survives successful exterior role adoption. New committed post clears old history. No visibility replay, full producer checkpoint or aggregate readiness claim."
   }
 }

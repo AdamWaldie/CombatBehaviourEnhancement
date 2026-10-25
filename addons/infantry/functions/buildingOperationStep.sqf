@@ -211,6 +211,9 @@
  * independently of its public stage receipt; replay issues no new movement.
  * Stage receipts distinguish REJECTED current-position holds, APPROACH and physical ARRIVED.
  * A bounded episode/transform-scoped array journal preserves search counts and tried candidates on resume.
+ * Active view-obstruction timing is bound to that arrived post/watch and retained on resume.
+ * A committed different post clears its old obstruction history without renewing search budgets.
+ * Only blockage start/clear or existing stage transitions publish a journal, not each view ray.
  * Rejected selection retries after five seconds, at most three searches per actor with tried targets excluded.
  * A still-owned approach times out after sixty seconds and yields to an alternate or EXHAUSTED hold.
  * Reserve stage selection processes at most one pending actor per callback; other attempts remain pending.
@@ -1868,6 +1871,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                 _stage set [5,+_entry];
                                 _stage set [6,_covered];
                                 _reserveStages set [_key,_stage];
+                                // A different post/watch starts a different obstruction history.
+                                // The original finite search/leg budgets above are not replenished.
+                                _stageViewChecks deleteAt _key;
                                 private _securityActors=_job getOrDefault ["securityActors",[]];
                                 _securityActors pushBackUnique _reserve;
                                 _job set ["securityActors",_securityActors];
@@ -1944,6 +1950,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                 if (_blockedSince < 0) then {_blockedSince=serverTime};
             };
             _stageViewChecks set [_key,[serverTime+2,_blockedSince]];
+            // Persist the start/clear transition, not every periodic ray. Migration
+            // must not restart this post's obstruction grace or replay view proof.
+            if (_blockedSince != (_viewCheck select 1)) then {_stageJournalChanged=true};
             if (!_viewValid && {_blockedSince >= 0} && {serverTime-_blockedSince >= 3}
                 && {[_reserve] call _reserveReady} && {call _mayIssueMovement}
                 && {currentCommand _reserve in ["","STOP"]}) then {
@@ -2693,7 +2702,16 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     // retain the published receipt without copying every actor record again.
     if (_stageJournalChanged && {call _mayIssueMovement}) then {
         private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),+(_reserveStages getOrDefault [_x,[]]),+(_stageTriedEntries getOrDefault [_x,[]])]
+            private _savedStage=_reserveStages getOrDefault [_x,[]];
+            private _savedView=_stageViewChecks getOrDefault [_x,[]];
+            private _viewReceipt=[];
+            if (count _savedStage == 7 && {(_savedStage select 2) == "ARRIVED"}
+                && {count _savedView == 2} && {(_savedView select 1) >= 0}) then {
+                _viewReceipt=[+(_savedStage select 0),+(_savedStage select 4),
+                    _savedView select 0,_savedView select 1];
+            };
+            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),
+                +_savedStage,+(_stageTriedEntries getOrDefault [_x,[]]),_viewReceipt]
         };
         private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows,+(_job get "visitContext")];
         isNil {

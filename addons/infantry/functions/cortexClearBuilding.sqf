@@ -48,6 +48,8 @@
  * this metadata grants no live observation, movement, settings or renewed search budget.
  * Exterior reserves consider up to sixteen already-discovered native exits independently of
  * the four nearest interior entry choices; this does not establish complete building isolation.
+ * Resumed exterior obstruction history requires exact original post/watch coordinates and finite
+ * original timestamps. It restores no visibility proof and only follows a successful role commit.
  * Delayed reserve admission retains original native command/formation-leader receipts across
  * the same episode; a new individual task is not claimed before first staging.
  * Spare members above the entry capacity remain an actual reserve and replace unavailable interior
@@ -1005,6 +1007,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
     private _tried=createHashMap;
     private _triedEntries=createHashMap;
     private _stages=createHashMap;
+    private _stageViews=createHashMap;
     private _moves=_job getOrDefault ["movementTargets",createHashMap];
     // This proposal exists only during a read-only native check of this validated
     // phase journal. It is removed before any marker commit or worker admission.
@@ -1023,6 +1026,22 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
     {_actors set [netId _x,_x]} forEach ((units _group) select [0,64]);
     {
         _x params ["_key","_count","_targets",["_stage",[]],["_entryHistory",[]]];
+        private _viewReceipt=_x param [5,[]];
+        private _viewReceiptValid=_viewReceipt isEqualTo [];
+        if (_viewReceipt isEqualType [] && {count _viewReceipt == 4}) then {
+            _viewReceiptValid=count _stage == 7 && {(_stage select 2) == "ARRIVED"}
+                && {[_viewReceipt select 0,_viewReceipt select 1] findIf {
+                    !(_x isEqualType []) || {count _x != 3}
+                        || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                } < 0}
+                && {(_viewReceipt select 0) isEqualTo (_stage select 0)}
+                && {(_viewReceipt select 1) isEqualTo (_stage select 4)}
+                && {[2,3] findIf {!((_viewReceipt select _x) isEqualType 0)
+                    || {!finite (_viewReceipt select _x)}} < 0}
+                && {(_viewReceipt select 3) >= 0} && {(_viewReceipt select 3) <= serverTime}
+                && {(_viewReceipt select 2) >= (_viewReceipt select 3)}
+                && {(_viewReceipt select 2) <= _hardDeadline+2};
+        };
         _counts set [_key,(_count max 0) min 3];
         _tried set [_key,+(_targets select [0,6])];
         _triedEntries set [_key,+(_entryHistory select [0,3])];
@@ -1041,7 +1060,8 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
             } < 0}
             && {(_stage select 5) in (_job getOrDefault ["securityEntries",_job getOrDefault ["entries",[]]])};
         if (_historicPost) then {_stages set [_key,+_stage]};
-        if (count _stage in [4,7] && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
+        if (_viewReceiptValid && {count _stage in [4,7]}
+            && {(_stage select 2) in ["APPROACH","ARRIVED","REJECTED","EXHAUSTED"]}
             && {!isNull _actor} && {local _actor} && {!isPlayer _actor} && {!(_actor in _team)}
             && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}
             && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
@@ -1085,6 +1105,9 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
                 if (_postCommitted) then {
                     _stages set [_key,+_stage];
                     _moves set [_key,+_target];
+                    if (count _viewReceipt == 4) then {
+                        _stageViews set [_key,[_viewReceipt select 2,_viewReceipt select 3]];
+                    };
                 };
             };
         };
@@ -1093,6 +1116,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
     _job set ["reserveStageTriedTargets",_tried];
     _job set ["reserveStageTriedEntries",_triedEntries];
     _job set ["reserveStages",_stages];
+    _job set ["reserveStageViewChecks",_stageViews];
     _job set ["movementTargets",_moves];
     _job set ["securityActors",(units _group) select {netId _x in _stages}];
 };

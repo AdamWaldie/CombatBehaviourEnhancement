@@ -51,6 +51,24 @@ class ClearObservationLifecycle(unittest.TestCase):
         self.assertLess(install.index('&& {_viewConfirmed}'),install.index('_reserve doWatch _watch'))
         self.assertIn('_key == _stageViewKey',watch)
         self.assertIn('_stageViewBudget=_stageViewBudget-1',watch)
+        self.assertIn('if (_blockedSince != (_viewCheck select 1)) then {_stageJournalChanged=true}',watch)
+        proposal=text.split('if (_valid) then {',1)[1].split('// Native acknowledgement may arrive',1)[0]
+        self.assertLess(proposal.index('_reserve doMove _target'),proposal.index('_stageViewChecks deleteAt _key'))
+        journal=text.split('private _budgetRows=',1)[1].split('private _stageBudget=',1)[0]
+        self.assertIn('(_savedStage select 2) == "ARRIVED"',journal)
+        self.assertIn('_viewReceipt=[+(_savedStage select 0),+(_savedStage select 4)',journal)
+        admission=(INFANTRY/'cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        resume=admission.split('private _stageBudget=',1)[1].split('// Resume restores native-work bookkeeping',1)[0]
+        for guard in ('(_viewReceipt select 0) isEqualTo (_stage select 0)',
+                      '(_viewReceipt select 1) isEqualTo (_stage select 4)',
+                      '(_viewReceipt select 3) <= serverTime',
+                      '(_viewReceipt select 2) <= _hardDeadline+2',
+                      '"reserveStageViewChecks",_stageViews'):
+            self.assertIn(guard,resume)
+        adopted=resume.split('if (_postCommitted) then {',1)[1]
+        self.assertIn('_stageViews set [_key,[_viewReceipt select 2,_viewReceipt select 3]]',adopted)
+        self.assertNotIn('serverTime+',adopted)
+
         self.assertEqual(watch.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('setVariable ["_viewConfirmed"',watch)
 

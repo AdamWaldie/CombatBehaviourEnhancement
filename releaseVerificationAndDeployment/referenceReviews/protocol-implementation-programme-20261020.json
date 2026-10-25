@@ -18,6 +18,12 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "postViewHistory20261025": {
+        "review": "clear-post-view-history-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exterior post obstruction history is bound to exact post/watch and retained across qualified migration; original search/leg/task budgets and actual current eye-ray authority remain required.",
+        "physicalAcceptance": false
       }
     },
     {

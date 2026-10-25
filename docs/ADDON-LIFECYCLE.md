@@ -1699,3 +1699,27 @@ budget; these require a future authorised physical pass.
 The [native STOP command](https://community.bistudio.com/wiki/commandStop) never
 finishes. Requiring `unitReady` here would keep the reservation indefinitely; active
 STOP, measured rest and exact ended-worker evidence serve distinct purposes.
+
+
+### CQB exterior observation history across handover
+
+An arrived exterior guard's first obstructed-eye-ray timestamp now travels with its
+exact post and watch coordinates in the existing finite stage journal. Resume
+validates those coordinates, finite timestamps, original episode/transform/deadline
+and the actor's current native role before retaining the history. Invalid supplied
+history cannot admit a live post. This restores timing only: the next callback still
+requires its own actual eye ray before installing watch or deciding an obstruction
+persists. Migration cannot manufacture a fresh obstruction grace period.
+
+A successfully committed different post clears the previous post's obstruction
+history. This preserves the short transient-occlusion grace for the new location
+without adding a staging attempt, renewing the search budget or extending the task
+lifetime. An invalid or merely proposed location cannot perform that reset.
+
+Blockage start/clear and existing stage transitions publish the journal. Periodic
+unchanged rays do not add broadcasts; at most 64 existing rows carry one extra
+bounded receipt. The existing one-ray-per-callback and two-second local recheck
+limits remain unchanged. A transfer may recheck earlier than the last local due time
+if it was not part of a published transition, but cannot reset the original blocked
+start time. Physical isolation, native movement and measured overhead remain pending
+an authorised game pass; this is not proof of complete perimeter coverage.
