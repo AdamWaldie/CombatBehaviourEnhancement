@@ -264,6 +264,13 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-exit-floor-20261025.json",
+      "sha256": "d2242d6cdb40ddd1722f61984be6b4581e83a754d09311c5ad2e1ba1fa014f75",
+      "scope": "Current approved floor at corridor exit for ordinary lead and convoy tail; not physical crossing acceptance or whole-HBQ parity.",
+      "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-pitch-profile-20261025.json",
       "sha256": "2bdf4ce4a3963cf203fc9b47244bb3ec685d1c2c36f849000cab55efb694d014",
       "scope": "Selected marked-corridor pitched support profile; not shallow-ford support, automatic grade following or whole-HBQ parity.",

@@ -23,7 +23,9 @@
  * Native BACK/direct-commander/turn input vetoes steering; incompatible CROSS crew tasks
  * retire metadata without recalling the actors. Identical repeated STOP remains indistinguishable.
  * CROSS compares actual height with the interpolated approved ASL support profile through
- * the area, rejecting a different floor before entry/completion credit; no fresh rays are added.
+ * the area and its retained exit approach, rejecting a different floor before completion.
+ * Outside the sampled span only the existing endpoint-height overshoot check applies.
+ * At most20stored support nodes are walked; no fresh rays or world queries are added.
  * Repeat/JIP: Public command/seat/route/area receipts allow current-owner adoption without reissue
  * or deadline renewal. Original 120-second approach and half-length+45-second crossing budgets
  * remain finite. Area edits, new orders, changed seats and external ownership retire old work.
@@ -284,23 +286,22 @@ if (count _work > 0) exitWith {
         // Compare actual origin height with the approved support profile while inside the
         // corridor. Horizontal entry/exit alone cannot distinguish a bridge deck from its underpass.
         // The proposal is straight and ordered along travel; at most twenty stored ASL nodes.
-        if (abs _projection <= _halfLength+5) then {
-            private _expectedFloor=[];
-            if (count _asl >= 2 && {count _asl <= 20}) then {
-                for "_i" from 1 to (count _asl-1) do {
-                    private _a=_asl select (_i-1);private _b=_asl select _i;
-                    private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
-                    private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
-                    if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
-                        private _fraction=(_projection-_pa)/(_pb-_pa);
-                        _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
-                    };
+        private _expectedFloor=[];
+        if (count _asl >= 2 && {count _asl <= 20}) then {
+            for "_i" from 1 to (count _asl-1) do {
+                private _a=_asl select (_i-1);private _b=_asl select _i;
+                private _pa=(_a vectorDiff _centre) vectorDotProduct _travel;
+                private _pb=(_b vectorDiff _centre) vectorDotProduct _travel;
+                if (_projection >= _pa && {_projection <= _pb} && {_pb-_pa > 0.01}) exitWith {
+                    private _fraction=(_projection-_pa)/(_pb-_pa);
+                    _expectedFloor=[(_a select 2)+((_b select 2)-(_a select 2))*_fraction];
                 };
             };
-            if (_expectedFloor isEqualTo [] || {abs ((_origin select 2)-(_expectedFloor select 0)) > 2}) then {
-                _crossed=false;
-                [_vehicle,_group,"CORRIDOR_FLOOR_DEPARTED"] call CBE_fnc_DrivingCorridorRelease;
-            };
+        };
+        if (abs _projection <= _halfLength+5 && {_expectedFloor isEqualTo []
+            || {abs ((_origin select 2)-(_expectedFloor select 0)) > 2}}) then {
+            _crossed=false;
+            [_vehicle,_group,"CORRIDOR_FLOOR_DEPARTED"] call CBE_fnc_DrivingCorridorRelease;
         };
         if (isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}) exitWith {};
         // An exit pose alone cannot prove corridor passage after a detour around the area.
@@ -313,8 +314,14 @@ if (count _work > 0) exitWith {
             _work set ["entered",true];_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true];
         };
         private _exit=_asl select ((count _asl)-1);
+        // A vehicle may clear the hull plane before reaching the final path station.
+        // Use its current approved slope level, not the endpoint height. Outside the
+        // sampled path retain the existing endpoint overshoot check; do not extrapolate.
+        private _exitLevel=if (_expectedFloor isEqualTo []) then {
+            abs ((_origin select 2)-(_exit select 2)) <= 2
+        } else {abs ((_origin select 2)-(_expectedFloor select 0)) <= 2};
         if (_crossed && {_work getOrDefault ["entered",false]} && {_withinWidth} && {(getPosASL _vehicle) distance2D _exit <= 20}
-            && {abs (((getPosASL _vehicle) select 2)-(_exit select 2)) <= 2}) exitWith {
+            && {_exitLevel}) exitWith {
             [_vehicle,_group,"PHYSICALLY_CROSSED"] call CBE_fnc_DrivingCorridorRelease;
         };
     };

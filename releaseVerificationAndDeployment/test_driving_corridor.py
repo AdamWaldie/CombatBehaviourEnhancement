@@ -100,6 +100,11 @@ class CorridorFoundationTests(unittest.TestCase):
         entered=s.split('if (!_entered',1)[1].split('if (_entered',1)[0]
         self.assertIn('{_level}',entered)
         self.assertLess(s.index('private _level='),s.index('_row set [4,true]'))
+        exit_check=s.split('private _exitLevel=',1)[1].split('// Lower the existing follower',1)[0]
+        self.assertIn('if (_expectedFloor isEqualTo [])',exit_check)
+        self.assertIn('else {_level}',exit_check)
+        self.assertIn('&& {_exitLevel}',exit_check)
+
         for command in ('lineIntersectsSurfaces','nearestObjects','setDriveOnPath','forceSpeed'):
             self.assertNotIn(command,floor)
     def test_crossing_rejects_underpass_height_before_entry_or_exit_credit(self):
@@ -114,6 +119,34 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(marker,floor)
         self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('_work set ["entered",true]'))
         self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('"PHYSICALLY_CROSSED"'))
+        self.assertLess(crossing.index('private _expectedFloor=[]'),crossing.index('if (abs _projection <= _halfLength+5'))
+        exit_check=crossing.split('private _exitLevel=',1)[1].split('"PHYSICALLY_CROSSED"',1)[0]
+        self.assertIn('if (_expectedFloor isEqualTo [])',exit_check)
+        self.assertIn('(_origin select 2)-(_expectedFloor select 0)',exit_check)
+        self.assertIn('&& {_exitLevel}',exit_check)
+        # Both existing consumers share this exit-height rule. A within-span pose can
+        # differ from the endpoint by >2m on an approved modest slope; substituting
+        # endpoint height can reject the right floor and accept a lower level.
+        def floor_at(projection,nodes):
+            for (a,za),(b,zb) in zip(nodes,nodes[1:]):
+                if a <= projection <= b and b-a > .01:
+                    return za+(zb-za)*(projection-a)/(b-a)
+            return None
+        def exit_level(height,projection,nodes):
+            current=floor_at(projection,nodes)
+            return abs(height-(nodes[-1][1] if current is None else current)) <= 2
+        for grade in (-math.tan(math.radians(8)),0,math.tan(math.radians(8))):
+            nodes=[(-55,10-55*grade),(55,10+55*grade)]
+            expected=10+36*grade
+            self.assertTrue(exit_level(expected,36,nodes))
+            self.assertFalse(exit_level(expected+3,36,nodes))
+            if grade:
+                self.assertGreater(abs(expected-nodes[-1][1]),2)
+                self.assertFalse(exit_level(nodes[-1][1],36,nodes))
+            # No profile extrapolation or relaxed endpoint overshoot tolerance.
+            self.assertTrue(exit_level(nodes[-1][1]+1,60,nodes))
+            self.assertFalse(exit_level(nodes[-1][1]+3,60,nodes))
+
         for forbidden in ('lineIntersectsSurfaces','nearestObjects','getTerrainHeightASL','setPos','setVelocity'):
             self.assertNotIn(forbidden,floor)
     def test_registration_authenticates_remote_curators_and_has_no_movement_authority(self):

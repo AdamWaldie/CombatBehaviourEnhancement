@@ -205,8 +205,13 @@ private _targetSpeed=(_definition select 3)/3.6;
             if (abs _projection <= _halfLength && {!_insideWidth || {!_level}}) then {_failure="TAIL_DEPARTED_CORRIDOR"};
             if (!_entered && {_projection >= -_halfLength} && {_projection <= -_halfLength+15}
                 && {_insideWidth} && {_level}) then {_row set [3,true];_entered=true;_changed=true};
+            // The stored profile already covers the current exit-approach position.
+            // Endpoint elevation applies only after leaving that sampled span.
+            private _exitLevel=if (_expectedFloor isEqualTo []) then {
+                abs ((_origin select 2)-(_exit select 2)) <= 2
+            } else {_level};
             if (_entered && {_tailClear} && {_insideWidth} && {_origin distance2D _exit <= 20}
-                && {abs ((_origin select 2)-(_exit select 2)) <= 2}) then {
+                && {_exitLevel}) then {
                 _row set [4,true];_crossed=_crossed+1;_changed=true;
             } else {
                 // Lower the existing follower speed writer progressively before entry. This
