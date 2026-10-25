@@ -99,6 +99,11 @@ if (_purpose == "") exitWith {false};
 // Server-visible eligibility only. Current actor tasks and inventory remain owner checks.
 private _batteryCrewUsable={
     params ["_asset"];
+    if (!isNil {_asset getVariable "CBE_Cortex_ArtilleryScootToken"}) exitWith {false};
+    private _operation=(group driver _asset) getVariable ["CBE_Operation",createHashMap];
+    private _scootSource=_operation getOrDefault ["artilleryScootSession",[]];
+    if (count _scootSource == 2 && {(_scootSource select 0) == _asset}
+        && {(_operation getOrDefault ["intent",""]) == "ARTILLERY_SCOOT"}) exitWith {false};
     private _pending=_asset getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
     if (count _pending > 0 && {(_pending getOrDefault ["phase",""]) != "RETIRED"}) exitWith {false};
     private _gunner=gunner _asset;

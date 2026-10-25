@@ -21,11 +21,42 @@ class ArtilleryScootSession(unittest.TestCase):
                        '(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])',
                        '(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])'):
             self.assertIn(marker,s)
-        self.assertEqual(s.count('[_battery,_token,+_session],5]'),2)
+        self.assertEqual(s.count('[_battery,_token,+_session],5]'),3)
         self.assertIn('count (_session select 6) != 2',s)
         self.assertIn('(_session select 6) isEqualTo _seats',s)
         self.assertNotIn('_session set [6,',s)
         self.assertNotIn('_session set [3,',s)
+        # Native prefire handback is an additional wait, not a renewed relocation session.
+        cleanup=s.split('if (_crewReference isNotEqualTo []) exitWith {',1)[1].split('private _crewOnly=',1)[0]
+        self.assertIn('ArtilleryCrewMoveRetire',cleanup)
+        self.assertIn('serverTime < (_session select 3)',cleanup)
+        self.assertIn('[_battery,_token,+_session],5]',cleanup)
+        for forbidden in ('doMove','execFSM','serverTime+120','_session set'):
+            self.assertNotIn(forbidden,cleanup)
+        active=s.split('private _crewWork=',1)[1].split('private _purpose=',1)[0]
+        self.assertIn('if (_live) exitWith {true}',active)
+        self.assertIn('ArtilleryCrewMoveRetire',active)
+        self.assertNotIn('ArtilleryCrewMoveStart',active)
+        mixed=s.split('if (_crewOnly) exitWith {',1)[1].split('if !([_group,"ARTILLERY_SCOOT"',1)[0]
+        self.assertIn('[_battery,_token,_session,_spot,"SCOOT"]',mixed)
+        for forbidden in ('CortexGroupMove','OperationStart','addWaypoint','joinSilent'):
+            self.assertNotIn(forbidden,mixed)
+        start=(ROOT/'addons/support/functions/artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('"kind",_kind',start)
+        self.assertIn('[_group,true,!_scoot] call CBE_fnc_CortexLocality',start)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        self.assertIn('["_resumeArtilleryScoot",true,[true]]',locality)
+        self.assertIn('if (_resumeArtilleryScoot && {_scootToken != ""})',locality)
+
+        self.assertIn('(serverTime+120) min ((_session select 3)+120)',start)
+        worker=(ROOT/'addons/support/functions/artilleryCrewMoveStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('"scootArrivedAt",serverTime',worker)
+        self.assertIn('CBE_ArtilleryScoot_SupportGeneration',worker)
+        self.assertIn('CBE_ArtilleryScoot_CounterGeneration',worker)
+        terminal=worker.split('if (_retired && {(_work getOrDefault ["kind"',1)[1].split('if (_retired && {local _group}',1)[0]
+        self.assertIn('isEqualTo (_work get "session")',terminal)
+        self.assertIn('CBE_Cortex_ArtilleryScootToken',terminal)
+
         self.assertLess(s.index('if !(call _sessionCurrent)'),s.index('if (_busy) exitWith'))
     def test_cleanup_and_post_geometry_move_admission_preserve_current_session(self):
         s=(ROOT/'addons/support/functions/cortexArtilleryScoot.sqf').read_text(encoding='utf-8')

@@ -27,7 +27,11 @@
  * 2 session <ARRAY, [] reads public receipt> [token, purpose generation, counter generation,
  * original server deadline, purpose, [original movement group, authored route], original driver/commander pair]. Server dispatch and delayed retries carry the exact session.
  * Return Value: Boolean - true when relocation started or remains pending.
- * Current callers: ArtilleryMissionStep and CortexLocality.
+ * Mixed groups use the selected driver/effective-commander FSM without group waypoints or
+ * membership changes. A pending prefire native handback keeps the original admission deadline.
+ * Started selected relocation retains its session until observed native retirement. Duplicate
+ * or new-owner calls cannot replay outward travel; unknown cleanup remains reserved.
+ * Current callers: ArtilleryMissionStep, CortexLocality and finite pending retries.
  * Example: [_gun,_token] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _gun];
  */
 params [["_battery", objNull, [objNull]],["_token","",[""]],["_session",[],[[]]]];
@@ -63,6 +67,20 @@ private _movementOrder=_session select 5;
 if (!(_movementOrder isEqualType []) || {count _movementOrder != 2}
     || {!((_movementOrder select 0) isEqualType grpNull)} || {isNull (_movementOrder select 0)}
     || {!((_movementOrder select 1) isEqualType [])} || {(_movementOrder select 1) isEqualTo []}) exitWith {call _clear;false};
+private _crewWork=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+if ((_crewWork getOrDefault ["kind",""]) == "SCOOT"
+    && {(_crewWork getOrDefault ["token",""]) == _token}
+    && {(_crewWork getOrDefault ["session",[]]) isEqualTo _session}) exitWith {
+    if ((_crewWork getOrDefault ["phase",""]) in ["UNRESOLVED","RETIRED"]) exitWith {false};
+    private _executor=_battery getVariable ["CBE_ArtilleryCrew_FSM",[]];
+    private _live=count _executor == 5 && {(_executor select 0) == (_crewWork get "serial")}
+        && {(_executor select 2) == clientOwner}
+        && {(_executor select 3) == ((_crewWork get "group") getVariable ["CBE_AIPass_Epoch",-1])}
+        && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
+        && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
+    if (_live) exitWith {true};
+    [_battery,_token,_crewWork get "serial"] call CBE_fnc_ArtilleryCrewMoveRetire
+};
 private _purpose=_session select 4;
 private _counter=_purpose == "COUNTER";
 private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
@@ -91,14 +109,29 @@ if !(_purpose in ["SUPPORT","COUNTER"]
     && {[group driver _battery,_feature,false] call CBE_fnc_CortexFeatureEnabled}) exitWith {call _clear; false};
 private _group = group driver _battery;
 private _state = [_group] call CBE_fnc_CortexGroupState;
+// Prefire native retirement must finish before a relocation acquires movement. This retry
+// keeps the original server admission deadline and never issues a new outward command.
+private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
+if (_crewReference isNotEqualTo []) exitWith {
+    if ((_crewWork getOrDefault ["kind",""]) != "POSITION"
+        || {(_crewWork getOrDefault ["token",""]) != _token}
+        || {(_crewWork getOrDefault ["phase",""]) in ["UNRESOLVED","RETIRED"]}) exitWith {call _clear;false};
+    [_battery,_token,_crewWork get "serial"] call CBE_fnc_ArtilleryCrewMoveRetire;
+    if (serverTime < (_session select 3)) then {
+        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token,+_session],5] call CBA_fnc_waitAndExecute;
+        true
+    } else {call _clear;false}
+};
+private _crewOnly=vehicle leader _group != _battery
+    || {(units _group) findIf {alive _x && {vehicle _x != _battery}} >= 0};
 private _driver=driver _battery;
 private _operator=effectiveCommander _battery;
 if (isNull _operator) then {_operator=_driver};
 private _crewReady={
     local _group && {local _battery} && {!waterDamaged _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
-        && {vehicle leader _group == _battery}
         && {count units _group <= 64}
-        && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}
+        && {_crewOnly || {vehicle leader _group == _battery
+            && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}}}
         && {driver _battery == _driver} && {(effectiveCommander _battery) in [_operator,objNull]}
         && {[_driver,_operator] findIf {
             isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _battery}
@@ -150,6 +183,10 @@ isNil {
     _started=call {
         if (!(call _sessionCurrent) || {!(call _crewReady)} || {group driver _battery != _group}
             || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {call _clear;false};
+        if (_crewOnly) exitWith {
+            if ([_battery,_token,_session,_spot,"SCOOT"] call CBE_fnc_ArtilleryCrewMoveStart) exitWith {true};
+            call _clear;false
+        };
 if !([_group,"ARTILLERY_SCOOT",true,serverTime+120] call CBE_fnc_CortexOwnershipLease) exitWith {
     if (serverTime < (_session select 3)) then {
         [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token,+_session],5] call CBA_fnc_waitAndExecute;

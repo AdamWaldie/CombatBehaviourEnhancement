@@ -1,30 +1,64 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Admit a finite native movement for only an explicitly selected battery's operating crew.
- * Locality/authority: Current local battery/group/AI crew, authenticated Position caller only.
+ * Locality/authority: Current local battery/group/AI crew, authenticated positioning or relocation caller only.
  * Shared movement acquisition first retires ordinary driving; unresolved parent work refuses.
  * No group waypoint or membership is changed. Only the later owner-local FSM may issue crew moves.
  * Repeat/JIP: One exact token/session/reference, original deadlines and monotonic serial; existing
  * work never becomes a new baseline. New owners may retire old work, never replay its outward leg.
- * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 original positioning session ARRAY,[];
- * 3 selected supported endpoint ARRAY of three finite NUMBER,[].
+ * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 original positioning(10) or relocation(7) session ARRAY,[];
+ * 3 selected supported endpoint ARRAY of three finite NUMBER,[]; 4 kind STRING,"POSITION" or "SCOOT".
  * Return: BOOL admission and FSM start, not native acknowledgement, arrival or firing readiness.
- * Current caller: CortexArtilleryPosition; not an exposed task module.
+ * Current callers: CortexArtilleryPosition and CortexArtilleryScoot; not an exposed task module.
  * Example: [_battery,_token,_session,_spot] call CBE_fnc_ArtilleryCrewMoveStart;
  */
-params [["_battery",objNull,[objNull]],["_token","",[""]],["_session",[],[[]]],["_spot",[],[[]]]];
+params [["_battery",objNull,[objNull]],["_token","",[""]],["_session",[],[[]]],["_spot",[],[[]]],["_kind","POSITION",[""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
-if (isNull _battery || {!local _battery} || {_token == ""} || {count _session != 10}
+if (isNull _battery || {!local _battery} || {_token == ""} || {count _session != ([10,7] select (_kind == "SCOOT"))}
     || {count _spot != 3} || {_spot findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {surfaceIsWater _spot}) exitWith {false};
+private _scoot=_kind == "SCOOT";
+if !(_kind in ["POSITION","SCOOT"]) exitWith {false};
+private _movementOrder=if (_scoot) then {_session select 5} else {[_session select 3,_session select 4]};
+if (!(_movementOrder isEqualType []) || {count _movementOrder != 2}
+    || {!((_movementOrder select 0) isEqualType grpNull)}
+    || {!((_movementOrder select 1) isEqualType [])}) exitWith {false};
+if (_scoot && {[1,2,3] findIf {!((_session select _x) isEqualType 0) || {!finite (_session select _x)}} >= 0
+    || {!((_session select 6) isEqualType [])} || {count (_session select 6) != 2}}) exitWith {false};
+private _purpose=_session select ([6,4] select _scoot);
+private _counter=_purpose == "COUNTER";
+private _identityCurrent={
+    if (_scoot) exitWith {
+        (_session select 0) == _token && {serverTime < (_session select 3)}
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}
+    };
+    (_battery getVariable ["CBE_AIPass_FireToken",""]) == _token
+        && {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isEqualTo _session}
+};
+private _generationCurrent={
+    if (_scoot) exitWith {
+        (_session select 1) == (missionNamespace getVariable [
+            ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter,0])
+            && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
+            && {missionNamespace getVariable [["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter,true]}
+            && {(_session select 6) isEqualTo _seats}
+    };
+    (_session select 5) == (missionNamespace getVariable [
+        ["CBE_Artillery_SupportFireGeneration","CBE_AIPass_CounterGeneration"] select _counter,0])
+        && {(_session select 7) != "SMOKE" || {
+            (_session select 8) == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])
+            && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
+};
 private _started=false;
 isNil {
     _started=call {
-        private _group=_session select 3;
+        private _group=_movementOrder select 0;
         private _driver=driver _battery;private _operator=effectiveCommander _battery;
         if (isNull _operator) then {_operator=_driver};
         private _seats=[_driver,_operator];
-        private _until=_session select 2;private _holdUntil=_session select 9;
+        private _until=if (_scoot) then {(serverTime+120) min ((_session select 3)+120)} else {_session select 2};
+        private _holdUntil=if (_scoot) then {_until} else {_session select 9};
         if (!(_group isEqualType grpNull) || {isNull _group} || {!local _group}
             || {!(_until isEqualType 0)} || {!finite _until} || {_until <= serverTime}
             || {!(_holdUntil isEqualType 0)} || {!finite _holdUntil} || {_holdUntil < _until}
@@ -33,30 +67,25 @@ isNil {
             || {!(_battery isKindOf "LandVehicle")} || {_battery isKindOf "StaticWeapon"}
             || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}
             || {[_group] call CBE_fnc_CortexExternalTakeover}
-            || {(_battery getVariable ["CBE_AIPass_FireToken",""]) != _token}
-            || {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isNotEqualTo _session}
+            || {!(call _identityCurrent)}
             || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []}
             || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
-            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_session select 4)}) exitWith {false};
+            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {false};
         // Discovery may not yet have adopted this group. Establish the epoch before the
         // journal, then recheck the server session and native route after that cleanup.
         if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
-            [_group,true] call CBE_fnc_CortexLocality;
+            // Locality normally resumes pending scoot tokens. This caller IS their first
+            // admission; suppress that synchronous callback, not other adoption cleanup.
+            [_group,true,!_scoot] call CBE_fnc_CortexLocality;
         };
         if (!local _group || {!(_group getVariable ["CBE_AIPass_Adopted",false])}) exitWith {false};
         private _sourceCurrent={
-            (_battery getVariable ["CBE_AIPass_FireToken",""]) == _token
-                && {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isEqualTo _session}
-                && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_session select 4)}
+            call _identityCurrent && {call _generationCurrent}
+                && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_movementOrder select 1)}
                 && {serverTime < _until} && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
                 && {!([] call CBE_fnc_CortexIsPaused)}
-                && {(_session select 5) == (missionNamespace getVariable [
-                    ["CBE_Artillery_SupportFireGeneration","CBE_AIPass_CounterGeneration"] select ((_session select 6) == "COUNTER"),0])}
-                && {[_group,["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select ((_session select 6) == "COUNTER"),false]
+                && {[_group,["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter,false]
                     call CBE_fnc_CortexFeatureEnabled}
-                && {(_session select 7) != "SMOKE" || {
-                    (_session select 8) == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])
-                    && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
                 && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
                 && {!(_battery getVariable ["CBE_Convoy_Active",false])}
                 && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}
@@ -83,7 +112,7 @@ isNil {
         private _refuse={[_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease;false};
         if (!(call _sourceCurrent) || {!(call _crewCurrent)} || {driver _battery != _driver}
             || {!((effectiveCommander _battery) in [_operator,objNull])}
-            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_session select 4)}) exitWith {call _refuse};
+            || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {call _refuse};
         private _baseline=[currentCommand _driver,+(expectedDestination _driver),
             currentCommand _operator,+(expectedDestination _operator)];
         if ([0,2] findIf {(_baseline select _x) == "MOVE" && {
@@ -94,9 +123,9 @@ isNil {
         private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
         private _reference=[_battery,_token,_serial,_epoch,clientOwner];
         private _lease=["ARTILLERY_CREW",time+(_holdUntil-serverTime)];
-        private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],
+        private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],["kind",_kind],
             ["owner",clientOwner],["epoch",_epoch],["reference",_reference],["crew",_seats],
-            ["session",+_session],["route",+(_session select 4)],["baseline",_baseline],
+            ["session",+_session],["route",+(_movementOrder select 1)],["baseline",_baseline],
             ["goal",+_spot],["spot",+_spot],["phase","ISSUE"],["moveUntil",_until],
             ["holdUntil",_holdUntil],["localLease",_lease],["progressPosition",getPosASL _battery],
             ["progressAt",serverTime],["release",false]];

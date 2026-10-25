@@ -34,6 +34,12 @@ private _finish={
         _work set ["phase",["UNRESOLVED","RETIRED"] select _retired];
         _work set ["result",_reason];
         _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
+        if (_retired && {(_work getOrDefault ["kind","POSITION"]) == "SCOOT"}
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo (_work get "session")}) then {
+            {_battery setVariable [_x,nil,true]} forEach ["CBE_Cortex_ArtilleryScootToken",
+                "CBE_Cortex_ArtilleryScootSession","CBE_Cortex_ArtilleryScootDeadline","CBE_Cortex_ArtilleryScootPurpose"];
+        };
         if (_retired && {local _group}
             && {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isEqualTo _reference}) then {
             [_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease;
@@ -96,18 +102,30 @@ private _goalsMatch={
 };
 private _rest=vectorMagnitude velocity _battery < 0.278 && {vectorMagnitude angularVelocity _battery < 0.01};
 private _session=_work get "session";
-private _sourceCurrent=(_battery getVariable ["CBE_AIPass_FireToken",""]) == _token
-    && {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isEqualTo (_work get "session")}
-    && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+private _scoot=(_work getOrDefault ["kind","POSITION"]) == "SCOOT";
+private _purpose=_session select ([6,4] select _scoot);
+private _counter=_purpose == "COUNTER";
+private _sourceCurrent=missionNamespace getVariable ["CBE_AIPass_Active",false]
     && {!([] call CBE_fnc_CortexIsPaused)} && {serverTime < (_work get "holdUntil")}
     && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
-    && {(_session select 5) == (missionNamespace getVariable [
-        ["CBE_Artillery_SupportFireGeneration","CBE_AIPass_CounterGeneration"] select ((_session select 6) == "COUNTER"),0])}
-    && {[_group,["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select ((_session select 6) == "COUNTER"),false]
+    && {[_group,["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter,false]
         call CBE_fnc_CortexFeatureEnabled}
-    && {(_session select 7) != "SMOKE" || {
-        (_session select 8) == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])
-        && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}};
+    && {if (_scoot) then {
+        (_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}
+            && {(_session select 1) == (missionNamespace getVariable [
+                ["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter,0])}
+            && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
+            && {missionNamespace getVariable [["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter,true]}
+    } else {
+        (_battery getVariable ["CBE_AIPass_FireToken",""]) == _token
+            && {(_battery getVariable ["CBE_ArtilleryPosition_Session",[]]) isEqualTo _session}
+            && {(_session select 5) == (missionNamespace getVariable [
+                ["CBE_Artillery_SupportFireGeneration","CBE_AIPass_CounterGeneration"] select _counter,0])}
+            && {(_session select 7) != "SMOKE" || {
+                (_session select 8) == (missionNamespace getVariable ["CBE_Artillery_SmokeFireGeneration",0])
+                && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}}
+    }};
 if (!_sourceCurrent && {!(_phase in ["STOPPING","RETURNING"])}) then {
     _work set ["release",true];
 };
@@ -155,6 +173,9 @@ if (_phase == "MOVING") exitWith {
     if (_battery distance2D _goal <= 25 && {abs ((getPosATL _battery select 2)-(_goal select 2)) <= 3}
         && {_rest}) then {
         _work set ["phase","HOLD"];_work set ["holdObservations",_observations];
+        if (_scoot) then {
+            _work set ["scootArrivedAt",serverTime];_work set ["release",true];
+        };
         _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
     } else {
         if (serverTime >= (_work get "moveUntil") || {serverTime-(_work get "progressAt") >= 30}

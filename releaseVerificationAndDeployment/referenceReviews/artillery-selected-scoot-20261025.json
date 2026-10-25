@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "26f0ccf3",
+  "scope": "Mixed-group post-fire relocation on the existing selected-crew FSM, plus firing admission while relocation owns movement. Not whole artillery or Protocol parity.",
+  "intent": "Preserve group membership and unrelated authored infantry route; move selected original gun driver/effective commander only. Reuse existing finite execution instead of another controller.",
+  "sourceReference": {
+    "workshopId": "3801354927",
+    "path": ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf",
+    "sha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "scope": "Selected post-fire driver/commander relocation intent; not whole-source review."
+  },
+  "implementation": [
+    "ArtilleryCrewMoveStart explicitly distinguishes original POSITION10-field and SCOOT7-field sessions; no fabricated fire session. Same owner/epoch/executor/native-goal lifecycle.",
+    "Original server pending admission deadline is unchanged. First admitted relocation sets one native movement deadline at min(now+120,originalAdmission+120); no later callback or owner adoption renews it.",
+    "Mixed-group scoot waits for exact prefire native retirement under the original pending deadline before selecting/admitting relocation. Independent all-in-gun groups retain legacy waypoint movement.",
+    "Started selected relocation retains original public token/session/generations. Duplicate calls observe a live matching worker or request retirement only; no outward replay on migration/failure.",
+    "Physical rest near the supported endpoint records scootArrivedAt and immediately requests native retirement. Exact retired token/session alone clears source metadata; unresolved proof stays reserved.",
+    "Fresh fire selection refuses pending relocation tokens and active legacy relocation for that same asset, as well as unresolved selected-crew work. The optional relocation does not become a new firing token.",
+    "Found a real synchronous call chain: first selected scoot admission -> CortexLocality adoption -> pending Scoot callback -> second admission -> outer refusal/source clear. Added explicit optional resumeArtilleryScoot parameter default true; the admitting scoot passes false only for its own adoption. Other adoption cleanup and normal locality replay policy remain.",
+    "Extended existing relocation regression method; no test count increase, new manager, global scan, group split, forced seats, movement physics or skill mutation."
+  ],
+  "validation": {
+    "focusedFailure": {
+      "log": ".qa/artillery-selected-scoot-focused-20261025-attempt1.log",
+      "test": "test_pending_session_carries_original_expiry_and_generation_through_retries",
+      "finding": "Third bounded wait added for native prefire retirement; existing literal retry-site count expected2. Updated count3 and asserted unchanged original deadline/session and no movement/renewal in that wait."
+    },
+    "focusedPass": ".qa/artillery-selected-scoot-focused-20261025-attempt2.log",
+    "firstFullPassBeforeSemanticCorrection": ".qa/artillery-selected-scoot-build-20261025-attempt1.log",
+    "finalFullPass": ".qa/artillery-selected-scoot-build-20261025-attempt2.log",
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pboCount": 11,
+    "independentPass": ".qa/artillery-selected-scoot-independent-20261025.log",
+    "candidate": ".qa/candidates/artillery-selected-scoot-26f0ccf3",
+    "fingerprint": "3271ce4596515aa4d098191d1b488e8b8c6144eb3cc634489c0893d7b26aba39",
+    "kind": "Unsigned dirty development package, base commit plus runtime hashes. No physical acceptance."
+  },
+  "remaining": [
+    "Physical crew native ACK, point-hold idle/rest, original idle/MOVE return, prefire-to-scoot transition, endpoint travel, repeated use, disable/Zeus/native-order interruption and mixed-group balance UNRUN.",
+    "Normal and actual-provider HC/JIP/locality/shutdown-restart and the5%median/10%p95 budget UNRUN; audits remain explicitly PAUSED.",
+    "Group-wide reservation still pauses new CBE manoeuvres and ordinary driving; another vehicle active brain refuses admission. Platform-specific concurrent control remains a code gap; unrelated authored native route is preserved.",
+    "Terminal unknown/casualty cleanup and seamless original idle/formation continuation remain explicit source/evidence gaps. Never erase native proof or call ACK actual returned travel.",
+    "Whole HBQ/Protocol/LAMBS integration, external-provider quiescence and the rest of the production objective remain active/incomplete. No parity or implementation percentage awarded."
+  ],
+  "runtimeHashes": {
+    "addons/core/functions/cortexLocality.sqf": "0d9fae1f0ce61a81b5e8770e6f54b1b441b2fe8d30d9a407ce1d18d8d8fb8503",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "bd86b54db8f7b4d652f5738004344e43a8ab61fe4a4cf429595d5d1526935a19",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "407095b245bf14ad5abf2108a934249b024214fbc9bdeaac7f7dcfc6bc32d5ea",
+    "addons/support/functions/cortexArtilleryFire.sqf": "1919861f0c66688c08d7762671e19048a622ebf92f8d0449dfd64461768baaa5",
+    "addons/support/functions/cortexArtilleryScoot.sqf": "f198f85cb2847b1c0c673ec07b6a6e4e1e0ef059444f44cd8b2c5044a968910a"
+  }
+}

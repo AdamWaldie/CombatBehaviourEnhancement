@@ -25,7 +25,9 @@
  * Ordinary driving brains retire before the owner epoch changes; successor queued work starts
  * against the new epoch and does not inherit an exhausted old-owner receipt. Public pass-leg
  * cleanup may hand back only unchanged native commands; split vehicle locality waits for discovery.
- * Arguments: 0: group <GROUP>, default grpNull; 1: gained locality <BOOL>, default false.
+ * Arguments: 0: group <GROUP>, default grpNull; 1: gained locality <BOOL>, default false;
+ * 2: resume pending artillery relocation <BOOL>, default true. Its own first admission passes
+ * false to prevent synchronous re-entry before publishing its selected-crew journal.
  * Return Value: Nothing unless a value is explicitly returned below.
  * Current callers: group Local handler and discovery.
  * Example: [_group, local _group] call CBE_fnc_CortexLocality;
@@ -33,7 +35,7 @@
  * Danger assessment: bounded member events wake the generation-scoped group tactics FSM; handlers and
  * the old owner brain retire on membership/owner changes and shutdown. No second movement owner.
  */
-params [["_group", grpNull, [grpNull]], ["_gained", false, [true]]];
+params [["_group", grpNull, [grpNull]], ["_gained", false, [true]], ["_resumeArtilleryScoot",true,[true]]];
 if (isNull _group) exitWith {};
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 // Capture the previous published driving identity at the actual group locality edge,
@@ -647,7 +649,7 @@ private _scootVehicles = [];
     if (_vehicle != _x && {!(_vehicle in _scootVehicles)}) then {
         _scootVehicles pushBack _vehicle;
         private _scootToken = _vehicle getVariable ["CBE_Cortex_ArtilleryScootToken",""];
-        if (_scootToken != "") then {[_vehicle,_scootToken] call CBE_fnc_CortexArtilleryScoot};
+        if (_resumeArtilleryScoot && {_scootToken != ""}) then {[_vehicle,_scootToken] call CBE_fnc_CortexArtilleryScoot};
     };
 } forEach units _group;
 _group setVariable ["CBE_AIPass_Checkpoint", [], true];
