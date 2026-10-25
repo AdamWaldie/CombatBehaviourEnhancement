@@ -1,0 +1,2425 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "ce0f1ea185e2b6ac0585a004f8777e9ba3ffcc85",
+  "scope": "Three scoped current-source reassessments proposed, but authoritative build-out render/check failed on pre-existing source drift. No blanket hash refresh or score changes.",
+  "validation": {
+    "check": "FAIL: Source changed; reassess build-out evidence: addons/infantry/functions/cortexAdvanceStart.sqf",
+    "uniqueStaleSources": 138,
+    "action": "Restored tracked ledger exact HEAD bytes. Generated report untouched. Proposed scoped rows retained below, pending broader evidence reassessment; no success claimed.",
+    "runtime": "No production changes, new tests/build or audit; last exact runtime candidate artillery-shared-readiness-90abe257 unchanged."
+  },
+  "reviewedProposals": [
+    {
+      "family": "VEH-DRIVING",
+      "criterion": {
+        "capability": "Gate interaction",
+        "weight": 1,
+        "built": 0.5,
+        "implemented": "2026-10-25 scoped reconciliation: live geometry/barrier classification and authenticated opening are wired. Optional off-default closure is also implemented: one server-owned120s episode, at most8active jobs/8leaves, observed aperture passage/whole-hull clearance and at most16nearby entities per sample. Current owner/native intent is requested when remote; closure request and observed closed phase are distinct. No vehicle movement is issued by closure.",
+        "remaining_build_gap": "Broader modded gate/action coverage remains unsupported. Existing closure is sampled and requires physical passage, interruption, remote-owner and repeat-cycle validation; its implementation does not establish continuous collision safety.",
+        "evidence": [
+          {
+            "path": "addons/vehicles/functions/drivingGateCap.sqf",
+            "sha256": "12e6fe924cce4a1e19935cceaa803f8c529f8c3f0ba2dfa2261a84238dc82add"
+          },
+          {
+            "path": "addons/vehicles/functions/drivingGateOpenServer.sqf",
+            "sha256": "2c3fcd5d53353a8ae4bc9ab64c8f132874024fa4b511ca879621c988cbc333bd"
+          },
+          {
+            "path": "addons/vehicles/functions/drivingGateCloseServer.sqf",
+            "sha256": "d440731cc398e7944e44938d182889d576fd9f9c0df50810ddadca88f2fd7145"
+          }
+        ],
+        "reviewed_at": "2026-10-25",
+        "source_commit": "ce0f1ea185e2b6ac0585a004f8777e9ba3ffcc85"
+      }
+    },
+    {
+      "family": "CNV-MOVE",
+      "criterion": {
+        "capability": "Mixed-vehicle spacing control",
+        "weight": 1,
+        "built": 0.5,
+        "implemented": "2026-10-25 scoped reconciliation: size-aware longitudinal/radial gap control, mass-based closing envelope, continuous pacing/smoothing and bounded acceleration are implemented. Native endpoint retention avoids repeated planner resets. A reversing predecessor now gates both speed and fresh follower trail destinations/steering paths; retained handback remains active.",
+        "remaining_build_gap": "Known mixed-column stop/start, tracked step-off and gap convergence remain physically unresolved. Cadence, braking/acceleration assumptions and balance still need measured closed-loop tuning; reversal admission correction alone does not prove smooth travel.",
+        "evidence": [
+          {
+            "path": "addons/vehicles/functions/convoyTick.sqf",
+            "sha256": "4f3e061053d26feab7274ae30e82d34ab0805069c5a99d2c755f75c4bb92aa99"
+          }
+        ],
+        "reviewed_at": "2026-10-25",
+        "source_commit": "ce0f1ea185e2b6ac0585a004f8777e9ba3ffcc85"
+      }
+    },
+    {
+      "family": "CLEAR",
+      "criterion": {
+        "capability": "Interruption, repeat and handback",
+        "weight": 1,
+        "built": 0.5,
+        "implemented": "2026-10-25 scoped reconciliation: generation-scoped interruption preserves newer native tasks and exact canonical setting receipts. Settings-only cleanup survives tactical shutdown under its original finite window. Grenade interruption now admits an actually owned clearance STOP/HOLD as well as MOVE, with exact episode/epoch/nonce/native proof and the existing6s return context; ordinary mission STOP is protected. The existing room writer resumes from the current target after acknowledged escape, without replaying a fabricated MOVE or renewing clearance clocks.",
+        "remaining_build_gap": "A completed ordered snapshot/replay contract across all public clearance journals is absent. Changed-roster or stale/missing delivery and native acknowledgement remain unresolved. Exhausted settings cleanup retains unresolved proof without guaranteed eventual handback. Complete finite post-clear consolidation/security and failed-exit recovery remain unimplemented; current explicit completion is a one-shot exterior settlement.",
+        "evidence": [
+          {
+            "path": "addons/infantry/functions/cortexClearRelease.sqf",
+            "sha256": "b00a7ff9f904229af5d07128052823dc31e42d12dacec18a4789cf5c1d29f8f0"
+          },
+          {
+            "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
+            "sha256": "8474c1ab36b068ac0a3df5edfa02834a215e5ca6752aaa37851b106b66985c28"
+          },
+          {
+            "path": "addons/core/functions/actorSettingsCleanupStep.sqf",
+            "sha256": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668"
+          },
+          {
+            "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+            "sha256": "ff5e55d3f933314566466b8d684ddca09258f381d108c28218a3ca1c5ec27d6a"
+          },
+          {
+            "path": "addons/infantry/functions/buildingOperationStep.sqf",
+            "sha256": "54a56b2e53e78b780a3241a3394356b29e9519a9df8d032cde68bfd381af9d7e"
+          },
+          {
+            "path": "addons/infantry/functions/buildingActorHoldOwned.sqf",
+            "sha256": "5e83cedf41354d051f7c8a9a7caa2b80a86048cdd0fa42b39ff01dcee8230d82"
+          }
+        ],
+        "reviewed_at": "2026-10-25",
+        "source_commit": "ce0f1ea185e2b6ac0585a004f8777e9ba3ffcc85"
+      }
+    }
+  ],
+  "staleEvidence": [
+    {
+      "path": "addons/infantry/functions/cortexAdvanceStart.sqf",
+      "actualSha256": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+      "recordedSha256": [
+        "f430a804fa52828e97ee7ccdf4f9ee0b8a2387efa63df219ab5ea30446ce96d8",
+        "c425b03e8c267a9976d777bf17007ee454b2174511c844773208bf5a96c53a1b"
+      ],
+      "criteria": [
+        [
+          "TERRAIN",
+          "Ground avenue rejection"
+        ],
+        [
+          "ADVANCE",
+          "Authored objective and tactical assessment"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+      "actualSha256": "b176442ea4ccdcdfea9222a1ed77a5487699ea4647c7f0936acd778b30244281",
+      "recordedSha256": [
+        "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+      ],
+      "criteria": [
+        [
+          "TERRAIN",
+          "Vehicle path/hull terrain checks"
+        ],
+        [
+          "VEH-DRIVING",
+          "Predictive obstacle handling"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+      "actualSha256": "408bffcd569b5b47dab45640e829020b3b92dac44de6f2c015e51565d550cb2d",
+      "recordedSha256": [
+        "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
+      ],
+      "criteria": [
+        [
+          "TERRAIN",
+          "Aircraft relief-aware route planning"
+        ],
+        [
+          "AIR-ATTACK",
+          "Finite ingress/attack/egress execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
+      "actualSha256": "6b8780cbb9f1f7049a93e1cbcbd88852c24575fb04a91bf43ac1fe8cb0cf12bd",
+      "recordedSha256": [
+        "4c3fb384f6d8b959048e9f0e5bf842728b7a543b5574b0396ba720aa2ae018fa"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "Master/exclusion admission"
+        ],
+        [
+          "COMPAT",
+          "Active specialist exclusion"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/groupBrainStep.sqf",
+      "actualSha256": "bec15fb5bddc356aae28133ff0167567aa97f7dd4000743a19b8d9b237cbf9b9",
+      "recordedSha256": [
+        "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "Danger and group FSM dispatch"
+        ],
+        [
+          "SCHED",
+          "Pause/distance/cooldown policy"
+        ],
+        [
+          "LIGHTING",
+          "Finite native UGL illumination and weapon handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/cortexLocality.sqf",
+      "actualSha256": "0d9fae1f0ce61a81b5e8770e6f54b1b441b2fe8d30d9a407ce1d18d8d8fb8503",
+      "recordedSha256": [
+        "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319",
+        "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "Owner epoch and actor reservations"
+        ],
+        [
+          "LIFECYCLE",
+          "Epoch/current-owner execution"
+        ],
+        [
+          "LIGHTING",
+          "Finite native UGL illumination and weapon handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
+      "actualSha256": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+      "recordedSha256": [
+        "509767bbe967418c8772b733a1763e955e8627668b78ec223b52ece1bb7cb002"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "Owner epoch and actor reservations"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
+      "actualSha256": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5",
+      "recordedSha256": [
+        "bf730c5ac8254400f54c21b15ebd4b0ac1f8cdd01fdb4023564b249ec345f165"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "All-owner handback integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
+      "actualSha256": "2a1cc644f427f8a06fb8033414aceb46aa6aaaec3a399e04e5b514d5c1f47e83",
+      "recordedSha256": [
+        "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713",
+        "7ab28c03cabdae1045c5d224632db6f664a4772a53fdc8636750bf721a109309"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "All-owner handback integration"
+        ],
+        [
+          "MORALE",
+          "Recovery and current-order preservation"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexDismountStop.sqf",
+      "actualSha256": "ff02adcf23504798c5429dd6eb920481ebe93675d4ae3b87162128dd17f1a895",
+      "recordedSha256": [
+        "082a42997e6d94d817394fab8feaba5882157251e0542f9f2851dd8b7c7ae881"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "All-owner handback integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicles.sqf",
+      "actualSha256": "f5196f861cb6f4caa41bbdd2b179278ee4c7d85029b702ef9a157f25f65a79fb",
+      "recordedSha256": [
+        "e3a69dfd495ccc4091fe19029f4a6c798c6c88067818ac8efb16df028950c91c",
+        "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8",
+        "b1f300bcc83c377bc0552e478ac5e3f442399fa63ded26643f52a97d47bb511b"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "All-owner handback integration"
+        ],
+        [
+          "VEH",
+          "Mounted domain/crew response"
+        ],
+        [
+          "WITHDRAW",
+          "Damage/threat admission"
+        ],
+        [
+          "WITHDRAW",
+          "Finite native withdrawal and smoke"
+        ],
+        [
+          "GUNNERY",
+          "Known threat/platform/ammo suitability"
+        ],
+        [
+          "GUNNERY",
+          "Native gunner fire authority"
+        ],
+        [
+          "GUNNERY",
+          "Standoff/combined-role composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/cortexStop.sqf",
+      "actualSha256": "6b196f728366c38b58245cffe90e77e955702652fd59dc5bb31250f2058378d3",
+      "recordedSha256": [
+        "a29164454b31e270f1819834fdf873369422ce12055efeee2c514be0a9a32524"
+      ],
+      "criteria": [
+        [
+          "CORE",
+          "All-owner handback integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/compatibility/functions/cortexOwnershipLease.sqf",
+      "actualSha256": "ad84bf3e82b454727d64f94febac9a509728f061a6efe3c49ef517e8e22f5504",
+      "recordedSha256": [
+        "d9721c6e770f2e896c9b62ddb10293cf17aff09d7cc893ae62c0102a5add38ec"
+      ],
+      "criteria": [
+        [
+          "COMPAT",
+          "Finite movement lease handover"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/cortexQueueJob.sqf",
+      "actualSha256": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f",
+      "recordedSha256": [
+        "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11"
+      ],
+      "criteria": [
+        [
+          "SCHED",
+          "Shared due-job queue and callback budget"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/cortexSchedulerTick.sqf",
+      "actualSha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d",
+      "recordedSha256": [
+        "c9419f8568b1d9ce7c57c077c8829ccfab31fc8f6b6e1d2a0e1e2eaa9380dc71"
+      ],
+      "criteria": [
+        [
+          "SCHED",
+          "Shared due-job queue and callback budget"
+        ],
+        [
+          "SCHED",
+          "Runtime reconciliation and retirement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroupTick.sqf",
+      "actualSha256": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078",
+      "recordedSha256": [
+        "81dea8cb721ee478ca6842cd260fd6f0f6242d8ce5280e153d925c6874295bb5",
+        "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5",
+        "87bdfd5dc163986aba36e79fc92dd3d9c6d8ade99cf48855275bed0dc0e14271"
+      ],
+      "criteria": [
+        [
+          "SCHED",
+          "Pause/distance/cooldown policy"
+        ],
+        [
+          "PROFILE",
+          "Aggression selects eligible tactics"
+        ],
+        [
+          "CONTACT",
+          "Complete tactical response composition"
+        ],
+        [
+          "POST",
+          "Contact/security/search phase dispatch"
+        ],
+        [
+          "POST",
+          "Recontact and authored-route release"
+        ],
+        [
+          "MORALE",
+          "Finite withdrawal instead of assault"
+        ],
+        [
+          "MORALE",
+          "Recovery and current-order preservation"
+        ],
+        [
+          "AT",
+          "No-AT threat response respects authored hold"
+        ],
+        [
+          "WITHDRAW",
+          "Finite native withdrawal and smoke"
+        ],
+        [
+          "WITHDRAW",
+          "Coordinated withdrawal integration"
+        ],
+        [
+          "HEARING",
+          "Gated investigation handoff"
+        ],
+        [
+          "TRANSITIONS",
+          "Complete cross-operation chaining"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/aiLightingStep.sqf",
+      "actualSha256": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f",
+      "recordedSha256": [
+        "4e450dd6f55ac40ac005a2680bc86a909ba6f9feaa7491c9cb6e88af5bab305e"
+      ],
+      "criteria": [
+        [
+          "SKILL",
+          "Exclusions and owner-local refresh"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/aiRestoreProfile.sqf",
+      "actualSha256": "51524f0ff7d774261471589cd04a2a5816262b505baf6adefe547701c65f83f7",
+      "recordedSha256": [
+        "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a"
+      ],
+      "criteria": [
+        [
+          "SKILL",
+          "Restore captured skill values"
+        ],
+        [
+          "LIGHTING",
+          "Stable skill refresh without compounding"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerSelect.sqf",
+      "actualSha256": "f2731546a6792d8b2381ef0d4f13b33da723e05692229192e79ea0206ad4ccb9",
+      "recordedSha256": [
+        "648b04327d2309d79c522dcb61206b26dc95d6d7c8c9aab31d8ac4ad430f9c2d"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "Native danger cause intake/selection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerEngineSelect.sqf",
+      "actualSha256": "0667bd663f771807246a2c08c2a14d3834a6aa29124dac443f9a31d74b2ca9f6",
+      "recordedSha256": [
+        "807ae67888c5f7665417358735846acb47f4ec54207199a6c8af3b817669df35"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "Native danger cause intake/selection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexKnowledge.sqf",
+      "actualSha256": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
+      "recordedSha256": [
+        "a914a2a20aa7146206b536a5bc6a53ccd4c1965d54af8011316b49ce441a9adc"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "No omniscient hostile acquisition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerEngineSubmit.sqf",
+      "actualSha256": "1dac2a9ffaba7a82e2027d72310a8feb7ef51d4b35b4194c93f5b935a27f16f6",
+      "recordedSha256": [
+        "9a8dd9b8b183d50004f8c017b66bdb20f105fb7fd998fb6585cd93577fabb2c2"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "No omniscient hostile acquisition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerVehicleProfile.sqf",
+      "actualSha256": "3a8983f05a648b6e44b70cc9cc4e190b13fa55dcb8eaf9f13ce81230d8d8655a",
+      "recordedSha256": [
+        "0ca8454f447f22878ebff92173b01cc0e37918567cecc7a0e6fc129e5bc5cf81"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "Mounted/foot subsystem handoff"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerReact.sqf",
+      "actualSha256": "89a6fcb5e49f9feb64e6b3fe7eef9868a37bf73665e5c843dd7456b4f5ee66e6",
+      "recordedSha256": [
+        "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f"
+      ],
+      "criteria": [
+        [
+          "CONTACT",
+          "Mounted/foot subsystem handoff"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexSearchMoveOwned.sqf",
+      "actualSha256": "873e952ef8baf8f6fa6fcac3507c5d59eb1ceb9bb191e9a852b4c3c984e7e894",
+      "recordedSha256": [
+        "f17b6631e30b7e67249f83adfe52969ed14e146b7639d6213df04043fc4cccbe"
+      ],
+      "criteria": [
+        [
+          "POST",
+          "Owned last-known-position movement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroupMove.sqf",
+      "actualSha256": "5c596e7f5c0910b526aa1e3e323b1c1da04d71424f27919ad1be46e0964c9f65",
+      "recordedSha256": [
+        "2c0ea59f8235f6d8bd0ed5f79aac4717c74b9afbc346549b8a73045211437986"
+      ],
+      "criteria": [
+        [
+          "POST",
+          "Owned last-known-position movement"
+        ],
+        [
+          "INVESTIGATE",
+          "Reported-area native movement"
+        ],
+        [
+          "INVESTIGATE",
+          "Finite ownership and authored route"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
+      "actualSha256": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8",
+      "recordedSha256": [
+        "a6c65d2b6083096683928a12d832d28a70d2ce771683a598ab43a79ce338634b"
+      ],
+      "criteria": [
+        [
+          "FLANK",
+          "Avenue and successive bound route"
+        ],
+        [
+          "COVER",
+          "Passable avenue and native movement integration"
+        ],
+        [
+          "MULTI-WITHDRAW",
+          "Multiple independent escape lanes"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankStart.sqf",
+      "actualSha256": "a699ce7932d673f752f3b3d8cb09fab170c1fad1065aaedb5a3636eab60cc7ab",
+      "recordedSha256": [
+        "9f954bee17c5e4eeb70b04677bbadcb44b9d33a626b5189454a7b522b259bb5a"
+      ],
+      "criteria": [
+        [
+          "FLANK",
+          "Avenue and successive bound route"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankStep.sqf",
+      "actualSha256": "4bbcab2cf89ee2f3e86def506ae59a44fb91bc1fa39b3f96e4c148ee8dd5fb8d",
+      "recordedSha256": [
+        "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+      ],
+      "criteria": [
+        [
+          "FLANK",
+          "Moving/covering pair execution"
+        ],
+        [
+          "FLANK",
+          "Recovery and final consolidation"
+        ],
+        [
+          "CROSS",
+          "Bounded smoke/preparation"
+        ],
+        [
+          "CROSS",
+          "Near/far movement under existing drill"
+        ],
+        [
+          "ASSAULT",
+          "Preparation and native clear-through"
+        ],
+        [
+          "ASSAULT",
+          "Coherent follow-through/consolidation"
+        ],
+        [
+          "ADVANCE",
+          "Finite moving/covering teams"
+        ],
+        [
+          "MULTI-FLANK",
+          "Independent local manoeuvre executors"
+        ],
+        [
+          "MULTI-BOUND",
+          "Within-squad pair movement/cover"
+        ],
+        [
+          "TRANSITIONS",
+          "Generation-bound deferred effects"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/operationAttackPolicy.sqf",
+      "actualSha256": "1fe710270ccfa5553c2de0a4f6e21ea7e553e72ff3fc6b4e3bd331501b2ea9e1",
+      "recordedSha256": [
+        "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+      ],
+      "criteria": [
+        [
+          "FLANK",
+          "Moving/covering pair execution"
+        ],
+        [
+          "FLANK",
+          "Recovery and final consolidation"
+        ],
+        [
+          "CROSS",
+          "Bounded smoke/preparation"
+        ],
+        [
+          "CROSS",
+          "Near/far movement under existing drill"
+        ],
+        [
+          "ASSAULT",
+          "Preparation and native clear-through"
+        ],
+        [
+          "ASSAULT",
+          "Coherent follow-through/consolidation"
+        ],
+        [
+          "ADVANCE",
+          "Finite moving/covering teams"
+        ],
+        [
+          "MULTI-FLANK",
+          "Independent local manoeuvre executors"
+        ],
+        [
+          "MULTI-BOUND",
+          "Within-squad pair movement/cover"
+        ],
+        [
+          "TRANSITIONS",
+          "Generation-bound deferred effects"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/recoveryStep.sqf",
+      "actualSha256": "fc48767d941eb6d39f22f98db32f050875ae927ef3bf462fd1fd084256747d18",
+      "recordedSha256": [
+        "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+      ],
+      "criteria": [
+        [
+          "FLANK",
+          "Recovery and final consolidation"
+        ],
+        [
+          "ADVANCE",
+          "Casualty/straggler continuation"
+        ],
+        [
+          "MULTI-BOUND",
+          "Complete role exchange/recovery composition"
+        ],
+        [
+          "DRILL-RECOVERY",
+          "Actual separated-actor observation"
+        ],
+        [
+          "DRILL-RECOVERY",
+          "Complete viable-bound rejoin"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexPlanRoute.sqf",
+      "actualSha256": "1fcd3da450434e6457e9c267308d68c0f1fe42ee9d546538859f3d2204f2310a",
+      "recordedSha256": [
+        "baa76b19196cf57edf4a24ccbb9ab8260382bdc5bc1607f41d4598052df16be9"
+      ],
+      "criteria": [
+        [
+          "CROSS",
+          "Road edge/crossing route markers"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+      "actualSha256": "c68bbdc422f6a54098a3d6d0b2ac15ec3f36d8382b9c24e2b98e4a87228d60a4",
+      "recordedSha256": [
+        "e2d98a7426009377394fe93657db3ae56319f479f34ae9861505805bf0f4e17c"
+      ],
+      "criteria": [
+        [
+          "CROSS",
+          "Bounded smoke/preparation"
+        ],
+        [
+          "TRANSITIONS",
+          "Generation-bound deferred effects"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/cortexFireControl.sqf",
+      "actualSha256": "dd9219e66d935dfd156f77a56aa7f7735653cbe8474e4a40d965d039c855bf8d",
+      "recordedSha256": [
+        "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff"
+      ],
+      "criteria": [
+        [
+          "FIRE",
+          "Known-target assignment and ammunition"
+        ],
+        [
+          "FIRE",
+          "Native direct/suppressive fire and gating"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexLineOfFireClear.sqf",
+      "actualSha256": "6e184e1b150715953ef5c483e03b88d18b5774e8e34abe2053797a9071c7df9e",
+      "recordedSha256": [
+        "02993b3d46c0946df8abdd3881ce5bc5477a1da1bbe3ac2ce4c4e92e7f8beb26"
+      ],
+      "criteria": [
+        [
+          "FIRE",
+          "Friendly/civilian lane checks"
+        ],
+        [
+          "AT",
+          "Backblast and firing-lane checks"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexMorale.sqf",
+      "actualSha256": "1f1eca11a4c075a0384328d1fb5bfa1c955f4e5fe2f02d93b38b1235240cbdb5",
+      "recordedSha256": [
+        "9ffa4058b4548f4cb74e3dafdc0d307340fe433c3355b2ef23a144b0f075943b"
+      ],
+      "criteria": [
+        [
+          "MORALE",
+          "Strength/profile morale assessment"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexRetreat.sqf",
+      "actualSha256": "78ac7f68c18be4eec4907be85670fc392c8f81af62ab051d2d08107c053b8a1a",
+      "recordedSha256": [
+        "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+      ],
+      "criteria": [
+        [
+          "MORALE",
+          "Finite withdrawal instead of assault"
+        ],
+        [
+          "AT",
+          "No-AT threat response respects authored hold"
+        ],
+        [
+          "ART-SMOKE",
+          "Finite screened mission dispatch"
+        ],
+        [
+          "MULTI-WITHDRAW",
+          "Individual squad withdrawal"
+        ],
+        [
+          "MULTI-WITHDRAW",
+          "Multiple independent escape lanes"
+        ],
+        [
+          "MULTI-WITHDRAW",
+          "Alternating cross-squad overwatch and rally"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexSurrender.sqf",
+      "actualSha256": "e5b4b42d0595cfbcf58f67fe2b29a06f394d39cac694cb49b17e73e29771902e",
+      "recordedSha256": [
+        "f35d3ca9b5bdf6d6c108058822ab7519a407c66446caba72b0ea9bcd1c787855"
+      ],
+      "criteria": [
+        [
+          "SURRENDER",
+          "Eligible survivor admission"
+        ],
+        [
+          "SURRENDER",
+          "Native surrender/captive transition"
+        ],
+        [
+          "SURRENDER",
+          "Owned task release and repeat guards"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+      "actualSha256": "ff5e55d3f933314566466b8d684ddca09258f381d108c28218a3ca1c5ec27d6a",
+      "recordedSha256": [
+        "bf6b03be3b460d2243a2907422bad536baadb3858c9ba17889aa1dc3ca4dc5ec"
+      ],
+      "criteria": [
+        [
+          "GRENADE",
+          "Relevant danger detection"
+        ],
+        [
+          "GRENADE",
+          "Finite native escape response"
+        ],
+        [
+          "GRENADE",
+          "Current actor and ownership protection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerEngineAct.sqf",
+      "actualSha256": "e64af6cee1f276aabb6af4e288aa90ce875e7acee6836022741e92c14d1aca10",
+      "recordedSha256": [
+        "67d7491f465b289212557abd36c965562aac72c4bbb774dc2ceb33bdfb32b1ae"
+      ],
+      "criteria": [
+        [
+          "GRENADE",
+          "Finite native escape response"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCivilianReact.sqf",
+      "actualSha256": "724e0126ff7f05550be919f0f09c52fa3140c0039c2d5335ffb1c676e8760e1c",
+      "recordedSha256": [
+        "7fa82f766a540178aa250cbc333998ff161c977bfa3f776210ec3f086e457744"
+      ],
+      "criteria": [
+        [
+          "CIVILIAN",
+          "Finite graded escape and one recovery"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCivilianStep.sqf",
+      "actualSha256": "d229920f2b3f3f14c62541de61322640354094b034b82169cc7cda7c96e749e3",
+      "recordedSha256": [
+        "53d9826b8107495dcfc2bdd456eec1c478f0ee134db9a4ab47181516a7ec70df"
+      ],
+      "criteria": [
+        [
+          "CIVILIAN",
+          "Finite graded escape and one recovery"
+        ],
+        [
+          "CIVILIAN",
+          "External/native interruption"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+      "actualSha256": "07edbe743478953c59154f8dba4c1e1f8bb32d5b59fcc1520e65e6b8d71128a9",
+      "recordedSha256": [
+        "afe2d07774ba1a29b87a88341dc6a0fd74ad5c0d3f440ba3461b3691e50f7e17"
+      ],
+      "criteria": [
+        [
+          "AT",
+          "Capable weapon/target selection"
+        ],
+        [
+          "AT",
+          "Backblast and firing-lane checks"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
+      "actualSha256": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "recordedSha256": [
+        "4b8b54766d4c21fd1cf634aaaf4808f2fedd6d19b5680213511ba9bdb6610a82"
+      ],
+      "criteria": [
+        [
+          "VEH",
+          "Mounted domain/crew response"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexNavalAssault.sqf",
+      "actualSha256": "134dbf6c3dde2ac90d69878b23ff90dcb459793eb746daf6e49d89426b1cc450",
+      "recordedSha256": [
+        "649d1bbf4543af31c92a2b85fc6eac895ba7e0de9e26add4b62eaf12ffb3d8e5"
+      ],
+      "criteria": [
+        [
+          "VEH",
+          "Finite naval approach/unload/release"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexNavalRelease.sqf",
+      "actualSha256": "fa7f5bb6bc119dbf29a1c61dfb4d2de1f6d37d3470caa9e3d056bf3ca8f4c21f",
+      "recordedSha256": [
+        "7c65ce9df182a209ce7fce28f19e7dfd34627e8ae7a329e54140efec7ac3d426"
+      ],
+      "criteria": [
+        [
+          "VEH",
+          "Finite naval approach/unload/release"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicleJink.sqf",
+      "actualSha256": "67553374f3f7346ca3106978682db120b6d616411678024a12db2a2928357312",
+      "recordedSha256": [
+        "5cff204c7f00a638e34c0b6d9abbb203829c059782986eea1d0dad5fb2e97dc0"
+      ],
+      "criteria": [
+        [
+          "VEH",
+          "Vehicle manoeuvre composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicleOrient.sqf",
+      "actualSha256": "58c00665f674ee90a0d945f2aa90f2f8f4700243efb5808e21488d2838183941",
+      "recordedSha256": [
+        "8cb4aefafc943633f8bafe48fc6d823b6e05ed172836c80da8f4b4a19fce93f9"
+      ],
+      "criteria": [
+        [
+          "VEH",
+          "Vehicle manoeuvre composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf",
+      "actualSha256": "44cbf1547ef9397c289eeeec51e5d923eab5239d75716312cb7485cdcec00258",
+      "recordedSha256": [
+        "735f996a52adeaf2fec3bbaca220b861a10a5b73ce6d01e591f7c6779195cbcc"
+      ],
+      "criteria": [
+        [
+          "DISMOUNT",
+          "Safe passenger eligibility and crew exclusion"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexOnboardContact.sqf",
+      "actualSha256": "be0abd2d76716a4fcf79fd5b59ad0b029033cc97458c6277af3f3edf67b26659",
+      "recordedSha256": [
+        "4a28581470dc5ef56d00e973bb9359c34659560965bf791525f304924cbab0e0"
+      ],
+      "criteria": [
+        [
+          "DISMOUNT",
+          "Contact-driven native unloading"
+        ],
+        [
+          "DISMOUNT",
+          "Owner-scoped passenger safety"
+        ],
+        [
+          "REMOUNT",
+          "Seat choice and native boarding"
+        ],
+        [
+          "REMOUNT",
+          "Distributed simultaneous seat coordination"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/cortexPassengerReady.sqf",
+      "actualSha256": "9e6a76da798b556085514454b4d355e196ccb1ccd8cdaa33983e4dcf8fbb1d5f",
+      "recordedSha256": [
+        "3fa5dc94b7be004d48aa29d0aa2e8efbcedffcb970533d0903ee6148994f6dcb"
+      ],
+      "criteria": [
+        [
+          "DISMOUNT",
+          "Owner-scoped passenger safety"
+        ],
+        [
+          "REMOUNT",
+          "Original capable passenger eligibility"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFindCover.sqf",
+      "actualSha256": "d32e142cabd78c8cc99b55e4b53d00b5996747ef9bed66b796239dfe883ff668",
+      "recordedSha256": [
+        "bf92c6d2cd4ee1b336516abb2925fc7132acf08cd035a58fdf0442375225f5ed"
+      ],
+      "criteria": [
+        [
+          "COVER",
+          "Bounded candidate/clearance query"
+        ],
+        [
+          "CNV-COVER",
+          "Available dismount cover selection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/dangerCoverStep.sqf",
+      "actualSha256": "7cd2b518ed576e04ee0b6f1174b3880d3590bb440a588519a0801c7683e70483",
+      "recordedSha256": [
+        "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208"
+      ],
+      "criteria": [
+        [
+          "COVER",
+          "Passable avenue and native movement integration"
+        ],
+        [
+          "COVER",
+          "Posture and owner protection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexStance.sqf",
+      "actualSha256": "84a4647a2034a67235fc18365a455bd1fb3aab59e6e1bd1ff1eb7e3c8c0bafbf",
+      "recordedSha256": [
+        "cdb09a6652a0cb269a89a02bfd4ee1f1357e048a1426145229718ce290d6946c"
+      ],
+      "criteria": [
+        [
+          "COVER",
+          "Posture and owner protection"
+        ],
+        [
+          "STANCE",
+          "Actual cover-based stance"
+        ],
+        [
+          "STANCE",
+          "Task/reservation exclusions"
+        ],
+        [
+          "STANCE",
+          "Exact owned posture restoration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+      "actualSha256": "fd9dc43eb53c9bb27654dea2797a34074ce8c925b1c5dea4eb03a8f4d23f1b87",
+      "recordedSha256": [
+        "281a2482ea013f82f3b7f49a2c473f6029511577db1c70f5edff9a5b084ae9ca"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Owner-local driving FSM"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStep.sqf",
+      "actualSha256": "c8e1c98de4d6d0cedfb8d90d77eb31df69d8bd3564ab967d3460f4df3dcaef73",
+      "recordedSha256": [
+        "731efa14ff21c24d2062213859ab1712553e5bcb6c3227e69d8f4af3e4c07a91"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Owner-local driving FSM"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRouteReceipt.sqf",
+      "actualSha256": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "recordedSha256": [
+        "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Route identity and speed policy"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingGeometryCap.sqf",
+      "actualSha256": "5549231a3afbed33a6dee5057dc4ae9145ba8c9e944c0d9d790ce2d6218f0f5b",
+      "recordedSha256": [
+        "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Predictive obstacle handling"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingGateOpenServer.sqf",
+      "actualSha256": "2c3fcd5d53353a8ae4bc9ab64c8f132874024fa4b511ca879621c988cbc333bd",
+      "recordedSha256": [
+        "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Gate interaction"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "actualSha256": "ac00414f13b62c07dab7d537d3f8dbce426dd7eff92de306a7dc521f6b424453",
+      "recordedSha256": [
+        "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Finite native rear recovery"
+        ],
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ],
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearClear.sqf",
+      "actualSha256": "30d2173422e4a534b0c2635915b2d5d7c592537bba4c67d30e538a0e05f0247b",
+      "recordedSha256": [
+        "69f07efc10aba1b5f7e59c7f5f5b8063d93a2ecb4c13abbac889bacc9e791c16"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Finite native rear recovery"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "actualSha256": "59b681203ef2c27537bb7c6aaab9b49a2d95feab8f082fbba3e761fc74dcc5dd",
+      "recordedSha256": [
+        "5c69019e178d810c21056553c746a7a6a2c3af8d21e69d6a0a1c5b60b3bb5cfa"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Finite native rear recovery"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+      "actualSha256": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6",
+      "recordedSha256": [
+        "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Finite native rear recovery"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+      "actualSha256": "4d573ce7d9b630aed4e99cd4b994b9f26aa3b59fcbcc1e95b2eeaaae45fcc4d5",
+      "recordedSha256": [
+        "f9a715e066a025d74a7276d99e21b6296e497bdefb8c52ea4619db97a5d8f5ec"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Static bypass and corridor execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
+      "actualSha256": "a173c9929e70fa1b68a20e8d96fca0971e3dbb7fe17e6968ecbe31159b742ef5",
+      "recordedSha256": [
+        "55edf8c4b7555bfb301a5eafde651d0d62b7086b9c1c51a8685c1cc216c95a28"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Static bypass and corridor execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
+      "actualSha256": "7962e801541920e9c58d3332d118af6c6bd697a53448a2fffd42167aea8c8632",
+      "recordedSha256": [
+        "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Negotiated passing"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassStep.sqf",
+      "actualSha256": "60da1dfe4a4318945c7dd02f6d1821a2efa157eceeb914d7a6b0e521e8d03c6c",
+      "recordedSha256": [
+        "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Negotiated passing"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "actualSha256": "6dee775fad4196a09d1410a0e7d0f7e9e357cd764bc17fb4b5d0e268491002e4",
+      "recordedSha256": [
+        "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+      "actualSha256": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013",
+      "recordedSha256": [
+        "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ],
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+      "actualSha256": "f0b0db0aa61b561d596c7990b3b89ba8d7fd784e2972710530f148c7320b3731",
+      "recordedSha256": [
+        "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ],
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueContext.sqf",
+      "actualSha256": "78c885e026017854a2905ae010bfcffd1c918464d186fb373058940e09080545",
+      "recordedSha256": [
+        "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "actualSha256": "5b60c910fc317b6b62dc702ddf7417cf3b16a0781d9d102c0c4e110985382191",
+      "recordedSha256": [
+        "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+      "actualSha256": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b",
+      "recordedSha256": [
+        "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue discovery and agreement"
+        ],
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+      "actualSha256": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+      "recordedSha256": [
+        "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+      "actualSha256": "e707be886d76639c4543d2dd9661889932989deed4f5702af2b5529cf6015c94",
+      "recordedSha256": [
+        "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+      "actualSha256": "c3fd6129d0be963ebe02b1bd41899ebf024a2c8802dc4bb422d6cbece66feece",
+      "recordedSha256": [
+        "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Queue room-making execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingCrewStep.sqf",
+      "actualSha256": "77e23d35c25ea5f0621cbb5040352926f17e8880e96884771e8e240e6d71fab4",
+      "recordedSha256": [
+        "79aa85cd40c318151f6135466e843b90d76c4db88fcb03a0737289267d652ce3"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Crew handover"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+      "actualSha256": "e4aaf974abe16ace25517fcaacc30d9cd3b844bef013d8f7bbf63a3a34fde3a5",
+      "recordedSha256": [
+        "aaaa0c6c816e53fb6856d9dcce3422dfcc297e9d7c7f6a2fb646e2e464046e71"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Native order and external handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAbortHandback.sqf",
+      "actualSha256": "2d2562eef3369b73a6470585bbc3f1fc6c725164914ca87d6e59d48cd1e35791",
+      "recordedSha256": [
+        "0b0d8832683629e7ab6a0920b839735c6ecb8b8f62ad4bb2001ede7b1cda8ecc"
+      ],
+      "criteria": [
+        [
+          "VEH-DRIVING",
+          "Native order and external handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+      "actualSha256": "b82d03610023d069a31255d548ef0fbbe1ae5ba7435047033b1fff9bccbe0d45",
+      "recordedSha256": [
+        "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+      ],
+      "criteria": [
+        [
+          "CNV-MOVE",
+          "Convoy operation lifecycle"
+        ],
+        [
+          "CNV-MOVE",
+          "Public halt and resume"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyTick.sqf",
+      "actualSha256": "4f3e061053d26feab7274ae30e82d34ab0805069c5a99d2c755f75c4bb92aa99",
+      "recordedSha256": [
+        "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+      ],
+      "criteria": [
+        [
+          "CNV-MOVE",
+          "Predecessor trails and native goals"
+        ],
+        [
+          "CNV-MOVE",
+          "Mixed-vehicle spacing control"
+        ],
+        [
+          "CNV-MOVE",
+          "Lead pacing"
+        ],
+        [
+          "CNV-MOVE",
+          "Public halt and resume"
+        ],
+        [
+          "CNV-MOVE",
+          "Replacement native orders"
+        ],
+        [
+          "CNV-FIRE",
+          "Driver movement/task preservation"
+        ],
+        [
+          "CNV-AVOID",
+          "Short infantry corridor observation"
+        ],
+        [
+          "CNV-AVOID",
+          "Bounded stop/cap and clearance response"
+        ],
+        [
+          "CNV-AVOID",
+          "Owned cap release after clearance"
+        ],
+        [
+          "CNV-HALT",
+          "Mobile/contact versus pinned policy"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyCorridorStep.sqf",
+      "actualSha256": "ca88b64713781631dfd3e9b80d566d25950abb3f2fc7f809d5bd06e155f9d3a6",
+      "recordedSha256": [
+        "ac8f566e08f1eb964bce85f9cc6fedd812b910541a941318d37fbf32ef8a0aa6"
+      ],
+      "criteria": [
+        [
+          "CNV-MOVE",
+          "Whole-column passages"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+      "actualSha256": "86a995aa187f9042368fc8d9346afc47894189591839b860cac74a4edbfb5160",
+      "recordedSha256": [
+        "d98b15ef554b344f8e85385e1fc9e556f0cc5573e3e2b03a0ababb4cac337859"
+      ],
+      "criteria": [
+        [
+          "CNV-MOVE",
+          "Crew and cargo integration"
+        ],
+        [
+          "CNV-UNLOAD",
+          "Cargo/operating-crew separation"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
+      "actualSha256": "68fd124b2ef2c81738008b0c16bd385d74e295b0e3225e447082ac397b8d46db",
+      "recordedSha256": [
+        "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1"
+      ],
+      "criteria": [
+        [
+          "CNV-FIRE",
+          "Gunner-only engagement"
+        ],
+        [
+          "CNV-FIRE",
+          "Driver movement/task preservation"
+        ],
+        [
+          "CNV-UNLOAD",
+          "Owner-local unload and seating controls"
+        ]
+      ]
+    },
+    {
+      "path": "addons/vehicles/functions/convoyDismountLocal.sqf",
+      "actualSha256": "7cd7f3615c6aeccb52628e3f01e82eb16b59752cb3309c639b52d359c504a9c2",
+      "recordedSha256": [
+        "cd19d6df3068434d2f5802b2607c86ed230b3434c683970c9bb08e6a841943ed"
+      ],
+      "criteria": [
+        [
+          "CNV-COVER",
+          "Available dismount cover selection"
+        ],
+        [
+          "CNV-COVER",
+          "Native passenger movement"
+        ],
+        [
+          "CNV-COVER",
+          "Whole dismount/security integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroupTransmitter.sqf",
+      "actualSha256": "59a6a9d02f487513435f3193b22bac6326668e1a50df84b6a1c0de556f09727e",
+      "recordedSha256": [
+        "fb04e47f8057a801a0b80912528326feacc43ef74400fc8bdf3e431a7cb181d9"
+      ],
+      "criteria": [
+        [
+          "REPORT",
+          "Actual transmitter and mutual radio eligibility"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCanTransmit.sqf",
+      "actualSha256": "49e3a4c19699638bd2b6863412af46e3fdecfae97611d1363f303aa0facf9eaf",
+      "recordedSha256": [
+        "bf1e55f765f9d1f67f0aaa0a0b3066c18c7815c936e71658cfeb80887fccb2a2"
+      ],
+      "criteria": [
+        [
+          "REPORT",
+          "Actual transmitter and mutual radio eligibility"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexArtilleryAmmo.sqf",
+      "actualSha256": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
+      "recordedSha256": [
+        "6821a1bba0c274e682045eb1287a08ef382268bee21c1a9f8f26f6a783d46bdb"
+      ],
+      "criteria": [
+        [
+          "ART",
+          "Battery/observer role and ammo selection"
+        ],
+        [
+          "ART-SMOKE",
+          "Strict smoke ammunition classification"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
+      "actualSha256": "f01d19d0af633882a726f8b92eb68b34a3e76fccb06a21dcb1bc2f4e5d376345",
+      "recordedSha256": [
+        "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da"
+      ],
+      "criteria": [
+        [
+          "ART",
+          "Observed ranging and finite bursts"
+        ],
+        [
+          "ART-SMOKE",
+          "Battery mission safety/retirement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexArtilleryFire.sqf",
+      "actualSha256": "1919861f0c66688c08d7762671e19048a622ebf92f8d0449dfd64461768baaa5",
+      "recordedSha256": [
+        "4826b4cc42f902551bfeec945e2a99a15111a20a62c8ffa51b278d4a1257224a"
+      ],
+      "criteria": [
+        [
+          "ART",
+          "Impact safety and native release"
+        ],
+        [
+          "ART-SMOKE",
+          "Finite screened mission dispatch"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexArtilleryScoot.sqf",
+      "actualSha256": "f198f85cb2847b1c0c673ec07b6a6e4e1e0ef059444f44cd8b2c5044a968910a",
+      "recordedSha256": [
+        "96f8615e8f063323c81839904e270fd363e673f2c35491d04799753c772350df"
+      ],
+      "criteria": [
+        [
+          "ART",
+          "Finite relocation and mission lifecycle"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/artilleryMissionStep.sqf",
+      "actualSha256": "e80f59417cd7771e058c36b9a9adb76b18216b60adad3c6eb63b6215c877b057",
+      "recordedSha256": [
+        "8c9d39d5bb6f6414c8ddb32b265040cfedb5e0ccd321758eca09b113c96ad238"
+      ],
+      "criteria": [
+        [
+          "ART",
+          "Finite relocation and mission lifecycle"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexCounterBattery.sqf",
+      "actualSha256": "19a1cb3b9965e94a2b236ec074e255266d3138df8ee3048cfe82f7e3961057e8",
+      "recordedSha256": [
+        "53f999f857715271e17be86f4a7216d4472c2b3201137d834e1f1abfed776091"
+      ],
+      "criteria": [
+        [
+          "CB",
+          "Radar registration and acquisition"
+        ],
+        [
+          "CB",
+          "Side-specific emission retargeting"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirborneCheck.sqf",
+      "actualSha256": "c22b7fde85282a7009d680c5d43d236c247ec6f0f0afb2fe9eb70ceb5c6aec2e",
+      "recordedSha256": [
+        "58c3dc6f69baf3ad01131fd96e532dec8ad8f41d49b6d52d7a04533445370d0e"
+      ],
+      "criteria": [
+        [
+          "AIRBORNE",
+          "Altitude/crew/passenger eligibility"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirborneDropStep.sqf",
+      "actualSha256": "6796321def3860701fdc2c0e417161557d7a18839077954f317b7b2c24934137",
+      "recordedSha256": [
+        "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+      ],
+      "criteria": [
+        [
+          "AIRBORNE",
+          "Spaced native jump/deployment"
+        ],
+        [
+          "AIRBORNE",
+          "Insertion episode and owned protection release"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexParachuteJump.sqf",
+      "actualSha256": "359e86d41670b481c82d415a9698779ef38c6676a999a9384546e326214fb3d2",
+      "recordedSha256": [
+        "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979"
+      ],
+      "criteria": [
+        [
+          "AIRBORNE",
+          "Spaced native jump/deployment"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrison.sqf",
+      "actualSha256": "f89fec00ad870ea88c11af1b321cdd689734e9ec2b11f6feef2787c2a28757d8",
+      "recordedSha256": [
+        "1e5abdbb20e7826da0655965173d0139bfa1612d130f3b87956204ef0517e183"
+      ],
+      "criteria": [
+        [
+          "GARRISON",
+          "Runtime slots and walk/explicit teleport choice"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
+      "actualSha256": "cd929ad2c7d32b7dbbae946b920e996f53685b0f322e433edb602c866f969d68",
+      "recordedSha256": [
+        "9e4be2be8650b6f7600e8c99382ec3868b4764fd2ac6bde2e7d7b42787a0647b"
+      ],
+      "criteria": [
+        [
+          "GARRISON",
+          "Owned slot/floor arrival and hold"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrisonRefill.sqf",
+      "actualSha256": "46c6478f326ab60bc974adc26c87296dc745cb6af24d19694fe02744392cbb7a",
+      "recordedSha256": [
+        "005087ff397352984fa710925d5ff37111be2646ae4a494409d4c576f265a401"
+      ],
+      "criteria": [
+        [
+          "GARRISON",
+          "Dynamic refill and interrupted task integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGarrisonRelease.sqf",
+      "actualSha256": "51f7900151f18bb96d81404271cf03bd40c8a4af5bc588a2cb7beac2239e58db",
+      "recordedSha256": [
+        "5351a154c5b3e3c19606251c3775ff79e2e55c75bd03bff82701f596d2979364"
+      ],
+      "criteria": [
+        [
+          "GARRISON",
+          "Dynamic refill and interrupted task integration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+      "actualSha256": "08af36029f73cb068e8938697848c8fe01257146e0b3645063f2beece4565cfd",
+      "recordedSha256": [
+        "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+      ],
+      "criteria": [
+        [
+          "FLARES",
+          "Threat event and aircraft eligibility"
+        ],
+        [
+          "FLARES",
+          "Owner/feature cancellation"
+        ],
+        [
+          "BREAK",
+          "Actual threat and flight owner admission"
+        ],
+        [
+          "BREAK",
+          "Bounded break-away correction"
+        ],
+        [
+          "BREAK",
+          "Flight lease cleanup and native return"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFireCountermeasure.sqf",
+      "actualSha256": "946516ad5d6ce5c58c3b1e37d70a0bca6508fc73b4f14d4fff36ff6f60cad200",
+      "recordedSha256": [
+        "f2aab2e191c0500f74bda6d948bf9373c384045a29358ce3e90bc7a99b353eba"
+      ],
+      "criteria": [
+        [
+          "FLARES",
+          "Real finite countermeasure release"
+        ],
+        [
+          "ATTACK-FLARES",
+          "Actual finite countermeasure requests"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexAssaultStart.sqf",
+      "actualSha256": "eac18a6e5b32fe59caa6f737c9528e8f0add5c680aec7efae2f388f5b17065ee",
+      "recordedSha256": [
+        "c1ba09e05c5d2ec60297e8fa35cfb03744b6b19278a7f0e43d51143438b64ca7"
+      ],
+      "criteria": [
+        [
+          "ASSAULT",
+          "Fresh target and pair admission"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexTacticalAssess.sqf",
+      "actualSha256": "47d99d4ed6d28c0779dc5847a176584872b335f9c013692c526ec4e9b2ac33eb",
+      "recordedSha256": [
+        "3214f2c04dd08e1a7f0b4bc4c23b5f7e3a5b588fe184a8b05c5c30db74de6a01"
+      ],
+      "criteria": [
+        [
+          "ADVANCE",
+          "Authored objective and tactical assessment"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/rebalanceRoles.sqf",
+      "actualSha256": "496ed506135dfe7f270b75f1ef882f47466b56fc4c5350453c642a26f33f24ce",
+      "recordedSha256": [
+        "75eb9ed44578369292f346403f5d1cdb5f247fbab0bd928f99ab1b22f304ebd4"
+      ],
+      "criteria": [
+        [
+          "ADVANCE",
+          "Casualty/straggler continuation"
+        ],
+        [
+          "DRILL-RECOVERY",
+          "Buddy/role-preserving reassignment"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexSupportAck.sqf",
+      "actualSha256": "ce07598d0fb9fe0c9ea6f3f97698498dd9d985dbdd57ab45a1d8af3456332474",
+      "recordedSha256": [
+        "d88bf11d048944f15439ab60413e15aa43442be5247a0ea3f8b7f2bbf48b8795"
+      ],
+      "criteria": [
+        [
+          "COORD",
+          "Communicated opportunity and owner ACK"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
+      "actualSha256": "f1042782bc5f529ccebfd3abda937d3f6ddc339cd96e1b490bbf8df2d2f1ce45",
+      "recordedSha256": [
+        "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497"
+      ],
+      "criteria": [
+        [
+          "COORD",
+          "Separated lane allocation"
+        ],
+        [
+          "MULTI-FLANK",
+          "Complementary squad lanes"
+        ],
+        [
+          "MULTI-BOUND",
+          "Cross-squad finite turn allocation"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Existing contact-led support components"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexSupportBoundStart.sqf",
+      "actualSha256": "70421ac58882d876294d2e4d96fdce53ec8def162d27d6515a9a4e66cb5bcb95",
+      "recordedSha256": [
+        "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f"
+      ],
+      "criteria": [
+        [
+          "COORD",
+          "Finite local bounds/support roles"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexSupportStep.sqf",
+      "actualSha256": "8cf6d56ddc3ca02a8662c6c6f8095475ab6241ead2a6d39bc7eecd29aaafcf91",
+      "recordedSha256": [
+        "f8a91b5a043883b9279bd992278de354ba43bbbc60c21e30669e79297a1e3794"
+      ],
+      "criteria": [
+        [
+          "COORD",
+          "Responder replacement and composition"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Screened transitions and operation handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexAmmoShare.sqf",
+      "actualSha256": "b11311b1d9a1121f031f7428f31319fb8321ca19d58e9cb7e36715671d9c2aeb",
+      "recordedSha256": [
+        "9553d1e7e7f7b77cd8e23c80988fe8f9bb487e2ce83ffab4b535e72cc9647165"
+      ],
+      "criteria": [
+        [
+          "AMMO",
+          "Compatible donor/recipient selection"
+        ],
+        [
+          "AMMO",
+          "Conservative magazine transfer"
+        ],
+        [
+          "AMMO",
+          "Role/gate/current-actor protection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCapabilities.sqf",
+      "actualSha256": "37ce82833581f55551e1d512334d70fed135917e38d0ea711d8047fc3aa5d2eb",
+      "recordedSha256": [
+        "f34ee94ae2e865cc180ebcf09a13ec19864f38254a7b7491a1f32120ce58e1b9"
+      ],
+      "criteria": [
+        [
+          "AMMO",
+          "Compatible donor/recipient selection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
+      "actualSha256": "bde93eab31965cf5bd7b07a1cd3240f0db6a98e0acb68aa70230cf431b444e0c",
+      "recordedSha256": [
+        "47ffe2b948909616f4f4ac5c7e96f9e86a409631a647844c9a6184eb0be84e42"
+      ],
+      "criteria": [
+        [
+          "GUNNERY",
+          "Known threat/platform/ammo suitability"
+        ],
+        [
+          "COMBINED-ARMS",
+          "Finite ground roles and actual fire readiness"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
+      "actualSha256": "c09a67383c23c74e3e83f436798f53aaf826ecee0e1453ff28ea23970d55a3a8",
+      "recordedSha256": [
+        "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
+      ],
+      "criteria": [
+        [
+          "GUNNERY",
+          "Standoff/combined-role composition"
+        ],
+        [
+          "COMBINED-ARMS",
+          "Finite ground roles and actual fire readiness"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/flightLeaseRelease.sqf",
+      "actualSha256": "ec592b3c842a2554562a3975091533a8aea2e16a276b98af9c2fb009e9a14955",
+      "recordedSha256": [
+        "a8dc5aec2bf3ea443f9767cf61b2e07eb4e21323c02c8f0028c8c2a651ced1aa"
+      ],
+      "criteria": [
+        [
+          "BREAK",
+          "Flight lease cleanup and native return"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "actualSha256": "97b365c9b20fda2014676c1acc27bb1b1c7c198dc5cb4636c59b95e125f31ec1",
+      "recordedSha256": [
+        "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Clear task and operation ownership"
+        ],
+        [
+          "CLEAR",
+          "Dynamic building topology and access"
+        ],
+        [
+          "CLEAR",
+          "Buddy and pair flow"
+        ],
+        [
+          "CLEAR",
+          "Egress and consolidation"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/indoorActorOperation.sqf",
+      "actualSha256": "c818ad1d6ae2118690133cfebadf2ca53da42d33d7a90269fd65f8ff6d1b9bd0",
+      "recordedSha256": [
+        "099aa2a9ec984ab6277ee29b0d2965dc69b6bede51841552dd79ca82a3809173"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Individual native interior movement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/indoorActorGroupContext.sqf",
+      "actualSha256": "72f39a1fc90a20af64b8900333aa2e933e4eec17408dbf00188f4447ea2ffc9a",
+      "recordedSha256": [
+        "b54793a09624972bb1aaf4a929cfdcfed83666049d75cec5fb3a6e5f6a6833e8"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Individual native interior movement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/indoorActorGroupAvailable.sqf",
+      "actualSha256": "b0966adc67240458cd864442109a66b2bb667a4dc1a949df411fe49df2543fbd",
+      "recordedSha256": [
+        "1e1d95967ba5930f6190b971d13f9f9e0b2ca547e0871e9624c34b9f2767c215"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Individual native interior movement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "actualSha256": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617",
+      "recordedSha256": [
+        "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a",
+        "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Buddy and pair flow"
+        ],
+        [
+          "MULTI-BOUND",
+          "Within-squad pair movement/cover"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "actualSha256": "54a56b2e53e78b780a3241a3394356b29e9519a9df8d032cde68bfd381af9d7e",
+      "recordedSha256": [
+        "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Buddy and pair flow"
+        ],
+        [
+          "CLEAR",
+          "Casualty replenishment"
+        ],
+        [
+          "CLEAR",
+          "Exterior isolation/security"
+        ],
+        [
+          "CLEAR",
+          "Egress and consolidation"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+      "actualSha256": "05a17f8b579b6006258aa8339f49545c7aefb39cc002f5d558c29e9332586518",
+      "recordedSha256": [
+        "fa098c3df91815c62fd454709ed1e712070afb472a96a3d4e970aac1c7e646cb"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Door handling"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearRelease.sqf",
+      "actualSha256": "b00a7ff9f904229af5d07128052823dc31e42d12dacec18a4789cf5c1d29f8f0",
+      "recordedSha256": [
+        "304c7e07504e2755e6d30b931890cec0f40454ced00e05557b874d3e52285552"
+      ],
+      "criteria": [
+        [
+          "CLEAR",
+          "Interruption, repeat and handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/aiGetDiagnostics.sqf",
+      "actualSha256": "d452d06d0fbe405d8ddd31b5bbef321ab3f1b509e0727f01ae2a2add17682590",
+      "recordedSha256": [
+        "9b7447fff895b629556816ecc08de5efd1b7311b5c7793d8e9fee5f03388fbec"
+      ],
+      "criteria": [
+        [
+          "UI",
+          "Diagnostics and notifications"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/operationStep.sqf",
+      "actualSha256": "f47f6dce607b2e5a4490ff3cc6b788a29f56c04c25ea2d376efb0b49f2b978c2",
+      "recordedSha256": [
+        "e77f278e7e9a547a37ff3dd42655270fc35ac9243434f98c71f154f97ca90ae9"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Epoch/current-owner execution"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexOrderDispatch.sqf",
+      "actualSha256": "b54e7f91620480d1977ec5758e3d74f8949f4f3309b2ee8f7289fc8516012fa0",
+      "recordedSha256": [
+        "544283e51c39386441207465f3dcfb3f623296cddcf1d1aaaff6feba6416db8e"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Authenticated task dispatch/results"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexOrderLocal.sqf",
+      "actualSha256": "7ba3826bab85ad987924e1c686cc3d6f4b5131c98815debb7383dc0bd1798e75",
+      "recordedSha256": [
+        "afca2ee2cd17ef61fe35d7b9535d861b919c7c5c643778d5c4ea81286099befe"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Authenticated task dispatch/results"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/operationRelease.sqf",
+      "actualSha256": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8",
+      "recordedSha256": [
+        "1b5ddff3de26cae60cdd7cbbfb25b53dd1d9a5e0106625ff5a4ecbdba01e33f6"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Job and control restoration"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Screened transitions and operation handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/core/functions/operationRestore.sqf",
+      "actualSha256": "d4b67fde4065deb747a1da71870f32456ee3d29afac420f1e00fe029531af8a8",
+      "recordedSha256": [
+        "293f11ff3a1bde37ff8615ecdc7788e4f6cb8d24f36213dc3beb74f1f793ad97"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Job and control restoration"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCheckpoint.sqf",
+      "actualSha256": "1086af128303aedb2f3f8b9eb01cbd5c54ac83f9c7dd7e2b168d5909891f7e6c",
+      "recordedSha256": [
+        "d3c8c92cecf1864db86d80a82fc2ca09f10487aed86d52502bd51fe0086f114e"
+      ],
+      "criteria": [
+        [
+          "LIFECYCLE",
+          "Complete provider/JIP replay composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/support/functions/cortexSupportMaintain.sqf",
+      "actualSha256": "780eaf27715529f3cb0418ec577ca172e296ef87347fd3c15e99a39696d9861d",
+      "recordedSha256": [
+        "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
+      ],
+      "criteria": [
+        [
+          "MULTI-FLANK",
+          "Cross-squad continuation/relief"
+        ],
+        [
+          "MULTI-BOUND",
+          "Complete role exchange/recovery composition"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Dynamic multi-squad/asset role composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "actualSha256": "c3862b375e9fb3bce4dd0724b2b1f80d4e22d4fd240a036dd99d9e5d5f61afb8",
+      "recordedSha256": [
+        "cb1784f589c9c095388682f29c41e56c7b6f654c4df9fe24eddf47b18342682d"
+      ],
+      "criteria": [
+        [
+          "DRILL-HANDOVER",
+          "Owned movement/settings retirement"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexHolderRecallOwned.sqf",
+      "actualSha256": "5865d072682e43350ebf427514721e594bd29d441a14ad834863d9c68b770ab4",
+      "recordedSha256": [
+        "df26f778de1115760cd1ef37af65ee3c2b7429c1149e719becc1477d6ef5d4cb"
+      ],
+      "criteria": [
+        [
+          "DRILL-HANDOVER",
+          "Settled-holder delayed handback"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
+      "actualSha256": "6fdd50c7b7e03db4eb663dcddad71672641e515336d88bc209ba0f28e54d9e00",
+      "recordedSha256": [
+        "c44830a26d8db73a4faeb7237fa6a433495c74de4541d9e0f4c1013d6b5a935a"
+      ],
+      "criteria": [
+        [
+          "COMBINED-ARMS",
+          "Fresh contact and capability requests"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
+      "actualSha256": "93098908129fa0dafe0744372c3ab5d334d4b954e07fde491079deeeae76347d",
+      "recordedSha256": [
+        "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
+      ],
+      "criteria": [
+        [
+          "COMBINED-ARMS",
+          "Fresh contact and capability requests"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Existing contact-led support components"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Independent subcontact allocation/retasking"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
+      "actualSha256": "e2fdd37c3cb66f9b52855c1f209e13dc5c72a8bb04f56f4b4665bb6ef99ef288",
+      "recordedSha256": [
+        "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
+      ],
+      "criteria": [
+        [
+          "COMBINED-ARMS",
+          "Air request/fallback and owner release"
+        ],
+        [
+          "COMBINED-OPERATION",
+          "Dynamic multi-squad/asset role composition"
+        ]
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexAttackRunFlares.sqf",
+      "actualSha256": "019721b0072798961b944154a1afe6cc69eb0663ef0ac37232cadc32c36048fa",
+      "recordedSha256": [
+        "ed38930812a11ec9c725cd03078d71e11e7eae5876ac55de404ca135239e65ba"
+      ],
+      "criteria": [
+        [
+          "ATTACK-FLARES",
+          "Approach/departure episode selection"
+        ],
+        [
+          "ATTACK-FLARES",
+          "Actual finite countermeasure requests"
+        ],
+        [
+          "ATTACK-FLARES",
+          "Owner/feature/interruption protection"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirAttackPlan.sqf",
+      "actualSha256": "64ec4845e41a0972f15e85f17c93271fb154cbe0909915a1c7f46f5bfdf316b1",
+      "recordedSha256": [
+        "6b6307ed8484726b2755101e2f1eda7d1c0c53024fe3b1158859ea207b9b1b6a"
+      ],
+      "criteria": [
+        [
+          "AIR-ATTACK",
+          "Platform/threat/ammo pattern planning"
+        ]
+      ]
+    },
+    {
+      "path": "addons/aircraft/functions/flightLeaseValid.sqf",
+      "actualSha256": "1f82e03e9fb96f88604e308329a3f5eced747f671a489f8d90e7c5d6bc48cdb5",
+      "recordedSha256": [
+        "d900c12feb57ffd8e5e9582991bdd06c82d6dc4d7786cc0a5e40887390f8c6b5"
+      ],
+      "criteria": [
+        [
+          "AIR-ATTACK",
+          "Weapon operator and flight ownership"
+        ]
+      ]
+    }
+  ],
+  "nextAction": "Review affected criteria against current source and dated implementation reviews, recording supported dispositions before updating hashes/scores. Keep unknown/stale separate from absent; do not reduce to zero or infer parity. Regenerate/check only when evidence is coherent.",
+  "limits": "Existing tracker percentages are historical, not confirmed current. Physical acceptance/performance remain separate and unverified. Audits PAUSED, full goal active/incomplete."
+}
