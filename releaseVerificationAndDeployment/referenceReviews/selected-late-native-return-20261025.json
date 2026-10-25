@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "61f9f1922e1e7527de92976faeb750f8db90a9f0",
+  "scope": "Passive acknowledgement of recorded original native return after exact local selected-crew worker ended",
+  "defect": "An original return could be issued but not acknowledged before its worker ended/timed out. UNRESOLVED retirement then retained the reservation while any original actor survived, even if the issued original return later became positively observable. This is a traced source path, not a reproduced engine failure.",
+  "implementation": [
+    "Read-only VehicleCrewMoveReturnProof requires actual completed original private FSM, matching worker serial/counter/local owner and original episode epoch, unchanged current group epoch and recorded tactical generation where present. No remote done flag, expired timer or changed seat grants proof.",
+    "Recorded return entries must match original MOVE baselines and account for every surviving original recipient. Original actors must be local, in the original group/platform and without replacement operating actors. Fresh native observations use the existing VehicleCrewDestinationState predicate; idle/WAIT needs current same-floor position/rest.",
+    "An empty original return list needs current idle original actors, retained stop goal and physical rest. All-original-dead measured-rest retirement retains its prior path.",
+    "Shared retirement may retire matching metadata after original return proof even if the original window elapsed; it never issues a new native command, starts a worker or renews a deadline for this proof. Live/unproved/foreign/new-epoch work remains reserved.",
+    "Active RETURNING uses the same native destination predicate instead of duplicating endpoint/rest/height checks. Original replyUntil is passed; late OWNED observation is not renewed execution permission.",
+    "Artillery scoot cleanup recognises the exact matching positive terminal transition. Selected standoff can report completion only with recorded physical HOLD, positive handback and unchanged current mission route; otherwise its old task remains incomplete."
+  ],
+  "validation": {
+    "focused": "13 existing artillery cases passed; source contracts follow actual common predicate and passive proof, no new test count.",
+    "full": "1497 tests,429 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/late-native-return-61f9f192",
+    "fingerprint": "045982424f92043daf8b7ce11f9ec6d987fdb5650c7bf72e4ddefbe6a18a26d4",
+    "finalBuildLog": ".qa/handovers/late-return-final-build-3.log",
+    "authorityReview": "Final candidate includes current epoch/generation and unchanged mission-route success binding; earlier passing intermediate builds predate those guards and are superseded."
+  },
+  "limits": [
+    "No native/physical audit: actual delayed acknowledgement, original order restoration/travel, empty-return rest, casualties, ownership/repetition/intervention and performance remain unverified; audits paused.",
+    "Does not resolve foreign-owner worker termination, arbitrary superseding native orders, deleted platform/journal or missing coherent handover evidence. These remain reserved and need separate implementation.",
+    "At most two original actors/recorded return entries are inspected in existing retirement service after worker termination. Added bounded reads are unmeasured;5%median/10%p95 performance not claimed.",
+    "Native acknowledgement is command handback, not physical returned travel or whole-controller quiescence/parity."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "bc6fa0e1c1abbfb3f8d51aa314d9d45b468314b98788e98a0ecada1f48be4ab6",
+    "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "613f16d9c7b0298e451e9be3fd193ce1f5a7ff675295a0a6dd676b591097671e",
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "89b59e5b9a46c4b3496c3b4753e7a24fa6fa8cb2dace98560f362aee8c8bdb88",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "fe8dc1ccb6cd03ab43d6ebe292d07168bcf50e5f432e07d5c797a8968ec89634",
+    "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "1415d3e1202db41a9ae5daa53c27fe86b75a03128610d0948b7b12f32fe28f5d",
+    "addons/main/CfgFunctions.hpp": "6ace3b9598509855fa051f8bdbe9eba122f6e7667a9b7822792cb0313a4c0ae5",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "261abd3e75cd6c4ee5710fa68ad23a856123a6f5fc9d2188abaa365819ee3a98"
+  }
+}

@@ -218,7 +218,13 @@
           "scope": "Existing settled WAIT/idle proof in artillery/driving remains; current selected-standoff integration is tracked by armour-selected-standoff-20261025.json, not inferred from this earlier repair.",
           "physicalAcceptance": false
         },
-        "observationReview": "selected-native-observation-20261025.json"
+        "observationReview": "selected-native-observation-20261025.json",
+        "lateRecordedReturn": {
+          "review": "selected-late-native-return-20261025.json",
+          "status": "ENDED_LOCAL_WORKER_POSITIVE_NATIVE_RETURN_INTEGRATED",
+          "scope": "Read-only late recorded-original-return proof can retire its matching reservation; unchanged current owner epoch and tactical generation required. Broader supersession/deleted-platform/foreign-owner cleanup remain unfinished.",
+          "physicalAcceptance": false
+        }
       }
     }
   ],

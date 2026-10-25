@@ -7,7 +7,9 @@
  * this function does not discover another producer, acquire new movement or adopt replacement crew.
  * Repeat/JIP: Reuses original native reply/cleanup clocks. An exact allocation refusal may retry
  * once within its original window. Other unresolved work stays reserved while an original actor
- * survives or the platform is moving. Dead original crew plus measured rest can retire only the
+ * survives or the platform is moving, unless its original private worker has ended and its
+ * recorded original return is positively acknowledged. No native command is issued for that proof.
+ * Dead original crew plus measured rest can retire only the
  * matching reservation and lease. Worker loss is not proof of native quiescence.
  * Arguments: 0 platform OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1;
  * 3 fixed producer contract ARRAY of six nonempty STRING,[]:
@@ -56,23 +58,31 @@ isNil {
             && {_retryCrew isEqualType []} && {count _retryCrew == 2}
             && {_retryCrew findIf {!(_x isEqualType objNull)} < 0}
             && {_retryCrew findIf {!isNull _x && {alive _x}} >= 0};
-        // No living original actor can retain our native movement order in this case.
-        // Rest is measured independently: a dead driver alone does not stop a rolling gun.
-        // Never adopt a replacement crew or remove a different operation's lease.
-        if (_phase == "UNRESOLVED" && {!_retryRefused}) exitWith {
-            private _originalCrew=_work getOrDefault ["crew",[]];
-            private _linear=vectorMagnitude velocity _battery;
-            private _angular=vectorMagnitude angularVelocity _battery;
+        // Passive return evidence needs an actual completed original private worker,
+        // recorded original return orders and fresh local native acknowledgement.
+        private _returnObserved=!_live && {_phase in ["RETURNING","UNRESOLVED"]}
+            && {[_battery,_work,_executor,_battery getVariable [_executorSerialKey,-1]]
+                call CBE_fnc_VehicleCrewMoveReturnProof};
+        // Otherwise only death of every original actor plus measured rest can retire
+        // unresolved movement. Never infer handback from expiry, script loss or new seats.
+        if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved}) exitWith {
+            private _nativeRetired=_returnObserved || {call {
+                private _originalCrew=_work getOrDefault ["crew",[]];
+                private _linear=vectorMagnitude velocity _battery;
+                private _angular=vectorMagnitude angularVelocity _battery;
+                if (count _originalCrew != 2
+                    || {_originalCrew findIf {!(_x isEqualType objNull) || {!isNull _x && {alive _x}}} >= 0}
+                    || {!finite _linear} || {!finite _angular} || {_linear >= 0.278} || {_angular >= 0.01}) exitWith {false};
+                true
+            }};
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
             private _localLease=_state getOrDefault ["movementLease",[]];
-            if (_live || {count _originalCrew != 2}
-                || {_originalCrew findIf {!(_x isEqualType objNull) || {!isNull _x && {alive _x}}} >= 0}
-                || {!finite _linear} || {!finite _angular} || {_linear >= 0.278} || {_angular >= 0.01}
+            if (_live || {!_nativeRetired}
                 || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {false};
             if !([_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease) exitWith {false};
             private _terminal=+_work;
             _terminal set ["phase","RETIRED"];
-            _terminal set ["result","ORIGINAL_CREW_LOST_AT_REST"];
+            _terminal set ["result",["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved];
             _battery setVariable [_workKey,_terminal,true];
             _group setVariable [_referenceKey,nil,true];
             if (_localLease isNotEqualTo []) then {_state deleteAt "movementLease"};

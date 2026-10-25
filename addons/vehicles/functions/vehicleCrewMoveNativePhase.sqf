@@ -134,14 +134,11 @@ if (_phase == "RETURNING") exitWith {
     private _ack=_returns findIf {
         _x params ["_actor","_point"];
         if (isNull _actor || {!alive _actor}) exitWith {false};
-        private _native=(expectedDestination _actor) param [0,[],[[]]];
+        private _native=expectedDestination _actor;
         private _command=currentCommand _actor;
-        count _native != 3
-            || {_native findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
-            || {_native vectorDistance _point > 0.25}
-            || {!(_command == "MOVE" || {_command in ["","WAIT"] && {_rest}
-                && {(_arrivalSample select 0) vectorDistance _point <= 2}
-                && {abs (((_arrivalSample select 0) select 2)-(_point select 2)) <= 0.75}})}
+        private _sample=[_command,_native,_command,_native];
+        ([_point,_work get "replyUntil",_sample,_sample,serverTime,_arrivalSample]
+            call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
     } < 0;
     if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
     if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};

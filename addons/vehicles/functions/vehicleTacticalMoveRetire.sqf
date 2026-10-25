@@ -40,9 +40,13 @@ isNil {
         private _after=_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
         if ((_after getOrDefault ["token",""]) == _token && {(_after getOrDefault ["serial",-2]) == _serial}
             && {(_after getOrDefault ["phase",""]) == "RETIRED"}
-            && {(_after getOrDefault ["result",""]) == "ORIGINAL_CREW_LOST_AT_REST"}) then {
+            && {(_after getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"]}) then {
             private _generation=_after get "operationGeneration";
-            [_group,_generation,"INCOMPLETE","ORIGINAL_CREW_LOST_AT_REST"] call CBE_fnc_OperationRelease;
+            private _reason=_after get "result";
+            private _complete=_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"
+                && {_after getOrDefault ["arrived",false]}
+                && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")};
+            [_group,_generation,["INCOMPLETE","COMPLETE"] select _complete,_reason] call CBE_fnc_OperationRelease;
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
             if ((_state getOrDefault ["vehicleOperationGeneration",-1]) == _generation) then {
                 _state deleteAt "vehicleOperationGeneration";

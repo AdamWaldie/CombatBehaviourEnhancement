@@ -188,11 +188,13 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertEqual(before[1],[survivor+'-goal'])
             self.assertEqual(before[3],before[1])
         returning=worker.split('if (_phase == "RETURNING") exitWith {',1)[1]
-        self.assertIn('_command in ["","WAIT"] && {_rest}',returning)
-        self.assertIn('(_arrivalSample select 0) vectorDistance _point <= 2',returning)
-        self.assertIn('abs (((_arrivalSample select 0) select 2)-(_point select 2)) <= 0.75',returning)
+        self.assertIn('[_point,_work get "replyUntil",_sample,_sample,serverTime,_arrivalSample]',returning)
+        self.assertIn('call CBE_fnc_VehicleCrewDestinationState',returning)
+        predicate=(ROOT/'addons/vehicles/functions/vehicleCrewDestinationState.sqf').read_text(encoding='utf-8')
+        self.assertIn('(_arrival select 0) vectorDistance _goal <= 2',predicate)
+        self.assertIn('abs (((_arrival select 0) select 2)-(_goal select 2)) <= 0.75',predicate)
         self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
-        self.assertIn('_native vectorDistance _point > 0.25',returning)
+        self.assertIn('_point vectorDistance _goal <= 0.25',predicate)
         self.assertNotIn('doMove',returning)
         # A short native return can complete before the first callback. Idle alone,
         # a replaced destination, motion or a remote endpoint cannot prove return.
@@ -217,12 +219,33 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertNotIn('CBE_Artillery',retirement)
         self.assertIn('count _contract != 6',retirement)
         self.assertIn('execFSM _fsmPath',retirement)
-        self.assertIn('_wasUnresolved &&',retire)
+        self.assertIn('_wasRetiring &&',retire)
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',retire)
         retire+='\n'+retirement
 
         self.assertNotIn('doMove',retire)
-        casualty=retire.split('if (_phase == "UNRESOLVED" && {!_retryRefused}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        proof=(ROOT/'addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf').read_text(encoding='utf-8')
+        for guard in ('completedFSM (_executor select 1)',
+                      '(_executor select 2) != clientOwner',
+                      '(_executor select 3) != (_work getOrDefault ["epoch",-1])',
+                      '(_work getOrDefault ["epoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",-2])',
+                      '_generation != (_group getVariable ["CBE_OperationGeneration",-2])',
+                      '(_executor select 4) != _executorSerial',
+                      '!("returns" in _work)',
+                      'objectParent _x != _battery',
+                      '(_returns select {(_x select 0) in _writers}) isNotEqualTo _expected',
+                      'call CBE_fnc_VehicleCrewNativeObservation',
+                      'call CBE_fnc_VehicleCrewDestinationState'):
+            self.assertIn(guard,proof)
+        for mutation in ('doMove','execFSM','setVariable','_work set'):
+            self.assertNotIn(mutation,proof)
+        self.assertIn('call CBE_fnc_VehicleCrewMoveReturnProof',retirement)
+        self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
+        self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retire)
+        tactical_retire=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text(encoding='utf-8')
+        self.assertIn('([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")',tactical_retire)
+
+        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
         self.assertIn('alive _x',casualty)
         self.assertIn('!finite _linear',casualty)
@@ -238,7 +261,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertTrue(released(0,0,0))
         for args in ((1,0,0),(0,1,0),(0,0,0.02),(0,float('nan'),0),(0,0,float('nan')),(0,0,0,True),(0,0,0,False,True)):
             self.assertFalse(released(*args))
-        retry=retire.split('private _resumePhase=',1)[1].split('// No living original actor',1)[0]
+        retry=retire.split('private _resumePhase=',1)[1].split('// Passive return evidence',1)[0]
         for proof in ('!_live','"RETIREMENT_FSM_REFUSED"','"retirementFsmRetries",0','isEqualTo 0',
                       'serverTime < _retryUntil','finite _retryUntil','"release",false',
                       '_retryCrew findIf {!isNull _x && {alive _x}} >= 0'):

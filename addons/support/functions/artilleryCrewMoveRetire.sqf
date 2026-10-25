@@ -9,7 +9,8 @@
  * deadlines. One exact retirement-FSM creation refusal may retry inside its original cleanup
  * window, retaining the saved phase/native observations. No other unresolved reason reopens.
  * Unresolved work stays reserved while any original crew member survives or the gun
- * is moving. Once every original actor is dead/deleted and the gun is at rest, maintenance can
+ * is moving, unless its ended original worker has a positively observed recorded native return.
+ * Once every original actor is dead/deleted and the gun is at rest, maintenance can
  * retire that exact reference without commands, replacement crew adoption or deadline renewal.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1.
  * Return: BOOL retirement worker active, not native stop, physical rest or returned authority.
@@ -23,15 +24,15 @@ if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2})
 private _pending=false;
 isNil {
     private _before=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
-    private _wasUnresolved=(_before getOrDefault ["phase",""]) == "UNRESOLVED";
+    private _wasRetiring=(_before getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"];
     _pending=[_battery,_token,_serial,["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reference",
         "CBE_ArtilleryCrew_FSM","CBE_ArtilleryCrew_ExecutorSerial","ARTILLERY_CREW",
         "\z\cbe\addons\main\fsm\artilleryCrewMove.fsm"]] call CBE_fnc_VehicleCrewMoveRetire;
     private _work=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
-    if (_wasUnresolved && {(_work getOrDefault ["token",""]) == _token}
+    if (_wasRetiring && {(_work getOrDefault ["token",""]) == _token}
         && {(_work getOrDefault ["serial",-2]) == _serial}
         && {(_work getOrDefault ["phase",""]) == "RETIRED"}
-        && {(_work getOrDefault ["result",""]) == "ORIGINAL_CREW_LOST_AT_REST"}) then {
+        && {(_work getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"]}) then {
             if ((_work getOrDefault ["kind","POSITION"]) == "SCOOT"
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo (_work get "session")}) then {
