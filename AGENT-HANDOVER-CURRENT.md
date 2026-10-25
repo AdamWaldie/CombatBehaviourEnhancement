@@ -44,6 +44,8 @@ Actor-native continuity now also adopts a completed MOVE observed as WAIT/idle, 
 
 Settled MOVE adoption is now connected to execution: room-command and exit predicates reuse BuildingActorMotion CHECK for WAIT. CHECK is read-only and active-move ownership remains strict MOVE. The earlier metadata-only checkpoint could still refuse a started WAIT actor; see `clear-settled-execution-20261025.json` for current hashes and full-build/independent verification. Added operation/route/native proof cost may repeat per callback and is unmeasured. Physical flow and full owner-ready delivery remain incomplete.
 
+Owner-change writer tracing is recorded in `clear-owner-writers-20261025.json`: main FSM/shared callback fences, native watch/hold effects, clear release, settings handback, same-owner post-clear follow cleanup and door requests are distinct domains. A fenced/ended main FSM is not quiescence or physical-stop proof. Command-site rows are navigation aids, not transitive review coverage. Complete phase-specific journal and transitive writer enumeration before adding coherent replay/readiness; do not add a delivery flag and claim handover. No runtime change in this trace.
+
 ## Next work and evidence
 
 Prioritise foundations/FSM lifecycle and the entire HBQ driving intent, then individual behaviours and composition. Use LAMBS as an implementation baseline without requiring it as a dependency. Protocol work remains incomplete, including controlled rappelling, artillery casualty/native handback, CQB ordered owner-ready replay and finite post-clear consolidation. Mixed-convoy tuning needs physical traces when audits are authorised. Do not replace those gaps with more detection or packaging claims.

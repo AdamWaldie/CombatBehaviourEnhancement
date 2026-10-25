@@ -1,0 +1,315 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "86057e0e",
+  "scope": "Main building FSM/queued step and selected release/settings/hold/door paths. Candidate command sites are a navigation aid, not a complete transitive mutation audit or quiescence proof.",
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStart.sqf": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec",
+    "addons/infantry/functions/buildingOperationQueue.sqf": "9e8a744784b00c2219161d27867027e8b9cac2ff4bc56b9d857429be3e4b464f",
+    "addons/infantry/functions/buildingOperationStep.sqf": "5ab7e281c11b47d9346130da1eea7524df970a2b8cf9ac67a5375cead432d026",
+    "addons/infantry/functions/cortexClearRelease.sqf": "b00a7ff9f904229af5d07128052823dc31e42d12dacec18a4789cf5c1d29f8f0",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "8474c1ab36b068ac0a3df5edfa02834a215e5ca6752aaa37851b106b66985c28",
+    "addons/core/functions/actorSettingsCleanupStep.sqf": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668",
+    "addons/core/functions/clearHoldCleanupStep.sqf": "937799674542c96de3dccc9a6169d52c60233d9f7a4cd0ec4855205b8d73f612",
+    "addons/infantry/functions/cortexBuildingDoor.sqf": "05a17f8b579b6006258aa8339f49545c7aefb39cc002f5d558c29e9332586518"
+  },
+  "writerDomains": [
+    {
+      "domain": "Main physical building step",
+      "entry": "BuildingOperationStart -> buildingOperation.fsm -> BuildingOperationQueue -> CortexQueueJob -> BuildingOperationStep",
+      "fences": "Start commits admitted operation/generation/epoch, target transform, native intent and original deadlines. Queue is coalesced by group/epoch/generation. Step refuses obsolete brain/locality/epoch before route work and rejects a missing/ended FSM; later mutation predicates retain current operation/target/route authority.",
+      "limit": "A queued callback being fenced or a FSM handle being completed does not undo previously issued native orders or prove physical stop. One bounded same-job executor restart exists; it is not a replay acknowledgement."
+    },
+    {
+      "domain": "Exterior watch and native holds",
+      "entry": "Inline BuildingOperationStep watch/hold commands and owner-local ClearExitWatchLocal metadata",
+      "fences": "Exact episode/actor/exit-watch context and current-owner mutation paths; no independent watcher function or permanent watcher EH was found on the inspected step path.",
+      "limit": "The public watch lease and local installation marker are bookkeeping. An issued doWatch/STOP can remain native after its submitting callback ends; observed cover/heading and actor-native/task authority must be reconciled separately."
+    },
+    {
+      "domain": "Clear release",
+      "entry": "CortexClearRelease",
+      "fences": "Owner-local admitted release snapshots exact order/epoch/generation/brain/operation, invalidates its brain and advances clear generation before later restoration. Inspected callers invoke it locally; no direct remote release sender was found in the repository search.",
+      "limit": "Server-authorized signature alone is not evidence of a delayed remote cancellation bug; do not invent one without a sender. Remaining transitive restoration helpers must be included in full writer review."
+    },
+    {
+      "domain": "Actor settings handback",
+      "entry": "CortexClearSettingsRelease -> ActorSettingsCleanupStep -> actor settings producer",
+      "fences": "Shared-scheduler callback, exact local group/epoch and original finite cleanup window; one actor per callback. Restore requires actual matching issuer/settings evidence.",
+      "limit": "It can outlive tactical enablement; disappearance of the main building FSM is not proof that settings handback completed. It is not movement/replay authority."
+    },
+    {
+      "domain": "Post-clear hold handback",
+      "entry": "ClearHoldCleanupStep queued by CortexStop",
+      "fences": "Same-owner issuer, clear generation/epoch and original thirty-second window; one follow request per actor; newer operations/controllers defer or end this cleanup.",
+      "limit": "A native follow acknowledgement is not travel. Expired or unacknowledged holds retain unresolved evidence; a different owner cannot inherit the old command authority."
+    },
+    {
+      "domain": "Door request",
+      "entry": "CortexBuildingDoor",
+      "fences": "Inspected helper is owner-local/server-authorized and has no spawn, remoteExec or queued timer on its path.",
+      "limit": "Native door animation may finish after the request callback; do not infer actual aperture from request completion."
+    }
+  ],
+  "candidateCommandSites": {
+    "addons/infantry/functions/buildingOperationStep.sqf": [
+      {
+        "line": 632,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 638,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 643,
+        "candidateCommands": [
+          "doFollow"
+        ]
+      },
+      {
+        "line": 777,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 810,
+        "candidateCommands": [
+          "doFollow"
+        ]
+      },
+      {
+        "line": 852,
+        "candidateCommands": [
+          "doFollow"
+        ]
+      },
+      {
+        "line": 1001,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1096,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1112,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1116,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1176,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 1184,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 1298,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 1360,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1417,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 1455,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 1569,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1707,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1843,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 1877,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 1920,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 1956,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 1976,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 2135,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 2395,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 2618,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 2624,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 3054,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 3121,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 3695,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 3715,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 3741,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 3757,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 3856,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 4057,
+        "candidateCommands": [
+          "doStop"
+        ]
+      },
+      {
+        "line": 4161,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 4206,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 4232,
+        "candidateCommands": [
+          "doMove"
+        ]
+      },
+      {
+        "line": 4259,
+        "candidateCommands": [
+          "doMove"
+        ]
+      }
+    ],
+    "addons/infantry/functions/cortexClearRelease.sqf": [
+      {
+        "line": 157,
+        "candidateCommands": [
+          "doWatch"
+        ]
+      },
+      {
+        "line": 177,
+        "candidateCommands": [
+          "doFollow"
+        ]
+      }
+    ],
+    "addons/core/functions/clearHoldCleanupStep.sqf": [
+      {
+        "line": 71,
+        "candidateCommands": [
+          "doFollow"
+        ]
+      }
+    ]
+  },
+  "nextRequiredWork": "Complete phase-specific group/actor journal and transitive writer enumeration, then implement a coherent producer checkpoint and authenticated finite replay/readiness contract. Bind actual current actor-native/setting observations; do not label delivery, a pause flag or a dead main FSM as quiescence. No new permanent polling worker.",
+  "validation": "Read-only call-path/command-site inspection, JSON/hash capture and diff check only. Runtime unchanged; retain verified clear-settled-execution-6fe0c3cb candidate/fingerprint5a0a3a63863b1089db1096233878781d593af76be75c5f273b669780440c8e9b. No redundant build, parity/percentage increase or physical claim. Audits paused; full goal active/incomplete."
+}
