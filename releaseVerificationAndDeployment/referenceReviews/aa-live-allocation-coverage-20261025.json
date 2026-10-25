@@ -15,5 +15,17 @@
     "fingerprint": "738aa28b82d9ac944349852840142249b4fb4a5bd5383110922b8b7ad6ec0779",
     "physicalAcceptance": false
   },
-  "audits": "paused"
+  "audits": "paused",
+  "callbackSampling": {
+    "base": "8fe14d2d",
+    "implementation": "Sample valid reservation ownership once across at most16 platforms per callback. For each of at most8 warnings, count matching missile identities in that ephemeral list. Exclude candidate platform exactly as before. START admission remains fresh and no sample is retained.",
+    "structuralCost": "Ownership validation at most16 platform visits instead of up to8*16 for8 eligible warnings. Cheap missile identity comparisons remain bounded by8*16. A callback with no eligible warnings can now still sample16 platforms; this is not a universal speedup or measured overhead claim.",
+    "validation": {
+      "build": ".qa/handovers/aa-coverage-sample-build.log",
+      "independent": ".qa/handovers/aa-coverage-sample-independent.log",
+      "candidate": ".qa/candidates/aa-coverage-sample-8fe14d2d",
+      "fingerprint": "823acf09db17da461710f5a892af826f73c60d8f7bea8f6bc0f88887d7884c3c",
+      "physicalAcceptance": false
+    }
+  }
 }

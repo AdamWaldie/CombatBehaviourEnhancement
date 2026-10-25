@@ -256,10 +256,15 @@ class AAObservation(unittest.TestCase):
                       '_trackIndex','CortexAAWarningLink'):
             self.assertIn(bound,allocate)
         self.assertEqual(allocate.count('call CBE_fnc_CortexAAIntercept'),1)
-        coverage=allocate.split('private _coverage=0;',1)[1].split('} forEach _vehicles;',1)[0]
+        self.assertEqual(allocate.count('getVariable ["CBE_AA_Intercept",createHashMap]'),1)
+        ranking=allocate.split('private _ranked=[];',1)[1].split('} forEach _tracks;',1)[0]
+        self.assertNotIn('CBE_AA_InterceptOwner',ranking)
+        self.assertIn('private _coverage={_x isEqualTo _missile} count _coverageMissiles;',ranking)
+        self.assertNotIn('_plan set ["coverage',allocate)
+        coverage=allocate.split('private _coverageMissiles=[];',1)[1].split('} forEach _vehicles;',1)[0]
         for proof in ('!(_active getOrDefault ["finished",false])','alive _x','local _x','gunner _x == _coverageGunner','group _coverageGunner == _group','CBE_AA_InterceptOwner','[_active get "token",_active get "until"]'):
             self.assertIn(proof,coverage)
-        self.assertLess(coverage.index('!(_active getOrDefault ["finished",false])'),coverage.index('_coverage=_coverage+1'))
+        self.assertLess(coverage.index('!(_active getOrDefault ["finished",false])'),coverage.index('_coverageMissiles pushBack'))
         self.assertIn('if (_freshPlan && {!_added}) exitWith {false}',allocate)
         self.assertIn('if (_added) then {_plan set ["replan",true]}',allocate)
         self.assertIn('_plan getOrDefault ["replan",false]',allocate)

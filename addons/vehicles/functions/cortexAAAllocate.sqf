@@ -4,7 +4,9 @@
  * Locality/authority: Group/crew owner only. Native observer NOTICE contributes exact warning
  * provenance; STEP may invoke existing current-owner interceptor admission, never direct fire.
  * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite1s planner/group,
- * <=64 roster actors/16 unique AA platforms/one start attempt per callback. No world scan/replay.
+ * <=64 roster actors/16 unique AA platforms/one start attempt per callback. Coverage ownership
+ * is sampled once across those platforms per callback, then compared for at most8 warnings.
+ * The ephemeral sample grants no fire permission and is never retained. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
  * Urgent approach ranks first; equal-urgency warnings prefer this responder as victim,
  * then fewer existing responders and shorter approach time. Coverage counts only unfinished
@@ -107,6 +109,25 @@ if !(_plan get "initialised") then {
 private _vehicles=_plan get "vehicles";private _cursor=_plan get "cursor";
 if (_cursor >= count _vehicles) exitWith {call _finish};
 private _vehicle=_vehicles select _cursor;_plan set ["cursor",_cursor+1];
+// One callback-local coverage sample avoids repeating crew/lease checks for each
+// warning. It is a ranking hint only; START retains fresh executor admission.
+private _coverageMissiles=[];
+{
+            private _active=_x getVariable ["CBE_AA_Intercept",createHashMap];
+            if (_x != _vehicle && {_active isEqualType createHashMap} && {count _active > 0}
+                && {!(_active getOrDefault ["finished",false])}
+                && {time < (_active get "until")}
+                && {(_active get "ownerEpoch") == _epoch}
+                && {alive _x} && {local _x}
+                && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
+                    !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
+                        && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}
+                        && {(_coverageGunner getVariable ["CBE_AA_InterceptOwner",[]])
+                            isEqualTo [_active get "token",_active get "until"]}
+                }) then {
+                _coverageMissiles pushBack (_active getOrDefault ["missile",objNull]);
+            };
+} forEach _vehicles;
 private _ranked=[];
 {
     private _trackIndex=_forEachIndex;
@@ -122,23 +143,7 @@ private _ranked=[];
         // Relative 3D approach, never altitude-only crossing. Native warning still
         // permits a bounded response when its present trajectory is uncertain.
         private _urgent=_time > 0 && {_time <= 2} && {_miss <= 30};
-        private _coverage=0;
-        {
-            private _active=_x getVariable ["CBE_AA_Intercept",createHashMap];
-            if (_x != _vehicle && {_active isEqualType createHashMap} && {count _active > 0}
-                && {!(_active getOrDefault ["finished",false])}
-                && {time < (_active get "until")}
-                && {(_active get "ownerEpoch") == _epoch} && {(_active get "missile") == _missile}
-                && {alive _x} && {local _x}
-                && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
-                    !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
-                        && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}
-                        && {(_coverageGunner getVariable ["CBE_AA_InterceptOwner",[]])
-                            isEqualTo [_active get "token",_active get "until"]}
-                }) then {
-                _coverage=_coverage+1;
-            };
-        } forEach _vehicles;
+        private _coverage={_x isEqualTo _missile} count _coverageMissiles;
         // Urgency remains first; within that class protect this responder before
         // another asset, then spread remaining coverage. Never retarget active episodes.
         _ranked pushBack [[1,0] select _urgent,[1,0] select (_victim == _vehicle),
