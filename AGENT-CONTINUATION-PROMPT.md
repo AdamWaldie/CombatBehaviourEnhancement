@@ -1,3 +1,7 @@
+# Start with the current CBE handover
+
+Read `AGENT-HANDOVER-CURRENT.md` before the historical notes below. It records the latest checkpoint, unfinished work, protected stores and audit pause. Check the usage limit before starting a batch. The full production-ready goal remains incomplete.
+
 
 
 ## 2026-10-23: indoor candidate selection reuses persistent buddies
