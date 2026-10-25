@@ -289,6 +289,14 @@ if (!isNil "_civilianCreated") then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
     };
+    private _tacticalReference=_stoppingGroup getVariable ["CBE_VehicleTacticalMove_Reference",[]];
+    if (local _stoppingGroup && {_tacticalReference isEqualType []} && {count _tacticalReference == 5}) then {
+        private _tacticalPlatform=_tacticalReference param [0,objNull,[objNull]];
+        if (!isNull _tacticalPlatform && {local _tacticalPlatform}) then {
+            [_tacticalPlatform,_tacticalReference select 1,_tacticalReference select 2,true]
+                call CBE_fnc_VehicleTacticalMoveRetire;
+        };
+    };
     // Carry only this same owner's finite terminal-hold retirement across the controlled stop edge.
     private _retireHold=_stoppingGroup getVariable ["CBE_Cortex_ClearHold",[]];
     private _retireWindow=_stoppingGroup getVariable ["CBE_Cortex_ClearHoldRetire",[]];

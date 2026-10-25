@@ -1,0 +1,11 @@
+class FSM {
+ fsmName="CBE selected tactical crew movement";
+ class States {
+  class Start {name="Start";init="_battery=_this param [0,objNull]; _token=_this param [1,""""]; _serial=_this param [2,-1]; _executorSerial=_this param [3,-1]; _next=time+0.05; _delay=0.05;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+  class Waiting {name="Waiting";init="";precondition="";class Links {class Due {priority=0;to="Work";condition="time >= _next";action="";};};};
+  class Work {name="Work";init="isNil {_delay=[_battery,_token,_serial,_executorSerial] call CBE_fnc_VehicleTacticalMoveStep; false}; _next=time+(_delay max 0.05);";precondition="";class Links {class Done {priority=5;to="Finished";condition="_delay < 0";action="";};class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+  class Finished {name="Finished";init="";precondition="";class Links {};};
+ };
+ initState="Start";
+ finalStates[]={"Finished"};
+};

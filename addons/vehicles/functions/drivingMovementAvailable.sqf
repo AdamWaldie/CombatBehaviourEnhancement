@@ -5,7 +5,7 @@
  * Repeat/JIP: Reads the live public movement lease and exact current reverse epoch/deadline.
  * No handlers, timers or cached permission are installed; every command rechecks this boundary.
  * Unknown or malformed leases block admission; only fully typed finite expiry can free work.
- * Selected artillery crew retirement remains reserved independently of ordinary lease expiry;
+ * Selected artillery and tactical crew retirement remain reserved independently of lease expiry;
  * this reader never clears its reference or infers native quiescence from a deadline.
  * Arguments: 0 group <GROUP, grpNull>; 1 server recheck <BOOL, false>, server-only read of remote state.
  * Return Value: BOOL - false for unsupported locality or live/unknown tactical movement ownership.
@@ -16,6 +16,7 @@
 params [["_group",grpNull,[grpNull]],["_serverCheck",false,[true]]];
 if (isNull _group || {!local _group && {!(_serverCheck && {isServer})}}) exitWith {false};
 if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
+if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []) exitWith {false};
 private _lease=_group getVariable ["CBE_Cortex_MovementLease",[]];
 if (_lease isNotEqualTo []) then {
     private _typed=_lease isEqualType [] && {count _lease == 2}

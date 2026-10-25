@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Shared movement reservations protect pending flight/naval cleanup during contact,
+ * Shared movement reservations protect pending flight/naval/selected-crew cleanup during contact,
  * search, consolidation and stalled-actor selection without renewing recovery budgets.
  * Tactical-route and withdrawal retries preserve native STOP; these callers have no owned-stop receipt.
  * Existing finite group movement ownership survives an idle vehicle-layer result. Free actors
@@ -555,7 +555,8 @@ if (_movementOwner == "TACTICAL_REPOSITION" && {count _movementLease == 2} && {t
         };
     };
 };
-private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo [];
+private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []
+    || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2 && {time < (_movementLease select 1)} && {
     switch (_movementOwner) do {
         case "TACTICAL_DRILL": {count (_state getOrDefault ["drill",createHashMap]) > 0};

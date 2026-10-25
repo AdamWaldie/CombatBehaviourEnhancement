@@ -85,11 +85,11 @@
  * A live combined-ground role suppresses competing routine ground targeting until its original
  * expiry or retirement; natural engagement and independent safety responses remain available. A fully mounted tank or APC that knows of an anti-tank soldier
  * within 60% of CBE_AIPass_Vehicles_StandoffDistance backs off to that distance, at most once a
- * minute, through an inserted waypoint.
+ * minute, through a finite selected-platform native crew worker with original-order handback.
  * Standoff captures the original local driver/commander pair and rechecks movement fitness,
  * native task and external control at admission and continuation; changed crew cancels it.
- * A withdrawal or standoff owns group movement until its tagged waypoint completes or its bounded
- * lease expires. Other Cortex manoeuvres may continue their combat layers but cannot replace that
+ * Withdrawal owns its tagged route. Native standoff reserves movement until its original
+ * crew has acknowledged handback; an expired ordinary lease never clears pending native work. Other Cortex manoeuvres may continue their combat layers but cannot replace that
  * movement. Conversely, this layer preserves and yields to every active non-vehicle movement lease
  * while continuing composable gunnery, reporting and passenger handling. A withdrawal outranks
  * standoff inside the same evaluation.
@@ -98,7 +98,8 @@
  *
  * Repeat/JIP: current feature gates and eligibility are rechecked. A vehicle withdrawal publishes
  * its origin, target, deadline and progress so the new group owner resumes it after migration;
- * countermeasures are not fired again. Standoff is finite and may be reassessed after adoption.
+ * countermeasures are not fired again. Selected standoff retains native cleanup independently;
+ * incoming owners may retire its original commands, never resume its outward leg.
  * Arguments:
  * 0: group <GROUP>
  * 1: state <HASHMAP>
@@ -243,15 +244,15 @@ if (_vehicleMove isNotEqualTo []) then {
                     _vehicleCrewChanged=!([_group,_jinkCrew select 0,_jinkCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable);
                 };
             };
-            if (_movementOwner == "VEHICLE_STANDOFF") then {
-                private _standoffCrew=_moveOperation getOrDefault ["vehicleStandoffCrew",[]];
-                _vehicleCrewChanged=!(_standoffCrew isEqualType []) || {count _standoffCrew != 2};
-                if (!_vehicleCrewChanged) then {
-                    _vehicleCrewChanged=!([_group,_standoffCrew select 0,_standoffCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable);
-                };
-            };
             _activeVehicleMove = _reverseActive || {_routeOwned && {time < (_vehicleMove select 1)}};
             if (_vehicleCrewChanged) then {_activeVehicleMove=false};
+            // Native selected standoff has no temporary group waypoint. Its independent
+            // worker owns cleanup; the reference, including unresolved work, reserves it.
+            if (_movementOwner == "VEHICLE_STANDOFF"
+                && {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}) then {
+                _activeVehicleMove=true;_vehicleRouteChanged=false;_vehicleCrewChanged=false;
+            };
+
         };
         if (_vehicleFeatureDisabled) then {_activeVehicleMove=false};
         if (!_activeVehicleMove) then {
@@ -348,7 +349,8 @@ if (_vehicleMove isNotEqualTo []) then {
 };
 // Movement ownership blocks only another destination. Reporting, dismount handling and
 // gunnery remain composable for the duration of the physical move.
-private _movementOwned = _activeVehicleMove;
+private _movementOwned = _activeVehicleMove
+    || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 if (_lifecycleOnly) exitWith {_movementOwned};
 private _vehicles = [];
 {
@@ -401,9 +403,27 @@ private _combinedGroundFireOwned=_combinedGroundRole isEqualType []
     && {(_combinedGroundRole select 5) isEqualType 0} && {finite (_combinedGroundRole select 5)}
     && {serverTime < (_combinedGroundRole select 5)};
 if (!_combinedGroundFireOwned) then {_state deleteAt "vehicleStandoffYield"};
+private _tacticalCommandActors=[];
+private _tacticalFireUnknown=false;
+private _tacticalReference=_group getVariable ["CBE_VehicleTacticalMove_Reference",[]];
+if (_tacticalReference isNotEqualTo []) then {
+    _tacticalFireUnknown=true;
+    if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
+        private _tacticalPlatform=_tacticalReference param [0,objNull,[objNull]];
+        private _tacticalWork=if (isNull _tacticalPlatform) then {createHashMap} else {
+            _tacticalPlatform getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]
+        };
+        private _tacticalCrew=_tacticalWork getOrDefault ["crew",[]];
+        if ((_tacticalWork getOrDefault ["reference",[]]) isEqualTo _tacticalReference
+            && {_tacticalCrew isEqualType []} && {count _tacticalCrew == 2}) then {
+            _tacticalCommandActors=+_tacticalCrew;_tacticalFireUnknown=false;
+        };
+    };
+};
 private _crewActorAvailable={
     params ["_vehicle","_gunner"];
-    !isNull _gunner && {local _gunner} && {group _gunner == _group}
+    !_tacticalFireUnknown && {!(_gunner in _tacticalCommandActors)}
+        && {!isNull _gunner} && {local _gunner} && {group _gunner == _group}
         && {[_gunner] call CBE_fnc_CortexCombatEffective}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
@@ -892,6 +912,61 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
     // first, then armour, then everything else; armour keeps its distance from known AT teams.
     // Reports older than3s use fixed-position bullet suppression within the existing15s window.
     if (_commandsVehicle && {alive _vehicle} && {[_group, "CBE_AIPass_VehicleGunnery_Enable", true] call CBE_fnc_CortexFeatureEnabled}) then {
+        private _standoffSeats=[driver _vehicle,effectiveCommander _vehicle];
+        private _standoff = missionNamespace getVariable ["CBE_AIPass_Vehicles_StandoffDistance", 250];
+        private _atIndex = _enemies findIf {
+            (_x select 0) isKindOf "CAManBase" && {(_x select 2) <= 30} && {(_vehicle distance2D (_x select 1)) < _standoff * 0.6}
+            && {"AT" in ([_x select 0,true] call CBE_fnc_CortexCapabilities)}
+        };
+        if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
+            && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}
+            && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
+            && {(units _group) findIf {alive _x && {vehicle _x == _x}} < 0} && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
+            private _atPos = (_enemies select _atIndex) select 1;
+            private _atThreat=(_enemies select _atIndex) select 0;
+            private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
+                call _selectVehicleEscape;
+            // A stationary support gun may need distance from an AT threat, but its
+            // original fire assignment must be retired before routine hull movement.
+            // Let the authenticated server replace that slot without refreshing its report.
+            if (_away isNotEqualTo [] && {_combinedGroundFireOwned}
+                && {(_combinedGroundRole select 4) == "GROUND_FIRE"}
+                && {(_state getOrDefault ["vehicleStandoffYield",[]]) isNotEqualTo _combinedGroundRole}
+                && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}) then {
+                _state set ["vehicleStandoffYield",+_combinedGroundRole];
+                [_group,+_combinedGroundRole,"OTHER_INTENT_ACTIVE",clientOwner]
+                    remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
+            };
+            // A local synchronous reply also waits for the next callback. The captured
+            // role cannot be borrowed as permission to move after requesting its release.
+            private _standoffUntil=serverTime+60;
+            isNil {
+            if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
+                && {[] call _mayIssueVehicle}
+                && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
+                && {[_group,"VEHICLE_STANDOFF",true,_standoffUntil] call CBE_fnc_CortexOwnershipLease}) then {
+                private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,_standoffSeats arrayIntersect _standoffSeats,[_away],"MOVING"] call CBE_fnc_OperationStart;
+                if (count _operation == 0) then {
+                    [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
+                } else {
+                    private _generation=_operation get "generation";
+                    // Start captures exact native baseline and rechecks original seats
+                    // after synchronous predecessor cleanup. No group waypoint is inserted.
+                    private _accepted=[_group,_vehicle,_away,_standoffSeats,_generation,_standoffUntil]
+                        call CBE_fnc_VehicleTacticalMoveStart;
+                    if (!_accepted) then {
+                        [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
+                        [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
+                        [_state,"standoff",8] call CBE_fnc_CortexCooldown;
+                    } else {
+                        _movementOwned=true;_tacticalCommandActors=+_standoffSeats;
+                        [_state,"standoff",60] call CBE_fnc_CortexCooldown;
+                    };
+                };
+            };
+            };
+        };
         private _gunner = gunner _vehicle;
         // Native editor role is a preference, never ammunition or engagement permission.
         // Custom air-capable stations can join known-air gunnery without changing their
@@ -1082,64 +1157,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 };
             };
         };
-        private _standoffSeats=[driver _vehicle,effectiveCommander _vehicle];
-        private _standoff = missionNamespace getVariable ["CBE_AIPass_Vehicles_StandoffDistance", 250];
-        private _atIndex = _enemies findIf {
-            (_x select 0) isKindOf "CAManBase" && {(_x select 2) <= 30} && {(_vehicle distance2D (_x select 1)) < _standoff * 0.6}
-            && {"AT" in ([_x select 0,true] call CBE_fnc_CortexCapabilities)}
-        };
-        if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
-            && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}
-            && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
-            && {(units _group) findIf {alive _x && {vehicle _x == _x}} < 0} && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
-            private _atPos = (_enemies select _atIndex) select 1;
-            private _atThreat=(_enemies select _atIndex) select 0;
-            private _away=[_vehicle,_atPos,_atThreat,(_standoff - (_vehicle distance2D _atPos)) max 60]
-                call _selectVehicleEscape;
-            // A stationary support gun may need distance from an AT threat, but its
-            // original fire assignment must be retired before routine hull movement.
-            // Let the authenticated server replace that slot without refreshing its report.
-            if (_away isNotEqualTo [] && {_combinedGroundFireOwned}
-                && {(_combinedGroundRole select 4) == "GROUND_FIRE"}
-                && {(_state getOrDefault ["vehicleStandoffYield",[]]) isNotEqualTo _combinedGroundRole}
-                && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
-                && {[] call _mayIssueVehicle}) then {
-                _state set ["vehicleStandoffYield",+_combinedGroundRole];
-                [_group,+_combinedGroundRole,"OTHER_INTENT_ACTIVE",clientOwner]
-                    remoteExecCall ["CBE_fnc_CortexCombinedRejectServer",2];
-            };
-            // A local synchronous reply also waits for the next callback. The captured
-            // role cannot be borrowed as permission to move after requesting its release.
-            isNil {
-            if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
-                && {[] call _mayIssueVehicle}
-                && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
-                && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
-                private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart;
-                if (count _operation == 0) then {
-                    [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
-                } else {
-                    private _generation=_operation get "generation";
-                    _operation set ["vehicleStandoffCrew",[_vehicle,+_standoffSeats]];
-                    // Operation startup can synchronously retire predecessor work. Recheck
-                    // the captured seats after it, before issuing the waypoint.
-                    private _waypoint=if ([_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable) then {
-                        [_group,_away,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove
-                    } else {[]};
-                    if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
-                        [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
-                        [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
-                        [_state,"standoff",8] call CBE_fnc_CortexCooldown;
-                    } else {
-                        _state set ["movementLease",["VEHICLE_STANDOFF",time+60]];
-                        _state set ["vehicleOperationGeneration",_generation];
-                        _movementOwned = true;
-                        [_state, "standoff", 60] call CBE_fnc_CortexCooldown;
-                    };
-                };
-            };
-            };
-        };
+
     };
 } forEach _vehicles;
 _movementOwned

@@ -622,6 +622,16 @@ if (_withdrawalResumeEligible) then {
     };
 };
 
+// Maintain exact selected-platform native retirement independently of the normal group tick.
+private _tacticalReference=_group getVariable ["CBE_VehicleTacticalMove_Reference",[]];
+if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
+    private _tacticalPlatform=_tacticalReference param [0,objNull,[objNull]];
+    if (!isNull _tacticalPlatform && {local _tacticalPlatform} && {local _group}) then {
+        [_tacticalPlatform,_tacticalReference select 1,_tacticalReference select 2]
+            call CBE_fnc_VehicleTacticalMoveRetire;
+    };
+};
+
 // Retire only the original selected-gun journal when its owner-local executor ended or
 // crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
 private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];

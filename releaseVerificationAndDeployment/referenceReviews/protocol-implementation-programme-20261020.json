@@ -179,7 +179,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Selected countermeasure-station intent, horn exclusion, exact jink seat authority and an unlabelled legacy ground-missile reserve fallback are integrated in code. Continue cover/exposure/relocation and broader suitable ATGM integration. Actual loading, shots, movement, owner handback and performance remain unverified; dependencies and licensing remain separate.",
+      "remaining": "Selected countermeasure intent, horn exclusion, jink authority, legacy missile reserve fallback and selected-platform native standoff are integrated in code. Robust proven-supersession/deleted-platform cleanup, cover/exposure/post-shot relocation and broader suitable ATGM integration remain. Actual shots, loading, native travel/handback, repeated use, owner migration, balance and performance are unverified; dependencies/licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -203,20 +203,22 @@
       },
       "coverRelocationExecution20261025": {
         "review": "armour-cover-relocation-execution-20261025.json",
-        "status": "SELECTED_PLATFORM_EXECUTION_AND_ACTUAL_SHOT_LIFECYCLE_REQUIRED",
+        "status": "HISTORICAL_EXECUTION_GAP_PARTLY_SUPERSEDED",
         "runtimeImplementationAdded": false,
         "finding": "Source fire-cycle counts requests; manoeuvre/reverse workers do not wait for native movement to finish. Current CBE standoff is group-scoped, not a drop-in selected-platform cover executor.",
-        "next": "Finite original-seat selected-platform move/handback through current owner-local lifecycle, then cover/post-shot trigger with actual episode-scoped shot evidence; no detached movement workers."
+        "next": "Robust proven-supersession/deleted-platform recovery, then actual episode-scoped Fired evidence and finite cover/post-shot manoeuvre triggers. Existing selected standoff is integrated but physically unverified.",
+        "currentFollowup": "armour-selected-standoff-20261025.json"
       },
       "selectedMovementFoundation20261025": {
-        "review": "selected-native-observation-20261025.json",
-        "status": "NATIVE_OBSERVATION_USED_BY_ARTILLERY_SELECTED_ARMOURED_MOVE_STILL_REQUIRED",
-        "scope": "Shared native command/destination sampler, used by selected-gun admission/execution. Not a generic movement API or completed armoured cover.",
+        "review": "armour-selected-standoff-20261025.json",
+        "status": "SELECTED_STANDOFF_NATIVE_FSM_INTEGRATED_PHYSICAL_UNVERIFIED",
+        "scope": "Shared observation/native phases/finite retirement are used by selected-platform standoff with original-crew native orders and stop/locality/discovery/ownership integration. Original fully-mounted trigger retained; unresolved cleanup availability and broader cover/post-shot behaviour remain unfinished.",
         "nativeAcknowledgementRepair": {
           "review": "selected-settled-native-ack-20261025.json",
-          "scope": "Settled WAIT/idle proof integrated into existing artillery/driving acknowledgement; ordinary armoured selected move still required",
+          "scope": "Existing settled WAIT/idle proof in artillery/driving remains; current selected-standoff integration is tracked by armour-selected-standoff-20261025.json, not inferred from this earlier repair.",
           "physicalAcceptance": false
-        }
+        },
+        "observationReview": "selected-native-observation-20261025.json"
       }
     }
   ],

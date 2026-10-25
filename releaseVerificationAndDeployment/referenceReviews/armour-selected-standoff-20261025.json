@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "8f823aa5c12d1a6315f4a19576589c796b0f1f0f",
+  "scope": "Actual armoured standoff caller connected to selected-platform native movement/retirement, replacing group waypoint",
+  "implementation": [
+    "CortexVehicles retains the existing known-AT/fully-mounted/contact trigger and screened single-leg destination choice. It starts the operation with only the selected original operating actors, captures a single60-second expiry and admits VehicleTacticalMoveStart after exact owner/epoch/operation/lease/crew/native-baseline checks. No group waypoint or group split.",
+    "One finite vehicleTacticalMove FSM uses shared VehicleCrewMoveNativePhase. Exact current worker/token/serial/epoch/reference and original route/crew/control checks fence native writes. Measured progress/rest permits HOLD; original expiry/feature or operation loss requests bounded handback. Native acknowledgement is separate from physical arrival.",
+    "Original-actor casualty retirement follows the existing original-survivor policy. New owner/dead worker maintenance uses shared VehicleCrewMoveRetire for retirement only, preserving cleanup clocks; live current workers remain alone.",
+    "CortexOwnershipLease and DrivingMovementAvailable refuse new ownership while selected-native reference persists, even after ordinary expiry. CortexGroupTick and CortexVehicles retain that reservation. CortexStop requests retirement after controlled epoch change; locality/discovery service exact pending original work.",
+    "Standoff admission runs before scripted gunnery. This layer defers scripted fire for the pending original operating actors or unknown reference, preventing its own fire intents from replacing their MOVE/return acknowledgement. Other gun stations and native self-defence remain available.",
+    "Failed pre-ISSUE worker allocation retires its reference/local lease/generation without native commands. Terminal acknowledged native handback retires only matching state and operation; unresolved proof is retained, not erased to permit another controller."
+  ],
+  "bounds": {
+    "episodeSeconds": 60,
+    "ackWakeSeconds": 0.25,
+    "moveWakeSeconds": 1,
+    "holdWakeSeconds": 2,
+    "cleanupSeconds": "Original shared finite policy, at most holdUntil+30; no renewal on migration or repeated maintenance.",
+    "cost": "One finite worker for an active selected episode; two-actor observations, existing route plan and bounded reference service. No permanent worker/world scan. Runtime cost unmeasured."
+  },
+  "validation": {
+    "focused": "610 existing tactical operation cases passed. Existing affected waypoint contracts updated to native admission/lifecycle wiring; no test count growth.",
+    "full": "1497 tests,428 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/selected-standoff-8f823aa5",
+    "fingerprint": "ebb7d13616e69737cfe1d8db71f120463e4ca09df8409b47b76acf51959bda75",
+    "development": "Initial coverage attempt incorrectly included FSM in SQF-only source assignment; removed and regenerated. Initial focused tests exposed3 affected legacy waypoint assertions; updated to the current command path and retained their movement/deadline/cancellation requirements."
+  },
+  "limits": [
+    "No Arma audit was launched. Actual path following, standoff/handback success, repeated use, casualty, driver/commander planning, owner migration, intervention and5%median/10%p95 performance are unverified.",
+    "Admission retains the original fully-mounted-group trigger and refuses native commands outside idle/MOVE/WAIT, including FIRE. It does not provide arbitrary mixed foot/vehicle task admission. Native formation following is not explicitly controlled.",
+    "Chosen destination is screened; actual native path may deviate and requires physical verification.",
+    "Unresolved native orders, deleted platforms, changed original seats or unsuccessful expired cleanup remain reserved; a proven supersession/deleted-platform recovery path is still required for robust general availability. No terminal claim from elapsed time or a dead script.",
+    "This implements selected standoff, not post-shot cover relocation, actual-shot manoeuvre triggers, whole Protocol/LAMBS/HBQ parity or behavioural acceptance."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "d5a47b723399447950ce71313a1325e6a4d58951ffca728ba5cc12f09c8875b4",
+    "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "6d9437ec0c86f60e400a644fd2579ac198ff26fe24a903dc27beace221120eb0",
+    "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "45f6a08f31eaf7dd236fae943773e148729cbe927f724ca3ab1baab97f428a1d",
+    "addons/main/fsm/vehicleTacticalMove.fsm": "d7129750934eda73b0e36696616830c6c6765bd3ac08ac52d1d4a6c28fe58b19",
+    "addons/vehicles/functions/cortexVehicles.sqf": "1113266538406b023e6b97c97ab4a5f8e4173dea213d5948cacef99fe57762e3",
+    "addons/compatibility/functions/cortexOwnershipLease.sqf": "e9724e828ed5bb0da49fdbb30c11346d1843dec1082b0d0a307fa8ae5fb8b933",
+    "addons/vehicles/functions/drivingMovementAvailable.sqf": "69c64e8d79217d5b0fc25602f10aa1c9e746bce38f7336d1ce91d5bc0e5e9094",
+    "addons/infantry/functions/cortexGroupTick.sqf": "93437a096693d2c7b2f3b31763e7798851b8a071a23d1bec0f070bbc420e9327",
+    "addons/core/functions/cortexDiscover.sqf": "1928383985523cc3d19ddc9bb5e11afc754d6677001db67212e4e1873f357bba",
+    "addons/core/functions/cortexLocality.sqf": "92bd96743c6ec2c5ccfbc6d6152999f6d87ed830e5d9f5f5d1d4e52749049764",
+    "addons/core/functions/cortexStop.sqf": "709d1a75f85dccf883143e50c9245ef468b93c46b3cba6e776579f4017dad988",
+    "addons/main/CfgFunctions.hpp": "5a4a63ec8041c8c3d2db9c10609544137f49e9a1bb0faf36653f9c00e9ca85cc",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "41b4354d78a55b2a03716bf121f74b4a8df821391921be9624bbbd8c3cc0072b"
+  }
+}

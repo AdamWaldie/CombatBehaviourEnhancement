@@ -6880,7 +6880,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _movementOwned = _activeVehicleMove',vehicles)
         self.assertIn('if (_enemies isEqualTo []) exitWith {_movementOwned}',vehicles)
         self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]]',vehicles)
-        self.assertIn('_state set ["movementLease",["VEHICLE_STANDOFF",time+60]]',vehicles)
+        self.assertIn('["VEHICLE_STANDOFF",time+(_until-serverTime)]',source('vehicleTacticalMoveStart'))
         self.assertIn('if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"}',vehicles)
         self.assertIn('private _coordinatedOwnsMovement = _vehicleOwnsMovement',tick)
         self.assertIn('!_vehicleOwnsMovement',tick)
@@ -7116,7 +7116,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["INFANTRY_WITHDRAW","VEHICLE_WITHDRAW"] select',tick)
         vehicles=source('cortexVehicles')
         self.assertIn('[_group,"VEHICLE_WITHDRAW",true,serverTime+120]',vehicles)
-        self.assertIn('[_group,"VEHICLE_STANDOFF",true,serverTime+60]',vehicles)
+        self.assertIn('private _standoffUntil=serverTime+60',vehicles)
+        self.assertIn('[_group,"VEHICLE_STANDOFF",true,_standoffUntil]',vehicles)
         combined=source('cortexCombinedArmsLocal')
         combined_end=source('cortexCombinedGroundStep')
         self.assertIn('[_group,"COMBINED_GROUND",true,_expiry]',combined)
@@ -8180,21 +8181,34 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(convoy.index('ownerSuspended'),convoy.index('call CBE_fnc_OperationStart'))
     def test_vehicle_withdraw_and_standoff_use_finite_operation_generations(self):
         vehicles=source('cortexVehicles')
-        standoff=vehicles.split('private _standoffSeats=',1)[1]
-        self.assertEqual(standoff.count('[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable'),3)
-        self.assertIn('_operation set ["vehicleStandoffCrew",[_vehicle,+_standoffSeats]]',standoff)
-        continuation=vehicles.split('if (_movementOwner == "VEHICLE_STANDOFF") then {',1)[1].split('_activeVehicleMove =',1)[0]
-        self.assertIn('_moveOperation getOrDefault ["vehicleStandoffCrew",[]]',continuation)
-        self.assertIn('[_group,_standoffCrew select 0,_standoffCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable',continuation)
-        self.assertIn('[_group,_generation,"VEHICLE_CREW_CHANGED"] call CBE_fnc_OperationCancel',vehicles)
-
-        self.assertIn('[_group,"VEHICLE_WITHDRAW",_threat,[],[_away],"MOVING"] call CBE_fnc_OperationStart',vehicles)
-        self.assertIn('[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart',vehicles)
-        self.assertIn('["vehicleOperationGeneration",_operation get "generation"]',vehicles)
+        start=source('vehicleTacticalMoveStart')
+        step=source('vehicleTacticalMoveStep')
+        retire=source('vehicleTacticalMoveRetire')
+        standoff=vehicles.split('private _standoffSeats=',1)[1].split('private _gunner =',1)[0]
+        self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
+        self.assertNotIn('CortexGroupMove',standoff)
+        self.assertIn('_standoffSeats arrayIntersect _standoffSeats',standoff)
+        self.assertIn('CBE_fnc_CortexVehicleCrewAvailable',start)
+        self.assertIn('call CBE_fnc_VehicleCrewNativeObservation',start)
+        self.assertIn('FSM_START_REFUSED',start)
+        self.assertIn('execFSM "\\z\\cbe\\addons\\main\\fsm\\vehicleTacticalMove.fsm"',start)
+        for forbidden in ('addWaypoint','setCurrentWaypoint','joinSilent','doMove'):
+            self.assertNotIn(forbidden,start)
+        self.assertIn('call CBE_fnc_VehicleCrewMoveNativePhase',step)
+        self.assertIn('CBE_VehicleTacticalMove_Reference',step)
+        self.assertIn('(_work get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",-1])',step)
+        self.assertIn('(_executor select 4) != _executorSerial',step)
+        self.assertIn('"retirementOnly",true',step)
+        self.assertIn('if (!_request && {_live}) exitWith {true}',retire)
+        self.assertIn('call CBE_fnc_VehicleCrewMoveRetire',retire)
+        for file in ('cortexDiscover','cortexLocality','cortexStop'):
+            self.assertIn('call CBE_fnc_VehicleTacticalMoveRetire',source(file))
+        for file in ('cortexOwnershipLease','drivingMovementAvailable','cortexGroupTick'):
+            self.assertIn('CBE_VehicleTacticalMove_Reference',source(file))
+        self.assertIn('!(_gunner in _tacticalCommandActors)',vehicles)
+        self.assertIn('_movementOwned=true;_tacticalCommandActors=+_standoffSeats',standoff)
         self.assertIn('["VEHICLE_MOVE_NO_ARRIVAL","OBJECTIVE_REACHED"] select _arrived',vehicles)
-        self.assertIn('vehicle _anchor distance2D _position',vehicles)
-        self.assertIn('["MOVEMENT_NO_ARRIVAL","OBJECTIVE_REACHED"] select _arrived',source('cortexGroupTick'))
-        self.assertIn('_state deleteAt "vehicleOperationGeneration"',vehicles)
+        self.assertIn('[_group,"VEHICLE_WITHDRAW",_threat,[],[_away],"MOVING"] call CBE_fnc_OperationStart',vehicles)
 
     def test_artillery_scoot_uses_a_finite_operation_and_group_cleanup(self):
         scoot=source('cortexArtilleryScoot')
@@ -11019,7 +11033,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('if (count _crewOperationRecord == 0) exitWith',resumed)
         vehicles=source('cortexVehicles')
         standoff=vehicles.split('private _operation=[_group,"VEHICLE_STANDOFF"',1)[1]
-        self.assertLess(standoff.index('"MOVEMENT_REJECTED"'),standoff.index('_movementOwned = true'))
+        self.assertLess(standoff.index('"MOVEMENT_REJECTED"'),standoff.index('_movementOwned=true'))
         self.assertIn('[_group,"VEHICLE_STANDOFF",false]',standoff)
         self.assertIn('[_state,"standoff",8]',standoff)
         for marker in ['navalOperationGeneration','CBE_fnc_OperationRelease',
