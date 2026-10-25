@@ -15,6 +15,16 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertIn(proof,text)
         self.assertIn('(_receipt select 1) isEqualTo _context',text)
         self.assertIn('(_context select 3) == ""',text)
+        # Exterior roles must be exact-current and post-bound, not arbitrary group members.
+        role=text.split('private _reserveRole=',1)[1].split('private _building=',1)[0]
+        for proof in ('count _reserve == 3','"generation"','"ownerEpoch"',
+                      '(_reserve select 2) call _positionValid',
+                      '_target isEqualTo (_reserve select 2)',
+                      'vectorDistance (AGLToASL (_reserve select 2)) <= 2', '<= 0.75'):
+            self.assertIn(proof,role)
+        self.assertIn('!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole}',text)
+        # Publisher still requires a live brain; role proof does not supply native intent.
+        self.assertLess(text.index('private _reserveRole='),text.index('private _matches='))
         move=text.split('private _matches=if (_kind == "MOVE") then {',1)[1].split('} else {',1)[0]
         # A completed short leg may be idle before migration is observed. Its
         # durable receipt, native endpoint, floor and measured rest still bind it;
@@ -51,6 +61,13 @@ class MotionReceiptTests(unittest.TestCase):
         active=step.split('private _ownsCurrentMove={',1)[1].split('private _evasionReturnOwned={',1)[0]
         self.assertIn('currentCommand _actor == "MOVE"',active)
         self.assertNotIn('"WAIT"',active)
+        exterior=step.split('// Native acknowledgement may arrive after the issuing callback.',1)[1].split('private _arrivalNative=',1)[0]
+        for proof in ('"APPROACH"','currentCommand _reserve == "MOVE"','call _ownsCurrentMove',
+                      'count _motion == 5','_motion select [0,4]','call _mayIssueMovement',
+                      '["MOVE",_reserve,_job,_stage select 0] call CBE_fnc_BuildingActorMotion'):
+            self.assertIn(proof,exterior)
+        for forbidden in ('] call _rememberMove','doMove','doStop','serverTime+','set ["deadline"'):
+            self.assertNotIn(forbidden,exterior)
 
 
     def test_publishing_is_live_job_bound_and_coalesced(self):

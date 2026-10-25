@@ -39,5 +39,10 @@
   "completedMoveFollowup": {
     "review": "clear-completed-move-adoption-20261025.json",
     "status": "Actor ADOPT now also accepts a settled WAIT/idle observation of the original same-episode MOVE receipt with unchanged endpoint and measured rest/proximity. The original source trace remains historical. Replay/readiness transport is still absent."
+  },
+  "exteriorMotionFollowup": {
+    "review": "clear-exterior-motion-20261025.json",
+    "scope": "The shared journal now admits exact-current exterior reserve post MOVE/HOLD, and existing APPROACH observes delayed actual MOVE ACK without reissue. Earlier path/hash evidence remains historical. Full coherent transport and aggregate exterior readiness remain unfinished.",
+    "physicalAcceptance": false
   }
 }

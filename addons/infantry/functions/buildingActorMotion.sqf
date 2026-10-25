@@ -3,6 +3,9 @@
  * Purpose: Records or adopts existing clearance-owned native movement/holds without replay.
  * Locality / Authority: Current actor owner; ADOPT/write also require current local CLEAR
  * operation, actor membership/eligibility, original visit nonce, building transform and route.
+ * Exterior security is admitted only by its exact current generation/epoch/post reserve receipt;
+ * MOVE must match that post and HOLD must remain within2m/0.75m vertically. The interior
+ * participant cap does not make an already assigned exterior guard an unowned actor.
  * Writes require the actual live building brain and unexpired job. Adoption changes metadata only.
  * An original MOVE receipt may already be WAIT/idle: ADOPT/CHECK accept its unchanged native
  * endpoint plus measured rest within1.5m and0.75m vertically. CHECK reuses that proof
@@ -62,6 +65,31 @@ isNil {
                 _actor setVariable ["CBE_Cortex_ClearMotion",nil,true];true
             } else {_retiredBudgets}
         };
+        private _kind=_mode;
+        private _settings=[];
+        if (_mode in ["ADOPT","CHECK"]) then {
+            if (_receipt isEqualType [] && {count _receipt == 5}
+                && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}
+                && {(_receipt select 2) in ["MOVE","HOLD"]}
+                && {(_receipt select 3) call _positionValid} && {(_receipt select 4) isEqualType []}
+                && {count (_receipt select 4) in [0,3]}) then {
+                _kind=_receipt select 2;_target=+(_receipt select 3);_settings=+(_receipt select 4);
+            };
+        };
+        if (!(_target call _positionValid) || {!(_kind in ["MOVE","HOLD"])}) exitWith {false};
+        // Exterior guards deliberately remain outside the admitted assault roster.
+        // Their original local post receipt permits metadata only for that exact leg/hold;
+        // group membership alone cannot grant an exterior role or a different destination.
+        private _reserve=_actor getVariable ["CBE_Cortex_ClearReserve",[]];
+        private _reserveRole=_reserve isEqualType [] && {count _reserve == 3}
+            && {(_reserve select 0) isEqualTo (_job getOrDefault ["generation",-1])}
+            && {(_reserve select 1) isEqualTo (_job getOrDefault ["ownerEpoch",-1])}
+            && {(_reserve select 2) call _positionValid}
+            && {if (_kind == "MOVE") then {_target isEqualTo (_reserve select 2)} else {
+                _kind == "HOLD"
+                    && {(ATLToASL _target) vectorDistance (AGLToASL (_reserve select 2)) <= 2}
+                    && {abs (((ATLToASL _target) select 2)-((AGLToASL (_reserve select 2)) select 2)) <= 0.75}
+            }};
         private _building=_job getOrDefault ["building",objNull];
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
         if (!local _group || {group _actor != _group} || {isPlayer _actor} || {!isNull objectParent _actor}
@@ -81,7 +109,7 @@ isNil {
             || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
             || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
             || {(_operation getOrDefault ["objective",objNull]) isNotEqualTo _building}
-            || {!(_actor in (_operation getOrDefault ["participants",[]]))}
+            || {!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole}}
             || {_actor in (_operation getOrDefault ["unavailable",[]])}
             || {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _context}
             || {(_context select 0) isNotEqualTo _building}
@@ -89,18 +117,6 @@ isNil {
             || {(_context select 2) isNotEqualTo (_job getOrDefault ["hardDeadline",-1])}
             || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
             || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) exitWith {false};
-        private _kind=_mode;
-        private _settings=[];
-        if (_mode in ["ADOPT","CHECK"]) then {
-            if (_receipt isEqualType [] && {count _receipt == 5}
-                && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}
-                && {(_receipt select 2) in ["MOVE","HOLD"]}
-                && {(_receipt select 3) call _positionValid} && {(_receipt select 4) isEqualType []}
-                && {count (_receipt select 4) in [0,3]}) then {
-                _kind=_receipt select 2;_target=+(_receipt select 3);_settings=+(_receipt select 4);
-            };
-        };
-        if (!(_target call _positionValid) || {!(_kind in ["MOVE","HOLD"])}) exitWith {false};
         private _command=toUpperANSI currentCommand _actor;
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _matches=if (_kind == "MOVE") then {

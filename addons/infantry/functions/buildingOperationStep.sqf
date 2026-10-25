@@ -1878,6 +1878,18 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             };
             };
         };
+        // Native acknowledgement may arrive after the issuing callback. Record that
+        // actual exterior MOVE once; never call _rememberMove here because it renews
+        // the request timestamp. The original leg deadline/search/progress remain intact.
+        if (_stage isNotEqualTo [] && {(_stage select 2) == "APPROACH"}
+            && {currentCommand _reserve == "MOVE"} && {[_reserve] call _ownsCurrentMove}) then {
+            private _motion=_reserve getVariable ["CBE_Cortex_ClearMotion",[]];
+            private _currentMotion=_motion isEqualType [] && {count _motion == 5}
+                && {(_motion select [0,4]) isEqualTo [_group,_job get "visitContext","MOVE",_stage select 0]};
+            if (!_currentMotion && {call _mayIssueMovement}) then {
+                ["MOVE",_reserve,_job,_stage select 0] call CBE_fnc_BuildingActorMotion;
+            };
+        };
         private _arrivalNative=[currentCommand _reserve,expectedDestination _reserve,formLeader _reserve];
         // Arrival proximity does not authorize cancelling a different live MOVE.
         // Preserve floor-aware native commitment just as for interior room holds.
