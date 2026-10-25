@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-25",
   "userPriority": [
     "Foundations and FSM lifecycle: LAMBS functional parity and improvement",
     "Complete Protocol AI collection: implement, fix and improve"
@@ -40,11 +40,11 @@
       "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
       "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927",
       "metadataSHA256": "dbdb56d83277b38c0e3296ead7314260f1680bcb798fa03a3e2356178d2cccdc",
-      "status": "READABLE_SCRIPTS_REVIEWED_PARTIAL_INTENT_PATHS",
+      "status": "SELECTED_PREFIRE_AND_POSTFIRE_CREW_FSM_INTEGRATED_OFFLINE_PHYSICAL_PENDING",
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified.",
+      "remaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -53,6 +53,22 @@
         "review": "protocol-artillery-3801354927-20261020.json#selectedBatteryMovement20261024",
         "requiredCodeGap": "Selected-battery pre/postfire movement rather than whole-group waypoints; actual source movement loops only selected vehicle driver/commander. Mixed-group support remains unimplemented. Existing single-platform positioning/scoot does not close this scope.",
         "productChanged": false,
+        "physicalAcceptance": false,
+        "scoresChanged": false
+      },
+      "movementScopeReconciliation20261025": {
+        "reviews": [
+          "artillery-selected-crew-20261025.json",
+          "artillery-selected-scoot-20261025.json",
+          "artillery-gun-only-handover-20261025.json"
+        ],
+        "sourceCommits": [
+          "26f0ccf3",
+          "2ee13634",
+          "ff486829"
+        ],
+        "current": "Selected original gun crew uses finite owner-local native move/ACK/hold/return. Independent all-in-gun groups retain legacy group path. Authored group route/membership preserved; no peer-controller retirement. Gun-only authored driving admission uses real tracked/current vehicle scope, not a native-only route slot.",
+        "limitations": "Not full artillery parity or physical acceptance; group reservation still pauses other CBE manoeuvres/driving, peer concurrency and unknown native recovery remain open. Dated20261024 gap remains historical, superseded only for selected mixed movement source.",
         "physicalAcceptance": false,
         "scoresChanged": false
       }
@@ -194,5 +210,6 @@
     "audits": "PAUSED",
     "physicalAcceptance": false,
     "performanceMeasured": false
-  }
+  },
+  "updateScope20261025": "Artillery selected-crew build-path reconciliation only. Other source rows retain their dated evidence; no whole-collection freshness/parity or percentage claim."
 }

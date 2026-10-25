@@ -156,7 +156,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/crew-recall-20261024.json",
-      "sha256": "3e1a8262e888ddddd5282d27a1ddaf54d9e3bf256811f1044be1ff6f55cb8301",
+      "sha256": "5208da0205594dfa7d51ff2368185dc37bc9f3ad25ab3d1b3a88c418a03cf51c",
       "scope": "Optional HBQ-style normal crew recall",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -260,6 +260,16 @@
       "scope": "Mixed convoy native follower destination refresh issue evidence; not steering/recovery/lead command coverage",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-pitch-profile-20261025.json",
+      "sha256": "2bdf4ce4a3963cf203fc9b47244bb3ec685d1c2c36f849000cab55efb694d014",
+      "scope": "Selected marked-corridor pitched support profile; not shallow-ford support, automatic grade following or whole-HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_moduleNavArea.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

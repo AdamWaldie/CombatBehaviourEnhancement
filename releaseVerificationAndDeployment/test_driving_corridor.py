@@ -151,6 +151,42 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('[false,_reason,[],[],_rays]',path)
 
     def test_declared_sampling_bound_holds_across_allowed_lengths(self):
+        source=(ROOT/'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _nativeAxis=+(_transform select 1)',source)
+        self.assertIn('(_nativeAxis select 2)/_axisLength',source)
+        self.assertIn('vectorAdd [0,0,_along*_axisGrade]',source)
+        self.assertIn('"DEGENERATE_AXIS"',source)
+        self.assertNotIn('getTerrainHeight',source)
+        # An inclined selected plane must stay within the same support-search layer
+        # in either direction without changing horizontal station or ray budgets.
+        for pitch in (-8,0,8):
+            slope=math.tan(math.radians(pitch))
+            for bearing in (0,37,90,231):
+                angle=math.radians(bearing)
+                native=(math.sin(angle)*math.cos(math.radians(pitch)),
+                        math.cos(angle)*math.cos(math.radians(pitch)),math.sin(math.radians(pitch)))
+                planar=math.hypot(native[0],native[1])
+                axis=(native[0]/planar,native[1]/planar)
+                grade=native[2]/planar
+                profiles=[]
+                for side in (-1,1):
+                    profile=[]
+                    segments=math.ceil(2*(45+30)/8)
+                    for station in range(segments+1):
+                        along=(75-150*station/segments)*side
+                        x,y=axis[0]*along,axis[1]*along
+                        z=10+along*grade
+                        self.assertAlmostEqual(z,10+(x*axis[0]+y*axis[1])*slope)
+                        if pitch==0:self.assertEqual(z,10)
+                        if profile:self.assertLessEqual(math.dist((x,y),profile[-1][:2]),8.000001)
+                        profile.append((x,y,z))
+                    self.assertEqual(len(profile),20)
+                    profiles.append(profile)
+                for left,right in zip(profiles[0],reversed(profiles[1])):
+                    self.assertLess(math.dist(left,right),1e-10)
+                if pitch:
+                    # Previous constant-Z endpoints missed this selected plane by >3m.
+                    self.assertGreater(abs(profiles[0][0][2]-10),3)
         for half_length in range(5, 46):
             segments = math.ceil(2 * (half_length + 30) / 8)
             stations = segments + 1
