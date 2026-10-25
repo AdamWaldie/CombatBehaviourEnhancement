@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Execution and Fired guidance require the original live common operation generation/owner
+ * epoch as well as the aircraft flight lease. Cancelled/replaced operations cannot keep attacking.
  * Existing stage deadlines gate execution before planning/command side effects and at shared
  * native-command permission; a delayed callback cannot fire once more after its stage expires.
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
@@ -336,6 +338,19 @@ private _stage=_job getOrDefault ["stage",""];
 if (_stage != "" && {serverTime > (_job getOrDefault ["deadline",-1])}) exitWith {
     ["STAGE_TIMEOUT"] call _finish
 };
+// A flight lease is not the common operation's lifetime. A script/Zeus task may
+// cancel or replace that operation without changing the aircraft lease immediately.
+private _operationCurrent={
+    private _generation=_job getOrDefault ["operationGeneration",-1];
+    if (_generation < 0) exitWith {_stage == ""};
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {(_group getVariable ["CBE_OperationGeneration",-1]) == _generation}
+        && {(_operation getOrDefault ["generation",-2]) == _generation}
+        && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_operation getOrDefault ["cancelReason",""]) == ""}
+        && {!((_operation getOrDefault ["phase",""]) in ["CANCELLED","COMPLETE","ENDED"])}
+};
+if !(call _operationCurrent) exitWith {["OPERATION_REPLACED"] call _finish};
 private _flightLeaseToken=_job getOrDefault ["flightLeaseToken",""];
 // Air operations share the same generation contract as ground operations, but retain their own
 // native flight lease. The common record makes replacement, locality and Zeus diagnostics
@@ -370,7 +385,7 @@ private _mayControlAircraft = {
         && {(_speedReceipt select 0) == _livePilot}
         && {(_speedReceipt select 2) isEqualType 0} && {finite (_speedReceipt select 2)}
         && {abs ((getForcedSpeed _aircraft)-(_speedReceipt select 2)) <= 0.1}};
-    _speedCurrent && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+    _speedCurrent && {call _operationCurrent} && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
         && {_stage == "" || {serverTime <= (_job getOrDefault ["deadline",-1])}}
         && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
         && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
@@ -551,7 +566,15 @@ if (_stage == "") then {
         if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
         private _releaseTurret=_liveJob getOrDefault ["selectedTurret",[]];
         private _expectedOperator=if (_releaseTurret isEqualTo [-1]) then {driver _aircraft} else {_aircraft turretUnit _releaseTurret};
+        private _liveOperation=_fireGroup getVariable ["CBE_Operation",createHashMap];
+        private _releaseGeneration=_liveJob getOrDefault ["operationGeneration",-1];
         private _ownsRelease=(_liveJob getOrDefault ["firedHandler",-1]) == _thisEventHandler
+            && {_releaseGeneration >= 0} && {local _fireGroup}
+            && {(_fireGroup getVariable ["CBE_OperationGeneration",-1]) == _releaseGeneration}
+            && {(_liveOperation getOrDefault ["generation",-2]) == _releaseGeneration}
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_fireGroup getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_liveOperation getOrDefault ["cancelReason",""]) == ""}
+            && {!((_liveOperation getOrDefault ["phase",""]) in ["CANCELLED","COMPLETE","ENDED"])}
             && {!(_brain getOrDefault ["finished",false])}
             && {!(_brain getOrDefault ["cancelled",false])}
             && {_operator == _expectedOperator}

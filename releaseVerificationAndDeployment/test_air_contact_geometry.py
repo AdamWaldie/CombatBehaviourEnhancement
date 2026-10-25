@@ -43,6 +43,25 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertLess(finish.index('call CBE_fnc_OperationCancel'),finish.index('private _supportSnapshot='))
         self.assertIn('isEqualTo _supportSnapshot',finish)
         self.assertIn('_reason == "TARGET_IGNORED"',finish)
+        permission=attack.split('private _operationCurrent={',1)[1].split('// Air operations share',1)[0]
+        for guard in ('CBE_OperationGeneration','ownerEpoch','CBE_AIPass_Epoch','cancelReason',
+                      '["CANCELLED","COMPLETE","ENDED"]','"OPERATION_REPLACED"'):
+            self.assertIn(guard,permission)
+        mutation=attack.split('private _mayControlAircraft = {',1)[1].split('private _liveSpeedReceipt',1)[0]
+        self.assertIn('call _operationCurrent',mutation)
+        fired=attack.split('private _liveOperation=_fireGroup',1)[1].split('if (_selectedRelease && {_ownsRelease})',1)[0]
+        for guard in ('_releaseGeneration >= 0','CBE_OperationGeneration','ownerEpoch',
+                      'CBE_AIPass_Epoch','cancelReason','["CANCELLED","COMPLETE","ENDED"]'):
+            self.assertIn(guard,fired)
+        def permitted(job_generation, counter, operation_generation, epoch, live_epoch, reason, phase):
+            return job_generation>=0 and job_generation==counter==operation_generation and epoch==live_epoch and not reason and phase not in ('CANCELLED','COMPLETE','ENDED')
+        self.assertTrue(permitted(4,4,4,8,8,'','ATTACK'))
+        self.assertFalse(permitted(4,5,5,8,8,'','ATTACK'))
+        self.assertFalse(permitted(4,4,4,7,8,'','ATTACK'))
+        self.assertFalse(permitted(4,4,4,8,8,'REPLACED','ATTACK'))
+        self.assertFalse(permitted(4,4,4,8,8,'','CANCELLED'))
+        self.assertFalse(permitted(-1,-1,-1,8,8,'','ATTACK'))
+
         self.assertIn('_rejectedRole isNotEqualTo _snapshot',server)
         self.assertLess(server.index('_rejectedRole isNotEqualTo _snapshot'),server.index('_rejected setVariable ["CBE_Cortex_CombinedRole",nil,true]'))
 
