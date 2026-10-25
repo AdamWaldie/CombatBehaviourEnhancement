@@ -447,7 +447,8 @@ class QueueProposalTests(unittest.TestCase):
         self.assertIn('if (_mode == "COMMIT") exitWith',owner)
         preflight=owner.split('if (_accepted && {_mode in ["VERIFY","COMMIT"]})',1)[1].split('if (_mode in ["ARM","EXECUTE"]) exitWith',1)[0]
         for proof in ('count _vehicles-1','_leaf in _owned','call CBE_fnc_DrivingRearPlan',
-                      '_leafObservation select 0','serverTime <','call CBE_fnc_DrivingQueueProposalCurrent'):
+                      '_leafObservation select 0','(_leafPlan select 1) isEqualTo (_rearRequirements select (count _vehicles-1))',
+                      'serverTime <','call CBE_fnc_DrivingQueueProposalCurrent'):
             self.assertIn(proof,preflight)
         for forbidden in ('setVariable','forceSpeed','doMove','sendSimpleCommand','waitAndExecute'):
             self.assertNotIn(forbidden,preflight)

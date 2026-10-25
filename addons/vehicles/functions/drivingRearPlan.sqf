@@ -8,7 +8,7 @@
  * 2 maximum stop travel NUMBER 6, finite6..24m. Extended requests use actual obstacle/hull
  * room arithmetic and require independent rear clearance; the result grants no movement.
  * 3 optional queue envelope ARRAY []; integral travel6..maximumTravel, clearance=travel+2.
- * Extended queue refusal never falls back to an insufficient shorter leg. Read-only caller
+ * Explicit queue refusal never falls back to an insufficient shorter leg, including6m requests. Read-only caller
  * must separately bind this demand to authenticated consent; this grants no command.
  * Return: ARRAY [DrivingRearClear observation, envelope [clearance metres, stop travel metres]].
  * Default8m/6m permits a3.5m/2m spatial fallback. A qualified extended STATIC plan instead
@@ -42,7 +42,7 @@ if (_queueEnvelope isEqualTo [] && {_maximumTravel > 6} && {count _observation =
     };
 };
 private _cbeRearPlanClearance=[_vehicle,_cbeRearPlanEnvelope select 0] call CBE_fnc_DrivingRearClear;
-if (!(_cbeRearPlanClearance select 0) && {_queueEnvelope isEqualTo [] || {(_queueEnvelope select 1) == 6}} && {(_cbeRearPlanClearance select 1) in [
+if (!(_cbeRearPlanClearance select 0) && {_queueEnvelope isEqualTo []} && {(_cbeRearPlanClearance select 1) in [
     "REAR_GEOMETRY","REAR_SUPPORT","REAR_TARGET_SUPPORT","REAR_OCCUPIED","REAR_APPROACHING"]}) then {
     // An extended refusal falls back to the ordinary long plan; default requests
     // retain their original short fallback. Never spend a third observation.

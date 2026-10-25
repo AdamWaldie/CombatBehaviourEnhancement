@@ -148,6 +148,9 @@ class DrivingRearMonitorTests(unittest.TestCase):
         plan=src('drivingRearPlan')
         self.assertIn('private _cbeRearPlanEnvelope=[8,6]',plan)
         self.assertIn('then {[8,6]} else {[3.5,2]}',plan)
+        fallback=plan.split('if (!(_cbeRearPlanClearance select 0)',1)[1].split('then {',1)[0]
+        self.assertIn('_queueEnvelope isEqualTo []',fallback)
+        self.assertNotIn('(_queueEnvelope select 1) == 6',fallback)
         self.assertEqual(plan.count('call CBE_fnc_DrivingRearClear'),2)
         self.assertIn('call CBE_fnc_DrivingBypassApproach',plan)
         self.assertIn('== "BACKOFF"',plan)

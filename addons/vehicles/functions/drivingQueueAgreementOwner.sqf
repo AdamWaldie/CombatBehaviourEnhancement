@@ -336,6 +336,7 @@ if (_accepted && {_mode in ["VERIFY","COMMIT"]}) then {
         private _leafPlan=[_leaf,[],24,_rearRequirements select (count _vehicles-1)] call CBE_fnc_DrivingRearPlan;
         private _leafObservation=_leafPlan select 0;
         _accepted=(_leafObservation select 0) && {count (_leafObservation param [4,[]]) == 3}
+            && {(_leafPlan select 1) isEqualTo (_rearRequirements select (count _vehicles-1))}
             && {serverTime < ([_deadline,_expires] select (_mode == "COMMIT" || {_duplicate}))}
             && {[_vehicles,_roles,_dependencies,_context,true] call CBE_fnc_DrivingQueueProposalCurrent};
     };
