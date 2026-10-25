@@ -93,3 +93,8 @@ Resume now validates exterior entrances against the full bounded security topolo
 ### Settled exterior phase flow — 2026-10-25
 
 Reserve staging readiness and both arrival-write boundaries now recognise WAIT only through the current stage marker and an exact-target, same-visit native MOVE ownership check. The existing arrival hold can then complete. Final-egress assigned/pending and reserve APPROACH adoption retain similarly proven completed legs with their original progress/retry/deadline state. The read-only motion CHECK accepts an optional exact target and refuses malformed/empty/different supplied targets. No new movement controller, scan or budget. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs); independently verified candidate `.qa/candidates/clear-settled-phase-03262164`, fingerprint `928d711ca6cc82296c85c02556fd07a0a51155cef563459aafef1af7be55ce08`. Physical staging/egress, coherent authenticated producer transport and performance remain unverified/incomplete. Audits remain paused. Review: `clear-settled-phase-20261025.json`.
+
+
+### Additional clearance transfer budgets
+
+`clear-private-job-budget-map-20261025.json` identifies actor EntryRecovery/EntryAlternative and group Relief/Yield state outside the proposed private-job transfer. EntryAlternative and Yield currently omit visit-nonce binding. Preserve their spent retry/search/yield history in the same coherent envelope; a private-job-only copy is incomplete. Callback-local geometry caches are not transferable authority. This is source evidence only; no transport implementation or new runtime validation. Latest verified runtime remains c555e8b4.
