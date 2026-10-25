@@ -2,7 +2,7 @@
 
 Continue the full production-ready CBE goal. Implement and physically validate infantry, CQB, coordination, combined arms, driving, convoys, aircraft and support through owner-local danger and operation FSMs. Required provider handovers must work. Preserve Zeus and multiplayer authority, and verify the 5% median / 10% p95 performance budget. The goal is active and incomplete.
 
-Latest live usage check on25 October showed22% used /78% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
+Latest live usage check on25 October showed23% used /77% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
 
 ## Repository and checkpoint
 
@@ -237,3 +237,9 @@ Review/register: `releaseVerificationAndDeployment/referenceReviews/armour-post-
 ## Mandatory screened candidate selection, 25 October
 
 The post-shot caller now requires final-endpoint screening inside the shared avenue selector, rather than letting a terrain/road winner fail the later single-point check while another screened candidate is ignored. Optional final-endpoint policy defaults false for every existing ordinary caller. Post-shot uses the three existing upper-envelope probes and the same five escape candidates; missing/oversized bounds refuse. No added scan/probe/controller. Review: `armour-post-shot-cover-20261025.json` screenedCandidateAdmission.1497 tests, full build and independent package verification passed. Candidate `.qa/candidates/armour-screened-selection-d83a8a99`, fingerprint `37855079ba656068a64c0c62dc2a1b534e5f2c63415d52b4a6183aa795d39f76`; logs `.qa/handovers/armour-screened-selection-{build,independent}.log`. Saved locally for the next coherent push; check current Git ahead count. Physical route/cover effectiveness and runtime budget remain unverified; audits paused.
+
+## Native danger evasion footing, 25 October
+
+Prone rolls and upright tactical steps now share `_evasionSpaceClear` inside DangerEngineAct. After existing actor/native/mover/weapon/cooldown gates, two horizontal segments reject obstruction and two downward midpoint/endpoint probes require support within0.75m/up-normal>=0.7. Terrain null-object hits remain valid; actors/vehicles cannot supply footing. Prone retains overhead veto. Failed attempts spend the original3s cooldown; no extra direction search or worker. This closes an obstruction-only ledge-admission gap, not a swept-body/path guarantee. Cost increases by at most2 downward rays for upright and at most4 lateral/support rays for prone; runtime cost unmeasured.
+
+Review `danger-evasion-footing-20261025.json` and selected LAMBS branch-review follow-up record actual source hashes/limits.1497 existing cases, full local build and independent verification passed. Candidate `.qa/candidates/danger-evasion-footing-f1efc3bb`, fingerprint `189c46b3c7d24b397e9eb53e9c9d1471cbd63fc44ee633759d8bf41ccac2fc93`; logs `.qa/handovers/danger-evasion-footing-{build,independent}.log`. Physical roof/stair/bridge/modded-building, normal/provider-HC and performance acceptance remain outstanding. Audits paused; goal active/incomplete. This and the preceding screened-armour endpoint commit are local batch work; verify ahead count before next push.

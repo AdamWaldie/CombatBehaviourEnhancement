@@ -13,8 +13,9 @@
  * This includes engine ATTACK travel, whose command label does not identify an idle rifleman.
  * Extreme native suppression lowers idle engaging riflemen prone without pinning committed movers.
  * Idle riflemen may perform one native lateral evasion after a hit or near round.
- * Standing/crouched actors use a short tactical lateral action only when two sampled
- * side segments are unobstructed. This is an obstruction veto, not a swept-body/path guarantee.
+ * Prone and standing/crouched lateral actions require two unobstructed side segments and
+ * supporting terrain/roadway at their midpoint and endpoint within0.75m of the current floor.
+ * These sparse vetoes do not guarantee swept-body clearance, footing or animation travel.
  * The existing cooldown also bounds failed lateral probes; committed movement is never dodged.
  * A single eligible overhead ray prevents prone rolls beneath roofs/cover.
  * A per-actor cooldown prevents repeated actions; committed routes and specialist/native tasks yield.
@@ -122,6 +123,38 @@ private _evasionWeaponReady={
         && {[5,6] findIf {private _phase=_evasionWeapon select _x;
             !(_phase isEqualType 0) || {!finite _phase} || {_phase != 0}} < 0}
 };
+// Two side segments and at most two downward support probes per eligible attempt.
+// ROADWAY includes walkable model surfaces; terrain intersection remains valid when object is null.
+// Do not use terrain height alone: an actor may be on a roof, floor, bridge or elevated walkway.
+private _evasionSpaceClear={
+    params ["_left"];
+    private _heading=vectorDir _actor;
+    _heading set [2,0];
+    if (vectorMagnitude _heading < 0.1) exitWith {false};
+    _heading=vectorNormalized _heading;
+    private _side=[_heading select 1,-(_heading select 0),0];
+    _side=_side vectorMultiply ([2,-2] select _left);
+    private _feet=getPosASL _actor;
+    private _low=_feet vectorAdd [0,0,0.3];
+    private _eye=eyePos _actor;
+    private _blocked=[_low,_eye] findIf {
+        (lineIntersectsSurfaces [_x,_x vectorAdd _side,_actor,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []
+    } >= 0;
+    if (_blocked) exitWith {false};
+    private _unsupported=[0.5,1] findIf {
+        private _probe=_feet vectorAdd (_side vectorMultiply _x);
+        private _support=lineIntersectsSurfaces [_probe vectorAdd [0,0,0.75],
+            _probe vectorAdd [0,0,-0.75],_actor,objNull,true,1,"ROADWAY","GEOM"];
+        if (_support isEqualTo []) exitWith {true};
+        private _hit=_support select 0;
+        private _normal=_hit select 1;
+        private _object=_hit select 2;
+        (_normal select 2) < 0.7
+            || {abs (((_hit select 0) select 2)-(_feet select 2)) > 0.75}
+            || {!isNull _object && {_object isKindOf "CAManBase" || {_object isKindOf "AllVehicles"}}}
+    } >= 0;
+    !_unsupported
+};
 private _lateralEvasion=false;
 // An idle prone rifleman can react physically without a new destination or a tactical worker.
 // Native actions retain engine collision and animation handling. Never roll a committed mover,
@@ -139,15 +172,17 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     // One short-circuited ray after eligibility/cooldown, never a roster/world scan.
     && {private _evasionEye=eyePos _actor;
         !(lineIntersects [_evasionEye,_evasionEye vectorAdd [0,0,7],_actor])}) then {
-    private _point=_record param [1,[],[[]]];
-    private _action=selectRandom ["EvasiveLeft","EvasiveRight"];
-    if (count _point >= 2 && {_actor distance2D _point >= 3}) then {
-        _action=["EvasiveRight","EvasiveLeft"] select (_actor getRelDir _point < 180);
-    };
+    // Spend the original cooldown even if support/obstruction probes refuse.
     _actor setVariable ["CBE_Danger_EvasionAfter",time+3];
-    _actor playActionNow _action;
-    _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
-        _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
+    private _point=_record param [1,[],[[]]];
+    private _left=random 1 < 0.5;
+    if (count _point >= 2 && {_actor distance2D _point >= 3}) then {_left=_actor getRelDir _point < 180};
+    if ([_left] call _evasionSpaceClear) then {
+        private _action=["EvasiveRight","EvasiveLeft"] select _left;
+        _actor playActionNow _action;
+        _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
+            _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
+    };
 };
 // Retain the source intent of a short upright dodge without copying fast forward/back
 // movement or issuing a second destination. A known side obstruction keeps posture only.
@@ -165,24 +200,12 @@ if (_mode == "IMMEDIATE" && {_cause in [2,9]} && {!_committedMover}
     private _point=_record param [1,[],[[]]];
     private _left=random 1 < 0.5;
     if (count _point >= 2 && {_actor distance2D _point >= 3}) then {_left=_actor getRelDir _point < 180};
-    private _heading=vectorDir _actor;
-    _heading set [2,0];
-    if (vectorMagnitude _heading >= 0.1) then {
-        _heading=vectorNormalized _heading;
-        private _side=[_heading select 1,-(_heading select 0),0];
-        _side=_side vectorMultiply ([2,-2] select _left);
-        private _low=(getPosASL _actor) vectorAdd [0,0,0.3];
-        private _eye=eyePos _actor;
-        private _blocked=[_low,_eye] findIf {
-            (lineIntersectsSurfaces [_x,_x vectorAdd _side,_actor,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []
-        } >= 0;
-        if (!_blocked) then {
-            private _action=["TactR","TactL"] select _left;
-            _actor playActionNow _action;
-            _lateralEvasion=true;
-            _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
-                _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
-        };
+    if ([_left] call _evasionSpaceClear) then {
+        private _action=["TactR","TactL"] select _left;
+        _actor playActionNow _action;
+        _lateralEvasion=true;
+        _actor setVariable ["CBE_Danger_LastEvasion",[time,_cause,_action,
+            _group getVariable ["CBE_Danger_Generation",-1],getPosATL _actor]];
     };
 };
 // Body and scream observations deserve a visible finite assessment, not only a stance flag.

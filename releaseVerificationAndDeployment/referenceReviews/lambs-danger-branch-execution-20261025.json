@@ -69,5 +69,10 @@
   "nextImplementationBoundary": "Continue required native operation/controller handover and coherent CQB actor-ready ownership, rather than adding a second direct actor movement/suppression writer merely to mirror LAMBS function placement.",
   "audits": "paused",
   "wholeLAMBSParity": false,
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "immediateEvasionFootingFollowup": {
+    "review": "danger-evasion-footing-20261025.json",
+    "scope": "Existing prone/upright native lateral reactions now share obstruction and footing vetoes. Earlier sourceHashes remain historical; follow-up records current actor source. Not full doCover/doDodge or danger parity.",
+    "physicalAcceptance": false
+  }
 }

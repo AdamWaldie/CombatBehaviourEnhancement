@@ -1,0 +1,34 @@
+{
+  "base": "f1efc3bb",
+  "status": "SHARED_NATIVE_EVASION_FOOTING_VETO_SOURCE_INTEGRATED",
+  "finding": "Native danger reactions used a roof veto for prone rolls and two horizontal obstruction segments for upright lateral actions, but neither established lateral footing. An exposed ledge could pass the obstruction-only gate.",
+  "sourceIntent": "Retain the LAMBS doDodge intent of a short immediate native reaction under fire while refusing sparse geometry that cannot support it. Do not copy unconditional forward/back actions or introduce a second route owner.",
+  "implementation": [
+    "One shared actor-local CODE path computes a two-metre left/right sample. Two horizontal body-height segments reject obstructions, then midpoint/endpoint downward probes require terrain/ROADWAY support within0.75m of the original foot height and upward normal>=0.7. Actors/vehicles cannot be footing.",
+    "Both original prone roll and upright tactical action call it only after existing feature, owner, actor/native task, movement, weapon-state and cooldown gates. Prone retains its existing overhead veto. Refused lateral attempts consume the original3s cooldown. Posture fallback remains.",
+    "No world/roster scan, new movement instruction, replacement direction search, worker, task, setting, artificial animation, velocity or position write. Shared implementation replaces duplicate upright geometry."
+  ],
+  "cost": {
+    "upright": "At most2 existing horizontal rays plus2 new downward probes per eligible original3s attempt; short-circuits on obstruction/first unsupported point.",
+    "prone": "Existing overhead ray plus at most2 horizontal/2 downward probes after eligibility; overhead refusal remains the existing path.",
+    "performanceAcceptance": false
+  },
+  "limitations": [
+    "Sparse samples are safety vetoes, not swept-body clearance, native animation displacement or pathfinding proof. Narrow/unsampled holes may remain.",
+    "Bounds intentionally refuse steep stairs/drops and unknown/missing walkable model surfaces; posture is retained rather than forcing movement.",
+    "Physical normal/HC, terrain/bridge/roof/stair/modded model responses and5%median/10%p95 overhead remain unverified. Audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "build": ".qa/handovers/danger-evasion-footing-build.log",
+    "independent": ".qa/handovers/danger-evasion-footing-independent.log",
+    "candidate": ".qa/candidates/danger-evasion-footing-f1efc3bb",
+    "fingerprint": "189c46b3c7d24b397e9eb53e9c9d1471cbd63fc44ee633759d8bf41ccac2fc93",
+    "physicalAcceptance": false
+  },
+  "primaryApiReference": "https://community.bistudio.com/wiki/lineIntersectsSurfaces",
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+    ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
+  }
+}
