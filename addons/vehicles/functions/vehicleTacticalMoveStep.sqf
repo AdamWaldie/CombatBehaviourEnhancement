@@ -38,6 +38,7 @@ private _finish={
             && {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isEqualTo _reference}) then {
             [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
             _group setVariable ["CBE_VehicleTacticalMove_Reference",nil,true];
+            [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
             if ((_state getOrDefault ["movementLease",[]]) isEqualTo (_work get "localLease")) then {
                 _state deleteAt "movementLease";

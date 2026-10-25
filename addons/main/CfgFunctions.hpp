@@ -116,6 +116,7 @@ class CfgFunctions {
             class VehicleCrewMoveNativePhase {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveNativePhase.sqf";};
             class VehicleCrewMoveRetire {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveRetire.sqf";};
             class VehicleCrewMoveReturnProof {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveReturnProof.sqf";};
+            class VehicleCrewMoveDeletionWatch {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveDeletionWatch.sqf";};
             class VehicleTacticalMoveStart {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStart.sqf";};
             class VehicleTacticalMoveStep {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStep.sqf";};
             class VehicleTacticalMoveRetire {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveRetire.sqf";};

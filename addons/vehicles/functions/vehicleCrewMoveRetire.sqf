@@ -78,13 +78,18 @@ isNil {
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
             private _localLease=_state getOrDefault ["movementLease",[]];
             if (_live || {!_nativeRetired}
-                || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {false};
+                || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {
+                // A passive deletion observer does not adopt this unresolved movement.
+                [_battery,"INSTALL",[_workKey,_referenceKey,_leaseOwner]] call CBE_fnc_VehicleCrewMoveDeletionWatch;
+                false
+            };
             if !([_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease) exitWith {false};
             private _terminal=+_work;
             _terminal set ["phase","RETIRED"];
             _terminal set ["result",["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved];
             _battery setVariable [_workKey,_terminal,true];
             _group setVariable [_referenceKey,nil,true];
+            [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             if (_localLease isNotEqualTo []) then {_state deleteAt "movementLease"};
             false
         };
@@ -115,6 +120,7 @@ isNil {
         _journal set ["reference",_adoptedReference];
         _battery setVariable [_workKey,_journal,true];
         _group setVariable [_referenceKey,_adoptedReference,true];
+        [_battery,"INSTALL",[_workKey,_referenceKey,_leaseOwner]] call CBE_fnc_VehicleCrewMoveDeletionWatch;
         private _executorSerial=(_battery getVariable [_executorSerialKey,0])+1;
         _battery setVariable [_executorSerialKey,_executorSerial];
         private _retirementPhase=_journal get "phase";

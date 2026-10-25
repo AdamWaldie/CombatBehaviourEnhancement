@@ -77,6 +77,8 @@ isNil {
             if ((_state getOrDefault ["vehicleOperationGeneration",-1]) == _generation) then {_state deleteAt "vehicleOperationGeneration"};
             false
         };
+        [_battery,"INSTALL",["CBE_VehicleTacticalMove_Work","CBE_VehicleTacticalMove_Reference","VEHICLE_STANDOFF"]]
+            call CBE_fnc_VehicleCrewMoveDeletionWatch;
         true
     };
 };

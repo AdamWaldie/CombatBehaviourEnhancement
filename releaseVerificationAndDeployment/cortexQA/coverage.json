@@ -1114,7 +1114,8 @@
         "addons/vehicles/functions/vehicleCrewNativeObservation.sqf",
           "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf",
           "addons/vehicles/functions/vehicleCrewMoveRetire.sqf",
-          "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf"
+          "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf",
+          "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf"
       ]
     },
     {

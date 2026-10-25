@@ -167,6 +167,8 @@ isNil {
             if ((_state getOrDefault ["movementLease",[]]) isEqualTo _lease) then {_state deleteAt "movementLease"};
             call _refuse
         };
+        [_battery,"INSTALL",["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reference","ARTILLERY_CREW"]]
+            call CBE_fnc_VehicleCrewMoveDeletionWatch;
         true
     };
 };

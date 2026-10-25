@@ -194,6 +194,20 @@ if (!_firstAdoption) then {_group setVariable ["CBE_AIPass_State", nil];};
 _group setVariable ["CBE_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["CBE_AIPass_GarrisonApplied", "CBE_AIPass_DefendApplied", "CBE_AIPass_ClearApplied"];
 _group setVariable ["CBE_AIPass_Adopted", _gained];
+// Native handler IDs stay on their machine; remove only this group's old local observer.
+if (!_gained && {!local _group}) then {
+    {
+        private _reference=_group getVariable [_x,[]];
+        private _platform=if (_reference isEqualType []) then {_reference param [0,objNull,[objNull]]} else {objNull};
+        if (!isNull _platform) then {
+            private _watch=_platform getVariable ["CBE_VehicleCrewMove_DeletedWatch",[]];
+            if (_watch isEqualType [] && {count _watch == 7} && {(_watch select 1) isEqualTo _group}) then {
+                [_platform,"RELEASE",_watch select 0] call CBE_fnc_VehicleCrewMoveDeletionWatch;
+            };
+        };
+    } forEach ["CBE_ArtilleryCrew_Reference","CBE_VehicleTacticalMove_Reference"];
+};
+
 if (!_gained || {!local _group}) exitWith {};
 // Resume only the original pending hold deadline; the executor rechecks actual actor ownership.
 [_group] call CBE_fnc_CortexHolderRecallPending;

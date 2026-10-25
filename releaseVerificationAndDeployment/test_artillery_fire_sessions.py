@@ -241,6 +241,27 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertNotIn(mutation,proof)
         self.assertIn('call CBE_fnc_VehicleCrewMoveReturnProof',retirement)
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
+        deletion=(ROOT/'addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf').read_text(encoding='utf-8')
+        for guard in ('addEventHandler ["Deleted"',
+                      '[_entity,"DELETED",[_entity,_thisEvent,_thisEventHandler]]',
+                      '(_data select 0) isNotEqualTo _battery',
+                      '(_data select 1) != "Deleted"',
+                      '(_data select 2) != (_watch select 6)',
+                      '(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference',
+                      'isNull _x} || {!local _x} || {alive _x}',
+                      '_currentPublicLease isEqualTo _publicLease',
+                      'if (_leaseStillOurs',
+                      'removeEventHandler ["Deleted",_watch select 6]',
+                      'PLATFORM_DELETED_ORIGINAL_CREW_DEAD'):
+            self.assertIn(guard,deletion)
+        for forbidden in ('doMove','execFSM','waitAndExecute','addMissionEventHandler','nearestObjects','allUnits','setVelocity','setPos'):
+            self.assertNotIn(forbidden,deletion)
+        for file in ('artilleryCrewMoveStart','vehicleTacticalMoveStart','vehicleCrewMoveRetire',
+                     'artilleryCrewMoveStep','vehicleTacticalMoveStep','cortexLocality'):
+            matches=list((ROOT/'addons').glob('*/functions/'+file+'.sqf'))
+            self.assertEqual(len(matches),1,file)
+            self.assertIn('call CBE_fnc_VehicleCrewMoveDeletionWatch',matches[0].read_text(encoding='utf-8'))
+
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retire)
         tactical_retire=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertIn('([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")',tactical_retire)

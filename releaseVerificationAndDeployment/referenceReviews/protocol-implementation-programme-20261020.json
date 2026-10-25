@@ -224,6 +224,12 @@
           "status": "ENDED_LOCAL_WORKER_POSITIVE_NATIVE_RETURN_INTEGRATED",
           "scope": "Read-only late recorded-original-return proof can retire its matching reservation; unchanged current owner epoch and tactical generation required. Broader supersession/deleted-platform/foreign-owner cleanup remain unfinished.",
           "physicalAcceptance": false
+        },
+        "actualDeletionDeadCrew": {
+          "review": "selected-deletion-dead-crew-20261025.json",
+          "status": "SCOPED_NATIVE_DELETION_DEAD_LOCAL_ORIGINAL_CREW_CLEANUP_INTEGRATED",
+          "scope": "Actual deletion callback plus present/local/dead original actors can retire exact old reservation. Newer/unknown public and private leases preserved. Living/missing/nonlocal crew and wider deletion recovery remain unfinished.",
+          "physicalAcceptance": false
         }
       }
     }
