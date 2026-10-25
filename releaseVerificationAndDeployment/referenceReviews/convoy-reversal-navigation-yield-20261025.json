@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "2d19968a",
+  "scope": "Convoy follower reversal yield must gate fresh navigation as well as speed; no spacing/acceleration retuning or closed-loop physical claim.",
+  "failure": "Current follower speed branch observes predecessor model-forward velocity<-0.5m/s and sets zero cap, but later trail-update branch had no reversal guard. It could select new/advanced destinations, issue doMove or setDriveOnPath while yielding. A zero cap is not native planner cancellation or permission for a new path.",
+  "implementation": "Fresh trail selection/path construction and native/steering issue block now requires !_frontReversing. Existing speed zero, receipt acknowledgement/handback, traffic safety, cancellation and recovery reset continue in their original order. No new movement command, discovery, timer, group split, speed threshold, horizon or deadline. Retained original path is not reported complete; next eligible sample may resume once reversal ceases.",
+  "sourceHashes": {
+    "addons/vehicles/functions/convoyTick.sqf": "4f3e061053d26feab7274ae30e82d34ab0805069c5a99d2c755f75c4bb92aa99",
+    "releaseVerificationAndDeployment/test_driving_traffic.py": "b11823679e5faa505cd9a13853b69d00639057669690369edc13e77f7eac30c2"
+  },
+  "validation": {
+    "focused": "Existing20 traffic checks PASS. Existing reversal/smoothing case extended to require both native and steering writers behind reversal boundary while earlier receipt retirement remains. No new case-count growth.",
+    "full": "1497 tests PASS;420 compiledSQF/11PBO; full build terminal0.",
+    "independent": "verify terminal0",
+    "candidate": ".qa/candidates/convoy-reversal-yield-2d19968a",
+    "fingerprint": "7b9a2988358b668fd1914ff972fc6fc5336a5726ed4bdf2d104f47a76f42dd9d",
+    "buildLog": ".qa/convoy-reversal-yield-build-20261025-attempt1.log",
+    "independentLog": ".qa/convoy-reversal-yield-independent-20261025.log",
+    "kind": "Unsigned dirty development. Notes postdate package; base commit plus runtime hashes identify covered source."
+  },
+  "limits": "Source boundary correction, not reproduced engine turn/stop behaviour or physical handback. Current forceSpeed/path/native planner semantics, mixed tracked/wheeled reversal/restart/cleanup/Zeus/normal-HC/locality and5percent median/10percent p95 overhead remain unverified. Audits PAUSED; full goal active/incomplete."
+}

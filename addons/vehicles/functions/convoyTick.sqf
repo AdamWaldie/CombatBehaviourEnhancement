@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Follower smoothing fades in across the existing lower tolerance band; hard closing/reverse caps remain final.
+ * Reversing predecessors suspend fresh follower trail destinations/paths, not pending handback.
  * Size-aware spacing uses facing hull extents from model origins, not symmetric half-lengths.
  * Existing traffic/turn geometry remains authoritative; this is not swept collision proof.
  * Disabled registered carriers reconcile their unload policy before mobility filtering;
@@ -1248,7 +1249,10 @@ for "_i" from 1 to (count _vehicles - 1) do {
         _progress set [2,[time,time+10] select _native];
         _progress set [4,_attempts];
     };
-    if (time >= (_progress select 2) && {count _trail >= 1} && {_gap > _desiredGap * 0.8 || {_pathOwners getOrDefault [_key,false]}}) then {
+    // Reversal is a yield, not a new navigation leg. The zero-speed cap above
+    // does not cancel native planning: do not replace its destination/path while
+    // the predecessor is backing toward us. Existing receipt handback stays live.
+    if (!_frontReversing && {time >= (_progress select 2)} && {count _trail >= 1} && {_gap > _desiredGap * 0.8 || {_pathOwners getOrDefault [_key,false]}}) then {
         private _nearest = -1;
         private _distance = 18;
         private _frontIndex = count _trail - 1;

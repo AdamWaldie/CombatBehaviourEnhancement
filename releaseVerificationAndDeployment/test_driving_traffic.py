@@ -138,6 +138,15 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('min _closingCap',smoothing)
         self.assertLess(smoothing.index('_previous select 0)-4*_elapsed'),smoothing.index('min _closingCap'))
         self.assertIn('if (_frontReversing) then {_limit=0}',smoothing)
+        # A speed hold alone leaves native route planning active. Both destination
+        # and steering-path refresh must be inside the reversal yield boundary;
+        # independently retained handback still runs before that boundary.
+        route=s.split('// Reversal is a yield, not a new navigation leg.',1)[1]
+        gate=route.split('private _nearest = -1;',1)[0]
+        self.assertIn('if (!_frontReversing &&',gate)
+        self.assertIn('_movementOperator doMove _destination',route)
+        self.assertIn('setDriveOnPath',route)
+        self.assertLess(s.index('CBE_fnc_ConvoyRetireMoveReceipt'),s.index('// Reversal is a yield, not a new navigation leg.'))
         self.assertIn('_limit=_limit min _retainedPathCap',smoothing)
     def test_closing_cap_accounts_for_mass_and_cruise_reaction(self):
         s=src('drivingFollowingCap')
