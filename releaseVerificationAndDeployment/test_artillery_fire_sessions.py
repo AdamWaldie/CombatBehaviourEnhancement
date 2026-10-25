@@ -131,7 +131,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         observation=(ROOT/'addons/vehicles/functions/vehicleCrewNativeObservation.sqf').read_text(encoding='utf-8')
         self.assertIn('[_observedDriver,_observedOperator] call CBE_fnc_VehicleCrewNativeObservation',worker)
         self.assertIn('count _observations != 4',worker)
-        self.assertIn('_phase in ["REQUESTED","STOPPING"]',worker)
+        self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
         self.assertIn('ASLToAGL getPosASL _battery,_linearMotion,_angularMotion',worker)
         self.assertEqual(worker.count('_observations,serverTime,_arrivalSample]'),3)
         self.assertIn('_ack == "OWNED" && {serverTime <= (_work get "replyUntil")}',worker)
@@ -178,14 +178,16 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertEqual(before[3],before[1])
         returning=worker.split('if (_phase == "RETURNING") exitWith {',1)[1]
         self.assertIn('_command in ["","WAIT"] && {_rest}',returning)
-        self.assertIn('(getPosATL _battery) vectorDistance _point <= 2',returning)
+        self.assertIn('(_arrivalSample select 0) vectorDistance _point <= 2',returning)
+        self.assertIn('abs (((_arrivalSample select 0) select 2)-(_point select 2)) <= 0.75',returning)
+        self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
         self.assertIn('_native vectorDistance _point > 0.25',returning)
         self.assertNotIn('doMove',returning)
         # A short native return can complete before the first callback. Idle alone,
         # a replaced destination, motion or a remote endpoint cannot prove return.
-        def returned(command, destination_error, endpoint_distance, at_rest):
+        def returned(command, destination_error, endpoint_distance, at_rest, vertical_error=0):
             return destination_error<=0.25 and (command=='MOVE' or
-                command in ('','WAIT') and at_rest and endpoint_distance<=2)
+                command in ('','WAIT') and at_rest and endpoint_distance<=2 and vertical_error<=0.75)
         self.assertTrue(returned('MOVE',0,100,False))
         self.assertTrue(returned('WAIT',0,1,True))
         self.assertTrue(returned('',0.25,2,True))
@@ -193,6 +195,8 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertFalse(returned('WAIT',0,1,False))
         self.assertFalse(returned('WAIT',0.26,1,True))
         self.assertFalse(returned('STOP',0,1,True))
+        self.assertFalse(returned('WAIT',0,1,True,0.76))
+        self.assertTrue(returned('WAIT',0,1,True,0.75))
 
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')

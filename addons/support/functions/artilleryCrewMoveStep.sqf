@@ -143,7 +143,7 @@ private _goalsMatch={
 private _linearMotion=vectorMagnitude velocity _battery;
 private _angularMotion=vectorMagnitude angularVelocity _battery;
 private _rest=_linearMotion < 0.278 && {_angularMotion < 0.01};
-private _arrivalSample=if (_phase in ["REQUESTED","STOPPING"]) then {
+private _arrivalSample=if (_phase in ["REQUESTED","STOPPING","RETURNING"]) then {
     [ASLToAGL getPosASL _battery,_linearMotion,_angularMotion]
 } else {[]};
 private _session=_work get "session";
@@ -275,7 +275,8 @@ if (_phase == "RETURNING") exitWith {
             || {_native findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
             || {_native vectorDistance _point > 0.25}
             || {!(_command == "MOVE" || {_command in ["","WAIT"] && {_rest}
-                && {(getPosATL _battery) vectorDistance _point <= 2}})}
+                && {(_arrivalSample select 0) vectorDistance _point <= 2}
+                && {abs (((_arrivalSample select 0) select 2)-(_point select 2)) <= 0.75}})}
     } < 0;
     if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
     if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};
