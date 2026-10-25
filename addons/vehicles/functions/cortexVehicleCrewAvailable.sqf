@@ -7,7 +7,7 @@
  * Arguments: 0 group GROUP grpNull; 1 vehicle OBJECT objNull;
  * 2 expected driver/commander ARRAY [] (required exactly two objects; empty refuses).
  * Return: BOOL - current crew may receive tactical movement, never proof of actual travel.
- * Current callers: CortexVehicleJink admission/commit and CortexVehicles jink continuation.
+ * Current callers: CortexVehicleJink and CortexVehicles standoff admission/commit and movement continuation.
  * Example: [group driver apc1,apc1,[driver apc1,effectiveCommander apc1]] call CBE_fnc_CortexVehicleCrewAvailable;
  */
 params [["_crewGroup",grpNull,[grpNull]],["_crewVehicle",objNull,[objNull]],["_expectedSeats",[],[[]]]];

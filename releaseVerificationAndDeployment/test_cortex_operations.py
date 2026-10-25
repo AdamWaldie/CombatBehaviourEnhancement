@@ -8180,6 +8180,14 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(convoy.index('ownerSuspended'),convoy.index('call CBE_fnc_OperationStart'))
     def test_vehicle_withdraw_and_standoff_use_finite_operation_generations(self):
         vehicles=source('cortexVehicles')
+        standoff=vehicles.split('private _standoffSeats=',1)[1]
+        self.assertEqual(standoff.count('[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable'),3)
+        self.assertIn('_operation set ["vehicleStandoffCrew",[_vehicle,+_standoffSeats]]',standoff)
+        continuation=vehicles.split('if (_movementOwner == "VEHICLE_STANDOFF") then {',1)[1].split('_activeVehicleMove =',1)[0]
+        self.assertIn('_moveOperation getOrDefault ["vehicleStandoffCrew",[]]',continuation)
+        self.assertIn('[_group,_standoffCrew select 0,_standoffCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable',continuation)
+        self.assertIn('[_group,_generation,"VEHICLE_CREW_CHANGED"] call CBE_fnc_OperationCancel',vehicles)
+
         self.assertIn('[_group,"VEHICLE_WITHDRAW",_threat,[],[_away],"MOVING"] call CBE_fnc_OperationStart',vehicles)
         self.assertIn('[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart',vehicles)
         self.assertIn('["vehicleOperationGeneration",_operation get "generation"]',vehicles)

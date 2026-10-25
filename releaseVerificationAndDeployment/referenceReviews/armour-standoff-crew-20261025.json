@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "d1571e6262b434df33336c9b91b520e3f19a5c55",
+  "scope": "Existing armoured standoff original-crew authority",
+  "finding": "VEHICLE_JINK captured and serviced original crew through CortexVehicleCrewAvailable; VEHICLE_STANDOFF used group eligibility and commander membership but had no matching original-pair admission/continuation receipt. Selected-platform native movement remains a separate missing feature.",
+  "implementation": [
+    "Capture original current driver/effective commander before standoff planning. Reuse the existing owner-local crew/vehicle fitness/task/external-control helper before planning and lease acquisition.",
+    "Store vehicleStandoffCrew [platform, copied original seats] on the finite operation. Recheck after OperationStart because predecessor cleanup can synchronously re-enter, before waypoint issue.",
+    "Existing lifecycle-only vehicle service reads that receipt and calls the same helper. Changed/missing pair or failed authority uses existing VEHICLE_CREW_CHANGED OperationCancel and lease cleanup. No replacement crew adoption."
+  ],
+  "cost": "At most two original crew actors per helper call; three admission boundary checks only when applicable, one continuation check. No new worker, world scan, timer, command type or route planning expansion. Performance not measured.",
+  "validation": {
+    "full": "1497 tests,423 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/standoff-crew-d1571e62",
+    "fingerprint": "dddb62ba1ece06475a994f59813bb07955a77f8023c713afc6efdd8d80cc1751",
+    "development": "Initial root-directory test invocation ran610 cases with one sibling-import error; production build ran the complete suite from its correct environment. Existing standoff case extended, no test count increase."
+  },
+  "limits": [
+    "Still a finite group waypoint: not selected-platform native movement, cover relocation or post-shot manoeuvre parity.",
+    "Missing original receipt refuses continuation; not a coherent handover protocol or proof of cross-owner delivery.",
+    "Physical crew/care/seat/external-control/casualty/migration/Zeus cancellation and performance remain unverified; audits paused."
+  ],
+  "sources": {
+    "addons/vehicles/functions/cortexVehicles.sqf": "26a8b4fc163eddedb0384d79bd2f75c264637afccc5af4ab9985db4847d8a73b",
+    "addons/vehicles/functions/cortexVehicleCrewAvailable.sqf": "24a1d7cf137db0cd3166693d36e27ff674b6afbfbfab6d67aa56ed7b7fe12242",
+    "addons/core/functions/operationStart.sqf": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "ff6bcf39ec8ee3da16117ed29a27bbed63557949355a3cea1eb6bc1027fd60c4"
+  }
+}

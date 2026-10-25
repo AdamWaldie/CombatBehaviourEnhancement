@@ -86,6 +86,8 @@
  * expiry or retirement; natural engagement and independent safety responses remain available. A fully mounted tank or APC that knows of an anti-tank soldier
  * within 60% of CBE_AIPass_Vehicles_StandoffDistance backs off to that distance, at most once a
  * minute, through an inserted waypoint.
+ * Standoff captures the original local driver/commander pair and rechecks movement fitness,
+ * native task and external control at admission and continuation; changed crew cancels it.
  * A withdrawal or standoff owns group movement until its tagged waypoint completes or its bounded
  * lease expires. Other Cortex manoeuvres may continue their combat layers but cannot replace that
  * movement. Conversely, this layer preserves and yields to every active non-vehicle movement lease
@@ -239,6 +241,13 @@ if (_vehicleMove isNotEqualTo []) then {
                 _vehicleCrewChanged=!(_jinkCrew isEqualType []) || {count _jinkCrew != 2};
                 if (!_vehicleCrewChanged) then {
                     _vehicleCrewChanged=!([_group,_jinkCrew select 0,_jinkCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable);
+                };
+            };
+            if (_movementOwner == "VEHICLE_STANDOFF") then {
+                private _standoffCrew=_moveOperation getOrDefault ["vehicleStandoffCrew",[]];
+                _vehicleCrewChanged=!(_standoffCrew isEqualType []) || {count _standoffCrew != 2};
+                if (!_vehicleCrewChanged) then {
+                    _vehicleCrewChanged=!([_group,_standoffCrew select 0,_standoffCrew select 1] call CBE_fnc_CortexVehicleCrewAvailable);
                 };
             };
             _activeVehicleMove = _reverseActive || {_routeOwned && {time < (_vehicleMove select 1)}};
@@ -1073,6 +1082,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
                 };
             };
         };
+        private _standoffSeats=[driver _vehicle,effectiveCommander _vehicle];
         private _standoff = missionNamespace getVariable ["CBE_AIPass_Vehicles_StandoffDistance", 250];
         private _atIndex = _enemies findIf {
             (_x select 0) isKindOf "CAManBase" && {(_x select 2) <= 30} && {(_vehicle distance2D (_x select 1)) < _standoff * 0.6}
@@ -1080,6 +1090,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         };
         if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"} && {_atIndex >= 0}
             && {_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"}} && {canMove _vehicle}
+            && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
             && {(units _group) findIf {alive _x && {vehicle _x == _x}} < 0} && {!([_state, "standoff"] call CBE_fnc_CortexCooldown)}) then {
             private _atPos = (_enemies select _atIndex) select 1;
             private _atThreat=(_enemies select _atIndex) select 0;
@@ -1102,13 +1113,19 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             isNil {
             if (_away isNotEqualTo [] && {!_combinedGroundFireOwned} && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _combinedGroundRole}
                 && {[] call _mayIssueVehicle}
+                && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}
                 && {[_group,"VEHICLE_STANDOFF",true,serverTime+60] call CBE_fnc_CortexOwnershipLease}) then {
                 private _operation=[_group,"VEHICLE_STANDOFF",_atThreat,[],[_away],"MOVING"] call CBE_fnc_OperationStart;
                 if (count _operation == 0) then {
                     [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
                 } else {
                     private _generation=_operation get "generation";
-                    private _waypoint=[_group,_away,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
+                    _operation set ["vehicleStandoffCrew",[_vehicle,+_standoffSeats]];
+                    // Operation startup can synchronously retire predecessor work. Recheck
+                    // the captured seats after it, before issuing the waypoint.
+                    private _waypoint=if ([_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable) then {
+                        [_group,_away,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove
+                    } else {[]};
                     if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) then {
                         [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
                         [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
