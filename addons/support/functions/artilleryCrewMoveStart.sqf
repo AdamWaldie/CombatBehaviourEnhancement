@@ -135,8 +135,8 @@ isNil {
         if (!(call _sourceCurrent) || {!(call _crewCurrent)} || {driver _battery != _driver}
             || {!((effectiveCommander _battery) in [_operator,objNull])}
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {call _refuse};
-        private _baseline=[currentCommand _driver,+(expectedDestination _driver),
-            currentCommand _operator,+(expectedDestination _operator)];
+        private _baseline=[_driver,_operator] call CBE_fnc_VehicleCrewNativeObservation;
+        if (count _baseline != 4) exitWith {call _refuse};
         if ([0,2] findIf {(_baseline select _x) == "MOVE" && {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];
             count _goal != 3 || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}

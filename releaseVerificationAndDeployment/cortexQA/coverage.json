@@ -1107,7 +1107,8 @@
         "addons/support/functions/artilleryCrewMoveStart.sqf",
         "addons/support/functions/artilleryCrewMoveStep.sqf",
         "addons/support/functions/artilleryCrewMoveRetire.sqf",
-        "addons/support/functions/artilleryCrewMoveCurrent.sqf"
+        "addons/support/functions/artilleryCrewMoveCurrent.sqf",
+        "addons/vehicles/functions/vehicleCrewNativeObservation.sqf"
       ]
     },
     {

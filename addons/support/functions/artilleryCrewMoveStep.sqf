@@ -125,8 +125,10 @@ if (!_control) exitWith {
 };
 private _observedDriver=if (_retirementOnly) then {_retirementActor} else {_driver};
 private _observedOperator=if (_retirementOnly) then {_retirementActor} else {_operator};
-private _observations=[currentCommand _observedDriver,+(expectedDestination _observedDriver),
-    currentCommand _observedOperator,+(expectedDestination _observedOperator)];
+private _observations=[_observedDriver,_observedOperator] call CBE_fnc_VehicleCrewNativeObservation;
+if (count _observations != 4) exitWith {
+    ["NATIVE_OR_CONTROL_HANDOVER_UNRESOLVED",_phase == "ISSUE"] call _finish
+};
 private _goal=+(_work get "goal");
 private _goalsMatch={
     params ["_point"];

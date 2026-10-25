@@ -207,6 +207,11 @@
         "runtimeImplementationAdded": false,
         "finding": "Source fire-cycle counts requests; manoeuvre/reverse workers do not wait for native movement to finish. Current CBE standoff is group-scoped, not a drop-in selected-platform cover executor.",
         "next": "Finite original-seat selected-platform move/handback through current owner-local lifecycle, then cover/post-shot trigger with actual episode-scoped shot evidence; no detached movement workers."
+      },
+      "selectedMovementFoundation20261025": {
+        "review": "selected-native-observation-20261025.json",
+        "status": "NATIVE_OBSERVATION_USED_BY_ARTILLERY_SELECTED_ARMOURED_MOVE_STILL_REQUIRED",
+        "scope": "Shared native command/destination sampler, used by selected-gun admission/execution. Not a generic movement API or completed armoured cover."
       }
     }
   ],

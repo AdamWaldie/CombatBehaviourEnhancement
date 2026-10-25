@@ -128,6 +128,21 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('forEach _activeSeats;',worker)
         self.assertIn('private _observedOperator=if (_retirementOnly) then {_retirementActor}',worker)
         self.assertIn('private _observedDriver=if (_retirementOnly) then {_retirementActor}',worker)
+        observation=(ROOT/'addons/vehicles/functions/vehicleCrewNativeObservation.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_observedDriver,_observedOperator] call CBE_fnc_VehicleCrewNativeObservation',worker)
+        self.assertIn('count _observations != 4',worker)
+        admission=(base/'artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_driver,_operator] call CBE_fnc_VehicleCrewNativeObservation',admission)
+        self.assertIn('count _baseline != 4',admission)
+        sample=observation.split('isNil {',1)[1]
+        for guard in ('isNull _first','isNull _second','!local _first','!local _second'):
+            self.assertLess(sample.index(guard),sample.index('currentCommand _first'))
+        self.assertIn('if (_second != _first) then',sample)
+        self.assertIn('_firstDestination apply {if (_x isEqualType []) then {+_x}',sample)
+        self.assertIn('[_firstCommand,_firstDestination,_secondCommand,_secondDestination]',sample)
+        for forbidden in ('doMove','doStop','doFollow','setVariable','spawn','CortexQueueJob'):
+            self.assertNotIn(forbidden,sample)
+
         self.assertIn('_work set ["retirementActor",_retirementActor]',worker)
         self.assertIn('private _offset=[2,0] select _driverOnly',worker)
         self.assertIn('!isNull _x && {alive _x} && {_x in _activeSeats} && {(_baseline select _index) == "MOVE"}',worker)
