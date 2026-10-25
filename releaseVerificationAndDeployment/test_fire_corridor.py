@@ -16,10 +16,22 @@ class FireCorridorTests(unittest.TestCase):
         self.assertIn('_along > 0',code)
         self.assertNotIn('_along > 2',code)
         for proof in ('_coneWidth max _safetyRadius','indirectHitRange','12 max (4*_range)',
-                      '_safetyRadius > 250','_position vectorDistance _target <= _safetyRadius',
+                      '_safetyRadius > 250','_blastPoints findIf {_position vectorDistance _x <= _safetyRadius} >= 0',
                       '_blastUnsafe || {!_ownPlatform'):
             self.assertIn(proof,code)
         self.assertLess(code.index('_safetyRadius > 250'),code.index('nearEntities'))
+        impact=code.split('if (_safetyRadius > 0) then {',1)[1].split('private _delta=',1)[0]
+        self.assertIn('lineIntersectsSurfaces [_from,_target,_shooter,_platform,true,1,"FIRE","GEOM"]',impact)
+        self.assertIn('_blastPoints pushBackUnique',impact)
+        self.assertEqual(code.count('lineIntersectsSurfaces'),1)
+        self.assertIn('private _blastPoints=[+_target];',code)
+        # A protected person10m beside a wall50m away is outside the old cone
+        # and target blast radius, but inside the wall-impact exclusion.
+        person=(50,10,0);target=(100,0,0);wall=(50,0,0);radius=12
+        self.assertGreater(math.dist(person,target),radius)
+        self.assertGreater(person[1],2+person[0]*0.087)
+        self.assertLess(math.dist(person,wall),radius)
+        self.assertLessEqual(abs(person[1]),max(2+(100+10)*0.087,radius))
         self.assertNotIn('min 600',code)
         self.assertLess(code.index('count _candidates > 64'),code.index('_candidates findIf'))
         for forbidden in ('doFire','doSuppressiveFire','setVariable','spawn','waitUntil'):

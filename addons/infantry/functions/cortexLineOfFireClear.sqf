@@ -8,6 +8,8 @@
  * with the existing two-metre plus approximately five-degree radial margin.
  * Optional actual loaded-magazine metadata adds a config-based aimpoint blast veto in
  * the same query: max12m/four times indirectHitRange for damaging explosive ammo, <=250m.
+ * Explosive fire also checks the first sampled FIRE/GEOM surface as a possible near impact.
+ * One extra ray only for explosive ammunition; both aimpoint and surface remain blast vetoes.
  * Own platform/occupants remain excluded from the cone only, never from that blast veto.
  * Locality/authority: Read-only anywhere; callers retain firing authority and ROE checks.
  * Repeat/JIP: Stateless. No handlers, public state, movement or weapon commands are issued.
@@ -45,6 +47,14 @@ if (_safetyRadius < 0 || {_safetyRadius > 250}
 private _direction=_from vectorFromTo _target;
 private _side=side group _shooter;
 private _platform=vehicle _shooter;
+private _blastPoints=[+_target];
+if (_safetyRadius > 0) then {
+    // A wall before the believed target can expose people outside the narrow firing
+    // cone to blast. Keep the intended endpoint too; neither ray nor belief predicts
+    // the real ballistic impact, penetration or later movement.
+    private _hits=lineIntersectsSurfaces [_from,_target,_shooter,_platform,true,1,"FIRE","GEOM"];
+    if (_hits isNotEqualTo []) then {_blastPoints pushBackUnique +((_hits select 0) select 0)};
+};
 private _delta=_target vectorDiff _from;
 private _horizontalLength=vectorMagnitude [_delta select 0,_delta select 1,0];
 private _angle=(_delta select 0) atan2 (_delta select 1);
@@ -66,7 +76,7 @@ _candidates findIf {
         false
     } else {
         private _position=getPosASL _other vectorAdd [0,0,1];
-        private _blastUnsafe=_safetyRadius > 0 && {_position vectorDistance _target <= _safetyRadius};
+        private _blastUnsafe=_safetyRadius > 0 && {_blastPoints findIf {_position vectorDistance _x <= _safetyRadius} >= 0};
         private _ownPlatform=_other == _shooter || {_other == _platform}
             || {_platform != _shooter && {vehicle _other == _platform}};
         private _offset=_position vectorDiff _from;
