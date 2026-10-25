@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native WAIT/idle acknowledgement also requires current same-floor physical arrival/rest;
+ * the original outward reply deadline still gates admission after that observation.
  * Purpose: Advance one finite selected-gun native crew movement, hold and return lifecycle.
  * Locality/authority: Exact original local vehicle/group/crew/epoch and private FSM only.
  * After either distinct original operator dies, the surviving original seated actor may only
@@ -138,7 +140,12 @@ private _goalsMatch={
             || {_position vectorDistance _point > 0.25}
     } < 0
 };
-private _rest=vectorMagnitude velocity _battery < 0.278 && {vectorMagnitude angularVelocity _battery < 0.01};
+private _linearMotion=vectorMagnitude velocity _battery;
+private _angularMotion=vectorMagnitude angularVelocity _battery;
+private _rest=_linearMotion < 0.278 && {_angularMotion < 0.01};
+private _arrivalSample=if (_phase in ["REQUESTED","STOPPING"]) then {
+    [ASLToAGL getPosASL _battery,_linearMotion,_angularMotion]
+} else {[]};
 private _session=_work get "session";
 private _scoot=(_work getOrDefault ["kind","POSITION"]) == "SCOOT";
 private _purpose=_session select ([6,4] select _scoot);
@@ -170,7 +177,7 @@ if (!_sourceCurrent && {!(_phase in ["STOPPING","RETURNING"])}) then {
 // Refuse changed native actor orders. An issued MOVE may naturally settle into WAIT/idle.
 if (_phase != "ISSUE" && {!([_goal] call _goalsMatch)}
     && {!(_phase in ["REQUESTED","STOPPING","RETURNING"])}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
-if (_phase == "REQUESTED" && {([_goal,_work get "replyUntil",_work get "before",_observations,serverTime]
+if (_phase == "REQUESTED" && {([_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
     call CBE_fnc_VehicleCrewDestinationState) == "LOST"}) exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
 // A delayed callback cannot mint or issue a retirement stop after the original window.
 // Refuse before changing the goal/before receipt or writing any native command.
@@ -203,7 +210,7 @@ if (_phase == "ISSUE") exitWith {
     0.25
 };
 if (_phase == "REQUESTED") exitWith {
-    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime]
+    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
         call CBE_fnc_VehicleCrewDestinationState;
     if (_ack == "OWNED" && {serverTime <= (_work get "replyUntil")}) then {_work set ["phase","MOVING"];_battery setVariable ["CBE_ArtilleryCrew_Work",_work,true]};
     if (_ack == "LOST") exitWith {["ACTOR_ORDER_REPLACED"] call _finish};
@@ -236,7 +243,7 @@ if (_phase in ["STOPPING","RETURNING"] && {serverTime >= (_work get "cleanupUnti
     ["RETIREMENT_TIMEOUT"] call _finish
 };
 if (_phase == "STOPPING") exitWith {
-    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime]
+    private _ack=[_goal,_work get "replyUntil",_work get "before",_observations,serverTime,_arrivalSample]
         call CBE_fnc_VehicleCrewDestinationState;
     if (_ack == "LOST" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_REPLACED"] call _finish};
     if (_ack == "EXPIRED" && {!([_goal] call _goalsMatch)}) exitWith {["STOP_ORDER_UNKNOWN"] call _finish};

@@ -131,6 +131,11 @@ class ArtilleryFireSessions(unittest.TestCase):
         observation=(ROOT/'addons/vehicles/functions/vehicleCrewNativeObservation.sqf').read_text(encoding='utf-8')
         self.assertIn('[_observedDriver,_observedOperator] call CBE_fnc_VehicleCrewNativeObservation',worker)
         self.assertIn('count _observations != 4',worker)
+        self.assertIn('_phase in ["REQUESTED","STOPPING"]',worker)
+        self.assertIn('ASLToAGL getPosASL _battery,_linearMotion,_angularMotion',worker)
+        self.assertEqual(worker.count('_observations,serverTime,_arrivalSample]'),3)
+        self.assertIn('_ack == "OWNED" && {serverTime <= (_work get "replyUntil")}',worker)
+
         admission=(base/'artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
         self.assertIn('[_driver,_operator] call CBE_fnc_VehicleCrewNativeObservation',admission)
         self.assertIn('count _baseline != 4',admission)

@@ -108,6 +108,15 @@ class NativeAdmissionTests(unittest.TestCase):
         self.assertIn('currentCommand _operator,_operatorNative',classifier)
         self.assertIn('if (_driverAck && {_operatorAck})',native_ack)
         self.assertIn('_observedAt > _until',native_ack)
+        for guard in ('count _arrival == 3','finite (_arrival select _x)',
+                      '(_arrival select 1) < 0.278','(_arrival select 2) < 0.01',
+                      'vectorDistance _goal <= 2','<= 0.75','_command in ["","WAIT"]'):
+            self.assertIn(guard,native_ack)
+        self.assertNotIn('"STOP"',native_ack.split('private _atGoal={',1)[1].split('private _driverAck=',1)[0])
+        self.assertIn('local _vehicle && {local _driver} && {local _operator}',classifier)
+        self.assertIn('ASLToAGL getPosASL _vehicle',classifier)
+        self.assertIn('serverTime,_arrival]',classifier)
+
         # Partial acknowledgement remains pending, never grants a fresh clock or success.
         def state(driver_ack,operator_ack,driver_same,operator_same,now,until):
             if driver_ack and operator_ack:return 'OWNED'

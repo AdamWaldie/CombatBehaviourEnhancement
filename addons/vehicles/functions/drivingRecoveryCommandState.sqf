@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * A completed WAIT/idle return needs a fresh local platform/crew rest-and-position sample;
+ * split-locality observation remains MOVE-only and retains original request expiry.
  * Purpose: Classifies native destination acknowledgement for one existing recovery journal.
  * Locality/authority: Read-only on current owner or during split-locality cleanup observation.
  * This proves command identity only; callers retain cap, route, owner, task and release guards.
@@ -35,8 +37,11 @@ private _operatorNative=expectedDestination _operator;
 // or holds STOP. Observe both original goals within the same original request window.
 private _temporaryReturnState={
     params ["_goal","_until","_before"];
+    private _arrival=if (local _vehicle && {local _driver} && {local _operator}) then {
+        [ASLToAGL getPosASL _vehicle,vectorMagnitude velocity _vehicle,vectorMagnitude angularVelocity _vehicle]
+    } else {[]};
     [_goal,_until,_before,[currentCommand _driver,_driverNative,
-        currentCommand _operator,_operatorNative],serverTime] call CBE_fnc_VehicleCrewDestinationState
+        currentCommand _operator,_operatorNative],serverTime,_arrival] call CBE_fnc_VehicleCrewDestinationState
 };
 private _nativeReturn=_work getOrDefault ["nativeReturn",[]];
 if (_nativeReturn isNotEqualTo []) exitWith {

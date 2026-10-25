@@ -211,7 +211,12 @@
       "selectedMovementFoundation20261025": {
         "review": "selected-native-observation-20261025.json",
         "status": "NATIVE_OBSERVATION_USED_BY_ARTILLERY_SELECTED_ARMOURED_MOVE_STILL_REQUIRED",
-        "scope": "Shared native command/destination sampler, used by selected-gun admission/execution. Not a generic movement API or completed armoured cover."
+        "scope": "Shared native command/destination sampler, used by selected-gun admission/execution. Not a generic movement API or completed armoured cover.",
+        "nativeAcknowledgementRepair": {
+          "review": "selected-settled-native-ack-20261025.json",
+          "scope": "Settled WAIT/idle proof integrated into existing artillery/driving acknowledgement; ordinary armoured selected move still required",
+          "physicalAcceptance": false
+        }
       }
     }
   ],
