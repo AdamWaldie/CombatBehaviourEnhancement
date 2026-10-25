@@ -267,7 +267,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-complete-source-inventory-20261025.json",
-      "sha256": "a1e0e26473a8e6b55f5940e0a8c100cea04f58d44339fcc0147f1c925985f19d",
+      "sha256": "99ad96cda1b829c10ff83e04678a95f9fc6db951eae60a6d0d976d25b00d07db",
       "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
       "sourceFileMentions": [
         "BIS_AddonInfo.hpp",
@@ -410,6 +410,19 @@
         "functions/fn_debugTextClient.sqf",
         "functions/fn_driveAssist.sqf",
         "functions/fn_driveAssistDebug.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-diagnostics-editor-semantics-20261025.json",
+      "sha256": "5b2f22539ffec2f2870aa427f54373aff14bc96275a64645540e9d7170a173ef",
+      "scope": "Complete semantic read of five previously omitted HBQ diagnostic/editor functions; compare intent, lifecycle and cost with current CBE. No runtime parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_debugText.sqf",
+        "functions/fn_debugTextClient.sqf",
+        "functions/fn_driveAssistDebug.sqf",
+        "functions/fn_edenDraw.sqf",
+        "functions/fn_perfMonitor.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
