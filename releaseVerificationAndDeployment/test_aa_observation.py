@@ -41,6 +41,23 @@ class AAObservation(unittest.TestCase):
                       '"CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]'):
             self.assertIn(proof,warning)
         self.assertIn('"CBE_AA_MissileWarning",nil',source)
+        threat=(ROOT/'addons/vehicles/functions/cortexAAThreat.sqf').read_text()
+        self.assertIn('[_missile,_group,_source,"RECORD"] call CBE_fnc_CortexAAThreat',warning)
+        for proof in ('_launch isEqualTo []','!canSuspend','getShotParents _missile',
+                      '(_parents param [0,objNull]) == _source',
+                      '[clientOwner,_missile,_source,side _source,+_parents,serverTime+15]',
+                      '(_launch select 1) != _missile','serverTime >= (_launch select 5)',
+                      'getFriend (_launch select 3)','!isNull _x && {_x !='):
+            self.assertIn(proof,threat)
+        for path in ('cortexAAAllocate.sqf','cortexAAIntercept.sqf','cortexAAInterceptEffect.sqf'):
+            consumer=(ROOT/'addons/vehicles/functions'/path).read_text()
+            self.assertIn('call CBE_fnc_CortexAAThreat',consumer)
+            self.assertNotIn('getFriend (side (_warning select 5))',consumer)
+            self.assertNotIn('getFriend (side (_state get "source"))',consumer)
+        effect=(ROOT/'addons/vehicles/functions/cortexAAInterceptEffect.sqf').read_text()
+        self.assertIn('isNull _source',effect)
+        self.assertIn('(_targetParents param [0,objNull]) != _source',effect)
+
         gunnery=(ROOT/'addons/vehicles/functions/cortexVehicles.sqf').read_text()
         receipt=gunnery.split('private _warnedBy=',1)[1].split('private _airPreference=',1)[0]
         for proof in ('_warning isEqualType []','count _warning == 6','== clientOwner',

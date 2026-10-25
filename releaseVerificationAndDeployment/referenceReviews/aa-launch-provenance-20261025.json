@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Incoming missile identity survives launcher crew loss",
+  "runtimeChanged": true,
+  "physicalEvidence": false,
+  "findings": [
+    "CortexAAObserve captures vehicle _shooter but no launch-time affiliation or native projectile-parent receipt.",
+    "CortexAAAllocate filters retained tracks, NOTICE admission and dispatch against current side of original launcher.",
+    "CortexAAIntercept START and STEP repeat current-launcher hostility checks; STEP retires THREAT_ENDED on source deletion.",
+    "CortexAAInterceptEffect additionally requires non-null original source and current hostility, and compares native incoming projectile parent with that source."
+  ],
+  "affectedFiles": [
+    "addons/vehicles/functions/cortexAAObserve.sqf",
+    "addons/vehicles/functions/cortexAAAllocate.sqf",
+    "addons/vehicles/functions/cortexAAIntercept.sqf",
+    "addons/vehicles/functions/cortexAAInterceptEffect.sqf"
+  ],
+  "requiredResolution": [
+    "Capture immutable launch affiliation only from authenticated native warning and matching actual projectile parents.",
+    "Carry exact projectile identity and original owner epoch and finite lifetime through allocation and execution; duplicate warning must not refresh expiry.",
+    "Distinguish launcher deletion or crew loss from missile destruction, retargeting and defended-asset loss.",
+    "Keep current owner, ROE, mission/task supersession and friendly/civilian collateral vetoes.",
+    "Do not treat two null objects as proof of matching launch provenance; retain conservative scripted-fuse refusal where original parent evidence is unavailable.",
+    "Extend existing AA observation regression cases; full build and independent candidate verification after coherent implementation."
+  ],
+  "limitations": [
+    "No Arma audit launched; audits remain paused.",
+    "This source review identifies premature retirement paths; it does not prove the engine event or deletion behaviour in a live mission.",
+    "No implementation-completion percentage changed.",
+    "Launch affiliation means affiliation authenticated at the first native warning, not historical reconstruction of the original firing event. A source already unidentifiable or friendly at that first warning cannot establish a hostile receipt."
+  ],
+  "implementation": {
+    "helper": "addons/vehicles/functions/cortexAAThreat.sqf",
+    "receipt": "One machine-private exact projectile/launcher/parent/affiliation record with immutable original15s expiry.",
+    "consumers": [
+      "CortexAAObserve RECORD",
+      "CortexAAAllocate prune/NOTICE/rank",
+      "CortexAAIntercept START/STEP",
+      "CortexAAInterceptEffect retained non-null launcher and native-parent veto"
+    ],
+    "cost": "No scan/timer/worker; fixed two-parent comparison at existing validation points.",
+    "physicalAcceptance": false
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "build": ".qa/handovers/aa-launch-provenance-build.log",
+    "independent": ".qa/handovers/aa-launch-provenance-independent.log",
+    "candidate": ".qa/candidates/aa-launch-provenance-90943e41",
+    "fingerprint": "b09a27f6c76485ba875571fb56ea03d85a06326b6034ac73dfe580a3c46c8dfb"
+  },
+  "hashes": {
+    "addons\\vehicles\\functions\\cortexAAThreat.sqf": "7fce4a555278ce6c502efa95c9973de13e7cb7135d5dbc84a932bb0bab7a530a",
+    "addons\\vehicles\\functions\\cortexAAObserve.sqf": "b9b01ceef0df865b6f3d035b7e2fbffe074af44979af30ff3acc93565232d69d",
+    "addons\\vehicles\\functions\\cortexAAAllocate.sqf": "e826161342956b3bde428f76876efd8eca76508101b5bf18d28f2c337468a431",
+    "addons\\vehicles\\functions\\cortexAAIntercept.sqf": "b9f2df5bf6a7d420ea36956884d5765bb9bd969b225a20714b43a83744433f12",
+    "addons\\vehicles\\functions\\cortexAAInterceptEffect.sqf": "0b01ae43c9e39bc849ee7a09471e540f6a767346d90115a0584ba2f19f226441"
+  }
+}

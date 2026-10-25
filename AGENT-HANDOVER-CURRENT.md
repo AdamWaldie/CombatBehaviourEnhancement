@@ -2,13 +2,13 @@
 
 Continue the full production-ready CBE goal. Implement and physically validate infantry, CQB, coordination, combined arms, driving, convoys, aircraft and support through owner-local danger and operation FSMs. Required provider handovers must work. Preserve Zeus and multiplayer authority, and verify the 5% median / 10% p95 performance budget. The goal is active and incomplete.
 
-Latest live usage check on25 October showed27% used /73% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
+Latest live usage check on25 October showed28% used /72% remaining in the weekly window; the separate credit balance is not a percentage. The user requires a commit, PR update and handover below10% remaining. That threshold was not reached. Audits remain paused. Do not launch Arma, merge, publish a Release, upload to Steam or pause the goal without the required user instruction.
 
 ## Repository and checkpoint
 
 Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, branch `Adam/cbe-aircraft-release-followup`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`. This chat's WaldosMissionPack workspace is unrelated. Verify the root, remote, branch and live draft PR #17 before every Git mutation. Use current HEAD and `.qa/handovers/checkpoint-current.json` for the delivered commit; historical appendices below are dated evidence, not the latest candidate selector.
 
-The latest implementation adds a scoped actual platform-deletion handler for selected artillery/standoff. Only the exact event entity/type/private handler/reference and both original crew objects present, local and dead can retire the old native reservation. Newer/unknown public leases protect private state too; old task result is INCOMPLETE. Normal retirement/replacement/lost locality clean up the local handler; unresolved original work may be observed without adopting movement. See `selected-deletion-dead-crew-20261025.json`. Living/missing/nonlocal original crew and broader deletion/supersession recovery remain incomplete.
+The latest runtime implementation authenticates incoming-missile identity at the first native warning and retains its original affiliation through launcher crew loss/deletion. Immutable exact projectile/parent/machine identity and original15s expiry feed the existing bounded allocation/interception paths; native parent replacement refuses. The optional scripted fuse still refuses a deleted launcher and retains exact current-parent, geometry and collateral checks. This does not reconstruct affiliation when a launcher is already unidentifiable at its first warning. See `aa-launch-provenance-20261025.json`. Full offline build passed1497 tests/432 SQF/11 PBOs and independent verification. Candidate `.qa/candidates/aa-launch-provenance-90943e41`, fingerprint `b09a27f6c76485ba875571fb56ea03d85a06326b6034ac73dfe580a3c46c8dfb`; logs `.qa/handovers/aa-launch-provenance-{build,independent}.log`. Physical acceptance and measured overhead remain pending. No audit launch.
 
 The latest exact unsigned development candidate is `.qa/candidates/deletion-watch-32e5259a`, fingerprint `259efb4238e39ccfbc15dc7b747b51b47bbddc0774a8ac3632436d8b4caa1640`. It covers source base32e5259a plus recorded runtime/public-guide changes. Final full build passed1497 tests,430 SQF and11 PBOs; independent verification matched. Use `.qa/handovers/deletion-watch-final-build-3.log`; earlier attempts failed the listener boundary/compiler scope and are not current evidence. Engineering review/register/handover edits postdate packaging. This is not a signed release or physical acceptance. Use current HEAD/receipt for the delivered commit.
 
@@ -72,12 +72,12 @@ Never edit installed Workshop sources or preserved archives. Use new disposable 
 Preserve the existing unrelated deletions under `.github`, artwork and branding, the deleted deployment requirements file, and the dirty `docs/PERFORMANCE-VALIDATION.md`. Every Python text edit must specify UTF-8 or preserve raw bytes. A default-decoding error was repaired; do not repeat it.
 
 
-### Clearance auxiliary phase admission — 2026-10-25
+### Clearance auxiliary phase admission â€” 2026-10-25
 
 Resume now captures early-exit and reserve-admission journals before startup alongside the other phase journals. Nonempty records must match the exact visit and retain bounded row arrays; final startup equality includes both records, including prior absence. Existing row/native ownership checks remain authoritative. This does not establish coherent replay or owner readiness. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs), with independent candidate verification: `.qa/candidates/clear-auxiliary-preflight-2c54605d`, fingerprint `2d4aefed5c0a122fb55dcd284c816182a3303c89f23a434dc8d2d9e711db1437`. Physical audits remain paused. Engineering review: `clear-auxiliary-preflight-20261025.json`.
 
 
-### Completed clearance leg release — 2026-10-25
+### Completed clearance leg release â€” 2026-10-25
 
 Explicit release now recognises an original clearance MOVE settled as WAIT only with the exact retiring visit, unchanged private/native target and mission-order receipt, measured rest and same-floor arrival. It then uses the existing task-safe admitted formation-parent handback; foreign WAIT remains protected. No new controller or retry is created. Full offline gates passed: 1497 tests, 422 SQF files, 11 PBOs. Independently verified candidate `.qa/candidates/clear-settled-release-97fb7915`, fingerprint `1f2e73399a614282c80651c3bda3cd0ba34f4cf803db1e4b6955baca012ba745`. Audits remain paused, so physical following and performance are unverified. See `clear-settled-release-20261025.json`.
 
@@ -87,12 +87,12 @@ Explicit release now recognises an original clearance MOVE settled as WAIT only 
 `clear-producer-seal-path-20261025.json` identifies the existing group Local EH and the outgoing private-brain retirement edge. Reuse that edge for an authenticated final producer seal; do not add polling or infer coherent delivery from current public journals. Destination provider notifications are post-transfer observations, not old-owner quiescence. Full ordered request/replay and actor reconciliation remain unimplemented. The exact latest offline-validated runtime remains a8016028 and candidate clear-settled-release-97fb7915. No new runtime or physical claim.
 
 
-### Early exterior exit replay — 2026-10-25
+### Early exterior exit replay â€” 2026-10-25
 
 Resume now validates exterior entrances against the full bounded security topology rather than only the four assault entrances. A completed same-visit exit MOVE observed as WAIT can retain its original arrival through the read-only motion ownership check and exact target match; ordinary/foreign WAIT still diverts. Original deadline/retry state is retained. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs) and independent candidate verification matched: `.qa/candidates/clear-early-adoption-75e966cd`, fingerprint `3bc590df0f46af3d356263a8b8b53ae8ee1743af33ad0336b511260914c3b94e`. No physical or performance claim. Authenticated producer transport remains unimplemented; audits stay paused. Review: `clear-early-adoption-20261025.json`.
 
 
-### Settled exterior phase flow — 2026-10-25
+### Settled exterior phase flow â€” 2026-10-25
 
 Reserve staging readiness and both arrival-write boundaries now recognise WAIT only through the current stage marker and an exact-target, same-visit native MOVE ownership check. The existing arrival hold can then complete. Final-egress assigned/pending and reserve APPROACH adoption retain similarly proven completed legs with their original progress/retry/deadline state. The read-only motion CHECK accepts an optional exact target and refuses malformed/empty/different supplied targets. No new movement controller, scan or budget. Full offline gates passed (1497 tests, 422 SQF, 11 PBOs); independently verified candidate `.qa/candidates/clear-settled-phase-03262164`, fingerprint `928d711ca6cc82296c85c02556fd07a0a51155cef563459aafef1af7be55ce08`. Physical staging/egress, coherent authenticated producer transport and performance remain unverified/incomplete. Audits remain paused. Review: `clear-settled-phase-20261025.json`.
 
@@ -102,7 +102,7 @@ Reserve staging readiness and both arrival-write boundaries now recognise WAIT o
 `clear-private-job-budget-map-20261025.json` identifies actor EntryRecovery/EntryAlternative and group Relief/Yield state outside the proposed private-job transfer. EntryAlternative and Yield currently omit visit-nonce binding. Preserve their spent retry/search/yield history in the same coherent envelope; a private-job-only copy is incomplete. Callback-local geometry caches are not transferable authority. This is source evidence only; no transport implementation or new runtime validation. Latest verified runtime remains c555e8b4.
 
 
-### Visit-bound recovery budgets — 2026-10-25
+### Visit-bound recovery budgets â€” 2026-10-25
 
 Alternative-entry records now append the exact visit context (7 fields); yield history now uses `[visitContext, yieldedActorIds]`, with at most64 unique identities. Unknown or unbound records cannot grant fresh search/yield attempts. Relief/Yield join resume capture/startup equality and matching-context group cleanup. Current-owner motion retirement also removes only matching-context actor entry-recovery/alternative records. Original search limits and progress clocks remain unchanged. Full offline gates passed:1497 tests,422 SQF,11 PBOs; independent candidate `.qa/candidates/clear-recovery-nonce-f16e8407` matched fingerprint `b97e068b11b8ab229ec4459bf56d2ab9f76d0fafe1e0eeaac56da5d8f0bfd43f`. Internal first-release schemas changed; no old-session budget reset is provided. Authenticated producer transport, physical repeated-use/HC evidence and performance remain incomplete. Audits remain paused. Review:`clear-recovery-nonce-20261025.json`.
 
@@ -112,17 +112,17 @@ Alternative-entry records now append the exact visit context (7 fields); yield h
 `hbq-route-precision-current-20261025.json` verifies current authored-wait/route-refresh dispositions and keeps distance/precision observation LOD explicitly unimplemented. CBE4s cruise/1s constrained phase scheduling is not HBQ precision parity; current collision prediction accounts for4s reaction time. Do not copy waypoint recreation, global native-feature release or visibility-based recovery shortcuts. No runtime change or new acceptance. Latest verified implementation remains09ff6f83. Audits remain paused.
 
 
-### Road continuation geometry — 2026-10-25
+### Road continuation geometry â€” 2026-10-25
 
 Road look-ahead now applies its110degree continuation cutoff to the endpoint-midpoint segment used for curvature/grade, rather than the candidate object origin. An offset origin cannot terminate observation before the actual segment is measured. Candidate ranking and all speed/read bounds remain unchanged; this is not a native route planner. Full offline gates passed (1497 tests,422 SQF,11 PBOs) and independent candidate `.qa/candidates/road-endpoint-cutoff-479cf125` matched fingerprint `fec7dbf5ae0fb91210e0399e88ed8f88c403bc8b4278bf6908e04c524803496f`. Physical driving/convoy behaviour and performance remain unverified; audits paused. Review:`hbq-road-endpoint-cutoff-20261025.json`.
 
 
-### Original commander retirement after driver loss — 2026-10-25
+### Original commander retirement after driver loss â€” 2026-10-25
 
 The active selected-gun executor can retain the original seated commander as its sole retirement actor after the original driver dies/deletes. It never adopts a replacement driver. The first survivor identity is sticky; the shared acknowledgement retains that actor original pre-request frame and the original per-seat return baseline. Only stop/return is permitted, with existing deadlines, rest/native ACK and mission/Zeus/external-control checks. Group membership is preserved. Full offline attempt2 and independent candidate verification passed as recorded at the top; physical operation remains unverified. Already-unresolved living writers and deleted platforms remain incomplete.
 
 
-### Finite retirement-FSM allocation recovery — 2026-10-25
+### Finite retirement-FSM allocation recovery â€” 2026-10-25
 
 One exact `RETIREMENT_FSM_REFUSED` may reopen its saved phase inside the original finite cleanup window when no current executor is live and an original actor survives. The replacement attempt is consumed before allocation; all native acknowledgement/baseline/deadline records remain unchanged. It is only a cleanup observer/stop-return executor, never new outward authority. A second failure or any other unresolved cause remains reserved. Full offline build and independent candidate verification passed as selected at the top; audits remain paused. Broader native/controller handovers remain unfinished.
 

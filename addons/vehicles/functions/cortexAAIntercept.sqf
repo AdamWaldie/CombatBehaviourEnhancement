@@ -150,7 +150,7 @@ if (_mode == "START") exitWith {
     if (count _warning != 6 || {(_warning select 0) != clientOwner} || {(_warning select 1) != _group}
         || {(_warning select 2) != (_group getVariable ["CBE_AIPass_Epoch",0])}
         || {serverTime >= (_warning select 3)} || {isNull (_warning select 4)}
-        || {isNull (_warning select 5)} || {(side _group) getFriend (side (_warning select 5)) >= 0.6}) exitWith {false};
+        || {!([_warning select 4,_group,_warning select 5] call CBE_fnc_CortexAAThreat)}) exitWith {false};
     if (!([_vehicle,_gunner,_group,_victim] call CBE_fnc_CortexAAWarningLink)) exitWith {false};
     // Reap at most four terminal local records, including work discarded on master stop.
     {
@@ -241,8 +241,7 @@ private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _
 if (!_valid || {time >= (_state get "until")} || {(_state get "steps") >= 160}) exitWith {
     ["EXPIRED_OR_REPLACED"] call _finish;-1
 };
-if (isNull _missile || {!alive _missile} || {isNull (_state get "source")}
-    || {(side _group) getFriend (side (_state get "source")) >= 0.6}) exitWith {["THREAT_ENDED"] call _finish;-1};
+if (!([_missile,_group,_state get "source"] call CBE_fnc_CortexAAThreat)) exitWith {["THREAT_ENDED"] call _finish;-1};
 private _victim=_state getOrDefault ["victim",_vehicle];
 if (isNull _victim || {!alive _victim} || {(side _group) getFriend (side _victim) < 0.6}) exitWith {["DEFENDED_ASSET_LOST"] call _finish;-1};
 if (time >= (_state getOrDefault ["linkDue",-1])) then {

@@ -6,7 +6,8 @@
  * Optional default-off interception hands native warnings to a separate finite aim/shot executor.
  * Only shots with a recent personally known assigned hostile air contact create relocation
  * receipts; other qualified fire updates the quiet-time clock without erasing that episode.
- * IncomingMissile retains its native firer identity for15s; only fresh personal contact may
+ * IncomingMissile authenticates exact native projectile parents and retains launch affiliation
+ * for the original15s even after launcher crew loss. Only fresh personal contact may
  * use it for gunnery priority. No target position or fire permission is added.
  * Repeat/JIP: One versioned local handler pair per eligible native AA vehicle. Discovery removes it
  * after locality/feature loss; shutdown removes tracked handlers. New owners start without a
@@ -105,6 +106,7 @@ private _warningHandler=_vehicle addEventHandler ["IncomingMissile",{
         || {!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
         || {!([_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {};
     private _source=if (isNull _shooter) then {objNull} else {vehicle _shooter};
+    if (!([_missile,_group,_source,"RECORD"] call CBE_fnc_CortexAAThreat)) exitWith {};
     _vehicle setVariable ["CBE_AA_MissileWarning",[clientOwner,_group,
         _group getVariable ["CBE_AIPass_Epoch",0],serverTime+15,_missile,_source]];
     ["NOTICE",_vehicle] call CBE_fnc_CortexAAAllocate;

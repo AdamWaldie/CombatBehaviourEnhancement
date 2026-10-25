@@ -153,6 +153,12 @@
         "review": "aa-fuse-collateral-20261025.json",
         "scope": "Same-owner scripted fuse checks actual incoming-warhead radius against protected entities, including aircraft/ship occupants. Default-off/native-fire/cross-owner limits retained.",
         "physicalAcceptance": false
+      },
+      "launchProvenance20261025": {
+        "review": "aa-launch-provenance-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Native first-warning projectile/parent/affiliation receipt survives subsequent launcher crew loss or deletion for bounded allocation and ordinary interception; scripted fuse still requires a non-null matching source.",
+        "physicalAcceptance": false
       }
     },
     {

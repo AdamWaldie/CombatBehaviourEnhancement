@@ -960,7 +960,7 @@ Lateral aircraft feature snapshots retain the exact pilot they changed. Cleanup 
 
 Every aircraft attack FSM Finished path now submits its original job's pilot receipt to the finite release helper after matching flight-lease release and before retiring the matching brain. It does not rerun the old attack executor or clear a successor job. Actor-local/original-issuer guards still apply when airframe locality was lost. This closes local terminal bypass of feature release, but does not establish actor migration adoption or cleanup of every other attack resource.
 
-Pilot feature recovery uses one public schema2 receipt: `[2, actor, aircraft, originalGroup, flightToken, issuerOwner, originallyEnabledFeatures, releaseUntil]`. It is published before disabling features, with releaseUntil=-1. Exact-owner safe ordinary cleanup restores and clears it. Otherwise the first authorised release caller—original actor owner or explicit native-locality adopter—changes only releaseUntil to serverTime+60 and publishes the snapshot and clock together. Later owners reuse that absolute deadline; no separate release-window variable or issuer-only missing-window dependency exists. Immutable issuer provenance remains unchanged. Malformed/unknown schema records grant no restoration authority.
+Pilot feature recovery uses one public schema2 receipt: `[2, actor, aircraft, originalGroup, flightToken, issuerOwner, originallyEnabledFeatures, releaseUntil]`. It is published before disabling features, with releaseUntil=-1. Exact-owner safe ordinary cleanup restores and clears it. Otherwise the first authorised release callerâ€”original actor owner or explicit native-locality adopterâ€”changes only releaseUntil to serverTime+60 and publishes the snapshot and clock together. Later owners reuse that absolute deadline; no separate release-window variable or issuer-only missing-window dependency exists. Immutable issuer provenance remains unchanged. Malformed/unknown schema records grant no restoration authority.
 
 Original-issuer init/adoption leaves an unstarted record to actual cleanup, so observing a live attack cannot age its future restoration window. A different actual actor owner may start release after migration even if the previous issuer never ran cleanup. Each callback requires the exact current receipt and captured local epoch. Restoration still requires an absent flight lease, the original actor aboard/in the original group, and no protected task/player/remote/specialist ownership. The chain is independent of the tactics scheduler and ends at the shared deadline or60 attempts. Timeout retains the unresolved record and blocks baseline overwrite by a new attack.
 
@@ -1475,7 +1475,7 @@ Infantry withdrawal acquires disabled autonomous attack through OperationAttackP
 
 The RETREAT callback checks its original120-second phase budget before morale, straggler recovery or route replanning. An expired episode uses the same end transition as physical completion. That transition releases the captured operation generation and the correct infantry/vehicle withdrawal lease, then clears the generation-bound route before regrouping. Vehicle withdrawal no longer falls through infantry-only completion cleanup. Infantry also checks its existing confirmed attack-permission receipt without acquiring or reapplying policy: a missing or changed receipt cancels withdrawal and yields through calm restoration before further recovery. No timer, roster scan or independent controller is added. Physical interruption, vehicle handback, HC migration and performance remain unverified while audits are paused.
 
-Fleeing infantry prefer screened exterior cover. If none is found and building combat is enabled, the existing danger-flight action checks at most two nearby houses within 18 metres. It reuses the indoor node selector on the actor's original floor (at most 512 ranked positions and three roof probes per house), respects known failed nodes and squad body separation, and requires current threat screening and an unchanged building transform. The same single movement request and original 4–12 second lease apply. Native navigation still determines access; roofed positions do not prove accessible interiors or safe rooms. No door unlocking, additional controller or forced movement reset is introduced. Physical entry and performance remain unverified while audits are paused.
+Fleeing infantry prefer screened exterior cover. If none is found and building combat is enabled, the existing danger-flight action checks at most two nearby houses within 18 metres. It reuses the indoor node selector on the actor's original floor (at most 512 ranked positions and three roof probes per house), respects known failed nodes and squad body separation, and requires current threat screening and an unchanged building transform. The same single movement request and original 4â€“12 second lease apply. Native navigation still determines access; roofed positions do not prove accessible interiors or safe rooms. No door unlocking, additional controller or forced movement reset is introduced. Physical entry and performance remain unverified while audits are paused.
 
 Scripted danger abandonment uses the shared local crew-actor admission check before cancelling boarding, unassigning or requesting exit. Player/remote/specialist control, incapacitation, hidden or suspended simulation, native protected tasks and movement reservations defer that actor; explicit STOP also defers. Other eligible occupants may still leave. The reason marker records the danger decision, not successful evacuation. Native emergency bailouts remain independent. No vehicle stop, seat teleport, crew recall or new worker is added.
 
@@ -1640,3 +1640,30 @@ During exterior-stage resume, a validated unchanged phase journal may provide a 
 Resumed exterior stage/movement bookkeeping is retained only after that final live check actually commits the current local reserve marker. A refused preparation or changed native order leaves the proposed post unoccupied in the new job; historical casualty posts remain separate evidence.
 
 The experimental same-owner AA direct-pass fuse now checks collateral risk from the incoming missile's warhead, not just the fired bullet. After actual pass/arming proof, damaging/explosive warheads use the existing conservative blast policy of at least12m or four times indirectHitRange; unsupported radii above250m refuse. One current-position sphere includes living infantry, land vehicles, aircraft, ships and occupants, refusing friendlies, civilians, captives or more than64 results. A veto is reused only within the current engine time sample; clear results never persist. The effect is restricted to its unscheduled current-owner callback so geometry cannot be carried across scheduled suspension. Native firing remains unchanged. This adds a rare one-query effect veto, not cross-owner interception, complete hull/obstruction blast modelling or physical/performance acceptance.
+
+
+### Incoming-missile launch identity
+
+Native AA `IncomingMissile` observation now records the exact projectile and native
+launcher/parent pair, launch affiliation, recording machine and original 15-second
+expiry. A duplicate warning cannot refresh or replace that receipt. The warning
+and allocation payload layouts remain unchanged. Allocation and finite interception
+use that captured affiliation with the defending group's current side relationships;
+launcher crew loss or deletion alone no longer converts a hostile missile into an
+ended threat. A new non-null projectile parent invalidates the receipt. Missing or
+expired capture refuses admission, including after migration until a new qualifying
+native warning is observed. Nothing is broadcast or replayed for JIP.
+
+The existing eight-second group response lifetime, epoch, defended-asset link,
+retargeting, fire lease, ROE, mission-order and external-owner checks remain in force.
+This is neither target discovery nor permission to fire. The optional default-off
+scripted direct-pass fuse still refuses a missing launcher and requires its current
+native parent match, actual local rounds, geometry and collateral checks. It does
+not infer successful interception from a receipt or effect request.
+
+Cost is one private receipt per observed projectile and one two-parent comparison
+per validation, with no world query, new timer or worker. The existing allocation
+bounds remain unchanged. Offline regression/compilation must be checked for this
+candidate; crew-loss/deletion, parent replacement, locality changes and physical
+interception remain unverified while audits are paused. No performance-budget
+acceptance follows from these bounds.

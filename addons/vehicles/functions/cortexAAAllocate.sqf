@@ -29,7 +29,7 @@ private _registry=_group getVariable ["CBE_AA_WarningTracks",[clientOwner,_epoch
 private _tracks=if ((_registry select 0) == clientOwner && {(_registry select 1) == _epoch}) then {
     (_registry select 2) select {
         !isNull (_x select 4) && {alive (_x select 4)} && {serverTime < (_x select 3)}
-            && {!isNull (_x select 5)} && {(side _group) getFriend (side (_x select 5)) < 0.6}
+            && {[_x select 4,_group,_x select 5] call CBE_fnc_CortexAAThreat}
             && {!isNull (_x select 6)} && {alive (_x select 6)} && {group gunner (_x select 6) == _group}
     }
 } else {[]};
@@ -38,8 +38,7 @@ if (_mode == "NOTICE") exitWith {
     private _warning=_input getVariable ["CBE_AA_MissileWarning",[]];
     if (count _warning != 6 || {(_warning select 0) != clientOwner} || {(_warning select 1) != _group}
         || {(_warning select 2) != _epoch} || {serverTime >= (_warning select 3)}
-        || {isNull (_warning select 4)} || {isNull (_warning select 5)}
-        || {(side _group) getFriend (side (_warning select 5)) >= 0.6}) exitWith {false};
+        || {!([_warning select 4,_group,_warning select 5] call CBE_fnc_CortexAAThreat)}) exitWith {false};
     private _missile=_warning select 4;
     // Keep first sighting lifetime on the exact projectile, so pruning an expired
     // group track cannot let a duplicate native warning renew the same episode.
@@ -134,7 +133,7 @@ private _ranked=[];
     private _missile=_x select 4;private _victim=_x select 6;
     if (_vehicle distance _missile <= 1500 && {!(_vehicle in (_x select 7))}
         && {[_vehicle,gunner _vehicle,_group,_victim,_plan get "linkCache"] call CBE_fnc_CortexAAWarningLink}
-        && {(side _group) getFriend (side (_x select 5)) < 0.6}) then {
+        && {[_missile,_group,_x select 5] call CBE_fnc_CortexAAThreat}) then {
         private _position=(getPosASL _missile) vectorDiff (getPosASL _victim);
         private _velocity=(velocity _missile) vectorDiff (velocity _victim);
         private _squared=_velocity vectorDotProduct _velocity;

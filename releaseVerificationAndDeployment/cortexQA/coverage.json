@@ -1407,7 +1407,8 @@
         "addons/vehicles/functions/cortexAAInterceptEffect.sqf",
         "addons/vehicles/functions/cortexAASpot.sqf",
         "addons/vehicles/functions/cortexAAAllocate.sqf",
-        "addons/vehicles/functions/cortexAAWarningLink.sqf"
+        "addons/vehicles/functions/cortexAAWarningLink.sqf",
+        "addons/vehicles/functions/cortexAAThreat.sqf"
       ]
     },
     {

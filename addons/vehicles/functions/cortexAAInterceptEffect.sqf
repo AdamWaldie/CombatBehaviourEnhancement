@@ -46,7 +46,7 @@ if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} |
     || {!(combatMode _group in ["YELLOW","RED"])} || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
     || {!([_group,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
-    || {(side _group) getFriend (side _source) >= 0.6}
+    || {!([_missile,_group,_source] call CBE_fnc_CortexAAThreat)}
     || {(side _group) getFriend (side _victim) < 0.6}) exitWith {false};
 private _validVectors=true;
 {
