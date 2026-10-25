@@ -89,6 +89,10 @@ class ClearPreparationCommitTests(unittest.TestCase):
                         [[0.5,[1,2,3]]],[[0,[1,2]]],[[0,[1,2,float('nan')]]]):
             self.assertFalse(valid_targets(invalid,2))
         self.assertEqual(journal.count('_job set ["laneJournalAfter",serverTime+1.5]'),1)
+        throttle=journal.split('private _phase=',1)[1].split('private _result=false;',1)[0]
+        self.assertIn('_phase isEqualTo (_job getOrDefault ["laneJournalPhase",""])',throttle)
+        self.assertEqual(journal.count('_job set ["laneJournalPhase",_phase]'),1)
+        self.assertLess(journal.index('if (_mode != "CHECK" && {'),journal.index('_job set ["laneJournalPhase",_phase]'))
         self.assertLess(journal.index('if (_mode != "CHECK" && {'),journal.index('_job set ["laneJournalAfter"'))
         self.assertLess(journal.index('_job set ["laneJournalAfter"'),journal.index('private _positions='))
         self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)

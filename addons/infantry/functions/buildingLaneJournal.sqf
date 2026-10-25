@@ -10,7 +10,8 @@
  * Original native issue times are observations only; adoption never starts a new grace window.
  * Missing, malformed or mismatched snapshots refuse adoption rather than invent progress.
  * At most8 lanes,2 actors per lane and512 nodes; SAVE is limited to one sample per1.5s
- * on the existing job, including refused samples; a committed lane-roster change invalidates that sample.
+ * on the existing job and phase, including refused samples; a phase transition or committed
+ * lane-roster change invalidates that sample. The new phase must not retain an old-phase snapshot.
  * Changed-only publication. No worker, world query or retry renewal.
  * Arguments: 0 mode STRING SAVE/ADOPT/CHECK; 1 job HASHMAP empty.
  * Return: BOOL - CHECK validity without mutation, latest SAVE result or metadata adopted;
@@ -25,7 +26,8 @@ private _group=_job getOrDefault ["group",grpNull];
 if (isNull _group || {!local _group}) exitWith {false};
 private _phase=_job getOrDefault ["phase","ENTRY"];
 if (!(_phase in ["ENTRY","SWEEP"])) exitWith {_mode == "ADOPT"};
-if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
+if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}
+    && {_phase isEqualTo (_job getOrDefault ["laneJournalPhase",""])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
 private _result=false;
 isNil {
 _result=call {
@@ -50,6 +52,7 @@ _result=call {
     // cannot turn every short callback into another complete snapshot validation.
     if (_mode == "SAVE") then {
         _job set ["laneJournalAfter",serverTime+1.5];
+        _job set ["laneJournalPhase",_phase];
         _job set ["laneJournalLastResult",false];
     };
     private _positions=_job getOrDefault ["positions",[]];
