@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "32994d00",
+  "scope": "Validate private one-shot group FSM wake and named cooldown writes; shared scheduler only sees callback return, not embedded nextAt. No timing retune or performance claim.",
+  "failure": "GroupBrainStep always returns-1, so shared scheduler finite-delay rejection cannot see its private nextAt/wakeAt. Non-finite GroupTick result passed old scalar/nonnegative check and could strand the FSM. CortexCooldown also accepted non-finite duration or overflowed time+duration as a lasting stored deadline.",
+  "implementation": "GroupBrainStep rejects nil/non-scalar/non-finite result or non-finite prospective wake with INVALID_GROUP_DELAY and existing cancellation/pending/completed signal, before illumination/other post-tick work and FSM deadline publication. Ordinary negative retirement retains its prior reason. Cooldown writes require finite nonnegative duration and finite computed deadline; rejection leaves old cooldown unchanged and returns the prior running state as before. Existing malformed stored cooldown records are not repaired.",
+  "sourceHashes": {
+    "addons/infantry/functions/groupBrainStep.sqf": "77ffdce31244f28285a7942533dabb117048a29ba6aebc214e7fbf23d8603127",
+    "addons/infantry/functions/cortexCooldown.sqf": "bf0bfedd9a39afb9c4d90d60d97cebb5d1d49e165fdfd58c7905e0f4ff3bfea0",
+    "releaseVerificationAndDeployment/test_scheduler_samples.py": "77f23cc64f9b43c8d2da71e71c96d1e217326fa78d79a2837a48cd7f4d1ae015"
+  },
+  "validation": {
+    "focused": "Existing7 scheduler sample/diagnostic tests PASS; existing invalid-delay case extended to private wake boundary and cooldown write ordering, no count growth.",
+    "full": "1497 tests PASS;420compiledSQF/11PBO; complete build terminal0.",
+    "independent": "Candidate verify terminal0.",
+    "candidate": ".qa/candidates/private-timer-deadlines-32994d00",
+    "fingerprint": "3e0679404e21bd193a5606402d9a3547f3612ff18222e28468e4e9cfe4d789a4",
+    "buildLog": ".qa/private-timer-deadlines-build-20261025-attempt1.log",
+    "independentLog": ".qa/private-timer-deadlines-independent-20261025.log",
+    "kind": "Unsigned dirty development; base+runtime hashes identify source. Engineering notes postdate package."
+  },
+  "nextMaterialFinding": "Low-FPS backoff currently multiplies only nonnegative callback retry returns in CortexSchedulerTick. GroupBrainStep returns-1 and stores private delay; no LowFps/diag_fps policy appears in GroupTick, GroupBrainQueue or groupTactics.fsm. Current CBA description says non-urgent behaviour jobs back off. Review/apply policy at the private wake boundary, retaining responsiveUntil urgency and existing1s illumination/2s COVER protocol caps. Not implemented in this checkpoint; do not claim measured performance failure or improvement.",
+  "limits": "No physical restart/invalid-mission-settings recovery/Zeus/normal-HC/JIP/provider handover or5percent median/10percent p95 proof. Audits PAUSED; full goal active/incomplete.",
+  "schedulerCriterionReassessment": {
+    "before": {
+      "capability": "Pause/distance/cooldown policy",
+      "weight": 1,
+      "built": 1,
+      "implemented": "GroupTick selects near/mid/far delays from cached player positions and finite danger promotion; GroupBrainStep publishes the chosen next wake. ENDEX/SafeStart defer tactics, while finite handback categories retain their narrow cleanup role. Named cooldowns use original local time deadlines.",
+      "remaining_build_gap": "",
+      "evidence": [
+        {
+          "path": "addons/infantry/functions/cortexCooldown.sqf",
+          "sha256": "ac96a59d0965178cbdc6b489c29c421bbfd24437b70c838c463aafb6e3b724f6"
+        },
+        {
+          "path": "addons/infantry/functions/cortexIsPaused.sqf",
+          "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+        },
+        {
+          "path": "addons/infantry/functions/cortexGroupTick.sqf",
+          "sha256": "81dea8cb721ee478ca6842cd260fd6f0f6242d8ce5280e153d925c6874295bb5"
+        },
+        {
+          "path": "addons/infantry/functions/groupBrainStep.sqf",
+          "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
+        }
+      ]
+    },
+    "after": {
+      "capability": "Pause/distance/cooldown policy",
+      "weight": 1,
+      "built": 1,
+      "implemented": "2026-10-25 scoped reassessment: GroupTick reads cached player positions for near/mid/far4/8/20s defaults and finite native-danger/contact promotion. GroupBrainStep publishes its private wake after finite-delay/deadline validation, caps illumination at1s and active COVER maintenance at2s. ENDEX/SafeStart defer ordinary tactics; shared scheduler retains narrow cleanup/safety categories. Named cooldown writes now refuse non-finite durations/deadlines without replacing existing state. This criterion covers listed pause/distance/cooldown paths, not complete low-FPS policy or frame-overhead acceptance.",
+      "remaining_build_gap": "",
+      "evidence": [
+        {
+          "path": "addons/infantry/functions/cortexCooldown.sqf",
+          "sha256": "bf0bfedd9a39afb9c4d90d60d97cebb5d1d49e165fdfd58c7905e0f4ff3bfea0"
+        },
+        {
+          "path": "addons/infantry/functions/cortexIsPaused.sqf",
+          "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+        },
+        {
+          "path": "addons/infantry/functions/cortexGroupTick.sqf",
+          "sha256": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078"
+        },
+        {
+          "path": "addons/infantry/functions/groupBrainStep.sqf",
+          "sha256": "77ffdce31244f28285a7942533dabb117048a29ba6aebc214e7fbf23d8603127"
+        }
+      ],
+      "reviewed_at": "2026-10-25",
+      "source_commit": "32994d00 + private-timer-deadlines-32994d00 (exact runtime hashes)"
+    },
+    "scope": "Relevant GroupTick tier selection, GroupBrainStep owner/wake path, entire cooldown/pause helpers inspected. No whole-tactical-body review claimed. Score/weight unchanged; other families still retain stale evidence."
+  }
+}

@@ -16,7 +16,8 @@
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
  * committed delay or a danger wake. Live coordinated COVER maintenance caps that delay at two
  * seconds so distance/reaction tuning cannot outlast its six-second capacity report. No new worker.
- * A migrated or superseded callback records cancellation only.
+ * A migrated or superseded callback records cancellation only. Non-finite private next-wake
+ * delays cancel this brain; its one-shot -1 return cannot validate that embedded deadline.
  * A callback whose FSM ended retires its queue flags without running decisions or cleanup;
  * the existing discovery sweep owns replacement of the recurring group brain.
  * Arguments: 0: brain <HASHMAP> created by CBE_fnc_GroupBrainStart.
@@ -167,7 +168,11 @@ private _legacyJob=createHashMapFromArray [["group",_group]];
 private _responsiveUntil=_brain getOrDefault ["responsiveUntil",0];
 if (_responsiveUntil > time) then {_legacyJob set ["responsiveUntil",_responsiveUntil]};
 private _delay=[_legacyJob] call CBE_fnc_CortexGroupTick;
-if (isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}) exitWith {
+// This one-shot adapter returns -1 regardless of its private next wake. The shared
+// scheduler cannot validate that embedded deadline; reject it before publishing FSM state.
+if (isNil "_delay" || {!(_delay isEqualType 0)} || {!finite _delay}
+    || {!finite (time+(_delay max 0))}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
+if (_delay < 0) exitWith {
     [if (_group getVariable ["CBE_AIPass_Managed",false]) then {"RETIRED"} else {"RELEASED"}] call _cancel
 };
 

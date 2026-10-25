@@ -2892,3 +2892,8 @@ A group with an unexpired role reserved by another combined-arms request is excl
 ### Selected artillery crew readiness
 
 Server acceptance of a remotely owned positioned gun now rechecks the actual driver/commander identities, group and vehicle membership, player/remote control and combat-effective state before accepting its published HOLD evidence. Incapacitated, captive, surrendered or handcuffed operators do not remain ready through an older pose receipt. Wounded conscious crew remain eligible. Native destination, protected-task and live FSM proof stay owner-local; the server reads current replicated state and cannot guarantee instant casualty propagation. No crew is moved, replaced or split by this check. Physical casualty/handback, HC migration and performance remain unverified while audits are paused.
+
+
+### Finite tactical timers
+
+The group brain validates its private next-wake delay and resulting deadline before publishing them; a non-finite value cancels that brain with INVALID_GROUP_DELAY. The ordinary negative retirement return remains unchanged. The shared scheduler cannot validate this private wake from the callback return because group decisions are one-shot jobs returning -1. Named cooldown writes reject non-finite durations or overflowed deadlines without changing an existing cooldown. No scheduling interval, cooldown duration, worker or movement command is added. Already corrupted stored cooldowns are not silently repaired by this change. Physical restart and performance remain unverified while audits are paused.

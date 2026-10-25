@@ -33,6 +33,19 @@ class SchedulerSampleTests(unittest.TestCase):
         self.assertIn('!finite (time + (_delay max 0))',queue)
         self.assertLess(queue.index('"INVALID_JOB_DELAY"'),queue.index('_state set ["ownerEpoch"'))
         self.assertIn('[] call _rejectFiniteBrain',queue)
+        brain=(ROOT/'addons/infantry/functions/groupBrainStep.sqf').read_text(encoding='utf-8')
+        cooldown=(ROOT/'addons/infantry/functions/cortexCooldown.sqf').read_text(encoding='utf-8')
+        private_wake=brain.split('private _delay=[_legacyJob]',1)[1]
+        self.assertLess(private_wake.index('INVALID_GROUP_DELAY'),private_wake.index('CBE_fnc_CortexIlluminationStep'))
+        self.assertLess(private_wake.index('!finite (time+(_delay max 0))'),private_wake.index('_brain set ["nextAt"'))
+        self.assertIn('if (_delay < 0) exitWith',private_wake)
+        self.assertIn('_seconds >= 0 && {finite _seconds}',cooldown)
+        self.assertLess(cooldown.index('if (finite _until)'),cooldown.index('_cooldowns set'))
+        # A one-shot callback has a valid terminal return even while its separately
+        # stored FSM wake is infinite. Validating only that return cannot detect it.
+        self.assertTrue(math.isfinite(-1))
+        self.assertFalse(math.isfinite(100+float('inf')))
+
         # The old scheduler discarded nil/non-number returns without notifying its brain.
         old={'pending':True,'completed':False,'cancelled':False}
         self.assertTrue(old['pending'])
