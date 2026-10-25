@@ -180,6 +180,25 @@ if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
 };
 // Bind geometry and durable visit indices to this actual object pose, not a later resume pose.
 private _admissionTransform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+if (_resumeRequested && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
+    // Unknown/changed pose cannot carry old room visits into a new world location.
+    // Retire only the order this call actually observed, never a successor clear.
+    [] call _retireResume;
+    ["RESUME_TRANSFORM_MISMATCH"] call _refuse
+};
+// A durable resume is the same visit, never permission to mint a new nonce while
+// its separately delivered context is absent. Defer through existing discovery without
+// starting an operation, replaying movement or replenishing per-visit recovery history.
+private _resumeRosterContext=_group getVariable ["CBE_Cortex_ClearVisitContext",[]];
+if (_resumeRequested && {serverTime >= ((_previous param [2,-1,[0]]) min (_previous param [10,-1,[0]]))}) exitWith {
+    [] call _retireResume;false
+};
+if (_resumeRequested && {!(_resumeRosterContext isEqualType [])
+        || {count _resumeRosterContext != 4}
+        || {(_resumeRosterContext select [0,3]) isNotEqualTo [_building,_admissionTransform,_previous param [10,-1,[0]]]}
+        || {!((_resumeRosterContext select 3) isEqualType "")} || {(_resumeRosterContext select 3) == ""}
+}) exitWith {["RESUME_CONTEXT_PENDING"] call _refuse};
+if (_resumeRosterContext isEqualType []) then {_resumeRosterContext=+_resumeRosterContext};
 private _admissionStable={
     !isNull _building && {alive _building}
         && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
@@ -221,12 +240,6 @@ private _ownedRecall={
         && {(_recall select 2) == _leader} && {time < (_recall select 3)}
 };
 private _resume = _resumeRequested;
-if (_resume && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
-    // Unknown/changed pose cannot carry old room visits into a new world location.
-    // Retire only the order this call actually observed, never a successor clear.
-    [] call _retireResume;
-    ["RESUME_TRANSFORM_MISMATCH"] call _refuse
-};
 // An explicit new CLEAR may replace this addon's exact indoor actor jobs. Admission remains
 // read-only: only the existing validated group handoff below retires those journals.
 private _replaceIndoor=!_resume && {(_options getOrDefault ["preserveBrain",false]) isEqualTo false};
@@ -292,7 +305,6 @@ _entryCapacity = _entryCapacity min (count _team);
 // During true resume, the common CLEAR roster is published with casualty replacements
 // before the separate CombatPairs variable. Prefer its eligible members so a late pair
 // update cannot silently replace a promoted actor with an idle exterior reserve.
-private _resumeRosterContext=+(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]);
 private _resumeParticipants=+(_entryOperation getOrDefault ["participants",[]]);
 private _resumePairs=(_entryOperation getOrDefault ["pairs",[]]) apply {+_x};
 private _resumeUnavailable=+(_entryOperation getOrDefault ["unavailable",[]]);
@@ -575,6 +587,7 @@ private _commitPreparation={
             || {(_liveOperation getOrDefault ["objective",objNull]) != _building}
             || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
             || {serverTime >= (_deadline min _hardDeadline)}
+            || {_resume && {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _resumeRosterContext}}
             || {!(call _admissionStable)}
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt}
             || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
@@ -714,9 +727,9 @@ private _job=createHashMapFromArray [
 ];
 // Historical individual visits survive owner adoption. A fresh task gets a new token,
 // even if it targets the same building in the same server frame. No movement is replayed.
-private _visitContext=_group getVariable ["CBE_Cortex_ClearVisitContext",[]];
+private _visitContext=if (_resume) then {+_resumeRosterContext} else {[]};
 private _visitBase=[_building,_job get "buildingTransform",_hardDeadline];
-if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4} || {(_visitContext select [0,3]) isNotEqualTo _visitBase}) then {
+if (!_resume) then {
     _visitContext=_visitBase+[format ["%1:%2:%3",clientOwner,diag_tickTime,_generation]];
     [{_group setVariable ["CBE_Cortex_ClearVisitContext",_visitContext,true]}] call _commitPreparation;
 };

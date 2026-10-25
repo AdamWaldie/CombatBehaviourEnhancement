@@ -21,7 +21,11 @@ class ClearVisitResumeTests(unittest.TestCase):
 
     def test_new_tasks_cannot_reuse_old_receipts(self):
         text=source('cortexClearBuilding')
-        self.assertIn('if (!_resume || {!(_visitContext isEqualType [])} || {count _visitContext != 4}',text)
+        visit=text.split('private _visitContext=if (_resume)',1)[1].split('_job set ["visitContext"',1)[0]
+        self.assertIn('then {+_resumeRosterContext} else {[]}',visit)
+        self.assertIn('if (!_resume) then {',visit)
+        self.assertNotIn('count _visitContext != 4',visit)
+        self.assertLess(text.index('RESUME_CONTEXT_PENDING'),text.index('call CBE_fnc_OperationStart'))
         self.assertIn('clientOwner,diag_tickTime,_generation',text)
         self.assertIn('_visitBase=[_building,_job get "buildingTransform",_hardDeadline]',text)
 

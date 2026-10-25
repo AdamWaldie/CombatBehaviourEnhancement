@@ -44,5 +44,10 @@
     "review": "clear-exterior-motion-20261025.json",
     "scope": "The shared journal now admits exact-current exterior reserve post MOVE/HOLD, and existing APPROACH observes delayed actual MOVE ACK without reissue. Earlier path/hash evidence remains historical. Full coherent transport and aggregate exterior readiness remain unfinished.",
     "physicalAcceptance": false
+  },
+  "visitContinuityFollowup": {
+    "review": "clear-resume-visit-continuity-20261025.json",
+    "scope": "Resume now defers missing/malformed visit context without minting another nonce. Expired and moved-building cancellation retain priority. Full coherent delivery/aggregate readiness remains unfinished.",
+    "physicalAcceptance": false
   }
 }

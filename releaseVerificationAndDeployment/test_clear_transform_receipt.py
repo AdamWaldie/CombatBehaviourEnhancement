@@ -14,10 +14,12 @@ class ClearTransformReceiptTests(unittest.TestCase):
 
     def test_resume_pose_check_precedes_shared_coverage_and_handoff(self):
         text=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
-        guard=text.split('if (_resume && {(_previous param [13,[],[[]]])',1)[1].split('// An explicit new CLEAR',1)[0]
+        guard=text.split('if (_resumeRequested && {(_previous param [13,[],[[]]])',1)[1].split('// A durable resume is the same visit,',1)[0]
         for proof in ('isNotEqualTo _admissionTransform','RESUME_TRANSFORM_MISMATCH','call _retireResume'):
             self.assertIn(proof,guard)
         self.assertLess(text.index('RESUME_TRANSFORM_MISMATCH'),text.index('private _cleared ='))
+        self.assertLess(text.index('RESUME_TRANSFORM_MISMATCH'),text.index('RESUME_CONTEXT_PENDING'))
+        self.assertLess(text.index('RESUME_TRANSFORM_MISMATCH'),text.index('_building buildingPos -1'))
         self.assertIn('_continueRoute, +_admissionTransform], true]',text)
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         self.assertIn('_job getOrDefault ["continueRoute",false],+(_job get "buildingTransform")], true]',step)

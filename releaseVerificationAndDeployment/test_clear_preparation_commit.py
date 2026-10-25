@@ -18,6 +18,20 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertNotIn('while',gate)
         self.assertNotIn('buildingPos',gate)
         self.assertLess(text.index('private _commitPreparation='),text.index('while {_remaining isNotEqualTo []}'))
+        continuity=text.split('// A durable resume is the same visit,',1)[1].split('private _admissionStable=',1)[0]
+        for proof in ('"CBE_Cortex_ClearVisitContext"','_resumeRequested','_previous param [10,-1,[0]]',
+                      'count _resumeRosterContext != 4','_resumeRosterContext select [0,3]',
+                      '(_resumeRosterContext select 3) == ""','RESUME_CONTEXT_PENDING'):
+            self.assertIn(proof,continuity)
+        for forbidden in ('OperationStart','setVariable','serverTime+'):
+            self.assertNotIn(forbidden,continuity)
+        self.assertLess(text.index('RESUME_CONTEXT_PENDING'),text.index('_building buildingPos -1'))
+        self.assertLess(text.index('RESUME_TRANSFORM_MISMATCH'),text.index('RESUME_CONTEXT_PENDING'))
+        self.assertIn('_resume && {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _resumeRosterContext}',gate)
+        visit=text.split('private _visitContext=if (_resume)',1)[1].split('_job set ["visitContext"',1)[0]
+        self.assertIn('then {+_resumeRosterContext} else {[]}',visit)
+        self.assertIn('if (!_resume) then {',visit)
+        self.assertNotIn('count _visitContext != 4',visit)
         self.assertLess(text.index('while {_remaining isNotEqualTo []}'),text.index('private _pairs=[];'))
 
         journal=(ROOT/'addons/infantry/functions/buildingLaneJournal.sqf').read_text(encoding='utf-8')
