@@ -51,5 +51,28 @@
   ],
   "nextImplementation": "Trace current combined-opportunity aircraft dispatch and target scoring completely before adding supported-element threat priority. Determine whether observations and aircraft support requests have a real missing execution path; do not add another global controller.",
   "licence": "UNVERIFIED; no upstream code copied into product.",
-  "validation": "Workshop PBO hash matches registered intake; eight extracted file hashes recorded. Metadata-only review, no runtime edits or build rerun. Physical behaviour and performance UNRUN; audits PAUSED."
+  "validation": "Workshop PBO hash matches registered intake; eight extracted file hashes recorded. Metadata-only review, no runtime edits or build rerun. Physical behaviour and performance UNRUN; audits PAUSED.",
+  "selectedImplementation20261025": {
+    "sourceBase": "b30a250f",
+    "scope": "Supported-element proximity priority only; no staged-air response or observer implementation.",
+    "path": "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
+    "sourceSha256": "6fdd50c7b7e03db4eb663dcddad71672641e515336d88bc209ba0f28e54d9e00",
+    "changes": [
+      "Sample at most16 existing contact receipts; reject malformed, stale, dead, friendly, captive/surrendered/handcuffed targets before ranking. A stale first contact no longer hides a later valid one.",
+      "Sample at most64 current living requester members once. Rank fresh reported positions within150m of any sampled member by nearest distance; stable report order on ties and outside radius. No hidden enemy pose lookup, random rank jitter, platform bias, new global scan, worker, setting or new controller.",
+      "Existing20..28s request cooldown, original observation timestamp/confidence payload, authenticated server admission, communications and aircraft owner weapon/flight lease/executor remain unchanged."
+    ],
+    "cost": "At most16 report checks,64 member pose reads and1024 horizontal distances per request attempt after the existing cooldown check. Empty/invalid candidate set exits before member enumeration. Invalid reports do not consume the original cooldown. Static performance passes; actual median/p95 remains unmeasured.",
+    "validation": {
+      "fullBuildLog": ".qa/combined-team-priority-build-20261025-attempt1.log",
+      "tests": 1497,
+      "compiledSqf": 419,
+      "pbos": 11,
+      "exit": 0,
+      "independentLog": ".qa/combined-team-priority-independent-20261025.log",
+      "candidate": ".qa/candidates/combined-team-priority-b30a250f",
+      "fingerprint": "d75f69aa305af9d791618556e66eafd575a5ab3d10fb6c73d1140b9ce042a051"
+    },
+    "limitations": "Unsigned dirty development candidate. Existing test case extended with analytical selection and source wiring; not SQF runtime execution. Physical selection/fire-safety/aircrew handover/locality/JIP/Zeus and5percent median/10percent p95 remain UNRUN. Audits PAUSED. Remaining source intent still open; no whole-source parity or percentage awarded."
+  }
 }

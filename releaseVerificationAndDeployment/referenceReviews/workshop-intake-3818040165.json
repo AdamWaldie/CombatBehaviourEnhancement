@@ -1,9 +1,9 @@
 {
   "added": "2026-10-20",
-  "status": "SELECTED_BEHAVIOUR_SOURCE_REVIEWED_IMPLEMENTATION_PENDING",
+  "status": "SELECTED_TEAM_THREAT_PRIORITY_BUILT_OTHER_INTENT_PENDING",
   "licence": "UNVERIFIED; inspect before incorporating code.",
   "sourceProtection": "Installed originals and archives are read-only. Keep raw source outside product packages.",
-  "acceptance": "Selected source intent evaluated; no new air-support behaviour implemented or physically validated. Audits remain PAUSED.",
+  "acceptance": "Bounded supported-element proximity selection built into existing combined-arms request; offline checks passed, physical behaviour unverified. Staged response and observation not implemented from this reference. Audits PAUSED.",
   "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
   "workshopId": "3818040165",
   "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3818040165",

@@ -25,6 +25,39 @@ class CombinedContactPayloadTests(unittest.TestCase):
             self.assertFalse(admitted(p),repr(p))
         self.assertTrue(admitted([1250,3500,0]))
         self.assertTrue(admitted([-1e6,1e6,-10]))
+        # A malformed/stale first report must not hide later fresh team threats.
+        def select_report(reports, members):
+            valid=[r for r in reports[:16] if admitted(r[0]) and math.isfinite(r[1])
+                   and 0<=r[1]<=5 and math.isfinite(r[2]) and 0<r[2]<=4]
+            if not valid:
+                return None
+            selected=valid[0]
+            nearest=151
+            for r in valid:
+                distance=min((math.dist(m[:2],r[0][:2]) for m in members[:64]),default=1e9)
+                if distance<=150 and distance<nearest:
+                    selected,nearest=r,distance
+            return selected
+        stale=([0,0,0],9,1)
+        remote=([800,0,0],1,1)
+        near_member=([390,0,0],2,1.2)
+        nearer=([395,0,0],3,0.7)
+        members=[[0,0,0],[400,0,0]]
+        self.assertEqual(select_report([stale,remote,near_member],members),near_member)
+        self.assertEqual(select_report([remote,near_member,nearer],members),nearer)
+        self.assertEqual(select_report([remote,near_member],[]),remote)
+        self.assertEqual(select_report([remote,near_member],[[2000,0,0]]),remote)
+        self.assertIsNone(select_report([stale,([0,0],1,1)],members))
+        self.assertEqual(select_report([remote]*16+[near_member],members),remote)
+        self.assertEqual(select_report([near_member,near_member],members),near_member)
+        request=(ROOT/'addons/infantry/functions/cortexCombinedArmsRequest.sqf').read_text(encoding='utf-8')
+        self.assertIn('_visible select [0,16]',request)
+        self.assertIn('(units _group) select [0,64]',request)
+        self.assertIn('_distance <= 150 && {_distance < _nearest}',request)
+        self.assertIn('_reportPosition=_x select 1',request)
+        self.assertNotIn('getPosATL _target',request)
+        self.assertLess(request.index('if (_candidates isEqualTo [])'),request.index('private _memberPositions=[]'))
+
     def test_contact_receipt_is_preserved_without_fallback_or_replay_refresh(self):
         def source(name):
             return (ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text(encoding='utf-8')
