@@ -2946,3 +2946,7 @@ The extra snapshot checks occur only on the existing support request, with no ne
 ### Lost selected artillery crew
 
 If every original selected gun operator has died or been deleted, unresolved crew movement can retire once the gun is measured at rest and its original worker is no longer live. This removes only the matching artillery reservation; it does not move, seat or adopt replacement crew, change group membership, or renew a deadline. A surviving original operator, moving gun, unknown velocity or conflicting lease keeps the reservation unresolved. Partial-crew casualty recovery and physical replacement remain incomplete and require in-engine validation.
+
+### Road bend observations
+
+After selecting a connected road piece, bend sensing derives its turn from the same endpoint midpoint used for grade and distance. An offset road-object origin cannot substitute for that measured turn. The existing eight-transition and nine-metadata-read bounds are unchanged. Branch selection still uses heading heuristics and is not the native planned route; physical road handling and frame-time cost remain unverified.

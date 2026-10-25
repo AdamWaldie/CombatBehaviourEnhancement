@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "8d938a2e",
+  "workshopId": "3812620045",
+  "scope": "Selected RoadAhead helper lines836..868 and crossing/curve consumer2868..2894; CBE full road observer. Not renewed whole-source parity.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "intent": "Bounded forward road connectivity walk observes junctions and bend ahead. Source uses road object origins, conditional crossing-traffic45km/h and curve38/27km/h ceilings."
+  },
+  "finding": "CBE already reads endpoint midpoints for grade and segment distance, but used the origin-derived candidate turn in its final measured turn maximum. An offset selected-road origin can hide or invent a local bend, including an endpoint right-angle turn whose vehicle-to-endpoint bearing remains small.",
+  "implementation": "After reading the selected next road, compute segment heading and local turn from endpoint midpoints; use that same heading as the next-step basis. Keep cumulative vehicle-to-piece approach angle. No added metadata query, scan, cache, controller or threshold change.",
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingRoadCap.sqf": "1b4ac23c8553dee82aa76af5907f1891700e270880460f98bfcf6d01bc3b9002",
+    "releaseVerificationAndDeployment/test_driving_road_cap.py": "7a63399d0f79a35dce6482c3d764791edb98ba4bb88368130bd3f4eaabfe3ca9"
+  },
+  "validation": {
+    "focusedTests": 5,
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/road-endpoint-turn-8d938a2e",
+    "fingerprint": "8a33956e8925b882ae827a9992f4511219bfbd1386615361c797e7514da29c91"
+  },
+  "limits": "Candidate branch selection and its 110-degree cutoff still use origin-based heading heuristics, not native planned-route proof. The patch corrects accepted-piece curvature only; it is not complete road-graph disambiguation. Existing CBE conservative junction/grade policy differs from source balance. Normal/HC road handling and median/p95 budget unverified; audits paused. No parity percentage increase."
+}

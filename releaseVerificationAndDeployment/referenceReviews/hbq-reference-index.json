@@ -692,6 +692,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-endpoint-turn-20261025.json",
+      "sha256": "0a353cf104de657fbfd4fa82176228f495437e7baa99bb381ff58687d07ecdcf",
+      "scope": "Selected RoadAhead helper lines836..868 and crossing/curve consumer2868..2894; CBE full road observer. Not renewed whole-source parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
       "sha256": "3ff5d7469d35ecf7be7faeaa08dd2503909a751b117748a9a9d4eb30748314ed",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",

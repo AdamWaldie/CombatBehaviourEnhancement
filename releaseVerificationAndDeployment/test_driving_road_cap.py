@@ -69,7 +69,21 @@ class DrivingRoadCapTests(unittest.TestCase):
         self.assertEqual(cap(70,approach_turn,0,False),35)
         source=(ROOT/'addons/vehicles/functions/drivingRoadCap.sqf').read_text()
         self.assertIn('_vehiclePosition getDir _nextPosition',source)
-        self.assertIn('(_maximumTurn max _bestTurn) max _approachTurn',source)
+        self.assertIn('(_maximumTurn max _segmentTurn) max _approachTurn',source)
+        self.assertIn('private _segmentHeading=_roadPosition getDir _nextPosition',source)
+        self.assertIn('_roadHeading=_segmentHeading',source)
+        # A selected road's origin can sit north while its endpoint midpoint lies
+        # east of the previous piece. An origin-derived local turn of zero misses
+        # the actual right-angle segment even when vehicle-to-piece bearing is small.
+        previous=(0,50); midpoint=(10,50); origin=(0,60)
+        def bearing(a,b): return math.degrees(math.atan2(b[0]-a[0],b[1]-a[1]))
+        origin_turn=abs(bearing(previous,origin))
+        endpoint_turn=abs(bearing(previous,midpoint))
+        approach=abs(bearing((0,0),midpoint))
+        self.assertEqual(origin_turn,0)
+        self.assertLess(approach,25)
+        self.assertEqual(cap(70,max(origin_turn,approach),0,False),70)
+        self.assertEqual(cap(70,max(endpoint_turn,approach),0,False),18)
 
 if __name__=='__main__':unittest.main()
 
