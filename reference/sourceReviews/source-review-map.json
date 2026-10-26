@@ -15,8 +15,8 @@
       "name": "LAMBS Danger.fsm 2.6.2",
       "priority": "0 Foundations",
       "candidateContribution": "Standalone danger FSM, reactions, assault and task lifecycle",
-      "reviewStatus": "Deep partial review; relevant branches remain",
-      "nextSourceReview": "Finish the AI branch/call graph and descendants; map missing execution into existing CBE owners.",
+      "reviewStatus": "All41 readable danger-addon SQF body dispositions recorded; selected main helpers reviewed; whole-source descendants remain incomplete",
+      "nextSourceReview": "Reconcile remaining main/wp helpers and civilian FSM, with concrete capability/lifecycle gaps mapped to existing owners; settings modules are not a parity target.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity and remaining execution branches incomplete; physical reliability and performance separate.",
       "implementationAssessmentCommit": "ca778db2",
@@ -35,8 +35,9 @@
         "members": 96,
         "readableSqf": 41,
         "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json",
-        "scope": "Installed danger-addon snapshot only. Selected readable-source review; no wholeLAMBS or compiled behavioural equivalence claim.",
-        "functionQueue": "reference/sourceReviews/lambs-danger-source-queue.json"
+        "scope": "Installed danger-addon snapshot:41 readable SQF body dispositions recorded. Configuration/context entry paths reviewed. No wholeLAMBS, descendant or compiled behavioural equivalence claim.",
+        "functionQueue": "reference/sourceReviews/lambs-danger-source-queue.json",
+        "latestReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#startupConfigurationReview20261026"
       }
     },
     {

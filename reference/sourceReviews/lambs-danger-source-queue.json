@@ -184,85 +184,85 @@
       "path": "functions/ZEN/fnc_setDisableAI.sqf",
       "sha256": "8f6607d56178ae79e5d3575241ccc235003cd6913a56a45e915f1f5d30c4f2f9",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_setDisableGroupAI.sqf",
       "sha256": "fd5192d26ff7f93d8ca9c40d1721519e5fc728c206e143a669fdcd71a438db79",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_setHasRadio.sqf",
       "sha256": "8a2608512736fb15248eb9c5cb51f7af9e33e9a269c4f44eec6f9a48e801df77",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_setReinforcement.sqf",
       "sha256": "e1da9b2dd19436725fa19c3f38d1bf4e7642c15f767d1bdc6807e2ac5adfe82f",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_showHasRadio.sqf",
       "sha256": "45788dfd5ce2a066abf17a868d0d47c70b991476ac1a7951446fe5ce1b581393",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_showReinforcement.sqf",
       "sha256": "e9be6b6ece9143c667d25030d889d6ff01cde0d4397a4512727d5c6c81f85ef1",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_showSetDisableAI.sqf",
       "sha256": "c023c1403ab9b85a8c58308febd80b3283cb2a915cdbf82441b7e65b60f56fe6",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZEN/fnc_showSetDisableGroupAI.sqf",
       "sha256": "37fa9ff03c81a79d2c8325fc54b69facea099d8c5806a3f477c53a7a82f8d5a6",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZeusModules/fnc_moduleConfigureGroupAI.sqf",
       "sha256": "603a3176e8244122482f90c9270c598f346bfda37c11f2c917627360021b88b2",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZeusModules/fnc_moduleDisableAI.sqf",
       "sha256": "e6de6bd1145aba95adc3a975bc1e98f335db3954f9c882ffa3dfcbeb3f7d9ebf",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "functions/ZeusModules/fnc_moduleSetRadio.sqf",
       "sha256": "6b6a2f56f4bf34dc1465512e887f47edf5a6fa9e5ad3fa4050a28a5ba2177785",
       "area": "Zeus controls",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "settings.inc.sqf",
       "sha256": "48a0e2583249fd679f1766c5adccbedde413ea2de4a39faf758318784d93276b",
       "area": "Startup/settings",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "XEH_postInit.sqf",
@@ -275,22 +275,22 @@
       "path": "XEH_preInit.sqf",
       "sha256": "d34f940c1e56a839961b9bdd8ddede53898860e0cd9f8d7b52b49588c97bd54a",
       "area": "Startup/settings",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "XEH_preInitClient.sqf",
       "sha256": "412bb8f4c503576d64faa02a1f0c4636b63b9ced5f7c9df9d7a9a7801c176c27",
       "area": "Startup/settings",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     },
     {
       "path": "XEH_preStart.sqf",
       "sha256": "c329c9d5466cc1f0f2377b2e49c1ba2addc4407e40616a1215f8783bc7bbba0f",
       "area": "Startup/settings",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
     }
   ]
 }

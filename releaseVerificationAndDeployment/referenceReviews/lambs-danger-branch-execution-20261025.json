@@ -1016,5 +1016,90 @@
     "physicalAcceptance": false,
     "audits": "paused",
     "buildoutPercentageChange": false
+  },
+  "startupConfigurationReview20261026": {
+    "scope": "Remaining15 installed readable danger-addon SQF bodies, plus complete named danger configuration/context declarations and event bridges. The41-member readable danger queue now has complete body dispositions. This is not complete main/wp source review, descendant execution parity, compiled equivalence or behavioural acceptance.",
+    "sourceAndCbeHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_setDisableAI.sqf": "8f6607d56178ae79e5d3575241ccc235003cd6913a56a45e915f1f5d30c4f2f9",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_setDisableGroupAI.sqf": "fd5192d26ff7f93d8ca9c40d1721519e5fc728c206e143a669fdcd71a438db79",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_setHasRadio.sqf": "8a2608512736fb15248eb9c5cb51f7af9e33e9a269c4f44eec6f9a48e801df77",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_setReinforcement.sqf": "e1da9b2dd19436725fa19c3f38d1bf4e7642c15f767d1bdc6807e2ac5adfe82f",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_showHasRadio.sqf": "45788dfd5ce2a066abf17a868d0d47c70b991476ac1a7951446fe5ce1b581393",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_showReinforcement.sqf": "e9be6b6ece9143c667d25030d889d6ff01cde0d4397a4512727d5c6c81f85ef1",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_showSetDisableAI.sqf": "c023c1403ab9b85a8c58308febd80b3283cb2a915cdbf82441b7e65b60f56fe6",
+      ".qa/lambs-danger-installed-20261026/functions/ZEN/fnc_showSetDisableGroupAI.sqf": "37fa9ff03c81a79d2c8325fc54b69facea099d8c5806a3f477c53a7a82f8d5a6",
+      ".qa/lambs-danger-installed-20261026/functions/ZeusModules/fnc_moduleConfigureGroupAI.sqf": "603a3176e8244122482f90c9270c598f346bfda37c11f2c917627360021b88b2",
+      ".qa/lambs-danger-installed-20261026/functions/ZeusModules/fnc_moduleDisableAI.sqf": "e6de6bd1145aba95adc3a975bc1e98f335db3954f9c882ffa3dfcbeb3f7d9ebf",
+      ".qa/lambs-danger-installed-20261026/functions/ZeusModules/fnc_moduleSetRadio.sqf": "6b6a2f56f4bf34dc1465512e887f47edf5a6fa9e5ad3fa4050a28a5ba2177785",
+      ".qa/lambs-danger-installed-20261026/settings.inc.sqf": "48a0e2583249fd679f1766c5adccbedde413ea2de4a39faf758318784d93276b",
+      ".qa/lambs-danger-installed-20261026/XEH_preInit.sqf": "d34f940c1e56a839961b9bdd8ddede53898860e0cd9f8d7b52b49588c97bd54a",
+      ".qa/lambs-danger-installed-20261026/XEH_preInitClient.sqf": "412bb8f4c503576d64faa02a1f0c4636b63b9ced5f7c9df9d7a9a7801c176c27",
+      ".qa/lambs-danger-installed-20261026/XEH_preStart.sqf": "c329c9d5466cc1f0f2377b2e49c1ba2addc4407e40616a1215f8783bc7bbba0f",
+      ".qa/lambs-danger-installed-20261026/ZEN_CfgContext.hpp": "b6bf18fbe4705453d439cafd8d2c3f6a8257f2cde4c70c1aa3c36d63055e7977",
+      ".qa/lambs-danger-installed-20261026/CfgVehicles.hpp": "c4a70f919df730023e054e0d89b8d5dee8dbfbc7144c8d153bf3181d315689ef",
+      ".qa/lambs-danger-installed-20261026/CfgEventHandlers.hpp": "df932c33c92e842e282551c60bbf95ba9605a3b179c5c2cdbb4d1438d3526bbd",
+      ".qa/lambs-danger-installed-20261026/Cfg3DEN.hpp": "896e2df8f8b52296352e6c9bb08422cb23d115f7a7aa544af1c6facfd77f7ff1",
+      ".qa/lambs-danger-installed-20261026/XEH_postInit.sqf": "90cbfbc8f06239748c781b29cce2b4bd3ae596cb4ee98e2ae90481c51ec3a79f",
+      "addons/main/XEH_preInit.sqf": "b8bb98cdb95db455230e9766832b04e0d04f29abfa55de93651e7e2faf463f7c",
+      "addons/main/XEH_postInit.sqf": "cf673bcde5eb84d51d673da5e678785082b8970767b0860c93e5164be5d55972",
+      "addons/main/bootstrap/zenRegister.sqf": "4cb2b4dac0ef5f51bddc084a33fd090e3bb5f19ff42c6d2a27191724b7787d2c",
+      "addons/core/functions/aiTweaksRegisterSettings.sqf": "330d9535e270314bd85031a5eda4bf91af7fc98a22346b769a4565d9e5c39569",
+      "addons/core/functions/aiTweaksSettingChanged.sqf": "1a9cda58b0ee22d230e0ed6244353c7a787551bd1c424a98ea40a76996afd88a",
+      "addons/infantry/functions/cortexFeatureEnabled.sqf": "a375a4cbec0c902ca3a891992acd650e31887d02f6d82f59c3c0092c5f7a5625",
+      "addons/infantry/functions/cortexIsEligible.sqf": "0262517b13525442a95594d80006dae07d4de05e0611e24da8f799ffcea77b98",
+      "addons/infantry/functions/cortexCanTransmit.sqf": "49e3a4c19699638bd2b6863412af46e3fdecfae97611d1363f303aa0facf9eaf",
+      "addons/infantry/functions/cortexGroupTransmitter.sqf": "59a6a9d02f487513435f3193b22bac6326668e1a50df84b6a1c0de556f09727e",
+      "addons/support/functions/cortexReinforce.sqf": "2aada198d580d70a379058124ce8ca4b90c108883eccbc9469ee5b8cd25e68c5",
+      "addons/danger/config.cpp": "6e318f1e5083a5de54fe18cb1fa19aad7abcdf002abff69a8556a222714cdbd4"
+    },
+    "findings": [
+      {
+        "source": "XEH_preStart prepares functions; XEH_preInit prepares again, registers CBA settings, guards priorities and minimum danger timeout and installs one information-shared callback.",
+        "cbe": "Guarded preInit installs CBA settings and waits for CBA_settingsInitialized before owner-local postInit. PostInit and runtime setting changes have independent guarded installers and shutdown paths.",
+        "decision": "Adapt staged startup and repeat safety. Source customisable priority/minimum-time defaults are not CBE tuning parity; current bounded priority policy is deliberate. Do not duplicate PREP/event registration or use copied globals as runtime ownership."
+      },
+      {
+        "source": "Information-shared callback considers same-side recipient groups; local leader can call tacticsReinforce, then noncombat leader can directly change formation direction.",
+        "cbe": "CortexCanTransmit/GroupTransmitter and requester-server-responder reinforcement path retain native belief, jamming, tokens, responder caps and current ownership.",
+        "decision": "Adapt report-driven support intent. Do not import unconditional formation direction, opportunistic closest-position replacement or callback-time target data as new movement authority. Full communication/support descendants and physical response remain separate requirements."
+      },
+      {
+        "source": "Eight ZEN setters/show predicates toggle object/group variables directly; context EnableReinforcement passes _objects to setReinforcement, which writes enableGroupReinforce on those objects. PreInit information handler reads enableGroupReinforce from each recipient group. The separate ConfigureGroupAI module writes the group variable.",
+        "decision": "Confirmed source domain mismatch in the object context path; do not reproduce it. CBE group feature exclusions and support roles must keep their declared group/actor scope. The source UI function names do not establish a working reinforcement capability."
+      },
+      {
+        "source": "Three Zeus modules configure radio/actor disable/group disable and reinforcement; Cfg3DEN publishes true editor flags only. ZEN show predicates support mixed selections by showing an action when any item differs.",
+        "cbe": "CBA owns addon configuration. Existing ZEN registration exposes convoy/garrison/defend/clear/corridor behaviour tasks. Group/actor exclusions and read-only communications hook remain script/integration boundaries.",
+        "decision": "Per user direction, do not add settings modules for source parity. Preserve explicit task target and parameters plus authenticated server/current-owner execution. Source mixed-selection visibility is useful UX intent if such a behaviour action is required. Inventory-radio requirement is not introduced: CBE transmission is intentionally inventory-independent with optional jamming."
+      },
+      {
+        "source": "Client preInit registers four CBA keybinds: player-group AI toggle, nearby-friendly suppression, player-group hide and player-group assault. Suppression scans allUnits on keypress and may choose a nearest enemy/cursor/terrain point, then remotely requests fire after a random delay. Hide/assault can directly invoke movement helpers and shared memory.",
+        "cbe": "Current eligibility excludes player-containing groups and honours player/Zeus/mission ownership; existing ZEN tasks use explicit target/owner validation.",
+        "decision": "These player-command conveniences are not implemented by existing autonomous CBE paths and receive no parity credit. They are outside the current foundation batch; retain as an explicit scope decision rather than silently importing cross-group control, cursor fallback or delayed unbound movement/fire. One allUnits scan on keypress is not a recurring per-frame scan; do not misstate its cost."
+      },
+      {
+        "source": "CBA settings include player-local toggles for danger/reactions/manoeuvre/concealment/static weapons/smoke/flares and global CQB-range/panic sliders; custom CQB formation registration is inside a disabled comment block.",
+        "cbe": "CBA registration uses one global canonical spec and current-owner callbacks/JIP replay; settings do not themselves prove working execution.",
+        "decision": "Merge relevant feature intent into existing gates, not one setting per upstream row. Keep source local/global policy differences explicit. Do not implement commented formation code or count it as executable functionality."
+      },
+      {
+        "source": "Danger config replaces SoldierWB/EB/GB FSMs and also a separate Civilian_F FSM. PostInit bridges four CBA events to scripted unit/group events.",
+        "cbe": "CBE danger config replaces the three soldier base FSMs; civilian reactions use separate CBE mechanisms. Native/compiled and script event execution need their own path evidence.",
+        "decision": "Soldier registration is present, not whole civilian FSM parity. Civilian source FSM behaviour and optional event-API parity remain unreconciled at that scope. Do not declare whole LAMBS complete from the41 readable SQF review."
+      }
+    ],
+    "nextRequiredScope": "Continue complete relevant main/wp helper execution and civilian FSM/source paths with the existing master map. Prioritise concrete capabilities or lifecycle defects; retain vehicle reserve-ammunition and reactive smoke/illumination gaps already recorded. Do not create configuration modules to increase parity counts.",
+    "runtimeChanges": false,
+    "buildoutPercentageChange": false,
+    "wholeLAMBSParity": false,
+    "physicalAcceptance": false,
+    "audits": "paused",
+    "verification": {
+      "existingChecks": 52,
+      "command": "python -m unittest test_ai_modularity test_cortex_operations.CortexOperations.test_cba_is_the_single_authoritative_setting_store test_cortex_operations.CortexOperations.test_configuration_has_no_duplicate_zen_panel_or_variable_bridge test_cortex_operations.CortexOperations.test_live_danger_setting_reconfigures_owner_local_observers_without_a_second_worker",
+      "documentation": "documentation_contract_checker.py passed",
+      "sourceIntegrity": "All41 readable danger member SHA256 values match preserved snapshot and queue.",
+      "runtimeCandidate": "Unchanged4ae738b1 runtime; no build or audit required for this source-review-only checkpoint."
+    }
   }
 }
