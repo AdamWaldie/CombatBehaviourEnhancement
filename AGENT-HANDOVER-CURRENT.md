@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: actor componentv5/seven fields appends the related original native-ownership block (team/started keys, assignments with once-converted original server progress clocks, three hold maps, five actor classifications, three access flags). Sparse/unknown/malformed source records refuse. Actor rows remainnine fields; outer capturev12/17.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-ownership-state-eb4757c3`, fingerprint `a6400fb8162fcf153c8630742ae69cf80233b7afa10f8ba893286e1d0cc3fe06`. Review `clear-ownership-state-20261026.json` includes a textual remaining-field index (not semantic completeness); private copy `.qa/handovers/clear-job-state-index-eb4757c3.json`. Complete related phase/progress/retry review, seal and incoming reconciliation; do not keep adding individual fields without checking the grouped execution domain. Audits paused; no native resumption or physical acceptance.
+
+
 Latest: actor componentv4/six fields, nine-field actor rows append private entry-recovery presence/value plus separate public recovery/alternative search records. Original server clocks/spent retry/search/coverage/visit headers retained; malformed/unknown source keys refuse. Both public channels join retirement comparison (max706 records). Source inspection confirmed buddy admission already independent; no movement/entry timing changed.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-entry-state-e661ba6b`, fingerprint `827a854ab0644c80a78c64473481e86ede187e0cd2ae128a505c6ef40bf1f525`. Review `clear-entry-state-20261026.json`. Still unsealed, no incoming executor; audits paused and whole goal incomplete.
 
 

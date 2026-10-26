@@ -72,9 +72,12 @@ if (_mode == "CAPTURE") exitWith {
         || {!(_writerCount isEqualType 0)} || {!finite _writerCount}
         || {_writerCount < 1} || {_writerCount > 131} || {_writerCount != floor _writerCount}) exitWith {false};
     private _actors=_capture select 16;
-    if (!(_actors isEqualType []) || {count _actors != 6}
-        || {(_actors param [0,-1]) != 4} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
+    if (!(_actors isEqualType []) || {count _actors != 7}
+        || {(_actors param [0,-1]) != 5} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
         || {(_actors param [3,[]]) isNotEqualTo _original}) exitWith {false};
+    private _ownership=_actors select 6;
+    if (!(_ownership isEqualType []) || {count _ownership != 7}
+        || {(_ownership param [0,-1]) isNotEqualTo 1}) exitWith {false};
     private _policy=_actors select 5;
     if (!(_policy isEqualType []) || {count _policy != 6}
         || {[0,1,2,3,4,5] findIf {isNil {_policy select _x}} >= 0}

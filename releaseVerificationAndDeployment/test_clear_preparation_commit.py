@@ -295,7 +295,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertFalse(retired(True,True,True,True))
         self.assertTrue(retired(True,True,True))
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
-        self.assertIn('count _actors == 6',capture)
+        self.assertIn('count _actors == 7',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
         for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
                       'producerRegistration','count _actors > 64','count _owned > 2',
@@ -313,7 +313,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[4,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]'):
+                      '[5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]'):
             self.assertIn(guard,actor_journal)
         for guard in ('keys _restore findIf {_x != "groupAttack"}',
                       '(_attack select 0) isNotEqualTo _baseAttack',
@@ -348,6 +348,23 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertTrue(captured_entry[2][2])
         self.assertEqual(captured_entry[4][4],3)
         self.assertEqual(captured_entry[2][1],120)
+        for field in ('nativeHoldPositions','roomHolds','formationFallbackHolds','accessHeld',
+                      'quarantineHeld','securityActors','rotatedOut','egressDiverted',
+                      'accessAdmitted','accessBlocked','accessReported','assigned','started'):
+            self.assertIn('"'+field+'"',actor_journal)
+        self.assertIn('count _assigned != count _team',actor_journal)
+        self.assertIn('_assigned findIf {isNil "_x"}',actor_journal)
+        self.assertIn('isNil {_map get _x}',actor_journal)
+        self.assertIn('_serverNow+((_record select 1)-_localNow)',actor_journal)
+        self.assertIn('_mapKeys findIf',actor_journal)
+        original_holds={'actorA':[1,2,3]}
+        original_started=['actorA']
+        captured_holds=copy.deepcopy(original_holds)
+        captured_started=list(original_started)
+        original_holds['actorA'][0]=99
+        original_started.clear()
+        self.assertEqual(captured_holds,{'actorA':[1,2,3]})
+        self.assertEqual(captured_started,['actorA'])
         # Clock origins may differ. Preserve remaining time, including already expired leases.
         for local_now,server_now,expiry in ((100,500,106),(100,500,99),(1,900,1)):
             encoded=server_now+(expiry-local_now)

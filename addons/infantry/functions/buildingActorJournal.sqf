@@ -9,10 +9,13 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [4,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy] or[] on refusal.
+ * Return: ARRAY [5,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy,ownership] or[] on refusal.
  * Group policy [1,original behaviour,original attack BOOL,continueRoute BOOL,attack lease,original native route].
  * Only the exact CLEAR attack lease is accepted. Unknown group restoration keys refuse.
  * Route copy is bounded to4096 nodes/depth16/512-character strings; it grants no replay.
+ * Ownership [1,original team keys,started keys,assignment rows,hold maps,classifications,access flags].
+ * Assignments preserve original local progress clocks as server time. All lists/maps are <=64
+ * and resolve only original captured actors. No hold or movement is reconstructed.
  * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow,entryState].
  * Entry state [1,private record present,private record,public recovery,public alternative].
  * Original server timestamps, spent retry/search counts and foreign-visit headers remain unchanged.
@@ -244,6 +247,73 @@ isNil {
             _rows pushBack [_key,_actor,_settings,_copiedMotion,_mirrors,_copiedReservation,_copiedReturn,+_window,_entryCopy];
         } forEach _actors;
         if (!_valid || {keys _entryRecovery findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0}) exitWith {[]};
+        // Native-order ownership is not a geometry cache. Preserve all related
+        // source records together; never infer holds/started actors from current AI.
+        private _ownershipValid=true;
+        private _actorKeys={
+            params ["_list"];
+            if (!(_list isEqualType []) || {count _list > 64}
+                || {_list findIf {isNil "_x" || {!(_x isEqualType objNull)} || {isNull _x}} >= 0}
+                || {count (_list arrayIntersect _list) != count _list}) exitWith {_ownershipValid=false;[]};
+            private _out=_list apply {netId _x};
+            if (_out findIf {!(_x in _keys)} >= 0) then {_ownershipValid=false};
+            _out
+        };
+        private _teamKeys=[_team] call _actorKeys;
+        private _startedKeys=[_job getOrDefault ["started",false]] call _actorKeys;
+        private _assigned=_job getOrDefault ["assigned",false];
+        if (!_ownershipValid || {!(_assigned isEqualType [])} || {count _assigned != count _team}
+            || {_assigned findIf {isNil "_x"} >= 0}) exitWith {[]};
+        private _assignmentRows=[];
+        {
+            private _record=_x;private _copy=[];
+            if (!(_record isEqualType []) || {!(count _record in [0,5])}) exitWith {_ownershipValid=false};
+            if (_record isNotEqualTo []) then {
+                if (_record findIf {isNil "_x"} >= 0
+                    || {[0,1,3] findIf {!((_record select _x) isEqualType 0) || {!finite (_record select _x)}} >= 0}
+                    || {(_record select 0) < 0} || {(_record select 0) != floor (_record select 0)}
+                    || {(_record select 0) >= count (_job get "positions")}
+                    || {(_record select 3) < 0} || {(_record select 3) != floor (_record select 3)}
+                    || {!((_record select 2) call _vector)} || {!((_record select 4) isEqualType true)}) exitWith {_ownershipValid=false};
+                _copy=[_record select 0,_serverNow+((_record select 1)-_localNow),
+                    +(_record select 2),_record select 3,_record select 4];
+                if (!finite (_copy select 1)) exitWith {_ownershipValid=false};
+            };
+            _assignmentRows pushBack [_teamKeys select _forEachIndex,_copy];
+        } forEach _assigned;
+        if (!_ownershipValid) exitWith {[]};
+        private _holds=[];
+        {
+            private _name=_x;private _map=_job getOrDefault [_name,createHashMap];
+            if (!(_map isEqualType createHashMap) || {count _map > 64}) exitWith {_ownershipValid=false};
+            private _mapKeys=keys _map;
+            if (_mapKeys findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0) exitWith {_ownershipValid=false};
+            _mapKeys sort true;
+            private _holdRows=[];
+            {if (isNil {_map get _x}) exitWith {_ownershipValid=false};
+                private _position=_map get _x;
+                if (!(_position call _vector)) exitWith {_ownershipValid=false};
+                _holdRows pushBack [_x,+_position];
+            } forEach _mapKeys;
+            if (!_ownershipValid) exitWith {};
+            _holds pushBack [_name,_holdRows];
+        } forEach ["nativeHoldPositions","roomHolds","formationFallbackHolds"];
+        if (!_ownershipValid) exitWith {[]};
+        private _classifications=[];
+        {
+            private _classified=[_job getOrDefault [_x,[]]] call _actorKeys;
+            if (!_ownershipValid) exitWith {};
+            _classifications pushBack [_x,_classified];
+        } forEach ["accessHeld","quarantineHeld","securityActors","rotatedOut","egressDiverted"];
+        if (!_ownershipValid) exitWith {[]};
+        private _access=[];
+        {
+            private _flag=_job getOrDefault [_x,false];
+            if (!(_flag isEqualType true)) exitWith {_ownershipValid=false};
+            _access pushBack [_x,_flag];
+        } forEach ["accessAdmitted","accessBlocked","accessReported"];
+        if (!_ownershipValid) exitWith {[]};
+        private _ownership=[1,_teamKeys,_startedKeys,_assignmentRows,_holds,_classifications,_access];
         private _copiedRegistration=+_registration;
         _copiedRegistration set [2,[_visit] call _copyVisit];
         private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
@@ -265,7 +335,7 @@ isNil {
             _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
         };
         if (!_valid) exitWith {[]};
-        [4,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]
+        [5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]
     };
     false
 };
