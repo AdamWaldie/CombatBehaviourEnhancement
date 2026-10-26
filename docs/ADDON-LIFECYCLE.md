@@ -1771,3 +1771,23 @@ Reordering at most 16 existing entries replaces repeated leader reads with one
 selection-time read. There is no new worker, timer or world query. Static candidate
 selection does not prove actual upward aim, release, illumination effect, weapon
 restoration or the frame-time budget; those remain pending a physical pass.
+
+
+### Selected-platform deletion after original crew cleanup
+
+The existing local platform-deletion handler now retains the two original crew
+references in its private installation record. Both objects must exist when that
+record is first captured. During the genuine platform-deletion callback, the
+current work journal must still match those references and the exact episode.
+Each original actor must then be deleted, or remain local and dead. This permits
+cleanup when corpse removal happened before gun or vehicle removal; a missing
+initial crew record cannot establish that history.
+
+Cleanup removes only the old reference and its unchanged reservation. A newer or
+unknown public lease continues to protect private movement and operation state.
+Tactical operations end INCOMPLETE, never as successful movement. No living crew,
+replacement crew, native command, additional handler, timer or scan is introduced.
+Repeated installation retains the same snapshot; locality loss removes the local
+handler. A new owner with already-missing actors cannot reconstruct this private
+proof and still refuses cleanup. Actual deletion ordering, migration and repeated
+use remain physically unverified while audits are paused.

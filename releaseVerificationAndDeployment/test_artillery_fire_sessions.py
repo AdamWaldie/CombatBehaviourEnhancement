@@ -263,12 +263,34 @@ class ArtilleryFireSessions(unittest.TestCase):
                       '(_data select 1) != "Deleted"',
                       '(_data select 2) != (_watch select 6)',
                       '(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference',
-                      'isNull _x} || {!local _x} || {alive _x}',
+                      '_crew isNotEqualTo (_watch select 7)',
+                      '!isNull _x && {!local _x || {alive _x}}',
                       '_currentPublicLease isEqualTo _publicLease',
                       'if (_leaseStillOurs',
                       'removeEventHandler ["Deleted",_watch select 6]',
                       'PLATFORM_DELETED_ORIGINAL_CREW_DEAD'):
             self.assertIn(guard,deletion)
+        install=deletion.split('if (_mode == "INSTALL") exitWith {',1)[1].split('// This branch must be reached',1)[0]
+        self.assertIn('if (_crew findIf {isNull _x} >= 0) exitWith {false}',install)
+        self.assertIn('_referenceKey,_leaseOwner,_leaseSnapshot,_id,+_crew]',install)
+        self.assertIn('count _watch == 8',deletion)
+        self.assertIn('PLATFORM_DELETED_ORIGINAL_CREW_GONE',deletion)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        self.assertIn('count _watch == 8',locality)
+        # Snapshot provenance is captured with real objects before their deletion.
+        # Missing initial input and a changed journal cannot acquire that proof.
+        def deletion_release(captured, same_journal, actors, genuine_event=True):
+            return (captured and same_journal and genuine_event
+                    and all(state=='deleted' or state=='local_dead' for state in actors))
+        self.assertTrue(deletion_release(True,True,['local_dead','deleted']))
+        self.assertTrue(deletion_release(True,True,['deleted','deleted']))
+        self.assertTrue(deletion_release(True,True,['local_dead','local_dead']))
+        for args in ((False,True,['deleted','deleted']),
+                     (True,False,['deleted','deleted']),
+                     (True,True,['local_dead','alive']),
+                     (True,True,['deleted','remote_dead'])):
+            self.assertFalse(deletion_release(*args))
+        self.assertFalse(deletion_release(True,True,['deleted','deleted'],False))
         for forbidden in ('doMove','execFSM','waitAndExecute','addMissionEventHandler','nearestObjects','allUnits','setVelocity','setPos'):
             self.assertNotIn(forbidden,deletion)
         for file in ('artilleryCrewMoveStart','vehicleTacticalMoveStart','vehicleCrewMoveRetire',

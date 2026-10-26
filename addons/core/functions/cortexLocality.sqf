@@ -201,7 +201,7 @@ if (!_gained && {!local _group}) then {
         private _platform=if (_reference isEqualType []) then {_reference param [0,objNull,[objNull]]} else {objNull};
         if (!isNull _platform) then {
             private _watch=_platform getVariable ["CBE_VehicleCrewMove_DeletedWatch",[]];
-            if (_watch isEqualType [] && {count _watch == 7} && {(_watch select 1) isEqualTo _group}) then {
+            if (_watch isEqualType [] && {count _watch == 8} && {(_watch select 1) isEqualTo _group}) then {
                 [_platform,"RELEASE",_watch select 0] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             };
         };

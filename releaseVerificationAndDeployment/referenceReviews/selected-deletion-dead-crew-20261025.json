@@ -48,5 +48,9 @@
     "addons/core/functions/cortexLocality.sqf": "0376a81912535ad489f5cebcd0e796b0a93ecc59dc883e5fa2fa4f16450a4f34",
     "addons/main/CfgFunctions.hpp": "fe396e129c25709dcc867dd22558069b3a06a1e1519bb5458e0cac72b9486e9c",
     "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "0370e27764e419a9716b2be36329091fe1ed40bafe39b1fcdaca024c6d6a3ec4"
+  },
+  "crewProvenanceFollowup20261026": {
+    "review": "selected-deletion-crew-provenance-20261026.json",
+    "scope": "Private nonnull original-crew capture now permits subsequently deleted actors at actual platform deletion. Historical missing-corpse limitation is superseded only for that captured same-owner subset; physical validation and broader handover remain pending."
   }
 }

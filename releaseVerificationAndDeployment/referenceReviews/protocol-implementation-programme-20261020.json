@@ -83,6 +83,10 @@
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
         "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
         "physicalAcceptance": false
+      },
+      "selectedDeletionProvenance20261026": {
+        "review": "selected-deletion-crew-provenance-20261026.json",
+        "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
       }
     },
     {
@@ -286,6 +290,10 @@
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
         "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
         "physicalAcceptance": false
+      },
+      "selectedDeletionProvenance20261026": {
+        "review": "selected-deletion-crew-provenance-20261026.json",
+        "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
       }
     }
   ],
