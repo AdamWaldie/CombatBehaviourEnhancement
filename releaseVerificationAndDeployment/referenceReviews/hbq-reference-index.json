@@ -925,7 +925,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-shallow-ford-contract-20261024.json",
-      "sha256": "a9752bdf80ec2ad1af9a2d4c7597b482a360aa531a8db44cb695f0b6facb5c40",
+      "sha256": "ca8c0ab5018eb37bfe37f4c6f9a0738285471243a8ce99994731148e8e8a94a7",
       "scope": "Shallow-ford implementation contract and engine-coordinate uncertainty; selected navigation branch/interfaces, not whole controller re-review",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

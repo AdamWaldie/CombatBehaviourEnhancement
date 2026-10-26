@@ -366,20 +366,21 @@
       "name": "AI Helicopter Decelerate No Climbing",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Helicopter deceleration without unwanted climbing",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover review provenance, then trace approach/braking/landing and interruption against existing aircraft ownership.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Installed1.0.5.0 readable controller/init/settings/config recovered and reconciled; compiled/runtime equivalence unverified",
+      "nextSourceReview": "Validate flight/mission-edit/locality behaviour and added full-receipt cost when audits resume; retain separate missile-defence native-handover review.",
+      "recordedImplementationStatus": "FINITE_OWNER_CORRECTION_FULL_AUTHORED_ORDER_GUARD_OFFLINE_PHYSICAL_PENDING",
+      "recordedRemaining": "Braking/climb reduction, approach/landing coexistence, same-index edits, HC migration and runtime cost remain unverified; SQFC/preprocessing equivalence not established.",
       "implementationAssessmentCommit": "ca778db2",
-      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
-      "evidenceFilePresent": false,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/helicopter-deceleration-source-20261026.json",
+      "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3496308284",
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "reviewScopeNote": "Selected CBE correction trace and finite guard from921ca8ea plus working runtime; no whole-feature percentage reassessment."
     },
     {
       "workshopId": "3529745801",

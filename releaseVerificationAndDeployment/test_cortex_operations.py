@@ -8821,8 +8821,16 @@ class CortexOperations(unittest.TestCase):
 
     def test_deceleration_releases_changed_order_before_impulse(self):
         text=(ROOT/'addons/aircraft/functions/helicopterDecelerationCorrectLocal.sqf').read_text(encoding='utf-8')
-        for marker in ['waypointPosition _wp','waypointType _wp','waypointScript _wp','waypointSpeed _wp',
-                       'currentPilot _aircraft == _entryPilot','CBE_fnc_CortexExternalTakeover','ORDER_CHANGED']:
+        self.assertIn('[_entryGroup] call CBE_fnc_NativeOrderReceipt',text)
+        receipt=source('nativeOrderReceipt')
+        self.assertIn('call CBE_fnc_AuthoredRouteReceipt',receipt)
+        authored=source('authoredRouteReceipt')
+        for marker in ['waypointPosition _waypoint','waypointType _waypoint',
+                       'waypointScript _waypoint','waypointSpeed _waypoint',
+                       'waypointStatements _waypoint','waypointTimeout _waypoint',
+                       'synchronizedTriggers _waypoint','synchronizedWaypoints _waypoint']:
+            self.assertIn(marker,authored)
+        for marker in ['currentPilot _aircraft == _entryPilot','CBE_fnc_CortexExternalTakeover','ORDER_CHANGED']:
             self.assertIn(marker,text)
         self.assertIn('&& {call _ownsOrder}',text)
         self.assertLess(text.index('&& {call _ownsOrder}'),text.index('_aircraft addForce'))
@@ -8849,6 +8857,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_deceleration_impulse_uses_elapsed_simulation_time(self):
         text=(ROOT/'addons/aircraft/functions/helicopterDecelerationCorrectLocal.sqf').read_text(encoding='utf-8')
+        signature=text.split('private _orderSignature=',1)[1].split('private _entryOrder=',1)[0]
+        self.assertIn('[_entryGroup] call CBE_fnc_NativeOrderReceipt',signature)
+        self.assertNotIn('waypointPosition',signature)
+        self.assertIn('(_entryOrder param [1,-1]) >= 0',text)
+        self.assertIn('waypointType _entryWaypoint == "MOVE"',text)
+        self.assertIn('+(waypointPosition _entryWaypoint)',text)
+        self.assertGreaterEqual(text.count('call _ownsOrder'),3)
         self.assertIn('time - _lastImpulseTime',text)
         self.assertIn('min 0.1',text)
         self.assertIn('min ((_climbRate - _maximumClimbRate) max 0)',text)
