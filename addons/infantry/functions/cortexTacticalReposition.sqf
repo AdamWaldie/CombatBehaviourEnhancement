@@ -7,6 +7,12 @@
  * native planning and protected native tasks also defer the group waypoint;
  * the earlier close-armour withdrawal retains survival priority. Other native/fire and
  * independently scoped manoeuvre paths remain available to unreserved actors.
+ * Elevated-contact firing endpoints require a terrain- and FIRE-geometry-clear standing-height
+ * ray to the recorded belief, never the target's live pose. Screened approach remains preferred.
+ * Any cover-adjusted endpoint is revalidated through the same terrain/lane selector before use;
+ * elevated firing relocation also retains its outbound ray. No endpoint proves native access,
+ * squad-wide firing arcs, stance quality or future clearance. At most four initial firing rays
+ * and one cover-candidate ray are added per elevated plan, not per actor or scheduler tick.
  * Repeat/JIP: One operation generation owns one waypoint. A public cooldown prevents route churn; locality migration retires the old generation and never replays its command blindly.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: ordered known enemies <ARRAY>; 3: selected target index <NUMBER, default 0>; 4: assessment reason <STRING>.
  * Return Value: Boolean - true only when a physical reposition or close-threat withdrawal started.
@@ -96,6 +102,19 @@ private _candidates=[];
     private _goal=_origin getPos [_range,_x];
     _candidates pushBack [_intermediate,_goal];
 } forEach _headings;
+// A firing-position request cannot finish merely because the approach is screened.
+// Observe the supplied belief point; reading a hidden target's current pose would disclose it.
+private _needsFiringLane=_reason == "ELEVATED_FIRE_POSITION";
+private _firingTargetASL=(AGLToASL [_threatPos select 0,_threatPos select 1,_threatPos param [2,0]]) vectorAdd [0,0,1.6];
+private _firingLane={
+    params ["_firingPoint"];
+    private _firingOriginASL=(AGLToASL _firingPoint) vectorAdd [0,0,1.6];
+    !terrainIntersectASL [_firingOriginASL,_firingTargetASL]
+        && {(lineIntersectsSurfaces [_firingOriginASL,_firingTargetASL,_leader,_target,true,1,"FIRE","GEOM"]) isEqualTo []}
+};
+if (_needsFiringLane) then {
+    _candidates=_candidates select {[_x select -1] call _firingLane};
+};
 private _route=[_origin,_candidates,_threatPos,[],_target,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {
     _group setVariable ["CBE_Cortex_TacticalReposition",["BLOCKED",_reason,_target,serverTime],true];
@@ -105,8 +124,18 @@ if (_route isEqualTo []) exitWith {
 private _goal=+(_route select -1);
 private _cover=[_goal,_threatPos,18,[],_group] call CBE_fnc_CortexFindCover;
 if (_cover param [1,false,[false]]) then {
-    _goal=+(_cover select 0);
-    _route set [(count _route)-1,_goal];
+    private _coveredGoal=+(_cover select 0);
+    if (!_needsFiringLane || {[_coveredGoal] call _firingLane}) then {
+        // A nearby cover point can cross a ditch, steep ground or a protected lane.
+        // Preserve the already validated route when that adjusted route is refused.
+        private _coveredRoute=+_route;
+        _coveredRoute set [(count _coveredRoute)-1,_coveredGoal];
+        private _validatedCover=[_origin,[_coveredRoute],_threatPos,[],_target,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
+        if (_validatedCover isNotEqualTo []) then {
+            _route=_validatedCover;
+            _goal=+(_route select -1);
+        };
+    };
 };
 
 if !([_group,"TACTICAL_REPOSITION",true,serverTime+30] call CBE_fnc_CortexOwnershipLease) exitWith {false};

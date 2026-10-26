@@ -5570,6 +5570,17 @@ class CortexOperations(unittest.TestCase):
 
     def test_tactical_reposition_is_finite_generation_owned_and_yields_to_zeus(self):
         reposition=source('cortexTacticalReposition')
+        # Firing intent needs an outbound endpoint observation, not screening alone.
+        firing=reposition.split('private _needsFiringLane=',1)[1].split('private _route=',1)[0]
+        for proof in ('_reason == "ELEVATED_FIRE_POSITION"','AGLToASL [_threatPos select 0',
+                      'terrainIntersectASL','"FIRE","GEOM"','_candidates select {[_x select -1] call _firingLane}'):
+            self.assertIn(proof,firing)
+        for hidden_pose in ('getPosATL _target','getPosASL _target','eyePos _target'):
+            self.assertNotIn(hidden_pose,firing)
+        cover=reposition.split('private _cover=',1)[1].split('if !([_group,"TACTICAL_REPOSITION"',1)[0]
+        self.assertIn('!_needsFiringLane || {[_coveredGoal] call _firingLane}',cover)
+        self.assertIn('[_origin,[_coveredRoute],_threatPos,[],_target,"INFANTRY"] call CBE_fnc_CortexSelectAvenue',cover)
+        self.assertLess(cover.index('if (_validatedCover isNotEqualTo [])'),cover.index('_route=_validatedCover'))
         selector=source('cortexTacticalStart')
         tick=source('cortexGroupTick')
         functions=(ROOT/'addons/main/CfgFunctions.hpp').read_text(encoding='utf-8')

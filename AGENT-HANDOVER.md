@@ -1,3 +1,11 @@
+## 2026-10-26: tactical firing endpoint and cover-route validation
+
+Base1d98af60 plus working runtime. Existing CortexTacticalReposition now filters four elevated-contact endpoints for a terrain/FIRE-geometry-clear standing-height ray to recorded belief, without reading the hostile live pose. Any cover-adjusted endpoint must pass the same avenue selector before replacing the validated route; elevated intent also retains the firing ray. Refused adjustment preserves the original route. Existing finite group operation, cooldown, arrival and handback owners remain. No new controller, setting or native fire/pose command.
+642 targeted checks and1497 full offline tests passed;446 SQF compiled/11PBOs built; independent candidate verification passed. Candidate .qa/candidates/firing-endpoint-1d98af60 fingerprint eefbbe6e0fa45debaac6c82fe565be3ccf2fdf68c92ee52da47dc7536e8cd32a. Logs .qa/handovers/firing-endpoint-1d98af60.log and .qa/handovers/firing-endpoint-independent.log. Unsigned dirty development evidence, notes postdate package. Source dispositions and exact bounded costs recorded in existing lambs-danger-branch-execution review #firingEndpointAndCoverRoute20261026.
+Physical routes, squad firing arcs, stance quality and performance remain unverified; general per-actor persistent-occlusion firing response remains unimplemented. Audits paused; no Arma launch/staging. Whole goal active/incomplete. Next: continue concrete LAMBS/HBQ execution/capability gaps from the source register; do not inflate this group correction into actor or whole-source parity. Preserve unrelated dirt, protected sources, archives and signing keys. No merge/release/publication.
+
+---
+
 ## 2026-10-26: ordinary rear recovery STOP observation
 
 Base8d660547 plus current working changes. DrivingAssistStart ordinary expired SIMPLE_BACK now checks the same simpleStopIssued journal used by release/cleanup before issuing STOP. A delayed native reply no longer replays the request on every ordinary observation. Original hard deadline, acknowledgement, zero-cap and crew/route/cap authority remain. Existing focused8 checks passed; full offline1497 tests/446 compiled SQF/11PBOs passed; independent candidate verification passed.

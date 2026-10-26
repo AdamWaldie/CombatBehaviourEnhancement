@@ -1237,5 +1237,34 @@
     "audits": "paused",
     "physicalAcceptance": false,
     "buildoutPercentageChange": false
+  },
+  "firingEndpointAndCoverRoute20261026": {
+    "status": "IMPLEMENTED_GROUP_FALLBACK_OFFLINE_PHYSICAL_UNVERIFIED",
+    "scope": "Complete readable doSuppress/doCover/findCover bodies, previously reviewed doGroupSuppress movement fallback, and current CBE tactical assessment/reposition/avenue paths. Not whole main-addon review or per-actor firing-position parity.",
+    "sourceHashes": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doSuppress.sqf": "3eeb2ab99ff564aab61ec691d9b3c93841a55a3e242a9f7c9357c056f682f9c7",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findCover.sqf": "fa07c04cab19efe1552a793952ccc541f1f612cfb383459fa6b63d6f491ca805"
+    },
+    "intent": "Useful fire positions and nearby cover should improve combat options, not merely move toward a contact or stand behind an opaque obstruction.",
+    "sourceDispositions": [
+      "doSuppress clips to the first VIEW surface and checks nearby friendlies. CBE retains its own believed-point FIRE/GEOM and friendly-lane admission; a clipped arbitrary obstruction is not automatically a useful target.",
+      "doCover lowers stance before PATH/indoor refusal, then issues moveTo and setDestination with a gesture. Keep nearby-survival intent through existing DangerCoverStep; do not add an unleased pose/movement writer.",
+      "findCover scans terrain/placed objects and may choose a raw bounding-box corner added to world position. It accepts threat-to-low-height occlusion and randomly chooses a screened stance; middle/up probes both use height1. Cover screening does not demonstrate an outbound firing lane. Preserve CBE rotated bounds, explicit screening and finite selection rather than copying this geometry."
+    ],
+    "cbeDefect": "ELEVATED_FIRE_POSITION selected screened approaches without testing the final outbound lane. CortexFindCover could then replace the final endpoint after terrain-route validation, for any reposition reason.",
+    "implementation": "CortexTacticalReposition filters its four elevated candidate endpoints using terrainIntersectASL and a FIRE/GEOM ray at standing height to the recorded belief, without reading target pose. A cover-adjusted endpoint must retain that lane for elevated intent and pass the existing avenue selector before replacing the validated route. Refusal preserves the original route; no firing candidates uses existing BLOCKED/cooldown. Existing OperationStart, movement lease, route progression, native task and cleanup owners unchanged.",
+    "boundedCost": "At most4 initial firing surface queries plus1 cover-candidate query per elevated plan; terrain can short-circuit each. Any accepted cover proposal adds one existing selector pass on a single two-leg route: at most48 terrain stations and6 screen samples (cover/concealment can each be tested). No worker, actor scan, cache, recurring per-actor observation, new setting or native fire/pose command. Engine cost remains unmeasured.",
+    "checks": [
+      "642 targeted source regression checks passed",
+      "1497 full offline tests passed",
+      "446 SQF compiled and11 PBOs built",
+      "Independent candidate verification passed"
+    ],
+    "candidate": ".qa/candidates/firing-endpoint-1d98af60",
+    "fingerprint": "eefbbe6e0fa45debaac6c82fe565be3ccf2fdf68c92ee52da47dc7536e8cd32a",
+    "buildLog": ".qa/handovers/firing-endpoint-1d98af60.log",
+    "independentLog": ".qa/handovers/firing-endpoint-independent.log",
+    "limits": "One hypothetical standing-height ray is not native accessibility, squad formation/muzzle clearance, chosen stance, sustained fire or tactical acceptance. World geometry can change after planning. General per-actor persistent-occlusion reposition remains unimplemented. No whole-mod parity/performance claim. Audits paused. Unsigned dirty development candidate from base1d98af60 plus working runtime; engineering notes postdate package."
   }
 }
