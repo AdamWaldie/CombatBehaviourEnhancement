@@ -618,5 +618,23 @@
     "runtimeChanged": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "defensiveLaneImplementation20261026": {
+    "problem": "Defensive indoor selection ranked proximity but could choose a point behind the same wall, or move an actor whose present lane was already usable.",
+    "implementation": "Existing IndoorActorNodeSelect defensive mode now refuses an already usable current lane and requires a terrain/FIRE-GEOM-screened prospective lane at current eye height. A non-null first surface within3m of native belief is a usable near-face point. No targeting/fire/movement authority is granted by selection.",
+    "limits": "Existing8m radius/same-floor/origin/occupancy/12-node operation budget retained. At most1current+3candidate extra surface queries/callback in defensive mode; ordinary investigation performs no added lane queries. A prospective eye sample is not a guaranteed real firing solution.",
+    "sourceFile": "addons/infantry/functions/indoorActorNodeSelect.sqf",
+    "sourceSha256": "a51f82e0f30de0baaa8b09e4efcbc8c34e6d0dfcac53c78189cff94bcb121762",
+    "checks": {
+      "tests": 1497,
+      "focusedIndoorTests": 32,
+      "build": ".qa/handovers/defensive-lane-build.log",
+      "independent": ".qa/handovers/defensive-lane-independent.log"
+    },
+    "candidate": ".qa/candidates/defensive-lane-17cbb40e",
+    "fingerprint": "36916dd722d9d1851674e890d4104bc09e8a9e7850b286162917f43f9609f3e2",
+    "remaining": "Physical approach, repeat use, window/stance quality, runtime cost and general outdoor blocked-fire response remain unverified/unimplemented as applicable. Audits paused.",
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

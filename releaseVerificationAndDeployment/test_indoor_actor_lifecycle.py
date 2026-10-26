@@ -246,7 +246,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'abs (_height-_beliefHeight) <= 1.5','_ranked select [0,3]',
                       'private _hit=_hits select 0','_selected isNotEqualTo []'):
             self.assertIn(guard,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         for proof in ('count _probed >= 12','_previousBinding isNotEqualTo _binding',
                       '_probed findIf {_x vectorDistance _nodeASL < 0.1}',
                       '_search set ["pending"','count _ranked > 3'):
@@ -254,7 +254,19 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         self.assertIn('_brain set ["nodeSearch",_nodeSearch]',operation)
         self.assertIn('if (_nodeSearch getOrDefault ["pending",false]) then {-1}',operation)
-        # Later native nodes remain selectable without increasing the per-call ray budget.
+        # Only defensive selection adds a current-lane probe and at most three
+        # prospective probes. Ordinary investigation retains its three roof rays.
+        lane=s.split('private _defensiveLaneUsable=',1)[1].split('private _positions=',1)[0]
+        for proof in ('terrainIntersectASL','"FIRE","GEOM"',
+                      'vectorDistance _laneTargetASL <= 3',
+                      'if (_defensive && {[eyePos _actor] call _defensiveLaneUsable}) exitWith {[]}',
+                      'max 0.6 min 1.8'):
+            self.assertIn(proof,lane)
+        candidate=s.split('private _hits=if (_roofTop',1)[1]
+        self.assertIn('!_defensive || {[_asl vectorAdd [0,0,_defensiveEyeHeight]] call _defensiveLaneUsable}',candidate)
+        self.assertLess(s.index('if (_defensive && {[eyePos _actor]'),s.index('private _positions='))
+        self.assertEqual(s.count('call _defensiveLaneUsable'),2)
+        # Later native nodes remain selectable within the existing roof-ray budget.
         def search(nodes,roofed):
             probed=[];counts=[]
             while len(probed)<12:
@@ -309,7 +321,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('abs ((_x select 2)-_height) <= 1',s)
         for forbidden in ('allUnits','nearEntities','nearestObjects','setVariable','_enemy'):
             self.assertNotIn(forbidden,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         self.assertIn('_ranked select [0,3]',s)
         # Occupancy is floor-specific and temporary, not a failed-node cache entry.
         def occupied(body,node):
