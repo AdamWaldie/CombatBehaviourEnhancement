@@ -11,7 +11,7 @@
  * One original-owner CAPTURE submission follows these checks; no retry or JIP replay.
  * Arguments: 0 state HASHMAP default empty: taskGroup GROUP, capture ARRAY, writers ARRAY,
  * until NUMBER server time, attempts NUMBER, producer NUMBER, done BOOL; records ARRAY
- * [object/group,variableName,present,valueCopy] rows, max578, after intentional edge cleanup.
+ * [object/group,variableName,present,valueCopy] rows, max706, after intentional edge cleanup.
  * Writer [original object/group,brain variable name,original FSM handle,original brain].
  * Return: NUMBER .25 while waiting, -1 on completion/refusal/expiry.
  * Current callers: CortexLocality via existing CortexQueueJob after original pointer retirement.
@@ -60,7 +60,7 @@ if (_invalid) exitWith {["WRITER_IDENTITY_CHANGED"] call _finish};
 if (_pending) exitWith {0.25};
 // Compare after actual old-FSM exit. A mismatch refuses, never refreshes the baseline.
 private _records=_state getOrDefault ["records",[]];
-if (!(_records isEqualType []) || {count _records < 2} || {count _records > 578}) exitWith {["INVALID_RECORDS"] call _finish};
+if (!(_records isEqualType []) || {count _records < 2} || {count _records > 706}) exitWith {["INVALID_RECORDS"] call _finish};
 private _recordsChanged=_records findIf {
     private _record=_x;
     if (!(_record isEqualType []) || {count _record != 4}

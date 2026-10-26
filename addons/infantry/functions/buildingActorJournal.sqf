@@ -9,11 +9,13 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [3,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy] or[] on refusal.
+ * Return: ARRAY [4,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy] or[] on refusal.
  * Group policy [1,original behaviour,original attack BOOL,continueRoute BOOL,attack lease,original native route].
  * Only the exact CLEAR attack lease is accepted. Unknown group restoration keys refuse.
  * Route copy is bounded to4096 nodes/depth16/512-character strings; it grants no replay.
- * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow].
+ * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow,entryState].
+ * Entry state [1,private record present,private record,public recovery,public alternative].
+ * Original server timestamps, spent retry/search counts and foreign-visit headers remain unchanged.
  * Actor reservations/return expiry convert the original local clock to server time once; no renewal. Canonical rows preserve
  * [context,[property,baseline,applied] rows,retryAtServer]. Mirrors retain [name,present,value].
  * Current callers: CortexLocality outgoing checkpoint before private producer retirement.
@@ -91,6 +93,25 @@ isNil {
         private _copiedNative=[_nativeReceipt] call _copyPolicy;
         if (!_policyValid) exitWith {[]};
         private _groupPolicy=[1,_baseBehaviour,_baseAttack,_continueRoute,+_attack,_copiedNative];
+        private _entryRecovery=_job getOrDefault ["entryRecovery",createHashMap];
+        if (!(_entryRecovery isEqualType createHashMap) || {count _entryRecovery > 64}) exitWith {[]};
+        private _entryVisitValid={
+            _this isEqualType [] && {count _this == 4} && {_this findIf {isNil "_x"} < 0}
+                && {(_this select 0) isEqualType objNull}
+                && {(_this select 1) isEqualType []} && {count (_this select 1) == 3}
+                && {(_this select 1) findIf {!(_x call _vector)} < 0}
+                && {(_this select 2) isEqualType 0} && {finite (_this select 2)} && {(_this select 2) >= 0}
+                && {(_this select 3) isEqualType ""} && {(_this select 3) != ""}
+        };
+        private _entryRecordValid={
+            params ["_record","_until"];
+            _record isEqualType [] && {count _record == 5} && {_record findIf {isNil "_x"} < 0}
+                && {[0,1] findIf {!((_record select _x) isEqualType 0) || {!finite (_record select _x)}
+                    || {(_record select _x) < 0}} < 0}
+                && {(_record select 1) <= _serverNow+1} && {(_record select 1) <= _until}
+                && {(_record select 2) isEqualType true}
+                && {(_record select 3) call _vector} && {(_record select 4) call _vector}
+        };
         private _rows=[];private _keys=[];private _valid=true;
         {
             private _actor=_x;
@@ -193,9 +214,36 @@ isNil {
                 || {_window isNotEqualTo [] && {[0,1] findIf {isNil {_window select _x}} >= 0
                     || {!((_window select 0) isEqualType "")} || {(_window select 0) == ""}
                     || {!((_window select 1) isEqualType 0)} || {!finite (_window select 1)}}}) exitWith {_valid=false};
-            _rows pushBack [_key,_actor,_settings,_copiedMotion,_mirrors,_copiedReservation,_copiedReturn,+_window];
+            // Keep private progress and published monotonic retry evidence separately.
+            // Foreign-visit history retains its own header; it is not a fresh/current budget.
+            private _entryPresent=_key in _entryRecovery;
+            private _entryRecord=if (_entryPresent) then {_entryRecovery get _key} else {[]};
+            if (_entryPresent && {!([_entryRecord,_job get "hardDeadline"] call _entryRecordValid)}) exitWith {_valid=false};
+            private _publishedEntry=_actor getVariable ["CBE_Cortex_ClearEntryRecovery",[]];
+            if (!(_publishedEntry isEqualType []) || {!(count _publishedEntry in [0,3])}) exitWith {_valid=false};
+            if (_publishedEntry isNotEqualTo [] && {
+                _publishedEntry findIf {isNil "_x"} >= 0 || {!((_publishedEntry select 0) isEqualType grpNull)}
+                    || {!((_publishedEntry select 1) call _entryVisitValid)}
+                    || {!([_publishedEntry select 2,(_publishedEntry select 1) select 2] call _entryRecordValid)}
+            }) exitWith {_valid=false};
+            private _alternative=_actor getVariable ["CBE_Cortex_ClearEntryAlternative",[]];
+            if (!(_alternative isEqualType []) || {!(count _alternative in [0,7])}) exitWith {_valid=false};
+            if (_alternative isNotEqualTo [] && {
+                _alternative findIf {isNil "_x"} >= 0 || {!((_alternative select 6) call _entryVisitValid)}
+                    || {(_alternative select [0,3]) isNotEqualTo [(_alternative select 6) select 0,
+                        (_alternative select 6) select 2,(_alternative select 6) select 1]}
+                    || {!((_alternative select 3) isEqualType [])}
+                    || {(_alternative select 3) isNotEqualTo [] && {!((_alternative select 3) call _vector)}}
+                    || {[4,5] findIf {!((_alternative select _x) isEqualType 0) || {!finite (_alternative select _x)}
+                        || {(_alternative select _x) < 0} || {(_alternative select _x) != floor (_alternative select _x)}} >= 0}
+                    || {(_alternative select 4) > 3} || {(_alternative select 5) > 512}
+            }) exitWith {_valid=false};
+            _policyNodes=0;
+            private _entryCopy=[[1,_entryPresent,_entryRecord,_publishedEntry,_alternative]] call _copyPolicy;
+            if (!_policyValid) exitWith {_valid=false};
+            _rows pushBack [_key,_actor,_settings,_copiedMotion,_mirrors,_copiedReservation,_copiedReturn,+_window,_entryCopy];
         } forEach _actors;
-        if (!_valid) exitWith {[]};
+        if (!_valid || {keys _entryRecovery findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0}) exitWith {[]};
         private _copiedRegistration=+_registration;
         _copiedRegistration set [2,[_visit] call _copyVisit];
         private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
@@ -217,7 +265,7 @@ isNil {
             _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
         };
         if (!_valid) exitWith {[]};
-        [3,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]
+        [4,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]
     };
     false
 };

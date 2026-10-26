@@ -282,7 +282,8 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
             _clearRetireRecords pushBack [_recordActor,_x,_present,_value];
         } forEach ["CBE_ActorSettings","CBE_Cortex_ClearMotion","CBE_Cortex_ClearStance",
             "CBE_Cortex_ClearForcedSpeed","CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearSettingToken",
-            "CBE_Cortex_ActorMove","CBE_Cortex_ClearEvasionReturn","CBE_Cortex_ClearSettingRetireUntil"];
+            "CBE_Cortex_ActorMove","CBE_Cortex_ClearEvasionReturn","CBE_Cortex_ClearSettingRetireUntil",
+            "CBE_Cortex_ClearEntryRecovery","CBE_Cortex_ClearEntryAlternative"];
     } forEach ((_clearRetireCapture select 16) select 2);
     {
         private _present=!isNil {_group getVariable _x};

@@ -2034,3 +2034,6 @@ The shared clearance-setting cleanup service covers the latest original expiry o
 
 
 Ordinary foot-route door assistance can try up to four eligible nearby approaches in its existing rotating sample before yielding. An empty probe no longer ends the group callback immediately; one opening request ends the batch. The existing two-second minimum gap, sixteen-actor sample and sixty-four-member limit remain. Each door request retains current owner/epoch, plain native MOVE, near approach, lock and visibility checks. No route or movement is replaced. The maximum ray budget is now twenty per callback; runtime cost and physical entry remain unverified.
+
+
+The current actor capture component is version4 with six fields. Its actor rows have nine fields, appending original private entry-recovery presence/value and separate published recovery/alternative-search records. Original server timestamps, spent attempts, alternative target, search count, coverage and visit identity are preserved. Prior-visit history keeps its own header. Unknown actor keys or malformed records refuse capture. Both public entry channels participate in the post-FSM consistency comparison, bounded to706 records. This does not issue or resume entry, reset a budget, prove physical entry or establish complete source quiescence.

@@ -265,7 +265,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
         self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
         self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
-        for guard in ('count _records > 578','SOURCE_METADATA_CHANGED',
+        for guard in ('count _records > 706','SOURCE_METADATA_CHANGED',
                       '_currentPresent isNotEqualTo _present',
                       '(_object getVariable _variable) isNotEqualTo _original'):
             self.assertIn(guard,retire)
@@ -313,7 +313,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[3,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]'):
+                      '[4,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]'):
             self.assertIn(guard,actor_journal)
         for guard in ('keys _restore findIf {_x != "groupAttack"}',
                       '(_attack select 0) isNotEqualTo _baseAttack',
@@ -333,6 +333,21 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertFalse(policy_valid(True,[False,False]))
         self.assertFalse(policy_valid(True,[True,True]))
         self.assertFalse(policy_valid(True,[True,False],True))
+        for guard in ('CBE_Cortex_ClearEntryRecovery','CBE_Cortex_ClearEntryAlternative',
+                      'count _entryRecovery > 64','_entryPresent',
+                      '(_alternative select 4) > 3','(_alternative select 5) > 512',
+                      '[1,_entryPresent,_entryRecord,_publishedEntry,_alternative]',
+                      'keys _entryRecovery findIf'):
+            self.assertIn(guard,actor_journal)
+        for channel in ('CBE_Cortex_ClearEntryRecovery','CBE_Cortex_ClearEntryAlternative'):
+            self.assertIn(channel,locality.split('private _clearRetireRecords=',1)[1])
+        original_entry=[1,True,[3,120,True,[1,2,0],[0,2,0]],[],['house',150,[[0,0,0],[0,1,0],[0,0,1]],[],3,12,['house',[[0,0,0],[0,1,0],[0,0,1]],150,'visit']]]
+        captured_entry=copy.deepcopy(original_entry)
+        original_entry[2][2]=False
+        original_entry[4][4]=0
+        self.assertTrue(captured_entry[2][2])
+        self.assertEqual(captured_entry[4][4],3)
+        self.assertEqual(captured_entry[2][1],120)
         # Clock origins may differ. Preserve remaining time, including already expired leases.
         for local_now,server_now,expiry in ((100,500,106),(100,500,99),(1,900,1)):
             encoded=server_now+(expiry-local_now)

@@ -111,6 +111,7 @@
         "scope": "Watched post-edge actor/settings metadata rechecked after actual original-FSM exit; changed records refuse. Not full checkpoint/all-writer seal or physical handover proof."
       },
       "queuedThrowWriterFence20261026": {
+        "entryStateCaptureReview": "clear-entry-state-20261026.json",
         "routeDoorBatchReview": "route-door-batch-20261026.json",
         "settingsWindowUnionReview": "clear-settings-window-union-20261026.json",
         "groupPolicyCaptureReview": "clear-group-policy-20261026.json",

@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: actor componentv4/six fields, nine-field actor rows append private entry-recovery presence/value plus separate public recovery/alternative search records. Original server clocks/spent retry/search/coverage/visit headers retained; malformed/unknown source keys refuse. Both public channels join retirement comparison (max706 records). Source inspection confirmed buddy admission already independent; no movement/entry timing changed.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-entry-state-e661ba6b`, fingerprint `827a854ab0644c80a78c64473481e86ede187e0cd2ae128a505c6ef40bf1f525`. Review `clear-entry-state-20261026.json`. Still unsealed, no incoming executor; audits paused and whole goal incomplete.
+
+
 Latest: ordinary route-door assistance tries up to4 eligible approaches per existing callback instead of ending after the first empty approach. Cursor advances on attempts; stop after one opening. Existing16-actor/64-member sample and2s minimum gap plus all helper animation/lock/task guards remain. Ray bound rises from5 to20; actual cost/entry unverified.1497 full tests/32 focused,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/route-door-batch-ad63ff1b`, fingerprint `3500f1f5011a1f4720a76a7b291b41ee53903800b504e5441836d8d2eec9b03e`. Review `route-door-batch-20261026.json`. No movement/route replacement or clearance credit; audits paused and whole production goal incomplete.
 
 
