@@ -19,6 +19,9 @@
  * 4 near-contact probe BOOL false; a current stationary pose permits twelve low diagonal/side
  * probes. Callers must qualify failed ordinary recovery before enabling them. Gates, actors,
  * active/attached objects and ambiguous two-sided contact do not become a side diagnosis.
+ * 5 travel direction NUMBER 1: +1 forward or -1 reverse. Callers must supply only
+ * direction-matching curvature/support hints; invalid direction gives an unavailable solid cap.
+ * Reverse retains the existing2m rear buffer; forward retains its6m stand-off.
  * Return Value: ARRAY [gate observation ARRAY, solid observation ARRAY]. Gate observation retains
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
@@ -46,15 +49,16 @@
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
  * Example: private _observed=[truck1,15] call CBE_fnc_DrivingGeometryCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]],["_nearContact",false,[true]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_measured",[],[[]]],["_nearContact",false,[true]],["_travelDirection",1,[0]]];
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle && {!(_serverCheck && {isServer})}} || {!alive _vehicle}) exitWith {[[_requested,objNull,-1,time,0],[]]};
 // A model transform includes object scale. Never send metre-valued travel or
 // margins through that transform again; project the real body once into a unit basis.
 private _unavailable=[[_requested,objNull,-1,time,0],[0,objNull,0,time,0,"UNAVAILABLE",[],[],[]]];
+if (!(_travelDirection in [-1,1])) exitWith {_unavailable};
 private _frameOrigin=_vehicle modelToWorldWorld [0,0,0];
-private _bodyForward=vectorNormalized vectorDir _vehicle;
+private _bodyForward=(vectorNormalized vectorDir _vehicle) vectorMultiply _travelDirection;
 private _bodyUp=vectorNormalized vectorUp _vehicle;
 private _bodySide=vectorNormalized (_bodyForward vectorCrossProduct _bodyUp);
 if (abs (_bodyForward vectorDotProduct _bodyUp) > 0.01) exitWith {_unavailable};
@@ -285,9 +289,10 @@ if (_nearContact) then {
 if (_probeBudget && {(_leftContact isEqualTo []) != (_rightContact isEqualTo [])}) then {
     _solidGap=0;_solid=if (_leftContact isNotEqualTo []) then {_leftContact} else {_rightContact};
 };
+private _standOff=[6,2] select (_travelDirection < 0);
 private _capForGap={
     params ["_gap"];
-    private _room=(_gap-6) max 0;
+    private _room=(_gap-_standOff) max 0;
     private _reactionSpeed=_deceleration*_reaction;
     _requested min ((sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_room)-_reactionSpeed) max 0)
 };

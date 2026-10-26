@@ -57,5 +57,6 @@
     "https://community.bistudio.com/wiki/forceSpeed"
   ],
   "wholeHBQParity": false,
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "followup": "hbq-native-backing-observation-20261026.json addresses the historical ordinary-reverse observation gap; physical acceptance and complete controller handover remain pending."
 }

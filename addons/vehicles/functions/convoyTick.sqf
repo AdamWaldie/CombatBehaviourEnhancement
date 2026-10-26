@@ -934,7 +934,7 @@ if (finite _leadNativeGrade && {_leadNativeGrade > 0.2}) then {_leadLimit=_leadL
     if (finite _leadNativeGrade && {_leadNativeGrade > 0.12}) then {_leadLimit=_leadLimit min 25};
 };
 if (_captureControl) then {(_leadControl select 4) pushBack ["nativeGrade",_leadLimit]};
-private _leadCurveHint=if (_leadNativeHint isEqualTo []) then {[_leadTurn select 0]} else {_leadNativeHint};
+private _leadCurveHint=if (count _leadNativeHint != 4) then {[_leadTurn select 0]} else {_leadNativeHint};
 private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,_leadCurveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
 private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
 if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
@@ -1153,7 +1153,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _nativeHint=if (_pathAssistEnabled) then {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
     } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
-    private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
+    private _curveHint=if (count _nativeHint != 4) then {[_turn select 0]} else {_nativeHint};
     // The same native-path grade ceiling as ordinary driving; existing spacing,
     // closing and obstacle ceilings remain independent and can only lower it.
     private _nativeGrade=_nativeHint param [3,-1,[0]];

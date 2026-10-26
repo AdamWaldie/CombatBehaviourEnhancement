@@ -11,6 +11,8 @@
  * first element ORDINARY or CONVOY, second convoy revision where applicable; 3 release <BOOL, false>;
  * 4 expected convoy revision <NUMBER, -1> protects stale cleanup when >=0.
  * Return Value: ARRAY [] without usable evidence, otherwise [curvature NUMBER, allowStopped BOOL, support path ARRAY, maximum grade NUMBER].
+ * A current forward path0.5..<3m returns [0,false,[],-1,1] for direction only. It
+ * supplies no bend/support/grade hint; consumers must distinguish the five-field result.
  * Bounds: native events retain at most 64 ASL nodes; owner callbacks make two bounded passes over those nodes.
  * Five-second evidence age, exact both-seat destinations, current proximity/floor and forward
  * lookahead 3..12 m protect use. A six-metre path-distance walk interpolates the forward
@@ -160,17 +162,23 @@ for "_i" from (_nearIndex+1) to (count _nodes-1) do {
         if (abs ((_origin select 2)-(_next select 2)) > 2) then {_floorLost=true};
     };
 };
-if (_floorLost || {_targetASL isEqualTo []}) exitWith {[]};
-private _distance=_origin distance2D _targetASL;
-if !(_distance >= 3 && {_distance <= 12}) exitWith {[]};
+private _directionOnly=_targetASL isEqualTo [];
+if (_floorLost || {_directionOnly && {_walked < 0.5 || {_walked >= 3}}}) exitWith {[]};
+private _observedTarget=if (_directionOnly) then {_cursor} else {_targetASL};
+private _distance=_origin distance2D _observedTarget;
+if (if (_directionOnly) then {_distance < 0.5 || {_distance >= 3}}
+    else {!(_distance >= 3 && {_distance <= 12})}) exitWith {[]};
 private _bodyForward=vectorNormalized vectorDir _vehicle;
 private _bodyUp=vectorNormalized vectorUp _vehicle;
 private _bodySide=vectorNormalized (_bodyForward vectorCrossProduct _bodyUp);
 if (abs (_bodyForward vectorDotProduct _bodyUp) > 0.01
     || {abs ((vectorMagnitude _bodySide)-1) > 0.01}) exitWith {[]};
-private _targetRelative=_targetASL vectorDiff (_vehicle modelToWorldWorld [0,0,0]);
+private _targetRelative=_observedTarget vectorDiff (_vehicle modelToWorldWorld [0,0,0]);
 private _target=[_targetRelative vectorDotProduct _bodySide,_targetRelative vectorDotProduct _bodyForward];
 if (_target findIf {!finite _x} >= 0) exitWith {[]};
+// Direction may be observed on a short new path even though it cannot support
+// the three-metre bend calculation. This never supplies a travel or clearance command.
+if (_directionOnly) exitWith {if ((_target select 1) > 0.5) then {[0,false,[],-1,1]} else {[]}};
 if !((_target select 1) > 1) exitWith {[]};
 private _distanceSquared=(_target select 0)^2+(_target select 1)^2;
 if (_walked >= 6 && {count _supportPath == 2}) then {_supportPath pushBack (+_targetASL)} else {_supportPath=[]};

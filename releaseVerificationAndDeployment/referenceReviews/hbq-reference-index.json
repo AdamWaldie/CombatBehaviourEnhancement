@@ -527,7 +527,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-forward-metre-frame-20261026.json",
-      "sha256": "b00fed55f70e66ef51c13ea3fe4eed80df483ffd7deae53a53f57dd9805e850d",
+      "sha256": "c7509fe70516c6f96573d774a72dc81a59c683bfd245a5b36c880d1570ca823a",
       "scope": "CBE forward geometry and both curvature producers; selected HBQ arc/track intent. Not a complete controller review or parity claim.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -620,6 +620,15 @@
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-moving-overtake-20261020.json",
       "sha256": "93d52ea7c60ade4b3b0b54806efd1611f6d7b3b5deadb5ab49afbb5bf01a5f02",
       "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-backing-observation-20261026.json",
+      "sha256": "3e37f89553508872e919d2fdbb03371297ccc350e8c6a89e5cce8e5bd583627c",
+      "scope": "Ordinary native reverse traffic and solid observation; no new movement controller or whole-HBQ parity claim.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
       ],

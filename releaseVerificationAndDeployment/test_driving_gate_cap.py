@@ -64,7 +64,7 @@ class DrivingGateCapTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         for gate in ['modelToWorldWorld', 'true,4,"GEOM","NONE"',
                      '[_left,(_left+_right)*0.5,_right]', 'forEach _heights',
-                     'max 25 min 600', '_gap-6', '_deceleration=4/_massFactor']:
+                     'max 25 min 600', '_gap-_standOff', 'private _standOff=[6,2] select (_travelDirection < 0)', '_deceleration=4/_massFactor']:
             self.assertIn(gate,s)
         for command in ['animateSource','animateDoor','forceSpeed','setVelocity','doMove','remoteExec','animationSourcePhase']:
             self.assertNotIn(command,s)

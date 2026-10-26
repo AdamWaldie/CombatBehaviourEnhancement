@@ -9,6 +9,19 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DrivingHullInterval',s)
         self.assertEqual(s.count('modelToWorldWorld'),1)  # origin; body span uses shared four transforms
         self.assertNotIn('worldToModel',s)
+        self.assertIn('["_travelDirection",1,[0]]',s)
+        self.assertIn('private _standOff=[6,2] select (_travelDirection < 0)',s)
+        self.assertIn('private _room=(_gap-_standOff) max 0',s)
+        self.assertIn('vectorDir _vehicle) vectorMultiply _travelDirection',s)
+        self.assertIn('if (!(_travelDirection in [-1,1])) exitWith {_unavailable}',s)
+        # Reversing both horizontal body axes keeps the frame right-handed and
+        # places the probe beyond the true asymmetric rear, never the front bumper.
+        own_y=(-5,3)
+        rear_edge=max(-own_y[0],-own_y[1])
+        self.assertEqual(rear_edge,5)
+        rear_world=-(rear_edge+.2+8)
+        self.assertAlmostEqual(rear_world,-13.2)
+        self.assertLess(rear_world,own_y[0])
         self.assertIn('(_modelPoints select 0) call _pointWorld',s)
         self.assertIn('[_edge+_side*_reach,_toY,_z] call _pointWorld',s)
         self.assertIn('_supportEnd call _pointBody',s)
@@ -125,7 +138,7 @@ class DrivingGeometryTests(unittest.TestCase):
                          'CBE_DrivingPass_Work','CBE_DrivingCorridor_Work',
                          'CBE_DrivingBypass_Work','call _mayRecoverOrdinaryRoute'):
             self.assertIn(required,qualification)
-        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe]',ordinary)
+        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe,_travelDirection]',ordinary)
         self.assertNotIn('_cornerProbe',convoy)
         self.assertEqual(ordinary.count('call CBE_fnc_DrivingGeometryCap'),1)
         self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
@@ -206,6 +219,21 @@ class DrivingGeometryTests(unittest.TestCase):
         self.assertNotIn('worldToModel',selection)
         self.assertIn('_targetRelative vectorDotProduct _bodySide',selection)
         self.assertIn('_targetRelative vectorDotProduct _bodyForward',selection)
+        for guard in ('private _directionOnly=_targetASL isEqualTo []','_walked < 0.5','_walked >= 3',
+                      '_distance < 0.5','_distance >= 3','(_target select 1) > 0.5',
+                      '[0,false,[],-1,1]'):
+            self.assertIn(guard,selection)
+        self.assertLess(selection.index('if (_directionOnly) exitWith'),selection.index('private _distanceSquared='))
+        # Short native legs can establish direction without manufacturing a bend.
+        def short_direction(walked,distance,forward,floor=True):
+            return floor and .5<=walked<3 and .5<=distance<3 and forward>.5
+        self.assertTrue(short_direction(2,2,2))
+        self.assertFalse(short_direction(.4,.4,.4))
+        self.assertFalse(short_direction(2,2,-2))
+        self.assertFalse(short_direction(2,2,2,False))
+        for name in ('drivingAssistStart','convoyTick'):
+            consumer=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            self.assertIn('count _nativeHint != 4',consumer)
         self.assertLess(selection.index('_floorLost ||'),selection.index('private _targetRelative='))
         # Prior next-three-node admission rejects these valid half-metre forward samples.
         dense=[i*0.5 for i in range(1,64)]

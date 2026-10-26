@@ -84,6 +84,13 @@
  * Gate animation or damage does not grant passage; nearby openings use server validation, and no closing command is issued.
  * Close stable static blockage may use the same finite rear recovery after fresh dwell;
  * independent traffic, gate and pedestrian constraints still suppress its admission.
+ * Ordinary native backing shares rear-facing traffic, solid and pedestrian observation.
+ * A local direction observation binds owner/brain/route/seats and both native tasks. Measured
+ * forward travel, changed tasks or a newly observed usable forward path end a retained rear
+ * observation; an unchanged native MOVE label alone cannot flip sensing when our cap stops it.
+ * Direction is observation only, never a reverse request or physical-progress proof. Backing uses
+ * the existing cautious10km/h ceiling and requests the existing one-second constrained cadence.
+ * Explicit CBE reverse/queue/path executors keep their own direction and authority.
  * Owned traffic stops remain sampled; congestion suppresses reverse. Only bounded native-route
  * retries may reconsider persistent blockage. No crossing priority is inferred. Experimental automatic passing uses separate finite
  * preparation and real owner consent, with no collision exemption.
@@ -151,6 +158,15 @@ private _stationary={
     private _angularSpeed=vectorMagnitude angularVelocity _candidate;
     finite _linearSpeed && {finite _angularSpeed}
         && {_linearSpeed < (1/3.6)} && {_angularSpeed < 0.01}
+};
+// An observation key, not native command authority. Planning flags and the settled
+// MOVE/WAIT/idle label can change when our cap stops a vehicle without replacing its leg.
+// Actual command admission below still validates full native tasks and current route.
+private _directionTask={
+    params ["_actor"];
+    private _command=toUpperANSI currentCommand _actor;
+    if (_command in ["","MOVE","WAIT"]) then {_command="TRAVEL"};
+    [_command,+((expectedDestination _actor) param [0,[],[[]]]),formLeader _actor]
 };
 // Capture/validate engine hit-point identity without changing damage or installing handlers.
 private _vehicles=[];
@@ -778,12 +794,52 @@ _brain set ["geometryTracks",_geometryTracks];
             // or casting forward geometry only to discard their result below. A hold lost
             // before commit refuses the cap write; the next callback observes motion afresh.
             private _forwardHeld=_crewBoardingHold || {_queueHold};
+            private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
+            private _directionContext=[_group,clientOwner,_brain getOrDefault ["ownerEpoch",-1],
+                _brain getOrDefault ["generation",-1],_routeIdentity,_driver,_movementOperator];
+            private _directionScheduled=canSuspend;
+            private _directionFrame=[[_driver] call _directionTask,[_movementOperator] call _directionTask];
+            private _nativeMoveMode=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]);
+            private _directionObservation=_vehicle getVariable ["CBE_DrivingDirection_Observation",[]];
+            private _sameDirectionOwner=_directionObservation isEqualType [] && {count _directionObservation == 4}
+                && {[0,1,2,3] findIf {isNil {_directionObservation select _x}} < 0}
+                && {(_directionObservation select 0) isEqualTo _directionContext}
+                && {(_directionObservation select 1) isEqualTo _directionFrame}
+                && {(_directionObservation select 3) isEqualType 0} && {finite (_directionObservation select 3)};
+            private _pathSample=_vehicle getVariable ["CBE_DrivingNativePath_Segment",[]];
+            private _pathAt=_pathSample param [1,-1,[0]];
+            if (!finite _pathAt) then {_pathAt=-1};
+            private _previousPathAt=if (_sameDirectionOwner) then {_directionObservation select 3} else {-1};
+            private _newForwardPath=_nativeHint isNotEqualTo [] && {_pathAt > _previousPathAt};
+            private _nativeLongitudinal=(velocity _vehicle) vectorDotProduct (vectorNormalized vectorDir _vehicle);
+            private _ordinaryDirection=!_rearSafetyRequired && {!_queueNativeActive} && {!_queueCrossing}
+                && {!_forwardHeld} && {isNil {_vehicle getVariable "CBE_DrivingPass_Work"}}
+                && {isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}}
+                && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}};
+            private _nativeReverse=_ordinaryDirection && {finite _nativeLongitudinal} && {
+                _nativeLongitudinal < -0.15 || {_nativeLongitudinal <= 0.15
+                    && {_nativeMoveMode == "BACK" || {
+                        !(_nativeMoveMode in ["FORWARD","FAST","SLOW"])
+                            && {_sameDirectionOwner} && {(_directionObservation select 2) isEqualTo -1}
+                            && {!_newForwardPath} && {(_state param [3,grpNull]) == _group}
+                            && {abs ((getForcedSpeed _vehicle)-(_state param [0,-1])) <= 0.1}
+                    }}}
+            };
+            private _travelDirection=if (!finite _nativeLongitudinal) then {0} else {[1,-1] select _nativeReverse};
+            // Retained stopped backing keeps the path stamp of its original observation.
+            // Do not consume a newly delivered but temporarily unusable path before its
+            // current forward direction can actually be observed.
+            private _nextPathAt=if (_nativeReverse && {_sameDirectionOwner} && {abs _nativeLongitudinal <= 0.15}) then {
+                _previousPathAt
+            } else {_pathAt max _previousPathAt};
+            private _nextDirectionObservation=[_directionContext,_directionFrame,_travelDirection,_nextPathAt];
+            if (_nativeReverse) then {_capMps=_capMps min (10/3.6)};
             private _traffic=if (!_reverseLeg && {!_forwardHeld}) then {
-                [_vehicle,_capMps,objNull,if (_queueCrossing) then {_queueConsent} else {createHashMap}] call CBE_fnc_DrivingFollowingCap
+                [_vehicle,_capMps,objNull,if (_queueCrossing) then {_queueConsent} else {createHashMap},_travelDirection] call CBE_fnc_DrivingFollowingCap
             } else {[_capMps,objNull,-1,time,0]};
             // Preserve this observation before gate/body/pedestrian caps replace the row.
             // It affects callback cadence only, not speed or recovery admission.
-            private _trafficWatch=_traffic param [5,false,[true]];
+            private _trafficWatch=(_traffic param [5,false,[true]]) || {_nativeReverse} || {_travelDirection == 0};
             if (_crewBoardingHold || {_queueHold}) then {_traffic=[0,_vehicle,-1,time,0]};
             if (_rearPathRejected) then {_traffic=[0,_vehicle,-1,time,0]};
             if (_reverseExpired && {((_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap])
@@ -794,8 +850,9 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
-            private _nativeHint=[_vehicle,_group,["ORDINARY",_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingNativePathWatch;
-            private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
+            // Existing hints describe forward paths. Rear geometry uses instantaneous native
+            // yaw in its own reversed unit frame rather than borrowing forward curvature/support.
+            private _curveHint=if (_nativeReverse) then {[]} else {if (count _nativeHint != 4) then {[_turn select 0]} else {_nativeHint}};
             // Fresh native elevation also covers off-road grade; retain the existing
             // road policy in SI units, without granting support or movement authority.
             private _nativeGrade=_nativeHint param [3,-1,[0]];
@@ -804,7 +861,7 @@ _brain set ["geometryTracks",_geometryTracks];
             };
             private _cornerJournal=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
             private _cornerStarted=_cornerJournal getOrDefault ["started",-1];
-            private _cornerProbe=!_reverseLeg && {!_crewBoardingHold} && {!_queueHold} && {!_queueNativeActive} && {!_queueCrossing}
+            private _cornerProbe=_travelDirection == 1 && {!_reverseLeg} && {!_crewBoardingHold} && {!_queueHold} && {!_queueNativeActive} && {!_queueCrossing}
                 && {_recoveryOwned} && {(_state param [6,0]) == 1}
                 && {(_cornerJournal getOrDefault ["kind",""]) == "REFRESH"}
                 && {(_cornerJournal getOrDefault ["bypassSpent",false]) isEqualTo false}
@@ -815,7 +872,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 && {isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}}
                 && {isNil {_vehicle getVariable "CBE_DrivingBypass_Work"}}
                 && {call _mayRecoverOrdinaryRoute};
-            private _geometry=if (!_reverseLeg && {!_forwardHeld}) then {[_vehicle,_capMps,false,_curveHint,_cornerProbe] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
+            private _geometry=if (!_reverseLeg && {!_forwardHeld}) then {[_vehicle,_capMps,false,_curveHint,_cornerProbe,_travelDirection] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
             private _gateObservation=_geometry select 0;
             private _obstacleObservation=_geometry select 1;
             if (_gateObservation isNotEqualTo [] && {(_gateObservation select 0) < (_traffic select 0)}) then {_traffic=_gateObservation};
@@ -831,7 +888,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // uses the existing traffic lease and faster sampling, and cannot trigger recovery.
             // Check the intended rear direction even while stopped. At the finite rear-leg
             // deadline observe the forward retry, so a rear-only obstacle cannot trap handback.
-            private _travelIntent=if (_rearSafetyRequired || {_queueNativeActive}) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
+            private _travelIntent=if (_rearSafetyRequired || {_queueNativeActive} || {_nativeReverse}) then {-1} else {[0,1] select ((_state param [6,0]) == 2)};
             private _pedestrianCap=[_vehicle,_capMps*3.6,_group,true,_travelIntent] call CBE_fnc_CortexInfantrySpeed;
             if (_rearSafetyRequired && {!_rearPathRejected}) then {
                 private _rearObservation=[_vehicle,_rearClearDistance] call CBE_fnc_DrivingRearClear;
@@ -846,7 +903,7 @@ _brain set ["geometryTracks",_geometryTracks];
             if (_reverseExpired && {!_retryAllowed}) then {_traffic=[0,_vehicle,-1,time,0]};
             // Corridor execution is part of this same owner callback, never a second controller.
             // Do not take over an issued/expired rear leg. Existing traffic and pedestrian caps win.
-            private _passingHeadway=if (_crewBoardingHold || {_queueHold} || {_queueNativeActive} || {_queueCrossing}
+            private _passingHeadway=if (_travelDirection != 1 || {_crewBoardingHold} || {_queueHold} || {_queueNativeActive} || {_queueCrossing}
                 || {(_vehicle getVariable ["CBE_DrivingPass_Consent",[]]) isNotEqualTo []}) then {-1} else {
                 ["OBSERVE",_group,_vehicle,_brain,_traffic,_capMps] call CBE_fnc_DrivingPassAdmission
             };
@@ -859,7 +916,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _hadBypass=!isNil {_vehicle getVariable "CBE_DrivingBypass_Work"};
             private _hadCorridor=!isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"};
             private _corridor=[false,1e6,""];
-            if (!_queueCrossing && {!_passActive} && {!_hadPass} && {!_reverseLeg} && {!_reverseExpired} && {!_hadBypass} && {call _mayRecoverRoute}) then {
+            if (_travelDirection == 1 && {!_queueCrossing} && {!_passActive} && {!_hadPass} && {!_reverseLeg} && {!_reverseExpired} && {!_hadBypass} && {call _mayRecoverRoute}) then {
                 _corridor=[_group,_vehicle,_brain] call CBE_fnc_DrivingCorridorStep;
             } else {
                 if (_hadCorridor) then {
@@ -873,7 +930,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 private _solid=[0,_yield,_vehicle distance _yield,time,0,"STATIC",0,0,[getPosWorld _yield,vectorDir _yield,vectorUp _yield]];
                 _bypass=[_group,_vehicle,_brain,_solid,_queueCrossAuthority,"QUEUE"] call CBE_fnc_DrivingBypassStep;
             } else {
-            if (!_passActive && {!_hadPass} && {!_corridorActive} && {!_hadCorridor} && {!_reverseLeg} && {!_reverseExpired}
+            if (_travelDirection == 1 && {!_passActive} && {!_hadPass} && {!_corridorActive} && {!_hadCorridor} && {!_reverseLeg} && {!_reverseExpired}
                 && {call _mayRecoverRoute}) then {
                 _bypass=[_group,_vehicle,_brain,_obstacleObservation,_mayRecoverRoute] call CBE_fnc_DrivingBypassStep;
             } else {
@@ -908,7 +965,7 @@ _brain set ["geometryTracks",_geometryTracks];
             // body or pedestrian constraint merely because the vehicle is stationary.
             private _approachUncontested=_approachBackoff && {isNull (_withoutObstacle select 1)}
                 && {(_pedestrianCap/3.6) >= _capMps-0.001};
-            private _solidCandidate=(_obstacleLimited || {_approachUncontested}) && {count _obstacleObservation == 9}
+            private _solidCandidate=_travelDirection == 1 && {(_obstacleLimited || {_approachUncontested})} && {count _obstacleObservation == 9}
                 && {(_obstacleObservation select 5) == "STATIC"} && {(_obstacleObservation select 2) <= 8 || {_approachBackoff}}
                 && {!isNull (_obstacleObservation select 1)} && {([_vehicle] call _stationary)}
                 && {(_withoutObstacle select 0) > 0} && {_pedestrianCap > 0}
@@ -928,6 +985,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _capCommitted=false;
             isNil {
                 if (!(call _mayIssueDriving)
+                    || {_directionScheduled && {[[_driver] call _directionTask,[_movementOperator] call _directionTask] isNotEqualTo _directionFrame}}
                     || {(_group getVariable ["CBE_Driving_Brain",createHashMap]) isNotEqualTo _brain}
                     || {(_brain getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
                     || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
@@ -950,6 +1008,11 @@ _brain set ["geometryTracks",_geometryTracks];
                 if (abs ((getForcedSpeed _vehicle)-_capMps) > 0.1) exitWith {false};
                 _vehicle setVariable ["CBE_DrivingAssist_Restore",_previous];
                 _vehicle setVariable ["CBE_DrivingAssist_State",_capReceipt];
+                if (_ordinaryDirection) then {
+                    if (_travelDirection != 0) then {
+                        _vehicle setVariable ["CBE_DrivingDirection_Observation",_nextDirectionObservation];
+                    };
+                } else {_vehicle setVariable ["CBE_DrivingDirection_Observation",nil]};
                 _vehicle setVariable ["CBE_DrivingCap_Issuer",[
                     [clientOwner,_brain get "ownerEpoch",_brain get "generation"],_driver,effectiveCommander _vehicle]];
                 _entryAssistState=+_capReceipt;
@@ -984,7 +1047,7 @@ _brain set ["geometryTracks",_geometryTracks];
                 // Admission/application refusal or unconfirmed queue STOP cannot advance recovery.
                 // Preserve the last confirmed receipt; never invent zero-cap ownership or clean a successor.
             } else {
-            if (_gateObservation isNotEqualTo [] && {call _mayIssueDriving}) then {
+            if (_travelDirection == 1 && {_gateObservation isNotEqualTo []} && {call _mayIssueDriving}) then {
                 [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
             };
             _vehicle setVariable ["CBE_DrivingAssist_Traffic",_traffic];

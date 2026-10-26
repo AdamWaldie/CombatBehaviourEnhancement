@@ -17,7 +17,7 @@ class DrivingAnticipationCadence(unittest.TestCase):
             self.assertNotIn(forbidden,s)
     def test_hint_survives_cap_row_override_and_both_existing_clocks_consume_it(self):
         start=source('drivingAssistStart')
-        self.assertLess(start.index('private _trafficWatch=_traffic param [5,false,[true]]'),start.index('if (_rearPathRejected) then {_traffic='))
+        self.assertLess(start.index('private _trafficWatch=(_traffic param [5,false,[true]])'),start.index('if (_rearPathRejected) then {_traffic='))
         self.assertIn('_routeIdentity,_reverseIssued,_trafficWatch]]',start)
         self.assertIn('select (_trafficLimited || {_trafficWatch} || {_corridorActive}',start)
         step=source('drivingOperationStep')

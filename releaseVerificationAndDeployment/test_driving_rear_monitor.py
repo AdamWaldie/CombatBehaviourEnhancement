@@ -184,7 +184,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         self.assertIn('_recoveryResult="CAUTIOUS_REVERSE";_reverseIssued=true',s)
         self.assertIn('_recoveryResult="REAR_BLOCKED";_reverseIssued=false',s)
         self.assertIn('_recoveryResult="FINAL_ROUTE_RETRY";_reverseIssued=false',s)
-        self.assertIn('if (_rearSafetyRequired || {_queueNativeActive}) then {-1}',s)
+        self.assertIn('if (_rearSafetyRequired || {_queueNativeActive} || {_nativeReverse}) then {-1}',s)
         self.assertIn('_routeIdentity,_reverseIssued',s)
         observer=(ROOT/'addons/infantry/functions/cortexInfantrySpeed.sqf').read_text(encoding='utf-8')
         self.assertIn('["_travelIntent",0,[0]]',observer)

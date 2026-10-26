@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Observes vehicle hulls occupying the forward lane and derives a continuous speed cap.
+ * Purpose: Observes vehicle hulls occupying the chosen travel lane and derives a continuous speed cap.
+ * Explicit reverse observation uses the existing2m rear end buffer instead of the forward6m
+ * stand-off and rotates the metre frame to the rear bumper; all crossing courses
+ * yield and no convoy predecessor spacing is delegated. It issues no direction command.
  * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
  * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
  * Dense unscheduled samples project at most256 hulls. Finite separated-height hulls and
@@ -29,6 +32,7 @@
  * longitudinal spacing is delegated to the convoy; crossing and close hull occupancy remain checked.
  * 3 optional queue proof HASHMAP empty: only a current granted QUEUE FOLLOW delegates
  * its frozen held hulls to the existing path geometry; all other vehicles remain observed.
+ * 4 travel direction NUMBER 1: +1 forward or -1 reverse; other values refuse with zero cap.
  * Return: ARRAY [cap m/s NUMBER, limiting vehicle OBJECT, hull gap m NUMBER,
  * sampledAt NUMBER, candidate count NUMBER, nearby conflict BOOL]. The sixth field requests
  * earlier observation only for closing/crossing conflicts; stable same-speed following
@@ -45,14 +49,15 @@
  * Current callers: DrivingAssistStart and ConvoyTick through their finite operation schedulers.
  * Example: private _traffic = [truck1,20] call CBE_fnc_DrivingFollowingCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]],["_queueProof",createHashMap,[createHashMap]]];
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_predecessor",objNull,[objNull]],["_queueProof",createHashMap,[createHashMap]],["_travelDirection",1,[0]]];
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,objNull,-1,time,0,false]};
+if (!(_travelDirection in [-1,1])) exitWith {[0,_vehicle,-1,time,0,true]};
 private _box=boundingBoxReal _vehicle;
 private _modelLow=_box select 0;private _modelHigh=_box select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
 if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0,false]};
-_forward=vectorNormalized _forward;
+_forward=(vectorNormalized _forward) vectorMultiply _travelDirection;
 private _right=[_forward select 1,-(_forward select 0),0];
 private _ownCentre=_vehicle modelToWorldWorld ((_modelLow vectorAdd _modelHigh) vectorMultiply 0.5);
 // Both hulls use horizontal forward/right and absolute vertical axes. Their extents, gaps,
@@ -111,7 +116,7 @@ private _evaluated=0;private _predictionBudgetExceeded=false;
 // Only a current granted QUEUE FOLLOW path can delegate its frozen held hulls
 // to the shared path geometry. Other traffic and the dense-candidate budget remain.
 private _pathHulls=[];
-if (count _queueProof > 0) then {
+if (_travelDirection == 1 && {count _queueProof > 0}) then {
     private _queueVehicles=_queueProof getOrDefault ["vehicles",[]];
     private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
     if ((_queueVehicles param [0,objNull]) == _vehicle
@@ -122,6 +127,7 @@ if (count _queueProof > 0) then {
         && {(_work getOrDefault ["queueCrossingBinding",[]]) isEqualTo (_queueProof getOrDefault ["crossingBinding",[]])}
         && {[_queueProof,true] call CBE_fnc_DrivingQueueReverseCurrent}) then {_pathHulls=_queueVehicles select [1]};
 };
+private _standOff=[6,2] select (_travelDirection < 0);
 private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearConflict=false;
 {
     if (_predictionBudgetExceeded) exitWith {};
@@ -133,7 +139,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
             && {((velocity _other) vectorDotProduct _forward) >= -0.5};
         // A registered predecessor is not permission to omit its physical hull.
         // Convoy centre-distance spacing applies only while the pair remains aligned.
-        private _spacingOwned=_other == _predecessor && {alive _other}
+        private _spacingOwned=_travelDirection == 1 && {_other == _predecessor} && {alive _other}
             && {_following} && {((vectorDir _other) vectorDotProduct _forward) >= cos 25};
         if (_other == _predecessor && {!_spacingOwned}) then {_following=false};
         private _otherForward=if (_following) then {
@@ -177,7 +183,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true};
         private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
         private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
-        private _fromRight=_relative vectorDotProduct _right > 0.25;
+        private _fromRight=_travelDirection < 0 || {_relative vectorDotProduct _right > 0.25};
         if (_sameHeight && {_otherSpeed > 0.8}) then {
             if (abs _denominator > 0.2) then {
                 private _alongOwn=((_relative select 0)*(_course select 1)-(_relative select 1)*(_course select 0))/_denominator;
@@ -215,13 +221,13 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
                 // predecessor cannot exempt contact-range body overlap from braking.
                 if (_hullGap < 2 && {_cap > 0}) then {_cap=0;_limiting=_other;_gap=_hullGap};
             } else {
-            // Desired six-metre gap plus 1.8 seconds of predecessor travel. Continuous correction
+            // Direction-specific stand-off plus 1.8 seconds of predecessor travel. Continuous correction
             // avoids binary distance-band starts/stops. Closing-distance reaction only lowers it.
-            private _allowed=(_otherForward+((_hullGap-6-(_otherForward*1.8))/3)) max 0;
+            private _allowed=(_otherForward+((_hullGap-_standOff-(_otherForward*1.8))/3)) max 0;
             // Solve closing distance = reaction*relative speed + relative speed^2/(2*a).
             // This limits approach toward the currently measured predecessor speed; it does
             // not assume that a predecessor's future braking or native steering is known.
-            private _room=(_hullGap-6) max 0;
+            private _room=(_hullGap-_standOff) max 0;
             private _reactionSpeed=_deceleration*_reaction;
             private _closingAllowance=(sqrt ((_reactionSpeed*_reactionSpeed)+2*_deceleration*_room)-_reactionSpeed) max 0;
             _allowed=_allowed min (_otherForward+_closingAllowance);
