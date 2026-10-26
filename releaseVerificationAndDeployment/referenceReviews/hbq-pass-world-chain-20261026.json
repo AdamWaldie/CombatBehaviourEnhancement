@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "14513ded",
+  "workshopId": "3812620045",
+  "status": "PASS_WORLD_HULL_CHAIN_OFFLINE_VERIFIED",
+  "scope": "Selected HBQ overtaking intent and CBE passing dimension chain; not whole-source parity.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "range": "2045-2158 _fnc_OvtTry complete body; earlier selected traffic/precision context"
+  },
+  "finding": "HBQ and CBE use raw model bounds for passing dimensions while positions and paths are world metres. CBE qualification, plan duration/lateral offset, static body geometry and traffic margins all contained this mismatch. Traffic vertical overlap also assumed symmetric origin-centred hulls.",
+  "implementation": [
+    "Use existing four-transform affine hull projector in qualification, planning, static geometry and traffic; includes scale, tilt and asymmetric origin offsets. Unknown projection refuses.",
+    "Traffic vertical Minkowski interval retains independent low/high offsets for current occupancy and simultaneous future overlap.",
+    "Original candidate/segment/ray/deadline/owner/consent limits remain. No new worker, timer, query or forced physical action. Larger true hulls can require wider/longer proposals or refuse existing footprint budgets.",
+    "No HBQ direct path/cap reset or blanket crew recall adopted; CBE finite consent and original-route handback remain."
+  ],
+  "cost": "Traffic up to65 hull projections/260 model transforms. Qualification8, plan8, geometry4 model transforms per invocation. This adds geometry CPU work; proposal size and query radius can change within existing bounds. No measured5%/10% budget claim.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingHullInterval.sqf": "57d3263d83ca911d8a280cdaab9f6320fea1e1f6442ef6858fc515dac34082eb",
+    "addons/vehicles/functions/drivingPassAdmission.sqf": "ed113cc1c95ee1cc0efef9d8ede0409deecc04a3d02cf59f6b56fe1a0639ff13",
+    "addons/vehicles/functions/drivingPassGeometry.sqf": "5f2a2797463215ca60e76bafb5ec7e8ec49fe1ecf2739e44ef3ce79bbbad6221",
+    "addons/vehicles/functions/drivingPassPlan.sqf": "38d5f3e5b0906869ceb831b401bb4605ce37a00c6c59f274b5edb37111474852",
+    "addons/vehicles/functions/drivingPassTraffic.sqf": "b042ed0fe6eed6ea882a0d5dad32eb93eaf6e007a7287a7f2f2c3c3077795da7",
+    "releaseVerificationAndDeployment/test_driving_pass_plan.py": "710da42aaba21d558d72654692117a6ced2eabc829d019de27211d41f62b2e6c"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 36,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/pass-world-chain-14513ded",
+    "fingerprint": "6f11491f56d8530afe6f9a9aff8619d315883543eb0350e76cb624c99c547e7d",
+    "buildLog": ".qa/handovers/pass-world-chain-build.log",
+    "independentLog": ".qa/handovers/pass-world-chain-independent.log",
+    "supersededIntermediate": ".qa/handovers/pass-traffic-world-build.log passed traffic-only change before complete chain correction",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "remaining": [
+    "Scaled/tilted vehicles, vertically offset traffic, actual pass/abort/return, locality repeats and frame-time cost need runtime evidence; audits paused.",
+    "Discrete sampled geometry and constant-course prediction are not continuous swept clearance."
+  ]
+}

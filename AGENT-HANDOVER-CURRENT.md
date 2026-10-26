@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: passing admission/plan/static geometry/traffic now use projected world-metre hulls instead of raw model bounds. Traffic vertical occupancy/prediction uses asymmetric low/high Minkowski intervals. Unknown geometry refuses. Existing64-candidate/127-segment and owner/consent/deadline constraints retained; geometry CPU increases (traffic max260 model transforms), so performance remains unverified.1497 full/36 focused checks,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/pass-world-chain-14513ded`, fingerprint `6f11491f56d8530afe6f9a9aff8619d315883543eb0350e76cb624c99c547e7d`. Review `hbq-pass-world-chain-20261026.json`. Audits paused, whole HBQ/CBE incomplete.
+
+
 Latest: Locality TRANSFER passes the original private point/indoor brains rather than an empty map, preserving identity checks and immediately marking the outgoing point brain finished. Journal-only cleanup refuses any installed local controller; discovery already uses this path only when the pointer is absent. Existing32 focused/1497 full tests,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/actor-transfer-identity-5448ce46`, fingerprint `9dd0b90655b4b004bf324b810c77e884c179ff08e601925e891c4672875ad92a`. Review `actor-transfer-identity-20261026.json`. Audits paused; full handover and runtime/performance acceptance remain unfinished.
 
 

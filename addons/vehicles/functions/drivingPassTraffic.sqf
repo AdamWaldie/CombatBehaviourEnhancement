@@ -11,7 +11,9 @@
  * Return: HASHMAP status REFUSED or TRAFFIC_OBSERVATION, blocked BOOL, reason, actor,
  * candidateCount, observedAt and context. No observed conflict is not permission to pass.
  * Bound: one native area query <=1250 m, at most 64 candidates and 127 guide segments each;
- * dense results refuse without inspecting a selected prefix. No raycasts or recurring handler.
+ * dense results refuse without inspecting a selected prefix. At most65 world-hull projections
+ * (260 model transforms); no added world query, raycast or recurring handler.
+ * Projected bounds include scale, tilt and origin offsets; unknown hulls refuse.
  * Area discovery includes dead vehicle entities; parked/empty/destroyed hulls remain obstacles.
  * The intended predecessor is excluded only from this corridor observer; independent following
  * and collision caps must still constrain it. Mounted people are represented by their vehicle.
@@ -53,10 +55,16 @@ private _range=((_travel+35*_duration+60) max 150) min 1250;
 private _area=[getPosATL _vehicle,_range,_range,0,false,_range];
 private _candidates=_area nearEntities [["LandVehicle","CAManBase"],false,false,false];
 if (count _candidates > 64) exitWith {["TRAFFIC_BUDGET",count _candidates] call _fail};
-private _box=boundingBoxReal _vehicle;
-private _width=((abs ((_box select 0) select 0)) max (abs ((_box select 1) select 0)))+0.5;
-private _height=((_box select 1) select 2)-((_box select 0) select 2);
-private _halfLength=(abs ((_box select 0) select 1)) max (abs ((_box select 1) select 1));
+// Corridor coordinates are world metres. Raw model bounds omit scale/tilt and
+// cannot describe asymmetric vertical extents around the native ASL origin.
+private _hullForward=vectorDir _vehicle;_hullForward set [2,0];
+if (vectorMagnitude _hullForward < 0.1) exitWith {["OWN_HULL_UNAVAILABLE",count _candidates] call _fail};
+_hullForward=vectorNormalized _hullForward;
+private _hullSide=[_hullForward select 1,-(_hullForward select 0),0];
+private _ownHull=[_vehicle,getPosASL _vehicle,_hullSide,_hullForward,[0,0,1]] call CBE_fnc_DrivingHullInterval;
+if (count _ownHull != 6) exitWith {["OWN_HULL_UNAVAILABLE",count _candidates] call _fail};
+private _width=((abs (_ownHull select 0)) max (abs (_ownHull select 1)))+0.5;
+private _halfLength=(abs (_ownHull select 2)) max (abs (_ownHull select 3));
 private _monitor=_proposal getOrDefault ["monitorRemaining",false];
 if !(_monitor isEqualType true) exitWith {["INVALID_MONITOR"] call _fail};
 private _monitorPose=[getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle];
@@ -101,17 +109,25 @@ if (_monitor) then {
         };
     };
 };
-private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
+private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;private _geometryUnavailable=false;
 {
     private _other=_x;
     if (_other != _vehicle && {_other != _front} && {!isNull _other}
         && {!(_other isKindOf "CAManBase") || {isNull objectParent _other}}) then {
         private _position=getPosASL _other;
-        private _otherBox=boundingBoxReal _other;
-        private _otherWidth=(abs ((_otherBox select 0) select 0)) max (abs ((_otherBox select 1) select 0));
-        private _otherLength=(abs ((_otherBox select 0) select 1)) max (abs ((_otherBox select 1) select 1));
+        private _otherForward=vectorDir _other;_otherForward set [2,0];
+        if (vectorMagnitude _otherForward < 0.1) exitWith {_geometryUnavailable=true};
+        _otherForward=vectorNormalized _otherForward;
+        private _otherSide=[_otherForward select 1,-(_otherForward select 0),0];
+        private _otherHull=[_other,_position,_otherSide,_otherForward,[0,0,1]] call CBE_fnc_DrivingHullInterval;
+        if (count _otherHull != 6) exitWith {_geometryUnavailable=true};
+        private _otherWidth=(abs (_otherHull select 0)) max (abs (_otherHull select 1));
+        private _otherLength=(abs (_otherHull select 2)) max (abs (_otherHull select 3));
         private _radius=sqrt (_otherWidth^2+_otherLength^2);
-        private _vertical=(_height+((_otherBox select 1) select 2)-((_otherBox select 0) select 2))*0.5+1;
+        // Minkowski interval for other-origin minus guide-origin height. This
+        // retains each hull's original low/high offsets, including pitched hulls.
+        private _minimumZ=(_ownHull select 4)-(_otherHull select 5)-1;
+        private _maximumZ=(_ownHull select 5)-(_otherHull select 4)+1;
         private _occupied=false;private _approaching=false;
         private _velocity=velocity _other;
         for "_segment" from 1 to (count _guide-1) do {
@@ -121,7 +137,8 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
             private _fraction=((_relative vectorDotProduct _flat)/((_flat vectorDotProduct _flat) max 0.01) max 0) min 1;
             private _closest=_a vectorAdd (_delta vectorMultiply _fraction);
             if (_position distance2D _closest <= _width+_radius+1
-                && {abs ((_position select 2)-(_closest select 2)) <= _vertical}) exitWith {_occupied=true};
+                && {(_position select 2)-(_closest select 2) >= _minimumZ}
+                && {(_position select 2)-(_closest select 2) <= _maximumZ}) exitWith {_occupied=true};
             private _length=vectorMagnitude _flat;
             if (_length > 0.1 && {vectorMagnitude _velocity > 0.5}) then {
                 private _along=_flat vectorMultiply (1/_length);
@@ -147,7 +164,7 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
                 } forEach [
                     [_offset vectorDotProduct _along,_velocity vectorDotProduct _along,-_longMargin,_length+_longMargin],
                     [_offset vectorDotProduct _right,_velocity vectorDotProduct _right,-_sideMargin,_sideMargin],
-                    [_position select 2,_velocity select 2,((_a select 2) min (_b select 2))-_vertical,((_a select 2) max (_b select 2))+_vertical]
+                    [_position select 2,_velocity select 2,((_a select 2) min (_b select 2))+_minimumZ,((_a select 2) max (_b select 2))+_maximumZ]
                 ];
                 if (_possible && {_enter <= _leave}) then {_approaching=true};
             };
@@ -157,7 +174,9 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
             _limiting=_other;_reason=["APPROACHING_TRAFFIC","OCCUPIED_CORRIDOR"] select _occupied;
         };
     };
+    if (_geometryUnavailable) exitWith {};
 } forEach _candidates;
+if (_geometryUnavailable) exitWith {["TRAFFIC_HULL_UNAVAILABLE",count _candidates] call _fail};
 if (!(call _current) || {!local _vehicle}
     || {_monitor && {_monitorPose isNotEqualTo [getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle]}}) exitWith {["CONTEXT_CHANGED",count _candidates] call _fail};
 createHashMapFromArray [["status","TRAFFIC_OBSERVATION"],["blocked",!isNull _limiting],

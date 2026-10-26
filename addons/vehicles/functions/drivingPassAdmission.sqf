@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Qualification spacing uses projected world-metre hulls, including scale/tilt.
  * Purpose: Observe sustained ordinary-road obstruction and prepare an opt-in automatic pass.
  * Locality/authority: OBSERVE/STEP require the current driving owner. Brain-bound CANCEL
  * retires only original machine-private metadata after locality loss. OBSERVE reads existing traffic
@@ -182,12 +183,15 @@ private _cooldown=_vehicle getVariable ["CBE_DrivingPass_AutoCooldown",[]];
 if (count _cooldown == 2 && {(_cooldown select 0) isEqualTo _context} && {serverTime < (_cooldown select 1)}) exitWith {1e6};
 // Keep pull-out room while qualifying instead of converging on ordinary close-follow spacing.
 // This is only a cap proposal; the existing writer and all collision minima retain control.
-private _ownBox=boundingBoxReal _vehicle;private _peerBox=boundingBoxReal _peer;
-private _ownHalfLength=(abs ((_ownBox select 0) select 1)) max (abs ((_ownBox select 1) select 1));
-private _peerHalfLength=(abs ((_peerBox select 0) select 1)) max (abs ((_peerBox select 1) select 1));
-private _ownHalfWidth=(abs ((_ownBox select 0) select 0)) max (abs ((_ownBox select 1) select 0));
-private _peerHalfWidth=(abs ((_peerBox select 0) select 0)) max (abs ((_peerBox select 1) select 0));
 private _heading=getDir _vehicle;private _forward=[sin _heading,cos _heading,0];
+private _hullRight=[cos _heading,-sin _heading,0];
+private _ownBox=[_vehicle,getPosASL _vehicle,_hullRight,_forward] call CBE_fnc_DrivingHullInterval;
+private _peerBox=[_peer,getPosASL _peer,_hullRight,_forward] call CBE_fnc_DrivingHullInterval;
+if (count _ownBox != 4 || {count _peerBox != 4}) exitWith {1e6};
+private _ownHalfLength=(abs (_ownBox select 2)) max (abs (_ownBox select 3));
+private _peerHalfLength=(abs (_peerBox select 2)) max (abs (_peerBox select 3));
+private _ownHalfWidth=(abs (_ownBox select 0)) max (abs (_ownBox select 1));
+private _peerHalfWidth=(abs (_peerBox select 0)) max (abs (_peerBox select 1));
 private _relative=(getPosASL _peer) vectorDiff (getPosASL _vehicle);
 private _gap=_relative vectorDotProduct _forward;
 private _lateral=abs (_relative vectorDotProduct [cos _heading,-sin _heading,0]);

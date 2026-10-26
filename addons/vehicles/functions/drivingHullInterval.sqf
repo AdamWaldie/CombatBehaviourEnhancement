@@ -9,7 +9,7 @@
  * 4 optional third unit world axis <ARRAY, []>; requires a nonempty second axis.
  * Return: ARRAY [minimum,maximum], optionally followed by second and third min/max pairs,
  * in metres padded outwards by0.05m; [] unavailable. Invalid optional geometry refuses the projection.
- * Current callers: DrivingPassStep, DrivingQueueProposal, DrivingQueueProposalCurrent,
+ * Current callers: DrivingPassAdmission/Plan/Geometry/Traffic/Step, DrivingQueueProposal, DrivingQueueProposalCurrent,
  * DrivingRearPlan, DrivingRearClear, DrivingGeometryCap, DrivingGateOpenServer,
  * DrivingGateCloseServer and CortexInfantrySpeed.
  * Cost: Four native model transforms for one, two or three axes; affine edge projection represents
