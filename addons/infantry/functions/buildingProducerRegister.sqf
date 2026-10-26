@@ -73,11 +73,14 @@ if (_mode == "CAPTURE") exitWith {
         || {_writerCount < 1} || {_writerCount > 131} || {_writerCount != floor _writerCount}) exitWith {false};
     private _actors=_capture select 16;
     if (!(_actors isEqualType []) || {count _actors != 8}
-        || {(_actors param [0,-1]) != 6} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
+        || {(_actors param [0,-1]) != 7} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
         || {(_actors param [3,[]]) isNotEqualTo _original}) exitWith {false};
     private _recoveryState=_actors select 7;
-    if (!(_recoveryState isEqualType []) || {count _recoveryState != 5}
-        || {(_recoveryState param [0,-1]) isNotEqualTo 1}) exitWith {false};
+    if (!(_recoveryState isEqualType []) || {count _recoveryState != 6}
+        || {(_recoveryState param [0,-1]) isNotEqualTo 2}) exitWith {false};
+    private _commonProgress=_recoveryState select 5;
+    if (!(_commonProgress isEqualType []) || {count _commonProgress != 13}
+        || {(_commonProgress param [0,-1]) isNotEqualTo 1}) exitWith {false};
     private _ownership=_actors select 6;
     if (!(_ownership isEqualType []) || {count _ownership != 7}
         || {(_ownership param [0,-1]) isNotEqualTo 1}) exitWith {false};

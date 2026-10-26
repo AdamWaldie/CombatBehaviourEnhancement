@@ -313,7 +313,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[6,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]'):
+                      '[7,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]'):
             self.assertIn(guard,actor_journal)
         for guard in ('keys _restore findIf {_x != "groupAttack"}',
                       '(_attack select 0) isNotEqualTo _baseAttack',
@@ -356,8 +356,22 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       'count _attemptMap > 64','count _activeMap > 64',
                       '_serverNow+((_observation select 1)-_localNow)',
                       '(_attemptMap getOrDefault [_x,-1]) isNotEqualTo 1',
-                      '[1,_participants,_attemptRows,_activeRows,_unavailableKeys]'):
+                      '[2,_participants,_attemptRows,_activeRows,_unavailableKeys,_commonProgress]'):
             self.assertIn(guard,actor_journal)
+        for field in ('phase','startedAt','lastProgressAt','lastProgressPosition','lastProgressActor',
+                      'replans','participantsRequired','progressOnFoot','fallbackProgressSuspended',
+                      'progressPlatform','participantProgress','participantPlatforms'):
+            self.assertIn('"'+field+'"',actor_journal)
+        self.assertIn('count _progressSource > 64',actor_journal)
+        self.assertIn('count _platformMap > 64',actor_journal)
+        self.assertIn('_serverNow+(_progressAt-_localNow)',actor_journal)
+        self.assertIn('netId _actor in _progressKeys',actor_journal)
+        original_progress=[1,'SWEEP',80,95,[1,2,0],'a',2,True,True,False,'a',[['a',[1,2,0]]],[['a','a']]]
+        saved_progress=copy.deepcopy(original_progress)
+        original_progress[11][0][1][0]=99
+        self.assertEqual(saved_progress[11][0][1][0],1)
+        self.assertEqual(saved_progress[3],95)
+        self.assertEqual(saved_progress[6],2)
         recovery_source={'spent':[['a',1]],'active':[['a',[1,100,[2,3,0],[0,0,0]]]]}
         recovery_copy=copy.deepcopy(recovery_source)
         recovery_source['spent'][0][1]=0
