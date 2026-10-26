@@ -292,5 +292,82 @@
     "runtimeChanged": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "recoveryGeometryAndAreaBodies20261026": {
+    "scope": "Complete readable bodies of eight additional helpers. Selected CBE corridor registry/module/geometry and prior native recovery ownership traces; not complete main-controller, all configuration/diagnostic or physical coverage.",
+    "sourceHashes": {
+      ".qa/hbq-complete-source-20261025/functions/fn_rearClear.sqf": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+      ".qa/hbq-complete-source-20261025/functions/fn_push.sqf": "b3a7710202b7d049b5ffd78d3acd45cd1366f3dccda347f138475bea1cf0f871",
+      ".qa/hbq-complete-source-20261025/functions/fn_protectBriefly.sqf": "a5968313440ea8292bd0e997547cc6ad10bf7e4f1cd402f75337889717092ba7",
+      ".qa/hbq-complete-source-20261025/functions/fn_moduleNavArea.sqf": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e",
+      ".qa/hbq-complete-source-20261025/functions/fn_vehicleUnstuck.sqf": "3b179087b1feeb34585905d960c11989357cb0d5a7c634463ea91d1605271ea8",
+      ".qa/hbq-complete-source-20261025/functions/fn_teleportVehicleFree.sqf": "4fc5e3240b9477d223002011cb9630355efa05f90a2eb525a01d138aa87f1f02",
+      ".qa/hbq-complete-source-20261025/functions/fn_precision.sqf": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+      ".qa/hbq-complete-source-20261025/functions/fn_playersNear.sqf": "9ab86035b3b06784c17383ed3efb0892dff55f087166c5079fad49896fedaee1"
+    },
+    "dispositions": [
+      {
+        "files": [
+          "fn_rearClear.sqf"
+        ],
+        "source": "Checks rear-sector nearby people/vehicles, then up to six rear hull rays at two heights. Does not itself issue movement.",
+        "intent": "Require rear room before reverse recovery.",
+        "decision": "Keep hull/person clearance intent in existing native rear/path geometry. Source sector/ray result alone does not prove the full swept hull or future traffic is clear. No second reverse owner."
+      },
+      {
+        "files": [
+          "fn_push.sqf"
+        ],
+        "source": "Normalises direction, derives timed sine velocity curve, replaces same-vehicle push-list entry and runs a persistent shared EachFrame handler. Up to three contact rays/vehicle/frame; directly sets model velocity and sideways yaw rate, then zeros backward/sideward speed. The displayed body does not recheck original route/driver/feature/task identity before writes.",
+        "intent": "Unjam without repeated acceleration discontinuity and stop on contact.",
+        "decision": "Reject physics steering, yaw suppression and permanent push handler. Preserve bounded progress/contact-stop intent through existing native recovery. Native motion equivalence and actual stuck recovery remain unproven."
+      },
+      {
+        "files": [
+          "fn_protectBriefly.sqf"
+        ],
+        "source": "Snapshots vehicle/current crew damage permissions, sets all invulnerable and later re-enables originally vulnerable objects. Delayed restore has no original-task/locality/current-value ownership lease.",
+        "intent": "Avoid damage caused by artificial relocation.",
+        "decision": "Excluded physical-shortcut dependency. No CBE invulnerability or delayed damage-policy writer is justified. Preserving an original false value does not protect later mission edits to originally true values."
+      },
+      {
+        "files": [
+          "fn_moduleNavArea.sqf"
+        ],
+        "source": "Registers one flat rectangle in machine-local list, uses module facing and objectArea lengths, marks registered once. Body ignores activation flag and has no update/removal path; registered centre is flattened to z0.",
+        "intent": "Explicit traversable corridor for a known navigation gap.",
+        "cbe": "DrivingCorridorRegister has authenticated server mutation, revisioned32-area passive snapshots and explicit remove. ModuleDrivingCorridorMission parses activation/deactivation; ZEN dialog exposes create/update/remove and scoped dimensions/speed. Selected geometry uses live transform/elevation and measured support/hull envelope.",
+        "decision": "Adapt task intent through existing behaviour module; do not import a flat one-shot registration or settings module. Dry supported crossings only; ford support and physical passage are not established."
+      },
+      {
+        "files": [
+          "fn_vehicleUnstuck.sqf"
+        ],
+        "source": "Derives current waypoint/native destination, handles dead driver with moveOut/delayed seat action, enables PATH and reissues movement. Higher levels optionally repair hitpoints, call physics push, lift/accelerate flying aircraft or teleport ground/boat with protection; several successful metadata paths return true without travel evidence.",
+        "intent": "Restore capable operator and movement after genuine nonprogress.",
+        "decision": "Retain native seat recovery and order continuity intent using existing DrivingCrewStep/native recovery proof. Reject unconditional PATH enable, scripted repair, physics, teleport and aircraft lift. Delayed seat action needs actual authority/seat/assignment acknowledgement; request/true is not recovery success."
+      },
+      {
+        "files": [
+          "fn_teleportVehicleFree.sqf"
+        ],
+        "source": "Ranks nonpedestrian/nonbridge roads within100m, avoids living/dead vehicles/props/people/traffic and30second reserved spots, otherwise searches radial ground to150m. Placement protects damage, resets velocity/orientation and teleports with surface alignment.",
+        "intent": "Find roomy nonoverlapping space and escape a jam.",
+        "decision": "Reuse obstacle/occupancy/terrain/loop-avoidance intent where suitable in finite path planning; do not import relocation or use unseen/player-distance as permission. A valid endpoint is not a drivable approach path."
+      },
+      {
+        "files": [
+          "fn_precision.sqf",
+          "fn_playersNear.sqf"
+        ],
+        "source": "Precision caches5seconds/vehicle, applies explicit per-vehicle level or player-distance downgrade. Player visibility surrogate uses distance/low altitude/facing, not real LOS; rescans allPlayers minus HC entities.",
+        "intent": "Bound expensive work by proximity and avoid visible artificial moves.",
+        "decision": "Use CBE shared discovery/tier caching and bounded geometry budgets. Do not add per-vehicle player scans or infer invisibility/authority from facing. Performance budget still requires measured representative battles."
+      }
+    ],
+    "remaining": "Main controller branches, remaining debug/monitor/config/Eden helpers and actual executor cessation/handover still need scoped dispositions. Whole-source availability and rejected shortcuts do not establish whole-HBQ functionality.",
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

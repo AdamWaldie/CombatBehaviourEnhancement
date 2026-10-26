@@ -865,7 +865,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json",
-      "sha256": "fcbc1305e35f6791a2eb483051f1aaf7ac751db55899b47557331573b16d1747",
+      "sha256": "45172b9d1c6f01160423763645f839a9b2776feb1a55db34f162f331b6332ec5",
       "scope": "Complete protected fn_refreshRoute.sqf body. Selected current CBE admission/return branches traced; this does not renew whole driveAssist, unstuck, driving or HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_crewHold.sqf",
@@ -874,11 +874,19 @@
         "functions/fn_enabled.sqf",
         "functions/fn_feature.sqf",
         "functions/fn_initVehicle.sqf",
+        "functions/fn_moduleNavArea.sqf",
+        "functions/fn_playersNear.sqf",
+        "functions/fn_precision.sqf",
+        "functions/fn_protectBriefly.sqf",
+        "functions/fn_push.sqf",
+        "functions/fn_rearClear.sqf",
         "functions/fn_refreshRoute.sqf",
         "functions/fn_routeWaiting.sqf",
         "functions/fn_start.sqf",
+        "functions/fn_teleportVehicleFree.sqf",
         "functions/fn_unflipLoop.sqf",
         "functions/fn_unstuckLoop.sqf",
+        "functions/fn_vehicleUnstuck.sqf",
         "XEH_postInit.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
