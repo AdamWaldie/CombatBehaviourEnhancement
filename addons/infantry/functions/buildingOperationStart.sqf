@@ -12,6 +12,7 @@
  * new owner reconstructs actor assignments through the ordinary clear-order resume path.
  * Arguments: 0: prepared building job <HASHMAP>.
  * Return Value: Boolean - true when a building brain was started for the current owner.
+ * A new producer clears this machine's previous private outgoing lane capture.
  * Current callers: CBE_fnc_CortexClearBuilding and CortexDiscover ended-worker recovery.
  * Example: [_job] call CBE_fnc_BuildingOperationStart;
  */
@@ -67,6 +68,7 @@ isNil {
     private _brain=createHashMapFromArray [
         ["group",_group],
         ["job",_job],
+        ["producerOwner",clientOwner],
         ["ownerEpoch",_epoch],
         ["generation",_generation],
         ["phase",toUpperANSI (_job getOrDefault ["phase","ENTRY"])],
@@ -81,6 +83,7 @@ isNil {
         ["queuedAt",-1],
         ["watchdogCount",0]
     ];
+    _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil];
     _group setVariable ["CBE_BuildingBrain",_brain];
     _group setVariable ["CBE_BuildingBrain_State",[_brain get "phase",_generation,_epoch,serverTime,"STARTED",0,0,count (_job getOrDefault ["positions",[]])],true];
     private _handle=[_group,_epoch,_generation,_brain] execFSM "\z\cbe\addons\main\fsm\buildingOperation.fsm";

@@ -112,16 +112,43 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)
         # EXPORT uses the same validated live-job serializer as SAVE, but may not
         # consume its publication throttle, read old public lanes or mutate the job.
-        self.assertIn('private _export=_mode == "EXPORT"',journal)
+        self.assertIn('private _export=_mode in ["EXPORT","FROZEN"]',journal)
         self.assertIn('private _refused=if (_export) then {[]} else {false}',journal)
         self.assertIn('private _snapshot=if (_export) then {[]} else {',journal)
-        self.assertIn('private _encoding=_mode in ["SAVE","EXPORT"]',journal)
+        self.assertIn('private _encoding=_mode in ["SAVE","EXPORT","FROZEN"]',journal)
         self.assertEqual(journal.count('if (_encoding) then {'),3)
         producer=journal.split('if (_export && {',1)[1].split('private _positions=',1)[0]
         for guard in ('"CBE_BuildingBrain"','"job",createHashMap','isNotEqualTo _job',
                       '"ownerEpoch"','"generation"','"cancelled"','"finished"'):
             self.assertIn(guard,producer)
         self.assertNotIn('setVariable',producer)
+        self.assertIn('"producerOwner",-1',producer)
+        self.assertIn('if (_frozen) then {',producer)
+        self.assertIn('"LOCALITY_CHANGE"',producer)
+        self.assertIn('"completed",false',producer)
+        self.assertIn('private _ownerContext={if (_frozen) then {!local _group} else {local _group}}',journal)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        outgoing=locality.split('private _buildingBrain=',1)[1].split('} forEach units _group;',1)[0]
+        self.assertIn('private _captureOutgoing=!_gained && {!local _group}',outgoing)
+        self.assertLess(outgoing.index('set ["cancelled",true]'),outgoing.index('["FROZEN",_clearJob]'))
+        self.assertLess(outgoing.index('["FROZEN",_clearJob]'),outgoing.index('setVariable ["CBE_BuildingBrain",nil]'))
+        self.assertLess(locality.index('["FROZEN",_clearJob]'),locality.index('setVariable ["CBE_AIPass_Epoch"'))
+        capture=outgoing.split('if (_captureOutgoing) then {',1)[1].split('_group setVariable ["CBE_BuildingBrain",nil]',1)[0]
+        self.assertIn('_clearJob get "hardDeadline",_lanes',capture)
+        self.assertNotIn(',true]',capture)  # Machine-private proposal only.
+        start=(ROOT/'addons/infantry/functions/buildingOperationStart.sqf').read_text(encoding='utf-8')
+        self.assertIn('["producerOwner",clientOwner]',start)
+        self.assertIn('setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]',start)
+        stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text(encoding='utf-8')
+        self.assertIn('setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]',stop)
+        def may_capture(*,gained=False,local=False,owner=4,client=4,cancelled=False,
+                        finished=False,phase='ENTRY',epoch=7,current_epoch=7):
+            return (not gained and not local and owner==client and not cancelled
+                    and not finished and phase in ('ENTRY','SWEEP') and epoch==current_epoch)
+        self.assertTrue(may_capture())
+        for changed in ({'gained':True},{'local':True},{'owner':5},{'cancelled':True},
+                        {'finished':True},{'phase':'EGRESS'},{'current_epoch':8}):
+            self.assertFalse(may_capture(**changed))
         tail=journal.split('private _journal=',1)[1]
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('setVariable'))

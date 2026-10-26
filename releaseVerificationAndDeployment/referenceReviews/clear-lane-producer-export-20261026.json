@@ -35,5 +35,9 @@
     "buildLog": ".qa/handovers/clear-lane-export-build.log",
     "independentLog": ".qa/handovers/clear-lane-export-independent.log",
     "independent": "PASS"
+  },
+  "outgoingLaneCaptureFollowup": {
+    "review": "clear-outgoing-lane-capture-20261026.json",
+    "scope": "Separate FROZEN read-only mode now captures the original fenced private producer on actual group locality loss before pointer/epoch retirement. EXPORT remains current-owner-only. The capture is source-local with no receiver/full seal transport. Earlier source hashes describe the EXPORT-only checkpoint."
   }
 }

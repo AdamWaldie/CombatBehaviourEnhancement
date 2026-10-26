@@ -32,6 +32,10 @@
       "producerLaneExport20261026": {
         "review": "clear-lane-producer-export-20261026.json",
         "scope": "Pure current-owner lane serializer output is available for producer checkpoint construction. No final seal, replay transport, actor readiness or physical handover acceptance."
+      },
+      "outgoingLaneCapture20261026": {
+        "review": "clear-outgoing-lane-capture-20261026.json",
+        "scope": "Actual outgoing private lane state is captured after the source writer fence and before pointer/epoch retirement. No full transfer seal, authenticated replay, incoming readiness or physical handover acceptance."
       }
     },
     {

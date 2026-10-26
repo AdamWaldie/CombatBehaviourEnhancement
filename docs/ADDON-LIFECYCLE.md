@@ -1831,3 +1831,26 @@ state. Producer registration, a final fenced seal, authenticated replay and actu
 incoming-actor reconciliation remain required. No new periodic export, network
 message, worker or readiness flag is added. Physical handover and runtime overhead
 remain unverified while audits are paused.
+
+
+### Private outgoing lane capture
+
+The existing group-locality handler fences its original building brain, then calls
+read-only `BuildingLaneJournal` FROZEN before clearing that private pointer or
+advancing the machine-local epoch. FROZEN requires actual loss of group locality,
+the original private producer owner/job/generation, the LOCALITY_CHANGE fence and
+unchanged operation/visit/transform/deadline identity. It uses the same bounded lane
+serializer as SAVE and EXPORT. Refusal produces no valid capture.
+
+A successful ENTRY/SWEEP capture remains in one machine-private record with its
+original owner, generations, epoch and hard deadline. Duplicate loss callbacks do
+not recreate it without an active original producer. New producer admission, gained
+locality and master stop clear obsolete local captures. No public variable, network
+message, replay, new worker, timer, actor command or readiness flag is introduced.
+
+This captures the lane component only. It does not seal other actor, exterior,
+egress, settings or interruption writers, and does not prove the old FSM completed.
+The incoming owner cannot consume this private record yet. Authenticated producer
+registration, complete phase state, final seal/replay transport and actual native
+reconciliation remain required. Physical ownership ordering and performance remain
+unverified while audits are paused.

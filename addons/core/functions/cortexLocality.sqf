@@ -25,6 +25,8 @@
  * Ordinary driving brains retire before the owner epoch changes; successor queued work starts
  * against the new epoch and does not inherit an exhausted old-owner receipt. Public pass-leg
  * cleanup may hand back only unchanged native commands; split vehicle locality waits for discovery.
+ * Outgoing ENTRY/SWEEP lane capture is machine-private after fencing the actual old
+ * producer, before pointer/epoch retirement. It is not a public seal or readiness receipt.
  * Arguments: 0: group <GROUP>, default grpNull; 1: gained locality <BOOL>, default false;
  * 2: resume pending artillery relocation <BOOL>, default true. Its own first admission passes
  * false to prevent synchronous re-entry before publishing its selected-crew journal.
@@ -135,13 +137,32 @@ _group setVariable ["CBE_GroupBrain",nil];
 _group setVariable ["CBE_GroupBrain_FSM",nil];
 _group setVariable ["CBE_Cortex_GroupJob",nil];
 private _buildingBrain=_group getVariable ["CBE_BuildingBrain",createHashMap];
-if (count _buildingBrain > 0) then {
-    _buildingBrain set ["cancelled",true];
-    _buildingBrain set ["cancelReason","LOCALITY_CHANGE"];
-    _buildingBrain set ["completed",true];
+isNil {
+    if ((_group getVariable ["CBE_BuildingBrain",createHashMap]) isNotEqualTo _buildingBrain) exitWith {};
+    if (_gained && {local _group}) then {_group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]};
+    if (count _buildingBrain > 0) then {
+        private _captureOutgoing=!_gained && {!local _group}
+            && {(_buildingBrain getOrDefault ["producerOwner",-1]) == clientOwner}
+            && {!(_buildingBrain getOrDefault ["cancelled",false])}
+            && {!(_buildingBrain getOrDefault ["finished",false])};
+        // Fence this writer before the final local copy; no old tactical callback
+        // may treat the snapshot as permission to resume. Other writer domains are separate.
+        _buildingBrain set ["cancelled",true];
+        _buildingBrain set ["cancelReason","LOCALITY_CHANGE"];
+        _buildingBrain set ["completed",true];
+        if (_captureOutgoing) then {
+            private _clearJob=_buildingBrain getOrDefault ["job",createHashMap];
+            private _lanes=["FROZEN",_clearJob] call CBE_fnc_BuildingLaneJournal;
+            if (_lanes isEqualType [] && {count _lanes == 13}) then {
+                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[1,clientOwner,
+                    _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
+                    serverTime,_clearJob get "hardDeadline",_lanes]];
+            };
+        };
+    };
+    _group setVariable ["CBE_BuildingBrain",nil];
+    _group setVariable ["CBE_BuildingBrain_FSM",nil];
 };
-_group setVariable ["CBE_BuildingBrain",nil];
-_group setVariable ["CBE_BuildingBrain_FSM",nil];
 {
         private _unit = _x;
         private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];

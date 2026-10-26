@@ -4,7 +4,9 @@
  * Locality/authority: Current group owner and current CLEAR generation/epoch. CHECK validates
  * prospective resume data before an operation exists; SAVE/ADOPT/EXPORT require its exact operation.
  * EXPORT additionally requires this machine's current uncancelled building brain/job. It is
- * current-owner-only, not a final seal after Local loss or a network/replay interface.
+ * current-owner-only. FROZEN is read-only after actual locality loss, before private pointer
+ * retirement: the same local producer must be fenced by LOCALITY_CHANGE. Neither is a
+ * complete transfer seal or network/replay interface.
  * Adoption retains lane-bound buddy destination proposals as well as request ages and progress.
  * It changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
@@ -15,25 +17,28 @@
  * on the existing job and phase, including refused samples; a phase transition or committed
  * lane-roster change invalidates that sample. The new phase must not retain an old-phase snapshot.
  * Changed-only publication. No worker, world query or retry renewal.
- * Arguments: 0 mode STRING SAVE/ADOPT/CHECK/EXPORT; 1 job HASHMAP empty.
+ * Arguments: 0 mode STRING SAVE/ADOPT/CHECK/EXPORT/FROZEN; 1 job HASHMAP empty.
  * Return: BOOL - CHECK validity without mutation, latest SAVE result or metadata adopted;
  * throttling retains the prior SAVE result. EXPORT returns an independently copied13-field
- * ARRAY or [] on refusal, bypassing SAVE throttling without changing its budgets. CHECK and
+ * ARRAY or [] on refusal (also FROZEN), bypassing SAVE throttling without changing its budgets. CHECK and
  * EXPORT never publish or change job metadata. Exported clocks use original server time.
  * Never native acknowledgement, valid-current-snapshot proof or physical continuity.
  * Callers: CortexClearBuilding and BuildingOperationStep SAVE/ADOPT/CHECK; internal producer
- * checkpoint preparation may call EXPORT while it still owns this exact live job.
+ * checkpoint preparation may call EXPORT while local; CortexLocality calls FROZEN only
+ * between fencing its original private producer and clearing that pointer.
  * Example: ["SAVE",_job] call CBE_fnc_BuildingLaneJournal;
  */
 params [["_mode","SAVE",[""]],["_job",createHashMap,[createHashMap]]];
-private _export=_mode == "EXPORT";
-private _encoding=_mode in ["SAVE","EXPORT"];
+private _frozen=_mode == "FROZEN";
+private _export=_mode in ["EXPORT","FROZEN"];
+private _encoding=_mode in ["SAVE","EXPORT","FROZEN"];
 private _refused=if (_export) then {[]} else {false};
-if (!(_mode in ["SAVE","ADOPT","CHECK","EXPORT"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {_refused};
+if (!(_mode in ["SAVE","ADOPT","CHECK","EXPORT","FROZEN"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {_refused};
 private _group=_job getOrDefault ["group",grpNull];
-if (isNull _group || {!local _group}) exitWith {_refused};
+private _ownerContext={if (_frozen) then {!local _group} else {local _group}};
+if (isNull _group || {!(call _ownerContext)}) exitWith {_refused};
 private _phase=_job getOrDefault ["phase","ENTRY"];
-if (!(_phase in ["ENTRY","SWEEP"])) exitWith {if (_mode == "EXPORT") then {[]} else {_mode == "ADOPT"}};
+if (!(_phase in ["ENTRY","SWEEP"])) exitWith {if (_export) then {[]} else {_mode == "ADOPT"}};
 if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}
     && {_phase isEqualTo (_job getOrDefault ["laneJournalPhase",""])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
 private _result=false;
@@ -42,7 +47,7 @@ _result=call {
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _context=_job getOrDefault ["visitContext",[]];
     private _building=_job getOrDefault ["building",objNull];
-    if (!local _group || {!(_context isEqualType [])} || {count _context != 4}
+    if (!(call _ownerContext) || {!(_context isEqualType [])} || {count _context != 4}
         || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""} || {isNull _building} || {!alive _building}
         || {_context isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
         || {(_context select 0) isNotEqualTo _building}
@@ -70,7 +75,13 @@ _result=call {
             || {(_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
             || {(_brain getOrDefault ["ownerEpoch",-1]) != (_job getOrDefault ["ownerEpoch",-2])}
             || {(_brain getOrDefault ["generation",-1]) != (_job getOrDefault ["generation",-2])}
-            || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+            || {(_brain getOrDefault ["producerOwner",-1]) != clientOwner}
+            || {_brain getOrDefault ["finished",false]}
+            || {if (_frozen) then {
+                !(_brain getOrDefault ["cancelled",false])
+                    || {(_brain getOrDefault ["cancelReason",""]) != "LOCALITY_CHANGE"}
+                    || {!(_brain getOrDefault ["completed",false])}
+            } else {_brain getOrDefault ["cancelled",false]}}
     }) exitWith {false};
     private _positions=_job getOrDefault ["positions",[]];
     private _pairs=_job getOrDefault ["pairs",[]];
