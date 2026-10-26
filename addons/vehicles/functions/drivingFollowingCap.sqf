@@ -3,8 +3,9 @@
  * Purpose: Observes vehicle hulls occupying the forward lane and derives a continuous speed cap.
  * Aligned moving predecessors retain measured forward speed. Other intersecting hulls are treated
  * as occupied space without assuming that crossing or oncoming traffic will yield or move away.
- * Dense unscheduled samples project at most256 hulls, pruning only slow non-occupying hulls
- * before at most64 motion predictions. More than64 retained candidates still refuse. Scheduled
+ * Dense unscheduled samples project at most256 hulls. Finite separated-height hulls and
+ * non-occupying slow/parallel courses that cannot affect either existing constraint branch
+ * are pruned before at most64 motion predictions. More than64 retained candidates still refuse. Scheduled
  * direct calls retain the original64-candidate refusal; no cross-suspension pruning cache.
  * Moving crossing traffic on the right also constrains approach when projected hull occupancy
  * windows overlap within six seconds. Crossing actors from either side inside nominal stopping
@@ -77,6 +78,7 @@ private _projectTrafficHull={
 };
 private _ownHull=[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull;
 private _low=_ownHull select 0;private _high=_ownHull select 1;
+private _ownProjectionFinite=(_low+_high) findIf {!finite _x} < 0;
 private _front=_high select 1;
 private _halfWidth=((_high select 0)-(_low select 0))*0.5;
 private _halfLength=((_high select 1)-(_low select 1))*0.5;
@@ -157,19 +159,26 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         // Current lane occupancy below remains independent of this prediction.
         private _otherVelocity=velocity _other;_otherVelocity set [2,0];
         private _otherSpeed=vectorMagnitude _otherVelocity;
-        // Below the existing crossing-prediction threshold, only current occupied-lane
-        // hulls can constrain this observer. Use the full padded projection, not a centre
-        // or nominal size. Moving/unknown actors remain candidates even outside the lane.
-        if (_denseTraffic && {finite _otherSpeed} && {_otherSpeed <= 0.8}
-            && {!(_ahead && {_sameLane} && {_sameHeight})}) then {continue};
+        // Derive the same crossing denominator before spending a prediction slot.
+        // Parallel courses below the existing cutoff cannot enter that branch; current
+        // occupied-lane hulls remain independent. Unknown data is never pruned.
+        private _course=[];private _denominator=0;
+        if (_sameHeight && {_otherSpeed > 0.8}) then {
+            _course=vectorNormalized _otherVelocity;
+            _denominator=(_forward select 0)*(_course select 1)-(_forward select 1)*(_course select 0);
+        };
+        if (_denseTraffic && {finite _otherSpeed} && {_ownProjectionFinite}
+            && {[_minX,_maxX,_minY,_maxY,_minZ,_maxZ] findIf {!finite _x} < 0}
+            && {!_sameHeight || {
+                !(_ahead && {_sameLane}) && {_otherSpeed <= 0.8
+                    || {finite _denominator && {abs _denominator <= 0.2}}}
+            }}) then {continue};
         _evaluated=_evaluated+1;
         if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true};
         private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
         private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
         private _fromRight=_relative vectorDotProduct _right > 0.25;
         if (_sameHeight && {_otherSpeed > 0.8}) then {
-            private _course=vectorNormalized _otherVelocity;
-            private _denominator=(_forward select 0)*(_course select 1)-(_forward select 1)*(_course select 0);
             if (abs _denominator > 0.2) then {
                 private _alongOwn=((_relative select 0)*(_course select 1)-(_relative select 1)*(_course select 0))/_denominator;
                 private _alongOther=((_relative select 0)*(_forward select 1)-(_relative select 1)*(_forward select 0))/_denominator;

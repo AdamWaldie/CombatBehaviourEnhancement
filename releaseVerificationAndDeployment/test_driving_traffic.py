@@ -66,19 +66,39 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertFalse(occupied(-2,2,2,0,2))
         self.assertFalse(occupied(3,5,8,0,2))
         self.assertFalse(occupied(-2,2,8,5,7))
-        # Dense broad-phase admission may prune a slow separated hull, never moving
-        # crossing traffic or a long hull whose projection still occupies the lane.
+        # A discarded dense candidate cannot affect either existing constraint branch.
+        # Moving stacked traffic and parallel off-lane streams must not consume the
+        # prediction budget. Occupied hulls, crossing courses and unknowns remain.
         import math
-        def retained(bounds,speed):
-            return not (math.isfinite(speed) and speed<=0.8 and not occupied(*bounds))
+        def retained(bounds,speed,denominator=1.0):
+            if not math.isfinite(speed) or not all(math.isfinite(v) for v in bounds):return True
+            min_x,max_x,max_y,min_z,max_z=bounds
+            same_height=max_z>=-0.75 and min_z<=2.25
+            if not same_height:return False
+            if occupied(*bounds):return True
+            return not (speed<=0.8 or (math.isfinite(denominator) and abs(denominator)<=0.2))
         parked=[((-2,2,2,0,2),0.0)]*100
         self.assertEqual(sum(retained(*row) for row in parked),0)
         conflict=((-2,2,5,0,2),0.0)
         self.assertEqual(sum(retained(*row) for row in parked+[conflict]),1)
         self.assertGreater(sum(retained(*row) for row in [conflict]*65),64)
         self.assertTrue(retained((3,5,8,0,2),10.0))
-        self.assertTrue(retained((-2,2,5,0,2),0.0))
+        self.assertTrue(retained((-2,2,5,0,2),10.0,0.0))
         self.assertTrue(retained((3,5,8,0,2),float('nan')))
+        self.assertTrue(retained((3,5,8,0,2),10.0,float('nan')))
+        self.assertTrue(retained((3,float('nan'),8,0,2),10.0,0.0))
+        self.assertEqual(sum(retained((-2,2,8,5,7),10.0) for _ in range(100)),0)
+        self.assertEqual(sum(retained((3,5,8,0,2),10.0,0.0) for _ in range(100)),0)
+        self.assertFalse(retained((3,5,8,0,2),10.0,0.2))
+        self.assertTrue(retained((3,5,8,0,2),10.0,0.200001))
+        for bounds in ((-2,2,5,0,2),(-2,2,2,0,2),(3,5,8,0,2),(-2,2,8,5,7)):
+            for speed in (0.0,0.8,0.80001,10.0):
+                for denominator in (-1.0,-0.2,0.0,0.2,1.0):
+                    same_height=bounds[4]>=-0.75 and bounds[3]<=2.25
+                    potential=occupied(*bounds) or (same_height and speed>0.8 and abs(denominator)>0.2)
+                    if not retained(bounds,speed,denominator):self.assertFalse(potential)
+        self.assertIn('_ownProjectionFinite',s)
+        self.assertIn('finite _denominator && {abs _denominator <= 0.2}',s)
         self.assertIn('count _candidates > 256',s)
         self.assertIn('_denseTraffic && {canSuspend}',s)
         self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)

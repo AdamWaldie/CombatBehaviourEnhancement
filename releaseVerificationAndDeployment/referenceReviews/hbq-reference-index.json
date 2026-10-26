@@ -456,9 +456,18 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-dense-traffic-admission-20261025.json",
-      "sha256": "a03302fe96fcc2b903cf199dbec60b593f0078cc278b2f4cf44718d56d5dd05c",
+      "sha256": "8ffd503e039bc28328cb859ed5f054d58911c975c557d70ffb8e1cf1bd230911",
       "scope": "Bounded dense-traffic admission within the current following observer; not full HBQ traffic or gameplay acceptance.",
       "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-dense-traffic-course-20261026.json",
+      "sha256": "87c5968f9a4e34080f5dbc99b7e763b1879cdf7bd084daa01e19b1da057c9d04",
+      "scope": "Selective TrafficCap reference and current dense-observer admission; no renewed whole-controller or whole-HBQ parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
