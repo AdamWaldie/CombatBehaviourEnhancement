@@ -4095,6 +4095,11 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         private _follow=_job getOrDefault ["followThrough",createHashMap];
         private _followFailures=_job getOrDefault ["followThroughFailures",createHashMap];
         private _followExhausted=_job getOrDefault ["followThroughExhausted",[]];
+        private _followSpent=_job getOrDefault ["followThroughExhaustedKeys",[]];
+        _job set ["followThrough",_follow];
+        _job set ["followThroughFailures",_followFailures];
+        _job set ["followThroughExhausted",_followExhausted];
+        _job set ["followThroughExhaustedKeys",_followSpent];
         private _followBudgetChanged=false;
         private _followReservations=[];
         private _followReservationsReady=false;
@@ -4308,6 +4313,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                         };
                     } else {
                         _followExhausted pushBackUnique _unit;
+                        _followSpent pushBackUnique _key;
                         _followFailures set [_key,+_failedTargets];
                         _followBudgetChanged=true;
                         if !(_job getOrDefault ["entryFailed",false]) then {
@@ -4363,16 +4369,11 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                 };
             };
         } forEach _activeWorkers;
-        _job set ["followThrough",_follow];
-        _job set ["followThroughFailures",_followFailures];
-        _job set ["followThroughExhausted",_followExhausted];
         if (_followBudgetChanged && {call _mayIssueMovement}) then {
-            private _exhaustedIds=_followExhausted apply {netId _x};
-            private _rows=(keys _followFailures select [0,64]) apply {
-                [_x,+(_followFailures get _x),_x in _exhaustedIds]
+            private _snapshot=[_job] call CBE_fnc_BuildingFollowJournal;
+            if (count _snapshot == 4) then {
+                _group setVariable ["CBE_Cortex_ClearFollowBudget",_snapshot select 3,true];
             };
-            _group setVariable ["CBE_Cortex_ClearFollowBudget",[
-                _building,_job get "hardDeadline",_job get "buildingTransform",_rows,+(_job get "visitContext")],true];
         };
     };
     // Complete physical coverage and participation retire obsolete owned room legs.

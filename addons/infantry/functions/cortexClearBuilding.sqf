@@ -973,6 +973,10 @@ if (_resume && {count _egressJournal == 14} && {(_egressJournal select 0) == "EG
 };
 // Keep reserve search consumption across a true resume, independently of local handles.
 // Durable failed follow-through targets are bookkeeping, never movement/entry receipts.
+_job set ["followThrough",createHashMap];
+_job set ["followThroughFailures",createHashMap];
+_job set ["followThroughExhausted",[]];
+_job set ["followThroughExhaustedKeys",[]];
 private _followBudget=_group getVariable ["CBE_Cortex_ClearFollowBudget",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearFollowBudget",nil,true]}] call _commitPreparation};
 if (_resume && {count _followBudget == 5} && {(_followBudget select 0) == _building}
@@ -1001,6 +1005,7 @@ if (_resume && {count _followBudget == 5} && {(_followBudget select 0) == _build
     } forEach ((_followBudget select 3) select [0,64]);
     _job set ["followThroughFailures",_failures];
     _job set ["followThroughExhausted",_exhausted];
+    _job set ["followThroughExhaustedKeys",_exhausted apply {netId _x}];
 };
 private _stageBudget=_group getVariable ["CBE_Cortex_ClearStageBudget",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearStageBudget",nil,true]}] call _commitPreparation};

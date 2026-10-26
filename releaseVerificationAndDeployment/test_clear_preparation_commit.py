@@ -140,6 +140,23 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('[_clearJob] call CBE_fnc_BuildingStageJournal',capture)
         self.assertIn('[_clearJob] call CBE_fnc_BuildingRoomJournal',capture)
         self.assertIn('if (count _rooms == 13)',capture)
+        self.assertIn('call CBE_fnc_BuildingFollowJournal',capture)
+        self.assertIn('if (count _follow == 4)',capture)
+        follow=(ROOT/'addons/infantry/functions/buildingFollowJournal.sqf').read_text(encoding='utf-8')
+        follow_step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8').split('private _follow=_job getOrDefault',1)[1]
+        self.assertLess(follow_step.index('_job set ["followThrough",_follow]'),follow_step.index('_follow set ['))
+        self.assertIn('_followSpent pushBackUnique _key',follow_step)
+        self.assertIn('"CBE_Cortex_ClearFollowBudget",_snapshot select 3,true',follow_step)
+        preparation=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('_job set ["followThroughExhaustedKeys",_exhausted apply {netId _x}]',preparation)
+
+        for guard in ('"followThroughExhaustedKeys",false','count _spent > 64','count _indices > 3',
+                      'count _x > 64','serverTime-(time-(_record select 2))',
+                      'serverTime-(time-(_record select 6))','_budgetRows pushBack [_x,+_indices,_x in _spent]'):
+            self.assertIn(guard,follow)
+        for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
+            self.assertNotIn(effect,follow)
+
         self.assertIn('_lanes,_stageBudget,_rooms',capture)
         rooms=(ROOT/'addons/infantry/functions/buildingRoomJournal.sqf').read_text(encoding='utf-8')
         for field in ('cleared','unreachable','retryCounts','failedBy','deadline','lastProgressAt','visitContext'):
@@ -160,8 +177,8 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[6,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[7,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)

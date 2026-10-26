@@ -216,6 +216,7 @@ class CfgFunctions {
             class BuildingRoomJournal {file = "\z\cbe\addons\infantry\functions\buildingRoomJournal.sqf";};
             class BuildingProducerContext {file = "\z\cbe\addons\infantry\functions\buildingProducerContext.sqf";};
             class BuildingEgressJournal {file = "\z\cbe\addons\infantry\functions\buildingEgressJournal.sqf";};
+            class BuildingFollowJournal {file = "\z\cbe\addons\infantry\functions\buildingFollowJournal.sqf";};
             class BuildingActorMotion {file = "\z\cbe\addons\infantry\functions\buildingActorMotion.sqf";};
             class BuildingActorHoldOwned {file = "\z\cbe\addons\infantry\functions\buildingActorHoldOwned.sqf";};
             class BuildingOperationStart {file = "\z\cbe\addons\infantry\functions\buildingOperationStart.sqf";};

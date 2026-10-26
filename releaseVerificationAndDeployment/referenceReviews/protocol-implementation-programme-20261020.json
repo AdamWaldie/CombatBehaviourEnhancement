@@ -57,6 +57,10 @@
       "originalVisitIdentity20261026": {
         "review": "clear-original-visit-identity-20261026.json",
         "scope": "Original physical entrant identities retained before deletion for truthful historical producer capture. No replacement visit credit, native replay, complete casualty handover or physical parity claim."
+      },
+      "followProducerSnapshot20261026": {
+        "review": "clear-follow-producer-capture-20261026.json",
+        "scope": "Original follow-through legs/progress clocks and failed/exhausted search history share pure live/capture encoding. No incoming leg replay, native readiness, complete transfer or physical parity claim."
       }
     },
     {
