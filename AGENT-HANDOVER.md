@@ -1,3 +1,11 @@
+## Current source checkpoint: HBQ auxiliary review (2026-10-26)
+
+All28 auxiliary files in the protected29-source index now have complete readable-body/declaration review and scoped dispositions in `releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json`. Exact membership/hashes reconciled; `fn_driveAssist.sqf` remains the main incomplete source. Its named top-level helper line anchors are recorded for navigation, not semantic coverage. Source register updated. No implementation percentage or whole-HBQ parity inferred.31 historical review texts still unavailable; this work does not recover them.
+
+Runtime remains pushedeffe6b39 and the verified launcher-request candidate described below; these later source-only checkpoints require no unchanged rebuild. Audits remain PAUSED. Next HBQ work: actual main-controller gates, geometry, traffic/jam, crew, route/corridor and shutdown writers with bounded original authority. Keep auxiliary lifecycle/unsafe-method dispositions; do not port physics/teleport/repair/forced seating or permanent per-vehicle workers. Existing launcher durable native cancellation gap remains open.
+
+---
+
 ## Current checkpoint: preserve pending launcher requests (2026-10-26)
 
 The launcher relocation local row now retains original group/machine/epoch/operation/route and detached pre-request command/destination/formation anchor. Unchanged pre-ack state keeps the one request reserved only within its original ten seconds. Different context/marker/anchor cannot retain it; legacy three-field rows confer no retention authority. No duplicate movement, deadline renewal, worker or new source test count. This is a live acknowledgement fix, NOT durable cancellation after timeout, stop or migration; that foundation gap remains explicit.

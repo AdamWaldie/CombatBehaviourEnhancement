@@ -865,16 +865,24 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json",
-      "sha256": "45172b9d1c6f01160423763645f839a9b2776feb1a55db34f162f331b6332ec5",
+      "sha256": "69c6c3f2e1b30fa459de36cce90ed9d0a8b880a8c5f9ed0d78d2ba291edcd7e1",
       "scope": "Complete protected fn_refreshRoute.sqf body. Selected current CBE admission/return branches traced; this does not renew whole driveAssist, unstuck, driving or HBQ parity.",
       "sourceFileMentions": [
+        "BIS_AddonInfo.hpp",
+        "config.cpp",
         "functions/fn_crewHold.sqf",
         "functions/fn_damageInit.sqf",
+        "functions/fn_debugText.sqf",
+        "functions/fn_debugTextClient.sqf",
         "functions/fn_driveAssist.sqf",
+        "functions/fn_driveAssistDebug.sqf",
+        "functions/fn_edenDraw.sqf",
         "functions/fn_enabled.sqf",
         "functions/fn_feature.sqf",
         "functions/fn_initVehicle.sqf",
         "functions/fn_moduleNavArea.sqf",
+        "functions/fn_nearestThreat.sqf",
+        "functions/fn_perfMonitor.sqf",
         "functions/fn_playersNear.sqf",
         "functions/fn_precision.sqf",
         "functions/fn_protectBriefly.sqf",
@@ -887,7 +895,8 @@
         "functions/fn_unflipLoop.sqf",
         "functions/fn_unstuckLoop.sqf",
         "functions/fn_vehicleUnstuck.sqf",
-        "XEH_postInit.sqf"
+        "XEH_postInit.sqf",
+        "XEH_preInit.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

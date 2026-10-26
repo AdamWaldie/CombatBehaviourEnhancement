@@ -22,7 +22,7 @@ The tables list evaluation objectives. They do not assert that every named mecha
 | Reference | Functionality to select or improve | Review position | Next source work |
 | --- | --- | --- | --- |
 | LAMBS Danger.fsm 2.6.2 (1858075458) | Standalone danger FSM, reactions, assault and task lifecycle | Deep partial review; relevant branches remain | Finish the AI branch/call graph and descendants; map missing execution into existing CBE owners. |
-| HBQ Advanced Driving AI (3812620045) | Driving, traffic, recovery, convoy and crew policy | Deep partial review; relevant branches remain | Finish every relevant source function/major branch disposition; replace unsafe methods while retaining the required recovery intent. |
+| HBQ Advanced Driving AI (3812620045) | Driving, traffic, recovery, convoy and crew policy | All28 indexed auxiliary bodies/declarations reviewed; main controller partially reconciled | Finish every relevant driving-controller decision/writer/callback/cleanup branch and CBE disposition. Auxiliary review does not establish whole-HBQ functionality or physical proof. |
 
 ## protocol programme
 
