@@ -48,5 +48,9 @@
     "buildLog": ".qa/handovers/clear-outgoing-lane-build.log",
     "independentLog": ".qa/handovers/clear-outgoing-lane-independent.log",
     "independent": "PASS"
+  },
+  "exteriorStageFollowup": {
+    "review": "clear-stage-producer-snapshot-20261026.json",
+    "scope": "Shared actual-producer stage snapshot is appended in private version2/nine-field capture; both components must validate. Source maps are attached before first stage transition. Earlier eight-field lane-only schema remains historical. Full checkpoint and transport remain incomplete."
   }
 }

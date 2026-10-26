@@ -12464,10 +12464,11 @@ class CortexOperations(unittest.TestCase):
 
         self.assertLess(start.index('_previous param [9,_nativeOrderReceipt'),start.index('// Keep reserve search consumption'))
         step=source('buildingOperationStep')
-        publish=step.split('private _budgetRows=',1)[1].split('// Release reservations before selection',1)[0]
-        self.assertIn('select [0,64]',publish)
+        publish=step.split('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal;',1)[1].split('// Release reservations before selection',1)[0]
+        self.assertIn('count _stageBudget == 5',publish)
+        self.assertIn('count _x > 64',source('buildingStageJournal'))
         stage=step.split('private _stageSearchBudget=1;',1)[1].split('// Release reservations before selection',1)[0]
-        self.assertLess(stage.index('if (_stageJournalChanged && {call _mayIssueMovement})'),stage.index('private _budgetRows='))
+        self.assertLess(stage.index('if (_stageJournalChanged && {call _mayIssueMovement})'),stage.index('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal'))
         original,rebalance=stage.split('// Rebalance one duplicated live post',1)
         self.assertEqual(original.count('_stageJournalChanged=true;'),5)
         # A new security allocation must consume and journal its attempt before geometry,

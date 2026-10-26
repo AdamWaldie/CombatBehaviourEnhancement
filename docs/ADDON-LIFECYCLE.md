@@ -1854,3 +1854,23 @@ The incoming owner cannot consume this private record yet. Authenticated produce
 registration, complete phase state, final seal/replay transport and actual native
 reconciliation remain required. Physical ownership ordering and performance remain
 unverified while audits are paused.
+
+
+### Exterior-post producer snapshot
+
+Live changed-state publication and outgoing locality capture now use the same pure
+`BuildingStageJournal` serializer. Its existing five-field journal retains each
+actor's spent search count, attempted post/entry positions, stage and blocked-view
+observation times. Nested vectors are copied independently. At most64 actor keys,
+six attempted targets and three entries per key are admitted; malformed or overflow
+state refuses instead of truncating away spent history. No budget is reset or
+extended, and unblocked view checks still use the existing later-owner recheck path.
+
+The outgoing private capture is now version2 with nine fields: the original eight
+fields followed by this stage snapshot. It is retained only when both the lane and
+stage components validate. A valid five-field stage journal with no rows means empty
+exterior state; an empty array means refusal and cannot substitute for it. The
+normal publication keeps its changed-state and current-owner checks. No new periodic
+serialization, network delivery or native command is introduced. Full phase/actor
+capture, registration, authenticated replay and actual incoming readiness remain
+unfinished; physical behaviour and transfer cost remain unverified.

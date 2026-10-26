@@ -153,10 +153,13 @@ isNil {
         if (_captureOutgoing) then {
             private _clearJob=_buildingBrain getOrDefault ["job",createHashMap];
             private _lanes=["FROZEN",_clearJob] call CBE_fnc_BuildingLaneJournal;
-            if (_lanes isEqualType [] && {count _lanes == 13}) then {
-                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[1,clientOwner,
+            private _stageBudget=if (_lanes isEqualType [] && {count _lanes == 13}) then {
+                [_clearJob] call CBE_fnc_BuildingStageJournal
+            } else {[]};
+            if (count _stageBudget == 5) then {
+                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[2,clientOwner,
                     _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
-                    serverTime,_clearJob get "hardDeadline",_lanes]];
+                    serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget]];
             };
         };
     };

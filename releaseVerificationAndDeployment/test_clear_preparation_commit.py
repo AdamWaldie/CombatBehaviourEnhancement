@@ -135,6 +135,10 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(locality.index('["FROZEN",_clearJob]'),locality.index('setVariable ["CBE_AIPass_Epoch"'))
         capture=outgoing.split('if (_captureOutgoing) then {',1)[1].split('_group setVariable ["CBE_BuildingBrain",nil]',1)[0]
         self.assertIn('_clearJob get "hardDeadline",_lanes',capture)
+        self.assertIn('[_clearJob] call CBE_fnc_BuildingStageJournal',capture)
+        self.assertIn('if (count _stageBudget == 5)',capture)
+        self.assertIn('ClearLaneCaptureLocal",[2,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         start=(ROOT/'addons/infantry/functions/buildingOperationStart.sqf').read_text(encoding='utf-8')
         self.assertIn('["producerOwner",clientOwner]',start)

@@ -1694,6 +1694,14 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     private _stageTriedTargets=_job getOrDefault ["reserveStageTriedTargets",createHashMap];
     private _stageTriedEntries=_job getOrDefault ["reserveStageTriedEntries",createHashMap];
     private _stageViewChecks=_job getOrDefault ["reserveStageViewChecks",createHashMap];
+    // Attach new maps before their first owned transition, so outgoing capture
+    // sees these same producer objects rather than defaults until callback end.
+    _job set ["reserveStages",_reserveStages];
+    _job set ["reserveStageViewChecks",_stageViewChecks];
+    _job set ["reserveStageAttempts",_stageAttempts];
+    _job set ["reserveStageSearchCounts",_stageSearchCounts];
+    _job set ["reserveStageTriedTargets",_stageTriedTargets];
+    _job set ["reserveStageTriedEntries",_stageTriedEntries];
     private _stageViewBudget=1;
     private _stageViewKey="";
     private _earliestView=1e12;
@@ -2030,12 +2038,6 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             };
         };
     } forEach _stageReserves;
-    _job set ["reserveStages",_reserveStages];
-    _job set ["reserveStageViewChecks",_stageViewChecks];
-    _job set ["reserveStageAttempts",_stageAttempts];
-    _job set ["reserveStageSearchCounts",_stageSearchCounts];
-    _job set ["reserveStageTriedTargets",_stageTriedTargets];
-    _job set ["reserveStageTriedEntries",_stageTriedEntries];
     // A sole exit observer cannot leave until a real substitute settles. Use one
     // idle, physically progressed interior worker; never strip another exterior post.
     // One selection per callback and one attempt per worker/original episode survive migration.
@@ -2701,21 +2703,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     // Build the migration journal only after an owned stage transition. Idle callbacks
     // retain the published receipt without copying every actor record again.
     if (_stageJournalChanged && {call _mayIssueMovement}) then {
-        private _budgetRows=(keys _stageSearchCounts select [0,64]) apply {
-            private _savedStage=_reserveStages getOrDefault [_x,[]];
-            private _savedView=_stageViewChecks getOrDefault [_x,[]];
-            private _viewReceipt=[];
-            if (count _savedStage == 7 && {(_savedStage select 2) == "ARRIVED"}
-                && {count _savedView == 2} && {(_savedView select 1) >= 0}) then {
-                _viewReceipt=[+(_savedStage select 0),+(_savedStage select 4),
-                    _savedView select 0,_savedView select 1];
-            };
-            [_x,_stageSearchCounts get _x,+(_stageTriedTargets getOrDefault [_x,[]]),
-                +_savedStage,+(_stageTriedEntries getOrDefault [_x,[]]),_viewReceipt]
-        };
-        private _stageBudget=[_building,_job get "hardDeadline",_job get "buildingTransform",_budgetRows,+(_job get "visitContext")];
+        private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal;
         isNil {
-            if (call _mayIssueMovement
+            if (count _stageBudget == 5 && {call _mayIssueMovement}
                 && {(_group getVariable ["CBE_Cortex_ClearStageBudget",[]]) isNotEqualTo _stageBudget}) then {
                 _group setVariable ["CBE_Cortex_ClearStageBudget",_stageBudget,true];
             };

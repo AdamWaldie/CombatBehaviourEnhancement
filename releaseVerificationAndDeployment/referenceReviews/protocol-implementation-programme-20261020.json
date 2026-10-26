@@ -36,6 +36,10 @@
       "outgoingLaneCapture20261026": {
         "review": "clear-outgoing-lane-capture-20261026.json",
         "scope": "Actual outgoing private lane state is captured after the source writer fence and before pointer/epoch retirement. No full transfer seal, authenticated replay, incoming readiness or physical handover acceptance."
+      },
+      "exteriorProducerSnapshot20261026": {
+        "review": "clear-stage-producer-snapshot-20261026.json",
+        "scope": "Normal publication and outgoing source capture share a pure bounded stage serializer preserving spent searches and blocked-view history. Partial snapshot component only; full checkpoint transport/native readiness and physical acceptance remain incomplete."
       }
     },
     {

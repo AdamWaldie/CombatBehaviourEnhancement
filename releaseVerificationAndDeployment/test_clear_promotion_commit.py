@@ -41,7 +41,7 @@ class PromotionCommitTests(unittest.TestCase):
         self.assertIn('(_job get "assigned") set [_team find _replacement,[]]',commit)
         self.assertIn('_reserveStages deleteAt (netId _replacement)',commit)
         self.assertIn('_stageJournalChanged=true',commit)
-        self.assertLess(text.index('if (_pairRosterChanged) then'),text.index('private _budgetRows='))
+        self.assertLess(text.index('if (_pairRosterChanged) then'),text.index('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal'))
         pairs=text.split('if (_pairRosterChanged) then {',1)[1].split('// Build the migration journal',1)[0]
         self.assertLess(pairs.index('isNil {'),pairs.index('call CBE_fnc_CombatPairsPublish'))
         self.assertLess(pairs.index('call _mayIssueMovement'),pairs.index('call CBE_fnc_CombatPairsPublish'))

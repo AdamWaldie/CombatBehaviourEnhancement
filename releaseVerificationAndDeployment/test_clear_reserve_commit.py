@@ -85,7 +85,8 @@ class ReserveCommitTests(unittest.TestCase):
         text=source()
         gate=text.split('private _reserveReady={',1)[1].split('private _reserveLegOwned=',1)[0]
         self.assertIn('group _candidate == _group',gate)
-        publish=text.split('private _stageBudget=[_building',1)[1].split('// Promotion cannot spend',1)[0]
+        publish=text.split('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal;',1)[1].split('// Promotion cannot spend',1)[0]
         self.assertLess(publish.index('isNil {'),publish.index('setVariable ["CBE_Cortex_ClearStageBudget"'))
         self.assertLess(publish.index('call _mayIssueMovement'),publish.index('setVariable ["CBE_Cortex_ClearStageBudget"'))
         self.assertNotIn('private _budgetRows=',publish)
+        self.assertIn('count _stageBudget == 5',publish)
