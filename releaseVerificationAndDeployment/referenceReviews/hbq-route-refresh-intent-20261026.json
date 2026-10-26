@@ -76,5 +76,85 @@
     "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
     "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68"
   },
-  "audits": "paused"
+  "audits": "paused",
+  "selectedControllerTailFollowup": {
+    "source": "functions/fn_driveAssist.sqf:2896-end",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "scope": "Complete selected controller tail; sourceTrafficStep/SetCap/overtaking/gate helper implementations are separate dependencies, not reviewed completely here. Selected CBE speed-commit lines only; no whole-controller review credit.",
+    "dispositions": [
+      {
+        "intent": "Combine independent speed restrictions and retain the last result between independently due traffic/obstacle checks.",
+        "source": "Minimum active obstacle/traffic cap; separate observation clocks; convoy bypass of normal cap writer.",
+        "cbe": "Existing driving owner combines geometry/traffic/pedestrian restrictions and records original speed baseline plus issuer in the native write transaction. Do not introduce a second speed writer. Full timing equivalence and costs unverified."
+      },
+      {
+        "intent": "Only attempt overtaking behind a persistent lead vehicle while calm and free of conflicting manoeuvres.",
+        "source": "Same lead for over3seconds; two-second retry interval, no follower/player-led/traffic hold/navigation/yield/pass conflict.",
+        "disposition": "Keep intent as a separate finite pass operation with current route/crew/owner proof. This tail does not prove current CBE pass gating or full source overtaking equivalence."
+      },
+      {
+        "intent": "Close gates left open after the primary vehicle loop exits.",
+        "source": "Detached worker checks every2seconds up to180seconds; nearby people and moving/unready crewed vehicles defer closing. It survives the main-loop exit.",
+        "disposition": "Main Running=false is not quiescence. Existing all-writer handover contract must include gate worker acknowledgement; do not import detached gate animation authority or infer physical clearance from entity radii alone."
+      },
+      {
+        "intent": "Release old cap/traffic/hold and debug state on exit/locality change.",
+        "source": "Local vehicle check surrounds traffic/hold/base-limit restoration, followed by running/busy/debug cleanup.",
+        "disposition": "Current owner alone is not proof of original task authority. Retain CBE generation/issuer/applied-value baseline checks; no unconditional speed reset over newer orders."
+      }
+    ],
+    "productionChange": "None. Existing foundations retained; dependency and physical/performance questions remain open."
+  },
+  "capAndPassHelperFollowup": {
+    "source": "functions/fn_driveAssist.sqf",
+    "scope": "Complete SetCap870-887, OvtOncoming1996-2003, OvtRoad2008-2044 and OvtTry2046-2157 bodies read in untruncated follow-up chunks. Caller tail2896-end separately reviewed. Other traffic, pass progression, road-angle and cleanup dependencies remain separate; no whole-controller review credit.",
+    "capDisposition": {
+      "observed": "Source caps positive requests against BaseSpeedLimit. Updates only if not Limited or absolute cap difference exceeds2km/h; releases base limit when request nonpositive.",
+      "risk": "Symmetric deadband can retain an older higher cap when the requested safety cap tightens by at most2km/h. It is command-churn control, not proof the current constraint is enforced.",
+      "decision": "Do not copy symmetric suppression of safety tightening. Current CBE forceSpeed transaction checks live actor/route/epoch/native baseline and records applied cap/issuer. No new speed writer or runtime change."
+    },
+    "passIntent": [
+      "Require useful speed advantage and a finite estimated pass distance/time.",
+      "Avoid overtaking the same-group vehicle, simultaneous pass claimant and being passed.",
+      "Reject junction/bridge/ended-road and poor alignment through road helper.",
+      "Check road-corridor occupants and oncoming traffic, then generate offset path and screen centre/outer edge before issuing it."
+    ],
+    "deliberateDepartures": [
+      "Source dispatches setDriveOnPath immediately after selected checks and shared marker publication. Do not treat marker proximity or current owner alone as exclusive task authority.",
+      "Source path points forceATLz0. CBE proposal/geometry preparation retains measured coordinates, original finite budget, route/crew context and independent traffic observations.",
+      "CBE traffic observation includes dead hulls and bounded density refusal. Neither implementation static screening establishes collision-free runtime travel."
+    ],
+    "remaining": "Complete source overtaking progression/abort/clear helper and current CBE executor/return reconciliation. Initial pass helper and two dependencies now traced, but physical passing and full HBQ review remain incomplete.",
+    "roadAndTrafficComparison": {
+      "sourceRoad": "Up to90 road segments; excludes previous segment but keeps no complete visited set. Rejects pedestrian/bridge/junction/end and turns over75 degrees. Outputs flattenedATLz0 centreline and offset path.",
+      "cbeRoad": "Selected DrivingPassPlan76-157 uses at most32 segments, visited-loop refusal, junction/bridge/pedestrian rejection, finite endpoint validation,35-degree turn bound and at most128 sampled stations. Measured ASL coordinates and smooth pull-out/return replace flattened one-step offset.",
+      "sourceTraffic": "Road occupants alive-only within10m of centreline; oncoming uses crew/alive/front-facing angle sectors and a17m/s approach estimate. Static path/edge rays separately test geometry.",
+      "cbeTraffic": "DrivingPassTraffic separates actual hull occupancy and finite constant-course projected intersection, includes dead hulls, caps candidates64 and refuses dense results; nominal35m/s approach envelope capped1250m. Faster/modded traffic and future turns remain unproven.",
+      "decision": "Retain finite road walk, speed advantage and independent corridor/oncoming intent; keep stronger loop/budget/height/proposal authority. Do not equate conservative refusal or extra checks with better physical driving.",
+      "hashes": {
+        "addons/vehicles/functions/drivingPassPlan.sqf": "38d5f3e5b0906869ceb831b401bb4605ce37a00c6c59f274b5edb37111474852",
+        "addons/vehicles/functions/drivingPassTraffic.sqf": "b042ed0fe6eed6ea882a0d5dad32eb93eaf6e007a7287a7f2f2c3c3077795da7"
+      }
+    }
+  },
+  "overtakeProgressFollowup": {
+    "scope": "Complete source OvtClear/OvtEnd1973-1992 and main overtaking state branch2470-2508; selected CBE DrivingPassStep terminal conditions and DrivingPassFinish ownership/STOP acknowledgement region. Not complete CBE executor review.",
+    "sourceStates": [
+      "OUT: end when peer gone/dead/over90m/heading diverges; complete when own hull clears peer by6m. Timeout/stall/oncoming while behind either end if fully behind or change toBACK.",
+      "BACK: cap below peer speed, minimum5km/h; end when fully behind or after10seconds.",
+      "END: replace path with one current-positionATLz0 point; retry refreshRoute untiltrue or4seconds elapse.",
+      "Clear removes peer marker only ifit still names this vehicle, then erases local pass state."
+    ],
+    "decisions": [
+      "Retain explicit pass/abort/return phases and hull-clear intent. Do not substitute nominal elapsedtime for real stop/path release.",
+      "Do not import degenerate one-point path or waypoint reconstruction. CBE selected finish requires original work/owner/epoch/route/seats/tasks/consent, issues exactSTOP once, then observes nativeSTOP and physical linear/angular rest before route recall.",
+      "A stop-unresolved record beyond originaldeadline is refusal evidence, not successful native return; retained cleanup must not grant another attempt.",
+      "Source disappearance/turn-off and timeout cannot automatically authorise a new path across intervening traffic. CBE return preparation independently screens geometry and current context."
+    ],
+    "cbeHashes": {
+      "addons/vehicles/functions/drivingPassStep.sqf": "60da1dfe4a4318945c7dd02f6d1821a2efa157eceeb914d7a6b0e521e8d03c6c",
+      "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1"
+    },
+    "remaining": "Complete CBE pass finish/cleanup descendants and actual native stop/path cessation/return verification. No physical or whole-HBQ parity credit."
+  }
 }
