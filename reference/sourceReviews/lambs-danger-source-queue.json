@@ -121,15 +121,15 @@
       "path": "functions/fnc_tacticsAttack.sqf",
       "sha256": "e055293415cefa99a2a9fa600ed429dc6c3f75310a8c9e4bac8d48e14abcdfc3",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
     },
     {
       "path": "functions/fnc_tacticsCQB.sqf",
       "sha256": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
     },
     {
       "path": "functions/fnc_tacticsFlank.sqf",
@@ -142,8 +142,8 @@
       "path": "functions/fnc_tacticsGarrison.sqf",
       "sha256": "0ebc4b1fced272e0f70c4b1b613097449b5afa59c36d48850faff050ce84a2d3",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
     },
     {
       "path": "functions/fnc_tacticsHide.sqf",

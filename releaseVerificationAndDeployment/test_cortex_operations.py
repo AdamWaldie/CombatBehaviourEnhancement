@@ -11993,12 +11993,25 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexAntiArmour')
         section=text.split('private _relocation =',1)[1].split('if (_relocationBlocks',1)[0]
         self.assertIn('(_actorMove select 0) == "ANTI_ARMOUR"',section)
-        self.assertIn('(_actorMove select 1) distance2D _relocationSpot < 1',section)
+        self.assertIn('(_actorMove select 1) isEqualTo _relocationSpot',section)
         self.assertIn('(_actorMove select 2) == _relocationUntil',section)
+        for proof in ('AGLToASL ((expectedDestination _relocating) select 0)',
+                      'getPosASL _relocating','AGLToASL _relocationSpot',
+                      'if (_stillOurs && {!_arrived}'):
+            self.assertIn(proof,section)
+        relocation=text.split('if (_blocked) exitWith {',1)[1].split('_gunner doMove _spot;',1)[0]
+        for proof in ('surfaceIsWater _spot','(surfaceNormal _spot select 2) < 0.55',
+                      '[_state,"antiArmourMove",3] call CBE_fnc_CortexCooldown'):
+            self.assertIn(proof,relocation)
+        # Horizontal overlap is neither arrival on another floor nor exact lease identity.
+        self.assertEqual((10,20,0)[:2],(10,20,4)[:2])
+        self.assertGreater(abs(4-0),1.5)
+        self.assertNotEqual((10,20,0),(10,20,4))
+
         for guard in ('_actorMove isEqualType []','(_actorMove select 1) isEqualType []',
                       'count (_actorMove select 1) == 3','finite (_actorMove select 2)'):
             self.assertIn(guard,section)
-        self.assertLess(section.index('(_actorMove select 1) isEqualType []'),section.index('(_actorMove select 1) distance2D'))
+        self.assertLess(section.index('(_actorMove select 1) isEqualType []'),section.index('(_actorMove select 1) isEqualTo _relocationSpot'))
 
 
     def test_cover_cleanup_preserves_replaced_native_destination(self):

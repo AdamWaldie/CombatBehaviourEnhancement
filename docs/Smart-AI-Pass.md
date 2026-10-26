@@ -3059,3 +3059,8 @@ Resumed clearance defers before operation startup while any mandatory original r
 ### Defensive indoor firing-position selection
 
 An idle indoor defender retains an already usable lane toward its native contact belief. When that lane is blocked, its existing finite actor operation accepts a nearby same-floor node only if the prospective lane is usable at its current eye height. A first obstruction within three metres of the belief permits near-face suppression planning; this is not fire authority or a guarantee of a hit. The original eight-metre radius, occupancy checks, twelve-node search limit, movement deadline and newer-order protections remain. Defensive planning adds at most four surface queries per selection callback; ordinary investigation adds none. Accessibility, physical firing benefit and performance remain unverified while audits are paused.
+
+
+### Launcher relocation terrain and arrival
+
+A short backblast-clearing relocation refuses water or terrain steeper than the existing manoeuvre slope limit, including when no screened cover was found. Open-ground sidesteps remain available on suitable terrain. Arrival and native destination checks distinguish absolute height as well as horizontal distance; cleanup removes only the exact recorded movement point and deadline. Rejected terrain uses a three-second retry cooldown. No extra movement controller, search pass or operation deadline is added. Physical movement remains unverified while audits are paused.

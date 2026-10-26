@@ -1,3 +1,11 @@
+## Current checkpoint: launcher relocation terrain and height (2026-10-26)
+
+Continuation after pushed560584d2 on `Adam/cbe-recovery-followup-20261026`, CBE checkout `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, draftPR19. Launcher relocation now refuses water/steep cover-fallback seeds using the existing cooldown, retains suitable open-ground sidesteps, checks absolute height for native destination/physical arrival and removes only its exact recorded point/deadline. No new owner, search pass or deadline. Full1497 tests and complete offline gates passed; independent candidate `.qa/candidates/launcher-relocation-560584d2`, fingerprint `e6a692f81bcafbc09ef3b27a549685ce0b6a37c0a6f82bdade8af4eff70a7363`. Logs `.qa/handovers/launcher-relocation-build.log` and `launcher-relocation-independent.log`. Build source560584d2 plus working implementation, not a clean release.
+
+Complete readable tacticsAttack/CQB/Garrison reviewed and three danger queue rows updated. Discovery/memory is not physical clearance; reject source timers that restore policy over newer tasks. General native movement cancellation/acknowledgement remains incomplete: marker retirement does not prove engine path cessation. Existing actor firing-position improvement below is included in this candidate. Audits remain PAUSED; no physical, HC/JIP or performance acceptance. Preserve unrelated dirt and protected source/game/key stores. Next work follows `IMPLEMENTATION-GOAL.md` and existing source queues; no new competing controller.
+
+---
+
 ## Current checkpoint: defensive indoor firing lanes (2026-10-26)
 
 Working checkout: `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`; branch `Adam/cbe-recovery-followup-20261026`; PR19 remains draft/open. Read `IMPLEMENTATION-GOAL.md` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md` before choosing further work. WMP is unrelated and read-only for this goal. Preserve all existing unrelated deletions and the performance-document change.

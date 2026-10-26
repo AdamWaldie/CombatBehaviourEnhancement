@@ -636,5 +636,48 @@
     "remaining": "Physical approach, repeat use, window/stance quality, runtime cost and general outdoor blocked-fire response remain unverified/unimplemented as applicable. Audits paused.",
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "attackCqbGarrisonReview20261026": {
+    "scope": "Complete readable bodies of three danger tactics; selected launcher relocation comparison. Not complete firing, CQB or garrison executor parity.",
+    "sourceHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsAttack.sqf": "e055293415cefa99a2a9fa600ed429dc6c3f75310a8c9e4bac8d48e14abcdfc3",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsCQB.sqf": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsGarrison.sqf": "0ebc4b1fced272e0f70c4b1b613097449b5afa59c36d48850faff050ce84a2d3"
+    },
+    "findings": [
+      {
+        "source": "tacticsAttack maps array targets to nearest enemy, changes RED/DIAMOND, weak crouches and directs all selected ready actors to watch/target/fire the vehicle;60second callback restores group policy without original task identity.",
+        "intent": "Concentrate suitable fire on a threat.",
+        "disposition": "Retain coordinated fire intent through existing per-actor capability/ROE/lane/task gates; reject retargeting position-only orders and timer-only policy restoration. No whole launcher or attack parity claim."
+      },
+      {
+        "source": "tacticsCQB marks tactic/contact and disables attack before checking whether existing inCQB memory is nonempty; adds nearby uncleared houses toward target and queues180second attack restoration.",
+        "intent": "Continue nearby building combat from existing building memory.",
+        "disposition": "Treat as memory/discovery and group policy, not physical clearance. Its reviewed normal tactics entry has the CQB formation branch commented out; do not claim this as enabled autonomous functionality. Keep CBE finite dynamic discovery/entry/visit/exit owners; no blind inCQB or cleared flags."
+      },
+      {
+        "source": "tacticsGarrison selects nearby indoor nodes, stops/watches-null actors and staggers setDestination/doMove by0.5-2seconds. If actors exceed nodes it reuses the first target point; empty selection follows leader.180second timer restores group policy.",
+        "intent": "Use nearby buildings as a rally/defensive position.",
+        "disposition": "Do not import duplicate fallback node assignment, unowned STOP, stale callbacks or blanket follow. CBE needs actual node/occupancy/arrival/task ownership; this review does not establish complete walking/instant-garrison parity."
+      }
+    ],
+    "launcherRelocationFix": {
+      "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+      "problem": "FindCover fallback was consumed without terrain validation; relocation arrival and cleanup identity used horizontal distance alone.",
+      "change": "Refuse water/slope below0.55 with3second existing cooldown. Retain open-ground sidesteps. Use absolute height for current destination/arrival and exact original point/deadline for marker cleanup.",
+      "sourceSha256": "3173de88c7247b3b90af50bdc1e4a590a23be5d21096a0f7ea3df17c0cd9b738",
+      "limitation": "Finite native travel retirement and real backblast/route behaviour remain unverified. No claim that metadata retirement cancels every engine path.",
+      "verification": {
+        "tests": 1497,
+        "build": ".qa/handovers/launcher-relocation-build.log",
+        "independent": ".qa/handovers/launcher-relocation-independent.log",
+        "candidate": ".qa/candidates/launcher-relocation-560584d2",
+        "fingerprint": "e6a692f81bcafbc09ef3b27a549685ce0b6a37c0a6f82bdade8af4eff70a7363",
+        "buildSource": "560584d2 plus working implementation",
+        "physicalAcceptance": false
+      }
+    },
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

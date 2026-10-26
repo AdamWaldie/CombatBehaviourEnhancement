@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
+ * Relocation refuses water/steep fallback terrain. Native destination and physical arrival
+ * use absolute-height separation; cleanup retires only the exact recorded movement point.
  * Puts the squad's best ready loaded anti-tank gunner onto known armour, clear of backblast
  * and the shared forward friendly/civilian cone and magazine-aware blast veto.
  * Reserve-only or reloading carriers cannot monopolise selection over a ready gunner.
@@ -87,8 +89,12 @@ private _relocationBlocks = false;
 if (count _relocation == 3) then {
     _relocation params ["_relocating","_relocationSpot","_relocationUntil"];
     private _stillOurs = alive _relocating && {local _relocating} && {group _relocating == _group}
-        && {((expectedDestination _relocating) select 0) distance2D _relocationSpot < 1};
-    if (_stillOurs && {_relocating distance2D _relocationSpot > 2} && {_now < _relocationUntil}) then {
+        && {((expectedDestination _relocating) select 0) distance2D _relocationSpot < 1}
+        && {abs (((AGLToASL ((expectedDestination _relocating) select 0)) select 2)
+            -((AGLToASL _relocationSpot) select 2)) <= 1.5};
+    private _arrived=_relocating distance2D _relocationSpot <= 2
+        && {abs (((getPosASL _relocating) select 2)-((AGLToASL _relocationSpot) select 2)) <= 1.5};
+    if (_stillOurs && {!_arrived} && {_now < _relocationUntil}) then {
         _relocationBlocks = true;
     } else {
         if (!isNull _relocating && {local _relocating}) then {
@@ -98,7 +104,7 @@ if (count _relocation == 3) then {
                 && {(_actorMove select 1) isEqualType []} && {count (_actorMove select 1) == 3}
                 && {(_actorMove select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                 && {(_actorMove select 2) isEqualType 0} && {finite (_actorMove select 2)}
-                && {(_actorMove select 1) distance2D _relocationSpot < 1}
+                && {(_actorMove select 1) isEqualTo _relocationSpot}
                 && {(_actorMove select 2) == _relocationUntil}) then {
                 _relocating setVariable ["CBE_Cortex_ActorMove",nil];
             };
@@ -188,6 +194,12 @@ if (_blocked) exitWith {
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     if !([_gunner] call _actorAvailable) exitWith {false};
     private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group,"COVER",_gunner] call CBE_fnc_CortexFindCover) select 0;
+    // FindCover returns its input seed when no screened cover exists. Open-ground
+    // sidestepping may still free backblast, but the fallback is not validated terrain.
+    if (surfaceIsWater _spot || {(surfaceNormal _spot select 2) < 0.55}) exitWith {
+        [_state,"antiArmourMove",3] call CBE_fnc_CortexCooldown;
+        false
+    };
     if (!call _mayRelocate || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
     _gunner doMove _spot;
     _gunner setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];
