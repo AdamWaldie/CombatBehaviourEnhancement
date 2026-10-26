@@ -58,8 +58,8 @@
       "path": "functions/fnc_brainVehicle.sqf",
       "sha256": "9bf4f270de89c69a63b4fe3949d22d73cc90c207b5053183052b383df64b86f8",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; five delegated helpers and selected CBE paths reconciled in vehicleDecisionDelegationReview20261026; descendants/physical parity remain open",
+      "next": "Resolve VEHICLE_ORIENT_NATIVE_RETIREMENT before dependent additions; retain reactive smoke/illumination and reserve-ammunition gaps. No acceptance uplift."
     },
     {
       "path": "functions/fnc_contact.sqf",

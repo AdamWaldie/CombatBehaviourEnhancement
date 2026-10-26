@@ -889,5 +889,83 @@
     "buildoutPercentageChange": false,
     "physicalAcceptance": false,
     "audits": "paused"
+  },
+  "vehicleDecisionDelegationReview20261026": {
+    "scope": "Complete readable brainVehicle body and complete five named main-addon vehicle helpers. CBE comparison inspects domain handoff, selected vehicle branches, crew recovery and jink/orientation entry, turn retirement, loaded-muzzle selection and artillery admission. Other CBE descendants are not whole-body reconciled here; no compiled equivalence or physical parity claim.",
+    "sourceAndExecutorHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainVehicle.sqf": "9bf4f270de89c69a63b4fe3949d22d73cc90c207b5053183052b383df64b86f8",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doVehicleJink.sqf": "41d160fa1187aa78e7b223baf645a571740ea7cb80124d3137b60e671982984d",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doVehicleRotate.sqf": "7169a6963c64d43c9699002f9cdb69b0cdc8c9831fca44f23360c3117fd154f7",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doVehicleAssaultMove.sqf": "358718c429b2cabd07233ddc2ab8609f4d8d5df003e6e3de92649f758a526bd8",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doVehicleAssault.sqf": "a3732f580364328744a7c2460e576b605341d35b1c8c6b5d25140fc75a99a637",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doSelectWarhead.sqf": "c42c29f48ee777f9a1ac49d5891e90f95224ef5435be30180b72b9081678f17a",
+      "addons/infantry/functions/dangerVehicleProfile.sqf": "3a8983f05a648b6e44b70cc9cc4e190b13fa55dcb8eaf9f13ce81230d8d8655a",
+      "addons/infantry/functions/dangerStep.sqf": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b",
+      "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+      "addons/vehicles/functions/cortexVehicles.sqf": "2c2510d1b3d034b3be1ac6b3b52d9f83edfb9d545470c8473fafb2f4ef7f2932",
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "addons/vehicles/functions/cortexVehicleJink.sqf": "67553374f3f7346ca3106978682db120b6d616411678024a12db2a2928357312",
+      "addons/vehicles/functions/cortexVehicleOrient.sqf": "58c00665f674ee90a0d945f2aa90f2f8f4700243efb5808e21488d2838183941",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "fd33dc08651b6cae0e5e07bfac11a49fa1f64123206b3cdc7dff7d123a7242f9",
+      "addons/infantry/functions/cortexGroundFireReady.sqf": "bde93eab31965cf5bd7b07a1cd3240f0db6a98e0acb68aa70230cf431b444e0c",
+      "addons/infantry/functions/cortexGroundSelectMuzzle.sqf": "6cb43145064d3a222c0bb731c797919e478ab51b80aa116c2eab7835a2d9c299",
+      "addons/support/functions/cortexArtilleryFire.sqf": "9524060c7d1d7b0e22cff479e37d4bdcf8a830a58274cee582fbd6f74a412e76",
+      "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f"
+    },
+    "branches": [
+      {
+        "intent": "One effective commander selects a relevant vehicle danger; domain-specific execution.",
+        "source": "brainVehicle requires a living effective commander, ranks supplied queue and substitutes ASSESS for empty queue. Artillery, air, static, armour and car branches follow. Air only returns a longer timeout.",
+        "cbe": "DangerEngineMode hands mounted observations to VEHICLE; DangerStep retains exact platform/profile/generation and original hostile witness/expiry; CortexVehicles consumes it. Air support needs its separate source programme: LAMBS air timeout is not aircraft behaviour parity.",
+        "decision": "Adapt domain separation; preserve bounded intake/native beliefs. Source different-side comparison is not full hostility or current ownership validation."
+      },
+      {
+        "intent": "Mortar survival and reactive support.",
+        "source": "Close contact can order every crew member out and set suppression. Mortar chooses HE/smoke/flare, checks range, offsets impact and may schedule another volley18-26s later; callback checks only canFire/unitReady.",
+        "cbe": "Selected vehicle danger branch routes one HE request to authenticated CortexArtilleryFire and its finite mission owner; ArtilleryAmmo supports HE/smoke and explicitly excludes illumination.",
+        "decision": "Retain survival/support intent; reject stale delayed volley and blanket crew mutation. Reactive smoke choice and illumination remain capability gaps. Existing general smoke support does not close reactive selection; source random probabilities are not required balance."
+      },
+      {
+        "intent": "Static weapon survival and suppression.",
+        "source": "Empty magazines or very close enemy orders crew out; otherwise suppression now and again3s later.",
+        "cbe": "Exact-platform abandonment applies individual task checks and normal exit; danger suppression is a generation-bounded existing gunnery path.",
+        "decision": "Adapt; source magazine-array emptiness is not loaded station readiness, and queued repeat must retain current authority. Full abandonment/restoration and suppression descendants remain separately reviewed/tested."
+      },
+      {
+        "intent": "Choose useful ammunition for the threat.",
+        "source": "doSelectWarhead inspects actual gunner station and available magazines, prefers named/AP/tandem or HE/HEAT, skips laser-guided ammo in the fallback scan, can load a reserve magazine and select a top-down mode.",
+        "cbe": "GroundFireReady ranks suitable loaded station muzzles; GroundSelectMuzzle rechecks loaded rounds/reload and requires native selection acknowledgement. Reserve loading is currently left native.",
+        "decision": "Loaded selection is partial coverage, not full ammunition parity. Reserve-magazine choice and context-appropriate laser/top-down handling remain explicit gaps. Normal engine loading is distinct from creating ammo or forcing a shot; design it under existing fire ownership if selected for implementation."
+      },
+      {
+        "intent": "Armour/passenger cooperation and casualty recovery.",
+        "source": "Armour changes unload policy, may smoke, changes formation direction, then ejects captured cargo0.1s later and stops the vehicle; commander may become gunner. Armed car instead ejects commander and requests gunner entry0.9s later.",
+        "cbe": "Existing unload-policy/dismount owner handles passenger groups; CortexVehicleCrewRecover checks occupied/assigned commander and incoming gunner ownership, then requests internal movement without sacrificing driver.",
+        "decision": "Adapt dismount/crew preservation intent. Do not import forced exits, permanent allowGetIn policy or stale captured crew lists. Internal role request is not proof of completed seating. Separate-group/native mission decisions retain authority."
+      },
+      {
+        "intent": "Finite escape, chassis orientation and firing-position improvement.",
+        "source": "Jink selects side/forward points and may snap to random road; rotate sends turn and queues stop/move callbacks; assault move may issue doMove to current position even on refusal. Building assault may fall back from failed suppression to jink and use a random useWeapon action.",
+        "cbe": "CortexVehicleJink and Orient admit through existing operation/crew/native-order boundaries; routine vehicle manoeuvre/gunnery remains separate from actor posture.",
+        "decision": "Retain physical reposition/orientation intent, reject unowned refusal-stop, random forced shot and unleased firing-to-movement fallback. Turn cancellation acknowledgement is a concrete foundation gap below; wider jink/positioning descendants and physical effects are not accepted by this review."
+      },
+      {
+        "intent": "Unarmed vehicle crew survival.",
+        "source": "Stopped driver/leader may be moved out/unassigned after1s, or immediately ejected on close detection, with synthetic suppression.",
+        "cbe": "Current danger abandonment uses protected-actor checks and normal exit, separate from passenger dismount and convoy ownership.",
+        "decision": "Retain survival intent without forced disembark or blanket order replacement. Situational usefulness/route recovery requires physical evidence."
+      }
+    ],
+    "foundationGap": {
+      "id": "VEHICLE_ORIENT_NATIVE_RETIREMENT",
+      "evidence": "cortexVehicles finished VEHICLE_ORIENT path and cortexRestoreCalm both issue STOPTURNING under identity/input guards then immediately erase CBE_Danger_VehicleOrient. RestoreCalm also deletes vehicleDangerOrient/movementLease in common state cleanup. The retained receipt therefore cannot observe a delayed/unconfirmed stop.",
+      "classification": "Confirmed source-level proof retirement gap; actual persistent turn or physical failure is unverified. Do not assume a native command is delayed in every execution.",
+      "nextBoundedChange": "Trace all turn writers and lifecycle edges; retain exact original turn/crew/native-order proof until a native no-turn or replacement is observed, or an explicit finite unresolved terminal result. Do not replay turn travel, extend the original work deadline, overwrite newer native input or create a permanent controller. Reuse existing bounded cleanup/lifecycle mechanisms where possible.",
+      "exit": "All relevant cancellation/calm/shutdown/locality paths share the exact retirement rule and existing focused offline checks pass. Physical acknowledgement/repeat-use remains pending while audits are paused."
+    },
+    "runtimeChanges": false,
+    "buildoutPercentageChange": false,
+    "physicalAcceptance": false,
+    "audits": "paused"
   }
 }
