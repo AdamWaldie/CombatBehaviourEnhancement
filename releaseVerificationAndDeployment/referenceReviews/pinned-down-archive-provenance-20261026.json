@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-26T14:57:38.782923+00:00",
+  "sourceBase": "4bcc7ec1",
+  "status": "EIGHT_EXTRACTED_SNAPSHOTS_VERIFIED_SOURCE_REVIEW_PENDING",
+  "archiveRoot": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708",
+  "manifestSHA256": "95c18276b0b4c5ba0903e94bf8226aef329bbfb76f507bd44351e468210f956a",
+  "verificationScriptSHA256": "be5852d3278d271e7ba0e5cb0af3d4d98ad8d9472c24245b94737223e58c463c",
+  "verification": {
+    "manifestFiles": 320,
+    "failures": 0,
+    "snapshotFiles": 315,
+    "readableSourceFiles": 297,
+    "originalWorkshopPackagesRecovered": false,
+    "upstreamScriptsExecuted": false,
+    "archiveMutated": false
+  },
+  "mods": [
+    {
+      "workshopId": "3559900745",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3559900745/extracted-20261011",
+      "snapshotFiles": 38,
+      "readableSourceFiles": 32,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3579551673",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3579551673/extracted-20261011",
+      "snapshotFiles": 22,
+      "readableSourceFiles": 19,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3709853140",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011",
+      "snapshotFiles": 25,
+      "readableSourceFiles": 23,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3763118318",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011",
+      "snapshotFiles": 37,
+      "readableSourceFiles": 34,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3775025723",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3775025723/extracted-20261011",
+      "snapshotFiles": 38,
+      "readableSourceFiles": 37,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3776232873",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3776232873/extracted-20261011",
+      "snapshotFiles": 63,
+      "readableSourceFiles": 62,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3785056303",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3785056303/extracted-20261011",
+      "snapshotFiles": 15,
+      "readableSourceFiles": 14,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    },
+    {
+      "workshopId": "3799629858",
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011",
+      "snapshotFiles": 77,
+      "readableSourceFiles": 76,
+      "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+    }
+  ],
+  "limits": [
+    "Verifies membership, size and hashes against the preserved manifest. Does not prove the historical extraction contained every original PBO member.",
+    "Historical LOCAL_IMPLEMENTATION_LEDGER.md and .qa/source-refresh-20261011/code-inventory.json remain absent. New verification does not restore missing historic review text.",
+    "Eight verified snapshots do not establish complete source review or implementation; no percentages renewed.",
+    "Source stays read-only and outside product packages. Preserve attribution, provenance and licence material."
+  ],
+  "privateSourceMemberIndex": ".qa/source-provenance-recovery-20261026/pinned-down-source-members.json",
+  "audits": "paused"
+}

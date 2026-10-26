@@ -22,7 +22,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/lambs-fsm-foundations-20261020.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1858075458",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3812620045",
@@ -36,7 +42,13 @@
       "implementationAssessmentCommit": "52f9606d1612715eedeb862f8cca4705ca0420ae",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/hbq-reference-index.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3812620045",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3799391254",
@@ -52,7 +64,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
-      "programmeRemaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven."
+      "programmeRemaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3799391254",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3800081309",
@@ -68,7 +86,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
-      "programmeRemaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation."
+      "programmeRemaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3800081309",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3801354927",
@@ -84,7 +108,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "SELECTED_PREFIRE_AND_POSTFIRE_CREW_FSM_INTEGRATED_OFFLINE_PHYSICAL_PENDING",
-      "programmeRemaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate."
+      "programmeRemaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3801354927",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3802121807",
@@ -100,7 +130,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "SYNCHRONISED_BUDDY_ROLES_INTEGRATED_PHYSICAL_PENDING",
-      "programmeRemaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023."
+      "programmeRemaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3802121807",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3803702313",
@@ -116,7 +152,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
-      "programmeRemaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation."
+      "programmeRemaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3803702313",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3809708209",
@@ -132,7 +174,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "SCOPED_NATIVE_AA_AND_EXPERIMENTAL_POINT_DEFENCE_CODE_INTEGRATED_PHYSICAL_PENDING",
-      "programmeRemaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate."
+      "programmeRemaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3809708209",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3813369033",
@@ -148,7 +196,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
-      "programmeRemaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features."
+      "programmeRemaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3813369033",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3819636004",
@@ -164,7 +218,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
-      "programmeRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature."
+      "programmeRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3819636004",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3822504009",
@@ -180,7 +240,13 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "SCOPED_STATION_AND_SELECTED_MOVEMENT_CODE_INTEGRATED_PHYSICAL_PENDING",
-      "programmeRemaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json."
+      "programmeRemaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3822504009",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "1808238502",
@@ -194,7 +260,13 @@
       "implementationAssessmentCommit": "99060c42",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-suppression-policy-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1808238502",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "1858070328",
@@ -208,7 +280,13 @@
       "implementationAssessmentCommit": "0385b7b29c33be19127649f200bea3a1b4b8e941",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-launcher-policy-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1858070328",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "1862208264",
@@ -222,7 +300,13 @@
       "implementationAssessmentCommit": "d849a79d99803a079450884c847830ca15b66307",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/lambs-config-policies-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1862208264",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "2905259701",
@@ -236,7 +320,13 @@
       "implementationAssessmentCommit": "713cb7d7",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/source-reconciliation-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2905259701",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3380337397",
@@ -250,7 +340,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3380337397.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3380337397",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3496308284",
@@ -264,7 +360,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3496308284",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3529745801",
@@ -278,35 +380,69 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3529745801",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3559900745",
       "name": "Pinned Down Combat Suppression",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Combat suppression response",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Reconcile archived identity/version with3820871877; separate AI methods, overlapping policy and player effects.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Compare the verified 3559900745 extracted AI code with the 3820871877 review, identify version differences and separate player effects.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3559900745",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3559900745",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3559900745/extracted-20261011",
+        "snapshotFiles": 38,
+        "readableSourceFiles": 32,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3579551673",
       "name": "Pinned Down Surrender",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Surrender and capture behaviour",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover source evidence; trace triggers, weapons/captive state, interruption and repeat restoration.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace triggers, weapons/captive state, interruption and repeat restoration.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3579551673",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3579551673",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3579551673/extracted-20261011",
+        "snapshotFiles": 22,
+        "readableSourceFiles": 19,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3623550024",
@@ -320,7 +456,13 @@
       "implementationAssessmentCommit": "713cb7d7",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/source-reconciliation-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3623550024",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3679457651",
@@ -334,7 +476,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3679457651",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3682445063",
@@ -348,7 +496,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3682445063",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3690291228",
@@ -362,21 +516,41 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3690291228",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3709853140",
       "name": "Pinned Down Medical Solution",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Squad medical assistance",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; trace aid allocation, casualty approach and ACE/native medical task ownership.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace aid allocation, casualty approach and ACE/native medical task ownership.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3709853140",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3709853140",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011",
+        "snapshotFiles": 25,
+        "readableSourceFiles": 23,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3721618614",
@@ -390,7 +564,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3721618614",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3742481604",
@@ -404,7 +584,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3742481604",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3744994173",
@@ -418,21 +604,41 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3744994173",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3763118318",
       "name": "Pinned Down Steel Rain",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Artillery behaviour to compare",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; identify actual artillery methods and combine useful intent with the single CBE support lifecycle.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to identify actual artillery methods and combine useful intent with the single CBE support lifecycle.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3763118318",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3763118318",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011",
+        "snapshotFiles": 37,
+        "readableSourceFiles": 34,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3771745732",
@@ -446,35 +652,69 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3771745732",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3775025723",
       "name": "Pinned Down Cover and Concealment",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Cover selection and concealment use",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; trace evidence, position choice, route feasibility and threat-facing posture.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace evidence, position choice, route feasibility and threat-facing posture.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3775025723",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3775025723",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3775025723/extracted-20261011",
+        "snapshotFiles": 38,
+        "readableSourceFiles": 37,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3776232873",
       "name": "Pinned Down Tracks and Boots",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; establish actual AI scope, then compare useful movement and combined-arms methods.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to establish actual AI scope, then compare useful movement and combined-arms methods.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3776232873",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3776232873",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3776232873/extracted-20261011",
+        "snapshotFiles": 63,
+        "readableSourceFiles": 62,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3778948165",
@@ -488,21 +728,41 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3778948165",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3785056303",
       "name": "Pinned Down Combat Awareness",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Combat awareness and information sharing",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; trace observation, knowledge propagation, contact loss and bounded sensing.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace observation, knowledge propagation, contact loss and bounded sensing.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3785056303",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3785056303",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3785056303/extracted-20261011",
+        "snapshotFiles": 15,
+        "readableSourceFiles": 14,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3798063749",
@@ -516,21 +776,41 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3798063749",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3799629858",
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; identify actual coordination decisions and ensure complementary methods share one CBE owner.",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to identify actual coordination decisions and ensure complementary methods share one CBE owner.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3799629858",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3799629858",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011",
+        "snapshotFiles": 77,
+        "readableSourceFiles": 76,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
     },
     {
       "workshopId": "3800356547",
@@ -544,7 +824,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3800356547",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3806472028",
@@ -558,7 +844,13 @@
       "implementationAssessmentCommit": "7072f960",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-grenade-policy-20261024.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3806472028",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3815260246",
@@ -572,7 +864,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3815260246.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3815260246",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3818040165",
@@ -586,7 +884,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3818040165.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3818040165",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3820669449",
@@ -600,7 +904,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3820669449",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3820871877",
@@ -614,7 +924,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\pinned-down-combat-suppression-3820871877.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3820871877",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3817252579",
@@ -628,7 +944,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3817252579.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3817252579",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3822271074",
@@ -642,7 +964,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3822271074.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3822271074",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "2567352444",
@@ -656,7 +984,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2567352444",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "2789152015",
@@ -670,7 +1004,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2789152015",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3310205676",
@@ -684,7 +1024,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3310205676",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     },
     {
       "workshopId": "3823619778",
@@ -698,7 +1044,13 @@
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3823619778.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3823619778",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
     }
   ],
   "localReferences": [
@@ -734,5 +1086,6 @@
     "lambsDanger": ".qa/lambs-2621-review/danger",
     "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06"
   },
-  "audits": "paused"
+  "audits": "paused",
+  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
 }
