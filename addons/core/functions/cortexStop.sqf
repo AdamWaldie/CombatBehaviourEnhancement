@@ -475,6 +475,8 @@ private _jobs = (missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missio
         _group setVariable ["CBE_AIPass_RegroupHost", nil];
     };
 } forEach _jobs;
+// Producer registrations are finite identity evidence, not resumable work after shutdown.
+if (isServer) then {missionNamespace setVariable ["CBE_ClearProducer_Registry",createHashMap]};
 [] call CBE_fnc_SchedulerReconcile;
 missionNamespace setVariable ["CBE_AIPass_DiscoveryQueued", false];
 diag_log "[CBE] Stopped.";

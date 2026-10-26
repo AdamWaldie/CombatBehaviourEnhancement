@@ -32,6 +32,26 @@ class BuildingStartAdmissionTests(unittest.TestCase):
         self.assertNotIn('execFSM',duplicate)
         self.assertNotIn('_old set',duplicate)
         self.assertIn('!completedFSM _existingHandle',start)
+        registration=source('buildingProducerRegister')
+        self.assertIn('if (_started && {isNil {_job get "producerRegistrationRequested"}})',start)
+        self.assertLess(start.index('!completedFSM _handle'),start.index('private _registration='))
+        for guard in ('remoteExecutedOwner == 2','groupOwner _group != _sender',
+                      'CBE_fnc_BuildingProducerContext','isNil {','CBE_AIPass_Active',
+                      '_data findIf {isNil "_x"}', '[0,1,2,3] findIf {isNil {_visit select _x}}',
+                      'count _registry >= 512','serverTime >= (_visit select 2)',
+                      '(_existing select [0,6]) isNotEqualTo _identity',
+                      '_job set ["producerRegistration",+_data]'):
+            self.assertIn(guard,registration)
+        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM','CBA_fnc_waitAndExecute'):
+            self.assertNotIn(forbidden,registration)
+        # Exact duplicate retains original identity, deadline and serial; conflicting owner refuses.
+        identity=('group',7,'original visit',3,4,5)
+        existing=identity+(1,)
+        def register(proposal):
+            return existing if proposal==existing[:6] else None
+        self.assertEqual(register(identity),existing)
+        self.assertIsNone(register(('group',8,'original visit',3,4,5)))
+        self.assertIsNone(register(('group',7,'original visit',3,4,6)))
         step=source('buildingOperationStep')
         gate=step.split('private _executor=',1)[1].split('private _delay=call',1)[0]
         self.assertIn('CBE_BuildingBrain_FSM',gate)

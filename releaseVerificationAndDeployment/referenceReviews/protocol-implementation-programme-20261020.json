@@ -85,6 +85,10 @@
       "actorHandoffPreflight20261026": {
         "review": "clear-actor-handoff-preflight-20261026.json",
         "scope": "Known inherited settings and native motion are observed and snapshot-rechecked before operation handoff. Partial requested properties refuse adoption. No complete authenticated owner-ready or physical parity claim."
+      },
+      "producerRegistration20261026": {
+        "review": "clear-producer-registration-20261026.json",
+        "scope": "Actual-owner server registration and exact live-job acknowledgement only. Final producer seal, incoming transport/readiness and physical migration remain incomplete."
       }
     },
     {

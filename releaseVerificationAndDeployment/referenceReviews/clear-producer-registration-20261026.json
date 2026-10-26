@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "9697480d80ae491fb0f988a77507918b5336eac4",
+  "status": "PRODUCER_IDENTITY_REGISTERED_SEAL_AND_RESUME_INCOMPLETE",
+  "requirement": "Server-authenticated original producer identity before a final outgoing clearance seal can be accepted.",
+  "implementation": [
+    "Successful actual FSM start sends original visit, owner epoch, clear generation and common-operation generation once. Same-job ended-worker restart does not renew registration.",
+    "Server binds registration to current groupOwner, typed finite immutable visit deadline and actual building pose. It does not rely on a separate public-variable arrival order.",
+    "Atomic server registry keeps the exact duplicate serial and original deadline; conflicting same-visit identity refuses. At most512 group entries, opportunistic stale/deleted pruning, no worker or timer; shutdown clears registry without resetting serial.",
+    "Authenticated server ACK attaches only to the matching live original job through BuildingProducerContext. It writes identity metadata only, no settings, movement or owner-ready state.",
+    "Registration is not yet embedded in the outgoing16-field capture or consumed for resume. Existing public-array resume remains incomplete and is not upgraded by this change."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/buildingProducerRegister.sqf": "b877ac28a86962db2e73702dca2a0ecdb494b27f91bb791e7939cc79313f4b52",
+    "addons/infantry/functions/buildingOperationStart.sqf": "92386b65e9694d75c0ff6a7bac53f4cd190a960e74e04cc62cc1debbcb64f432",
+    "addons/core/functions/cortexStop.sqf": "92f022645ed5fd8b95cc44296076dda58b22fa2eca96ce3fb6decf63901f0c21",
+    "addons/main/CfgFunctions.hpp": "bf192706e17fee6d411ab22ebe34d0dac7b4ec21c37661d56a9205f90c6d3b2a"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 441,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-producer-register-9697480d",
+    "fingerprint": "3fa7593106369a10bbd56ff6e5adcc82ab308e703f229f7d7f1f25cb31f34112",
+    "buildLog": ".qa/handovers/clear-producer-register-verified-build.log",
+    "independentLog": ".qa/handovers/clear-producer-register-independent.log",
+    "retainedFailures": [
+      "clear-producer-register-build.log: missing source coverage mapping",
+      "clear-producer-register-final-build.log: generated source-count table stale"
+    ],
+    "supersededBuild": "clear-producer-register-sealed-build.log preceded malformed sparse-payload checks; filename is not a producer seal claim.",
+    "runtimeUnchangedAfterFinalBuild": true
+  },
+  "remaining": [
+    "Final all-writer retirement/seal must bind this registered identity and coherent original checkpoint.",
+    "Implement authenticated incoming request/delivery and actual actor/settings/native reconciliation before tactical execution.",
+    "A registration arriving after source ownership loss refuses; no retroactive source-owner assertion. Capacity exhaustion refuses registration.",
+    "Audits paused: actual packet ordering, normal/HC transitions and performance remain unverified."
+  ],
+  "physicalAcceptance": false,
+  "completeHandover": false
+}
