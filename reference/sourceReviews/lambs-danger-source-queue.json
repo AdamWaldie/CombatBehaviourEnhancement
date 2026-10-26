@@ -9,8 +9,8 @@
       "path": "functions/fnc_brain.sqf",
       "sha256": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
     },
     {
       "path": "functions/fnc_brainAdjust.sqf",
@@ -23,29 +23,29 @@
       "path": "functions/fnc_brainAssess.sqf",
       "sha256": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
     },
     {
       "path": "functions/fnc_brainEngage.sqf",
       "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
     },
     {
       "path": "functions/fnc_brainForced.sqf",
       "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
     },
     {
       "path": "functions/fnc_brainHide.sqf",
       "sha256": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Historical selected review; installed bytes match",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
     },
     {
       "path": "functions/fnc_brainReact.sqf",

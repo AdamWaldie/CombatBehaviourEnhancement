@@ -1,3 +1,5 @@
+Governing implementation direction: read IMPLEMENTATION-GOAL.md, especially the Current goal directive and source-register batch requirements, before choosing work. Foundations first; preserve working behaviour and protected sources. Audits remain paused.
+
 # Start with the current CBE handover
 
 Read `AGENT-HANDOVER-CURRENT.md` before the historical notes below. It records the latest checkpoint, unfinished work, protected stores and audit pause. Check the usage limit before starting a batch. The full production-ready goal remains incomplete.

@@ -839,5 +839,55 @@
       "fingerprint": "e27a64db5ba561989eba9c1e2beccc208f97b1d703b33d820a78d1faa047cc23",
       "reason": "Intermediate before incapacitated-anchor fallback correction; use final candidate."
     }
+  },
+  "actorDecisionDelegationReview20261026": {
+    "scope": "Five complete installed readable actor decision bodies plus complete doAssaultMemory helper; brainVehicle remains historical/partial and is not promoted. Compiled SQFC equivalence and downstream helper completeness are not asserted.",
+    "sourceAndExecutorHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultMemory.sqf": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84",
+      "addons/infantry/functions/dangerEngineSelect.sqf": "0667bd663f771807246a2c08c2a14d3834a6aa29124dac443f9a31d74b2ca9f6",
+      "addons/infantry/functions/dangerEngineMode.sqf": "e852e9a322ebccc70e90f2c4ed155b1b49a7d36243ce16f5d1cedcb28d1b7f8b",
+      "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+      "addons/infantry/functions/dangerAttackPace.sqf": "1a3e59c20b575f5eeb4abfae0d5facce5c9bdc2939f096675caf03a1731c65d3",
+      "addons/infantry/functions/dangerActionSelect.sqf": "72b17a3667163e456fb85d288c010eea694f60a341f9c51704e0e18724ba0a96",
+      "addons/infantry/functions/cortexGroupTick.sqf": "13827d9478e2cf208ac1ecb832dc36351d8ce7373d1b5b67df459da194ddca7e",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c",
+      "addons/infantry/functions/indoorObservationDispatch.sqf": "e36d17c5065117117c9b110ed3a76b82e691d2fd5959e1a6ee21536caecb022e"
+    },
+    "findings": [
+      {
+        "source": "brain ranks the entire supplied queue by configured priority; empty queue selects synthetic ASSESS; nearby enemies additionally trigger callout/information sharing.",
+        "disposition": "Adapt: CBE uses bounded48-record selection and separate observation submission. Actor classifier is not permission for another movement owner. Existing information-sharing descendants require their own review; this comparison does not close them."
+      },
+      {
+        "source": "brainAssess refuses suppression, PATH-off, STEALTH, STOP and BLUE/GREEN before groupMemory delegation; only otherwise tries random indoor reposition or weak crouch.",
+        "disposition": "Retain useful sympathetic progress and indoor reposition intent through existing group/actor owners. CBE ASSESS posture-only placement is intentional, not proof of missing building movement. CortexGroupTick CONTACT dispatches confirmed indoor work; CALM dispatches body clues only after higher-priority contact/route decisions."
+      },
+      {
+        "source": "doAssaultMemory filters points against leader distance, sorts floor-first then leader distance, randomises selection during planning states, removes one near/visible point, offsets long exterior approach and nudges crowded destinations with random geometry.",
+        "disposition": "Adapt intent, reject arbitrary nudges and clearance inference. Nearby/visible point deletion is not room clearance. The empty-memory path orders all group members to follow the leader without ownership checks: do not reproduce it. Existing coherent routing/arrival, per-actor participation, inaccessible nodes and egress remain required; no parity credit from helper presence."
+      },
+      {
+        "source": "brainEngage declines unknown/fast targets, stealth/hold-fire and PLANNING; nearby living foot targets invoke doAssault before FILE/DIAMOND refusal, which applies to later suppression.",
+        "disposition": "Keep distinction: tight formation suppression veto is not a blanket close-assault veto. Existing CONTACT building/tactical dispatch owns movement; existing fire-control executor owns firing. Readiness, suppression cadence and entry flow still require physical evidence; do not insert doMove/fire calls in DangerEngineAct to imitate source placement."
+      },
+      {
+        "source": "brainHide directly watches screams, checks own casualty, may reposition indoors, or seeds shared nearby-building memory from an unknown body.",
+        "disposition": "Adapt: CBE bounded glance/PointActorOperation and historical body clue dispatch avoid revealing hostile identity or declaring buildings safe. STEALTH, care, newer native tasks and active routes retain priority. Full doCheckBody/doHide descendants are outside this batch."
+      },
+      {
+        "source": "brainForced handles incapacitation, forced move, fleeing and ATTACK pacing; it deletes a SuppressTarget attack object and clears watch.",
+        "disposition": "Adapt finite flight/pace through existing owners. Reject unconditional deletion of potentially external target objects and unowned watch reset. Current DangerAttackPace retains the original native target/destination and speed-only lease; source review does not prove native acknowledgement."
+      }
+    ],
+    "nextConcreteReview": "Read and reconcile the complete installed brainVehicle body by platform branch, including every delayed command and its cancellation/ownership requirements, against existing CBE vehicle/artillery/armour owners. Do not count the earlier clipped read as complete.",
+    "runtimeChanges": false,
+    "buildoutPercentageChange": false,
+    "physicalAcceptance": false,
+    "audits": "paused"
   }
 }

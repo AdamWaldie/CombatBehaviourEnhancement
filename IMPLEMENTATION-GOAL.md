@@ -2,6 +2,21 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
+## Current goal directive (26 October 2026)
+
+Build CBE upward from reliable FSM and execution foundations, using the source register to select and reconcile AI improvements. Implement and improve the LAMBS functionality baseline within standalone CBE, review the entire relevant HBQ controller, and then compose the registered individual, pair, squad and combined-arms capabilities, including the Protocol programme. Merge complementary source intent into existing owners; do not accumulate competing controllers or copy source defects. Protect working behaviour, mission authority, performance and all original local sources throughout.
+
+This directive governs implementation sequencing under the full production objective. It does not narrow that objective, declare current behaviour accepted, authorise audits or move deferred compatibility work forward.
+
+Before editing, identify a finite batch in the existing register or review record with:
+
+- **Source and intent:** register entry, source version/hash, relevant execution path and the specific gameplay benefit or defect.
+- **Foundation and owner:** affected CBE executor, dependencies and any known regression that must be fixed or isolated before this change can rely on it.
+- **Bounded change:** intended observable outcome, authority/interruption/cleanup/repeat-use implications and expected cost. Reuse existing mechanisms unless a concrete requirement cannot be met by them.
+- **Evidence and exit:** relevant existing checks, preserved baseline/candidate, explicit remaining in-engine uncertainty and a finite completion condition. No implementation credit for inventory or rejected mechanisms alone.
+
+Use the existing records rather than creating another parallel tracker. Review the resulting diff for unintended behaviour changes and source/asset leakage. If a shared foundation regresses, repair or revert the responsible change before adding dependent functionality; continue independent required work where safe. Keep build-out, offline checks, physical acceptance and measured performance separate. Audits remain paused until explicitly resumed.
+
 ## Governing implementation priority
 
 Build upward from shared foundations, with reliable gameplay improvements as the outcome. First close concrete FSM ownership, interruption, cleanup and repeat-use defects against the LAMBS baseline and the relevant HBQ execution paths. Then compose individual behaviours, pairs, squads and combined operations. Complete the registered Protocol AI capability programme on those foundations. Do not jump layers simply because a higher-level feature is easier to add or improves a tracker figure.

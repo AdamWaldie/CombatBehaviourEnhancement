@@ -1,3 +1,5 @@
+Governing implementation direction: read IMPLEMENTATION-GOAL.md, especially the Current goal directive and source-register batch requirements, before choosing work. Foundations first; preserve working behaviour and protected sources. Audits remain paused.
+
 Current implementation direction: see `IMPLEMENTATION-GOAL.md`; use the source register and build upward from FSM foundations. Audits remain paused.
 
 # Contribution guidance
