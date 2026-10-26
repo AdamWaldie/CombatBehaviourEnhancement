@@ -275,6 +275,17 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-authored-wait-recognition-20261026.json",
+      "sha256": "54e33014c1995a7ecf0e92935b2cb166ba466ef2cd31b871fc729c7c8dd3490e",
+      "scope": "Read the record for its exact scope.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_routeWaiting.sqf",
+        "functions/fn_unstuckLoop.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-complete-source-inventory-20261025.json",
       "sha256": "808ad1b39cc06dfa68a2d3c59499d507305a551dec241ead9d44c1bc822c3e33",
       "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
@@ -636,7 +647,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-implementation-current-20261025.json",
-      "sha256": "e0b6f9c44d67538ccd327578ee5bfdd7113897be3f1482a105947827906d5f73",
+      "sha256": "5eaba18a1c5f11ef9c6f16dd3990f991058e60371c5771d2048990edc8d60132",
       "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_vehicleUnstuck.sqf"
@@ -678,6 +689,15 @@
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
         "functions/fn_refreshRoute.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-pass-world-chain-20261026.json",
+      "sha256": "683d5f6e4078fc7ccaaaef2498e918e01cb9054c0eb0961d7a908023650bf0e9",
+      "scope": "Selected HBQ overtaking intent and CBE passing dimension chain; not whole-source parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

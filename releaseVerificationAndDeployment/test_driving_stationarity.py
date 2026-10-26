@@ -18,6 +18,22 @@ class DrivingStationarityTests(unittest.TestCase):
         self.assertGreaterEqual(text.count('[_vehicle] call _stationary'),5)
         self.assertIn('(_jam get "attempts") < 3',text)
         self.assertIn('serverTime < (_jam get "deadline")',text)
+        waiting=text.split('private _nativeWaiting = {',1)[1].split('// A distant script/timer/',1)[0]
+        self.assertNotIn('!unitReady _vehicle',waiting)
+        for proof in ('[_vehicle] call _stationary','waypointCompletionRadius _waypoint max 0',
+                      'waypointType _waypoint == "HOLD"','synchronizedTriggers _waypoint',
+                      'waypointTimeout _waypoint','_condition != "true"'):
+            self.assertIn(proof,waiting)
+        # An authored wait owns a stationary nearby vehicle even when its native
+        # task has not completed. Motion/distant approaches remain ineligible.
+        def intentional_wait(stationary,near,gate,native_ready):
+            return stationary and near and gate
+        for ready in (False,True):
+            self.assertTrue(intentional_wait(True,True,True,ready))
+            self.assertFalse(intentional_wait(False,True,True,ready))
+            self.assertFalse(intentional_wait(True,False,True,ready))
+            self.assertFalse(intentional_wait(True,True,False,ready))
+
     def test_total_motion_threshold_examples(self):
         # Independent arithmetic examples: these do not execute SQF or prove settled vehicles.
         cases=[((0,0,0),True),((0.1,0,0),True),((1,0,0),False),

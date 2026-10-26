@@ -73,5 +73,9 @@
   "passingWorldHullFollowup": {
     "review": "hbq-pass-world-chain-20261026.json",
     "scope": "Passing qualification, plan, static geometry and traffic dimensions corrected to world metres; old hashes remain historical. Physical/performance acceptance absent."
+  },
+  "authoredWaitRecognitionFollowup": {
+    "review": "hbq-authored-wait-recognition-20261026.json",
+    "scope": "Native intentional wait no longer requires task completion. Physical rest/proximity and authored gates remain; selected complete routeWaiting helper and three call-site branches compared. No convoy smoothing/parity/physical claim."
   }
 }

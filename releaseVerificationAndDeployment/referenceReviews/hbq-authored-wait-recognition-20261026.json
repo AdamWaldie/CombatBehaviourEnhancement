@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "e1c0e34a",
+  "workshopId": "3812620045",
+  "status": "AUTHORED_WAIT_RECOGNITION_IMPLEMENTED_OFFLINE_VERIFIED",
+  "sourceScope": {
+    "completeHelper": "fn_routeWaiting.sqf: all arguments, index0/no-route rejection, radius+50 boundary, HOLD, inactive trigger, timeout and condition branches",
+    "selectedCallSites": [
+      "fn_driveAssist.sqf:1513-1528 jam replan admission",
+      "fn_driveAssist.sqf:2554-2597 route watchdog admission/escalation",
+      "fn_unstuckLoop.sqf:98-115 blocked recovery admission"
+    ],
+    "notClaimed": "Full driveAssist/unstuck source review or whole HBQ parity."
+  },
+  "finding": "CBE _nativeWaiting required native task completion as well as total physical rest and a nearby authored gate. An intentionally ongoing HOLD/condition/trigger/timer task can remain unfinished, so the helper could fail to classify deliberate waiting. Both current classification consumers then missed INTENTIONAL_WAIT. Separate plain-MOVE recovery admission already rejects gated routes; no gate-bypass recovery failure is claimed.",
+  "implementation": [
+    "Remove only unitReady from the existing native wait helper; retain finite total linear/angular rest, valid current waypoint and original completion-radius+50 proximity.",
+    "Retain read-only HOLD/inactive-trigger/timeout/nonliteral-condition classification and no compilation/evaluation of mission conditions. Existing consumers retain INTENTIONAL_WAIT; no movement or retry added.",
+    "Preserve CBE stricter DrivingRouteGoal and convoy recovery admission: do not reissue scripted, synchronized, attached, timed or conditioned authored routes. Do not import HBQ waypoint replacement, nudge or teleport escalation.",
+    "No convoy spacing retune: current controller already has continuous smoothing/closing caps and longer native endpoint retention. Their actual mixed-column quality remains physically unverified."
+  ],
+  "cost": "One fewer unitReady read at each existing wait classification. No new scan/query/worker/timer or expanded radius. Physical CPU cost not measured.",
+  "validation": {
+    "tests": 1497,
+    "focusedExistingCases": 5,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/native-intentional-wait-e1c0e34a",
+    "fingerprint": "a061e693887db708d1dc0830c6bbf290498a2ebf3eeaa66f5e4ca50c20162ba6",
+    "buildLog": ".qa/handovers/native-intentional-wait-final-build.log",
+    "independentLog": ".qa/handovers/native-intentional-wait-independent.log",
+    "retainedFailure": ".qa/handovers/native-intentional-wait-build.log: existing regression asserted unitReady. Replaced with physical-rest proof and explicit no-task-completion dependency; no authored-gate protections removed.",
+    "physicalAcceptance": false
+  },
+  "remaining": [
+    "Actual HOLD/trigger/timer/condition entry and release, authored order edits, owner migration and native acknowledgement need in-engine verification.",
+    "Mixed convoy stop-start/gaps, full HBQ integration and measured performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    ".qa/hbq-complete-source-20261025/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+    ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    ".qa/hbq-complete-source-20261025/functions/fn_unstuckLoop.sqf": "7b9cccb4641252cc63d249eec33167e41d3e7e000071434a139a3db367a73719",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "a649054401d5de4e39e77770fd8e0fcfb4d108d2b2786dfb6ed360a4df9fd5f2",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68"
+  }
+}

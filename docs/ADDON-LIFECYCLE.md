@@ -2049,3 +2049,6 @@ Actor capture component version7 retains eight fields. Recovery block version2 a
 
 
 Outgoing retirement metadata copying has a shared65536-node limit, maximum depth16, arrays up to4096, string-keyed maps up to64 and strings up to512 characters. Only finite typed metadata is accepted. Sparse, cyclic, oversized or unsupported data discards the private capture proposal before installing a retirement observer; it cannot issue a retirement or submission receipt. No new recurring job or native command is introduced. These bounds protect cleanup availability and do not establish complete writer quiescence or incoming readiness.
+
+
+Ordinary driving recognises a deliberate authored wait from total physical rest at the current waypoint (within its completion radius plus50 metres) and an actual HOLD, inactive trigger, timeout or condition. It does not require the native task to have completed: a deliberate wait may keep that task active. Mission conditions are inspected as text, never executed by this helper. Existing plain-MOVE route-recovery restrictions remain stricter and unchanged. No waypoint is replaced, retry added or movement commanded by wait classification. Actual waiting/release, owner migration and performance remain unverified while audits are paused.

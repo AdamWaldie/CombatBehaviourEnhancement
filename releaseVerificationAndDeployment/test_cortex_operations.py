@@ -11288,9 +11288,10 @@ class CortexOperations(unittest.TestCase):
     def test_driving_native_wait_never_executes_condition_or_starts_recovery(self):
         text=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         wait=text.split('private _nativeWaiting = {',1)[1].split('private _mayRecoverRoute',1)[0]
-        for proof in ['!unitReady _vehicle','waypointCompletionRadius','triggerActivated',
+        for proof in ['[_vehicle] call _stationary','waypointCompletionRadius','triggerActivated',
                       'waypointTimeout','waypointStatements','"HOLD"']:
             self.assertIn(proof,wait)
+        self.assertNotIn('!unitReady _vehicle',wait)
         self.assertNotIn('compile',wait)
         self.assertNotIn('call _condition',wait)
         self.assertIn('&& {!(call _nativeWaiting)}',text)
