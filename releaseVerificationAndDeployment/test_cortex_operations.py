@@ -11196,8 +11196,8 @@ class CortexOperations(unittest.TestCase):
         observer=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         tracked=source('cortexVehicleReverseStep')
-        self.assertIn('boundingBoxReal _vehicle',observer)
-        self.assertIn('boundingBoxReal _thisActor',observer)
+        self.assertIn('[_vehicle,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',observer)
+        self.assertIn('[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',observer)
         self.assertIn('count _actors > 64',observer)
         self.assertIn('forEach _heights',observer)
         self.assertIn('[0.45,0.9,(_bodyHeight+0.45)*0.5,_bodyHeight]',observer)
@@ -11218,8 +11218,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_reverse_clearance_uses_full_vertical_hulls_not_actor_centres(self):
         text=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
-        for proof in ['private _thisActor=_x','_thisActor modelToWorld _otherLow',
-                      '_projectedLow set [_axis','_projectedHigh set [_axis',
+        for proof in ['private _thisActor=_x','[_thisActor,_frameOrigin,_side,_forward,_up]',
+                      'call CBE_fnc_DrivingHullInterval','_hull params',
                       '_maxZ >= (_low select 2)-0.3','_minZ <= (_high select 2)+0.3']:
             self.assertIn(proof,text)
         self.assertNotIn('abs _vertical < 4',text)

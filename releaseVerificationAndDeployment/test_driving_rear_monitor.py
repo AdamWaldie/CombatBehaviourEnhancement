@@ -132,7 +132,7 @@ class DrivingRearMonitorTests(unittest.TestCase):
         text=src('drivingRearClear')
         guard='if (!finite _distance) exitWith {[false,"INVALID_REAR_DISTANCE",time,0]}'
         self.assertIn(guard,text)
-        for operation in ['_distance=(_distance max 1) min 60','boundingBoxReal _vehicle','nearEntities','lineIntersectsSurfaces']:
+        for operation in ['_distance=(_distance max 1) min 60','private _sourcePose=','nearEntities','lineIntersectsSurfaces']:
             self.assertLess(text.index(guard),text.index(operation))
 
     def test_rear_observation_applies_before_speed_write_without_extending_deadline(self):

@@ -23,8 +23,12 @@
  * Return Value: ARRAY [clear BOOL, reason STRING, sampledAt NUMBER, rayCount NUMBER,
  * optional supported AGL destination ARRAY]. Destination exists only on the completed observation.
  * It is distance metres behind the vehicle origin, inside the observed rear-body envelope.
- * Dense candidate sets fail closed; at most64 actors use four transform pairs to represent each
- * full eight-corner hull with a0.05m outward model-space rounding pad. At most sixty
+ * Dense candidate sets fail closed; at most64 actors use the shared four-transform hull
+ * projection in a body-oriented metre frame, with0.05m outward padding. Distances, rays
+ * and projected velocity share that unit frame even under object scale. One own projection
+ * establishes physical body extents. Existing orientation is preserved, not flattened.
+ * A changed owner or a changed pose during a scheduled direct observation refuses
+ * a clear result and supported target. Normal unscheduled callbacks do not resample pose. At most sixty
  * geometry rays plus up to49 support rays are processed (twelve rear rays plus forty-eight turning corner rays). The query includes a 35 m/s two-second approach envelope,
  * capped at 250 m; oversized envelopes refuse rather than silently truncating the rear area. Vertical overlap uses real hull extents rather than centre height.
  * Dead vehicle entities remain occupied hulls. Dead infantry are excluded from this actor
@@ -38,8 +42,21 @@ params [["_vehicle",objNull,[objNull]],["_distance",8,[0]]];
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[false,"OWNER_UNAVAILABLE",time,0]};
 if (!finite _distance) exitWith {[false,"INVALID_REAR_DISTANCE",time,0]};
 _distance=(_distance max 1) min 60;
-private _box=boundingBoxReal _vehicle;
-private _low=_box select 0;private _high=_box select 1;
+private _sourcePose=[_vehicle modelToWorldWorld [0,0,0],vectorDir _vehicle,vectorUp _vehicle];
+private _frameOrigin=_sourcePose select 0;
+private _forward=vectorNormalized (_sourcePose select 1);
+private _up=vectorNormalized (_sourcePose select 2);
+private _side=vectorNormalized (_forward vectorCrossProduct _up);
+if (abs (_forward vectorDotProduct _up) > 0.01) exitWith {[false,"REAR_POSE_UNAVAILABLE",time,0]};
+private _ownHull=[_vehicle,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval;
+if (count _ownHull != 6) exitWith {[false,"REAR_HULL_UNAVAILABLE",time,0]};
+private _low=[_ownHull select 0,_ownHull select 2,_ownHull select 4];
+private _high=[_ownHull select 1,_ownHull select 3,_ownHull select 5];
+private _pointWorld={
+    params ["_metreX","_metreY","_metreZ"];
+    _frameOrigin vectorAdd (_side vectorMultiply _metreX)
+        vectorAdd (_forward vectorMultiply _metreY) vectorAdd (_up vectorMultiply _metreZ)
+};
 private _rear=_low select 1;
 private _left=(_low select 0)-0.3;private _right=(_high select 0)+0.3;
 private _halfWidth=((abs _left) max (abs _right))+4;
@@ -47,13 +64,12 @@ private _bodyRadius=sqrt (((abs _rear+_distance+4)^2)+(_halfWidth^2));
 private _predictionSeconds=2;
 private _radius=_bodyRadius max (35*_predictionSeconds+abs _rear+_distance+4);
 if (_radius > 250) exitWith {[false,"REAR_SCAN_BUDGET",time,0]};
-private _forward=vectorDir _vehicle;private _up=vectorUp _vehicle;
-private _side=vectorNormalized (_forward vectorCrossProduct _up);
 private _ownVelocity=velocity _vehicle;
+if (_ownVelocity findIf {!finite _x} >= 0) exitWith {[false,"REAR_MOTION_UNAVAILABLE",time,0]};
 // Additional veto only: retain the straight rear corridor even when measured yaw bends away.
 // Unknown future native steering is not a path permission. Observe at most two seconds of
 // current reverse motion, with three finite corner-sweep segments and no new world query.
-private _reverseSpeed=(-(velocityModelSpace _vehicle select 1)) max 0;
+private _reverseSpeed=(-(_ownVelocity vectorDotProduct _forward)) max 0;
 private _yaw=(angularVelocityModelSpace _vehicle) param [2,0];
 if (!finite _yaw) then {_yaw=0};
 private _turnSeconds=if (_reverseSpeed > 0.25) then {2 min (_distance/_reverseSpeed)} else {0};
@@ -106,7 +122,7 @@ private _overlapInterval={
 };
 private _scheduledObservation=canSuspend;
 private _crewObserved=false;private _ownCrew=[];
-private _predicted=false;
+private _predicted=false;private _actorObservationUnknown=false;
 private _occupied=_actors findIf {
     private _thisActor=_x;
     _thisActor != _vehicle && {
@@ -118,27 +134,9 @@ private _occupied=_actors findIf {
         !(_thisActor in _ownCrew)
     }
         && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
-    && {private _otherBox=boundingBoxReal _thisActor;
-        private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
-        // Project the full box with one corner and three edges. Model transforms are affine:
-        // each axis extremum is origin plus the negative/positive components of those edges.
-        // This represents all eight corners with four transform pairs, including tilt/scale.
-        private _origin=_vehicle worldToModel (_thisActor modelToWorld _otherLow);
-        private _projectedLow=+_origin;private _projectedHigh=+_origin;
-        {
-            private _edge=(_vehicle worldToModel (_thisActor modelToWorld _x)) vectorDiff _origin;
-            for "_axis" from 0 to 2 do {
-                private _component=_edge select _axis;
-                _projectedLow set [_axis,(_projectedLow select _axis)+(_component min 0)];
-                _projectedHigh set [_axis,(_projectedHigh select _axis)+(_component max 0)];
-            };
-        } forEach [[_otherHigh select 0,_otherLow select 1,_otherLow select 2],
-            [_otherLow select 0,_otherHigh select 1,_otherLow select 2],
-            [_otherLow select 0,_otherLow select 1,_otherHigh select 2]];
-        // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
-        private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
-        private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;
-        private _minZ=(_projectedLow select 2)-0.05;private _maxZ=(_projectedHigh select 2)+0.05;
+    && {private _hull=[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval;
+        if (count _hull != 6) exitWith {_actorObservationUnknown=true;true};
+        _hull params ["_minX","_maxX","_minY","_maxY","_minZ","_maxZ"];
         private _current=_maxX >= _actorLeft && {_minX <= _actorRight} && {_maxY >= _actorRear}
             && {_minY <= _actorFront} && {_maxZ >= (_low select 2)-0.3}
             && {_minZ <= (_high select 2)+0.3};
@@ -150,6 +148,7 @@ private _occupied=_actors findIf {
         private _relative=if (_turning) then {velocity _thisActor} else {
             (velocity _thisActor) vectorDiff _ownVelocity
         };
+        if (_relative findIf {!finite _x} >= 0) exitWith {_actorObservationUnknown=true;true};
         private _modelVelocity=[_relative vectorDotProduct _side,_relative vectorDotProduct _forward,_relative vectorDotProduct _up];
         private _ranges=[[_minX,_maxX,_actorLeft,_actorRight],[_minY,_maxY,_actorRear,_actorFront],
             [_minZ,_maxZ,(_low select 2)-0.3,(_high select 2)+0.3]];
@@ -166,7 +165,8 @@ private _occupied=_actors findIf {
         _crosses
     }
 } >= 0;
-if (_occupied) exitWith {[false,["REAR_OCCUPIED","REAR_APPROACHING"] select _predicted,time,0]};
+if (_occupied) exitWith {[false,if (_actorObservationUnknown) then {"REAR_ACTOR_UNAVAILABLE"}
+    else {["REAR_OCCUPIED","REAR_APPROACHING"] select _predicted},time,0]};
 // Retain knee/bumper observations and sample the actual middle/top of taller hulls.
 // These discrete beams still cannot certify a continuously swept body volume.
 private _bodyHeight=((_high select 2)-(_low select 2)) max 0.9;
@@ -197,8 +197,8 @@ if (_distance > 8) then {
 {
     private _depth=_rear-_x;
     {
-        private _from=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)+1.2];
-        private _to=_vehicle modelToWorldWorld [_x,_depth,(_low select 2)-2];
+        private _from=([_x,_depth,(_low select 2)+1.2] call _pointWorld);
+        private _to=([_x,_depth,(_low select 2)-2] call _pointWorld);
         _rays=_rays+1;
         private _hits=lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"];
         if (_hits isEqualTo [] || {((_hits select 0 select 1) select 2) < 0.7}
@@ -210,8 +210,8 @@ if (!_supported) exitWith {[false,"REAR_SUPPORT",time,_rays]};
 // Native movement needs the actual supported surface height, not a terrain-level destination.
 // One extra centre-target ray stays inside the already observed rear-body envelope. Open water
 // with only submerged terrain is not a deck; require a real hit object above water in that case.
-private _targetFrom=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)+1.2];
-private _targetTo=_vehicle modelToWorldWorld [0,-_distance,(_low select 2)-2];
+private _targetFrom=([0,-_distance,(_low select 2)+1.2] call _pointWorld);
+private _targetTo=([0,-_distance,(_low select 2)-2] call _pointWorld);
 _rays=_rays+1;
 private _targetHits=lineIntersectsSurfaces [_targetFrom,_targetTo,_vehicle,objNull,true,1,"GEOM","NONE"];
 if (_targetHits isEqualTo []) exitWith {[false,"REAR_TARGET_SUPPORT",time,_rays]};
@@ -226,8 +226,8 @@ if (((_targetHit select 1) select 2) < 0.7
     private _height=(_low select 2)+_x;
     {
         // Start at the body edge rather than the centre; width and pitch follow the real hull.
-        private _from=_vehicle modelToWorldWorld [_x,_rear+0.1,_height];
-        private _to=_vehicle modelToWorldWorld [_x,_rear-_distance,_height];
+        private _from=([_x,_rear+0.1,_height] call _pointWorld);
+        private _to=([_x,_rear-_distance,_height] call _pointWorld);
         _rays=_rays+1;
         if ((lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_clear=false};
     } forEach [_left,(_left+_right)*0.5,_right];
@@ -240,7 +240,7 @@ if (_clear && {_turning}) then {
             private _width=_x;
             {
                 private _depth=_x;
-                private _from=_vehicle modelToWorldWorld [_width,_depth,_height];
+                private _from=([_width,_depth,_height] call _pointWorld);
                 for "_segment" from 1 to 3 do {
                     private _elapsed=_turnSeconds*_segment/3;
                     private _angle=_yaw*_elapsed*57.2957795;
@@ -248,9 +248,9 @@ if (_clear && {_turning}) then {
                     // rigid hull offset with the same pose. Three chords are samples only.
                     private _centreX=-_reverseSpeed*(1-cos _angle)/_yaw;
                     private _centreY=-_reverseSpeed*sin _angle/_yaw;
-                    private _to=_vehicle modelToWorldWorld [
+                    private _to=([
                         _centreX+_width*cos _angle+_depth*sin _angle,
-                        _centreY-_width*sin _angle+_depth*cos _angle,_height];
+                        _centreY-_width*sin _angle+_depth*cos _angle,_height] call _pointWorld);
                     _rays=_rays+1;
                     if ((lineIntersectsSurfaces [_from,_to,_vehicle,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_clear=false};
                     _from=_to;
@@ -261,5 +261,9 @@ if (_clear && {_turning}) then {
         } forEach [_left,_right];
         if (!_clear) exitWith {};
     } forEach _heights;
+};
+if (_clear && {!local _vehicle || {!alive _vehicle}
+    || {_scheduledObservation && {[_vehicle modelToWorldWorld [0,0,0],vectorDir _vehicle,vectorUp _vehicle] isNotEqualTo _sourcePose}}}) exitWith {
+    [false,"REAR_CONTEXT_CHANGED",time,_rays]
 };
 [_clear,["REAR_GEOMETRY","CLEAR"] select _clear,time,_rays,_destination]

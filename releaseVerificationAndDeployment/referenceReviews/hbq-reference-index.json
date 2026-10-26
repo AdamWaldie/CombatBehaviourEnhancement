@@ -707,6 +707,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-metre-frame-20261026.json",
+      "sha256": "7470afe3f6e61af3614b9f7177a20170ec7e8cfa7e622c58a50772640eb910bb",
+      "scope": "CBE reverse-clearance geometry foundation and selected HBQ nearby-space observation intent. No whole-HBQ parity or physical acceptance.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261018.json",
       "sha256": "0c0f9532a7cc0e6b24ad2b3a58085b66d00411423a8a1b27733b660e782acb60",
       "scope": "HBQ jam cascade/rear observation versus CBE sampled rear support",

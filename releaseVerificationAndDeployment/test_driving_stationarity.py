@@ -30,7 +30,7 @@ class DrivingStationarityTests(unittest.TestCase):
     def test_reverse_target_retains_observed_deck_height_and_rejects_open_water(self):
         rear=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
         start=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
-        self.assertIn('modelToWorldWorld [0,-_distance,(_low select 2)+1.2]',rear)
+        self.assertIn('[0,-_distance,(_low select 2)+1.2] call _pointWorld',rear)
         self.assertIn('private _destination=ASLToAGL (_targetHit select 0);',rear)
         stable=rear.split('private _stableSupport={',1)[1].split('private _supported=true;',1)[0]
         self.assertIn('surfaceIsWater (_hit select 0)',stable)

@@ -135,8 +135,12 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('if (!_crewObserved || {_scheduledObservation})',s)
         self.assertIn('_ownCrew=crew _vehicle;_crewObserved=true',s)
         self.assertIn('!(_thisActor in _ownCrew)',s)
-        self.assertIn('_projectedLow set [_axis',s)
-        self.assertIn('_projectedHigh set [_axis',s)
+        self.assertIn('[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',s)
+        span=src('drivingHullInterval')
+        self.assertIn('_minimum=_minimum+(_along min 0)',span)
+        self.assertIn('_maximum=_maximum+(_along max 0)',span)
+        self.assertIn('_thirdMinimum=_thirdMinimum+(_thirdAlong min 0)',span)
+        self.assertIn('_thirdMaximum=_thirdMaximum+(_thirdAlong max 0)',span)
         self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
 
     def test_discovery_covers_fast_approach_even_at_low_own_speed(self):
