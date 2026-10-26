@@ -112,7 +112,7 @@ class DrivingGeometryTests(unittest.TestCase):
             with self.subTest(surface=label):
                 self.assertEqual(blocks(z),expected)
 
-    def test_gate_adapter_preserves_only_gate_result_and_barriers_need_sources(self):
+    def test_gate_adapter_preserves_only_gate_result_and_barriers_need_supported_channels(self):
         s=(ROOT/'addons/vehicles/functions/drivingGateCap.sqf').read_text()
         self.assertIn('call CBE_fnc_DrivingGeometryCap) select 0',s)
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
@@ -124,6 +124,14 @@ class DrivingGeometryTests(unittest.TestCase):
         for native_class in ('Wall','Fence'):
             self.assertIn('_object isKindOf "'+native_class+'"',candidates)
         self.assertNotIn('isKindOf "House"',candidates)
+        self.assertIn('private _legacyGateChecks=0;',s)
+        self.assertIn('if (!_isGate && {_legacyGateChecks < 2})',candidates)
+        self.assertLess(candidates.index('_legacyGateChecks=_legacyGateChecks+1'),
+                        candidates.index('call CBE_fnc_DrivingGateLegacyLeaves'))
+        self.assertIn('_isGate=([_object] call CBE_fnc_DrivingGateLegacyLeaves) isNotEqualTo []',candidates)
+        self.assertLess(candidates.index('isClass (_sourceConfig >> _x)'),
+                        candidates.index('call CBE_fnc_DrivingGateLegacyLeaves'))
+
         self.assertLess(candidates.index('isClass (_sourceConfig >> _x)'),candidates.index('exitWith {_isGate=true}'))
         self.assertIn('[_gateObservation,_solidObservation]',s)
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):

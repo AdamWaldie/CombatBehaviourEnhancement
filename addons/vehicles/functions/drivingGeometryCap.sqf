@@ -46,6 +46,8 @@
  * repeated crew reads per ray. Over-budget hulls retain traffic-only handling. No hit
  * never proves an entire path clear. Predicted turns, narrow/low geometry, slopes and actual braking
  * need physical validation. This observes approach constraints, not a bypass/detour executor.
+ * Source-empty wall/fence/barrier candidates may use two bounded legacy-channel checks
+ * per observation; only supported paired literal actions qualify. No extra world/ray query.
  * Current callers: DrivingAssistStart, ConvoyTick and DrivingGateCap's server-compatible adapter.
  * Example: private _observed=[truck1,15] call CBE_fnc_DrivingGeometryCap;
  */
@@ -113,6 +115,7 @@ if (_turning) then {
 };
 private _nearest=1e9;private _gate=objNull;private _rays=0;
 private _solidGap=1e9;private _solid=[];private _gateClasses=createHashMap;
+private _legacyGateChecks=0;
 private _staticHulls=createHashMap;
 private _bottom=(_low select 2)+0.45;
 private _top=((_high select 2)-0.2) max _bottom;
@@ -225,8 +228,10 @@ if (_nearContact) then {
                     _isGate=["gate","zavora","vrata","branka"] findIf {_name find _x >= 0} >= 0;
                     // Concrete H-barriers and bag walls are obstacles, not gates to animate.
                     // Native wall/fence gates may have no gate/barrier word in the model name.
-                    // Require a supported indexed source for these candidates too. Ordinary house
-                    // doors gain no generic animation fallback; static walls stay solid obstacles.
+                    // Require a supported source or an unambiguous paired legacy channel.
+                    // Ordinary house doors gain no generic fallback; static walls stay solid.
+                    // At most two source-empty candidate classes use the bounded legacy parser
+                    // per observation. Exhaustion remains a solid obstruction, never clearance.
                     // At most32 config existence checks per distinct class in this observation.
                     if (!_isGate && {_name find "barrier" >= 0
                         || {_object isKindOf "Wall"} || {_object isKindOf "Fence"}}) then {
@@ -235,6 +240,10 @@ if (_nearContact) then {
                             if ([format ["Door_%1_sound_source",_index],format ["Gate_%1_sound_source",_index],
                                 format ["Door_%1_source",_index],format ["Gate_%1_source",_index]]
                                 findIf {isClass (_sourceConfig >> _x)} >= 0) exitWith {_isGate=true};
+                        };
+                        if (!_isGate && {_legacyGateChecks < 2}) then {
+                            _legacyGateChecks=_legacyGateChecks+1;
+                            _isGate=([_object] call CBE_fnc_DrivingGateLegacyLeaves) isNotEqualTo [];
                         };
                     };
                     _gateClasses set [_classKey,_isGate];

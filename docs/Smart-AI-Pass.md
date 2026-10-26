@@ -3069,3 +3069,8 @@ A short backblast-clearing relocation refuses water or terrain steeper than the 
 ### Launcher request acknowledgement
 
 A backblast-clearing move retains its original owner, group epoch, operation generation, route and pre-request native command/destination/formation anchor. While the engine still exposes that unchanged pre-request state, CBE retains the one pending relocation within its original ten-second budget. It does not issue another move or renew the deadline. Changed task context or movement identity cannot inherit the reservation. This closes premature retirement before destination acknowledgement; durable cancellation after timeout, shutdown or locality transfer remains incomplete and is not claimed by this change.
+
+
+### Legacy wall and fence gate detection
+
+Physical driving geometry can now recognise a wall/fence/barrier gate through the same paired literal open/close animation parser used by the server opening path, when no supported indexed source qualifies. This connects detection to the existing legacy executor without treating every wall or house door as a gate. At most two candidate classes use the bounded parser per observation; ordinary source recognition remains first. Unrecognised or budget-limited objects remain solid obstacles. No extra world query, ray, worker or gate-opening authority is added. Actual modded-gate passage and processing cost remain unverified while audits are paused.

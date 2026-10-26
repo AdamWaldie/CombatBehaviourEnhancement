@@ -1,3 +1,13 @@
+## Current runtime checkpoint: connect legacy gate detection (2026-10-26)
+
+DrivingGeometryCap now connects source-empty wall/fence/barrier candidates to the existing paired literal-action DrivingGateLegacyLeaves recogniser, after normal indexed-source checks. At most two candidate classes use that parser per observation; current-call class cache coalesces repeated hits. Unknown/budget-limited objects stay solid. No extra world/ray query, worker, animation or passage authority. Server still revalidates owner/route/locks/phases and physical aperture; this closes detector-to-executor reachability, not arbitrary modded-gate acceptance.
+
+Full1497 tests and complete offline gates passed;30 focused gate/geometry checks passed. Independent candidate `.qa/candidates/legacy-gate-detection-53f09607`, fingerprint `2943af7bca04708c90789bfdb978266ee9c6dcd2aadf2f415e9b1cdb8758532d`; build source53f09607 plus working implementation, not clean release. Logs `.qa/handovers/legacy-gate-detection-build.log` and `legacy-gate-detection-independent.log`. Source review now includes selected main-controller settings, hold/release, gate recognition/open/close and arc/sensor bodies/call regions.28 auxiliary files remain reconciled; full main controller still incomplete.
+
+Same CBE checkout/branch/draftPR19 as below. Audits PAUSED; actual legacy passage/closure/JIP, high-density classification and performance unverified. Original launcher durable cancellation gap remains. Continue existing main-controller source anchors and CBE owner comparison; preserve unrelated deletions/performance-document edits and all protected stores.
+
+---
+
 ## Current source checkpoint: HBQ auxiliary review (2026-10-26)
 
 All28 auxiliary files in the protected29-source index now have complete readable-body/declaration review and scoped dispositions in `releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json`. Exact membership/hashes reconciled; `fn_driveAssist.sqf` remains the main incomplete source. Its named top-level helper line anchors are recorded for navigation, not semantic coverage. Source register updated. No implementation percentage or whole-HBQ parity inferred.31 historical review texts still unavailable; this work does not recover them.

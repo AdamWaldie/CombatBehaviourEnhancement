@@ -865,7 +865,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json",
-      "sha256": "69c6c3f2e1b30fa459de36cce90ed9d0a8b880a8c5f9ed0d78d2ba291edcd7e1",
+      "sha256": "e9adea056c4c452beb079b1bba56489f6731488d69bdb1d75a13452c69c8ab25",
       "scope": "Complete protected fn_refreshRoute.sqf body. Selected current CBE admission/return branches traced; this does not renew whole driveAssist, unstuck, driving or HBQ parity.",
       "sourceFileMentions": [
         "BIS_AddonInfo.hpp",

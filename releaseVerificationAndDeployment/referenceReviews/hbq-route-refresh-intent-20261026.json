@@ -689,5 +689,69 @@
       "name": "_fnc_PerfAdd",
       "line": 2175
     }
-  ]
+  ],
+  "controllerGateSensorReview20261026": {
+    "source": "functions/fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "completeReadableRegions": [
+      "110-359 settings/hold-release/ignore/gate classification helpers",
+      "394-553 arc/ray/sensor helper bodies",
+      "897-943 gate wanted and close helper bodies",
+      "953-970 angle/axis helpers",
+      "2597-2709 gate scan/approach/wait and selected idle branch"
+    ],
+    "scope": "Selected source bodies and callers only. Entire main loop/helper/controller shutdown integration remains incomplete.",
+    "findings": [
+      {
+        "source": "GateInfo caches door/gate-like AnimationSources, prefers sound sources and can scrape literal animate names from UserActions; GateLocked checks generic and eight indexed BIS locks. Kind separates gate/wall/wreck/placed obstacle and ignores people/moving vehicles for its obstacle sensor.",
+        "intent": "Recognise useful gate channels without turning every house door into road behaviour.",
+        "cbe": "GeometryCap classifies physically observed gate candidates; OpenServer uses exact indexed aliases or paired bounded legacy actions, checks locks/phases/route/crew authority and never evaluates statements.",
+        "disposition": "Retain gate diversity and bounded passive classification. Do not import arbitrary action scraping or persistent classification as movement authority. Pedestrians and traffic stay in their actual CBE safety domains."
+      },
+      {
+        "source": "ArcPts bends for a short prediction horizon then continues straight; ClampK caps70degree curvature, SegN uses1-3 segments. Sense casts1/3/5 ground-following0.6m rows, filters hits to path corridor, treats broken/open gates as ignored and returns nearest relevant object.",
+        "intent": "See low obstacles on slopes and turns without stopping for irrelevant roadside walls.",
+        "cbe": "DrivingGeometryCap combines gate/solid observations using body hull rows and bounded turning stations; selected native-support rows supplement rigid pitch rather than flattening all geometry to terrain.",
+        "disposition": "Keep short-horizon curvature/path-envelope and cost bounds. Source comments describing two height rows differ from the active one-row code; use executed code. Animation phase or damage alone never grants CBE passage. Whole sensor equivalence/cost remains unverified."
+      },
+      {
+        "source": "GateWanted admits on-road gates or waypoint-aligned gates. Main gate scan selects axis-aligned near gates, opens before35m and holds near a closed gate; after8seconds/phase threshold it ignores the gate30seconds and releases. Already-open gates may be added to the closure list.",
+        "intent": "Open only a gate relevant to the current route and avoid a hard stop while it animates.",
+        "cbe": "GateIntent/owner evidence/open server bind the original route, current crew and finite request; physical GeometryCap remains authoritative after acknowledgement.",
+        "disposition": "Reject timeout-based ignore/clearance and closing gates merely found already open. Opening outcome does not certify physical aperture."
+      },
+      {
+        "source": "CloseGates closes all detected gate channels after passage-distance/heading and nearby people/active traffic checks; it expires records after600seconds.",
+        "intent": "Close behind actual passage without blocking the next vehicle/person.",
+        "cbe": "Selected CloseServer path binds original opening leaves/phases, vehicle/crew/owner/route/transform and distinguishes close request from observed closure.",
+        "disposition": "Retain passage/occupancy intent through original opening ownership and bounded existing jobs. Sampled clearance is not continuous collision proof."
+      }
+    ],
+    "implementationFix": {
+      "problem": "Source-empty wall/fence/barrier gates with paired legacy actions could be handled by OpenServer but never recognised by GeometryCap when their name lacked a known gate word.",
+      "change": "GeometryCap now invokes existing read-only DrivingGateLegacyLeaves for at most two source-empty candidate classes per observation after indexed source checks. Current-call class cache coalesces repeated hits. Unknown/budget-limited objects remain solid; no animation, passage, extra ray/world query or worker is authorised by detection.",
+      "paths": [
+        "addons/vehicles/functions/drivingGeometryCap.sqf",
+        "addons/vehicles/functions/drivingGateLegacyLeaves.sqf"
+      ],
+      "cost": "Up to two extra bounded metadata-parser calls/observation: each already bounds32 actions,512chars/statement,128 model animation names and8 leaves. Native metadata cost is unmeasured.",
+      "remaining": "Actual modded gate approach/open/passage/closure, high-density classification budgets and physical cost need authorised runtime evidence.",
+      "sourceHashes": {
+        "addons/vehicles/functions/drivingGeometryCap.sqf": "a1cc03c89db17244314bb745f2fd6be25fa27e01222f62d58eec958d25d8c762",
+        "addons/vehicles/functions/drivingGateLegacyLeaves.sqf": "f74bd0d158690b617b421a25768faf5376ddc743deae0d2e2456f50f13c9c531"
+      },
+      "verification": {
+        "tests": 1497,
+        "focusedGateGeometryTests": 30,
+        "build": ".qa/handovers/legacy-gate-detection-build.log",
+        "independent": ".qa/handovers/legacy-gate-detection-independent.log",
+        "candidate": ".qa/candidates/legacy-gate-detection-53f09607",
+        "fingerprint": "2943af7bca04708c90789bfdb978266ee9c6dcd2aadf2f415e9b1cdb8758532d",
+        "buildSource": "53f09607 plus working implementation",
+        "physicalAcceptance": false
+      }
+    },
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
+  }
 }
