@@ -1,3 +1,11 @@
+## 2026-10-26: ordinary rear recovery STOP observation
+
+Base8d660547 plus current working changes. DrivingAssistStart ordinary expired SIMPLE_BACK now checks the same simpleStopIssued journal used by release/cleanup before issuing STOP. A delayed native reply no longer replays the request on every ordinary observation. Original hard deadline, acknowledgement, zero-cap and crew/route/cap authority remain. Existing focused8 checks passed; full offline1497 tests/446 compiled SQF/11PBOs passed; independent candidate verification passed.
+Candidate .qa/candidates/ordinary-rear-stop-8d660547; fingerprint a8cd8bb58d7136d66d097d94d4062318e89471ac8454a7048eeb17414f9c5459. Logs .qa/handovers/ordinary-rear-stop-8d660547.log and .qa/handovers/ordinary-rear-stop-independent.log. Unsigned dirty development evidence; notes postdate package. Physical delayed STOP/handback/vehicle flow and performance remain unverified. Audits paused; no Arma launch/staging. Whole goal active/incomplete. Goal directive now explicitly names current source-register authority, missing historical ledger, foundation execution tracing and regression repair before dependent expansion.
+Next: continue source-led LAMBS/HBQ reconciliation against actual CBE owners, selecting a concrete unresolved capability or defect. No whole-controller parity from this correction. Preserve unrelated dirt, Workshop/archive/game sources and signing keys. No merge/release/publication authorised.
+
+---
+
 ## Current checkpoint: civilian observer ownership adoption (26 October 2026)
 
 Current branch HEAD implements finite civilian observation adoption after base59639b0d. Revalidate live Git/PR19 before further changes. Full production goal remains active/incomplete; AUDITS PAUSED. Follow IMPLEMENTATION-GOAL.md/source register and move upward from finite foundation defects; do not turn one checkpoint into endless optional refinements.

@@ -40,6 +40,11 @@ class RearMotionTests(unittest.TestCase):
                 self.assertGreater(remaining,0)
         ending=text.split('if (_reverseExpired && {!("queueBinding" in',1)[1].split('private _retryAllowed=',1)[0]
         self.assertIn('sendSimpleCommand "STOP"',ending)
+        # Ordinary expiry and cleanup share one STOP request. Waiting for the
+        # native reply must not reissue it on every controller observation.
+        stop_issue=ending.split('_vehicle sendSimpleCommand "STOP"',1)[0]
+        self.assertIn('&& {!(_endingRear getOrDefault ["simpleStopIssued",false])}',stop_issue)
+        self.assertIn('_stoppedRear set ["simpleStopIssued",true]',ending)
         self.assertIn('"kind","REAR_STOP_ACKNOWLEDGED"',ending)
         self.assertIn('"commandMode","DESTINATION"',ending)
         self.assertNotIn('doMove',ending)

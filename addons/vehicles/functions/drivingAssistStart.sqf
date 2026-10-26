@@ -752,7 +752,10 @@ _brain set ["geometryTracks",_geometryTracks];
                                 _stoppedRear set ["releasePending",true];
                                 _stoppedRear set ["releaseUnresolved",true];
                             } else {
-                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP") then {
+                                // Share the original STOP request with release/cleanup. A delayed
+                                // native acknowledgement is observation, not permission to replay.
+                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP"
+                                    && {!(_endingRear getOrDefault ["simpleStopIssued",false])}) then {
                                     _vehicle sendSimpleCommand "STOP";
                                     _stoppedRear set ["simpleStopIssued",true];
                                 };

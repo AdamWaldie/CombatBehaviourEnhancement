@@ -1028,5 +1028,24 @@
     "runtimeChanges": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "ordinaryRearStopObservation20261026": {
+    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_UNVERIFIED",
+    "sourceIntent": "HBQ obstacle back-off and traffic/recovery reviews select finite obstruction recovery; physics pushes remain rejected. This closes a CBE native recovery lifecycle defect, not source parity.",
+    "defect": "DrivingRecoveryRelease already honours simpleStopIssued, but ordinary DrivingAssistStart expiry sent STOP on every observation until native STOP was visible.",
+    "change": "Ordinary expiry now checks the same original recovery journal flag before requesting STOP. It still observes acknowledgement and retains the original hard deadline, exact crew/route/cap checks and pending zero-cap behaviour. No extra controller, retry, timer or movement command.",
+    "source": "3812620045; .qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf; BackUp 1418-1432 and existing controller lifecycle reviews",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "implementation": "addons/vehicles/functions/drivingAssistStart.sqf; ordinary _reverseExpired SIMPLE_BACK branch",
+    "checks": [
+      "Existing rear-motion and recovery-cleanup checks: 8 passed",
+      "Full offline build: 1497 tests, 446 compiled SQF, 11 PBOs",
+      "Independent candidate verification passed"
+    ],
+    "candidate": ".qa/candidates/ordinary-rear-stop-8d660547",
+    "fingerprint": "a8cd8bb58d7136d66d097d94d4062318e89471ac8454a7048eeb17414f9c5459",
+    "buildLog": ".qa/handovers/ordinary-rear-stop-8d660547.log",
+    "independentLog": ".qa/handovers/ordinary-rear-stop-independent.log",
+    "limits": "Unsigned dirty development candidate: base8d660547 plus working changes; engineering notes postdate package. Native delayed STOP, handback, physical stop/start and performance unverified. Audits paused. Whole HBQ reconciliation incomplete."
   }
 }

@@ -17,6 +17,16 @@ Before editing, identify a finite batch in the existing register or review recor
 
 Use the existing records rather than creating another parallel tracker. Review the resulting diff for unintended behaviour changes and source/asset leakage. If a shared foundation regresses, repair or revert the responsible change before adding dependent functionality; continue independent required work where safe. Keep build-out, offline checks, physical acceptance and measured performance separate. Audits remain paused until explicitly resumed.
 
+## Immediate execution target and regression rule
+
+Use `reference/sourceReviews/source-review-map.json` as the recoverable work queue and the linked LAMBS, HBQ and Protocol reviews as execution evidence. The historical `LOCAL_IMPLEMENTATION_LEDGER.md` is currently absent: do not describe it as available authority, reconstruct missing scope from memory or claim historical completeness. Resolve conflicting or stale review entries against the actual preserved source and current CBE code before relying on them.
+
+The next foundation work is end-to-end reconciliation of LAMBS danger/task lifecycles and HBQ driving decisions with CBE: admission, every native command writer, delayed callbacks, interruption, cleanup and repeat use. Readable-body coverage is review progress, not completion of those capabilities. Select the next concrete defect or missing useful behaviour from these records; close that finite change before selecting another. Do not restart completed reviews without a changed source, failed check or specific unresolved execution path.
+
+For each change, preserve the current candidate and identify the behaviour that must remain intact. Prefer the smallest coherent correction inside the existing owner. If a material regression appears, stop dependent expansion, isolate the responsible change and repair or revert it; never compensate with another controller, test assistance or broader completion claims. Continue independent registered work only where it does not depend on the broken foundation.
+
+Then advance through individual behaviours, pairs, squads and combined arms as their dependencies become usable. Deliver working gameplay intent from complementary sources, rather than wholesale imports, feature counts or an indefinitely expanding framework. Keep build-out separate from physical acceptance and measured cost. Audits remain paused; no Arma launch or installed-game staging is authorised by this goal update.
+
 ## Governing implementation priority
 
 Build upward from shared foundations, with reliable gameplay improvements as the outcome. First close concrete FSM ownership, interruption, cleanup and repeat-use defects against the LAMBS baseline and the relevant HBQ execution paths. Then compose individual behaviours, pairs, squads and combined operations. Complete the registered Protocol AI capability programme on those foundations. Do not jump layers simply because a higher-level feature is easier to add or improves a tracker figure.
