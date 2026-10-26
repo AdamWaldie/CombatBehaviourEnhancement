@@ -1,3 +1,7 @@
+## Current checkpoint
+
+PR17 is merged. See [Completion status](COMPLETION-STATUS.md) for the 26 October implementation summary and current gaps. The final implementation commit is `4f8bbbab`; its local full build and independent verification passed. Physical audits remain paused. The build-out ledger fails its source-evidence check and needs reassessment before its historical percentages can be used as current figures.
+
 ## Build-out and acceptance are separate
 
 See [Build-out progress](BUILDOUT-PROGRESS.md) for capability-scored implementation estimates and explicit remaining build gaps. Its ledger retains all65 feature families; unassessed scope is unknown, not zero. The acceptance register and historical evidence below remain separate. Physical failures guide further implementation but missing acceptance alone earns no build-out penalty.
