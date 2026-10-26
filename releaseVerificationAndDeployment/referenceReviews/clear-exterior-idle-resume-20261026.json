@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Exterior guard completed approach can resume from native idle",
+  "finding": "BuildingActorMotion CHECK already accepts a completed exact MOVE receipt as idle or WAIT with measured rest/proximity. Exterior stage reconstruction called that proof only for WAIT, so an otherwise identical native idle completion could not restore its established post approach.",
+  "implementation": [
+    "Extend only the exterior reserve-stage settled branch to native idle or WAIT, at both observation and final post-marker commit. Both states still call the same exact-context read-only motion checker.",
+    "Retain original episode nonce, target, native endpoint, current actor/group/operation ownership, physical rest, proximity and floor-band requirements. Missing/stale receipts, moved targets, STOP and other tasks do not gain settled-MOVE authority.",
+    "Moving MOVE and separate arrived STOP paths are unchanged. Marker commit still precedes stage/movement/view-history bookkeeping. No destination, visit, settings write, retry or deadline is created by admitting idle."
+  ],
+  "currentReconciliationFinding": "Current source already aggregates known interior motion/settings reconciliation failures and lane ADOPT before BuildingOperationStart. The older clear-owner-ready path description that ADOPT results are ignored must not drive duplicate implementation. This does not prove absent metadata was delivered or aggregate exterior readiness.",
+  "limits": [
+    "Full coherent producer registration/seal/delivery and phase-specific exterior owner readiness remain incomplete. Do not wrap a mixed replicated read in a server array and call it an ordered checkpoint.",
+    "Moving exterior MOVE retains its historical native endpoint branch; this patch does not claim complete parent/writer quiescence or broad native supersession.",
+    "Actual idle/WAIT timing, post isolation/flow, repeated use, HC/migration and performance remain unverified. Audits paused."
+  ],
+  "cost": "Same <=64 saved exterior rows and two preparation boundaries. New idle cases perform the existing CHECK previously used by WAIT, including native-order/ownership reads; this adds bounded validation work for idle rows, not a measured speedup. No new query, loop, timer, worker, network message or callback cadence.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "f3534fb0a7938613338b186bdadcb3bb5c83f0813cdd9e7ce643396e65e10a52",
+    "addons/infantry/functions/buildingActorMotion.sqf": "3155ab2b736290094017886d4413a5ef50777ac3ee4aa6a6291a281ec1c7dcea"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingMotionCases": 9,
+    "result": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/clear-exterior-idle-598279ba",
+    "fingerprint": "dd5808006e53508321fcde6ad57d2bb46f48cf44bf0dd44539cb194d7546405a",
+    "buildLog": ".qa/handovers/clear-exterior-idle-build.log",
+    "independentLog": ".qa/handovers/clear-exterior-idle-independent.log",
+    "independent": "PASS"
+  }
+}

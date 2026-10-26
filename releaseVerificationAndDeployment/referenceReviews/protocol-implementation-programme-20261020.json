@@ -24,6 +24,10 @@
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
         "scope": "Exterior post obstruction history is bound to exact post/watch and retained across qualified migration; original search/leg/task budgets and actual current eye-ray authority remain required.",
         "physicalAcceptance": false
+      },
+      "exteriorIdleResume20261026": {
+        "review": "clear-exterior-idle-resume-20261026.json",
+        "scope": "Completed exterior approach idle/WAIT both use existing exact-context motion CHECK. Current interior reconciliation aggregation already exists. No full checkpoint delivery, physical CQB or whole-source parity claim."
       }
     },
     {

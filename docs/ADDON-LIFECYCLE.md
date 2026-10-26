@@ -1795,3 +1795,15 @@ Repeated installation retains the same snapshot; locality loss removes the local
 handler. A new owner with already-missing actors cannot reconstruct this private
 proof and still refuses cleanup. Actual deletion ordering, migration and repeated
 use remain physically unverified while audits are paused.
+
+
+### Exterior clearance approach continuity
+
+On owner resume, an exterior guard's completed approach may appear as native idle
+or WAIT. Both states now use the existing read-only motion check during observation
+and immediately before committing the local post marker. The original episode
+receipt, unchanged endpoint, actual rest, target proximity and floor band are still
+required. STOP remains a distinct hold; an absent motion receipt does not qualify.
+No new destination, settings application, post search, visit credit or deadline is
+created by this admission. Coherent producer checkpoint delivery and full exterior
+readiness remain unfinished; this change does not certify cross-owner continuity.

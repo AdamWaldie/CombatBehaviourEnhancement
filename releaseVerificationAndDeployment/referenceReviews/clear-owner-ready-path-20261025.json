@@ -59,5 +59,10 @@
     "review": "clear-post-view-history-20261025.json",
     "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
     "scope": "Exact arrived-post/watch obstruction start time survives successful exterior role adoption. New committed post clears old history. No visibility replay, full producer checkpoint or aggregate readiness claim."
+  },
+  "currentReconciliationAndExteriorIdle20261026": {
+    "review": "clear-exterior-idle-resume-20261026.json",
+    "correction": "Current ClearBuilding aggregates known selected interior motion/settings failures and lane ADOPT before worker startup. The older statement that individual ADOPT results are ignored is not current and must not justify duplicate implementation. Full coherent producer delivery and exterior readiness remain unfinished.",
+    "scope": "Existing exterior settled-approach CHECK now admits both idle and WAIT at observation/marker commit, without movement or clock replay."
   }
 }

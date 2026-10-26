@@ -4,6 +4,8 @@
  * complete cross-owner readiness or proof that missing inherited records never existed.
  * Fresh startup also consumes settings PREPARE results; pending predecessor restoration
  * refuses worker startup and uses the existing scoped release/cleanup service.
+ * Exterior resume accepts a settled idle/WAIT end of its original approach only through
+ * the existing exact-context native motion check; it never restarts movement or a clock.
  * True resume gives its episode-bound lane pairs precedence over lagging general buddy
  * metadata. Pair identity never bypasses current participant or actor admission.
  * Version4 exit journals retain server-time progress/motion clocks and the ASL motion
@@ -1070,7 +1072,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!([_group,false,_actor] call CBE_fnc_CortexExternalTakeover)}
             && {((_stage select 2) == "APPROACH" && {currentCommand _actor == "MOVE"
-                    || {currentCommand _actor == "WAIT"
+                    || {toUpperANSI currentCommand _actor in ["","WAIT"]
                         && {[_actor,_stage select 0] call _checkResumeReserveMotion}}})
                 || {(_stage select 2) != "APPROACH" && {currentCommand _actor == "STOP"}
                     && {count (_stage select 0) == 3}
@@ -1093,7 +1095,7 @@ if (_resume && {count _stageBudget == 5} && {(_stageBudget select 0) == _buildin
                         && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
                         && {isNull remoteControlled _actor}
                         && {currentCommand _actor == "MOVE" && {count _now == 3} && {_now vectorDistance _target <= 0.25}
-                            || {currentCommand _actor == "WAIT"
+                            || {toUpperANSI currentCommand _actor in ["","WAIT"]
                                 && {[_actor,_target] call _checkResumeReserveMotion}}
                             || {currentCommand _actor == "STOP" && {(_stage select 2) != "APPROACH"}
                                 && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}

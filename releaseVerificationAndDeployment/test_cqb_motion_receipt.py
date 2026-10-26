@@ -95,6 +95,23 @@ class MotionReceiptTests(unittest.TestCase):
         self.assertNotIn('setVariable',reserve)
         self.assertNotIn('serverTime+',reserve)
         self.assertEqual(text.count('call _checkResumeReserveMotion'),2)
+        self.assertEqual(text.count('toUpperANSI currentCommand _actor in ["","WAIT"]'),2)
+        stage=text.split('private _checkResumeReserveMotion={',1)[1].split('// Resume restores native-work bookkeeping',1)[0]
+        # Observation and commit retain the same existing receipt proof.
+        self.assertEqual(stage.count('&& {[_actor,'),2)
+        def settled_resume(command, receipt=True, endpoint=True, context=True,
+                           speed=0.0, distance=1.0, height=0.0):
+            import math
+            return (command.upper() in ('','WAIT') and receipt and endpoint and context
+                    and math.isfinite(speed) and speed<0.278
+                    and distance<=1.5 and abs(height)<=0.75)
+        self.assertTrue(settled_resume(''))
+        self.assertTrue(settled_resume('WAIT'))
+        for changed in ({'receipt':False},{'endpoint':False},{'context':False},
+                        {'speed':1.0},{'speed':float('nan')},{'distance':2.0},{'height':1.0}):
+            self.assertFalse(settled_resume('',**changed))
+        self.assertFalse(settled_resume('STOP'))
+        self.assertFalse(settled_resume('MOVE'))  # Settled branch only.
         commit=text.split('private _postCommitted=false;',1)[1].split('} forEach ((_stageBudget select 3)',1)[0]
         self.assertLess(commit.index('setVariable ["CBE_Cortex_ClearReserve"'),commit.index('_postCommitted=true'))
         self.assertLess(commit.index('call _commitPreparation'),commit.index('if (_postCommitted) then'))
