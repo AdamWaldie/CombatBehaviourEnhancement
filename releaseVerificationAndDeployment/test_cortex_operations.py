@@ -10912,6 +10912,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_commander knowsAbout _enemy <= 0',fire)
         self.assertNotIn('getPosATL _enemy',fire)
         self.assertIn('+_dangerBelief,25',danger)
+        # A pressured crew may select existing safe smoke support, without
+        # randomness, a new fire owner or a second mission on rejection.
+        selection=danger.split('private _dangerMode="HE";',1)[1].split('call CBE_fnc_CortexArtilleryFire',1)[0]
+        for proof in ('local _gunner','getSuppression _gunner >= 0.5',
+                      'CBE_AIPass_ArtillerySmoke_Enable','[_vehicle,true,_dangerBelief] call CBE_fnc_CortexArtilleryAmmo',
+                      '_dangerMode="SMOKE"','25,_dangerMode,1,false,"DANGER"'):
+            self.assertIn(proof,selection)
+        self.assertLess(selection.index('CBE_AIPass_ArtillerySmoke_Enable'),selection.index('CBE_fnc_CortexArtilleryAmmo'))
+        self.assertNotIn('random',selection)
+        self.assertEqual(danger.count('call CBE_fnc_CortexArtilleryFire'),1)
+        for owner in (fire,step,shot):
+            self.assertIn('CBE_AIPass_ArtillerySmoke_Enable',owner)
         self.assertIn('_dangerSource,grpNull,serverTime',danger)
         self.assertIn('serverTime >= _observedAt+10',fire)
         self.assertIn('["dangerUntil",if (_danger) then {_observedAt+10} else {-1}]',fire)

@@ -1266,5 +1266,29 @@
     "buildLog": ".qa/handovers/firing-endpoint-1d98af60.log",
     "independentLog": ".qa/handovers/firing-endpoint-independent.log",
     "limits": "One hypothetical standing-height ray is not native accessibility, squad formation/muzzle clearance, chosen stance, sustained fire or tactical acceptance. World geometry can change after planning. General per-actor persistent-occlusion reposition remains unimplemented. No whole-mod parity/performance claim. Audits paused. Unsigned dirty development candidate from base1d98af60 plus working runtime; engineering notes postdate package."
+  },
+  "mountedReadinessAndReactiveSmoke20261026": {
+    "status": "REACTIVE_MORTAR_SMOKE_IMPLEMENTED_OFFLINE_PHYSICAL_UNVERIFIED",
+    "sourceHashes": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findReadyVehicles.sqf": "bf46de0e02807cab95b6aa8ef36535526e66b37a69cbebccee732c6c0609c77e",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_shouldSuppressPosition.sqf": "e7e079849262c11b66a2eb430cd61981e8090d55dff8b94d6065b5f62140c824",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainVehicle.sqf": "9bf4f270de89c69a63b4fe3949d22d73cc90c207b5053183052b383df64b86f8"
+    },
+    "scope": "Complete readable findReadyVehicles/shouldSuppressPosition helpers; their selected caller edges in tacticsAssault/Flank/Suppress and doSuppress. Revisited brainVehicle artillery branch lines59-123, previously complete-body reviewed. Selected CBE ground fire and artillery admission/shot paths; not whole descendant parity.",
+    "readinessDisposition": "Source findReadyVehicles has a350m actual default despite200m header, selects group mounted members with vehicle canFire/magazines/on-ground, then deduplicates platforms. It neither sorts nor proves the selected station is loaded/local/task-free. CBE current crew actor admission, target-qualified loaded station/muzzle selection and fresh firing check remain authoritative. Do not substitute vehicle-wide magazine presence for station readiness.",
+    "suppressionDisposition": "Source shouldSuppressPosition accepts an object by reading eyePos, probes at most2 surfaces and treats terrain or cached blocking models as obstacles; near-target obstacles may permit suppression and an optional reverse check distinguishes occlusion. CBE SuppressionAim retains supplied belief and first FIRE/GEOM surface within3m; current mounted branch checks station ammunition and friendly lane. Keep belief and station ownership; do not import object-pose disclosure or model-whitelist permission as generic clearance.",
+    "sourceSmokeIntent": "brainVehicle opportunistically chooses smoke, sometimes illumination, for a reactive static mortar; native commands and delayed repeats are not episode-owned. Preserve useful screening intent through CBE existing artillery owner rather than random ammo choice or an independent delayed firing callback.",
+    "change": "For one fresh exact static-mortar danger response, a local gunner at suppression>=0.5 selects SMOKE only when existing ArtillerySmoke feature is enabled and CortexArtilleryAmmo finds currently available in-range classified smoke toward the same native belief. Otherwise existing HE mode remains. One existing DANGER request is dispatched; rejection never creates a second HE mission. Server admission, smoke generation, live feature gates, original danger expiry, safety and native shot confirmation remain shared.",
+    "cost": "One local suppression read and, only for heavy suppression with smoke enabled, the existing bounded config-cached smoke ammunition/range query per eligible fresh danger generation. Existing query native inventory cost remains unmeasured. No worker, scan, timer, setting, crew move or extra fire command.",
+    "checks": [
+      "Existing danger-mortar admission/lifecycle source check passed with smoke assertions",
+      "Full1497 tests,446 compiled SQF,11 PBOs and checkpoint gates passed",
+      "Independent candidate verification passed"
+    ],
+    "candidate": ".qa/candidates/reactive-mortar-smoke-9951c12d",
+    "fingerprint": "5f5e592af6bb55fd46b847f8574b68d4f4d0c1576a561f7f24300daef9bad2b2",
+    "buildLog": ".qa/handovers/reactive-mortar-smoke-9951c12d.log",
+    "independentLog": ".qa/handovers/reactive-mortar-smoke-independent.log",
+    "remaining": "Illumination classification/selection and broader contextual mortar smoke planning remain gaps. Actual screen placement/effects, pressure threshold balance, HC execution/cancellation and measured cost remain unverified. No whole-source parity or acceptance increase. Audits paused. Unsigned development candidate from9951c12d plus working runtime; engineering notes postdate packaging."
   }
 }

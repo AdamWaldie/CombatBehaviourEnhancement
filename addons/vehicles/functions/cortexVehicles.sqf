@@ -6,6 +6,10 @@
  * Passenger stop/continuation proof retains the full current native waypoint identity;
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Reactive mortar reports carry current native believed geometry and its server-time observation.
+ * A heavily suppressed static-mortar gunner prefers reachable classified smoke when enabled;
+ * otherwise its existing HE request remains. Selection is once per fresh danger generation,
+ * using current local crew suppression and the existing ammunition query/mission owner.
+ * No random ammunition choice, hidden live aim point or additional firing worker is added.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
  * Refused standoff native admission releases its exact attempted generation and leases;
@@ -696,7 +700,16 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {[] call _mayIssueVehicle}) then {
                     _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
                     _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
-                    [_vehicle,+_dangerBelief,25,"HE",1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
+                    // Smoke is a purposeful screening response under heavy crew pressure,
+                    // not a random substitute for HE or a second mission after rejection.
+                    // The existing owner rechecks smoke epochs, rounds, range and safety.
+                    private _dangerMode="HE";
+                    if (!isNull _gunner && {local _gunner} && {getSuppression _gunner >= 0.5}
+                        && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {([_vehicle,true,_dangerBelief] call CBE_fnc_CortexArtilleryAmmo) != ""}) then {
+                        _dangerMode="SMOKE";
+                    };
+                    [_vehicle,+_dangerBelief,25,_dangerMode,1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
                 };
                 if (_knownHostile && {_freshGeneration} && {!(_emplacementUnsafe || {_disabledUnsafe})}
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}
