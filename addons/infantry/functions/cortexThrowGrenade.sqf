@@ -173,6 +173,10 @@ private _thrown = false;
                 params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]];
                 // A newer request supersedes this queued attempt without cancelling its frag token.
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
+                // No diagnostic/cancellation write may survive the original owner episode.
+                if (!local _unit || {!local _group} || {group _unit != _group}
+                    || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _ownerEpoch}
+                    || {(_group getVariable ["CBE_OperationGeneration",0]) != _operationGeneration}) exitWith {};
                 private _cancel = {
                     params [["_reason","OWNERSHIP_OR_SAFETY",[""]],["_details",[],[[]]]];
                     _unit setVariable ["CBE_Cortex_ThrowDecision",[time,_reason,_kind,_throwGeneration,_details]];
@@ -313,11 +317,20 @@ private _thrown = false;
                 // Observe the native release once; never steer or replace the projectile.
                 private _oldTrace=_unit getVariable ["CBE_Cortex_ThrowTraceHandler",-1];
                 if (_oldTrace >= 0) then {_unit removeEventHandler ["FiredMan",_oldTrace]};
+                _unit setVariable ["CBE_Cortex_ThrowOwner",[_group,_ownerEpoch,_operationGeneration,_throwGeneration,clientOwner]];
                 _unit setVariable ["CBE_Cortex_ThrowTracePending",[_magazine,+_towards,_kind,_throwGeneration]];
                 private _traceHandler=_unit addEventHandler ["FiredMan",{
                     params ["_actor","_weapon","_muzzle","_mode","_ammo","_magazine","_projectile"];
+                    private _throwOwner=_actor getVariable ["CBE_Cortex_ThrowOwner",[]];
+                    if (count _throwOwner != 5 || {!local _actor} || {!local group _actor}
+                        || {(_throwOwner select 0) isNotEqualTo group _actor}
+                        || {(_throwOwner select 1) isNotEqualTo ((group _actor) getVariable ["CBE_AIPass_Epoch",0])}
+                        || {(_throwOwner select 2) isNotEqualTo ((group _actor) getVariable ["CBE_OperationGeneration",0])}
+                        || {(_throwOwner select 3) isNotEqualTo (_actor getVariable ["CBE_Cortex_ThrowGeneration",-1])}
+                        || {(_throwOwner select 4) isNotEqualTo clientOwner}) exitWith {};
                     private _pending=_actor getVariable ["CBE_Cortex_ThrowTracePending",[]];
-                    if (_weapon == "Throw" && {count _pending == 4} && {_magazine == (_pending select 0)}) then {
+                    if (_weapon == "Throw" && {count _pending == 4} && {_magazine == (_pending select 0)}
+                        && {(_pending select 3) isEqualTo (_throwOwner select 3)}) then {
                         private _velocity=velocity _projectile;
                         private _bearing=_actor getDir (_pending select 1);
                         private _directionAvailable=!isNull _projectile
@@ -350,21 +363,35 @@ private _thrown = false;
                 }];
                 _unit setVariable ["CBE_Cortex_ThrowTraceHandler",_traceHandler];
                 [{
-                    params ["_actor","_handler"];
+                    params ["_actor","_handler","_group","_epoch","_generation","_issuer"];
+                    if (!local _actor || {!local _group} || {group _actor != _group}
+                        || {_issuer != clientOwner}
+                        || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _epoch}
+                        || {((_actor getVariable ["CBE_Cortex_ThrowTracePending",[]]) param [3,-1,[0]]) != _generation}) exitWith {};
+
                     if ((_actor getVariable ["CBE_Cortex_ThrowTraceHandler",-1]) == _handler) then {
                         _actor removeEventHandler ["FiredMan",_handler];
                         _actor setVariable ["CBE_Cortex_ThrowTraceHandler",-1];
                         _actor setVariable ["CBE_Cortex_ThrowTracePending",nil];
                     };
-                },[_unit,_traceHandler],3] call CBA_fnc_waitAndExecute;
+                },[_unit,_traceHandler,_group,_ownerEpoch,_throwGeneration,clientOwner],3] call CBA_fnc_waitAndExecute;
                 if (_kind == "FRAG") then {
                     private _old = _unit getVariable ["CBE_Cortex_FragHandler",-1];
                     if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
                     _unit setVariable ["CBE_Cortex_FragFlight",[_drillToken,objNull,false,_magazine,-1]];
+                    _unit setVariable ["CBE_Cortex_FragFlightGeneration",_throwGeneration];
                     private _handler = _unit addEventHandler ["FiredMan",{
                         params ["_actor","_weapon","_muzzle","_mode","_ammo","_magazine","_projectile"];
+                    private _throwOwner=_actor getVariable ["CBE_Cortex_ThrowOwner",[]];
+                    if (count _throwOwner != 5 || {!local _actor} || {!local group _actor}
+                        || {(_throwOwner select 0) isNotEqualTo group _actor}
+                        || {(_throwOwner select 1) isNotEqualTo ((group _actor) getVariable ["CBE_AIPass_Epoch",0])}
+                        || {(_throwOwner select 2) isNotEqualTo ((group _actor) getVariable ["CBE_OperationGeneration",0])}
+                        || {(_throwOwner select 3) isNotEqualTo (_actor getVariable ["CBE_Cortex_ThrowGeneration",-1])}
+                        || {(_throwOwner select 4) isNotEqualTo clientOwner}) exitWith {};
                         private _flight = _actor getVariable ["CBE_Cortex_FragFlight",[]];
-                        if (_weapon == "Throw" && {count _flight == 5} && {_magazine == (_flight select 3)}) then {
+                        if (_weapon == "Throw" && {count _flight == 5} && {_magazine == (_flight select 3)}
+                            && {(_actor getVariable ["CBE_Cortex_FragFlightGeneration",-1]) isEqualTo (_throwOwner select 3)}) then {
                             _flight set [1,_projectile];
                             _flight set [2,true];
                             _flight set [4,time];
@@ -374,12 +401,17 @@ private _thrown = false;
                     }];
                     _unit setVariable ["CBE_Cortex_FragHandler",_handler];
                     [{
-                        params ["_actor","_handler"];
+                        params ["_actor","_handler","_group","_epoch","_generation","_issuer"];
+                    if (!local _actor || {!local _group} || {group _actor != _group}
+                        || {_issuer != clientOwner}
+                        || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _epoch}
+                        || {(_actor getVariable ["CBE_Cortex_FragFlightGeneration",-1]) != _generation}) exitWith {};
+
                         if ((_actor getVariable ["CBE_Cortex_FragHandler",-1]) == _handler) then {
                             _actor removeEventHandler ["FiredMan",_handler];
                             _actor setVariable ["CBE_Cortex_FragHandler",-1];
                         };
-                    },[_unit,_handler],10] call CBA_fnc_waitAndExecute;
+                    },[_unit,_handler,_group,_ownerEpoch,_throwGeneration,clientOwner],10] call CBA_fnc_waitAndExecute;
                 _unit setVariable ["CBE_Cortex_ThrowDecision",[time,"RELEASE_REQUESTED",_kind,_throwGeneration,[_muzzle,currentWeapon _unit,stance _unit,+_towards,getDir _unit,eyeDirection _unit]]];
                     _unit forceWeaponFire [_muzzle,_muzzle];
                 } else {

@@ -222,6 +222,10 @@ isNil {
                 _unit setVariable ["CBE_IndoorActor_FSM",nil];
             };
         };
+        // Invalidate queued throw retries before retiring their observational listeners.
+        _unit setVariable ["CBE_Cortex_ThrowGeneration",(_unit getVariable ["CBE_Cortex_ThrowGeneration",0])+1];
+        _unit setVariable ["CBE_Cortex_ThrowOwner",nil];
+        _unit setVariable ["CBE_Cortex_FragFlightGeneration",nil];
         // Event-handler IDs are machine-local. Retire this owner's listener on both
         // loss and gain; the old drill is cancelled, never replayed on the new owner.
         private _fragHandler = _unit getVariable ["CBE_Cortex_FragHandler",-1];

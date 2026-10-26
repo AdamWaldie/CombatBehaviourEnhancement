@@ -8889,7 +8889,7 @@ class CortexOperations(unittest.TestCase):
         grenade=source('cortexThrowGrenade')
         self.assertIn('addEventHandler ["FiredMan"',grenade)
         self.assertIn('removeEventHandler ["FiredMan",_thisEventHandler]',grenade)
-        self.assertIn('[_unit,_handler],10',grenade)
+        self.assertIn('[_unit,_handler,_group,_ownerEpoch,_throwGeneration,clientOwner],10',grenade)
 
     def test_assault_handoffs_issue_movement_without_an_extra_scheduler_turn(self):
         step=source('cortexFlankStep')
