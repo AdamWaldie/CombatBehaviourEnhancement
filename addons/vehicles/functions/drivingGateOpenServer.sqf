@@ -30,6 +30,10 @@
 params [["_payload",[],[[]]],["_ownerToken","",[""]]];
 if (!isServer || {count _payload != 10} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
 private _values=createHashMapFromArray _payload;
+// Named transport must contain each documented key exactly once. A duplicate must
+// not silently replace one authority field while a default supplies the missing field.
+private _payloadKeys=["group","vehicle","gate","route","transform","driver","commander","convoyRevision","expires","unlockReceipt"];
+if (count _values != count _payloadKeys || {_payloadKeys findIf {isNil {_values get _x}} >= 0}) exitWith {false};
 private _group=_values getOrDefault ["group",grpNull];
 private _vehicle=_values getOrDefault ["vehicle",objNull];
 private _gate=_values getOrDefault ["gate",objNull];

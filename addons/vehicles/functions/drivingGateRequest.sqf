@@ -21,6 +21,10 @@
  */
 params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_observation",[],[[]]],["_revision",-1,[0]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
+// Reject malformed/nonfinite observations before comparisons, object reads or public writes.
+if (count _observation != 5 || {!((_observation select 1) isEqualType objNull)}
+    || {[0,2,3,4] findIf {!((_observation select _x) isEqualType 0) || {!finite (_observation select _x)}} >= 0}
+    || {!finite _revision} || {_revision < -1} || {_revision != floor _revision}) exitWith {false};
 if (isNull _group || {isNull _vehicle} || {!local _group} || {!local _vehicle}
     || {isNull driver _vehicle} || {!local driver _vehicle} || {group driver _vehicle != _group}
     || {count _observation != 5} || {isNull (_observation select 1)}

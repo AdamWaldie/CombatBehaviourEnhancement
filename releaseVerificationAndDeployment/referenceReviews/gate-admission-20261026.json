@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "5aaf9872099d763e15e95b3ed9888061c7326030",
+  "status": "OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "finding": "Owner observation fields were compared/read before type/finite validation; duplicate named keys were collapsed by server HashMap while defaults could supply a missing field.",
+  "implementation": "Reject malformed observation and revision before native reads/public writes. Require exact ten unique documented server payload keys before field extraction. Existing authority, attempt budget, locks, geometry and final mutation checks unchanged.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingGateRequest.sqf": "94aad4bfadaaee587404eb0f12be04e035c604854b9da672503954cb34ef9249",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "c22edd974218d1a3e401ba4ba8162a5059dd186a12fb02e993839d2b945b1a2c",
+    "releaseVerificationAndDeployment/test_driving_gate_cap.py": "1472bd15b62791283433f69a70f07c89df4ff882944aa87b69b4e650f758de99"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/gate-admission-5aaf9872",
+    "fingerprint": "9c55166503a88ab146878d9b110c7aec7e9d4b9cd1b71c07e43268058c4b6145",
+    "buildLog": ".qa/handovers/gate-admission-build.log",
+    "independentLog": ".qa/handovers/gate-admission-independent.log"
+  },
+  "remaining": "Rear opening needs authenticated direction transport and owner-local recheck; no rear-opening or physical/performance claim."
+}

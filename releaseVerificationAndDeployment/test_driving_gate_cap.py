@@ -127,6 +127,22 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('_commander != _requestedCommander',server)
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform,_passageCycle]',server)
         self.assertNotIn('animateSource',owner)
+        # Rejected transport cannot reach native reads or consume a gate attempt.
+        for guard in ('!((_observation select 1) isEqualType objNull)',
+                      '[0,2,3,4] findIf', '!finite (_observation select _x)',
+                      '!finite _revision', '_revision != floor _revision'):
+            self.assertIn(guard,owner[:owner.index('private _route=')])
+        self.assertLess(owner.index('[0,2,3,4] findIf'),owner.index('isNull (_observation select 1)'))
+        self.assertIn('count _values != count _payloadKeys',server)
+        self.assertIn('_payloadKeys findIf {isNil {_values get _x}}',server)
+        self.assertLess(server.index('count _values != count _payloadKeys'),server.index('private _group='))
+        required={'group','vehicle','gate','route','transform','driver','commander',
+                  'convoyRevision','expires','unlockReceipt'}
+        def valid_keys(keys):
+            return len(keys)==10 and len(set(keys))==10 and set(keys)==required
+        self.assertTrue(valid_keys(list(required)))
+        self.assertFalse(valid_keys(['group']*10))
+        self.assertFalse(valid_keys(list(required-{'expires'})+['unexpected']))
 
 class DrivingGateIntentTests(unittest.TestCase):
     def test_gate_intent_is_checked_before_request_and_authoritative_mutation(self):
