@@ -31,5 +31,9 @@
     "addons/infantry/functions/cortexGroupMoveClear.sqf": "9c805e997901629d28d87f492d63b2a4026416b3458b742028b6c54511faadc2",
     "addons/vehicles/functions/cortexVehicleReverseStep.sqf": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a"
   },
-  "validation": "Read-only source trace and JSON serialization. No runtime code, tests, build, score or physical acceptance changed."
+  "validation": "Read-only source trace and JSON serialization. No runtime code, tests, build, score or physical acceptance changed.",
+  "writerBoundaries20261026": {
+    "review": "clear-producer-writer-boundaries-20261026.json",
+    "scope": "Current private producer/lane throttle and independent interruption/settings/hold writer domains identified. Source locator classifies43 quoted channels but is not complete dynamic-write or quiescence proof. Transport remains unimplemented."
+  }
 }
