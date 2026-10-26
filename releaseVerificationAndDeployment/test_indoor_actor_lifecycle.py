@@ -10,6 +10,24 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         body=route.split('params [[',1)[1]
         self.assertEqual(body.count('lineIntersectsSurfaces'),1)
+        self.assertIn('if (_probes >= 4) exitWith {}',body)
+        self.assertIn('if (_hits isEqualTo []) then {continue}',body)
+        self.assertIn('if (_opened) exitWith {}',body)
+        self.assertLess(body.index('_probes=_probes+1'),body.index('lineIntersectsSurfaces'))
+        # Empty approaches cannot end the group pass before a later eligible door.
+        def batch(approaches,cursor=0):
+            probes=0
+            for i in range(cursor,min(cursor+16,len(approaches))):
+                probes+=1
+                if approaches[i]:return True,probes,i+1
+                if probes==4:return False,probes,i+1
+            return False,probes,min(cursor+16,len(approaches))
+        self.assertEqual(batch([False,False,True,True]),(True,3,3))
+        opened,probes,cursor=batch([False]*4+[True])
+        self.assertEqual((opened,probes,cursor),(False,4,4))
+        self.assertEqual(batch([False]*4+[True],cursor),(True,1,5))
+        self.assertEqual(batch([True]*8),(True,1,1))
+
         self.assertNotIn('nearestObjects',body)
         for proof in ('select [0,64]','(count _actors) min 16','routeDoorNextAt','serverTime+2','routeDoorCursor',
                       '(3 min _length)/_length','_hit select 2','_hit select 3',

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "ad63ff1b",
+  "status": "BOUNDED_ROUTE_DOOR_BATCH_OFFLINE_VERIFIED",
+  "scope": "Ordinary authored foot-route door assistance, not a new assault controller or whole LAMBS parity.",
+  "references": [
+    {
+      "path": ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf",
+      "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      "readScope": "Selected native-task/near-contact admission, lines32-75"
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultCQB.sqf",
+      "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+      "readScope": "Complete helper; original source kept read-only"
+    }
+  ],
+  "sourceIntent": "LAMBS responds through individual native-task/unit actions. Its CQB helper also redirects movement and consumes building positions probabilistically; those semantics are not adopted here. This comparison exposed the separate CBE group-level selection bottleneck.",
+  "finding": "CBE ended route-door observation after its first eligible actor even with no house ahead. Later moving actors with a real door waited for later group callbacks.",
+  "implementation": [
+    "Try at most4 eligible approaches inside the existing rotating16-actor/64-member window and2s minimum callback gap.",
+    "Empty/irrelevant approaches continue; stop after one actual opening request. Cursor advances after each attempted actor, including failed approaches.",
+    "Reuse the local sampled native goal; actual animation helper still rechecks ownership/epoch/plain MOVE/locks/near visibility/narrow approach. No new route, movement worker, distant opening, room visit or clearance credit."
+  ],
+  "cost": "Up to4 short3m approach rays plus16 nearby door visibility rays, replacing prior1+4 bound. No added radius query or recurring worker. Average/worst frame impact and real response timing require measurement.",
+  "productHashes": {
+    "addons/infantry/functions/cortexRouteDoors.sqf": "b3277a01818f18d438db6eaf686aa5f6c2f1ecde8f8bf02507033d963b753075",
+    "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "39eea6ae6df034db38d3a98f311d17606fe5581a15ffc2073036fee36dd2c28e"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 32,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/route-door-batch-ad63ff1b",
+    "fingerprint": "3500f1f5011a1f4720a76a7b291b41ee53903800b504e5441836d8d2eec9b03e",
+    "buildLog": ".qa/handovers/route-door-batch-build.log",
+    "independentLog": ".qa/handovers/route-door-batch-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "wholeLAMBSParity": false,
+  "remaining": [
+    "Physical native routing through terrain/editor/Zeus buildings, repeated door use and frame-time cost remain unverified; audits paused.",
+    "Full CQB handover and tactical flow remain incomplete."
+  ]
+}

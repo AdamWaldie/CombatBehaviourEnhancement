@@ -2031,3 +2031,6 @@ The current actor capture component is version3 with six fields; the outer sourc
 
 
 The shared clearance-setting cleanup service covers the latest original expiry of its admitted actors. When a later actor joins the same clear generation/owner epoch with a later matching-issuer window, only the shared deadline changes. Earlier actor windows still expire at their original times, and the scan cursor is retained. Repeated admission cannot create a new actor window or extend its native restoration authority.
+
+
+Ordinary foot-route door assistance can try up to four eligible nearby approaches in its existing rotating sample before yielding. An empty probe no longer ends the group callback immediately; one opening request ends the batch. The existing two-second minimum gap, sixteen-actor sample and sixty-four-member limit remain. Each door request retains current owner/epoch, plain native MOVE, near approach, lock and visibility checks. No route or movement is replaced. The maximum ray budget is now twenty per callback; runtime cost and physical entry remain unverified.

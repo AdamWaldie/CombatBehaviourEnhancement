@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: ordinary route-door assistance tries up to4 eligible approaches per existing callback instead of ending after the first empty approach. Cursor advances on attempts; stop after one opening. Existing16-actor/64-member sample and2s minimum gap plus all helper animation/lock/task guards remain. Ray bound rises from5 to20; actual cost/entry unverified.1497 full tests/32 focused,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/route-door-batch-ad63ff1b`, fingerprint `3500f1f5011a1f4720a76a7b291b41ee53903800b504e5441836d8d2eec9b03e`. Review `route-door-batch-20261026.json`. No movement/route replacement or clearance credit; audits paused and whole production goal incomplete.
+
+
 Latest: CLEAR settings cleanup now covers a later participant's original actor expiry instead of expiring at the first actor's deadline. Same generation/epoch and actor issuer required. Only shared pending deadline changes; individual windows and scan cursor remain unchanged, repeated admission creates no time. Selected canonical settings writer trace confirms local group/actor/epoch guards, not all-writer readiness.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-settings-union-e964de0a`, fingerprint `1036271dfa3dd06a97b015f0899d3c788bf70847300ca4f173232f2857a47580`. Review `clear-settings-window-union-20261026.json`. Audits paused; source seal/incoming reconciliation/runtime acceptance unfinished.
 
 
