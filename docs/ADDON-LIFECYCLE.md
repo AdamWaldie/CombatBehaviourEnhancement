@@ -1676,8 +1676,11 @@ an unresolved reservation after positive evidence of a newer native STOP. The ex
 original machine-local FSM must have completed; its serial, executor serial, owner,
 epoch, group reference and any tactical operation generation must still match.
 Every surviving original operator must remain local, in the original group and
-platform and report native STOP. STOP is a perpetual task; readiness is not required.
-No replacement operating actor is adopted.
+report native STOP. Operators may remain aboard the original platform or be on foot;
+another occupied vehicle refuses. Dismounted originals must each have finite measured
+speed below 1km/h, independently of the platform. Dismounting alone is not handback.
+STOP is a perpetual task; readiness is not required. No replacement operating actor
+is adopted.
 The actual platform must be below 1km/h and 0.01rad/s. An empty surviving crew is not
 STOP evidence; the existing separate dead-crew path retains its own checks.
 
@@ -1690,7 +1693,8 @@ successful handback or completion of the requested manoeuvre. Group membership a
 unrelated infantry orders remain untouched.
 
 Existing maintenance performs at most two original-operator command checks and
-one velocity/angular-velocity sample for this proof. There is no new worker, scan
+one platform velocity/angular-velocity sample for this proof, plus at most two
+individual velocity samples when the surviving originals are on foot. There is no new worker, scan
 or timer. Cross-owner termination, different native orders, missing actors and
 replacement crews remain unresolved unless separate positive proof is available.
 Offline checks cannot establish native STOP acknowledgement timing or the total performance

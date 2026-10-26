@@ -87,6 +87,10 @@
       "selectedDeletionProvenance20261026": {
         "review": "selected-deletion-crew-provenance-20261026.json",
         "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
+      },
+      "dismountedOriginalStop20261026": {
+        "review": "selected-dismounted-stop-retirement-20261026.json",
+        "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
       }
     },
     {
@@ -294,6 +298,10 @@
       "selectedDeletionProvenance20261026": {
         "review": "selected-deletion-crew-provenance-20261026.json",
         "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
+      },
+      "dismountedOriginalStop20261026": {
+        "review": "selected-dismounted-stop-retirement-20261026.json",
+        "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
       }
     }
   ],

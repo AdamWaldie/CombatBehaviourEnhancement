@@ -243,12 +243,36 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
         stop=proof.split('if (_mode == "EXTERNAL_STOP") exitWith {',1)[1].split('private _returns=',1)[0]
         for guard in ('_stoppedWriters isEqualTo []','!local _x','group _x != _group',
-                      'objectParent _x != _battery','currentCommand _x != "STOP"',
+                      'private _parent=objectParent _x','!isNull _parent && {_parent != _battery}',
+                      'currentCommand _x != "STOP"','isNull _parent && {',
+                      'private _speed=vectorMagnitude velocity _x','!finite _speed','_speed >= 0.278',
                       'finite _linear','finite _angular',
                       '_linear < 0.278','_angular < 0.01'):
             self.assertIn(guard,stop)
         # Native STOP is perpetual: waiting for readiness would make retirement impossible.
         self.assertNotIn('unitReady',stop)
+        # Dismount alone cannot release old movement. Each living original needs
+        # the newer STOP; foot actors also need measured rest independent of the gun.
+        import math
+        def stopped_originals(actors, worker_done=True, replacement=False, platform_rest=True):
+            return (bool(actors) and worker_done and not replacement and platform_rest
+                    and all(local and same_group and parent in ('original',None)
+                            and command=='STOP'
+                            and (parent is not None or (math.isfinite(speed) and speed<0.278))
+                            for local,same_group,parent,command,speed in actors))
+        foot=(True,True,None,'STOP',0.0)
+        aboard=(True,True,'original','STOP',0.0)
+        self.assertTrue(stopped_originals([foot,aboard]))
+        self.assertTrue(stopped_originals([foot]))  # Other original is dead/deleted.
+        self.assertTrue(stopped_originals([foot,foot]))
+        for actor in ((True,True,None,'MOVE',0), (True,True,None,'STOP',1),
+                      (True,True,None,'STOP',float('nan')),
+                      (True,True,'other','STOP',0), (False,True,None,'STOP',0),
+                      (True,False,None,'STOP',0)):
+            self.assertFalse(stopped_originals([foot,actor]))
+        for flags in ({'worker_done':False},{'replacement':True},{'platform_rest':False}):
+            self.assertFalse(stopped_originals([foot],**flags))
+        self.assertFalse(stopped_originals([]))
 
         self.assertIn('"EXTERNAL_STOP"]',retirement)
         self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',retirement)

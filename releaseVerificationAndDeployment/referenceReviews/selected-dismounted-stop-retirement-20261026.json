@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Passive selected-crew retirement after dismount and a newer native STOP",
+  "finding": "Both selected movement executors yield to dismounting and leave UNRESOLVED work. EXTERNAL_STOP then required objectParent to remain the original vehicle, so even a completed original worker, new native STOP and settled foot survivors could not retire the old group reservation.",
+  "implementation": [
+    "Allow surviving originals either aboard the original platform or on foot. Every survivor still needs current local ownership, original group membership and a newer active native STOP. Another occupied platform refuses.",
+    "Dismounted originals additionally require individually finite measured speed below0.278m/s. Original platform linear/angular rest thresholds stay unchanged. Dismount alone, moving foot actors and an ended script without STOP remain insufficient.",
+    "Exact original completed private FSM, serial/executor serial, owner, episode epoch, current group epoch and any tactical generation checks remain. No replacement current driver/commander; no public or local lease change beyond the existing exact retirement path.",
+    "Tactical result remains INCOMPLETE. No command, return-order restoration, seating, group change, timeout renewal or new worker. RETURN mode retains its original aboard-platform restrictions."
+  ],
+  "executionTrace": {
+    "executors": [
+      "addons/support/functions/artilleryCrewMoveStep.sqf",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf"
+    ],
+    "nativeWriter": "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf",
+    "finding": "Control refuses dismounted original operators after admission. Native selected movement issues doMove for outward/hold/return, not native STOP, so the existing baseline restrictions identify STOP as a newer native order.",
+    "sha256": {
+      "addons/support/functions/artilleryCrewMoveStep.sqf": "fffd06fe58e2c8a601a96c97e9e698e08c64832614b4d767ff00e52812565701",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "7a1e61673ae134a207785c8852d0e65c10c0defc7cfc1f583b2e6f138b9d09aa",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "c05da99342f598dcff04ef86781978c714dc84adf44dd9ff71c5a4e62a3982d7"
+    }
+  },
+  "sourceIntent": "Extend the existing finite original-crew handover foundation shared by Protocol artillery and armour implementations. Preserve selected-crew scope and group membership; do not reproduce unbounded source relocation/worker loops.",
+  "cost": "At most two extra velocity reads, only for surviving dismounted originals with current STOP in the existing passive retirement callback. One objectParent read per survivor. No scan, timer, remote endpoint, extra worker or changed callback cadence. Runtime overhead unmeasured.",
+  "limits": [
+    "Other native orders, changed group/epoch/generation, another occupied platform, replacement crew, foreign worker termination and deleted-platform live-survivor recovery remain outside this proof.",
+    "Actual native STOP/dismount timing, repeated later task admission, normal/HC locality and performance remain physically unverified. Audits paused."
+  ],
+  "physicalAcceptance": false,
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "c3438ccc371d4301c77760a077b1d9c435996a3b3abd769593e9b467b5b66344",
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "715da049e694cfb4d3bb14eb4308425b61fac181be07150376bcd133bc1c0eb8"
+  },
+  "validation": {
+    "focusedExistingArtilleryCases": 4,
+    "result": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/selected-dismounted-stop-ddf057fd",
+    "fingerprint": "0b024f1afe1a08a24de34cbb29464b75ccaff614678c955abb7818e838bf6449",
+    "buildLog": ".qa/handovers/selected-dismounted-stop-build.log",
+    "independentLog": ".qa/handovers/selected-dismounted-stop-independent.log",
+    "independent": "PASS"
+  }
+}

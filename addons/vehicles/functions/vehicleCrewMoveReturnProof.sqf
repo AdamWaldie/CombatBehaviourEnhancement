@@ -12,7 +12,9 @@
  * retire metadata after the old window, never grant another stop/return command. This does
  * not confirm a foreign owner's worker termination or arbitrary native supersession.
  * EXTERNAL_STOP only observes a newer native STOP on every surviving original operator,
- * with measured platform rest. STOP is intentionally perpetual, so readiness is not required.
+ * aboard the original platform or dismounted, with measured platform rest. Dismounted
+ * originals must also have measured individual rest. Another occupied platform refuses.
+ * STOP is intentionally perpetual, so readiness is not required.
  * It never restores or cancels that newer order.
  * Arguments: platform OBJECT,objNull; journal HASHMAP,empty; private worker ARRAY,[];
  * current private worker serial NUMBER,-1; optional evidence mode STRING,RETURN
@@ -54,8 +56,16 @@ if (_mode == "EXTERNAL_STOP") exitWith {
         || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE"])} >= 0}) exitWith {false};
     private _stoppedWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
     if (_stoppedWriters isEqualTo [] || {_stoppedWriters findIf {
-        !local _x || {group _x != _group} || {objectParent _x != _battery}
+        private _parent=objectParent _x;
+        !local _x || {group _x != _group}
+            || {!isNull _parent && {_parent != _battery}}
             || {currentCommand _x != "STOP"}
+            // The old vehicle being still does not prove a dismounted original
+            // has stopped. Observe actual rest without issuing a stop/return.
+            || {isNull _parent && {
+                private _speed=vectorMagnitude velocity _x;
+                !finite _speed || {_speed >= 0.278}
+            }}
     } >= 0} || {[driver _battery,effectiveCommander _battery] findIf {
         !isNull _x && {alive _x} && {!(_x in _stoppedWriters)}
     } >= 0}) exitWith {false};

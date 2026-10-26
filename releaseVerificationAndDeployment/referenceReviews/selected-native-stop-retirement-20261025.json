@@ -47,5 +47,9 @@
     "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "69b63fbc4663b164694e1ce901505b8a82c35d17aa61d543fca0d1ab6525be8e",
     "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "c47a00970906f78d1c28ff33285a9dd51de5f83c3e71a2f2f7ca704b8955605b",
     "addons/support/functions/artilleryCrewMoveRetire.sqf": "54dccd1cf2244871dfff485afdae90d91c58868204d3f8971ae972e093d81fc2"
+  },
+  "dismountedFollowup20261026": {
+    "review": "selected-dismounted-stop-retirement-20261026.json",
+    "scope": "Original survivors may now be on foot with newer active STOP and measured individual rest. Historical aboard-only restriction is superseded for this subset; actual worker/owner/epoch/generation/lease/platform-rest checks remain."
   }
 }

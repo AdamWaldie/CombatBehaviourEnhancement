@@ -9,7 +9,8 @@
  * once within its original window. Other unresolved work stays reserved while an original actor
  * survives or the platform is moving, unless its original private worker has ended and its
  * recorded original return is positively acknowledged, or every surviving original operator
- * accepts a newer active STOP with measured platform rest. No command is issued for
+ * accepts a newer active STOP with measured platform rest and, if dismounted, individual
+ * rest. No command is issued for
  * either passive proof; STOP interrupts the task and never reports its physical completion.
  * Dead original crew plus measured rest can retire only the
  * matching reservation and lease. Worker loss is not proof of native quiescence.
