@@ -4838,6 +4838,12 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(fire.index('unitReady _unit'),fire.index('magazinesAmmoFull _unit'))
         self.assertLess(fire.index('unitReady _unit'),fire.index('_unit doSuppressiveFire'))
         suppression = fire.split('// Disciplined suppression', 1)[1]
+        formation_gate='if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])}) then {'
+        self.assertIn(formation_gate,suppression)
+        self.assertLess(fire.index(formation_gate),fire.index('magazinesAmmoFull _unit'))
+        self.assertLess(fire.index(formation_gate),fire.index('_unit doSuppressiveFire'))
+        self.assertNotIn('setFormation',fire)
+
         for token in ['getOrDefault ["dangerResponse",[]]',
                       '(_dangerResponse select 0) == "CANFIRE"',
                       'CBE_Danger_Generation',

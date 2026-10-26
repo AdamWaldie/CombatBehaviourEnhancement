@@ -15,7 +15,8 @@
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
  * Native INIT/INITFAILED/PLANNING/REPLAN/DELAY, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
- * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
+ * native unitReady before reserve-ammo scans or firing-lane geometry. FILE/DIAMOND formations
+ * defer discretionary suppression only; native combat and direct-target control remain enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
  *
@@ -272,7 +273,9 @@ if (_suppressPos isEqualTo []) then {
         if (_knownIndex >= 0) then {_suppressPos=+((_enemies select _knownIndex) select 1)};
     };
 };
-if (_suppressPos isNotEqualTo []) then {
+// Tight movement formations retain native fire; do not assign discretionary bursts
+// that pin a file or close diamond into a scripted suppression task.
+if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])}) then {
     // Belief positions are ATL ground/body positions, not a disclosed enemy eye point.
     private _targetASL = (ATLToASL _suppressPos) vectorAdd [0,0,1];
     private _limit = missionNamespace getVariable ["CBE_AIPass_FireControl_MaxSuppressors", 2];

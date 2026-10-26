@@ -90,5 +90,23 @@
   "casualtyActionContextFollowup": {
     "review": "casualty-inventory-action-context-20261026.json",
     "scope": "After native equipment action, original point ownership/order/epoch/route/lease must still match before result/follow-through. No delayed ACK or physical acceptance."
+  },
+  "tightFormationFollowup20261026": {
+    "source": "Complete fnc_brainEngage.sqf body; FILE/DIAMOND exit precedes discretionary suppression. Other source descendants remain separately scoped.",
+    "finding": "CBE stationary/native-ready/safe suppression admission omitted this tight-formation restraint.",
+    "implementation": "Veto only discretionary suppression block for FILE/DIAMOND. Native fire and existing direct-target control remain available; no formation, weapon, movement, timer or permission mutation. Gate precedes reserve-ammunition and firing-lane work.",
+    "limits": "This reproduces the selected source policy, not proven tactical balance or whole-mod parity. Actual dense formation fire/movement and transition behaviour remain unverified; audits paused.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "candidate": ".qa/candidates/tight-formation-suppression-e73b4c93",
+      "fingerprint": "620388a42d471ddaeb065dad1fe4a96ad0cd34004e8fd1ae2f329a4f2618d892",
+      "buildLog": ".qa/handovers/tight-formation-suppression-final-build.log",
+      "independentLog": ".qa/handovers/tight-formation-suppression-independent.log",
+      "physicalAcceptance": false,
+      "retainedEditFailure": "Initial runtime edit succeeded but ambiguous test insertion assertion stopped; scoped insertion to named existing test, then full1497-test build passed. Initial build log retained."
+    },
+    "runtimeHash": "dc44ae79a02bf791390ab5c9324b6f081df68e11220bec46105c11d8d0e547bf"
   }
 }
