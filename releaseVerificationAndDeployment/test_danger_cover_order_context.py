@@ -66,6 +66,11 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertIn('_refugeFrame isEqualTo',refuge)
         self.assertIn('call CBE_fnc_CortexCoverScreened',refuge)
         self.assertNotIn('doMove',refuge)
+        node=(ROOT/'addons/infantry/functions/indoorActorNodeSelect.sqf').read_text(encoding='utf-8')
+        hidden=node.index('isObjectHidden _building')
+        self.assertLess(hidden,node.index('buildingPos'))
+        self.assertLess(hidden,node.index('lineIntersectsSurfaces'))
+
         cover=(ROOT/'addons/infantry/functions/dangerCoverStep.sqf').read_text(encoding='utf-8')
         selection=cover.split('private _cover=if (_sameGeometry)',1)[1].split('private _searchStats=',1)[0]
         self.assertIn('if (!(_result select 1) && {_screenMode == "COVER"})',selection)

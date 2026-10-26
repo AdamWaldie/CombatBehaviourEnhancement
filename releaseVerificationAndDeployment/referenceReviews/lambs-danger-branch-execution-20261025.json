@@ -174,5 +174,32 @@
     },
     "runtimeHash": "0f998bf9bb9a2576b77f09f7cdb6ab7c9fe78d03d54fd4a0fc1be58da16af1d2",
     "limits": "Config-radius and position observations are not ballistic impact or continuous friendly-fire proof. Modded explosive bullet balance/visuals/native bursts and performance require authorised physical validation."
+  },
+  "hideDiscoveryReview20261026": {
+    "scope": "Complete readable doHide/findBuildings bodies. No compiledSQFC equivalence or all descendant review claim.",
+    "sourceHashes": {
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doHide.sqf": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_findBuildings.sqf": "8f8675839b9aa0ebcaa593d40653f602a20afe283be7c2bd1ac3ab99a97bb421"
+    },
+    "intent": "Seek nearby concealed/indoor refuge while retaining native capabilities; reject hidden/nonlive houses.",
+    "departures": [
+      "Do not import unleased forceSpeed24 or delayed6-10second stance reset over newer orders.",
+      "Do not import random greater-distance weighted building scatter, arbitrary25+range retreat or ready-triggered doStop without original-order proof.",
+      "CBE uses finite original cover/flight lease and screened18m refuge selection; narrower candidate budget is not demonstrated equivalent flee/stealth behaviour."
+    ],
+    "finding": "Shared CBE indoor selector lacked hidden-building admission guard; roof queries might fail incidentally but did not explicitly preserve mission visibility.",
+    "implementation": "Reject isObjectHidden building before building positions/roof probes, through shared selector used by refuge and individual indoor tasks. No visibility/simulation mutation or worker.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "candidate": ".qa/candidates/indoor-hidden-building-67f64de3",
+      "fingerprint": "9b487df085b5296adb882ed2e9129df2f106c6123e2caa6e9a81cc839cd814f3",
+      "buildLog": ".qa/handovers/indoor-hidden-building-build.log",
+      "independentLog": ".qa/handovers/indoor-hidden-building-independent.log",
+      "physicalAcceptance": false
+    },
+    "runtimeHash": "e7fdfe0a2317878362bfa50b214f3b0f66460b9062ade3a2dfb83900e9250040",
+    "limits": "Does not cancel an already issued path when a building is hidden later. Live operation invalidation and dynamic visibility require separate caller trace/physical verification; no wholeCQB or concealment parity."
   }
 }

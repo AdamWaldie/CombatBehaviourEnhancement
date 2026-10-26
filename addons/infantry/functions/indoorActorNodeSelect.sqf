@@ -27,6 +27,7 @@
  * 8 defensiveOrigin ASL ARRAY [] is mandatory for defensive selection and binds the
  * original radius/floor across retries; it is never replaced by the actor's new position.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
+ * Hidden buildings refuse before node/roof observation; authored mission visibility remains authoritative.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
  * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch; DangerRefugeSelect fallback for flight and ordinary danger cover.
  * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
@@ -40,7 +41,7 @@ private _positionValid={
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
 };
 if (isNull _actor || {!local _actor} || {!local group _actor}
-    || {isNull _building} || {!alive _building} || {!(_belief call _positionValid)}
+    || {isNull _building} || {!alive _building} || {isObjectHidden _building} || {!(_belief call _positionValid)}
     || {count _reserved > 16} || {_defensive && {!(_defensiveOrigin call _positionValid)}}) exitWith {[]};
 // Reject unknown reservations rather than sending a second actor to an unverified destination.
 if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
