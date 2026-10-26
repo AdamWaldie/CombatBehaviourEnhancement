@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "e5d4f4ec",
+  "workshopId": "3812620045",
+  "status": "PEDESTRIAN_WORLD_FRAME_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "CBE pedestrian safety geometry and shared hull foundation; selected HBQ source comparison only, not whole-source parity.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "selectedLines": [
+      "334: generic obstacle classification ignores CAManBase",
+      "1810-1825: lateral free-space check includes nearby people"
+    ],
+    "disposition": "HBQ separates people from generic obstacle rays and includes them in side-clearance observation. CBE keeps its existing friendly/on-foot braking extension and feature gates; this correction is CBE integration work, not an assertion that HBQ supplies the same braking model. Protected reference unchanged; no source code/assets imported."
+  },
+  "finding": "CortexInfantrySpeed projected people through vehicle model coordinates, then used model-unit/tilted gaps with world-metre braking constants. Scale changed distances and pitch/roll changed the vertical-overlap axis. Vehicle traffic already used a world frame; pedestrians did not.",
+  "implementation": [
+    "Extend the existing DrivingHullInterval with an optional third unit axis requiring a valid second axis. One/two-axis result shapes remain2/4 values; triple returns6. Same corner and three edge transforms, independent third-axis extrema,0.05m outward padding and invalid/nonnumeric/finite guards.",
+    "Project own vehicle and pedestrian hulls onto horizontal right/travel and world vertical relative to one world origin. Reversing changes the travel axis, retaining physical asymmetric front/rear extents. Velocity projects into the same horizontal metre frame.",
+    "Unknown speed/own projection or selected pedestrian projection returns zero. Existing32-person refusal,250m discovery limit, one native query, friendly/on-foot filtering, feature defaults and final caller movement authority remain. Reaction/deceleration policy and3m margin remain, with shared outward boundary padding. No new movement command or controller."
+  ],
+  "cost": "One own hull projection and4 native transforms/person instead of8 forward/inverse transform pairs/person. Shared single/dual-axis callers retain4 native transforms and skip optional third-axis work. Additional fixed dot/finite math; no new discovery/ray/worker/timer/cache. Native query cost and whole-frame median/p95 remain unmeasured.",
+  "validation": {
+    "tests": 1497,
+    "focusedExistingCases": 42,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/pedestrian-world-frame-e5d4f4ec",
+    "fingerprint": "9348ce804a2a80e868ec4668b4eda773222c522326064c4e65d3507807c7f83e",
+    "build": ".qa/handovers/pedestrian-world-frame-build.log",
+    "independent": ".qa/handovers/pedestrian-world-frame-independent.log",
+    "focused": ".qa/handovers/pedestrian-world-frame-focused.log",
+    "fixtures": "Existing pedestrian case now checks shared caller/axis/invalid geometry contracts,0.5/1/2 scale gap mismatch, asymmetric reverse extents, and independent8-corner pitched height separation. Existing affine hull oracle and one/two-axis caller regressions remain. Offline mathematical/source checks only.",
+    "result": "Full pipeline passed first attempt. Runtime unchanged after build; reference/index/handover metadata postdates packaging. Unsigned development snapshot with unrelated pre-existing dirt."
+  },
+  "remaining": [
+    "Actual slopes/overpasses/reverse braking, native collision geometry and supported object scaling still need engine evidence.",
+    "Current hull/constant-braking model does not predict future pedestrian crossing or guarantee native braking. Large modded dimensions and fixed query bounds remain limitations.",
+    "Normal/HC/JIP repeatability and5percent median/10percent p95 budget unverified; audits paused. Whole goal, coherent source handover and full HBQ implementation remain unfinished."
+  ],
+  "sourceSHA256": {
+    "addons/infantry/functions/cortexInfantrySpeed.sqf": "5b0cf8be720b78d5fecc261e4c17e7909e48535a445e09675405e7039d4ad19b",
+    "addons/vehicles/functions/drivingHullInterval.sqf": "c628b00dcb327193bff6cd184f1321eaffb94362e94ef75c8ec9150ec3209e71",
+    "releaseVerificationAndDeployment/test_pedestrian_speed.py": "a91b087933565f73efd088834a56c98cece8979d4ee98103b9f19d0ae92b9340"
+  }
+}

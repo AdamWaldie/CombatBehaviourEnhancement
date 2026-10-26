@@ -664,6 +664,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-pedestrian-world-frame-20261026.json",
+      "sha256": "0bcb23abc0cb61c0a82631a0c0b174659bafe9aeec02471413df76b3f341162e",
+      "scope": "CBE pedestrian safety geometry and shared hull foundation; selected HBQ source comparison only, not whole-source parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-performance-precision-20261016.json",
       "sha256": "198a0ff61beb886bd374e856b2ca69d30d66c9b7b2d651d9d59e09c21845018a",
       "scope": "Complete monitor/precision/player-proximity helpers and selected driving cadence consumers",
