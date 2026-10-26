@@ -1101,5 +1101,96 @@
       "sourceIntegrity": "All41 readable danger member SHA256 values match preserved snapshot and queue.",
       "runtimeCandidate": "Unchanged4ae738b1 runtime; no build or audit required for this source-review-only checkpoint."
     }
+  },
+  "civilianFSMReview20261026": {
+    "scope": "Complete civilian FSM runtime state payloads/links and complete doHide/doFleeing/doPanic/doCheckBody readable helpers; source editor metadata is not executable parity. CBE three civilian bodies and selected init/stop/shared-queue paths inspected.",
+    "sourceAndCbeHashes": {
+      ".qa/lambs-danger-installed-20261026/scripts/lambs_dangerCivilian.fsm": "417327c6e514538ec4f81b3c4bd182e15c89524b04fabfbfc94b441099936285",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doHide.sqf": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doFleeing.sqf": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doPanic.sqf": "84d3b3cc18412d9f7b42adb80994b1fe90009b984d14c1c96930a667bf4c9c2c",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c",
+      "addons/infantry/functions/cortexCivilianReact.sqf": "6468e36d1f00fbdfdce8e6024755717b5ca4513ac9732529b1c28fd1fa83c070",
+      "addons/infantry/functions/cortexCivilianStep.sqf": "86f3315a26eedc25587057036d1837262527f2d3ae2a29b0cf0db256f2289f1b",
+      "addons/infantry/functions/cortexCivilianSetup.sqf": "f5299a404e034ca51e7443f457e0dba29675ac12c34fd47e6b5f7acb17d50685",
+      "addons/core/functions/cortexInit.sqf": "fda6e74990ee50c377c64e79e831baee9bb4c6e6c8a9cf50d8b5fa6b81c43316",
+      "addons/core/functions/cortexStop.sqf": "8557fe614c5a0bd28576147e5067313403b88c01880e2f22cacd3ce0daaef122",
+      "addons/core/functions/cortexQueueJob.sqf": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
+    },
+    "runtimeStateNames": [
+      "Init",
+      "End",
+      "Clean_up",
+      "Reset",
+      "Hide_vs__run",
+      "Man",
+      "Order_out",
+      "Select_danger",
+      "Hide",
+      "Run",
+      "Man_1",
+      "Order_out_1",
+      "Inspect_vs__hide",
+      "Man_2",
+      "Order_out_2",
+      "Inspect_body",
+      "Clean_up_1",
+      "Clean_up_2",
+      "Check_of_dangers",
+      "Drop_down",
+      "Clean_up_3",
+      "End_1"
+    ],
+    "runtimeLinkCount": 34,
+    "findings": [
+      {
+        "intent": "Native danger priority and alerting.",
+        "source": "Civilian FSM gives hit, own-group body, bullet-close, scream and explosion priorities; the selector exits on the first queued cause with priority >= current, not a full maximum search. It invokes BIS_dangerHandler callbacks in spawned work.",
+        "cbe": "Current explicit listeners cover FiredNear, Explosion and Hit, with stronger-priority replacement/cooldown. They do not provide native corpse/scream/proximity or BIS_dangerHandler equivalence.",
+        "decision": "Retain civilian alert diversity as a capability gap; no hostile identity from mere danger. Do not copy first-qualifying queue selection or arbitrary detached callback work as authority."
+      },
+      {
+        "intent": "Choose flight, shelter or investigation appropriate to danger.",
+        "source": "FSM alternates hide/run and body inspection, can order occupants out, applies behaviour/speed/stance and panic animations. doHide can hold an indoor actor, choose building or rear cover, forceSpeed24 and later write stance/doStop without task identity.",
+        "decision": "Adapt shelter/avoidance intent through existing bounded owners; random style is not required fidelity. Reject forced animation, unowned stop/pace/stance restoration and automatic unbounded shared-memory changes. CBE currently preserves mission behaviour/pace/posture and has bounded escape routes, not complete shelter/body-investigation parity."
+      },
+      {
+        "intent": "Civilian interest in casualties.",
+        "source": "doCheckBody scans allDeadMen, approaches a selected corpse, then rearm/backpack/launcher acquisition and follow restoration occur in an8s callback guarded mainly by actor life.",
+        "decision": "Reject looting/arming civilians as an incidental body-investigation side effect. Retain fresh witnessed body assessment intent with independent inventory policy and exact operation ownership. Source callback cannot override newer tasks or transfer evidence; no civilian investigation is claimed from combat-only PointActorOperation."
+      },
+      {
+        "intent": "Finite duration and restoration.",
+        "source": "_maxTime is assigned literal240; _timeNow=time+_maxTime bounds branches, but Reset compares time>_maxTime directly. End restores saved behaviour unconditionally; speed FULL and helper forced speed lack matching owned-baseline restoration. End debug reset uses currentTask with a trailing space.",
+        "decision": "Do not import absolute-mission-time reset, stale restoration or diagnostics typo. Use original per-operation deadlines and restore only applied values still owned; CBE civilian escape intentionally acquires no settings."
+      },
+      {
+        "intent": "Repeatable reactions and ownership changes.",
+        "cbe": "CivilianStep was clearing receipt on observation timeout/exhausted retry even if native MOVE still followed the exact escape. React then treated that continuing route as foreign, refusing a later danger redirect. Setup Local only reinstalls handlers and does not reconstruct the machine-local progress job.",
+        "decision": "Fix repeat-use identity in this batch; preserve owner-migration observation as a separate concrete lifecycle gap. Never infer adopted worker, repeated physical flight or cancelled native movement from public metadata."
+      }
+    ],
+    "repeatUseImplementation": {
+      "base": "a8771aef",
+      "change": "Seven-field receipt appends original group. Exact MOVE recognition no longer requires unexpired observation, while generation/goal/route/group proof remains. Deadline, exhausted retry or feature disable retains matching ongoing native MOVE metadata with explicit result; arrival or superseding native task retires it. Fresh danger alone admits a new generation and normal cooldown/retry budget.",
+      "noNewWork": "No additional doMove, queue, timer, scan, setting, native restoration or replay; existing job still ends at its original deadline. Expired receipt is passive identity, not cancellation/arrival proof.",
+      "limits": "Identical repeated native intent remains observationally ambiguous. No new owner-progress adoption, body/scream response, shelter selection or inventory behaviour is implemented here. Physical repeat-use and performance remain unverified.",
+      "verification": {
+        "fullTests": 1497,
+        "compiledSQF": 445,
+        "PBOs": 11,
+        "focusedExistingChecks": 1,
+        "buildLog": ".qa/handovers/civilian-repeat-final-a8771aef.log",
+        "independentLog": ".qa/handovers/civilian-repeat-independent.log",
+        "candidate": ".qa/candidates/civilian-repeat-a8771aef",
+        "fingerprint": "b5fa46ad35d954b1bfcda6b966872034290e43ab10b970e7f8c769d7969ae70d",
+        "retainedInitialFailure": ".qa/handovers/civilian-repeat-a8771aef.log: upstream name in product guide; corrected guide and reran full gates without weakening boundary.",
+        "provenance": "a8771aef plus working runtime changes; unsigned development candidate, not clean release. Engineering verification/handover notes postdate package."
+      }
+    },
+    "audits": "paused",
+    "wholeLAMBSParity": false,
+    "physicalAcceptance": false,
+    "buildoutPercentageChange": false
   }
 }

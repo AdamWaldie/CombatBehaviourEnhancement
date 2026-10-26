@@ -5942,7 +5942,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(expectedDestination _unit) isNotEqualTo _goalBefore',react)
         self.assertIn('isNotEqualTo _orderBefore',react)
         self.assertIn('private _ownMove=',react)
-        self.assertIn('count _active == 6',react)
+        self.assertIn('count _active == 7',react)
+        own_move=react.split('private _ownMove=',1)[1].split('if (!(_commandBefore',1)[0]
+        self.assertIn('(_active param [6,grpNull,[grpNull]]) == _group',own_move)
+        self.assertNotIn('serverTime <',own_move)
+        self.assertIn('_destination,+_orderBefore,_group],true]',react)
+        for proof in ('DEADLINE_EXPIRED','STALLED_AFTER_RETRY','FEATURE_DISABLED','ARRIVED',
+                      'NATIVE_MOVE_RETAINED','(_receipt select 6) == _group',
+                      '(_receipt select 5) isEqualTo _nativeOrder','if (!_retain) then',
+                      'currentCommand _unit == "MOVE"','_currentGoal distance _destination <= 6'):
+            self.assertIn(proof,step)
         self.assertIn('["nativeOrder",+_orderBefore]',react)
         self.assertIn('if (!_taskOwned) exitWith',step)
         self.assertLess(step.index('if (!_taskOwned) exitWith'),step.index('_unit doMove _destination'))

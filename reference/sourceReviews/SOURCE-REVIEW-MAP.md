@@ -21,7 +21,7 @@ The tables list evaluation objectives. They do not assert that every named mecha
 
 | Reference | Functionality to select or improve | Review position | Next source work |
 | --- | --- | --- | --- |
-| LAMBS Danger.fsm 2.6.2 (1858075458) | Standalone danger FSM, reactions, assault and task lifecycle | All41 readable danger-addon SQF body dispositions recorded; selected main helpers reviewed; whole-source descendants remain incomplete | Reconcile remaining main/wp helpers and civilian FSM against existing owners; retain concrete capability gaps. Settings modules are not a parity target. |
+| LAMBS Danger.fsm 2.6.2 (1858075458) | Standalone danger FSM, reactions, assault and task lifecycle | All41 readable danger-addon SQF bodies and civilian FSM runtime branches reviewed; selected main helpers reviewed; whole-source descendants remain incomplete | Reconcile remaining main/wp helpers and concrete capabilities. Civilian body/scream/shelter and migration observation remain incomplete. Settings modules are not a parity target. |
 | HBQ Advanced Driving AI (3812620045) | Driving, traffic, recovery, convoy and crew policy | All28 indexed auxiliary bodies/declarations reviewed; major main-controller branch reviews extended; end-to-end reconciliation incomplete | Reconcile reviewed decisions, issued native work, detached callbacks and cleanup with CBE capability dispositions. Current navigation, obstacle/grinding/watchdog and startup/crew/cadence evidence is in the HBQ intent review; no physical parity inferred. |
 
 ## protocol programme

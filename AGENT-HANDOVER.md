@@ -1,3 +1,21 @@
+## Current checkpoint: repeated civilian escape identity (26 October 2026)
+
+Current branch HEAD fixes civilian escape repeat-use after source-review basea8771aef. Verify live HEAD/PR19/remote before further work. The production goal is active/incomplete; AUDITS PAUSED. Follow IMPLEMENTATION-GOAL.md and the source-review map: finite foundation defects before dependent behaviour, no competing controllers or speculative guard programme.
+
+CivilianReact now publishes seven-field receipts with original group. Expired observation can recognise only its exact continuing native MOVE under the original generation/destination/authored route/group, allowing a later fresh danger to redirect that escape. CivilianStep retains that passive receipt on deadline/exhausted retry or feature disable, reports explicit outcomes, and ends its job. Arrival or replacement retires it. No new command, scan, retry, timer, worker or settings write. This is not cancelled movement, owner-progress adoption or proof of physical flight.
+
+Full1497 tests/445 compiled SQF/11 PBOs and independent package verification passed. Candidate .qa/candidates/civilian-repeat-a8771aef; fingerprintb5fa46ad35d954b1bfcda6b966872034290e43ab10b970e7f8c769d7969ae70d. Logs .qa/handovers/civilian-repeat-final-a8771aef.log and civilian-repeat-independent.log. Initial product-source-reference failure is retained in civilian-repeat-a8771aef.log; fixed guide and reran gates. Candidate isa8771aef plus runtime changes, unsigned development evidence, not clean release; engineering notes postdate package. No running build remains.
+
+Source review: lambs-danger-branch-execution-20261025.json#civilianFSMReview20261026 covers22 civilian runtime states/34links and complete doHide/doFleeing/doPanic/doCheckBody helpers. Do not import source unowned pace/behaviour/stance restoration, panic forced animation, absolute-time reset, corpse looting/arming or delayed unbound follow/stop. All41 readable danger SQF bodies have dispositions, not whole LAMBS parity. Main/wp descendants and concrete capabilities remain incomplete.
+
+Next substantive civilian foundation gap: Setup reinstalls handlers on Local but does not reconstruct its machine-local progress job; a migration cannot be claimed as observed completion. Trace exact original deadline/retry budget and delivery before choosing adoption/cancellation. Body/scream awareness and contextual shelter remain separate capability gaps. Identical repeated native orders, physical repeat-use and performance remain unverified. Do not repeatedly rebuild or refine this receipt without a specific failed requirement.
+
+Workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; branch Adam/cbe-recovery-followup-20261026; remote AdamWaldie/CombatBehaviourEnhancement; draft PR19. Preserve unrelated workflow/branding deletions and docs/PERFORMANCE-VALIDATION.md changes. No WMP writes, Arma staging/launch, merge, release or Steam publication. Protected Workshop sources, .qa snapshots, Pinned Down archive and permanent signing keys remain unchanged; full stores/register pointers are in the earlier checkpoint and current goal.
+
+Earlier checkpoints below are historical and superseded where this section differs.
+
+---
+
 ## Current checkpoint: durable chassis-turn retirement (26 October 2026)
 
 The current branch HEAD adds VehicleTurnRetire after source-review checkpoint22af0e62. Verify live HEAD/remote/PR before further work; PR19 remains draft/open. Governing direction is IMPLEMENTATION-GOAL.md: registered-source intent, finite foundation batches, then individual/pair/squad/combined composition. Overall goal remains active and incomplete; AUDITS PAUSED.

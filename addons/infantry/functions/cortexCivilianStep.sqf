@@ -5,6 +5,9 @@
  * retires. New native tasks, routes or destinations end movement without a retry.
  * No temporary behaviour, group pace or posture is applied, so retirement restores no settings.
  * A superseding task retires only this generation's metadata; no restoration or movement replay.
+ * Observation deadline or exhausted retry retains an exact ongoing escape MOVE receipt for
+ * a later fresh danger event. Retention is not movement cancellation, completion or renewed work.
+ * Original group identity prevents a joined civilian's old receipt from authorising that move.
  * Zeus, player, locality and specialist/external ownership cancel immediately without another command.
  *
  * Locality / Authority: runs only on the current owner of the civilian's group and unit.
@@ -33,9 +36,25 @@ private _finish={
     if (!isNull _unit && {local _unit}
         && {_generation == (_unit getVariable ["CBE_Cortex_CivilianGeneration",-2])}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-        _unit setVariable ["CBE_Cortex_CivilianReaction",[],true];
-        _unit setVariable ["CBE_Cortex_CivilianReactionUntil",nil,true];
-        _unit setVariable ["CBE_Cortex_CivilianResult",[_generation,_reason,serverTime],true];
+        private _receipt=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
+        private _currentGoal=(expectedDestination _unit) param [0,[],[[]]];
+        private _retain=_reason in ["DEADLINE_EXPIRED","STALLED_AFTER_RETRY","FEATURE_DISABLED"]
+            && {count _receipt == 7} && {(_receipt select 2) == _generation}
+            && {(_receipt select 6) == _group} && {group _unit == _group}
+            && {(_receipt select 4) isEqualTo _destination}
+            && {(_receipt select 5) isEqualTo _nativeOrder}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrder}
+            && {currentCommand _unit == "MOVE"}
+            && {count _currentGoal == 3} && {count _destination == 3}
+            && {_currentGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_currentGoal distance _destination <= 6} && {_unit distance _destination >= 6};
+        if (!_retain) then {
+            _unit setVariable ["CBE_Cortex_CivilianReaction",[],true];
+            _unit setVariable ["CBE_Cortex_CivilianReactionUntil",nil,true];
+        };
+        private _outcome=if (_retain) then {_reason+"_NATIVE_MOVE_RETAINED"} else {_reason};
+        _unit setVariable ["CBE_Cortex_CivilianResult",[_generation,_outcome,serverTime],true];
     };
     -1
 };
@@ -62,9 +81,11 @@ private _taskOwned=group _unit == _group && {simulationEnabled _unit} && {!isObj
             && {_goal distance _destination <= 6}}};
 if (!_taskOwned) exitWith {["NATIVE_TASK_OR_ORDER_CHANGED"] call _finish};
 if (!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])
-    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {[] call _finish};
-if (_destination isEqualTo [] || {serverTime >= (_state getOrDefault ["until",0])}
-    || {_atDestination}) exitWith {[] call _finish};
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {["FEATURE_DISABLED"] call _finish};
+if (_atDestination) exitWith {["ARRIVED"] call _finish};
+if (_destination isEqualTo [] || {serverTime >= (_state getOrDefault ["until",0])}) exitWith {
+    ["DEADLINE_EXPIRED"] call _finish
+};
 
 private _position=getPosATL _unit;
 private _lastPosition=_state getOrDefault ["lastPosition",_position];
@@ -74,7 +95,7 @@ if (_position distance2D _lastPosition >= 3) then {
 };
 private _stalled=serverTime-(_state getOrDefault ["lastProgressAt",serverTime]) >= 8;
 // Finish at function scope; an exit inside the retry block would still return 2 below.
-if (_stalled && {_state getOrDefault ["reissued",false]}) exitWith {[] call _finish};
+if (_stalled && {_state getOrDefault ["reissued",false]}) exitWith {["STALLED_AFTER_RETRY"] call _finish};
 if (_stalled) then {
     // One engine-native retry is sufficient. A second stall is reported by retirement rather than
     // allowing a civilian to hold the shared queue or repeatedly overwrite movement.

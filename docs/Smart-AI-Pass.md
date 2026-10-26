@@ -3102,3 +3102,10 @@ Tracked danger orientation retains its original platform, crew seats, native sea
 The original eight-second turn allowance is unchanged. Cleanup observation ends at that original deadline plus thirty seconds; one coalesced four-second callback survives addon shutdown without restarting movement or extending the deadline. Split group/platform/crew locality retains proof and permits no native command. Unresolved terminal proof remains explicit and reserved; newer authored orders, changed seats, care, Zeus or external control yield without a late stop. No new setting, world scan or permanent controller is added.
 
 Native late replies, identical repeated native intent, transfer delivery, physical stopping and repeated-use performance remain unverified while audits are paused. A request or offline check is not physical acknowledgement.
+
+
+### Repeated civilian escape responses
+
+Civilian escape receipts retain the original group as well as generation, destination and authored route. If observation reaches its deadline or exhausts its one retry while the native escape MOVE still matches, CBE reports that outcome and retains the receipt. A later fresh danger event can then redirect that same escape after its original cooldown instead of mistaking it for an unrelated mission MOVE. A different group, route, command or destination cannot borrow the receipt. Arrival and superseding native tasks retire it normally.
+
+This does not renew the old deadline, restart an expired job, add retries or cancel the native route. No new settings, movement commands, scans or workers are introduced. Civilian owner-migration observation, body/scream awareness and context-appropriate shelter remain incomplete. Physical repeat-use and performance remain unverified. Audits remain paused.
