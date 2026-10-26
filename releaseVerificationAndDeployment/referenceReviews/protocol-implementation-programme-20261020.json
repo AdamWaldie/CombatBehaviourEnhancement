@@ -129,6 +129,10 @@
       "commonProgressCaptureReview": {
         "review": "clear-common-progress-20261026.json",
         "scope": "Original common observer phase/clocks/poses/platforms/flags/replans retained with recoveryv2; no incoming executor or new progress credit."
+      },
+      "retirementCopyBoundsReview": {
+        "review": "clear-retirement-copy-bounds-20261026.json",
+        "scope": "Bound the whole watched metadata deep copy; malformed/cyclic/oversized source data refuses before retirement observer installation. No all-writer seal or replay claim."
       }
     },
     {

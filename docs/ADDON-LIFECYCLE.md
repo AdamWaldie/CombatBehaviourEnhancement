@@ -2046,3 +2046,6 @@ The current actor capture component is version6 with eight fields. The appended 
 
 
 Actor capture component version7 retains eight fields. Recovery block version2 adds the original common-operation observer: phase, original start/progress clocks, progress pose/actor, replan count, participant-required/foot/fallback-suspension flags, fallback platform and participant pose/platform records. Original local clocks convert once to server time; no fresh position sample replaces a progress baseline. Both collections are bounded to64 original captured actors, with duplicate and malformed records refused. No native order, retry or observation window is restarted. Complete source sealing and incoming reconciliation/execution remain unfinished; physical tests remain paused.
+
+
+Outgoing retirement metadata copying has a shared65536-node limit, maximum depth16, arrays up to4096, string-keyed maps up to64 and strings up to512 characters. Only finite typed metadata is accepted. Sparse, cyclic, oversized or unsupported data discards the private capture proposal before installing a retirement observer; it cannot issue a retirement or submission receipt. No new recurring job or native command is introduced. These bounds protect cleanup availability and do not establish complete writer quiescence or incoming readiness.

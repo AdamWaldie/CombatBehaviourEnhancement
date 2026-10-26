@@ -263,20 +263,41 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     } else {_clearRetireCapture select 6};
     // This baseline follows intentional Local-edge marker retirement. Preserve it
     // independently: later old-FSM exits must not silently alter the watched records.
+    private _retireCopyValid=true;private _retireCopyNodes=0;
     private _copyClearRetireValue={
-        params ["_value"];
-        if (_value isEqualType []) exitWith {_value apply {[_x] call _copyClearRetireValue}};
+        params ["_value",["_depth",0]];
+        _retireCopyNodes=_retireCopyNodes+1;
+        if (!_retireCopyValid || {_retireCopyNodes > 65536} || {_depth > 16}) exitWith {_retireCopyValid=false;[]};
+        if (_value isEqualType []) exitWith {
+            if (_depth >= 16 || {count _value > 4096}
+                || {_value findIf {isNil "_x"} >= 0}) exitWith {_retireCopyValid=false;[]};
+            private _copy=[];
+            {if (!_retireCopyValid) exitWith {};_copy pushBack ([_x,_depth+1] call _copyClearRetireValue)} forEach _value;
+            _copy
+        };
         if (_value isEqualType createHashMap) exitWith {
+            if (_depth >= 16 || {count _value > 64}) exitWith {_retireCopyValid=false;[]};
             private _pairs=[];
-            {_pairs pushBack [_x,[_y] call _copyClearRetireValue]} forEach _value;
+            {
+                if (!_retireCopyValid) exitWith {};
+                if (!(_x isEqualType "") || {count _x > 512} || {isNil "_y"}) exitWith {_retireCopyValid=false};
+                _pairs pushBack [_x,[_y,_depth+1] call _copyClearRetireValue];
+            } forEach _value;
             createHashMapFromArray _pairs
+        };
+        if (_value isEqualType 0) then {if (!finite _value) then {_retireCopyValid=false}} else {
+            if (_value isEqualType "") then {if (count _value > 512) then {_retireCopyValid=false}} else {
+                if (!(_value isEqualType true || {_value isEqualType objNull} || {_value isEqualType grpNull})) then {_retireCopyValid=false};
+            };
         };
         _value
     };
     private _clearRetireRecords=[];
     {
+        if (!_retireCopyValid) exitWith {};
         private _recordActor=_x select 1;
         {
+            if (!_retireCopyValid) exitWith {};
             private _present=!isNil {_recordActor getVariable _x};
             private _value=if (_present) then {[_recordActor getVariable _x] call _copyClearRetireValue} else {[]};
             _clearRetireRecords pushBack [_recordActor,_x,_present,_value];
@@ -290,6 +311,8 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
         private _value=if (_present) then {[_group getVariable _x] call _copyClearRetireValue} else {[]};
         _clearRetireRecords pushBack [_group,_x,_present,_value];
     } forEach ["CBE_Cortex_ClearSettingsPending","CBE_Cortex_ClearSettingsResult"];
+    // Refusal discards only this machine's proposal. It grants no retirement/submit receipt.
+    if (!_retireCopyValid) exitWith {_group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]};
     private _retire=createHashMapFromArray [["taskGroup",_group],["capture",_clearRetireCapture],
         ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],
         ["incomingOwner",_clearEdgeIncomingOwner],["attempts",0],["done",false],

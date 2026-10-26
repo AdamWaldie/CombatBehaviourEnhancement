@@ -280,6 +280,32 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _submission='))
         self.assertIn('_state deleteAt "writers";_state deleteAt "records";',retire)
         self.assertIn('createHashMapFromArray _pairs',locality)
+        copy_boundary=locality.split('private _retireCopyValid=true;',1)[1].split('private _retire=createHashMapFromArray',1)[0]
+        for guard in ('_retireCopyNodes > 65536','_depth >= 16','count _value > 4096',
+                      'count _value > 64','count _value > 512','isNil "_y"',
+                      'if (!_retireCopyValid) exitWith {_group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]}'):
+            self.assertIn(guard,copy_boundary)
+        self.assertIn('[_y,_depth+1] call _copyClearRetireValue',copy_boundary)
+        self.assertIn('[_x,_depth+1] call _copyClearRetireValue',copy_boundary)
+        # A cyclic source must terminate at the depth limit rather than enter Python's
+        # own recursion limit. This models the bounded traversal, not Arma execution.
+        def bounded_copy(value,depth=0,budget=None):
+            budget=[0] if budget is None else budget
+            budget[0]+=1
+            if budget[0]>65536 or depth>16: raise ValueError('bound')
+            if isinstance(value,(list,dict)):
+                if depth>=16 or len(value)>(64 if isinstance(value,dict) else 4096): raise ValueError('bound')
+                if isinstance(value,dict): return {k:bounded_copy(v,depth+1,budget) for k,v in value.items()}
+                return [bounded_copy(v,depth+1,budget) for v in value]
+            return value
+        cycle={};cycle['self']=cycle
+        with self.assertRaises(ValueError): bounded_copy(cycle)
+        with self.assertRaises(ValueError): bounded_copy(list(range(4097)))
+        ordinary={'context':['group','CLEAR',1,2,100],'owned':{'SPEED':[2,1]}}
+        copied=bounded_copy(ordinary)
+        ordinary['owned']['SPEED'][1]=0
+        self.assertEqual(copied['owned']['SPEED'][1],1)
+
         self.assertIn('CBE_Cortex_ClearSettingsPending',locality)
         # Baseline copies cannot drift with a mutable canonical source map.
         import copy
