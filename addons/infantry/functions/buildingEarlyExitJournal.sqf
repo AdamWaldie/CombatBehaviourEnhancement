@@ -6,13 +6,53 @@
  * Repeat/JIP: No mutation, observation, clock renewal, worker or public side effect.
  * PUBLIC stops after the existing bounded exit rows; CAPTURE also copies historical
  * motion/view clocks. Deleted actor references retain their original map key only.
- * Arguments: 0 mode STRING PUBLIC/CAPTURE default CAPTURE; 1 job HASHMAP default empty.
+ * Arguments: 0 mode STRING PUBLIC/CAPTURE/CHECK default CAPTURE; 1 job HASHMAP empty;
+ * 2 received ARRAY default[] for CHECK only. Expected job context includes securityEntries.
  * Return: PUBLIC existing[visitContext,rows]; CAPTURE[1,visitContext,keyedRows,motionRows,
- * viewRows,viewCursor]. Either returns[] on malformed/missing original data.
- * Current callers: BuildingOperationStep live publication; CortexLocality capture.
+ * viewRows,viewCursor]. Those modes return[] on refusal. CHECK returns BOOL and
+ * validates exact-context seven-field received rows through the same PUBLIC encoder.
+ * CHECK requires original non-null unique actor identities; it grants no native readiness.
+ * Current callers: BuildingOperationStep publication; CortexLocality capture;
+ * CortexClearBuilding read-only resume preflight before operation startup.
  * Example: ["CAPTURE",_job] call CBE_fnc_BuildingEarlyExitJournal;
  */
-params [["_mode","CAPTURE",[""]],["_job",createHashMap,[createHashMap]]];
+params [["_mode","CAPTURE",[""]],["_job",createHashMap,[createHashMap]],["_received",[],[[]]]];
+if (_mode == "CHECK") exitWith {
+    private _accepted=false;
+    isNil {
+        _accepted=call {
+            private _context=_job getOrDefault ["visitContext",[]];
+            private _entries=_job getOrDefault ["securityEntries",[]];
+            if (count _received != 2 || {isNil {_received select 0}} || {isNil {_received select 1}}
+                || {(_received select 0) isNotEqualTo _context}
+                || {!((_received select 1) isEqualType [])} || {count (_received select 1) > 8}
+                || {!(_entries isEqualType [])} || {count _entries > 16}) exitWith {false};
+            private _exits=createHashMap;private _valid=true;
+            {
+                private _receivedRow=_x;
+                if (!(_x isEqualType []) || {count _x != 7}
+                    || {[0,1,2,3,4,5,6] findIf {isNil {_receivedRow select _x}} >= 0}) exitWith {_valid=false};
+                private _actor=_x select 0;
+                if (!(_actor isEqualType objNull) || {isNull _actor} || {netId _actor == ""}
+                    || {netId _actor in _exits}
+                    || {(_x select 5) isNotEqualTo [] && {!((_x select 5) in _entries)}}) exitWith {_valid=false};
+                _exits set [netId _actor,+_x];
+            } forEach (_received select 1);
+            if (!_valid) exitWith {false};
+            // One bounded CHECK -> PUBLIC conversion validates the same row types,
+            // geometry shapes, explicit retry flag and original clocks. No source mutation.
+            private _candidate=createHashMapFromArray [
+                ["building",_job getOrDefault ["building",objNull]],
+                ["buildingTransform",_job getOrDefault ["buildingTransform",[]]],
+                ["hardDeadline",_job getOrDefault ["hardDeadline",-1]],
+                ["visitContext",_context],["earlyExits",_exits]];
+            private _encoded=["PUBLIC",_candidate] call CBE_fnc_BuildingEarlyExitJournal;
+            count _encoded == 2
+        };
+        false
+    };
+    _accepted
+};
 if (!(_mode in ["PUBLIC","CAPTURE"])) exitWith {[]};
 private _result=[];
 isNil {
@@ -38,7 +78,8 @@ isNil {
         {
             private _key=_x;private _row=_exits get _key;
             if (!(_key isEqualType "") || {_key == ""} || {!(_row isEqualType [])}
-                || {count _row != 7}) exitWith {_valid=false};
+                || {count _row != 7}
+                || {[0,1,2,3,4,5,6] findIf {isNil {_row select _x}} >= 0}) exitWith {_valid=false};
             _row params ["_actor","_target","_until","_state","_retry","_entry","_watch"];
             if (!(_actor isEqualType objNull) || {!isNull _actor && {netId _actor isNotEqualTo _key}}
                 || {!(_target call _vector)} || {!(_until isEqualType 0)} || {!finite _until} || {_until < 0}

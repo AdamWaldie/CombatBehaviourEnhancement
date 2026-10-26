@@ -268,6 +268,17 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for forbidden in ('setVariable','OperationStart','CortexClearRelease','serverTime+'):
             self.assertNotIn(forbidden,phase)
         self.assertIn('if (_resumePhasePending) exitWith {false};',phase)
+        self.assertIn('["CHECK",_earlyCheck,_receipt] call CBE_fnc_BuildingEarlyExitJournal',phase)
+        early_check=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8').split('if (_mode == "CHECK") exitWith {',1)[1].split('if (!(_mode in ["PUBLIC","CAPTURE"]))',1)[0]
+        for guard in ('count _received != 2','count _x != 7','count (_received select 1) > 8',
+                      'isNull _actor','netId _actor in _exits','["PUBLIC",_candidate]',
+                      '(_received select 0) isNotEqualTo _context','(_x select 5) in _entries'):
+            self.assertIn(guard,early_check)
+        self.assertIn('isNil {_receivedRow select _x}',early_check)
+        self.assertIn('isNil {_received select 1}',early_check)
+        for effect in ('setVariable','doMove','setDestination','serverTime+'):
+            self.assertNotIn(effect,early_check)
+
         self.assertLess(text.index('"RESUME_PHASE_CHANGED"'),text.index('call CBE_fnc_OperationStart'))
 
         self.assertIn('["CHECK",_laneCheck] call CBE_fnc_BuildingLaneJournal',preflight)

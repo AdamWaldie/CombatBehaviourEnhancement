@@ -65,6 +65,10 @@
       "earlyExitProducerSnapshot20261026": {
         "review": "clear-early-producer-capture-20261026.json",
         "scope": "Shared current early-exit row encoding and original motion/view/cursor source capture. No incoming observation replay, complete native readiness/transfer or physical parity claim; legacy truncated-row admission remains a named gap."
+      },
+      "earlyResumeAdmission20261026": {
+        "review": "clear-early-resume-admission-20261026.json",
+        "scope": "Strict shared seven-field early-exit preflight; admitted-receipt adoption with no missing retry default; unadoptable work remains failed. No authenticated replay/native readiness or physical parity claim."
       }
     },
     {

@@ -451,6 +451,13 @@ if (_resume) then {
                         (_receipt select [0,3]) isEqualTo [_building,_hardDeadline,_admissionTransform]
                     }
                 };
+                if (_identity && {_key == "CBE_Cortex_ClearEarlyExits"}) then {
+                    private _earlyCheck=createHashMapFromArray [
+                        ["building",_building],["buildingTransform",_admissionTransform],
+                        ["hardDeadline",_hardDeadline],["visitContext",_resumeRosterContext],
+                        ["securityEntries",_securityEntries]];
+                    _identity=["CHECK",_earlyCheck,_receipt] call CBE_fnc_BuildingEarlyExitJournal;
+                };
                 if (!_identity) then {_resumePhasePending=true};
             };
         };
@@ -807,7 +814,12 @@ _job set ["earlyExits",createHashMap];
 _job set ["earlyExitMotion",createHashMap];
 _job set ["earlyExitViewChecks",createHashMap];
 _job set ["earlyExitViewCursor",0];
-private _earlyReceipt=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];
+// Adopt the exact receipt admitted by preflight and rechecked at operation commit,
+// rather than a later, separately delivered replacement of this phase component.
+private _earlyReceipt=if (_resume) then {
+    private _index=_resumePhaseReceipts findIf {(_x select 0) == "CBE_Cortex_ClearEarlyExits"};
+    if (_index < 0) then {[]} else {+((_resumePhaseReceipts select _index) select 1)}
+} else {[]};
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true]}] call _commitPreparation};
 if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
     && {(_earlyReceipt select 0) isEqualTo _visitContext}
@@ -816,8 +828,8 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
     private _moves=_job getOrDefault ["movementTargets",createHashMap];
     private _diverted=[];
     {
-        if (_x isEqualType [] && {count _x in [4,5,7]}) then {
-            _x params ["_actor","_target","_until","_state",["_retryUsed",false],["_entry",[]],["_watch",[]]];
+        if (_x isEqualType [] && {count _x == 7}) then {
+            _x params ["_actor","_target","_until","_state","_retryUsed","_entry","_watch"];
             if (_actor isEqualType objNull && {!isNull _actor} && {_actor in _team}
                 && {_target isEqualType []} && {count _target == 3}
                 && {_target findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -850,8 +862,12 @@ if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}
                     if (_state == "FAILED") then {_job set ["egressFailed",true]};
                 };
                 _early set [netId _actor,[_actor,+_target,_until,_state,_retryUsed,+_entry,+_watch]];
+            } else {
+                // An admitted exit that cannot retain its actor remains an unfinished
+                // clearance result, never an absent worker or replacement movement grant.
+                _job set ["egressFailed",true];
             };
-        };
+        } else {_job set ["egressFailed",true]};
     } forEach (_earlyReceipt select 1);
     _job set ["earlyExits",_early];
     _job set ["movementTargets",_moves];

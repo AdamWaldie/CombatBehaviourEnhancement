@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "9db1cc8f738753c4cd26cc016fdfd1e908742ce9",
+  "status": "EARLY_RESUME_ADMISSION_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Reject missing early-exit retry evidence before starting resumed work",
+  "sourceTrace": [
+    "The old incoming path accepted4/5/7-field rows and defaulted missing retryUsed=false, even though current producers publish seven explicit fields. The phase preflight checked outer identity and row-count bounds only.",
+    "Adoption separately reread CBE_Cortex_ClearEarlyExits after operation startup. It could skip rows whose actor/row could not be retained without marking an unfinished exit.",
+    "Existing resume commit already rechecks captured phase receipts before OperationStart. Adoption can consume that same admitted receipt, retaining original native ownership/arrival checks."
+  ],
+  "implementation": [
+    "Add pure CHECK mode to BuildingEarlyExitJournal. It validates the exact expected visit identity, at most eight full seven-field rows, no unset fields, non-null unique original actor IDs and known pre-discovered entry membership. One bounded CHECK-to-PUBLIC conversion reuses the existing row type/vector/state/clock/explicit retry validator. No source mutation or native command.",
+    "CortexClearBuilding phase preflight calls CHECK with the existing discovered security entries. Malformed/truncated/mismatched data sets resumePhasePending and returns before operation startup, generation changes, durable order consumption or release. The existing commit equality check still binds the admitted receipt.",
+    "Adoption uses the captured preflight receipt instead of a later independent public-variable read, requires count7 and directly destructures retryUsed/entry/watch with no defaults. Existing per-actor native MOVE/WAIT/hold and actor/geometry/context checks remain.",
+    "An admitted row/actor that cannot be retained marks private egressFailed instead of silently dropping unfinished exit work. This grants no command, stop, replacement membership or extra budget."
+  ],
+  "cost": "One bounded preflight validation/private conversion over at most8 rows and up to16 existing entrance nodes; no second geometry discovery or historical observation scan. Adoption adds one lookup in the existing seven-receipt capture and records failure only on refusal. No worker, timer, new public channel or deadline renewal. Actual5percent median/10percent p95 unmeasured.",
+  "limits": [
+    "CHECK validates data/identity, not authenticated producer provenance, exact physical arrival or native-ready/all-writer quiescence. Public variables remain separately delivered; full sealed replay still unfinished.",
+    "Incoming null or identity-less early actors defer rather than infer original identity from another actor. Source capture can retain keyed historical deleted records, but authoritative incoming retirement/adoption of those records remains separate unfinished work.",
+    "Absent journals remain a full-delivery ambiguity; this change rejects malformed nonempty early data and does not fabricate an empty zero-budget proof.",
+    "Motion/view/follow-through source components are still not consumed by an authenticated successor. Reserve/yield/relief and native/settings/interruption/retirement domains remain required.",
+    "Actual normal/HC/JIP/Zeus migration, flow/casualty/repeats, balance and performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingEarlyExitJournal.sqf": "c0516c6aa40b9800c8ce0a540af67f617722e6515fc8988d809cef09d062576a",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "847f2d19c6ce859480453628f5a98b3e6091b5a2a8e5d1b363465475ff78328f"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 9,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 438,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-early-preflight-9db1cc8f",
+    "fingerprint": "a3c1b9a8d35e0c9de70a01aa4f3273736e3fd8d40f38840c40d5b12b0ac20adf",
+    "buildLog": ".qa/handovers/clear-early-preflight-final-build.log",
+    "independentLog": ".qa/handovers/clear-early-preflight-independent.log",
+    "earlierBuild": ".qa/handovers/clear-early-preflight-build.log passed before the final unadoptable-row failure branch; final build above includes it.",
+    "sourceNote": "Full final build from implementation working tree after9db1cc8f; runtime unchanged between final build and checkpoint; reference/handover metadata followed build."
+  }
+}

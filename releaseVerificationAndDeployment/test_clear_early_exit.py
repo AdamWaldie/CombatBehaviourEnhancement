@@ -51,7 +51,14 @@ class ClearEarlyExitTests(unittest.TestCase):
         self.assertNotIn('_record set [2,',service)
         self.assertNotIn('doMove',service)
         adoption=self.start.split('private _earlyReceipt=',1)[1].split('// Adopt a transform/episode-bound exit journal',1)[0]
-        self.assertIn('count _x in [4,5,7]',adoption)
+        self.assertIn('count _x == 7',adoption)
+        self.assertNotIn('["_retryUsed",false]',adoption)
+        self.assertIn('_resumePhaseReceipts findIf',adoption)
+        refused=adoption.split('_early set [netId _actor',1)[1]
+        self.assertEqual(refused.count('_job set ["egressFailed",true]'),2)
+        self.assertNotIn('doMove',refused)
+        self.assertNotIn('serverTime+',refused)
+
         self.assertIn('_retryUsed isEqualType true',adoption)
         self.assertIn('[_actor,+_target,_until,_state,_retryUsed,+_entry,+_watch]',adoption)
 

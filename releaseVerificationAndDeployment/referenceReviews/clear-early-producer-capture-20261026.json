@@ -45,5 +45,9 @@
     "buildLog": ".qa/handovers/clear-early-producer-build.log",
     "independentLog": ".qa/handovers/clear-early-producer-independent.log",
     "sourceNote": "Full build from implementation working tree after7a741dba; runtime unchanged between full build and checkpoint; reference/handover metadata followed build."
+  },
+  "strictIncomingFollowup": {
+    "review": "clear-early-resume-admission-20261026.json",
+    "scope": "Current preflight rejects truncated/malformed early rows before startup; adoption takes admitted receipt with explicit seven fields and no retry default. Original legacy-default gap resolved in source; full transfer and native readiness remain unfinished."
   }
 }
