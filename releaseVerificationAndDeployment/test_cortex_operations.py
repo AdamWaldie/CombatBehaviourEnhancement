@@ -4802,6 +4802,7 @@ class CortexOperations(unittest.TestCase):
                       'getNumber (_ammo >> "hit") > 0',
                       'if (count _spare >= 2 && {_rounds >= 60}']:
             self.assertLess(suppression.index(proof), boundary)
+        self.assertLess(suppression.index('[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear'),boundary)
         self.assertNotIn('selectWeapon', suppression)
         self.assertNotIn('_unit ammo _weapon', suppression)
         self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('compatibleMagazines [_weapon,_magazineMuzzle]'))
@@ -7963,7 +7964,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('FIREWEAPON',physical)
         suppression=source('cortexFireControl').split('// Disciplined suppression',1)[1]
         for marker in ('_geometryChecks >= 3','CortexSuppressionAim',
-                       '[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear',
+                       '[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear',
                        '_unit doSuppressiveFire _aimASL','_cursor+(_geometryChecks max 1)'):
             self.assertIn(marker,suppression)
         self.assertNotIn('doMove',suppression)

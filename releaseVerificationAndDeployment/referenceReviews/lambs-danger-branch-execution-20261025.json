@@ -108,5 +108,71 @@
       "retainedEditFailure": "Initial runtime edit succeeded but ambiguous test insertion assertion stopped; scoped insertion to named existing test, then full1497-test build passed. Initial build log retained."
     },
     "runtimeHash": "dc44ae79a02bf791390ab5c9324b6f081df68e11220bec46105c11d8d0e547bf"
+  },
+  "immediateHelperReview20261026": {
+    "scope": "Complete readable doCover, doDodge and doGesture bodies from protected installed-main extraction. This does not establish compiled SQFC equivalence, caller-wide policy or complete danger source parity. No upstream code executed.",
+    "sourceHashes": {
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_doGesture.sqf": "d89594b976d2637eddefbf1fe8a86d96e4cd470d5f6b40afefb9e76f83c2d3b2"
+    },
+    "dispositions": [
+      {
+        "helper": "doCover",
+        "intent": "Lower stance and make a short cover-directed movement without running animation in place.",
+        "source": "Weak stance applied first; PATH-disabled/indoor refuse movement. Empty destination searches nearby bush/tree/hide, then issues moveTo plus FORMATION PLANNED setDestination and nonforced gesture.",
+        "cbe": "Group finite DangerCoverStep owns refuge movement, requires current native order/epoch/operation/reservation proof and screens COVER versus CONCEALMENT. Actor immediate weak stance remains a separate exact-restoration lease. Do not add moveTo/setDestination to DangerEngineAct merely to match source call placement.",
+        "remaining": "Group-selection latency, dynamic refuge quality and close-cover flow are physically unverified."
+      },
+      {
+        "helper": "doDodge",
+        "intent": "Immediate rifle reaction; stationary prone roll, short directional evasion or lower profile under incoming danger.",
+        "source": "RequiresMOVE/PATH and primary selection; prone open-overhead roll; otherwise stance/range/direction/suppression choose native movement actions, with optional callout.",
+        "cbe": "Existing native prone roll and upright lateral Tact actions retain direction intent, original3secondcooldown, selected primary/reload checks and finite obstruction/footing probes. Committed tasks remain untouched. Source fast forward/back gestures deliberately not imported as an unleased alternative movement owner.",
+        "remaining": "Action-specific full animation travel, modded grips and real casualty/contact balance remain unverified. A2m clearance probe is not proof of whole animation swept volume."
+      },
+      {
+        "helper": "doGesture",
+        "intent": "Respect optional gesture policy while allowing forced immediate reactions; never command players.",
+        "source": "Selects one array entry and dispatches playAction or playActionNow. No asynchronous worker or cleanup here.",
+        "cbe": "Actor-local feature/current task checks surround direct native action request. Do not add a redundant generic gesture worker; no new animation assets or forced weapon pose."
+      }
+    ],
+    "selectedCbeHashes": {
+      "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+      "addons/infantry/functions/dangerCoverStep.sqf": "3902324b29d34adb24811c4e6f7c28f89a98cb4242b3a7421c25bda5f90eae9c"
+    },
+    "runtimeChange": "None; existing implementations retained, no new defect established in this comparison.",
+    "physicalAcceptance": false,
+    "audits": "paused"
+  },
+  "suppressionHelperReview20261026": {
+    "scope": "Complete three readable helpers; compiled SQFC equivalence and all effective callers not established.",
+    "sourceHashes": {
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doSuppress.sqf": "3eeb2ab99ff564aab61ec691d9b3c93841a55a3e242a9f7c9357c056f682f9c7",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_shouldSuppressPosition.sqf": "e7e079849262c11b66a2eb430cd61981e8090d55dff8b94d6065b5f62140c824",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_findNearbyFriendlies.sqf": "89ea262e1e3f43bf19d76058085862c513cf2cbcaa632ab16538d1922b9f02bb"
+    },
+    "intent": "Terrain/optional material LOS, bounded-range aim adjustment and friendly proximity gate before native suppressive fire.",
+    "sourceDepartures": [
+      "Source clamps far aim to200m and skips endpoint friendly query when original target exceeds200m. CBE retains believed target/nearby cover face and full protected-actor cone; do not copy skipped safety merely for matching range.",
+      "Source suppression-position helper uses2 returned surfaces and configured model blocking cache; CBE nearestFIRE/GEOM obstruction permits near-belief face within3m. Neither proves penetration/actual impact or real suppression quality.",
+      "Source friendly query is people-only side proximity. CBE shared lane also considers protected captives/civilians and vehicle positions, with bounded density refusal."
+    ],
+    "cbeDefect": "Suppression knew its loaded magazine but passed only actor/aim to shared firing-lane check, bypassing existing config-based aimpoint/near-impact blast veto for modded explosive bullets.",
+    "implementation": "Pass _magazine to existing CortexLineOfFireClear at suppression boundary. No extra controller/world query/worker. Explosive ammo uses existing additional ray and blast radius; nonexplosive ammo retains cone semantics with config validation.",
+    "cost": "One existing helper config lookup per eligible lane; explosive rounds additionally use its existing near-impact ray. Runtime cost unmeasured.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "candidate": ".qa/candidates/suppression-magazine-blast-c5b7444a",
+      "fingerprint": "508a7c3c9433c4106100c95dd5529135dd5b3aa775f10b7c21dbff698d65d832",
+      "buildLog": ".qa/handovers/suppression-magazine-blast-build.log",
+      "independentLog": ".qa/handovers/suppression-magazine-blast-independent.log",
+      "physicalAcceptance": false
+    },
+    "runtimeHash": "0f998bf9bb9a2576b77f09f7cdb6ab7c9fe78d03d54fd4a0fc1be58da16af1d2",
+    "limits": "Config-radius and position observations are not ballistic impact or continuous friendly-fire proof. Modded explosive bullet balance/visuals/native bursts and performance require authorised physical validation."
   }
 }

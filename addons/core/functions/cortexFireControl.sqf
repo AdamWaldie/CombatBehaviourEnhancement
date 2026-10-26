@@ -7,6 +7,8 @@
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
+ * Suppression passes its actual loaded magazine to the shared firing-lane check so modded
+ * explosive bullets receive the existing aimpoint/near-impact blast veto as well as the cone.
  * Blocked batches rotate candidates. Raw belief remains unchanged; this never issues movement.
  * General rifle fire control also requires a currently selected primary bullet magazine;
  * launcher, pistol and UGL selection remains with native/specialist combat. No weapon is switched.
@@ -330,7 +332,7 @@ if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])})
                         _geometryChecks=_geometryChecks+1;
                         private _aimASL=[_unit,_targetASL,20] call CBE_fnc_CortexSuppressionAim;
                         if (_aimASL isNotEqualTo []
-                            && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}
+                            && {[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear}
                             && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}) then {
                         _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];
