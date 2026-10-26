@@ -93,6 +93,10 @@
       "originalActorMetadata20261026": {
         "review": "clear-actor-metadata-capture-20261026.json",
         "scope": "Registered frozen-source canonical settings and motion metadata captured; no all-writer seal, incoming readiness or physical parity claim."
+      },
+      "interruptionCapture20261026": {
+        "review": "clear-interruption-capture-20261026.json",
+        "scope": "Original reservation/evasion expiry and settings-retirement budgets captured; not a final all-writer seal, incoming-ready state or physical migration claim."
       }
     },
     {

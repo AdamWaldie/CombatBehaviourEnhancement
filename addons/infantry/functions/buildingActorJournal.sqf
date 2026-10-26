@@ -9,8 +9,9 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [1,visitContext,actorRows,originalRegistration] or[] on refusal.
- * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows]. Canonical rows preserve
+ * Return: ARRAY [2,visitContext,actorRows,originalRegistration,settingsRetirement] or[] on refusal.
+ * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow].
+ * Actor reservations/return expiry convert the original local clock to server time once; no renewal. Canonical rows preserve
  * [context,[property,baseline,applied] rows,retryAtServer]. Mirrors retain [name,present,value].
  * Current callers: CortexLocality outgoing checkpoint before private producer retirement.
  * Example: private _actors=[_job] call CBE_fnc_BuildingActorJournal;
@@ -27,6 +28,7 @@ isNil {
             || {[0,1,2,3,4,5,6] findIf {isNil {_registration select _x}} >= 0}
             || {(_registration select [0,6]) isNotEqualTo [_group,clientOwner,_visit,
                 _job get "ownerEpoch",_job get "generation",_job get "operationGeneration"]}) exitWith {[]};
+        private _localNow=time;private _serverNow=serverTime;
         private _team=_job getOrDefault ["team",false];
         if (!(_team isEqualType []) || {count _team > 64}) exitWith {[]};
         private _actors=+_team;
@@ -107,12 +109,67 @@ isNil {
                 _copiedMotion=[_group,[_visit] call _copyVisit,_motion select 2,+(_motion select 3),+_triple];
             };
             if (!_valid) exitWith {};
-            _rows pushBack [_key,_actor,_settings,_copiedMotion,_mirrors];
+            private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
+            private _copiedReservation=[];
+            if (!(_reservation isEqualType []) || {!(count _reservation in [0,3])}) exitWith {_valid=false};
+            if (_reservation isNotEqualTo []) then {
+                if ([0,1,2] findIf {isNil {_reservation select _x}} >= 0
+                    || {!((_reservation select 0) isEqualType "")} || {(_reservation select 0) == ""}
+                    || {!((_reservation select 1) call _vector)}
+                    || {!((_reservation select 2) isEqualType 0)} || {!finite (_reservation select 2)}) exitWith {_valid=false};
+                _copiedReservation=[_reservation select 0,+(_reservation select 1),
+                    _serverNow+((_reservation select 2)-_localNow)];
+            };
+            if (!_valid) exitWith {};
+            private _return=_actor getVariable ["CBE_Cortex_ClearEvasionReturn",[]];
+            private _copiedReturn=[];
+            if (!(_return isEqualType []) || {!(count _return in [0,6])}) exitWith {_valid=false};
+            if (_return isNotEqualTo []) then {
+                if ([0,1,2,3,4,5] findIf {isNil {_return select _x}} >= 0
+                    || {_copiedMotion isEqualTo []} || {(_return select 0) isNotEqualTo _motion}
+                    || {!((_return select 1) call _vector)}
+                    || {!((_return select 2) isEqualType 0)} || {!finite (_return select 2)}
+                    || {(_return select 3) isNotEqualTo (_job get "ownerEpoch")}
+                    || {(_return select 4) isNotEqualTo (_job get "operationGeneration")}
+                    || {(_return select 5) isNotEqualTo clientOwner}
+                    || {_reservation isNotEqualTo [] && {(_reservation select 0) != "GRENADE_EVASION"
+                        || {(_reservation select 1) isNotEqualTo (_return select 1)}
+                        || {(_reservation select 2) isNotEqualTo (_return select 2)}}}) exitWith {_valid=false};
+                private _returnMotion=[_group,[_visit] call _copyVisit,_motion select 2,+(_motion select 3),+(_motion select 4)];
+                _copiedReturn=[_returnMotion,+(_return select 1),_serverNow+((_return select 2)-_localNow),
+                    _return select 3,_return select 4,_return select 5];
+            };
+            if (!_valid) exitWith {};
+            private _window=_actor getVariable ["CBE_Cortex_ClearSettingRetireUntil",[]];
+            if (!(_window isEqualType []) || {!(count _window in [0,2])}
+                || {_window isNotEqualTo [] && {[0,1] findIf {isNil {_window select _x}} >= 0
+                    || {!((_window select 0) isEqualType "")} || {(_window select 0) == ""}
+                    || {!((_window select 1) isEqualType 0)} || {!finite (_window select 1)}}}) exitWith {_valid=false};
+            _rows pushBack [_key,_actor,_settings,_copiedMotion,_mirrors,_copiedReservation,_copiedReturn,+_window];
         } forEach _actors;
         if (!_valid) exitWith {[]};
         private _copiedRegistration=+_registration;
         _copiedRegistration set [2,[_visit] call _copyVisit];
-        [1,_copiedVisit,_rows,_copiedRegistration]
+        private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
+        private _pendingValid={
+            _this isEqualType [] && {count _this == 4}
+                && {[0,1,2,3] findIf {isNil {_this select _x} || {!((_this select _x) isEqualType 0)}
+                    || {!finite (_this select _x)} || {(_this select _x) < 0}} < 0}
+                && {[0,1,3] findIf {(_this select _x) != floor (_this select _x)} < 0}
+        };
+        if (_pending isNotEqualTo [] && {!(_pending call _pendingValid)}) exitWith {[]};
+        private _cleanupResult=_group getVariable ["CBE_Cortex_ClearSettingsResult",[]];
+        private _copiedResult=[];
+        if (!(_cleanupResult isEqualType []) || {!(count _cleanupResult in [0,3])}) exitWith {[]};
+        if (_cleanupResult isNotEqualTo []) then {
+            if ([0,1,2] findIf {isNil {_cleanupResult select _x}} >= 0
+                || {!((_cleanupResult select 0) in ["WINDOW_EXPIRED","RETIRED"])}
+                || {!((_cleanupResult select 1) isEqualType 0)} || {!finite (_cleanupResult select 1)}
+                || {!((_cleanupResult select 2) call _pendingValid)}) exitWith {_valid=false};
+            _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
+        };
+        if (!_valid) exitWith {[]};
+        [2,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult]]
     };
     false
 };

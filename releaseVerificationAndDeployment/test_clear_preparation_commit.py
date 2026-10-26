@@ -249,7 +249,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('count _egress == 14',capture)
         self.assertIn('private _egressing=_phase == "EGRESS"',capture)
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
-        self.assertIn('count _actors == 4',capture)
+        self.assertIn('count _actors == 5',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
         for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
                       'producerRegistration','count _actors > 64','count _owned > 2',
@@ -261,6 +261,20 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for forbidden in ('setVariable','forceSpeed','doMove','expectedDestination','unitPos ',
                           'getForcedSpeed','serverTime+','spawn','remoteExec'):
             self.assertNotIn(forbidden,actor_journal)
+        for guard in ('CBE_Cortex_ActorMove','CBE_Cortex_ClearEvasionReturn',
+                      'CBE_Cortex_ClearSettingRetireUntil','CBE_Cortex_ClearSettingsPending',
+                      'CBE_Cortex_ClearSettingsResult','_serverNow+((_reservation select 2)-_localNow)',
+                      '_serverNow+((_return select 2)-_localNow)',
+                      '(_return select 0) isNotEqualTo _motion',
+                      '(_return select 5) isNotEqualTo clientOwner',
+                      '[2,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult]]'):
+            self.assertIn(guard,actor_journal)
+        # Clock origins may differ. Preserve remaining time, including already expired leases.
+        for local_now,server_now,expiry in ((100,500,106),(100,500,99),(1,900,1)):
+            encoded=server_now+(expiry-local_now)
+            self.assertEqual(encoded-server_now,expiry-local_now)
+            received_at=server_now+2
+            self.assertEqual(encoded-received_at,expiry-local_now-2)
         import copy
         original=[['issuer',4,3,100],{'STANCE':['AUTO','UP'],'SPEED':[2,1]},9]
         snapshot=copy.deepcopy(original)

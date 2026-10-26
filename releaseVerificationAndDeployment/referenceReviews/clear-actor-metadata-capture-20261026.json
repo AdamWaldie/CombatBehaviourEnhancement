@@ -34,5 +34,6 @@
     "Audits paused. Physical migration/repeat/casualty flow and performance remain unverified."
   ],
   "physicalAcceptance": false,
-  "completeHandover": false
+  "completeHandover": false,
+  "followup": "clear-interruption-capture-20261026.json extends actor component to version2/five fields and actor rows with original interruption and settings-retirement metadata; still no seal/incoming readiness."
 }

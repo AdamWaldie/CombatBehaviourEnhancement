@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "ab7b217b4381ed9e259b58024f0620ad6681e9e1",
+  "status": "INTERRUPTION_METADATA_CAPTURED_FULL_HANDOVER_INCOMPLETE",
+  "implementation": [
+    "Actor component version2/five fields, still inside version12/seventeen-field private outer capture. Actor rows add reservation, exact evasion return and original settings-retire window.",
+    "A single source local/server clock pair converts reservation and evasion expiry to server time without renewing remaining time; expired values remain expired. Source local clock never becomes an incoming owner deadline.",
+    "Evasion return must match exact original clearance motion, owner epoch, common-operation generation and producerOwner; a present reservation must match its GRENADE_EVASION target/expiry.",
+    "Original settings cleanup pending generation/epoch/deadline/attempt count and terminal result are typed and copied unchanged. Existing per-actor server retire window also stays unchanged.",
+    "No native command/readback, settings release, new worker/timer/query or public replay. Generic typed foreign reservation scopes remain explicit, not admitted as clearance."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/buildingActorJournal.sqf": "58abddddddfb9177cd510b90c58db8fb408dbfb3ea4224ac7c96eadb224d49ff",
+    "addons/core/functions/cortexLocality.sqf": "4461a46b619d0b7314dd5e550b44cc9d7d1a5e555f347716d56e0625e29f1feb",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "bedc1514dcac1fd163ee06490b2c367af801391b91fb9fe1a002c49c1b1cd2e0"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 442,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-interruption-ab7b217b",
+    "fingerprint": "7910badd70346483280e91c461d1a124649791d38dcba883a952586baffc1c22",
+    "buildLog": ".qa/handovers/clear-interruption-build.log",
+    "independentLog": ".qa/handovers/clear-interruption-independent.log",
+    "runtimeUnchangedAfterBuild": true
+  },
+  "remaining": [
+    "Independent flight/naval actor journals and other writer domains still require retirement/proof.",
+    "Final all-writer sealing must bind coherent original checkpoint and registered producer before authenticated delivery.",
+    "Incoming native/settings/locality reconciliation and phase reconstruction remain incomplete.",
+    "Audits paused: normal/HC migration, interruption timing, repeat/casualty flow and performance unverified."
+  ],
+  "completeHandover": false,
+  "physicalAcceptance": false
+}

@@ -165,7 +165,7 @@ isNil {
                     private _relief=if (count _early == 6) then {[_clearJob] call CBE_fnc_BuildingReliefJournal} else {[]};
                     private _admission=if (count _relief == 2) then {["CAPTURE",_clearJob] call CBE_fnc_BuildingAdmissionJournal} else {[]};
                     private _actors=if (count _admission == 3) then {[_clearJob] call CBE_fnc_BuildingActorJournal} else {[]};
-                    if (count _actors == 4) then {
+                    if (count _actors == 5) then {
                         _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[12,clientOwner,
                             _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
                             serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission,_actors]];
