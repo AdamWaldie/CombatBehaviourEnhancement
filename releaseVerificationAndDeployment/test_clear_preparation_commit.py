@@ -295,7 +295,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertFalse(retired(True,True,True,True))
         self.assertTrue(retired(True,True,True))
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
-        self.assertIn('count _actors == 7',capture)
+        self.assertIn('count _actors == 8',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
         for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
                       'producerRegistration','count _actors > 64','count _owned > 2',
@@ -313,7 +313,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]'):
+                      '[6,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]'):
             self.assertIn(guard,actor_journal)
         for guard in ('keys _restore findIf {_x != "groupAttack"}',
                       '(_attack select 0) isNotEqualTo _baseAttack',
@@ -352,6 +352,18 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       'quarantineHeld','securityActors','rotatedOut','egressDiverted',
                       'accessAdmitted','accessBlocked','accessReported','assigned','started'):
             self.assertIn('"'+field+'"',actor_journal)
+        for guard in ('"recoveryAttempts"','"recovery"','"unavailable"',
+                      'count _attemptMap > 64','count _activeMap > 64',
+                      '_serverNow+((_observation select 1)-_localNow)',
+                      '(_attemptMap getOrDefault [_x,-1]) isNotEqualTo 1',
+                      '[1,_participants,_attemptRows,_activeRows,_unavailableKeys]'):
+            self.assertIn(guard,actor_journal)
+        recovery_source={'spent':[['a',1]],'active':[['a',[1,100,[2,3,0],[0,0,0]]]]}
+        recovery_copy=copy.deepcopy(recovery_source)
+        recovery_source['spent'][0][1]=0
+        recovery_source['active'][0][1][2][0]=99
+        self.assertEqual(recovery_copy['spent'][0][1],1)
+        self.assertEqual(recovery_copy['active'][0][1][2][0],2)
         self.assertIn('count _assigned != count _team',actor_journal)
         self.assertIn('_assigned findIf {isNil "_x"}',actor_journal)
         self.assertIn('isNil {_map get _x}',actor_journal)

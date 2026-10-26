@@ -121,6 +121,10 @@
         "sourceCandidateReview": "clear-source-candidate-20261026.json",
         "review": "clear-throw-listener-fence-20261026.json",
         "scope": "Queued cancellation and observational listener callbacks bind original owner/epoch/generation; installed-generation timeout cleanup protects successors without stranding old listeners. No physical/all-writer seal claim."
+      },
+      "commonRecoveryCaptureReview": {
+        "review": "clear-recovery-state-20261026.json",
+        "scope": "Original roster, spent recovery attempts, active observation clocks/targets/start poses and unavailable actors copied in actor componentv6; no incoming recovery command or full seal."
       }
     },
     {

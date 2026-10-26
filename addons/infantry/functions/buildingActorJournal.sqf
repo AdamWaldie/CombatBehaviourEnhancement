@@ -9,13 +9,15 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [5,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy,ownership] or[] on refusal.
+ * Return: ARRAY [6,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy,ownership,recovery] or[] on refusal.
  * Group policy [1,original behaviour,original attack BOOL,continueRoute BOOL,attack lease,original native route].
  * Only the exact CLEAR attack lease is accepted. Unknown group restoration keys refuse.
  * Route copy is bounded to4096 nodes/depth16/512-character strings; it grants no replay.
  * Ownership [1,original team keys,started keys,assignment rows,hold maps,classifications,access flags].
  * Assignments preserve original local progress clocks as server time. All lists/maps are <=64
  * and resolve only original captured actors. No hold or movement is reconstructed.
+ * Recovery [1,participant keys,spent attempts,active observations,unavailable keys].
+ * Original local observation clocks convert once to server time; no retry or native order is replayed.
  * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow,entryState].
  * Entry state [1,private record present,private record,public recovery,public alternative].
  * Original server timestamps, spent retry/search counts and foreign-visit headers remain unchanged.
@@ -314,6 +316,46 @@ isNil {
         } forEach ["accessAdmitted","accessBlocked","accessReported"];
         if (!_ownershipValid) exitWith {[]};
         private _ownership=[1,_teamKeys,_startedKeys,_assignmentRows,_holds,_classifications,_access];
+        // Common recovery belongs to this original CLEAR generation, not a fresh owner.
+        // Copy spent attempts even when their native observation has already ended.
+        private _recoveryValid=true;
+        private _participants=[_operation getOrDefault ["participants",[]]] call _actorKeys;
+        if (!_ownershipValid) exitWith {[]};
+        private _attemptMap=_operation getOrDefault ["recoveryAttempts",createHashMap];
+        private _activeMap=_operation getOrDefault ["recovery",createHashMap];
+        if (!(_attemptMap isEqualType createHashMap) || {count _attemptMap > 64}
+            || {!(_activeMap isEqualType createHashMap)} || {count _activeMap > 64}) exitWith {[]};
+        private _attemptKeys=keys _attemptMap;private _activeKeys=keys _activeMap;
+        if ((_attemptKeys+_activeKeys) findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0) exitWith {[]};
+        _attemptKeys sort true;_activeKeys sort true;
+        private _attemptRows=[];
+        {
+            if (isNil {_attemptMap get _x}) exitWith {_recoveryValid=false};
+            private _spent=_attemptMap get _x;
+            if (!(_spent isEqualType 0) || {!finite _spent} || {!(_spent in [0,1])}) exitWith {_recoveryValid=false};
+            _attemptRows pushBack [_x,_spent];
+        } forEach _attemptKeys;
+        if (!_recoveryValid) exitWith {[]};
+        private _activeRows=[];
+        {
+            if (isNil {_activeMap get _x}) exitWith {_recoveryValid=false};
+            private _observation=_activeMap get _x;
+            if (!(_observation isEqualType []) || {count _observation != 4}
+                || {_observation findIf {isNil "_x"} >= 0}
+                || {(_observation select 0) isNotEqualTo 1}
+                || {!((_observation select 1) isEqualType 0)} || {!finite (_observation select 1)}
+                || {!((_observation select 2) isEqualType [])} || {!(count (_observation select 2) in [2,3])}
+                || {(_observation select 2) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                || {!((_observation select 3) call _vector)}
+                || {(_attemptMap getOrDefault [_x,-1]) isNotEqualTo 1}) exitWith {_recoveryValid=false};
+            private _observedAt=_serverNow+((_observation select 1)-_localNow);
+            if (!finite _observedAt) exitWith {_recoveryValid=false};
+            _activeRows pushBack [_x,[1,_observedAt,+(_observation select 2),+(_observation select 3)]];
+        } forEach _activeKeys;
+        if (!_recoveryValid) exitWith {[]};
+        private _unavailableKeys=[_operation getOrDefault ["unavailable",[]]] call _actorKeys;
+        if (!_ownershipValid) exitWith {[]};
+        private _recoveryState=[1,_participants,_attemptRows,_activeRows,_unavailableKeys];
         private _copiedRegistration=+_registration;
         _copiedRegistration set [2,[_visit] call _copyVisit];
         private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
@@ -335,7 +377,7 @@ isNil {
             _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
         };
         if (!_valid) exitWith {[]};
-        [5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]
+        [6,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]
     };
     false
 };
