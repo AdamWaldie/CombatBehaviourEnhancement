@@ -628,7 +628,8 @@
         "runFireControl.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexAntiArmour.sqf"
+        "addons/infantry/functions/cortexAntiArmour.sqf",
+        "addons/infantry/functions/launcherMove.sqf"
       ]
     },
     {

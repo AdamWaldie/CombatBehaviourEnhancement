@@ -20,6 +20,7 @@ if (isNull _actor || {!local _actor}) exitWith {true};
 // Only that feature's exact cleanup retires its journal; this predicate grants no native command.
 if ((_actor getVariable ["CBE_Danger_FlightLease",[]]) isNotEqualTo []) exitWith {true};
 if ((_actor getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []) exitWith {true};
+if ((_actor getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap) exitWith {true};
 private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (_lease isEqualTo []) exitWith {false};
 private _expired=_lease isEqualType [] && {count _lease == 3}

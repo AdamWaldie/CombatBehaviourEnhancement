@@ -185,6 +185,9 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
         };
     };
     if (local _x) then {
+        if ((_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap) then {
+            ["RELEASE",_x] call CBE_fnc_LauncherMove;
+        };
         private _target = _x getVariable ["CBE_AIPass_VehicleTarget",objNull];
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
             && {([_x] call CBE_fnc_CortexExternalOwner) == ""}

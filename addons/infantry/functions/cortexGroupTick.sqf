@@ -263,6 +263,10 @@ private _airborneDelay = [_group, [_group] call CBE_fnc_CortexGroupState] call C
 if (_airborneDelay >= 0) exitWith {_airborneDelay};
 
 private _state = [_group] call CBE_fnc_CortexGroupState;
+// Service issued launcher requests independently of target knowledge and hold-fire admission.
+{if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+    ["SERVICE",_x] call CBE_fnc_LauncherMove;
+}} forEach ((units _group) select [0,64]);
 // A short calm/security treatment action uses the common operation lifecycle and is deliberately
 // evaluated before contact planning. It never delays a contact, retreat, direct order or an existing
 // movement/building operation; the next state tick cancels it when any of those conditions appears.

@@ -1,3 +1,19 @@
+# Latest checkpoint: durable launcher relocation lifecycle (2026-10-26)
+
+Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, branch `Adam/cbe-recovery-followup-20261026`, draft PR19. The chat's WMP directory is unrelated. Audits remain PAUSED; do not launch Arma or stage installed-game files.
+
+`LauncherMove` now owns launcher relocation independently of local contact state: original actor/group/owner/epoch/operation/route, native command/destination/formation, exact marker and ten-second deadline precede one native move. Group/sparse service observes it outside fire/target/feature gates. Calm, release, stop and locality edges retire it. Only exact owned movement can request one saved-anchor return; native acknowledgement is observed separately. Pending proof survives marker expiry and split ownership. Cleanup is coalesced and finite through original deadline plus30s, never a new travel allowance. New orders, actor reservations, care and specialist/Zeus ownership retain priority. No world query, forced movement, settings write or permanent controller added. Failed actors retain a ten-second retry cooldown. An incapacitated saved anchor uses the existing viable group-anchor policy.
+
+Full1497 tests/444 compiled SQF/11 PBOs and independent package verification passed. Candidate `.qa/candidates/launcher-lifecycle-final-390c6f49`, fingerprint `fd6c74f9961349125eabe7037d24bcc3fa7b457f0370ff779d4b40e2f284fff6`; built390c6f49 plus working implementation, not a clean release. Logs `.qa/handovers/launcher-lifecycle-anchor-final.log`, `launcher-lifecycle-final-independent.log`; initial wiring failures are retained in earlier launcher-lifecycle build logs. Two focused launcher and four authority/coverage checks pass. Existing capability registry remains implemented_partial, no acceptance or implementation percentage uplift.
+
+Physical late replies, leader-self returns, split locality, repeated use and actual cost remain unverified; terminal unresolved proof is explicit. Main source review is `releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#launcherLifecycleImplementation20261026`. Follow `IMPLEMENTATION-GOAL.md` and `reference/sourceReviews/source-review-map.json`: foundations and LAMBS/HBQ intent first, then Protocol/individual/pair/squad/combined layers; compatibility-only and optional scope stays deferred. Next work must address a concrete remaining lifecycle/capability gap, not another unchanged build or marker-only patch.
+
+Protect installed Workshop inputs `E:/SteamLibrary/steamapps/workshop/content/107410`, Pinned Down archive `C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708`, `.qa/` reference snapshots and permanent signing keys. Preserve unrelated branding/workflow deletions and `docs/PERFORMANCE-VALIDATION.md` edits. No merge/release/Steam publication.
+
+Earlier checkpoints below are historical and superseded where this section differs.
+
+---
+
 ## Current runtime checkpoint: connect legacy gate detection (2026-10-26)
 
 DrivingGeometryCap now connects source-empty wall/fence/barrier candidates to the existing paired literal-action DrivingGateLegacyLeaves recogniser, after normal indexed-source checks. At most two candidate classes use that parser per observation; current-call class cache coalesces repeated hits. Unknown/budget-limited objects stay solid. No extra world/ray query, worker, animation or passage authority. Server still revalidates owner/route/locks/phases and physical aperture; this closes detector-to-executor reachability, not arbitrary modded-gate acceptance.
@@ -5415,3 +5431,10 @@ controllerObstaclesGrindingWatchdog20261026 in the existing HBQ intent review re
 controllerStartupCrewCadence20261026 records selected remaining controller admission, main-loop ownership/order/crew/proximity, diagnostics, overtaking and shutdown bodies. CrewBack normal reboarding is distinct from its rejected force-seat/group-split escalation, and its GetInOrdered marker is not cleared on the ordinary already-aboard path. CBE's default-off DrivingCrewBoarding recall uses physical seat occupancy to rearm, with no assignment mutation. Main Running/Pause remains insufficient as all-writer handover proof; detached helper/gate jobs and native navigation paths remain separate lifetimes. Source ray/per-pass counters omit some contact rays/deferred work and do not prove the runtime overhead budget.
 
 The recoverable source map now points to these navigation/obstacle/crew/cadence reviews while retaining incomplete end-to-end controller reconciliation and partial implementation status. No implementation percentage or physical parity was raised. Source-only batch: unchanged e2bd2751 candidate remains authoritative; audits paused. Finish explicit capability/lifecycle dispositions rather than keep rereading mapped bodies or import competing controllers.
+
+
+## Next implementation batch: launcher relocation lifecycle
+
+launcherLifecycleWriterTrace20261026 in lambs-danger-branch-execution-20261025.json now maps the actual writer, CONTACT target/hold-fire/feature service gates, calm deletion, locality marker deletion, group/stop boundaries and sparse64-actor cleanup footprint. Earlier cancellation-gap wording was corrected: the five-field local row already has original request identity after effe6b39; what is absent is durable cancellation and observed handback after local state disappears. Do not keep adding marker fields or claim reservation expiry cancels native doMove.
+
+Implement the finite actor request/retirement contract as one coherent batch across those edges, preserving original route/anchor/deadline and newer orders. Active discovery alone is not post-shutdown observation. Use existing bounded service points; avoid a second movement controller or semantic reuse of fleeing/casualty operations. No runtime changes in this writer trace; e2bd2751 remains the verified runtime candidate. Audits remain paused.

@@ -712,9 +712,9 @@
     ],
     "cbeRequesterTrace": "CortexReinforce submits native-known enemy position to existing server support allocation, uses ACTIVE/request expiry and capped retry/armour request counters; no movement itself. Only this requester body was read in this batch; SupportServer/Local/Maintain integration remains separately scoped.",
     "launcherCancellationGap": {
-      "current": "CortexAntiArmour retains actor/point/deadline in local group state and a three-field actor marker. Its service is behind feature/eligibility guards. RestoreCalm deletes the local relocation entry; CortexLocality may retire ordinary actor markers.",
-      "missing": "No immutable original route/epoch/group/formation-anchor/native pre-request receipt or durable pending acknowledgement for this task. Expiring metadata cannot prove that a late native doMove will not execute.",
-      "requiredNext": "Design one bounded original-request/retirement contract using existing group/locality/stop service points before adding return/STOP commands. It must preserve newer orders, cover disable/contact loss and owner change, retain unresolved acknowledgement without renewed travel budget, and refuse duplicate incoming work. Do not borrow fleeing-only DangerFlight or casualty-only PointActorOperation semantics.",
+      "current": "Superseded by launcherLifecycleImplementation20261026: launcherMove owns durable public actor proof, pending/owned move and return observation, explicit retirement hooks and bounded post-shutdown observation. The earlier local five-field state row is no longer the executor.",
+      "missing": "Physical native acknowledgement/cancellation and repeated-use/migration reliability remain unverified, including leader-self follow and late/split delivery. Terminal uncertain proof is retained, never treated as cancellation success.",
+      "requiredNext": "Validate the exact packaged lifecycle candidate in the later authorised engine pass and resolve concrete remaining defects. Do not renew its travel deadline or infer a native ACK from metadata expiry.",
       "notResolvedBy": "The preceding terrain/height fix improves point selection and identity but does not close native cancellation."
     },
     "runtimeChanged": false,
@@ -737,5 +737,107 @@
     "remaining": "Local row retention does not supply durable native cancellation after timeout, stop or owner migration. Original five-field row is not an all-writer handover seal. Do not count reservation expiry as physical cancellation.",
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "launcherLifecycleWriterTrace20261026": {
+    "scope": "Complete current CortexAntiArmour body and ActorMoveReserved predicate; selected actual caller, calm/locality/stop/release and existing sparse cleanup paths. No runtime modification in this trace.",
+    "writer": "CortexAntiArmour issues one gunner doMove, then records machine-local ActorMove and group-state relocation. Its only relocation service is inside that same function, after eligibility/feature/combat-mode gates. Expiry/arrival/replacement remove matching metadata; no native stop/return or return acknowledgement exists for this relocation.",
+    "serviceAdmission": "CortexGroupTick CONTACT path invokes AntiArmour only with target knowledge, not hold-fire and feature enabled. New hold-fire, knowledge loss or disabled feature can prevent relocation maintenance before reaching the function. Function-level early returns add further gates.",
+    "retirementEdges": [
+      {
+        "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
+        "observed": "The final local-state deletion list includes antiArmourRelocation. General actor marker cleanup uses ActorMoveReserved; an expired typed marker can be removed without native cancellation proof."
+      },
+      {
+        "path": "addons/core/functions/cortexLocality.sqf",
+        "observed": "The unit cleanup loop clears CBE_Cortex_ActorMove. Point/indoor operations have explicit public TRANSFER journals, but launcher relocation has no corresponding durable actor order."
+      },
+      {
+        "path": "addons/core/functions/cortexStop.sqf",
+        "observed": "Explicit PointActor/IndoorActor FINISH calls occur before DangerSetup release. No launcher-specific issued-move cancellation service is present."
+      },
+      {
+        "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
+        "observed": "Group release explicitly retires point/indoor actors, then cancels group brain/state and reaches calm cleanup. It does not own an exact launcher move/return acknowledgement."
+      },
+      {
+        "path": "addons/infantry/functions/dangerSetup.sqf",
+        "observed": "Existing sparse bounded64-actor footprint services pace, naval egress and flight proof. It currently has no launcher relocation journal. This is a potential existing service edge, not proof it continues after master shutdown."
+      }
+    ],
+    "requiredFiniteBatch": [
+      "Keep one immutable original actor/group/owner/epoch/operation/route, goal/deadline, saved native destination/formation and exact marker identity beyond local group-state retirement.",
+      "Separate pending request, observed owned movement, physical arrival, cancellation request, superseded intent and observed handback. Expiry never grants a second move or proves rejection.",
+      "Service retirement outside target/hold-fire/feature admission, and wire exact stop, calm, group-release and real locality edges. A successor order or actor reservation wins; no blanket follow/STOP.",
+      "Reuse existing bounded service points and original deadlines. Resolve post-shutdown pending acknowledgement deliberately; sparse active discovery alone cannot claim shutdown cleanup.",
+      "Refuse new actor task admission while a valid unresolved launcher request still owns proof. Never repurpose fleeing-only DangerFlight or casualty-only PointActorOperation as a launcher task.",
+      "Extend existing launcher/lifecycle checks and run one coherent checkpoint build; record pending physical cancellation/migration separately while audits are paused."
+    ],
+    "sourceHashes": {
+      "addons/infantry/functions/cortexAntiArmour.sqf": "dff66bb23c804f3005bfca5fb6828e342e896372362cbf29e44c92c558f5be0b",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+      "addons/infantry/functions/cortexGroupTick.sqf": "93437a096693d2c7b2f3b31763e7798851b8a071a23d1bec0f070bbc420e9327",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "2a1cc644f427f8a06fb8033414aceb46aa6aaaec3a399e04e5b514d5c1f47e83",
+      "addons/core/functions/cortexLocality.sqf": "6a94838b3f26949b75420643427ffca51088e0591235463564ab7330179addf9",
+      "addons/core/functions/cortexStop.sqf": "1e25aa9e6acac82b105c5975531e171e988c1bf720c3150d9bce52ab522916e5",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5",
+      "addons/infantry/functions/dangerSetup.sqf": "b92d771878cac36ea24563d13447802b8948d12f42fefcb839dafad9f68d994e"
+    },
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false,
+    "supersededBy": "launcherLifecycleImplementation20261026 implements the recorded source-side contract; engine timing/repeat/locality/performance verification remains pending."
+  },
+  "launcherLifecycleImplementation20261026": {
+    "change": "LauncherMove now owns one durable actor journal and ten-second native move, exact request/goal/formation/route context, cancellation/one return issue, explicit native return observation and original thirty-second cleanup grace. Group and sparse service run outside firing admission; calm, group release, stop and locality edges retire original work. Exact pending proof blocks new actor admission after marker expiry.",
+    "cost": "No new world query or permanent controller. Existing group/sparse actor footprints service active receipts. Stop/locality add at most64 receipt checks per group. One coalesced four-second cleanup chain per original task, bounded by its original hard deadline; serial tickets reject old callbacks across ownership edges. Pending status publishes only when its phase/deadline changes.",
+    "scope": "Standalone launcher relocation only. Fleeing and casualty tasks remain separate. Original fire/backblast/terrain/ROE policies are retained; arrival is not a firing or physical handback guarantee.",
+    "remaining": "In-engine request/return acknowledgement, split locality, leader-self follow, repeated use and measured cost remain unverified. Unchanged pending or late native replies can remain explicitly unresolved after hard expiry; identical repeated native intent is observationally indistinguishable.",
+    "paths": [
+      "addons/infantry/functions/launcherMove.sqf",
+      "addons/infantry/functions/cortexAntiArmour.sqf",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf",
+      "addons/infantry/functions/cortexGroupTick.sqf",
+      "addons/infantry/functions/dangerSetup.sqf",
+      "addons/infantry/functions/cortexRestoreCalm.sqf",
+      "addons/infantry/functions/cortexReleaseGroup.sqf",
+      "addons/core/functions/cortexStop.sqf",
+      "addons/core/functions/cortexLocality.sqf",
+      "addons/main/CfgFunctions.hpp"
+    ],
+    "physicalAcceptance": false,
+    "performanceAcceptance": false,
+    "sourceHashes": {
+      "addons/infantry/functions/launcherMove.sqf": "66a9b0190b3bd8c0271b005495959d61f7bc9d5356cd3d0d5af8c48d45a46d92",
+      "addons/infantry/functions/cortexAntiArmour.sqf": "aef4dbc82c0c3144abc8d61f075adb54f8fe4526f392cebaad73c0f838be4902",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "1606a8e19d1ecc600faf51c0c9c679492ea7009abc259d6a64cfd4ea88b2f52d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "13827d9478e2cf208ac1ecb832dc36351d8ce7373d1b5b67df459da194ddca7e",
+      "addons/infantry/functions/dangerSetup.sqf": "5097b59ffae6fe2852024cf175414b99c61db92aefba9a4d5b992301348906de",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "fd33dc08651b6cae0e5e07bfac11a49fa1f64123206b3cdc7dff7d123a7242f9",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "9728e0b4bc6a38a4c619b95d1a689b15d07ebd2b269e5181b483e4030b109b08",
+      "addons/core/functions/cortexStop.sqf": "121f2d1e3e7481739af1a8747eb4f81162eb85e63694675db2cc3edb2af4276e",
+      "addons/core/functions/cortexLocality.sqf": "74f4d61ebb29f6db866963d488bdc60f7ceb3fcdb1a555003fe084c2be2a7d4e",
+      "addons/main/CfgFunctions.hpp": "a5ef4dded754ac24bdb1ddba9712d9e553a4530d81d69fe8e66675397d9f75d4"
+    },
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 444,
+      "pbos": 11,
+      "focusedLauncherChecks": 2,
+      "focusedAuthorityAndCoverageChecks": 4,
+      "build": ".qa/handovers/launcher-lifecycle-anchor-final.log",
+      "independent": ".qa/handovers/launcher-lifecycle-final-independent.log",
+      "candidate": ".qa/candidates/launcher-lifecycle-final-390c6f49",
+      "fingerprint": "fd6c74f9961349125eabe7037d24bcc3fa7b457f0370ff779d4b40e2f284fff6",
+      "buildSource": "390c6f49 plus working implementation",
+      "physicalAcceptance": false,
+      "performanceAcceptance": false
+    },
+    "localityBoundary": "Split actor/group arrival retains proof without native reads or retirement. A real gained-group epoch records a five-second cleanup edge for delayed same-machine actor arrival; a different captured source owner can cancel under current actual actor/group ownership. Transfer requires the original route and either unchanged operation generation or no current operation; it grants retirement only. Identical native orders and delayed/missing receipt delivery remain engine evidence limits.",
+    "casualtyAnchor": "A dead, departed or non-combat-effective saved anchor uses the existing viable local CortexGroupAnchor policy, with no deadline renewal or formation-setting write.",
+    "supersededCandidate": {
+      "candidate": ".qa/candidates/launcher-lifecycle-390c6f49",
+      "fingerprint": "e27a64db5ba561989eba9c1e2beccc208f97b1d703b33d820a78d1faa047cc23",
+      "reason": "Intermediate before incapacitated-anchor fallback correction; use final candidate."
+    }
   }
 }

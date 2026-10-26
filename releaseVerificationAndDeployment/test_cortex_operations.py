@@ -3436,7 +3436,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(civilian.rindex('CortexExternalTakeover'),civilian.rindex('_unit doMove _destination;'))
         self.assertGreaterEqual(armour.count('CortexExternalTakeover'),2)
         self.assertLess(armour.index('if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};', armour.index('if (_blocked) exitWith {')),
-                        armour.index('_gunner doMove _spot;'))
+                        armour.index('call CBE_fnc_LauncherMove'))
         self.assertIn('&& {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {',grenade)
     def test_tactical_drills_recheck_takeover_before_bound_and_retry_commands(self):
         step=source('cortexFlankStep')
@@ -5107,7 +5107,7 @@ class CortexOperations(unittest.TestCase):
     def test_anti_armour_respects_movement_and_holding_ownership(self):
         text = source('cortexAntiArmour')
         self.assertIn('!(_x in _moving)', text)
-        self.assertIn('getVariable ["CBE_Cortex_ActorMove",[]]',text)
+        self.assertIn('getVariable ["CBE_Cortex_ActorMove",[]]',source('launcherMove'))
         self.assertIn('!([_actor] call CBE_fnc_CortexActorMoveReserved)',text)
         roster=text.split('private _gunners =',1)[1].split('if (_gunners findIf',1)[0]
         self.assertNotIn('count _actorMove',roster)
@@ -5165,11 +5165,13 @@ class CortexOperations(unittest.TestCase):
         for guard in ['checkAIFeature "PATH"', 'checkAIFeature "MOVE"',
                       '_gunner in (_drill getOrDefault ["units",[]])',
                       'CBE_AIPass_Garrison', 'CBE_AIPass_Defend', 'CBE_AIPass_ClearBuilding']:
-            self.assertLess(blocked.index(guard), blocked.index('_gunner doMove'))
-        self.assertIn('getOrDefault ["antiArmourRelocation",[]]',text)
-        self.assertIn('expectedDestination _relocating',text)
-        self.assertIn('setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR"',text)
-        self.assertIn('_state set ["antiArmourRelocation"',text)
+            self.assertLess(blocked.index(guard), blocked.index('call CBE_fnc_LauncherMove'))
+        launcher=source('launcherMove')
+        self.assertIn('CBE_Cortex_LauncherMove',text)
+        self.assertIn('call CBE_fnc_LauncherMove',text)
+        self.assertIn('private _lease=["ANTI_ARMOUR",+_target,time+10]',launcher)
+        self.assertIn('expectedDestination _actor',launcher)
+        self.assertIn('setVariable ["CBE_Cortex_LauncherMove",_next,true]',launcher)
         support=source('cortexSupportBoundStart')
         self.assertIn('!([_x] call CBE_fnc_CortexActorMoveReserved)',support)
         self.assertNotIn('count _actorMove != 3',support)
@@ -11991,44 +11993,50 @@ class CortexOperations(unittest.TestCase):
 
     def test_anti_armour_cleanup_does_not_erase_another_actor_move(self):
         text=source('cortexAntiArmour')
-        section=text.split('private _relocation =',1)[1].split('if (_relocationBlocks',1)[0]
-        self.assertIn('(_actorMove select 0) == "ANTI_ARMOUR"',section)
-        self.assertIn('(_actorMove select 1) isEqualTo _relocationSpot',section)
-        self.assertIn('(_actorMove select 2) == _relocationUntil',section)
-        for proof in ('count _relocation == 5','_relocationContext isEqualTo [_group,clientOwner',
-                      'CBE_AIPass_Epoch','CBE_OperationGeneration','CBE_fnc_NativeOrderReceipt',
-                      '_nativePending || {currentCommand _relocating == "MOVE"',
-                      'isEqualTo _requestBefore','{_contextCurrent} && {_moveIdentity}'):
-            self.assertIn(proof,section)
-        commit=text.split('private _requestDestination=',1)[1]
-        self.assertLess(commit.index('private _requestBefore='),commit.index('_gunner doMove _spot'))
-        self.assertIn('_now+10,_requestContext,_requestBefore',commit)
-        # Matching pre-ack state retains one original request; a changed owner,
-        # order, formation or marker cannot retain it or renew its deadline.
-        def retain(now,deadline,context,marker,pending,goal,arrived):
-            return context and marker and (pending or goal) and not arrived and now<deadline
-        self.assertTrue(retain(3,10,True,True,True,False,False))
-        self.assertFalse(retain(10,10,True,True,True,False,False))
-        self.assertFalse(retain(3,10,False,True,True,False,False))
-        self.assertFalse(retain(3,10,True,False,True,False,False))
-
-        for proof in ('AGLToASL ((expectedDestination _relocating) select 0)',
-                      'getPosASL _relocating','AGLToASL _relocationSpot',
-                      'if (_stillOurs && {!_arrived}'):
-            self.assertIn(proof,section)
-        relocation=text.split('if (_blocked) exitWith {',1)[1].split('_gunner doMove _spot;',1)[0]
+        move=source('launcherMove')
+        self.assertNotIn('_gunner doMove',text)
+        self.assertEqual(move.count('_actor doMove'),1)
+        self.assertEqual(move.count('_actor doFollow'),1)
+        issue=move.split('if (_mode == "START") exitWith {',1)[1].split('private _lease=',1)[0]
+        for proof in ('_context isNotEqualTo _currentContext','_native isNotEqualTo _before',
+                      'CortexActorMoveReserved','CortexIsEligible','FIREWEAPON',
+                      'surfaceIsWater _target','surfaceNormal _target'):
+            self.assertIn(proof,issue)
+        self.assertLess(move.index('setVariable ["CBE_Cortex_LauncherMove",_next,true]'),move.index('_actor doMove'))
+        retire=move.split('private _retire={',1)[1].split('private _retirementContext=',1)[0]
+        self.assertIn('isEqualTo _work',retire)
+        self.assertIn('isEqualTo _lease',retire)
+        self.assertLess(retire.index('isEqualTo _lease'),retire.index('CBE_Cortex_ActorMove",nil'))
+        for proof in ('count _original != 5','count _prior != 3','_hard != _until+30',
+                      '_native select 0) in [_prior select 0,"MOVE"]','!_ownsMove',
+                      'getPosASL _actor','AGLToASL _goal','NATIVE_RETURN_OBSERVED',
+                      'UNRESOLVED_DEADLINE','_expectedLease','isEqualTo _ticket'):
+            self.assertIn(proof,move)
+        self.assertLess(move.index('_next set ["phase","RETURN"]'),move.index('_actor doFollow'))
+        self.assertIn('_anchor=[_group] call CBE_fnc_CortexGroupAnchor',move)
+        self.assertIn('_phase == "MOVE"} && {_ownsMove} && {serverTime < _hard}',move)
+        self.assertIn('4 min ((_hard-serverTime) max 0)',move)
+        self.assertEqual(move.count('call CBA_fnc_waitAndExecute'),1)
+        for forbidden in ('nearEntities','allUnits','allGroups','doStop','setPos','addPerFrameHandler'):
+            self.assertNotIn(forbidden,move)
+        for name,mode in (('cortexRestoreCalm','RELEASE'),('cortexReleaseGroup','RELEASE'),
+                          ('cortexStop','TRANSFER'),('cortexLocality','TRANSFER'),
+                          ('dangerSetup','SERVICE'),('cortexGroupTick','SERVICE')):
+            caller=source(name)
+            self.assertIn('"'+mode+'",',caller)
+            self.assertIn('call CBE_fnc_LauncherMove',caller)
+        reserved=source('cortexActorMoveReserved')
+        self.assertLess(reserved.index('CBE_Cortex_LauncherMove'),reserved.index('private _expired='))
+        self.assertIn('class LauncherMove', (ROOT/'addons/main/CfgFunctions.hpp').read_text())
+        # These checks cover real wiring and ownership boundaries only. Native
+        # acknowledgement and travel require the paused engine fixtures; a Python
+        # copy of the SQF state machine would not establish that behaviour.
+        # Caller still validates fallback terrain and holds all original role guards.
+        relocation=text.split('if (_blocked) exitWith {',1)[1].split('call CBE_fnc_LauncherMove',1)[0]
         for proof in ('surfaceIsWater _spot','(surfaceNormal _spot select 2) < 0.55',
-                      '[_state,"antiArmourMove",3] call CBE_fnc_CortexCooldown'):
+                      '[_state,"antiArmourMove",3] call CBE_fnc_CortexCooldown',
+                      'private _requestBefore=','_requestContext,_requestBefore'):
             self.assertIn(proof,relocation)
-        # Horizontal overlap is neither arrival on another floor nor exact lease identity.
-        self.assertEqual((10,20,0)[:2],(10,20,4)[:2])
-        self.assertGreater(abs(4-0),1.5)
-        self.assertNotEqual((10,20,0),(10,20,4))
-
-        for guard in ('_actorMove isEqualType []','(_actorMove select 1) isEqualType []',
-                      'count (_actorMove select 1) == 3','finite (_actorMove select 2)'):
-            self.assertIn(guard,section)
-        self.assertLess(section.index('(_actorMove select 1) isEqualType []'),section.index('(_actorMove select 1) isEqualTo _relocationSpot'))
 
 
     def test_cover_cleanup_preserves_replaced_native_destination(self):

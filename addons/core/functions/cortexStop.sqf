@@ -215,6 +215,9 @@ if (!isNil "_civilianCreated") then {
 } forEach (allUnits select {side group _x == civilian});
 {
     {
+        if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+            ["RELEASE",_x] call CBE_fnc_LauncherMove;
+        };
         private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
             ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
@@ -284,6 +287,15 @@ if (!isNil "_civilianCreated") then {
     _x setVariable ["CBE_Cortex_ClearRetireLocal",nil];
     _x setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+    // Rebind only original launcher retirement across this controlled shutdown edge.
+    {private _launcher=_x getVariable ["CBE_Cortex_LauncherMove",createHashMap];
+        private _launcherContext=_launcher getOrDefault ["context",[]];
+        if (local _x && {count _launcherContext == 5}
+            && {(_launcherContext select 1) == clientOwner}
+            && {(_launcherContext select 2) == _postureOldEpoch}) then {
+            ["TRANSFER",_x] call CBE_fnc_LauncherMove;
+        };
+    } forEach ((units _stoppingGroup) select [0,64]);
     // Rebind retirement only AFTER the controlled epoch edge. No outward leg resumes.
     private _crewReference=_stoppingGroup getVariable ["CBE_ArtilleryCrew_Reference",[]];
     if (local _stoppingGroup && {count _crewReference == 5}) then {

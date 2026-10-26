@@ -274,6 +274,7 @@ class CfgFunctions {
             class CortexArtilleryRole {file = "\z\cbe\addons\support\functions\cortexArtilleryRole.sqf";};
             class CortexSetArtilleryRole {file = "\z\cbe\addons\support\functions\cortexSetArtilleryRole.sqf";};
             class CortexOwnershipLease {file = "\z\cbe\addons\compatibility\functions\cortexOwnershipLease.sqf";};
+            class LauncherMove {file = "\z\cbe\addons\infantry\functions\launcherMove.sqf";};
             class CortexAntiArmour {file = "\z\cbe\addons\infantry\functions\cortexAntiArmour.sqf";};
             class CortexCheckpoint {file = "\z\cbe\addons\infantry\functions\cortexCheckpoint.sqf";};
             class CortexLocality {file = "\z\cbe\addons\core\functions\cortexLocality.sqf";};

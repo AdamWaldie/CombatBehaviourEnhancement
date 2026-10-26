@@ -3084,3 +3084,12 @@ Stopping an ordinary-driving operation also retires its exact pending queue requ
 ### Reverse STOP acknowledgement without replay
 
 Native reverse cleanup issues STOP once per original recovery journal. Later cleanup calls observe that request and physical linear/angular rest under the existing deadline; an engine reply still showing BACK does not cause repeated STOP commands. The same issued marker is shared with queue reverse execution. Unacknowledged expiry remains unresolved, and a newer command, crew or speed owner still prevents handback. No timer, scan, retry budget or movement controller is added. Native acknowledgement timing and physical behaviour remain unverified while audits are paused.
+
+
+### Durable launcher relocation and cancellation
+
+Backblast relocation now has a public actor-specific receipt independent of local contact state. It records the original order, formation anchor, exact movement reservation and ten-second travel deadline before issuing one native move. Group and sparse actor maintenance observe it independently of target knowledge, hold-fire and launcher-feature admission. Arrival is a position result; firing still requires a later fresh ammunition, backblast and forward-safety check.
+
+Calm, group release, shutdown and actual locality edges request retirement of that exact task. Only an unchanged owned native move may request one return to its saved usable formation anchor; a later native task, care queue, specialist/Zeus takeover or replacement reservation wins. The return request remains distinct from its observed native acknowledgement. A failed actor attempt has a ten-second cooldown.
+
+Pending cancellation uses one coalesced finite four-second observation callback through the original travel deadline plus thirty seconds, including after tactical shutdown. Transfer rebases retirement only; it never restarts travel or renews the original deadline. Unknown or unresolved actor proof continues to block competing CBE movement after the ordinary marker expires. Cleanup stops scheduling at the original hard deadline and records uncertainty rather than claiming native cancellation. No world scan, waypoint change, forced movement, posture reset or permanent controller is added. Existing locality/shutdown edges add at most a bounded64-member receipt pass. Identical repeated native orders cannot be distinguished by these engine observations; physical late-reply, split-locality, leader-self return and repeated-use behaviour remain unverified while audits are paused.

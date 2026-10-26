@@ -243,6 +243,7 @@ isNil {
         _unit setVariable ["CBE_AIPass_GarrisonHandlers", nil];
         _unit setVariable ["CBE_AIPass_DuckUntil", nil];
         _unit setVariable ["CBE_Cortex_ActorMove",nil];
+        _unit setVariable ["CBE_Cortex_LauncherCleanup",nil];
 } forEach units _group;
 // Observe the exact old FSMs only after this edge retired their original pointers.
 // No native command authority is placed in the observer's scheduler state.
@@ -323,6 +324,12 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     [CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey] call CBE_fnc_CortexQueueJob;
 };
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+if (_gained && {local _group}) then {
+    _group setVariable ["CBE_Cortex_LauncherTransfer",[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
+    {if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+        ["TRANSFER",_x] call CBE_fnc_LauncherMove;
+    }} forEach ((units _group) select [0,64]);
+};
 _group setVariable ["CBE_DrivingAbort_Transfer",nil];
 _group setVariable ["CBE_DrivingNative_Transfer",nil];
 if (_abortSource isNotEqualTo []) then {
