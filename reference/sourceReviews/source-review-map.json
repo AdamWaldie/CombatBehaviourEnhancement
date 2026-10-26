@@ -28,6 +28,15 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "currentDangerSnapshot": {
+        "path": ".qa\\lambs-danger-installed-20261026",
+        "pboSHA256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+        "members": 96,
+        "readableSqf": 41,
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json",
+        "scope": "Installed danger-addon snapshot only. Selected readable-source review; no wholeLAMBS or compiled behavioural equivalence claim.",
+        "functionQueue": "reference/sourceReviews/lambs-danger-source-queue.json"
       }
     },
     {

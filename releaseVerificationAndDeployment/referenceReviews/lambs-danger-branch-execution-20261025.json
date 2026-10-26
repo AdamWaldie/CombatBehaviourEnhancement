@@ -226,5 +226,227 @@
       "addons/infantry/functions/buildingOperationStep.sqf": "1b281a5eaed142247308c7578f1fb08259ce5ae2eb9b6ff96d9b3e82e280d52b"
     },
     "limits": "Cancellation occurs on existing owner callbacks, not synchronously with hideObject. Native STOP/cleanup and ordinary order restoration remain physically unverified. No visibility mutation, teleport or reachability/clearance credit."
+  },
+  "indoorRepositionReview20261026": {
+    "scope": "Complete readable doReposition/isIndoor bodies; findBuildings dependency separately read. Selected current CBE defensive dispatch and node filter, not complete compiled caller graph or all indoor phases.",
+    "sourceHashes": {
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doReposition.sqf": "d9ce73cd75a48f58d853ff67b7fa1e11a9bf4663722e397fea40ca8cfc821bac",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_isIndoor.sqf": "aa68e3b372cbfbd32b2e8d21cc2e8ba896acc61bac5655b7aea01f6767eb7412"
+    },
+    "sourceIntent": "Move to an indoor/door point within nearby building search if closer to threat by0.8m; otherwise stay indoors. Indoor test is overhead building geometry.",
+    "sourceMethod": "Fallback findNearestEnemy for absent object target; first closer candidate across returned nearby buildings; direct doMove then randomUP/MIDDLE weak stance. Overhead helper returns all GEOM surfaces and seeks Building parent.",
+    "cbeMapping": "Existing defensive IndoorActorDispatch/Operation uses native-known contact and one finite task owner. Node selector binds original defensive origin, same-floor8m move,0.8m threat-distance improvement, exact-building interior/roof and reservation/occupancy/failure exclusions. Hidden buildings now refuse and invalidate active tasks.",
+    "disposition": "Keep indoor threat-facing improvement; no random unleased doMove/stance writer or nearest-enemy disclosure path. One nearby valid candidate is not proof of useful firing position or route access.",
+    "cbeHashes": {
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "e7fdfe0a2317878362bfa50b214f3b0f66460b9062ade3a2dfb83900e9250040",
+      "addons/infantry/functions/indoorActorDispatch.sqf": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c"
+    },
+    "runtimeChange": "None; no demonstrated missing executor in selected comparison.",
+    "limits": "Actual window/door sightline quality, floor transitions, blocked nodes, buddy flow and physical task return remain unverified. Existing lifecycle tests are offline evidence only. Audits paused."
+  },
+  "dangerSourceRecovery20261026": {
+    "source": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\1858075458\\addons\\lambs_danger.pbo",
+    "pboSHA256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+    "snapshot": ".qa\\lambs-danger-installed-20261026",
+    "privateManifestSHA256": "353211f30b233164ff40f18f4283f762a059f585682cbe4cdefdc8e879df0751",
+    "members": 96,
+    "readableSqf": 41,
+    "originalUnchanged": true,
+    "rawInputsIgnored": true,
+    "comparison": [
+      {
+        "name": "fnc_brain.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_brainAssess.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_brainEngage.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_brainForced.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_brainHide.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_brainVehicle.sqf",
+        "matches": true
+      },
+      {
+        "name": "fnc_tacticsAssess.sqf",
+        "matches": true
+      }
+    ],
+    "scope": "Current installed extraction; seven previously selected readable files match byte-for-byte. Availability is not semantic review of all41 scripts or compiledSQFC equivalence."
+  },
+  "brainReactReview20261026": {
+    "source": "functions/fnc_brainReact.sqf",
+    "sha256": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+    "scope": "Complete readable helper; immediate descendants doCover/doDodge/doGesture reviewed separately. Compiled caller graph not re-established.",
+    "intent": "Finite immediate reaction; high suppression, REPLAN, STOP or FIRE selects cover; otherwise dodge. SetsACE lastHit and returns absolute timeout.",
+    "cbeMapping": "Existing DangerEngineAct immediate weak posture and gated native hit/near-round evasion; REPLAN/native movement remains committed mover. Cover selection is separately serviced by finite group DangerCoverStep. Deliberate STOP does not grant movement authority.",
+    "disposition": "Do not add direct doCover movement to actor FSM or provider medical-state writes solely to imitate placement. Retain physically responsive owned behaviour through existing owners. Lowering stance and choosing cover are not equivalent to proven path execution.",
+    "remaining": "Full effectiveFSM/intake-to-callback latency and native reaction/cover movement quality remain unverified. No timing/parity/physical credit."
+  },
+  "fsmDispatchReview20261026": {
+    "source": "scripts/lambs_danger.fsm",
+    "sha256": "a47032f3cd6d722d97b700ec44f253ae27ce77e15cc2c6a304b31424c0a21510",
+    "scope": "All readable FSM state-init/condition/action payloads decoded as text, state destinations/link priorities and initial/final states inspected. No execution or compiled/effective config equivalence proof; helper descendants retain individual review scope.",
+    "states": [
+      {
+        "state": "Start_Danger",
+        "to": [
+          "End_Danger_1",
+          "Init"
+        ]
+      },
+      {
+        "state": "Init",
+        "to": [
+          "Check_self",
+          "Evaluate_Infantr",
+          "Evaluate_Vehicle"
+        ]
+      },
+      {
+        "state": "Evaluate_Vehicle",
+        "to": [
+          "Reset_vehicle"
+        ]
+      },
+      {
+        "state": "Reset_vehicle",
+        "to": [
+          "End_Danger_vehic",
+          "Init"
+        ]
+      },
+      {
+        "state": "Evaluate_Infantr",
+        "to": [
+          "Roll_dodge",
+          "Stay_firm",
+          "Attack",
+          "Check_self_1"
+        ]
+      },
+      {
+        "state": "Roll_dodge",
+        "to": [
+          "Reset_foot"
+        ]
+      },
+      {
+        "state": "Stay_firm",
+        "to": [
+          "Reset_foot"
+        ]
+      },
+      {
+        "state": "Attack",
+        "to": [
+          "Reset_foot"
+        ]
+      },
+      {
+        "state": "Check_self",
+        "to": [
+          "Check_self_2"
+        ]
+      },
+      {
+        "state": "End_Danger",
+        "to": []
+      },
+      {
+        "state": "Reset_foot",
+        "to": [
+          "Tactics",
+          "Check_queue"
+        ]
+      },
+      {
+        "state": "Check_queue",
+        "to": [
+          "End_Forced",
+          "End_Danger",
+          "Init"
+        ]
+      },
+      {
+        "state": "End_Danger_vehic",
+        "to": []
+      },
+      {
+        "state": "Check_self_1",
+        "to": [
+          "Reset_foot"
+        ]
+      },
+      {
+        "state": "Check_self_2",
+        "to": [
+          "Check_queue"
+        ]
+      },
+      {
+        "state": "Tactics",
+        "to": [
+          "Check_queue"
+        ]
+      },
+      {
+        "state": "End_Danger_1",
+        "to": []
+      },
+      {
+        "state": "End_Forced",
+        "to": []
+      }
+    ],
+    "dispatch": [
+      "Startup exit check precedes forced/native task domain; foot and vehicle evaluation separate.",
+      "Foot priority Immediate6,Hide4,Engage2,Assess0; forced domain precedes foot evaluation.",
+      "Each response returns absolute timeout; engage also exits when queue exceeds3. Reset can reseed nearby live contact or group-memory assessment; leader branch enters tactics.",
+      "End_Danger clears task and forceSpeed-1 without baseline receipt. CBE must retain exact original native/mission state rather than copy unconditional release."
+    ],
+    "staticFinding": "Readable Check_self_2 keeps only records with expiry<time after forced response. Do not copy as live-event retention. Compiled execution and downstream brain filtering not re-proven; no runtime symptom claim.",
+    "cbe": "DangerEngineMode separates native actor task domains; DangerEngineSelect bounds record inspection and validates expiry. Tactical group scheduler and per-actor leases retain original evidence windows and sole movement ownership.",
+    "remaining": "Effective engine registration, compiled/readable equivalence, all helper/tactical branches, actual latency and performance. No wholeFSM/addon parity acceptance."
+  },
+  "actorGateReview20261026": {
+    "scope": "Complete readable three helper bodies; effective military/civilian registration and caller branches remain independently scoped.",
+    "hashes": {
+      "fnc_fsmAllowAnimation.sqf": "dc3ad67477d3027acd21d1b2d60c48f5762753f2b79b1de397039b26d2833e2a",
+      "fnc_brainAdjust.sqf": "20860fcd690c68c14f9fcbadb23610692213ffb23d801365be21c6c24cb07e9a",
+      "fnc_isLeader.sqf": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326"
+    },
+    "dispositions": [
+      {
+        "helper": "fsmAllowAnimation",
+        "intent": "Civilian gesture only when unarmed, dismounted, path/move enabled, native destination notDoNotPlan, notforcedwalk and notwater.",
+        "decision": "Civilian animation admission, not infantry evasion or permission to start movement. Trace through civilian FSM separately; do not enable gestures by bypassing mission forced-walk/nativeplanner policy."
+      },
+      {
+        "helper": "brainAdjust",
+        "intent": "Extension point for priority adjustment.",
+        "observed": "Returns supplied/default priority array unchanged.",
+        "decision": "No new CBE adjustment layer justified by this source placeholder. Preserve existing cause prioritisation; no functionality credit from adding an empty hook."
+      },
+      {
+        "helper": "isLeader",
+        "intent": "Low-suppression effective leader starts a tactic only when group notalreadyexecuting.",
+        "observed": "Suppression<0.2 and nativeleader or deadleader, plus group tactic flag.",
+        "decision": "Use existing CBE group tactical owner and eligibility. A public executing flag or deadleader alone is not task authority. Historical CBE leadership comparison retained; selected helper read adds no new parity claim."
+      }
+    ],
+    "runtimeChange": "None; this review does not justify another animation/tactical controller.",
+    "remaining": "Full civilian FSM and group tactics descendants; physical behaviour and median/p95 performance remain unverified."
   }
 }
