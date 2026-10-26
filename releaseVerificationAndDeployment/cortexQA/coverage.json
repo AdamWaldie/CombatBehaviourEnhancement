@@ -1507,6 +1507,7 @@
         "addons/infantry/functions/buildingEgressJournal.sqf",
         "addons/infantry/functions/buildingFollowJournal.sqf",
         "addons/infantry/functions/buildingEarlyExitJournal.sqf",
+        "addons/infantry/functions/buildingAdmissionJournal.sqf",
         "addons/infantry/functions/buildingReliefJournal.sqf",
         "addons/infantry/functions/buildingRoofTop.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",

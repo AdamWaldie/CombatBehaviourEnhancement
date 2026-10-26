@@ -145,7 +145,22 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal',capture)
         self.assertIn('if (count _early == 6)',capture)
         self.assertIn('call CBE_fnc_BuildingReliefJournal',capture)
-        self.assertIn('if (count _relief == 2)',capture)
+        self.assertIn('if (count _admission == 3)',capture)
+        self.assertIn('["CAPTURE",_clearJob] call CBE_fnc_BuildingAdmissionJournal',capture)
+        admission=(ROOT/'addons/infantry/functions/buildingAdmissionJournal.sqf').read_text(encoding='utf-8')
+        for guard in ('reserveAdmissionContext','count _commands <= 64','count _row != 4',
+                      'count _destination != 3','!finite _x','_key in _seen',
+                      'netId _actor != _key','!_capture && {isNull _actor}',
+                      '+(_destination select 0)','_commands get _key'):
+            self.assertIn(guard,admission)
+        for effect in (' doMove ',' doFollow ','setVariable','serverTime+','buildingPos'):
+            self.assertNotIn(effect,admission)
+        self.assertLess(text.index('_resumeAdmissionSnapshot=["IMPORT"'),text.index('if (_resumePhasePending) exitWith'))
+        adoption=text.split('private _admissionSnapshot=',1)[1].split('private _actorVisits=',1)[0]
+        self.assertIn('_reserveAdmissionCommands set [_x select 0,_x select 1]',adoption)
+        self.assertNotIn('getVariable',adoption)
+        self.assertNotIn('netId',adoption)
+
         relief=(ROOT/'addons/infantry/functions/buildingReliefJournal.sqf').read_text(encoding='utf-8')
         for guard in ('count (_source select 1) > 8','count _entries > 16','_worker in _workers',
                       '_guard in _guards','_until > _hard','count _binding != 5','count _stage != 7',
@@ -201,8 +216,8 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[10,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[11,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)

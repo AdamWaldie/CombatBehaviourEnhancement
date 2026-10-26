@@ -103,7 +103,10 @@ class ClearReserveAdmissionTests(unittest.TestCase):
         self.assertIn('formLeader _x',capture)
         self.assertIn('if (!_resume) then',capture)
         self.assertIn('_reserveAdmissionRows',block)
-        self.assertIn('(_reserveAdmission select 0) isEqualTo _visitContext',block)
+        self.assertIn('["IMPORT",_job,[+_visitContext,_reserveAdmissionRows]]',block)
+        journal=(ROOT/'addons/infantry/functions/buildingAdmissionJournal.sqf').read_text()
+        self.assertIn('(_receipt select 0) isEqualTo _context',journal)
+        self.assertIn('(_job getOrDefault ["reserveAdmissionContext",[]]) isEqualTo _context',journal)
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
         gate=step.split('private _reserveReady=',1)[1].split('private _reserves=',1)[0]
         self.assertNotIn('private _stageCommandFree=!_stagedHere',gate)

@@ -424,7 +424,7 @@ if (_entries isNotEqualTo []) then {
 };
 // Nonempty phase journals must belong to this exact visit, not only a matching
 // building/deadline. Defer before startup rather than silently resetting spent budgets.
-private _resumeAdmissionCommands=createHashMap;
+private _resumeAdmissionSnapshot=[];
 private _resumePhaseReceipts=[];
 private _resumePhasePending=false;
 if (_resume) then {
@@ -453,29 +453,9 @@ if (_resume) then {
                     }
                 };
                 if (_identity && {_key == "CBE_Cortex_ClearReserveAdmission"}) then {
-                    private _admissionKeys=[];
-                    {
-                        private _row=_x;
-                        if (!(_row isEqualType []) || {count _row != 4}
-                            || {[0,1,2,3] findIf {isNil {_row select _x}} >= 0}) exitWith {_identity=false};
-                        _row params ["_actor","_command","_destination","_formationLeader"];
-                        if (!(_actor isEqualType objNull) || {isNull _actor}
-                            || {!(_command isEqualType "")}
-                            || {!(_formationLeader isEqualType objNull)}
-                            || {!(_destination isEqualType [])} || {count _destination != 3}
-                            || {[0,1,2] findIf {isNil {_destination select _x}} >= 0}) exitWith {_identity=false};
-                        private _position=_destination select 0;
-                        if (!(_position isEqualType []) || {count _position != 3}
-                            || {_position findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} >= 0}
-                            || {!((_destination select 1) isEqualType "")}
-                            || {!((_destination select 2) isEqualType true)}) exitWith {_identity=false};
-                        private _actorKey=netId _actor;
-                        if (_actorKey in ["","0:0"] || {_actorKey in _admissionKeys}) exitWith {_identity=false};
-                        _admissionKeys pushBack _actorKey;
-                        // Retain the validated original identity and independent destination data.
-                        _resumeAdmissionCommands set [_actorKey,[_actor,_command,
-                            [+_position,_destination select 1,_destination select 2],_formationLeader]];
-                    } forEach (_receipt select 1);
+                    private _admissionCheck=createHashMapFromArray [["visitContext",_resumeRosterContext]];
+                    _resumeAdmissionSnapshot=["IMPORT",_admissionCheck,_receipt] call CBE_fnc_BuildingAdmissionJournal;
+                    _identity=count _resumeAdmissionSnapshot == 3;
                 };
                 if (_identity && {_key == "CBE_Cortex_ClearEarlyExits"}) then {
                     private _earlyCheck=createHashMapFromArray [
@@ -811,26 +791,22 @@ if (!_resume) then {
 }] call _commitPreparation;
 // Bind delayed reserve admission to this exact episode, not the first staging callback.
 // Native FOLLOW position may change with its same formation leader; that identity is retained.
-private _reserveAdmission=[];
-if (_resume) then {
-    private _admissionIndex=_resumePhaseReceipts findIf {(_x select 0) == "CBE_Cortex_ClearReserveAdmission"};
-    if (_admissionIndex >= 0) then {_reserveAdmission=(_resumePhaseReceipts select _admissionIndex) select 1};
+private _admissionSnapshot=if (_resume) then {_resumeAdmissionSnapshot} else {
+    ["IMPORT",_job,[+_visitContext,_reserveAdmissionRows]] call CBE_fnc_BuildingAdmissionJournal
 };
-if (!_resume) then {
-    _reserveAdmission=[+_visitContext,_reserveAdmissionRows];
-    [{_group setVariable ["CBE_Cortex_ClearReserveAdmission",_reserveAdmission,true]}] call _commitPreparation;
-};
-private _reserveAdmissionCommands=if (_resume) then {_resumeAdmissionCommands} else {createHashMap};
-if (!_resume && {_reserveAdmission isEqualType []} && {count _reserveAdmission == 2}
-    && {(_reserveAdmission select 0) isEqualTo _visitContext}
-    && {(_reserveAdmission select 1) isEqualType []} && {count (_reserveAdmission select 1) <= 64}) then {
+private _reserveAdmissionCommands=createHashMap;
+if (count _admissionSnapshot == 3) then {
     {
-        if (_x isEqualType [] && {count _x == 4} && {(_x select 0) isEqualType objNull}
-            && {(_x select 1) isEqualType ""} && {(_x select 2) isEqualType []}
-            && {(_x select 3) isEqualType objNull}) then {
-            _reserveAdmissionCommands set [netId (_x select 0),+_x];
-        };
-    } forEach (_reserveAdmission select 1);
+        _reserveAdmissionCommands set [_x select 0,_x select 1];
+    } forEach (_admissionSnapshot select 2);
+    _job set ["reserveAdmissionContext",_admissionSnapshot select 1];
+    if (!_resume) then {
+        private _reserveAdmission=[_admissionSnapshot select 1,(_admissionSnapshot select 2) apply {_x select 1}];
+        [{_group setVariable ["CBE_Cortex_ClearReserveAdmission",_reserveAdmission,true]}] call _commitPreparation;
+    };
+} else {
+    // Unknown is not a known-empty admission history and cannot be exported as one.
+    _job set ["reserveAdmissionContext",[]];
 };
 _job set ["reserveAdmissionCommands",_reserveAdmissionCommands];
 private _actorVisits=createHashMap;

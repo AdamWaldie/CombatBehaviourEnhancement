@@ -218,6 +218,7 @@ class CfgFunctions {
             class BuildingEgressJournal {file = "\z\cbe\addons\infantry\functions\buildingEgressJournal.sqf";};
             class BuildingFollowJournal {file = "\z\cbe\addons\infantry\functions\buildingFollowJournal.sqf";};
             class BuildingEarlyExitJournal {file = "\z\cbe\addons\infantry\functions\buildingEarlyExitJournal.sqf";};
+            class BuildingAdmissionJournal {file = "\z\cbe\addons\infantry\functions\buildingAdmissionJournal.sqf";};
             class BuildingReliefJournal {file = "\z\cbe\addons\infantry\functions\buildingReliefJournal.sqf";};
             class BuildingActorMotion {file = "\z\cbe\addons\infantry\functions\buildingActorMotion.sqf";};
             class BuildingActorHoldOwned {file = "\z\cbe\addons\infantry\functions\buildingActorHoldOwned.sqf";};

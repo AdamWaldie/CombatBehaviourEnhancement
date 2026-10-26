@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "102d9759aeac848308f7a9683315c5db9d100ed0",
+  "status": "RESERVE_CAPTURE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Original keyed reserve native-admission source capture",
+  "sourceTrace": [
+    "Preflight formerly validated the reserve public receipt in the starter, while fresh preparation accepted shallow destination data. Outgoing capture had no original reserve admission domain.",
+    "The existing actor eligibility code consumes original command, expectedDestination and formation leader. Its FOLLOW rule intentionally permits position drift only with the same leader and destination planning fields. This change does not alter those permissions."
+  ],
+  "implementation": [
+    "Shared pure BuildingAdmissionJournal IMPORT validates at most64 original public rows against the exact typed visit context, rejects nil/incomplete native destinations and duplicate/nonempty original actor identities, and copies nested vectors. Resume retains the validated snapshot before OperationStart.",
+    "Fresh preparation uses the same validator at the existing admission capture timing. Invalid history does not become a known-empty baseline or an exported proof. No replacement baseline is sampled during later staging.",
+    "CAPTURE reads the original private map keys and known admission context. Null historical actor references retain their original key as data; surviving objects must still match it. Missing context/map corruption refuses. Explicit empty known history remains valid.",
+    "Outgoing fenced producer capture version11/sixteen fields appends [1,visitContext,keyedRows]. No incoming decoder, transport authentication, native readiness or replay added."
+  ],
+  "cost": "At most64 row validations/copies at preparation and outgoing source capture only. No per-tick scan, new geometry query, worker, timer, native command, retry or deadline renewal.",
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "candidate": ".qa/candidates/clear-reserve-capture-102d9759",
+    "fingerprint": "62c6500a87f0505824359540ee22acf41ec3a0f743fadd6074d499e3bc7d6d02",
+    "build": ".qa/handovers/reserve-capture-final-build.log",
+    "independent": ".qa/handovers/reserve-capture-independent.log",
+    "retainedFailure": "Initial full pipeline stopped at one existing inline-context source assertion after extraction. Updated it to trace the shared helper; final complete pipeline passed. No new test cases.",
+    "limits": "Unsigned development working tree before checkpoint. Documentation/review/handover metadata follows packaging. No physical audit, HC/JIP, casualty flow or performance result."
+  },
+  "remaining": [
+    "Authenticated original producer registration, complete writer quiescence and finite sealed replay",
+    "Incoming keyed adoption with original actor retirement/native settings and interruption domains; legacy public import cannot recover deleted identity",
+    "Physical normal/HC migration, repeated CQB, casualty replacement and measured performance; audits remain paused"
+  ],
+  "sourceSHA256": {
+    "addons/infantry/functions/buildingAdmissionJournal.sqf": "887b0d0d7284922537ebe8e8bcc16f5c203ca964d10758af692f208960f24f3c",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "ff24d1dcc9330e928cca89afed17d2a283d8ba27eea7c7b5fae9d6d0ca4b1a3f",
+    "addons/core/functions/cortexLocality.sqf": "5b0776a0258e2d961462a15cfc3898bef43d1cbbe4fe89167e11752209c574da"
+  }
+}
