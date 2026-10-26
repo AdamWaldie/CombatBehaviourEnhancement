@@ -1904,3 +1904,9 @@ One-time follow-through yield membership is now owned by the original private jo
 
 
 Casualty-relief attempt history is now private to its original job and mirrored publicly. `BuildingReliefJournal` validates/copies at most8 original attempts at preparation, preflight, new-attempt admission and outgoing capture; ordinary callbacks reuse the canonical private receipt. Fresh tasks publish explicit zero-attempt state, while absent resume state is unknown. Unchanged private/public state and all existing native/observer/casualty/deadline checks are required before spending and issuing. Attempt commit remains before exterior planning. Outer capture version10/fifteen fields appends the typed receipt. Typed historical data is not current native or casualty proof, and no incoming sealed replay exists yet. Reserve/native/settings/retirement and full delivery remain incomplete. See `clear-relief-attempt-ledger-20261026.json`.
+
+### Native-path grade and convoy pacing
+
+With convoy driving assistance enabled, the lead and followers now consume the same fresh native-path grade policy. Absolute grade above 12% lowers the requested ceiling to 25 km/h; above 20% lowers it to 18 km/h. Existing road, spacing, traffic, corridor and infantry limits can reduce speed further. Missing native path evidence retains those existing policies. The lead previously ignored the native grade value while followers used it, which could stretch an off-road column.
+
+This uses the existing owner-local, both-seat-bound, six-metre path observation. It adds fixed comparisons and an optional diagnostic cap entry, with no new query, worker, timer or setting. Existing convoy driving-assist gates and final native-command authority checks remain. Grade evidence grants no clearance or arrival credit. Mixed tracked/wheeled slope flow, braking and measured runtime cost still need physical validation; audits remain paused.

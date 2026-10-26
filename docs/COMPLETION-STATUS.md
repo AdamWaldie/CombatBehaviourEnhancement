@@ -18,13 +18,11 @@ The local pipeline passed 1,497 tests, compiled 440 SQF files and packaged 11 PB
 | Zeus and settings | Behaviour task modules, CBA configuration and authority checks. | End-to-end behaviour, interruption and multiplayer validation. |
 | Compatibility | Ownership detection and scoped safeguards. | Required external-controller handovers; compatibility expansion remains last. |
 
-CBE implements parts of LAMBS functionality internally. LAMBS is not a runtime dependency. Whole-source parity and improvement remain unproven.
-
-HBQ has a protected 29-file source snapshot. Complete implementation and safe handover remain unfinished. The Protocol programme covers nine sources. Rappelling still lacks a real finite provider-owned executor and handover. The other sources have scoped implementations and named gaps. IKMS, WBK Droids and Zombies remain compatibility-only.
+Core AI behaviours run without requiring another AI addon. Full reference-source parity and improvement remain unproven. Controlled rappelling still needs a finite provider-owned executor and handover. Specialist melee and creature integrations remain compatibility-only.
 
 Current build-out percentages require reassessment. The ledger's source-evidence check fails at `addons/infantry/functions/cortexSelectAvenue.sqf`. Its historical index cannot supply a current whole-mod percentage. Build-out and physical acceptance remain separate measures.
 
-Continue from foundations and FSM lifecycle through complete HBQ driving and standalone LAMBS functionality, then compose the Protocol contributions. Preserve source intent, mission authority and finite execution. Physical validation remains required when audits resume.
+Continue from foundations and FSM lifecycle through complete driving and danger behaviour, then compose squad and combined-arms tasks. Preserve source intent, mission authority and finite execution. Physical validation remains required when audits resume.
 
 ## Earlier acceptance record: 19 October 2026
 

@@ -167,6 +167,16 @@ class DrivingGeometryTests(unittest.TestCase):
             self.assertIn('_nativeGrade > 0.2',grade)
             self.assertIn('_nativeGrade > 0.12',grade)
             self.assertIn(variable+'='+variable+' min',grade)
+        convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        lead=convoy.split('private _leadNativeGrade=',1)[1].split('private _leadGeometry=',1)[0]
+        for proof in ('_leadNativeHint param [3,-1,[0]]','finite _leadNativeGrade',
+                      '_leadNativeGrade > 0.2','_leadLimit=_leadLimit min 18',
+                      '_leadNativeGrade > 0.12','_leadLimit=_leadLimit min 25',
+                      'pushBack ["nativeGrade",_leadLimit]'):
+            self.assertIn(proof,lead)
+        for forbidden in ('forceSpeed','limitSpeed','nearEntities','lineIntersects','setVariable'):
+            self.assertNotIn(forbidden,lead)
+        self.assertLess(convoy.index('private _leadNativeGrade='),convoy.index('private _leadGeometry='))
         geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('count _measured in [1,2,3,4]',geometry)
         # Existing road policy applies symmetrically to observed climbs/descents;

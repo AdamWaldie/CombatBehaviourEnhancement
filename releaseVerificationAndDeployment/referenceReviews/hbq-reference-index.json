@@ -342,6 +342,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-lead-native-grade-20261026.json",
+      "sha256": "1dd8f0b6adc7ab108109f248b3a53797f325652d24b8c6500e868a272d3592fe",
+      "scope": "Selected terrain-anticipation reference and CBE lead/follower integration correction; no whole-HBQ parity or renewed whole-controller review.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-native-planning-evidence-20261018.json",
       "sha256": "168920c966e14a077ab306a76bbf2e7da2b39473378511f1d5d3409dc72396de",
       "scope": "Mixed convoy native follower destination refresh issue evidence; not steering/recovery/lead command coverage",

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "d7b30edba7c7de34e3448ab20339759099a3b76e",
+  "workshopId": "3812620045",
+  "status": "CONVOY_LEAD_GRADE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Selected terrain-anticipation reference and CBE lead/follower integration correction; no whole-HBQ parity or renewed whole-controller review.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "readRanges": [
+      "377-397",
+      "431-454"
+    ],
+    "intent": "Anticipate obstacles along the actual route and support elevation instead of relying only on vehicle-origin height. HBQ follows terrain through AGLToASL; CBE keeps its separate verified near-support observations for elevated decks.",
+    "reuse": "Reference input untouched; no source code/assets imported. Existing CBE native grade policy supplies the thresholds."
+  },
+  "finding": "DrivingNativePathWatch already returns absolute native grade. Ordinary driving and convoy followers consume it, but the convoy lead only forwarded the hint to geometry, whose fourth field does not change speed. Lead road metadata is a separate intermittent observation and does not cover every off-road grade.",
+  "implementation": [
+    "Lead now consumes the same fresh native grade before its existing geometry observation: requested km/h ceiling min25 above0.12 and min18 above0.2. Missing/nonfinite evidence keeps existing limits. Existing lower caps remain authoritative.",
+    "Optional existing control diagnostic capture records the resulting nativeGrade cap. No new feature setting, event, path calculation, ray, discovery query, timer, worker or movement command. Native-path age, route/owner/two-seat binding and final issue transaction unchanged."
+  ],
+  "cost": "Fixed param/finite/threshold/min comparisons per already-due lead callback, plus one diagnostic row only when capture is enabled. Same bounded64-node path observation. No measured performance improvement claimed.",
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/convoy-lead-native-grade-d7b30edb",
+    "fingerprint": "0faad69d29a952126943a8d2a967e426b822ee9f6d3de8b6cabbbb780f4ec243",
+    "build": ".qa/handovers/convoy-lead-grade-final-build.log",
+    "independent": ".qa/handovers/convoy-lead-grade-independent.log",
+    "focused": ".qa/handovers/convoy-lead-grade-final-focused.log",
+    "retainedFailure": "Initial full build caught reference brand names in the preceding product status-document update. Corrected product documentation; retained source comparison in internal research guidance/registers. Existing boundary test unchanged; final full build passed.",
+    "provenance": "Unsigned dirty development snapshot; runtime unchanged after final build. Review/index/handover metadata postdates package."
+  },
+  "remaining": [
+    "Native grade is a six-metre hint, not physical support or whole braking-horizon coverage.",
+    "Actual tracked/wheeled pacing, slopes, braking, native task handback, normal/HC repeatability and the5percent median/10percent p95 budget remain unverified. Audits paused.",
+    "Full HBQ implementation, unsafe-source redesign and actual external-controller handover remain unfinished."
+  ],
+  "sourceSHA256": {
+    "addons/vehicles/functions/convoyTick.sqf": "5b73bfda48682e838b7368974dec68174e034f22a0130b161169a4cb01b7a6e7",
+    "addons/vehicles/functions/drivingNativePathWatch.sqf": "8e9ec7ca540f16433a540c0ca62a44d47ef66595842f6797054bfbe66a1afd24",
+    "releaseVerificationAndDeployment/test_driving_geometry.py": "8d97d49cd954164eed8fa04d9d11ecca8b2c2f2cc32843cab7986b711921cc7f"
+  }
+}
