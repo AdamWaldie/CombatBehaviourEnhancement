@@ -5943,7 +5943,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('BIS_fnc_findSafePos',react)
         self.assertIn('forEach [0,-45,45]',react)
         self.assertGreaterEqual(react.count('call CBE_fnc_CortexSelectAvenue'),2)
-        self.assertIn('if (_route isEqualTo []) exitWith {false}',react)
+        self.assertIn('if (_destination isEqualTo []) exitWith {false}',react)
+        shelter=react.split('private _shelter=',1)[1].split('// Never apply the broad',1)[0]
+        for proof in ('25,[],_group,"COVER",_unit','call CBE_fnc_CortexFindCover',
+                      'distance2D _threatPos > (_origin distance2D _threatPos)+2',
+                      'call CBE_fnc_CortexSelectAvenue','_destination=+(_shelterRoute select 0)'):
+            self.assertIn(proof,shelter)
+        self.assertNotIn('findSafePos',shelter)
+        self.assertLess(shelter.index('CivilianShelterSearchAfter",serverTime+5'),shelter.index('call CBE_fnc_CortexFindCover'))
+        fallback=react.split('if (_destination isEqualTo []) then {',1)[1].split('private _issued=false;',1)[0]
+        self.assertIn('forEach [0,-45,45]',fallback)
+        self.assertIn('BIS_fnc_findSafePos',fallback)
+        self.assertEqual(react.count('_unit doMove _destination;'),1)
         self.assertIn('doMove _destination',react)
         self.assertIn('_priority <= (_active param [1,0,[0]])',react)
         self.assertIn('CBE_Cortex_CivilianGeneration',react)

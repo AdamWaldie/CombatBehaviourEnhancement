@@ -1322,5 +1322,40 @@
     "buildLog": ".qa/handovers/allied-area-reports-7e0ed3d5.log",
     "independentLog": ".qa/handovers/allied-area-reports-independent.log",
     "limits": "Physical coalition/one-way/non-transitive alliance changes, locality delivery, voice/jamming and resulting investigation remain unverified. Observation-side metadata is a finite snapshot, not ongoing identity tracking. Area reports are not native object reveal equivalence. General support-overwatch selection and full main/wp review remain incomplete. Audits paused. Unsigned development candidate from7e0ed3d5 plus working runtime; notes postdate packaging."
+  },
+  "civilianExteriorRefuge20261026": {
+    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "intent": "Choose a nearby exterior screened refuge instead of always making a long exposed escape, while preserving the existing finite civilian owner. Partial hide intent, not full civilian FSM parity.",
+    "sourcePath": "Civilian FSM Hide state calls doHide with danger position/range10. Complete readable doHide body rechecked against the previously retained shelter gap: optional interior scatter, threat-away cover search and farther-from-danger filtering. CBE does not import forced speed/posture, detached stance restoration, doStop or unowned interior movement.",
+    "change": "One COVER-mode CortexFindCover search around origin within25m, at most10 geometry candidates, excluding the intended actor. Candidate must gain more than2m threat separation and pass CortexSelectAvenue. Keep its exact screened point; never apply broad safePos adjustment to it. On refusal use the original three escape headings and validated safePos. One existing doMove and original generation/order/cooldown/deadline/retry/migration semantics remain.",
+    "cost": "Additional bounded-radius engine cover search/geometry and at most one single-leg avenue check. Local search-admission timestamp caps new search to once per5seconds, including failed plans; a migrated owner may admit one new search. No new worker/controller/global scan. Existing engine query enumeration and total cost remain unmeasured.",
+    "remaining": [
+      "Indoor shelter, corpse/scream awareness and vehicle escape remain incomplete.",
+      "Sparse endpoint screening is not blast immunity or physical native-path proof; first screened candidate can be refused without trying every other cover option.",
+      "Existing civilian observer uses a6m arrival envelope and does not cancel native travel; its ARRIVED label is not proof of physical refuge arrival.",
+      "Physical choice, repeated danger, locality and cost remain unverified while audits are paused."
+    ],
+    "hashes": {
+      ".qa/lambs-danger-installed-20261026/scripts/lambs_dangerCivilian.fsm": "417327c6e514538ec4f81b3c4bd182e15c89524b04fabfbfc94b441099936285",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doHide.sqf": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+      "addons/infantry/functions/cortexCivilianReact.sqf": "4a3596a9f9f386cf730c668cf70229453d4accb5893d5021544d3feff1ba8989",
+      "addons/infantry/functions/cortexFindCover.sqf": "10a6846baf05e8ddc9649b4413f79e285d09f992e85abb536d85bc7c0ff943e6",
+      "addons/infantry/functions/cortexSelectAvenue.sqf": "9a754c00f8d86196227062fce7072fe64374f0e666c0e7e59be48c9ce9c20988",
+      "addons/infantry/functions/cortexCivilianStep.sqf": "6a12f90637401fdb163dec0bbe71f31521c52f4bdcc820a6113296a24a34c717"
+    },
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 446,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/civilian-exterior-refuge-3be6c235",
+      "fingerprint": "9a7be28ecbd40bbd989573b4f20cba61fe982dd8a092ce595a9fb1da8bab8204",
+      "buildLog": ".qa/handovers/civilian-exterior-refuge-bounded-3be6c235.log",
+      "independentLog": ".qa/handovers/civilian-exterior-refuge-independent.log",
+      "sourceNote": "Base3be6c235 plus this runtime patch; unsigned dirty development build, engineering notes postdate package. Earlier unbounded-search build log is intermediate, not final."
+    },
+    "wholeSourceParity": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

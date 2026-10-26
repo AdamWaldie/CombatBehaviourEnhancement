@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Gives an unarmed civilian one finite, priority-aware escape response away from nearby danger.
- * Three separated escape headings use the shared bounded terrain selector, then one safe-position
+ * One local exterior material-cover search first considers a route-screened refuge farther
+ * from danger. Otherwise three separated escape headings use the bounded terrain selector and a safe-position
  * adjustment is accepted only when its complete route remains passable. This avoids sending a
  * civilian into water, a cliff or an abrupt grade without installing a continuous path controller.
  * It does not install an FSM, force an animation, reserve a vehicle or continually steer the unit.
@@ -32,7 +33,7 @@
  *
  * Example:
  * [_civilian,_shooter] call CBE_fnc_CortexCivilianReact;
- * Result: the civilian runs to a safe point away from the shooter without a polling controller.
+ * Result: the civilian moves to a nearby screened refuge or a safe escape point without a polling controller.
  */
 
 params [["_unit",objNull,[objNull]],["_threat",objNull,[objNull,[]]],["_cause","MANUAL",[""]],["_priority",1,[0]]];
@@ -79,15 +80,36 @@ if (vectorMagnitude _away < 1) then {_away=[sin (random 360),cos (random 360),0]
 _away=vectorNormalized _away;
 private _distance=(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Distance",180])*(0.75+random 0.5);
 private _escapeBearing=_origin getDir (_origin vectorAdd _away);
-private _routes=[];
-{_routes pushBack [[_origin getPos [_distance,_escapeBearing+_x]]]} forEach [0,-45,45];
 private _threatObject=if (_threat isEqualType objNull) then {_threat} else {objNull};
-private _route=[_origin,_routes,_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
-if (_route isEqualTo []) exitWith {false};
-private _routeDestination=+(_route select 0);
-private _safeDestination=[_routeDestination,0,35,3,0,0.35,0,[],[_routeDestination,_routeDestination]] call BIS_fnc_findSafePos;
-private _safeRoute=[_origin,[[_safeDestination]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
-private _destination=if (_safeRoute isEqualTo []) then {_routeDestination} else {+(_safeRoute select 0)};
+private _destination=[];
+// Prefer a short material-screened exterior refuge over a long exposed escape. The shared
+// cover selector considers at most10 objects inside25m, excludes this actor from occupancy/rays,
+// and never treats another person as protection. A refuge must also gain distance from danger.
+private _shelter=[_origin,false];
+// Failed escape plans have no active reaction cooldown. Bound this additional search under
+// repeated gunfire too; this local admission timestamp grants no movement or retry authority.
+if (serverTime >= (_unit getVariable ["CBE_Cortex_CivilianShelterSearchAfter",0])) then {
+    _unit setVariable ["CBE_Cortex_CivilianShelterSearchAfter",serverTime+5];
+    _shelter=[_origin,_threatPos,25,[],_group,"COVER",_unit] call CBE_fnc_CortexFindCover;
+};
+if (_shelter select 1 && {(_shelter select 0) distance2D _threatPos > (_origin distance2D _threatPos)+2}) then {
+    private _shelterRoute=[_origin,[[+(_shelter select 0)]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
+    if (_shelterRoute isNotEqualTo []) then {_destination=+(_shelterRoute select 0)};
+};
+// Never apply the broad safe-position adjustment to a screened refuge: it could move the
+// destination out from behind the protecting object. Refusal uses the original escape policy.
+if (_destination isEqualTo []) then {
+    private _routes=[];
+    {_routes pushBack [[_origin getPos [_distance,_escapeBearing+_x]]]} forEach [0,-45,45];
+    private _route=[_origin,_routes,_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
+    if (_route isNotEqualTo []) then {
+        private _routeDestination=+(_route select 0);
+        private _safeDestination=[_routeDestination,0,35,3,0,0.35,0,[],[_routeDestination,_routeDestination]] call BIS_fnc_findSafePos;
+        private _safeRoute=[_origin,[[_safeDestination]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
+        _destination=if (_safeRoute isEqualTo []) then {_routeDestination} else {+(_safeRoute select 0)};
+    };
+};
+if (_destination isEqualTo []) exitWith {false};
 private _issued=false;
 isNil {
 if (!local _unit || {!local _group} || {group _unit != _group}
