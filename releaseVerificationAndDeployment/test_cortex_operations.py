@@ -1896,9 +1896,34 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('keys _owned findIf {_x != "SPEED"}',settings)
         self.assertIn('[_authorityGroup,_mode == "RELEASE",_actor]',settings)
         self.assertIn('private _paceActors=(units _group) select [0,64]',source('dangerSetup'))
-        check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode != "RELEASE"',1)[0]
+        check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode == "RELEASE" && {serverTime >=',1)[0]
         self.assertIn('CBE_OperationGeneration',check)
         self.assertIn('CBE_AIPass_Epoch',check)
+        for proof in ('CBE_ActorSettings','(_lease select 0) isNotEqualTo _context',
+                      '(_lease select 2) isNotEqualTo 0','count _owned != 1',
+                      '!("SPEED" in _owned)','getForcedSpeed _actor',
+                      'abs (_nativeSpeed-(_speedPair select 1)) <= 0.00001'):
+            self.assertIn(proof,check)
+        for forbidden in ('call CBE_fnc_ActorSettings','units _group','nearEntities',
+                          'setVariable','forceSpeed','serverTime+'):
+            self.assertNotIn(forbidden,check)
+        settings=source('actorSettings')
+        self.assertIn('abs (_a-_b) <= 0.00001',settings)
+        # Native acknowledgement uses the same tolerance as the real settings owner.
+        self.assertLess(abs((3+0.000005)-3),0.00001)
+        self.assertGreater(abs((3+0.00002)-3),0.00001)
+        expired=pace.split('if (_mode == "RELEASE" && {serverTime >=',1)[1].split('// RELEASE does not adopt/replay speed',1)[0]
+        for proof in ('isNil {','local _actor','group _actor != _group',
+                      'isNotEqualTo _proof','(_lease select 0) isNotEqualTo _context',
+                      'count _owned != 1','!("SPEED" in _owned)',
+                      'abs (_nativeSpeed-(_pair select 1)) <= 0.00001',
+                      'setVariable ["CBE_ActorSettings",nil,true]'):
+            self.assertIn(proof,expired)
+        for forbidden in ('forceSpeed','call CBE_fnc_ActorSettings','serverTime+',
+                          'CortexQueueJob','units _group'):
+            self.assertNotIn(forbidden,expired)
+
+
         self.assertIn('["CHECK",_x] call CBE_fnc_DangerAttackPace',source('dangerSetup'))
 
     def test_native_group_contacts_survive_a_leader_cover_blind_spot(self):
@@ -8864,7 +8889,7 @@ class CortexOperations(unittest.TestCase):
         grenade=source('cortexThrowGrenade')
         self.assertIn('addEventHandler ["FiredMan"',grenade)
         self.assertIn('removeEventHandler ["FiredMan",_thisEventHandler]',grenade)
-        self.assertIn('[_unit,_handler],10',grenade)
+        self.assertIn('[_unit,_handler,_group,_ownerEpoch,_throwGeneration,clientOwner],10',grenade)
 
     def test_assault_handoffs_issue_movement_without_an_extra_scheduler_turn(self):
         step=source('cortexFlankStep')
@@ -8928,7 +8953,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(callback.index('CBE_AIPass_Assault_Enable'),callback.index('forceWeaponFire'))
         locality=source('cortexLocality')
         self.assertIn('removeEventHandler ["FiredMan",_fragHandler]',locality)
-        self.assertLess(locality.index('CBE_Cortex_FragHandler'),locality.index('if (!_gained'))
+        self.assertLess(locality.index('CBE_Cortex_FragHandler'),locality.index('if (!_gained || {!local _group}) exitWith {}'))
 
     def test_reaction_qa_keeps_previous_cancellations_and_adds_assault_disable(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runReactions.sqf').read_text()
@@ -11196,8 +11221,8 @@ class CortexOperations(unittest.TestCase):
         observer=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         tracked=source('cortexVehicleReverseStep')
-        self.assertIn('boundingBoxReal _vehicle',observer)
-        self.assertIn('boundingBoxReal _thisActor',observer)
+        self.assertIn('[_vehicle,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',observer)
+        self.assertIn('[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',observer)
         self.assertIn('count _actors > 64',observer)
         self.assertIn('forEach _heights',observer)
         self.assertIn('[0.45,0.9,(_bodyHeight+0.45)*0.5,_bodyHeight]',observer)
@@ -11218,8 +11243,8 @@ class CortexOperations(unittest.TestCase):
 
     def test_reverse_clearance_uses_full_vertical_hulls_not_actor_centres(self):
         text=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text(encoding='utf-8')
-        for proof in ['private _thisActor=_x','_thisActor modelToWorld _otherLow',
-                      '_projectedLow set [_axis','_projectedHigh set [_axis',
+        for proof in ['private _thisActor=_x','[_thisActor,_frameOrigin,_side,_forward,_up]',
+                      'call CBE_fnc_DrivingHullInterval','_hull params',
                       '_maxZ >= (_low select 2)-0.3','_minZ <= (_high select 2)+0.3']:
             self.assertIn(proof,text)
         self.assertNotIn('abs _vertical < 4',text)

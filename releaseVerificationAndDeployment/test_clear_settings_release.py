@@ -50,6 +50,25 @@ class ClearSettingsRelease(unittest.TestCase):
         self.assertLess(release.index('private _window='),release.index('call CBE_fnc_ActorSettings'))
         self.assertIn('_windowValid && {(_window select 0) isNotEqualTo _issuer} && {_canonicalIssuerMatches}',release)
         self.assertIn('[_generation,_epoch,_until,0]',release)
+        aggregate=release.split('private _combined=+_pending;',1)[1].split('private _cleanup=',1)[0]
+        self.assertIn('_combined set [2,_until]',aggregate)
+        self.assertNotIn('serverTime+',aggregate)
+        self.assertNotIn('set [3,',aggregate)
+        self.assertNotIn('CBE_Cortex_ClearSettingRetireUntil',aggregate)
+        self.assertIn('_until > (_pending select 2)',release)
+        self.assertIn('(_window select 0) isEqualTo _issuer',release)
+        # A later actor keeps its original deadline; the service remains alive long
+        # enough to offer it handback without extending the first actor's permission.
+        pending=[4,2,130,7]
+        def admit(original_until):
+            return [pending[0],pending[1],max(pending[2],original_until),pending[3]]
+        combined=admit(150)
+        self.assertEqual(combined,[4,2,150,7])
+        self.assertFalse(135<130)  # first actor expired
+        self.assertTrue(135<combined[2])  # second actor still has original time
+        self.assertEqual(admit(150),combined)  # repeating admission creates no time
+        self.assertEqual(admit(120),pending)  # an older actor cannot shorten service
+
         self.assertNotIn('[_generation,_epoch,serverTime+30,0]',release)
         self.assertIn('isEqualTo _window',release)
         actor_selection=block.split('private _actors=_members select {',1)[1].split('if (_actors isEqualTo [])',1)[0]

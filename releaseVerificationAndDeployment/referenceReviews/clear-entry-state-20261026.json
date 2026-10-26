@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "e661ba6b",
+  "status": "ORIGINAL_ENTRY_BUDGET_CAPTURE_OFFLINE_VERIFIED",
+  "finding": "The current entry path already commits buddies independently; changing that gate was not justified. Its private entryRecovery map and public entry-recovery/alternative-search records were absent from the outgoing actor capture.",
+  "implementation": [
+    "Actor component version4 retains six fields; actor rows now have9 fields. Added entry state version1 carries private-record presence/value and separate public recovery/alternative records. Outer capture remainsv12/seventeen fields.",
+    "Preserve original distances, server timestamps, spent retry flag, alternative target, consumed search count, coverage and visit headers. Foreign-visit history retains its original context; it is not current unused budget.",
+    "Validate <=64 private map entries and exact original actor keys, five-field recovery records, max3 alternative searches/max512 coverage, typed transforms/targets and bounded independent copies. Unknown/unbound malformed data refuses.",
+    "Server requires actor component version4. Source retirement watches both public entry channels after original FSM completion; bound rises from578 to706 records (11actor channels*64 plus2group records).",
+    "No new movement command, path request, worker, timer, recovery attempt, deadline or incoming authority."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "6e9eff949778993549e11a9e02976b87c498e55f3c61bc8a4f9f910091f7640c",
+    "addons/infantry/functions/buildingActorJournal.sqf": "432a89ebe181eaaaffefaed6dd331e69c91fe9244719577ef7290ca12c2ddf2d",
+    "addons/infantry/functions/buildingProducerRegister.sqf": "4bc9dc8bdf6ba2223591c16d5a91ea2efe4ce0f0416ae435f9f1e24a58defa2b",
+    "addons/infantry/functions/buildingProducerRetire.sqf": "5b675d2dca8873b67f2c333b2ae741ca8788e2ebbd705aae97cf05e3825933d0",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "8fcdd891dc454b4754fc315a8d7520a93d4560ed205b17ad1a5deda0fdaf5e0a"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 3,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-entry-state-e661ba6b",
+    "fingerprint": "827a854ab0644c80a78c64473481e86ede187e0cd2ae128a505c6ef40bf1f525",
+    "buildLog": ".qa/handovers/clear-entry-state-build.log",
+    "independentLog": ".qa/handovers/clear-entry-state-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "All-writer seal, authenticated complete delivery and actual incoming native/settings/phase reconciliation.",
+    "Physical doorway flow, entry recovery and repeated owner transfers remain unverified; audits paused."
+  ]
+}

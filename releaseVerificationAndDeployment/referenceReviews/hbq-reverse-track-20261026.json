@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "6b75b15ae729c316da67067e2fd058714dfbf6d1",
+  "workshopId": "3812620045",
+  "status": "DIRECTION_BOUND_TRACK_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Existing measured track extended to ordinary rear travel; explicit cadence comparison, no observation LOD claim.",
+  "references": [
+    {
+      "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "rangesReviewed": [
+        "2525-2560 measured chord and direction reset",
+        "2159-2179 independent clocks",
+        "114-126 precision factors"
+      ]
+    },
+    {
+      "path": ".qa/hbq-complete-source-20261025/functions/fn_precision.sqf",
+      "sha256": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+      "rangesReviewed": [
+        "complete helper"
+      ]
+    }
+  ],
+  "finding": "CBE measured curvature discarded every reverse sample; rear geometry therefore used native instantaneous yaw rather than actual travelled chord.",
+  "implementation": [
+    "Optional travel direction selects unit side/forward axes; direction enters existing private identity so a reversal cannot inherit the opposite-direction sample.",
+    "Existing three-metre/1.5-second sample, six-second age, <=1m/s along-travel reset and 250m straightness threshold retained. Invalid direction returns no receipt.",
+    "Ordinary rear geometry consumes its own measured chord, never a forward native path/support hint. Convoy callers retain default forward frame.",
+    "No new history scan, world query, scheduler, worker or timer. Existing curved-ray bound unchanged; selected fan and aggregate cost can differ from former yaw fallback."
+  ],
+  "cadenceDecision": "No player-distance slowdown implemented. CBE already uses 4s cruise/1s constrained cadence with 4s reaction accounting; HBQ factors are1..2.2s. No physical response-latency evidence justifies extending CBE intervals. Precision/LOD gap remains explicit, not counted as implemented.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingTurnTrack.sqf": "369e9ccb8bec7a64f12cb6627ecbdc1af32662b80f576e13b7ebd4f350728f60",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "db1dcb02b10ed57d74ea82754421c577b2c8159ac8b3414b3e054831dd54ec60",
+    "releaseVerificationAndDeployment/test_driving_geometry.py": "da5d676de6b5d1394feb378940b991441a89a86cbb62b693056bbe8edb654390"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/reverse-track-6b75b15a",
+    "fingerprint": "26da0317462ed8d73155ad74e0445da5788a4d165b5175ddcf3f0ec8ec24240c",
+    "buildLog": ".qa/handovers/reverse-track-build.log",
+    "independentLog": ".qa/handovers/reverse-track-independent.log",
+    "runtimeUnchangedAfterBuild": true
+  },
+  "remaining": [
+    "Physical reverse bends, braking/flow, direction changes, locality/HC repeats and performance remain unverified. Audits paused.",
+    "Complete HBQ source integration and external-controller handovers remain incomplete."
+  ],
+  "physicalAcceptance": false,
+  "wholeHBQParity": false
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "9991c98c23d8fea41d5646d30ed5c0d79726f179",
+  "status": "WATCHED_POST_EDGE_METADATA_RECHECK_OFFLINE_VERIFIED_SEAL_INCOMPLETE",
+  "implementation": [
+    "After intentional Local-edge marker cleanup, source retains independent deep copies of nine actor metadata channels and two group settings cleanup records. Canonical HashMaps and nested arrays are copied; absence is explicit.",
+    "After actual old-FSM completion, compare original presence and exact values once. Changed/deleted/malformed watched records refuse SOURCE_METADATA_CHANGED rather than refreshing baseline, attempt count or deadline.",
+    "At most578 watched records. No native command/readback, new worker, timer or public readiness state. Existing finite retirement observer carries the checks.",
+    "Every terminal result clears writer references and comparison records, retaining the original source checkpoint and small private result state."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "93ec5e3996e3471b17df2b775fcef0a57531c856d356e298efe1354efa326d6a",
+    "addons/infantry/functions/buildingProducerRetire.sqf": "870a0d5d7b4b7e1807a2b53f2425ff8dac818f8279d0638fbc937c6f7fe1a415",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "2a0459189b05e4a6f56a00a9981df670caa93d93bbef4a02464ff6b530f3d86c"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-retire-consistency-9991c98c",
+    "fingerprint": "266737b5182a3a01816c30782fa86580265a78d2f22cc3938dea4b4702f9cf55",
+    "buildLog": ".qa/handovers/clear-retire-consistency-final-build.log",
+    "independentLog": ".qa/handovers/clear-retire-consistency-independent.log",
+    "intermediateBuild": ".qa/handovers/clear-retire-consistency-build.log passed before terminal reference cleanup; superseded.",
+    "runtimeUnchangedAfterFinalBuild": true
+  },
+  "remaining": [
+    "Only watched post-edge metadata is compared; this is not whole-checkpoint replay/serialization or all-writer proof.",
+    "Independent controller journals and remaining source callbacks require complete retirement/seal treatment.",
+    "Server-authenticated complete delivery and incoming actual native/settings/phase reconciliation remain unfinished.",
+    "Audits paused: physical normal/HC handover timing and runtime performance are unverified."
+  ],
+  "completeHandover": false,
+  "physicalAcceptance": false
+}

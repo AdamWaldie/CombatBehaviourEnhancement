@@ -31,6 +31,29 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('private _otherForward=if (_following)',s)
         self.assertIn('} else {0}',s)
         self.assertIn('private _ahead=_maxY > _front-0.25',s)
+        self.assertIn('_forward=(vectorNormalized _forward) vectorMultiply _travelDirection',s)
+        self.assertIn('_travelDirection < 0 || {_relative vectorDotProduct _right > 0.25}',s)
+        self.assertIn('_travelDirection == 1 && {count _queueProof > 0}',s)
+        self.assertIn('private _standOff=[6,2] select (_travelDirection < 0)',s)
+        self.assertIn('private _room=(_hullGap-_standOff) max 0',s)
+        # Forward stand-off must not stop a backing vehicle at six metres when
+        # its original rear envelope uses a two-metre end buffer.
+        import math
+        def stationary_cap(gap,direction):
+            room=max(0,gap-(2 if direction<0 else 6));reaction_speed=4*4
+            return min(room/3,math.sqrt(reaction_speed**2+2*4*room)-reaction_speed)
+        self.assertEqual(stationary_cap(4,1),0)
+        self.assertGreater(stationary_cap(4,-1),0)
+        self.assertEqual(stationary_cap(2,-1),0)
+        self.assertGreater(stationary_cap(2.1,-1),0)
+        # Exact metre projections: front and rear see opposite hulls, including an
+        # asymmetric five-metre rear. A rear observer cannot exempt a convoy leader.
+        def interval(lo,hi,direction):return min(lo*direction,hi*direction),max(lo*direction,hi*direction)
+        own=(-5,3);behind=(-20,-14);ahead=(8,14)
+        self.assertEqual(interval(*own,-1),(-3,5))
+        self.assertEqual(interval(*behind,-1)[0]-interval(*own,-1)[1],9)
+        self.assertLess(interval(*ahead,-1)[1],interval(*own,-1)[1])
+        self.assertEqual(interval(*ahead,1)[0]-interval(*own,1)[1],5)
         self.assertNotIn('private _centre=',s)
         self.assertIn('[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull',s)
         self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
@@ -66,19 +89,39 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertFalse(occupied(-2,2,2,0,2))
         self.assertFalse(occupied(3,5,8,0,2))
         self.assertFalse(occupied(-2,2,8,5,7))
-        # Dense broad-phase admission may prune a slow separated hull, never moving
-        # crossing traffic or a long hull whose projection still occupies the lane.
+        # A discarded dense candidate cannot affect either existing constraint branch.
+        # Moving stacked traffic and parallel off-lane streams must not consume the
+        # prediction budget. Occupied hulls, crossing courses and unknowns remain.
         import math
-        def retained(bounds,speed):
-            return not (math.isfinite(speed) and speed<=0.8 and not occupied(*bounds))
+        def retained(bounds,speed,denominator=1.0):
+            if not math.isfinite(speed) or not all(math.isfinite(v) for v in bounds):return True
+            min_x,max_x,max_y,min_z,max_z=bounds
+            same_height=max_z>=-0.75 and min_z<=2.25
+            if not same_height:return False
+            if occupied(*bounds):return True
+            return not (speed<=0.8 or (math.isfinite(denominator) and abs(denominator)<=0.2))
         parked=[((-2,2,2,0,2),0.0)]*100
         self.assertEqual(sum(retained(*row) for row in parked),0)
         conflict=((-2,2,5,0,2),0.0)
         self.assertEqual(sum(retained(*row) for row in parked+[conflict]),1)
         self.assertGreater(sum(retained(*row) for row in [conflict]*65),64)
         self.assertTrue(retained((3,5,8,0,2),10.0))
-        self.assertTrue(retained((-2,2,5,0,2),0.0))
+        self.assertTrue(retained((-2,2,5,0,2),10.0,0.0))
         self.assertTrue(retained((3,5,8,0,2),float('nan')))
+        self.assertTrue(retained((3,5,8,0,2),10.0,float('nan')))
+        self.assertTrue(retained((3,float('nan'),8,0,2),10.0,0.0))
+        self.assertEqual(sum(retained((-2,2,8,5,7),10.0) for _ in range(100)),0)
+        self.assertEqual(sum(retained((3,5,8,0,2),10.0,0.0) for _ in range(100)),0)
+        self.assertFalse(retained((3,5,8,0,2),10.0,0.2))
+        self.assertTrue(retained((3,5,8,0,2),10.0,0.200001))
+        for bounds in ((-2,2,5,0,2),(-2,2,2,0,2),(3,5,8,0,2),(-2,2,8,5,7)):
+            for speed in (0.0,0.8,0.80001,10.0):
+                for denominator in (-1.0,-0.2,0.0,0.2,1.0):
+                    same_height=bounds[4]>=-0.75 and bounds[3]<=2.25
+                    potential=occupied(*bounds) or (same_height and speed>0.8 and abs(denominator)>0.2)
+                    if not retained(bounds,speed,denominator):self.assertFalse(potential)
+        self.assertIn('_ownProjectionFinite',s)
+        self.assertIn('finite _denominator && {abs _denominator <= 0.2}',s)
         self.assertIn('count _candidates > 256',s)
         self.assertIn('_denseTraffic && {canSuspend}',s)
         self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)
@@ -95,7 +138,7 @@ class DrivingTrafficTests(unittest.TestCase):
         observer=src('drivingFollowingCap')
         admission=observer.split('if (_other != _vehicle',1)[1].split('then {',1)[0]
         self.assertNotIn('_predecessor',admission)
-        self.assertIn('private _spacingOwned=_other == _predecessor && {alive _other}',observer)
+        self.assertIn('private _spacingOwned=_travelDirection == 1 && {_other == _predecessor} && {alive _other}',observer)
         self.assertIn('>= cos 25',observer)
         self.assertIn('if (_other == _predecessor && {!_spacingOwned}) then {_following=false}',observer)
         self.assertIn('if (_hullGap < 2 && {_cap > 0}) then {_cap=0;',observer)
@@ -115,8 +158,12 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('if (!_crewObserved || {_scheduledObservation})',s)
         self.assertIn('_ownCrew=crew _vehicle;_crewObserved=true',s)
         self.assertIn('!(_thisActor in _ownCrew)',s)
-        self.assertIn('_projectedLow set [_axis',s)
-        self.assertIn('_projectedHigh set [_axis',s)
+        self.assertIn('[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',s)
+        span=src('drivingHullInterval')
+        self.assertIn('_minimum=_minimum+(_along min 0)',span)
+        self.assertIn('_maximum=_maximum+(_along max 0)',span)
+        self.assertIn('_thirdMinimum=_thirdMinimum+(_thirdAlong min 0)',span)
+        self.assertIn('_thirdMaximum=_thirdMaximum+(_thirdAlong max 0)',span)
         self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
 
     def test_discovery_covers_fast_approach_even_at_low_own_speed(self):
@@ -157,6 +204,47 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)
         self.assertIn('setVariable ["CBE_DrivingAssist_Traffic",nil]',src('drivingAssistRelease'))
+        ordinary=src('drivingAssistStart')
+        direction=ordinary.split('private _directionContext=',1)[1].split('private _traffic=if',1)[0]
+        for proof in ('clientOwner','"ownerEpoch"','"generation"','_routeIdentity','_driver','_movementOperator',
+                      '_sameDirectionOwner','_newForwardPath','_nativeLongitudinal < -0.15',
+                      '_nativeLongitudinal <= 0.15','["FORWARD","FAST","SLOW"]',
+                      '"CBE_DrivingPass_Work"','"CBE_DrivingBypass_Work"','"CBE_DrivingCorridor_Work"',
+                      'getForcedSpeed _vehicle','10/3.6'):
+            self.assertIn(proof,direction)
+        for forbidden in ('sendSimpleCommand','setDriveOnPath','doMove','forceSpeed ','CortexQueueJob','serverTime+'):
+            self.assertNotIn(forbidden,direction)
+        task=ordinary.split('private _directionTask={',1)[1].split('// Capture/validate',1)[0]
+        for proof in ('["","MOVE","WAIT"]','"TRAVEL"','expectedDestination _actor','formLeader _actor'):
+            self.assertIn(proof,task)
+        self.assertIn('_directionScheduled &&',ordinary)
+        self.assertIn('call _directionTask] isNotEqualTo _directionFrame',ordinary)
+        self.assertLess(ordinary.index('_vehicle forceSpeed _capMps'),ordinary.index('"CBE_DrivingDirection_Observation",_nextDirectionObservation'))
+        self.assertIn('if (_travelDirection != 0) then',ordinary)
+        self.assertIn('_traffic param [5,false,[true]]) || {_nativeReverse}',ordinary)
+        self.assertIn('setVariable ["CBE_DrivingDirection_Observation",nil]',src('drivingAssistRelease'))
+        # Observed direction is task-bound state, not a movement request. Planning
+        # status changes alone may not flip sensing when the cap makes motion zero.
+        def backing(speed, same=False, previous=-1, new_path=False, mode="MOVE", cap_owned=True):
+            return speed<-.15 or (speed<=.15 and (mode=="BACK" or
+                (mode not in ("FORWARD","FAST","SLOW") and same and previous==-1 and not new_path and cap_owned)))
+        self.assertTrue(backing(-1))
+        self.assertTrue(backing(0,same=True))
+        self.assertTrue(backing(-.1,same=True))
+        self.assertFalse(backing(0,same=False))
+        self.assertFalse(backing(0,same=True,new_path=True))
+        self.assertFalse(backing(.2,same=True))
+        self.assertFalse(backing(0,same=True,mode="FORWARD"))
+        self.assertFalse(backing(0,same=True,cap_owned=False))
+        self.assertTrue(backing(0,mode="BACK"))  # Observation only; writer still refuses unowned BACK.
+        self.assertIn('private _nextPathAt=if (_nativeReverse && {_sameDirectionOwner} && {abs _nativeLongitudinal <= 0.15})',direction)
+        self.assertIn('_previousPathAt\n            } else {_pathAt max _previousPathAt}',direction)
+        # A new side-on/short path is not consumed until it becomes a usable
+        # forward observation; the ordinary evidence age itself is never renewed.
+        previous=10;new_path=11
+        retained_stamp=previous
+        self.assertGreater(new_path,retained_stamp)
+        self.assertFalse(backing(0,same=True,new_path=new_path>retained_stamp))
     def test_convoy_low_speed_smoothing_retains_raw_safety_caps(self):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         smoothing=s.split('// Tracks accelerate and brake unevenly.',1)[1].split('_limit = [_vehicle',1)[0]

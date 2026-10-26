@@ -8,6 +8,19 @@ def clear():return (ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').re
 class ClearPreparationCommitTests(unittest.TestCase):
     def test_each_commit_rechecks_original_authority_without_wrapping_route_plan(self):
         text=clear()
+        preflight=text.split('// Inspect inherited settings',1)[1].split('private _generation=-1;',1)[0]
+        for proof in ('"PREFLIGHT"','"ADOPTABLE","ABSENT"','_resumeSettingsProbe',
+                      '(_motion select 4) isNotEqualTo (_mirrors select [1,3])',
+                      '(_team select [0,8])','_resumeActorSettings pushBack',
+                      'keys (_canonical select 1) apply','_canonical,_mirrors,_motion,_outcome',
+                      '["OBSERVE",_candidate,_resumeSettingsProbe] call CBE_fnc_BuildingActorMotion',
+                      'if (_resumeSettingsPending) exitWith {false}'):
+            self.assertIn(proof,preflight)
+        for forbidden in ('setVariable','doMove','doStop','forceSpeed','setUnitPos','CortexClearRelease','serverTime+'):
+            self.assertNotIn(forbidden,preflight)
+        self.assertLess(text.index('if (_resumeSettingsPending) exitWith'),text.index('call CBE_fnc_OperationStart'))
+        self.assertLess(text.index('RESUME_ACTOR_SETTINGS_CHANGED'),text.index('call CBE_fnc_CortexReleaseGroup'))
+        self.assertIn('!([false] call _inspectResumeSettings)',text)
         gate=text.split('private _commitPreparation={',1)[1].split('// A valid new operation',1)[0]
         for proof in ('isNil {','local _group','CBE_AIPass_ClearGeneration','_preparationEpoch',
                       'CBE_AIPass_Epoch','_operationGeneration','"ownerEpoch"','"CLEAR"','"objective"',
@@ -229,12 +242,141 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[11,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[12,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission,_actors]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)
         self.assertIn('private _egressing=_phase == "EGRESS"',capture)
+        retire=(ROOT/'addons/infantry/functions/buildingProducerRetire.sqf').read_text(encoding='utf-8')
+        for guard in ('!completedFSM _handle','_attempts >= 8','serverTime >= _until',
+                      'count _writers > 131','CBE_Cortex_ClearRetireLocal',
+                      'isEqualTo _brain','_brain getOrDefault ["cancelled",false]',
+                      'ORIGINAL_FSMS_RETIRED'):
+            self.assertIn(guard,retire)
+        for forbidden in ('forceSpeed','doMove','doFollow','setPos','execFSM'):
+            self.assertNotIn(forbidden,retire)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        self.assertLess(locality.index('private _clearRetireSource='),locality.index('private _drivingBrain='))
+        self.assertLess(locality.index('} forEach units _group;',locality.index('private _buildingBrain=')),
+                        locality.index('private _clearRetireCapture='))
+        self.assertIn('((_clearRetireCapture select 5)+3) min _clearRetireDeadline',locality)
+        self.assertIn('(_clearRetireCapture select 11) select 7',locality)
+        self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
+        self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
+        self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
+        for guard in ('count _records > 706','SOURCE_METADATA_CHANGED',
+                      '_currentPresent isNotEqualTo _present',
+                      '(_object getVariable _variable) isNotEqualTo _original'):
+            self.assertIn(guard,retire)
+        self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _records='))
+        self.assertLess(retire.index('SOURCE_METADATA_CHANGED'),retire.index('setVariable ["CBE_Cortex_ClearFSMRetiredLocal"'))
+        self.assertIn('["records",_clearRetireRecords]',locality)
+        self.assertIn('["CAPTURE",_submission] remoteExecCall ["CBE_fnc_BuildingProducerRegister",2]',retire)
+        self.assertIn('groupOwner _group != (_state getOrDefault ["incomingOwner",-1])',retire)
+        self.assertIn('["incomingOwner",_clearEdgeIncomingOwner]',locality)
+        self.assertLess(locality.index('private _clearEdgeIncomingOwner=groupOwner _group;'),locality.index('call CBE_fnc_CortexIlluminationStep'))
+        self.assertLess(retire.index('SOURCE_METADATA_CHANGED'),retire.index('private _submission='))
+        self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _submission='))
+        self.assertIn('_state deleteAt "writers";_state deleteAt "records";',retire)
+        self.assertIn('createHashMapFromArray _pairs',locality)
+        self.assertIn('CBE_Cortex_ClearSettingsPending',locality)
+        # Baseline copies cannot drift with a mutable canonical source map.
+        import copy
+        baseline=copy.deepcopy({'SPEED':[2,1]})
+        changed={'SPEED':[2,1]}
+        self.assertEqual(changed,baseline)
+        changed['SPEED'][1]=0
+        self.assertNotEqual(changed,baseline)
+        def retired(cancelled,completed,pointer_replaced,expired=False):
+            return cancelled and completed and pointer_replaced and not expired
+        self.assertFalse(retired(True,False,True))
+        self.assertFalse(retired(True,True,False))
+        self.assertFalse(retired(True,True,True,True))
+        self.assertTrue(retired(True,True,True))
+        actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('count _actors == 7',capture)
+        self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
+        for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
+                      'producerRegistration','count _actors > 64','count _owned > 2',
+                      'CBE_ActorSettings','CBE_Cortex_ClearMotion','_retryAt < 0',
+                      '_properties pushBack [_property,_pair select 0,_pair select 1]',
+                      '_key in ["","0:0"]','_settings isEqualTo [] && {_mirrors findIf',
+                      '_copiedRegistration set [2,[_visit] call _copyVisit]'):
+            self.assertIn(guard,actor_journal)
+        for forbidden in ('setVariable','forceSpeed','doMove','expectedDestination','unitPos ',
+                          'getForcedSpeed','serverTime+','spawn','remoteExec'):
+            self.assertNotIn(forbidden,actor_journal)
+        for guard in ('CBE_Cortex_ActorMove','CBE_Cortex_ClearEvasionReturn',
+                      'CBE_Cortex_ClearSettingRetireUntil','CBE_Cortex_ClearSettingsPending',
+                      'CBE_Cortex_ClearSettingsResult','_serverNow+((_reservation select 2)-_localNow)',
+                      '_serverNow+((_return select 2)-_localNow)',
+                      '(_return select 0) isNotEqualTo _motion',
+                      '(_return select 5) isNotEqualTo clientOwner',
+                      '[5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]'):
+            self.assertIn(guard,actor_journal)
+        for guard in ('keys _restore findIf {_x != "groupAttack"}',
+                      '(_attack select 0) isNotEqualTo _baseAttack',
+                      '_policyNodes > 4096','_depth > 16','count _value > 512',
+                      '[1,_baseBehaviour,_baseAttack,_continueRoute,+_attack,_copiedNative]'):
+            self.assertIn(guard,actor_journal)
+        self.assertNotIn('attackEnabled',actor_journal)
+        self.assertNotIn('behaviour ',actor_journal.split('params [["_job"',1)[1])
+        original_route=[3,1,[['position',[1,2,3]],['condition','true']]]
+        import copy
+        transported=copy.deepcopy(original_route)
+        original_route[2][0][1][0]=99
+        self.assertEqual(transported[2][0][1][0],1)
+        def policy_valid(base,lease,extra_keys=False):
+            return type(base) is bool and lease==[base,False] and not extra_keys
+        self.assertTrue(policy_valid(True,[True,False]))
+        self.assertFalse(policy_valid(True,[False,False]))
+        self.assertFalse(policy_valid(True,[True,True]))
+        self.assertFalse(policy_valid(True,[True,False],True))
+        for guard in ('CBE_Cortex_ClearEntryRecovery','CBE_Cortex_ClearEntryAlternative',
+                      'count _entryRecovery > 64','_entryPresent',
+                      '(_alternative select 4) > 3','(_alternative select 5) > 512',
+                      '[1,_entryPresent,_entryRecord,_publishedEntry,_alternative]',
+                      'keys _entryRecovery findIf'):
+            self.assertIn(guard,actor_journal)
+        for channel in ('CBE_Cortex_ClearEntryRecovery','CBE_Cortex_ClearEntryAlternative'):
+            self.assertIn(channel,locality.split('private _clearRetireRecords=',1)[1])
+        original_entry=[1,True,[3,120,True,[1,2,0],[0,2,0]],[],['house',150,[[0,0,0],[0,1,0],[0,0,1]],[],3,12,['house',[[0,0,0],[0,1,0],[0,0,1]],150,'visit']]]
+        captured_entry=copy.deepcopy(original_entry)
+        original_entry[2][2]=False
+        original_entry[4][4]=0
+        self.assertTrue(captured_entry[2][2])
+        self.assertEqual(captured_entry[4][4],3)
+        self.assertEqual(captured_entry[2][1],120)
+        for field in ('nativeHoldPositions','roomHolds','formationFallbackHolds','accessHeld',
+                      'quarantineHeld','securityActors','rotatedOut','egressDiverted',
+                      'accessAdmitted','accessBlocked','accessReported','assigned','started'):
+            self.assertIn('"'+field+'"',actor_journal)
+        self.assertIn('count _assigned != count _team',actor_journal)
+        self.assertIn('_assigned findIf {isNil "_x"}',actor_journal)
+        self.assertIn('isNil {_map get _x}',actor_journal)
+        self.assertIn('_serverNow+((_record select 1)-_localNow)',actor_journal)
+        self.assertIn('_mapKeys findIf',actor_journal)
+        original_holds={'actorA':[1,2,3]}
+        original_started=['actorA']
+        captured_holds=copy.deepcopy(original_holds)
+        captured_started=list(original_started)
+        original_holds['actorA'][0]=99
+        original_started.clear()
+        self.assertEqual(captured_holds,{'actorA':[1,2,3]})
+        self.assertEqual(captured_started,['actorA'])
+        # Clock origins may differ. Preserve remaining time, including already expired leases.
+        for local_now,server_now,expiry in ((100,500,106),(100,500,99),(1,900,1)):
+            encoded=server_now+(expiry-local_now)
+            self.assertEqual(encoded-server_now,expiry-local_now)
+            received_at=server_now+2
+            self.assertEqual(encoded-received_at,expiry-local_now-2)
+        import copy
+        original=[['issuer',4,3,100],{'STANCE':['AUTO','UP'],'SPEED':[2,1]},9]
+        snapshot=copy.deepcopy(original)
+        original[1]['SPEED'][0]=0
+        self.assertEqual(snapshot[1]['SPEED'],[2,1])
+        self.assertEqual(snapshot[2],9)  # Existing server retry deadline does not restart.
         egress=(ROOT/'addons/infantry/functions/buildingEgressJournal.sqf').read_text(encoding='utf-8')
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _journal=[_job] call CBE_fnc_BuildingEgressJournal',step)

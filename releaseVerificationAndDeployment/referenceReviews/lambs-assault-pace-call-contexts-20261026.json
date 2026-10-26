@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "kind": "selected-source-execution-comparison",
+  "sourceCommit": "70c14299f6111598778e4a6fa530376a784c59ef",
+  "sourceRoot": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction",
+  "sources": [
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultSpeed.sqf",
+      "sha256": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105",
+      "review": "Full readable SQF body inspected; compiled variant and recursive descendants not assessed here."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "review": "Full readable SQF body inspected; compiled variant and recursive descendants not assessed here."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultMemory.sqf",
+      "sha256": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84",
+      "review": "Full readable SQF body inspected; compiled variant and recursive descendants not assessed here."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultCQB.sqf",
+      "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+      "review": "Full readable SQF body inspected; compiled variant and recursive descendants not assessed here."
+    }
+  ],
+  "findings": [
+    {
+      "context": "doAssaultSpeed",
+      "sourceIntent": "STEALTH 1 m/s; otherwise 4 unsuppressed or 3 suppressed, minus one for leader OR negative morale, minus one inside 5 m.",
+      "implementation": "DangerAttackPace retains that formula for eligible native ATTACK. Uses native believed destination rather than disclosing unseen target position; canonical finite lease preserves stricter authored caps.",
+      "scopeLimit": "Formula correspondence only; native ATTACK admission is not all assault/CQB call-context parity."
+    },
+    {
+      "context": "doAssault",
+      "sourceIntent": "Visible close target, believed target location or selected building point; retain nearby busy path, adjust occupied destination, request weak posture and pace before movement.",
+      "disposition": "Intent comparison; do not import direct target-height access, unconditional target forgetting, random point choice or competing destination writer merely for textual parity.",
+      "remaining": "Complete direct assault and indoor executor comparison beyond selected pace boundary; movement quality and source parity unproven."
+    },
+    {
+      "context": "doAssaultMemory",
+      "sourceIntent": "Distribute actors across shared believed positions, prefer low floors, retain nearby busy paths, remove locally observed positions, shorten approach and avoid occupied endpoint.",
+      "disposition": "Shared-memory distribution intent remains relevant to CBE squad composition. Source group-wide doFollow on empty memory must not override unrelated platform actors.",
+      "remaining": "Full semantic integration of shared memory, allocation, source-native task interaction and handback remains unproven."
+    },
+    {
+      "context": "doAssaultCQB",
+      "sourceIntent": "Traverse shared building points, pace by approach distance, keep actors moving and follow the leader after the list empties.",
+      "disposition": "CBE BuildingOperationStep uses current CLEAR authority and CortexClearSettingsApply through ActorSettings: 2 m/s within 5 m in full 3D, otherwise 4/3 with suppression threshold 0.2, STEALTH 1 and lower authored baseline retained. This is a deliberate task-specific policy, not exact source formula.",
+      "rejectedShortcuts": [
+        "Probabilistic point removal is not physical clearance proof.",
+        "Source doMove plus setDestination must not become two independent CBE movement writers.",
+        "Unconditional leader follow cannot satisfy explicit exterior isolation or coherent post-clear task continuation."
+      ],
+      "remaining": "Repeated entry/exit, stragglers, isolation, casualty replacement and full authenticated locality adoption remain unfinished or physically unverified."
+    }
+  ],
+  "implementationEvidence": [
+    {
+      "path": "addons/infantry/functions/dangerAttackPace.sqf",
+      "sha256": "1a3e59c20b575f5eeb4abfae0d5facce5c9bdc2939f096675caf03a1731c65d3"
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "e71cb6a7e0767902cca02860b10356ae705e3aa186ba966cdc29b8dc2c84381d"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
+      "sha256": "1d8ecad947c707470cd26d1987d61d63d06bcbf8f0dbc35064f1799a242c58d8"
+    },
+    {
+      "path": "addons/core/functions/actorSettings.sqf",
+      "sha256": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab"
+    }
+  ],
+  "validation": {
+    "runtimeChanged": false,
+    "physicalAudits": "paused",
+    "newPhysicalEvidence": false,
+    "wholeSourceParity": false,
+    "performanceMeasured": false,
+    "testsAdded": 0,
+    "reasonNoRuntimeEdit": "The selected native pace formula already corresponds; clearance owns a separate live speed policy. No duplicate speed owner or unsupported balance change introduced."
+  }
+}

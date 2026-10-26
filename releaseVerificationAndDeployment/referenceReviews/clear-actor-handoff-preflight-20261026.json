@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "baseCommit": "4120bb47",
+  "problem": "Known inherited settings or native-motion adoption failures were detected after cleanup/OperationStart, consuming the durable clearance order instead of deferring before handoff. ADOPT also accepted a partial property map despite a complete successor request.",
+  "changes": [
+    "ActorSettings INSPECT validates exact original group/issuer/generation/deadline, current owner/eligibility, full requested property membership and actual native values without acquiring a successor or writing settings/metadata. Pending restoration, native care/tasks and changed values refuse. ADOPT now requires every requested property before publishing a successor receipt.",
+    "CortexClearSettingsApply PREFLIGHT observes full canonical stance/speed plus clearance baseline/applied/token mirrors before a successor exists. Partial mirrors, speed-only maps, changed UP rule/speed or differing original values refuse.",
+    "BuildingActorMotion OBSERVE reuses the existing MOVE, settled WAIT/idle and HOLD native proof for an explicit at-most-eight proposed interior roster under current locality, visit, transform, route, original deadline and actor-controller checks. It returns before metadata/native writers. CHECK/ADOPT retain the live common-operation authority requirements.",
+    "CortexClearBuilding preflight captures known canonical/mirror/motion state, checks any required original settings triple, and defers before OperationStart on refusal. The final existing non-suspending handoff transaction repeats observation and exact snapshot comparison before cleanup. No baseline recapture or renewed deadline.",
+    "Missing coordinate slots reject before numeric operations. Existing regression cases cover partial requested maps, changed native properties, pending release, read-only inspection, pre-handoff ordering and retained motion bounds; no new test cases."
+  ],
+  "sourceIntentReview": "lambs-assault-pace-call-contexts-20261026.json",
+  "sourceDisposition": "CBE-native lifecycle correction around existing finite clearance owners; no upstream source modification/import, second movement writer or claim of all-context LAMBS parity.",
+  "boundedCost": {
+    "actorsPerPass": 8,
+    "passesPerResumeAttempt": 2,
+    "scope": "Preparation and final handoff only; existing discovery retries within original deadlines. Shared actor/group ownership checks and native properties are re-read.",
+    "newQueries": 0,
+    "newWorkers": 0,
+    "newTimers": 0,
+    "newMovementCommands": 0,
+    "measuredRuntimeCost": false
+  },
+  "evidence": [
+    {
+      "path": "addons/core/functions/actorSettings.sqf",
+      "sha256": "ea2598d5b3930a87f5259c55482f1858ca3f2538805092aa71a4ddecb344c96f"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
+      "sha256": "eefd8b8a25888375999953b7a6683115221628ac439b273078bd457bc8c68be1"
+    },
+    {
+      "path": "addons/infantry/functions/buildingActorMotion.sqf",
+      "sha256": "41e026526eee19891ca55334bbe9ffef8f53ba2e96f9b577114e71238e9d7f5e"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "36022491a03d34c52ac6d16c548021735c1cd19e99429215bc36eddd5fd3697a"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_actor_settings.py",
+      "sha256": "88e69f142b5a08f405ffa9591557fba403f98919ac2436663ae00804ff9e1c05"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_clear_preparation_commit.py",
+      "sha256": "b97df7e68571bce540a31a5169a885ca9017bb8ef5219d0dba829de5bcc33695"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_cqb_motion_receipt.py",
+      "sha256": "e35df2e517b2ca5c56a20b4e7072dc8f23904359b7acda41de2e4206cf999402"
+    }
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "buildLog": ".qa/handovers/clear-handoff-preflight-final-build.log",
+    "independentLog": ".qa/handovers/clear-handoff-preflight-independent.log",
+    "candidate": ".qa/candidates/clear-handoff-preflight-final-4120bb47",
+    "fingerprint": "20da992b53a124ad498d8496638e315f8ed3af1f51cdb644f7856e0db970d53c",
+    "runtimeUnchangedAfterFinalBuild": true,
+    "referenceMetadataAfterPackage": true,
+    "unsignedDevelopmentSnapshot": true,
+    "retainedFailures": [
+      "Initial focused release-contract slice included later non-release code after moving a common native-task check; slice now ends at the actual RELEASE boundary with forbidden commands retained.",
+      "Settings-only complete pipeline passed; candidate clear-settings-preflight-4120bb47 is intermediate and is superseded by the combined final candidate.",
+      "First combined full run failed the existing two-mode string expectation in the shared native motion predicate. Updated the predicate/return-boundary assertions to include read-only OBSERVE while retaining native endpoint, speed, floor and no-writer checks. Final complete run passed."
+    ],
+    "newTestCases": 0,
+    "physicalAudits": "paused",
+    "physicalAcceptance": false,
+    "sourceParity": false
+  },
+  "remaining": [
+    "Authenticated original-producer registration, coherent delivery/seal/replay and all-writer retirement.",
+    "Missing actor state is still unknown; a successful known-state probe is not complete incoming owner-ready proof.",
+    "Exterior readiness and any failures arising after startup remain separate requirements.",
+    "Actual normal/HC migration, repeated entry/exit, isolation, casualty/straggler flow and 5 percent median/10 percent p95 runtime budget require physical evidence."
+  ]
+}

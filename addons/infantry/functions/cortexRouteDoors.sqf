@@ -7,7 +7,9 @@
  * No persistent worker, movement command, route replacement, visit credit or JIP command replay.
  * Arguments: 0 group <GROUP, grpNull>; 1 current group state <HASHMAP, empty>.
  * Return: BOOL - one door opening requested, never routing, access or clearance success.
- * Cost: One3m geometry probe and at most four door visibility rays per sample; no radius query.
+ * Cost: At most four3m approach probes and sixteen door visibility rays per callback;
+ * stop after one opening request. Existing16-actor/64-member bounds and2s throttle remain.
+ * No radius query, extra worker or early/distant door interaction.
  * Current caller: CortexGroupTick CALM without active danger or group movement lease.
  * Example: private _opened=[group soldier1,_state] call CBE_fnc_CortexRouteDoors;
  */
@@ -37,8 +39,10 @@ private _cursor=(_state getOrDefault ["routeDoorCursor",0]) mod count _actors;
 private _sampleCount=(count _actors) min 16;
 // Advance even after an empty/nonlocal window; a fixed prefix starves later members.
 _state set ["routeDoorCursor",(_cursor+_sampleCount) mod count _actors];
-private _selected=objNull;
+private _opened=false;private _probes=0;
+private _context=["ROUTE",_group getVariable ["CBE_AIPass_Epoch",0],_group];
 for "_offset" from 0 to (_sampleCount-1) do {
+    if (_probes >= 4) exitWith {};
     private _i=(_cursor+_offset) mod count _actors;private _actor=_actors select _i;
     // Native destination is actor-local evidence; never query a migrating remote member.
     if (!local _actor) then {continue};
@@ -51,26 +55,25 @@ for "_offset" from 0 to (_sampleCount-1) do {
         && {[_actor] call CBE_fnc_CortexCombatEffective} && {currentCommand _actor == "MOVE"}
         && {count _target == 3} && {_target vectorDistance _goal <= 3}
         && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}
-        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}) exitWith {
-        _selected=_actor;_state set ["routeDoorCursor",(_i+1) mod count _actors];
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}) then {
+        _probes=_probes+1;
+        // Advance after each attempted actor, including empty/blocked approaches.
+        _state set ["routeDoorCursor",(_i+1) mod count _actors];
+        // Radius searches miss doors on large structures. Probe only the actual
+        // near approach; each helper rechecks current native/task/door authority.
+        private _approach=(AGLToASL _target) vectorDiff (getPosASL _actor);_approach set [2,0];
+        private _length=vectorMagnitude _approach;
+        if (!finite _length || {_length < 0.1}) then {continue};
+        private _eye=eyePos _actor;
+        private _hits=lineIntersectsSurfaces [_eye,
+            _eye vectorAdd (_approach vectorMultiply ((3 min _length)/_length)),
+            _actor,objNull,true,1,"GEOM","NONE"];
+        if (_hits isEqualTo []) then {continue};
+        private _hit=_hits select 0;private _house=_hit select 2;
+        if (isNull _house || {!(_house isKindOf "House")}) then {_house=_hit select 3};
+        if (isNull _house || {!(_house isKindOf "House")}) then {continue};
+        _opened=[_actor,_house,_context] call CBE_fnc_CortexBuildingDoor;
     };
+    if (_opened) exitWith {};
 };
-if (isNull _selected) exitWith {false};
-private _context=["ROUTE",_group getVariable ["CBE_AIPass_Epoch",0],_group];
-// Radius searches use model centres and miss doors on large structures. Probe
-// the actual near approach instead; a proxy may name its House through parentObject.
-private _nativeGoal=(expectedDestination _selected) param [0,[],[[]]];
-if (count _nativeGoal != 3) exitWith {false};
-private _approach=(AGLToASL _nativeGoal) vectorDiff (getPosASL _selected);_approach set [2,0];
-private _length=vectorMagnitude _approach;
-if (!finite _length || {_length < 0.1}) exitWith {false};
-private _eye=eyePos _selected;
-private _hits=lineIntersectsSurfaces [_eye,
-    _eye vectorAdd (_approach vectorMultiply ((3 min _length)/_length)),
-    _selected,objNull,true,1,"GEOM","NONE"];
-if (_hits isEqualTo []) exitWith {false};
-private _hit=_hits select 0;
-private _house=_hit select 2;
-if (isNull _house || {!(_house isKindOf "House")}) then {_house=_hit select 3};
-if (isNull _house || {!(_house isKindOf "House")}) exitWith {false};
-[_selected,_house,_context] call CBE_fnc_CortexBuildingDoor
+_opened

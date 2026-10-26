@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "6c752ae800a376804e56de66de6e20426e537622",
+  "status": "QUEUED_THROW_LISTENER_SOURCE_FENCE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "finding": "Queued cancellation diagnostics preceded ownership checks; observational listener timeouts retained only native handler IDs. Both are independent late metadata writers.",
+  "implementation": [
+    "Locality cleanup increments ThrowGeneration before listener retirement and clears original owner/frag-generation markers. Old queued aiming retries fail their first generation gate.",
+    "Release callback additionally requires original local actor/group, epoch and common operation before defining/calling cancellation metadata writes. Existing aim/contact/fire/safety/finite-window gates retained.",
+    "Trace/frag FiredMan observations bind current original group/epoch/operation/source owner and throw generation. Existing trace/frag payload lengths remain unchanged; frag installed-generation marker is separate.",
+    "Original3s/10s listener timeouts carry source group/epoch/issuer and installed trace/frag generation as well as handler ID. An older installed listener may retire when a newer request cancelled before installation; a reused ID with a successor generation refuses.",
+    "No new listener/timer/worker, projectile manipulation or command controller. Old throws are cancelled, not replayed on incoming ownership."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "6eebdbdc83976fb395f14400e62815d959591fab218ddefa62249a3835e050b8",
+    "addons/infantry/functions/cortexThrowGrenade.sqf": "a706b5048aa32cf8d9919af5d16814823fc38bab57d39a9b27ee7c515c9b3090",
+    "releaseVerificationAndDeployment/test_grenade_native_handover.py": "d3db721399f2b555fbcfa9cbe239515c3283276b71c674d761ea0da9bb9cc1ca"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/throw-writer-fence-6c752ae8",
+    "fingerprint": "153b2e3b504ca785c65959e232680d0069fd0570930677d8363feeb8aa5d91c9",
+    "buildLog": ".qa/handovers/throw-writer-fence-final-build.log",
+    "independentLog": ".qa/handovers/throw-writer-fence-independent.log",
+    "intermediateBuild": ".qa/handovers/throw-writer-fence-build.log passed before installed-generation timeout correction; superseded.",
+    "runtimeUnchangedAfterFinalBuild": true,
+    "unsignedDevelopmentSnapshot": true
+  },
+  "remaining": [
+    "Actual event ordering, throw release/cleanup timing and normal/HC migration require runtime evidence; audits paused.",
+    "Complete other controller/writer retirement, final producer seal, authenticated delivery and incoming actual native/settings/phase reconciliation.",
+    "No whole-mod parity, physical handover or performance acceptance claim."
+  ],
+  "completeHandover": false,
+  "physicalAcceptance": false
+}

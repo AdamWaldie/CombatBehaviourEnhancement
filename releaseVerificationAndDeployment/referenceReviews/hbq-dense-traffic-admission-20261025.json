@@ -34,5 +34,9 @@
     "https://community.bohemia.net/wiki/worldToModel",
     "https://community.bohemia.net/wiki/getObjectScale?useskin=vector"
   ],
-  "limits": "Physical65..256 vehicle scenes, scaled/tilted models, dense callbacks, scheduling, normal/HC/JIP and full performance budget remain unverified.>256 raw or>64 retained can still stop conservatively. No parity percentage increase. Audits paused; full goal incomplete."
+  "limits": "Physical65..256 vehicle scenes, scaled/tilted models, dense callbacks, scheduling, normal/HC/JIP and full performance budget remain unverified.>256 raw or>64 retained can still stop conservatively. No parity percentage increase. Audits paused; full goal incomplete.",
+  "courseAdmissionFollowup20261026": {
+    "review": "hbq-dense-traffic-course-20261026.json",
+    "scope": "Finite separated-height and nonoccupying parallel-course admission at the existing crossing cutoff. Original bounds/refusals and unknown retention remain. No physical or performance claim."
+  }
 }

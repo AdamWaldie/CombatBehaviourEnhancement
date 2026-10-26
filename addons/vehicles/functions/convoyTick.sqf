@@ -66,6 +66,9 @@
  * Diagnostic capture retains at most one pre-command finished-endpoint event per registered
  * follower, locally for the current controller state; disabling capture removes those records.
  * These observations never relax the independent spacing, traffic or infantry braking caps.
+ * Fresh native path grade also lowers the lead's cap, matching ordinary drivers/followers:
+ * 25km/h above12percent and18km/h above20percent absolute grade. Missing native evidence
+ * retains existing road/pacing policy. No new sample, scan, worker or speed authority.
  * A three-second lead-vehicle road sample anticipates sharp curves, junctions and grades. Speed changes
  * accelerate gradually while safety, contact, arrival and close-gap braking remain immediate.
  * Brief predecessor dips below 2 km/h do not disable smoothing when longitudinal room remains;
@@ -924,7 +927,14 @@ _geometryTracks set [netId _lead,_leadTurn select 1];_state set ["geometryTracks
 private _leadNativeHint=if (_trafficAssistEnabled) then {
     [_lead,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
 } else {[_lead,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
-private _leadCurveHint=if (_leadNativeHint isEqualTo []) then {[_leadTurn select 0]} else {_leadNativeHint};
+// Lead and followers consume the same fresh native grade policy. Off-road lead
+// pacing must not ignore a constraint already slowing the rest of the column.
+private _leadNativeGrade=_leadNativeHint param [3,-1,[0]];
+if (finite _leadNativeGrade && {_leadNativeGrade > 0.2}) then {_leadLimit=_leadLimit min 18} else {
+    if (finite _leadNativeGrade && {_leadNativeGrade > 0.12}) then {_leadLimit=_leadLimit min 25};
+};
+if (_captureControl) then {(_leadControl select 4) pushBack ["nativeGrade",_leadLimit]};
+private _leadCurveHint=if (count _leadNativeHint != 4) then {[_leadTurn select 0]} else {_leadNativeHint};
 private _leadGeometry=if (_trafficAssistEnabled) then {[_lead,_leadLimit/3.6,false,_leadCurveHint] call CBE_fnc_DrivingGeometryCap} else {[[],[]]};
 private _leadGate=_leadGeometry select 0;private _leadObstacle=_leadGeometry select 1;
 if (_leadGate isNotEqualTo [] && {(_leadGate select 0) < (_leadTraffic select 0)}) then {_leadTraffic=_leadGate};
@@ -1143,7 +1153,7 @@ for "_i" from 1 to (count _vehicles - 1) do {
     private _nativeHint=if (_pathAssistEnabled) then {
         [_vehicle,_group,["CONVOY",_revision,_geometryContext]] call CBE_fnc_DrivingNativePathWatch
     } else {[_vehicle,_group,["CONVOY"],true] call CBE_fnc_DrivingNativePathWatch};
-    private _curveHint=if (_nativeHint isEqualTo []) then {[_turn select 0]} else {_nativeHint};
+    private _curveHint=if (count _nativeHint != 4) then {[_turn select 0]} else {_nativeHint};
     // The same native-path grade ceiling as ordinary driving; existing spacing,
     // closing and obstacle ceilings remain independent and can only lower it.
     private _nativeGrade=_nativeHint param [3,-1,[0]];

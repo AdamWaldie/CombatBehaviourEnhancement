@@ -81,6 +81,46 @@
       "reliefAttemptLedger20261026": {
         "review": "clear-relief-attempt-ledger-20261026.json",
         "scope": "Original private finite casualty-relief ledger, strict preflight/new-attempt encoding and outgoing source capture. No current casualty/native ownership proof, complete authenticated handover or physical parity claim."
+      },
+      "actorHandoffPreflight20261026": {
+        "review": "clear-actor-handoff-preflight-20261026.json",
+        "scope": "Known inherited settings and native motion are observed and snapshot-rechecked before operation handoff. Partial requested properties refuse adoption. No complete authenticated owner-ready or physical parity claim."
+      },
+      "producerRegistration20261026": {
+        "review": "clear-producer-registration-20261026.json",
+        "scope": "Actual-owner server registration and exact live-job acknowledgement only. Final producer seal, incoming transport/readiness and physical migration remain incomplete."
+      },
+      "originalActorMetadata20261026": {
+        "review": "clear-actor-metadata-capture-20261026.json",
+        "scope": "Registered frozen-source canonical settings and motion metadata captured; no all-writer seal, incoming readiness or physical parity claim."
+      },
+      "interruptionCapture20261026": {
+        "review": "clear-interruption-capture-20261026.json",
+        "scope": "Original reservation/evasion expiry and settings-retirement budgets captured; not a final all-writer seal, incoming-ready state or physical migration claim."
+      },
+      "originalFSMRetirement20261026": {
+        "review": "clear-fsm-retirement-20261026.json",
+        "scope": "Finite actual original-FSM completion check after pointer retirement. Not all-writer seal, transport/readiness or physical migration acceptance."
+      },
+      "delayedGrenadeWriterFence20261026": {
+        "review": "clear-grenade-source-fence-20261026.json",
+        "scope": "Delayed exact marker cleanup now retains original source group/owner/epoch/operation authority. Not complete all-writer seal or physical handover proof."
+      },
+      "retiredMetadataConsistency20261026": {
+        "review": "clear-retire-consistency-20261026.json",
+        "scope": "Watched post-edge actor/settings metadata rechecked after actual original-FSM exit; changed records refuse. Not full checkpoint/all-writer seal or physical handover proof."
+      },
+      "queuedThrowWriterFence20261026": {
+        "ownershipStateCaptureReview": "clear-ownership-state-20261026.json",
+        "entryStateCaptureReview": "clear-entry-state-20261026.json",
+        "routeDoorBatchReview": "route-door-batch-20261026.json",
+        "settingsWindowUnionReview": "clear-settings-window-union-20261026.json",
+        "groupPolicyCaptureReview": "clear-group-policy-20261026.json",
+        "actorTransferIdentityReview": "actor-transfer-identity-20261026.json",
+        "actorFinishIdentityReview": "actor-finish-identity-20261026.json",
+        "sourceCandidateReview": "clear-source-candidate-20261026.json",
+        "review": "clear-throw-listener-fence-20261026.json",
+        "scope": "Queued cancellation and observational listener callbacks bind original owner/epoch/generation; installed-generation timeout cleanup protects successors without stranding old listeners. No physical/all-writer seal claim."
       }
     },
     {

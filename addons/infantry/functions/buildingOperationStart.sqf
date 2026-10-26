@@ -102,4 +102,12 @@ isNil {
         };
     };
 };
+// Register only an actually started producer. No readiness or movement permission follows
+// from sending this request; a delayed acknowledgement must still match the live job.
+if (_started && {isNil {_job get "producerRegistrationRequested"}}) then {
+    _job set ["producerRegistrationRequested",true];
+    private _registration=[_group,+(_job get "visitContext"),_epoch,_generation,_job get "operationGeneration"];
+    if (isServer) then {["REGISTER",_registration] call CBE_fnc_BuildingProducerRegister}
+    else {["REGISTER",_registration] remoteExecCall ["CBE_fnc_BuildingProducerRegister",2]};
+};
 _started

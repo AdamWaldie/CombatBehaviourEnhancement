@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "33603d331daf71352834bff6e7c7859d00174fa7",
+  "workshopId": "3812620045",
+  "status": "REAR_METRE_FRAME_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "CBE reverse-clearance geometry foundation and selected HBQ nearby-space observation intent. No whole-HBQ parity or physical acceptance.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "selectedRange": "1784-1824",
+    "intent": "Observe nearby solid/actor space before recovery action. CBE keeps native finite reverse, support validation and caller authority; source push/teleport/physics shortcuts are not imported. Reference unchanged."
+  },
+  "finding": "RearClear transformed other hulls into scaled vehicle model coordinates while using metre-based distance, velocity projection, prediction and discovery coefficients. Unlike the forward traffic observer, rear velocity was already body-oriented: its orientation is retained. The mismatch is scale, including requested sensor/target travel being multiplied again by native model transforms.",
+  "implementation": [
+    "Use the shared three-axis hull projection with unit body side/forward/up axes and one original world origin. Own and actor extents, distance and relative velocity now share body-oriented metres. Preserve tilt rather than flattening this reverse sweep.",
+    "Place all existing support/solid/turn/target points through that rigid unit basis. Four world transforms per actor replace four forward/inverse pairs; one own projection establishes physical extents. Existing physical support and water/deck rules remain.",
+    "Unknown own/actor hull or motion refuses. Owner/physical validity remains required for a clear result; scheduled direct calls additionally compare the final actual pose with the original sample. Normal unscheduled callbacks do not perform that extra pose sample. Refused context returns no target.",
+    "Original two-second simultaneous intervals, current rear and new future body occupancy, yaw envelope,64 actors,250m discovery ceiling, ray/support bounds and native command authority remain. New unavailable/context reasons do not match shorter-plan fallback reasons. No new worker, ray, timer, controller, physics or movement command."
+  ],
+  "cost": "Two existing native discovery queries and original ray bounds remain. Actor transforms drop8 to4; ray endpoints use pure basis arithmetic instead of repeated model transforms. Add one own4-transform projection plus one origin transform; scheduled successful observations add one final pose sample. Additional code/basis arithmetic is bounded; median/p95 runtime remains unmeasured.",
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/rear-metre-frame-33603d33",
+    "fingerprint": "6ef03f4e6b1afdf85aae1f552b4371cf9e6903e746c3d2835bdfcbc0a77b7ab7",
+    "build": ".qa/handovers/rear-metre-frame-final-build.log",
+    "independent": ".qa/handovers/rear-metre-frame-independent.log",
+    "focusedProvenance": "28 existing focused cases passed at preliminary source. Final full1497 suite covers the final scheduled-pose guard and all updated caller/helper contracts. No extra final focused repetition.",
+    "fixtures": "Existing affine corner oracle retained. Reverse integration case checks shared full hulls, unit basis, invalid actor/scheduled pose refusal and scale0.5/1/2 physical eight-metre travel with consistent two-second timing at4m/s. Wreck/crew/height, support, yaw, authority and nonfinite-distance checks remain. Offline maths/source checks only.",
+    "retainedFailure": "Initial full run found one remaining source assertion looking for removed inline projectedLow/High writes. Updated it to trace shared full-hull min/max accumulation, retaining all wreck, crew and occupancy checks. Final full build passed.",
+    "provenance": "Unsigned development snapshot. Runtime unchanged after final build; reference/index/handover metadata postdates package."
+  },
+  "remaining": [
+    "Actual native reverse on slopes, turns, raised decks, mixed vehicles and supported scale remains unverified. Discrete rays and sampled velocity do not guarantee continuous clearance or future steering.",
+    "Scheduled direct-call refusal, active-leg monitoring, normal/HC/JIP and repeatability need physical evidence. Audits paused.",
+    "Whole5percent median/10percent p95 overhead, real controller handovers, coherent source native readiness and full source implementation remain unfinished."
+  ],
+  "sourceSHA256": {
+    "addons/vehicles/functions/drivingRearClear.sqf": "1a20a0ad5fa4a3471da51c1f3e6bd896d499f712552fd00cbaa15eaebdae1b3b",
+    "releaseVerificationAndDeployment/test_rear_hull_projection.py": "e1200753836adeb894e27312130e7d21f65153f54f7fedce54a4936b8aa605e0",
+    "releaseVerificationAndDeployment/test_driving_traffic.py": "e77dcbb7f48851ffbf66e121b01b7700a5beef212bdbb6934dd20deae26a4893"
+  }
+}

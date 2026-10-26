@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "eb4757c3",
+  "status": "ORIGINAL_NATIVE_OWNERSHIP_CAPTURE_OFFLINE_VERIFIED",
+  "finding": "Field inspection identified missing related native-order ownership records, not disposable geometry caches. Existing captures could not faithfully retain started membership, assignment/hold state and actor classifications.",
+  "implementation": [
+    "Actor component version5/seven fields appends ownership version1: original ordered team keys, started keys, keyed assignment rows, three hold maps, five actor classifications and three access flags. Outer capture remainsv12/seventeen fields; actor rows remainnine fields.",
+    "Capture assigned room/retry/approach/pose state and convert its original local progress timestamp once to server time. Preserve team order and empty assignment slots.",
+    "Copy nativeHoldPositions, roomHolds, formationFallbackHolds; accessHeld, quarantineHeld, securityActors, rotatedOut, egressDiverted; accessAdmitted, accessBlocked, accessReported.",
+    "Lists/maps max64; original non-null identities must resolve to captured actor keys. Duplicate actors, sparse assignments, unknown keys and missing/invalid hold positions refuse. No native setting/destination query, movement command, new controller, retry or deadline.",
+    "Server requires componentv5 and typed ownership envelope; this remains unsealed storage, not native permission or a consumer."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "28cc2cb33b3b3ca2d57684385109999142e8d1882da6f5d3e12fe75046b0383d",
+    "addons/infantry/functions/buildingActorJournal.sqf": "2fab3f6eec678fe33d1e8b50d3a93736a31f3b585792d70c5e70eccad51f57da",
+    "addons/infantry/functions/buildingProducerRegister.sqf": "d7114b33de32fc9c435e0d681adb897bfbd1c51dc09d7026b64763842af94b6b",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "79a3860481474275bc53283514cca2044c146efc15910442f7f9fbd0fd06a867"
+  },
+  "fieldReview": {
+    "scope": "Textual execution-key index only. Renamed/derived fields may already be encoded; name occurrence is not semantic completeness or implementation credit.",
+    "executionKeyCount": 102,
+    "notDirectlyNamedByJournals": [
+      "contactBelief",
+      "egressDeadline",
+      "entryCaptureCount",
+      "entryCaptureStamps",
+      "entryFailureCause",
+      "failureLaneRoster",
+      "finishReason",
+      "finished",
+      "followYieldCursor",
+      "interiorAccessProbes",
+      "interiorApproaches",
+      "nativeFloorBridges",
+      "navigationPositions",
+      "pairSupportSeparation",
+      "promotionCandidateCursor",
+      "promotionObserverCursor",
+      "promotionProbeLast",
+      "quarantineCursor",
+      "reserveStageAttempts",
+      "reserveStageCursor",
+      "result",
+      "roomGeometryChecksLast",
+      "roomLaneCursor",
+      "securityLossCursor",
+      "transitAccessCache",
+      "transitPositions",
+      "unfinishedFloorWave",
+      "visitActorCursor",
+      "visitCursor"
+    ]
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-ownership-state-eb4757c3",
+    "fingerprint": "a6400fb8162fcf153c8630742ae69cf80233b7afa10f8ba893286e1d0cc3fe06",
+    "buildLog": ".qa/handovers/clear-ownership-state-final-build.log",
+    "independentLog": ".qa/handovers/clear-ownership-state-independent.log",
+    "supersededIntermediate": ".qa/handovers/clear-ownership-state-build.log passed before sparse/nil refusal correction",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "Finish semantic state review for remaining progress/phase/retry domains; do not confuse disposable caches or renamed fields with missing behaviour.",
+    "All-writer seal, authenticated incoming delivery and actual native/settings/phase reconciliation remain incomplete.",
+    "Physical CQB flow and normal/HC transfers plus overhead remain unverified; audits paused."
+  ]
+}

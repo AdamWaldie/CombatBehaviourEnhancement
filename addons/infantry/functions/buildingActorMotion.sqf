@@ -13,33 +13,36 @@
  * An original MOVE receipt may already be WAIT/idle: ADOPT/CHECK accept its unchanged native
  * endpoint plus measured rest within1.5m and0.75m vertically. CHECK reuses that proof
  * without changing metadata, so a settled WAIT can continue through the existing executor.
+ * OBSERVE is a read-only pre-start native observation for an explicit at-most-eight actor
+ * proposal under current owner/visit/route/deadline checks. It cannot grant common-operation
+ * authority, adopt metadata or issue commands. CHECK/ADOPT still require the live operation.
  * CHECK may supply an exact expected target; an invalid, empty or different supplied target refuses.
  * Idle alone is never ownership.
  * Repeat/JIP: One public actor receipt, coalesced by value. Fresh clears have different nonces.
  * RETIRE removes only the supplied group/context, including after operation cancellation.
  * On the current group owner it also retires exact-context entry recovery/alternative budgets;
  * malformed or foreign records remain untouched.
- * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE/CHECK; 1 actor <OBJECT, objNull>;
+ * Arguments: 0 mode <STRING, ADOPT>, MOVE/HOLD/ADOPT/RETIRE/CHECK/OBSERVE; 1 actor <OBJECT, objNull>;
  * 2 job <HASHMAP, empty>; 3 target <ARRAY, []>: native AGL for MOVE, sampled ATL for HOLD.
  * Receipt: [group, visitContext, MOVE/HOLD, target (MOVE AGL / HOLD ATL), optional owned-settings triple].
  * Return Value: BOOL - CHECK ownership observation or matching metadata recorded/adopted/retired;
- * CHECK performs no mutation. No mode grants physical room-visit progress.
+ * CHECK/OBSERVE perform no mutation. No mode grants physical room-visit progress.
  * Current callers: BuildingOperationStep, CortexClearBuilding resume and clearance cleanup.
  * Example: ["ADOPT",soldier1,_job] call CBE_fnc_BuildingActorMotion;
  */
 params [["_mode","ADOPT",[""]],["_actor",objNull,[objNull]],
     ["_job",createHashMap,[createHashMap]],["_target",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}
-    || {isNull _actor} || {!local _actor} || {!(_mode in ["MOVE","HOLD","ADOPT","RETIRE","CHECK"])}) exitWith {false};
+    || {isNull _actor} || {!local _actor} || {!(_mode in ["MOVE","HOLD","ADOPT","RETIRE","CHECK","OBSERVE"])}) exitWith {false};
 private _group=_job getOrDefault ["group",grpNull];
 private _context=_job getOrDefault ["visitContext",[]];
 if (isNull _group || {!(_context isEqualType [])} || {count _context != 4}
     || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""}) exitWith {false};
 private _positionValid={
     _this isEqualType [] && {count _this == 3}
-        && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {_this findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} < 0}
 };
-private _checkTargetRequired=_mode == "CHECK" && {count _this > 3};
+private _checkTargetRequired=_mode in ["CHECK","OBSERVE"] && {count _this > 3};
 private _checkTarget=+_target;
 private _result=false;
 isNil {
@@ -70,7 +73,7 @@ isNil {
         };
         private _kind=_mode;
         private _settings=[];
-        if (_mode in ["ADOPT","CHECK"]) then {
+        if (_mode in ["ADOPT","CHECK","OBSERVE"]) then {
             if (_receipt isEqualType [] && {count _receipt == 5}
                 && {(_receipt select 0) isEqualTo _group} && {(_receipt select 1) isEqualTo _context}
                 && {(_receipt select 2) in ["MOVE","HOLD"]}
@@ -120,12 +123,19 @@ isNil {
             || {isNull _building} || {!alive _building}
             || {(_job getOrDefault ["generation",-1]) != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
             || {(_job getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}
-            || {(_operation getOrDefault ["generation",-2]) != (_job getOrDefault ["operationGeneration",-1])}
-            || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
-            || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
-            || {(_operation getOrDefault ["objective",objNull]) isNotEqualTo _building}
-            || {!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole} && {!_reserveProbeRole}}
-            || {_actor in (_operation getOrDefault ["unavailable",[]])}
+            || {if (_mode == "OBSERVE") then {
+                private _proposal=_job getOrDefault ["participants",[]];
+                !(_proposal isEqualType []) || {count _proposal > 8} || {!(_actor in _proposal)}
+                    || {_actor in (_job getOrDefault ["unavailable",[]])}
+                    || {serverTime >= ((_job getOrDefault ["deadline",-1]) min (_job getOrDefault ["hardDeadline",-1]))}
+            } else {
+                (_operation getOrDefault ["generation",-2]) != (_job getOrDefault ["operationGeneration",-1])
+                    || {(_operation getOrDefault ["intent",""]) != "CLEAR"}
+                    || {(_operation getOrDefault ["ownerEpoch",-2]) != (_job getOrDefault ["ownerEpoch",-1])}
+                    || {(_operation getOrDefault ["objective",objNull]) isNotEqualTo _building}
+                    || {!(_actor in (_operation getOrDefault ["participants",[]])) && {!_reserveRole} && {!_reserveProbeRole}}
+                    || {_actor in (_operation getOrDefault ["unavailable",[]])}
+            }}
             || {(_group getVariable ["CBE_Cortex_ClearVisitContext",[]]) isNotEqualTo _context}
             || {(_context select 0) isNotEqualTo _building}
             || {(_context select 1) isNotEqualTo (_job getOrDefault ["buildingTransform",[]])}
@@ -136,7 +146,7 @@ isNil {
         private _native=(expectedDestination _actor) param [0,[],[[]]];
         private _matches=if (_kind == "MOVE") then {
             _native call _positionValid && {_native vectorDistance _target <= 0.25}
-                && {_command == "MOVE" || {_mode in ["ADOPT","CHECK"] && {_command in ["","WAIT"]}
+                && {_command == "MOVE" || {_mode in ["ADOPT","CHECK","OBSERVE"] && {_command in ["","WAIT"]}
                     && {vectorMagnitude velocity _actor < 0.278}
                     && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 1.5}
                     && {abs (((getPosASL _actor) select 2)-((AGLToASL _target) select 2)) <= 0.75}}}
@@ -145,7 +155,7 @@ isNil {
                 && {abs (((getPosASL _actor) select 2)-((ATLToASL _target) select 2)) <= 0.75}
         };
         if (!_matches) exitWith {false};
-        if (_mode == "CHECK") exitWith {
+        if (_mode in ["CHECK","OBSERVE"]) exitWith {
             !_checkTargetRequired || {_checkTarget call _positionValid && {_checkTarget isEqualTo _target}}
         };
         if (_mode != "ADOPT") exitWith {

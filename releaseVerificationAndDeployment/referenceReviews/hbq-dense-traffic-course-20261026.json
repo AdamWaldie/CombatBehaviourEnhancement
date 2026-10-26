@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "68ad934445799e56e05c5be3e17546f041d6ae79",
+  "workshopId": "3812620045",
+  "status": "DENSE_TRAFFIC_COURSE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Selective TrafficCap reference and current dense-observer admission; no renewed whole-controller or whole-HBQ parity claim.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "readRange": "1032-1093",
+    "intent": "Avoid false adjacent-lane/oncoming holds while maintaining continuous following. Source selected range uses centre/model-space extents and heading. CBE retains its exact padded affine world-frame hull and current velocity model, dead-hull observation and independent occupancy checks.",
+    "reuse": "Protected reference untouched. New admission logic uses existing CBE branch predicates, not imported source code."
+  },
+  "finding": "Dense admission retained every moving hull, even when current vertical separation or an off-lane course below the existing crossing denominator cutoff meant neither braking branch could contribute. More than64 such candidates caused a density-only zero cap.",
+  "implementation": [
+    "Reuse the existing crossing course/denominator before prediction-slot admission. Dense pruning requires finite own/other projected bounds and finite speed. Separate-height hulls and unoccupied slow/parallel courses below the existing0.2 denominator cutoff can be skipped; unknowns remain.",
+    "Current occupied-lane hulls and same-height crossing courses remain admitted. The exact existing crossing cutoff and both braking branches are unchanged. No new right-of-way, steering or height prediction is inferred.",
+    "More than256 raw hulls, more than64 retained candidates and scheduled direct calls above64 still refuse. Normal<=64 scenes retain the original constraint calculations. No new discovery query, ray, callback, timer, cache, controller or command."
+  ],
+  "cost": "At most256 existing affine hull projections plus bounded finite/course arithmetic before up to64 full predictions. Course calculation reuses the existing velocity sample and is not repeated in crossing prediction. Discovery engine cost is unchanged; actual median/p95 impact remains unmeasured.",
+  "validation": {
+    "focusedExistingCases": 22,
+    "newTestCases": 0,
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "candidate": ".qa/candidates/dense-traffic-course-68ad9344",
+    "fingerprint": "b7e45d8b5dd1e7584cc3d9d671292677439d2dc3749b2d481a086b79e547e150",
+    "build": ".qa/handovers/dense-traffic-course-build.log",
+    "independent": ".qa/handovers/dense-traffic-course-independent.log",
+    "fixture": "Existing affine/traffic regression extended for100 stacked moving hulls,100 off-lane parallel hulls, retained occupied/crossing/unknown candidates and cutoff boundaries. Across representative finite bounds/speeds/courses every pruned candidate has no potential contribution to either existing branch. This is a mathematical/source check, not SQF engine execution.",
+    "result": "Full pipeline passed first attempt. Runtime unchanged after build; reference/index/handover metadata follows packaging. Unsigned development snapshot preserves unrelated existing dirt."
+  },
+  "remaining": [
+    "Existing constant-course/current-height model does not predict later steering, future vertical convergence or arbitrary modded hull/discovery size.",
+    "Physical dense scenes, scaled/tilted models, native flow, normal/HC/JIP and the5percent median/10percent p95 budget remain unverified. Audits paused.",
+    "Actual external-controller handovers and whole HBQ implementation remain incomplete; no source-file or test-count percentage."
+  ],
+  "sourceSHA256": {
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "82d10d92d72cb27815b2ba4d7cad76e8e0a22f8ee5eef6b43e196c461ee54e07",
+    "releaseVerificationAndDeployment/test_driving_traffic.py": "5748d18b7becea524626391f23c8b9da512d301cc6b3607eff8f896a9f445bae"
+  }
+}

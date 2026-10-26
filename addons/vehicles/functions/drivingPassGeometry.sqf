@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Body/support dimensions are projected world metres, including scale and tilt;
+ * existing longitudinal/width/height budgets and discrete ray limits remain.
  * Purpose: Checks one bounded overlapping portion of a fresh road-pass proposal.
  * Locality/authority: Read-only vehicle owner. No movement, agreement or priority is acquired.
  * Repeat/JIP: Stateless; each call observes current support/body geometry. Prior portions are
@@ -37,13 +39,15 @@ private _guide=_proposal getOrDefault ["guideASL",[]];
 if (!(_guide isEqualType []) || {count _guide < 2} || {count _guide > 128}
     || {!finite _cursor} || {_cursor != floor _cursor} || {_cursor < 0} || {_cursor >= count _guide-1}) exitWith {["INVALID_SLICE"] call _fail};
 private _slice=_guide select [_cursor,12];
-private _box=boundingBoxReal _vehicle;
-private _low=_box select 0;private _high=_box select 1;
-private _halfWidth=(abs (_low select 0)) max (abs (_high select 0));
-private _halfLength=(abs (_low select 1)) max (abs (_high select 1));
+private _heading=getDir _vehicle;private _hullAxis=[sin _heading,cos _heading,0];
+private _hullRight=[cos _heading,-sin _heading,0];
+private _hull=[_vehicle,getPosASL _vehicle,_hullRight,_hullAxis,[0,0,1]] call CBE_fnc_DrivingHullInterval;
+if (count _hull != 6) exitWith {["HULL_UNAVAILABLE"] call _fail};
+private _halfWidth=(abs (_hull select 0)) max (abs (_hull select 1));
+private _halfLength=(abs (_hull select 2)) max (abs (_hull select 3));
 if (_halfLength > 20) exitWith {["HULL_FOOTPRINT_BUDGET"] call _fail};
 private _width=_halfWidth+0.5;
-private _height=((_high select 2)-(_low select 2)) max 1;
+private _height=((_hull select 5)-(_hull select 4)) max 1;
 private _geometry=[_vehicle,_slice,_width,_height] call CBE_fnc_DrivingPathGeometry;
 private _rays=_geometry select 4;
 if (!(_geometry select 0)) exitWith {[_geometry select 1,_rays] call _fail};

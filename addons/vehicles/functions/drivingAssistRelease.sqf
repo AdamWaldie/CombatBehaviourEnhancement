@@ -10,6 +10,8 @@
  * Queue crossing paths also retire through exact BypassRelease ownership before cap restoration; convoy work remains separately owned.
  * Unknown recovery command modes retain their cap/baseline and journal. Destination and
  * SIMPLE_BACK cleanup use their own exact native ownership proof before cap restoration.
+ * The private observed travel direction retires with the exact cap after successful cleanup;
+ * it never migrates or authorises native motion.
  * Purpose: Releases the standalone CBE driving safety speed cap and restores the exact pre-CBE
  * forced-speed value only while that cap remains owned by CBE; a newer controller cap is preserved.
  * Matching pass consent retires its exact broker token before ordinary cap cleanup.
@@ -251,6 +253,7 @@ _vehicle setVariable ["CBE_DrivingAssist_Next",nil];
 _vehicle setVariable ["CBE_DrivingTrafficSeen",nil];
 _vehicle setVariable ["CBE_DrivingSolidSeen",nil];
 _vehicle setVariable ["CBE_DrivingAssist_State",nil];
+_vehicle setVariable ["CBE_DrivingDirection_Observation",nil];
 _vehicle setVariable ["CBE_DrivingAssist_Traffic",nil];
 
 _vehicle setVariable ["CBE_DrivingAssist_Obstacle",nil];

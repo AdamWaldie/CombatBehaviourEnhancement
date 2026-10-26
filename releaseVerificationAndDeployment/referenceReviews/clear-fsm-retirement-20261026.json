@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "a61b38ef643d8b3d009b546cbf0c19621a6e18e9",
+  "status": "ORIGINAL_FSM_RETIREMENT_OBSERVED_ALL_WRITER_SEAL_INCOMPLETE",
+  "implementation": [
+    "Source Local edge retains exact old building/group/driving and point/indoor brain pointers and FSM handles before cleanup. Max131 original workers.",
+    "After pointer retirement one keyed existing-scheduler observer checks actual completedFSM, original cancelled/finished brain and replaced original pointer. It never cancels or adopts a successor.",
+    "At most8 checks, inside original capture timestamp+3s and original phase deadline; EGRESS uses original egress deadline. Duplicate identical capture retains original state; timeout never implies completion.",
+    "Observer state deliberately uses taskGroup rather than group, granting no nonlocal group command authority. Only original private capture receives ORIGINAL_FSMS_RETIRED evidence; gain/shutdown removes private observer/result pointers.",
+    "This is FSM completion evidence only. It does not seal non-FSM callbacks, native controller journals or an incoming owner-ready state."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/buildingProducerRetire.sqf": "c0784750a31610616a5d76b68782243f22e3068b00cd8fd4acd218c02ccace36",
+    "addons/core/functions/cortexLocality.sqf": "cc5202e20f47c86f192b04b410136fee365e4bad7858f1aaf027f7d9ba83f0db",
+    "addons/core/functions/cortexStop.sqf": "ca8d57b50d62fbbc0f61e0371343c152db8dcbe588994cc083d139071f15b9a2",
+    "addons/main/CfgFunctions.hpp": "299a114d253d7cc544abd65d532a6e1cd6f196b5b8282fa0866c08b6c4925247"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-fsm-retirement-a61b38ef",
+    "fingerprint": "a7ec212cb9a629d01f2b3f7b640be11f3460e85a6a106262e6e6dfb7caa3ed33",
+    "buildLog": ".qa/handovers/clear-fsm-retirement-final-build.log",
+    "independentLog": ".qa/handovers/clear-fsm-retirement-independent.log",
+    "retainedFailures": [
+      "clear-fsm-retirement-focused.log: broad public-write substring also matched private state done flag; replaced by setVariable-specific assertion",
+      "clear-fsm-retirement-build.log: listener ordering anchor matched newly added read-only loss branch; anchored to actual loss return while preserving cleanup assertion"
+    ],
+    "runtimeUnchangedAfterBuild": true
+  },
+  "remaining": [
+    "Complete remaining non-FSM writer retirement, delayed interruption marker callbacks and independent native flight/naval/controller journals.",
+    "Bind all-writer seal and coherent complete checkpoint to server original-producer registration; implement authenticated incoming delivery and actual actor/settings/native reconciliation.",
+    "Actual FSM termination timing/packet ordering/normal-HC transfer/physical CQB/performance unverified; audits paused."
+  ],
+  "completeHandover": false,
+  "physicalAcceptance": false
+}

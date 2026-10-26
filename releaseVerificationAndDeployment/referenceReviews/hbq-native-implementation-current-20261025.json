@@ -69,5 +69,9 @@
     "review": "hbq-traffic-world-frame-20261025.json",
     "scope": "Own/other hull geometry now shares horizontal world metres with course/velocity/braking comparisons. Earlier hashes remain historical. No physical/performance/parity acceptance.",
     "physicalAcceptance": false
+  },
+  "passingWorldHullFollowup": {
+    "review": "hbq-pass-world-chain-20261026.json",
+    "scope": "Passing qualification, plan, static geometry and traffic dimensions corrected to world metres; old hashes remain historical. Physical/performance acceptance absent."
   }
 }

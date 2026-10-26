@@ -10,6 +10,24 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         body=route.split('params [[',1)[1]
         self.assertEqual(body.count('lineIntersectsSurfaces'),1)
+        self.assertIn('if (_probes >= 4) exitWith {}',body)
+        self.assertIn('if (_hits isEqualTo []) then {continue}',body)
+        self.assertIn('if (_opened) exitWith {}',body)
+        self.assertLess(body.index('_probes=_probes+1'),body.index('lineIntersectsSurfaces'))
+        # Empty approaches cannot end the group pass before a later eligible door.
+        def batch(approaches,cursor=0):
+            probes=0
+            for i in range(cursor,min(cursor+16,len(approaches))):
+                probes+=1
+                if approaches[i]:return True,probes,i+1
+                if probes==4:return False,probes,i+1
+            return False,probes,min(cursor+16,len(approaches))
+        self.assertEqual(batch([False,False,True,True]),(True,3,3))
+        opened,probes,cursor=batch([False]*4+[True])
+        self.assertEqual((opened,probes,cursor),(False,4,4))
+        self.assertEqual(batch([False]*4+[True],cursor),(True,1,5))
+        self.assertEqual(batch([True]*8),(True,1,1))
+
         self.assertNotIn('nearestObjects',body)
         for proof in ('select [0,64]','(count _actors) min 16','routeDoorNextAt','serverTime+2','routeDoorCursor',
                       '(3 min _length)/_length','_hit select 2','_hit select 3',
@@ -109,6 +127,36 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         for forbidden in ('setPosATL','setVelocity','forceSpeed','joinSilent','setDamage','doFire'):
             self.assertNotIn(forbidden,s)
     def test_finish_preserves_new_tasks_and_can_run_with_features_disabled(self):
+        for name,channel in [('indoorActorOperation','IndoorActor'),('pointActorOperation','PointActor')]:
+            source=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            finish=source.split('if (_mode in ["FINISH","TRANSFER"]) exitWith {',1)[1] if channel=='PointActor' else source.split('if (_mode == "FINISH") exitWith {',1)[1]
+            finish=finish.split('if (_mode == "START")',1)[0]
+            for field in ('actor','group','operationGeneration','deadline','route','target','lease'):
+                self.assertIn(f'_brain getOrDefault ["{field}",',finish)
+            self.assertIn('_installed isNotEqualTo _brain',finish)
+            self.assertIn('count _installed > 0 && {count _brain == 0 ||',finish)
+            self.assertLess(finish.index('_installed isNotEqualTo _brain'),finish.index('expectedDestination _actor'))
+        # Generations/epochs may coincide across ownership. Neither equal counters nor
+        # equal context authorise an old callback to retire a different installed brain.
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
+        for channel,brain in [('PointActor','_point'),('IndoorActor','_indoor')]:
+            self.assertIn(f'["TRANSFER",_unit,{brain}] call CBE_fnc_{channel}Operation;',locality)
+            self.assertNotIn(f'["TRANSFER",_unit,createHashMap] call CBE_fnc_{channel}Operation;',locality)
+        original=('actorA','groupA',4,99,('routeA',),(1,2,0),('leaseA',))
+        def owns_cleanup(journal,installed,supplied='original'):
+            if installed is not None and (supplied is None or installed!=supplied):
+                return False
+            return journal==original
+        self.assertTrue(owns_cleanup(original,'original'))
+        self.assertTrue(owns_cleanup(original,None))
+        self.assertFalse(owns_cleanup(original,'successor'))
+        self.assertFalse(owns_cleanup(original,'original',None))
+        self.assertFalse(owns_cleanup(original,'successor',None))
+        self.assertTrue(owns_cleanup(original,None,None))
+        for field in range(len(original)):
+            changed=list(original);changed[field]='new'
+            self.assertFalse(owns_cleanup(tuple(changed),None))
+
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         for guard in ('_generation','_epoch','_oldGroup == _group','CBE_OperationGeneration',

@@ -13,9 +13,9 @@
  */
 params [["_evidenceMode","",[""]],["_evidenceData",[],[[]]]];
 if (_evidenceMode == "PROBE") exitWith {
-    if (remoteExecutedOwner != 2 || {count _evidenceData != 10}) exitWith {false};
+    if (remoteExecutedOwner != 2 || {count _evidenceData != 11}) exitWith {false};
     _evidenceData params ["_evidenceToken","_evidenceGroup","_evidenceVehicle","_evidenceGate",
-        "_evidenceRoute","_evidenceRevision","_evidenceUntil","_evidenceBefore","_evidenceTasks","_evidenceSeats"];
+        "_evidenceRoute","_evidenceRevision","_evidenceUntil","_evidenceBefore","_evidenceTasks","_evidenceSeats","_evidenceDirection"];
     if (!(_evidenceUntil isEqualType 0) || {!finite _evidenceUntil} || {serverTime >= _evidenceUntil}
         || {!(_evidenceGroup isEqualType grpNull)} || {!(_evidenceVehicle isEqualType objNull)}
         || {!(_evidenceGate isEqualType objNull)} || {isNull _evidenceVehicle}
@@ -25,7 +25,7 @@ if (_evidenceMode == "PROBE") exitWith {
     private _evidenceFrame=[];
     if ([driver _evidenceVehicle,_evidenceCommander] isEqualTo _evidenceSeats) then {
         _evidenceFrame=[_evidenceGroup,_evidenceVehicle,_evidenceRoute,_evidenceRevision,
-            _evidenceBefore,_evidenceTasks] call CBE_fnc_DrivingGateOwnerCheck;
+            _evidenceBefore,_evidenceTasks,_evidenceDirection] call CBE_fnc_DrivingGateOwnerCheck;
     };
     ["REPLY",[_evidenceToken,_evidenceFrame]] remoteExecCall ["CBE_fnc_DrivingGateOwnerEvidence",2];
     true
@@ -64,7 +64,7 @@ if (_evidenceMode == "REQUEST") exitWith {
     ["PROBE",[_evidenceToken,_evidenceGroup,_evidenceVehicle,_evidenceContext get "gate",
         _evidenceContext get "route",_evidenceContext get "revision",_evidenceUntil,
         _evidenceContext getOrDefault ["native",[]],_evidenceContext getOrDefault ["tasks",[]],
-        _evidenceContext get "seats"]] remoteExecCall ["CBE_fnc_DrivingGateOwnerEvidence",_evidenceOwner];
+        _evidenceContext get "seats",_evidenceContext getOrDefault ["direction",1]]] remoteExecCall ["CBE_fnc_DrivingGateOwnerEvidence",_evidenceOwner];
     true
 };
 if (_evidenceMode != "REPLY" || {count _evidenceData != 2}) exitWith {false};

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "2d750ffa",
+  "workshopId": "3812620045",
+  "status": "REAR_GATE_PATH_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Ordinary native reverse opening through existing finite owner challenge and server geometry. Not whole HBQ parity.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "relationship": "Continues recorded rear traffic/gate intent review; no additional complete-source review claimed."
+  },
+  "implementation": [
+    "Owner request carries direction as the eleventh mandatory unique named payload key; convoy remains forward only.",
+    "Rear owner check requires exact private direction brain/epoch/generation, route, seats, normalized native task, live acknowledged speed cap no older than six seconds, no dedicated reverse leg or alternate path controller. Cancelled/finished brain refuses.",
+    "Fresh forward motion/mode or a newer path while held refuses. Direction alone is not authority. Native route intent remains independently required.",
+    "Existing single-use five-second server witness carries direction to current crew owner. Server probes actual rear geometry before opening recognised unlocked leaves; final ordinary admission repeats local proof where local, or retains original authenticated witness expiry remotely.",
+    "Optional existing closure remains geometric full-hull passage plus native-intent checks. No new closure shortcuts, workers, timers or movement commands."
+  ],
+  "productHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "2df0446ed3f1be033fb27b4545f0328881c1311a1f53e76646bcdc64fd587a02",
+    "addons/vehicles/functions/drivingGateCap.sqf": "c8d44c2920e27f423feb0fa621b8da04d0dd7385a6bd03207477e2ea22b4ba9a",
+    "addons/vehicles/functions/drivingGateRequest.sqf": "5b0ccd071dccf84bdc9618b6bfc5dc3d11689a2c7022dd325670e817b95810bf",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "efdebddcd6c21542d90cb2584dbd8c38b577cd342f08c77dfb6bedfa5e7e66b0",
+    "addons/vehicles/functions/drivingGateOwnerCheck.sqf": "208e7caebec63004c3c9756d1925b6dabc675f6f821033dab8bcf42218955986",
+    "addons/vehicles/functions/drivingGateOwnerEvidence.sqf": "7c6c9a1b7b57f6a8b82cca923841f317d39ab1cbfa036f12a17e92c4794c90cd"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/rear-gate-2d750ffa",
+    "fingerprint": "7281ca771caed6d2411d8254585d4899146f760d34e74b5379bce38d3acf0700",
+    "buildLog": ".qa/handovers/rear-gate-final-build.log",
+    "independentLog": ".qa/handovers/rear-gate-independent.log",
+    "intermediateBuild": ".qa/handovers/rear-gate-build.log",
+    "runtimeUnchangedAfterFinalBuild": true
+  },
+  "limits": [
+    "Audits paused: actual reversed approach, opening, passage, repeat, locality/HC migration and performance unverified.",
+    "Direction receipt is not native gear acknowledgement. An unqualified newer path while held refuses opening rather than guessing.",
+    "Remote intent witness has the existing bounded delay; cannot prove cross-machine instantaneous state at animation.",
+    "Whole HBQ integration and complete external-controller handovers remain unfinished."
+  ],
+  "physicalAcceptance": false,
+  "wholeHBQParity": false
+}

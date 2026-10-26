@@ -64,7 +64,7 @@ class DrivingGateCapTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         for gate in ['modelToWorldWorld', 'true,4,"GEOM","NONE"',
                      '[_left,(_left+_right)*0.5,_right]', 'forEach _heights',
-                     'max 25 min 600', '_gap-6', '_deceleration=4/_massFactor']:
+                     'max 25 min 600', '_gap-_standOff', 'private _standOff=[6,2] select (_travelDirection < 0)', '_deceleration=4/_massFactor']:
             self.assertIn(gate,s)
         for command in ['animateSource','animateDoor','forceSpeed','setVelocity','doMove','remoteExec','animationSourcePhase']:
             self.assertNotIn(command,s)
@@ -127,6 +127,22 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('_commander != _requestedCommander',server)
         self.assertIn('[_gate,_reason,_until,_group,+_route,_revision,+_transform,_passageCycle]',server)
         self.assertNotIn('animateSource',owner)
+        # Rejected transport cannot reach native reads or consume a gate attempt.
+        for guard in ('!((_observation select 1) isEqualType objNull)',
+                      '[0,2,3,4] findIf', '!finite (_observation select _x)',
+                      '!finite _revision', '_revision != floor _revision'):
+            self.assertIn(guard,owner[:owner.index('private _route=')])
+        self.assertLess(owner.index('[0,2,3,4] findIf'),owner.index('isNull (_observation select 1)'))
+        self.assertIn('count _values != count _payloadKeys',server)
+        self.assertIn('_payloadKeys findIf {isNil {_values get _x}}',server)
+        self.assertLess(server.index('count _values != count _payloadKeys'),server.index('private _group='))
+        required={'group','vehicle','gate','route','transform','driver','commander',
+                  'convoyRevision','expires','unlockReceipt','travelDirection'}
+        def valid_keys(keys):
+            return len(keys)==11 and len(set(keys))==11 and set(keys)==required
+        self.assertTrue(valid_keys(list(required)))
+        self.assertFalse(valid_keys(['group']*11))
+        self.assertFalse(valid_keys(list(required-{'expires'})+['unexpected']))
 
 class DrivingGateIntentTests(unittest.TestCase):
     def test_gate_intent_is_checked_before_request_and_authoritative_mutation(self):
@@ -201,6 +217,44 @@ class DrivingGateOwnerEvidenceTests(unittest.TestCase):
         self.assertLess(check.index('!local _gateDriver') if '!local _gateDriver' in check else check.index('!local _x'),check.index('expectedDestination _gateDriver'))
         for forbidden in ('animateSource','doMove','forceSpeed','waitUntil','spawn'):
             self.assertNotIn(forbidden,broker.split('params [[',1)[1])
+        request=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
+        cap=(ROOT/'addons/vehicles/functions/drivingGateCap.sqf').read_text()
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('["travelDirection",_travelDirection]',request)
+        self.assertIn('_revision,[],[],_travelDirection] call CBE_fnc_DrivingGateOwnerCheck',request)
+        self.assertIn('_evidenceContext getOrDefault ["direction",1]',broker)
+        self.assertIn('_evidenceBefore,_evidenceTasks,_evidenceDirection]',broker)
+        self.assertIn('["direction",_travelDirection]',opening)
+        self.assertIn('[_vehicle,0,true,_travelDirection] call CBE_fnc_DrivingGateCap',opening)
+        self.assertIn('[_vehicle,_requested,_serverCheck,[],false,_travelDirection]',cap)
+        self.assertIn('[_group,_vehicle,_gateObservation,-1,_travelDirection]',assist)
+        for guard in ('_gateDirection == -1 && {_gateRevision >= 0}',
+                      '(_directionObservation select 0) isEqualTo _directionContext',
+                      '(_directionObservation select 1) isEqualTo _directionFrame',
+                      '(_directionObservation select 2) isEqualTo -1',
+                      'count _directionCap == 12',
+                      'getOrDefault ["cancelled",false]', 'getOrDefault ["finished",false]',
+                      'CBE_AIPass_Epoch', 'time-(_directionCap select 2) <= 6',
+                      '(_directionCap select 10) isEqualTo false',
+                      '(_directionCap select 9) isEqualTo _gateRoute',
+                      'getForcedSpeed _gateVehicle','_directionVelocity <= 0.15',
+                      '_directionPathAt <= (_directionObservation select 3)',
+                      '"FORWARD","FAST","SLOW"'):
+            self.assertIn(guard,check)
+        self.assertLess(check.index('if (_gateDirection == 0)'),check.index('private _gateNative='))
+        # Direction is a request to re-observe geometry, never permission by itself.
+        def rear_allowed(direction,revision,same_context,same_task,same_cap,velocity,new_path,forward_mode):
+            return (direction==-1 and revision==-1 and same_context and same_task and same_cap
+                    and velocity<=0.15 and not forward_mode and (velocity < -0.15 or not new_path))
+        self.assertTrue(rear_allowed(-1,-1,True,True,True,0,False,False))
+        self.assertTrue(rear_allowed(-1,-1,True,True,True,-1,True,False))
+        for overrides in ({'direction':1},{'revision':3},{'same_context':False},
+                          {'same_task':False},{'same_cap':False},{'velocity':0.2},
+                          {'new_path':True},{'forward_mode':True}):
+            args=dict(direction=-1,revision=-1,same_context=True,same_task=True,
+                      same_cap=True,velocity=0,new_path=False,forward_mode=False)
+            args.update(overrides)
+            self.assertFalse(rear_allowed(**args))
         # A recorded ticket is consumed by its owner once, only before the original expiry.
         tickets={'one':(7,10)}
         def reply(token,owner,now):

@@ -60,12 +60,31 @@ class RearHullProjectionTests(unittest.TestCase):
 
     def test_native_integration_uses_four_transform_pairs_and_preserves_prediction(self):
         source=(ROOT/'addons/vehicles/functions/drivingRearClear.sqf').read_text()
-        block=source.split('private _origin=',1)[1].split('private _current=',1)[0]
-        self.assertEqual(block.count('worldToModel'),2)
-        self.assertEqual(block.count('modelToWorld'),2)
-        self.assertIn('[_otherHigh select 0,_otherLow select 1,_otherLow select 2]',block)
-        self.assertIn('[_otherLow select 0,_otherHigh select 1,_otherLow select 2]',block)
-        self.assertIn('[_otherLow select 0,_otherLow select 1,_otherHigh select 2]',block)
+        self.assertNotIn('worldToModel',source)
+        self.assertIn('[_vehicle,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',source)
+        self.assertIn('[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval',source)
+        span=(ROOT/'addons/vehicles/functions/drivingHullInterval.sqf').read_text()
+        self.assertEqual(span.count('modelToWorldWorld'),2)
+        self.assertIn('_span append [_thirdMinimum-0.05,_thirdMaximum+0.05]',span)
+        self.assertIn('vectorNormalized (_sourcePose select 1)',source)
+        self.assertIn('private _pointWorld=',source)
+        self.assertIn('REAR_CONTEXT_CHANGED',source)
+        self.assertIn('_scheduledObservation && {[_vehicle modelToWorldWorld [0,0,0]',source)
+        self.assertIn('REAR_ACTOR_UNAVAILABLE',source)
+        self.assertIn('private _reverseSpeed=(-(_ownVelocity vectorDotProduct _forward)) max 0',source)
+        # Unit-body coordinates reconstruct world metre travel at any object scale.
+        # The old model transform multiplied requested travel by scale a second time.
+        import math
+        angle=math.radians(30);forward=(0,math.cos(angle),math.sin(angle))
+        for scale in (.5,1,2):
+            rear=-4*scale;distance=8
+            start=tuple(v*rear for v in forward)
+            stop=tuple(v*(rear-distance) for v in forward)
+            measured=math.sqrt(sum((b-a)**2 for a,b in zip(start,stop)))
+            self.assertAlmostEqual(measured,distance)
+            if scale!=1:self.assertNotAlmostEqual(distance*scale,measured)
+            # Eight physical metres at4m/s must retain two-second occupancy timing.
+            self.assertAlmostEqual(measured/4,2)
         for guard in ('_minZ <= (_high select 2)+0.3','_maxZ >= (_low select 2)-0.3','private _entry=0;private _exit=_seconds'):
             self.assertIn(guard,source)
 

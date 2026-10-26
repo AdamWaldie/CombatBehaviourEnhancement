@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "7f8df88d6eaff3314646cd624afdc601d7c39b81",
+  "status": "ORIGINAL_ACTOR_METADATA_CAPTURED_FULL_HANDOVER_INCOMPLETE",
+  "implementation": [
+    "BuildingActorJournal runs only under original FROZEN BuildingProducerContext and exact acknowledged producer registration. At most64 original/current-team actor identities; deleted or unknown keys refuse.",
+    "Canonical context, ordered original baseline/applied pairs and unchanged original server retry timestamp copied. Foreign issuers remain explicit, not adopted. Setting mirror presence retained separately; surviving mirrors without canonical state refuse.",
+    "Exact visit-bound MOVE/HOLD target and optional original settings triple copied. No nonlocal native settings/destination readback or new authority.",
+    "Actor component [1,visit,rows,registration] appended to private outer capture version12/seventeen fields. Nested visit transform/target arrays copied; no shared HashMap in encoded canonical values.",
+    "No commands, public writes, worker, timer, query or deadline renewal in the encoder. Startup still does not consume this source proposal."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/buildingActorJournal.sqf": "1545e046576aff9b77595f3c835c7a96c3c8fe100e7ba0fbf4fa02f71164f98a",
+    "addons/core/functions/cortexLocality.sqf": "8a427c1472048213e0fab1c05ffa7e40f2ba9be2db1e42837285dc7565128967",
+    "addons/main/CfgFunctions.hpp": "c4bf0c818972bdf4edc0346bb2499ebf5e42ef4b23cbef401b4176fe61d04e56",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "68fdddf5ea09fbb34aee21a5bc95cc423d43afc008dbd52c282c54efbff06f27"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 442,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-actor-journal-7f8df88d",
+    "fingerprint": "55a7d869251147e3753a98c9820ca41b75a2bcc62e90c676f4980e839c7aa019",
+    "buildLog": ".qa/handovers/clear-actor-journal-build.log",
+    "independentLog": ".qa/handovers/clear-actor-journal-independent.log",
+    "runtimeUnchangedAfterBuild": true
+  },
+  "remaining": [
+    "Actor interruption/evasion, settings retirement and other writer domains are not yet fully captured or sealed.",
+    "Original registration must be paired with final all-writer quiescence and authenticated complete delivery; this proposal is not a server seal.",
+    "Incoming actor locality/native settings/order readbacks and full phase reconstruction remain incomplete.",
+    "Audits paused. Physical migration/repeat/casualty flow and performance remain unverified."
+  ],
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "followup": "clear-interruption-capture-20261026.json extends actor component to version2/five fields and actor rows with original interruption and settings-retirement metadata; still no seal/incoming readiness."
+}

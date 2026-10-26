@@ -12,12 +12,16 @@
  * deadline. Changed native settings refuse application; release preserves edits. Partial native
  * restoration retains the remaining pairs and at most one release attempt/second, without renewing
  * the caller deadline or creating a worker. This does not prove initial network receipt readiness.
- * Arguments: 0 mode STRING APPLY (CHECK/ADOPT/RELEASE); 1 actor OBJECT objNull;
+ * INSPECT reads an exact original issuer/generation/deadline and current native values before
+ * successor startup. It requires current actor/group ownership but no new operation, writes
+ * nothing and grants no setting or movement authority. Missing requested pairs refuse adoption.
+ * Arguments: 0 mode STRING APPLY (CHECK/ADOPT/INSPECT/RELEASE); 1 actor OBJECT objNull;
  * 2 context ARRAY [] = [group,issuer token,operation generation,owner epoch,server deadline];
  * 3 requested HASHMAP empty, supported keys STANCE (AUTO/UP/MIDDLE/DOWN), SPEED (-1 or >=0).
  * 4 authority scope STRING OPERATION; GARRISON requires its live explicit issuer/order/assignment
  * and uses deadline0 for post holding, independently of the finite approach deadline.
- * Return: STRING APPLIED/OWNED/ADOPTED/RELEASED/ABSENT/CHANGED/PENDING/REFUSED.
+ * Return: STRING APPLIED/OWNED/ADOPTED/ADOPTABLE/RELEASED/ABSENT/CHANGED/PENDING/REFUSED.
+ * ADOPTABLE is read-only original-property observation, never a successor acknowledgement.
  * Native stance rule names are normalised before enum validation and exact receipt comparisons.
  * A settings acknowledgement never grants movement, target or physical-progress authority.
  * Acquisition/check/adoption yield to native flight and queued care; exact release stays task-independent.
@@ -32,11 +36,13 @@ params [["_mode","APPLY",[""]],["_actor",objNull,[objNull]],
 private _result="REFUSED";
 isNil {
 _result=call {
-    if (!(_mode in ["APPLY","CHECK","ADOPT","RELEASE"]) || {isNull _actor} || {!local _actor}
+    if (!(_mode in ["APPLY","CHECK","ADOPT","INSPECT","RELEASE"]) || {isNull _actor} || {!local _actor}
         || {count _context != 5} || {count _requested > 2}) exitWith {"REFUSED"};
     private _contextValid={
         params ["_row"];
-        _row isEqualType [] && {count _row == 5} && {(_row select 0) isEqualType grpNull}
+        _row isEqualType [] && {count _row == 5}
+            && {[0,1,2,3,4] findIf {isNil {_row select _x}} < 0}
+            && {(_row select 0) isEqualType grpNull}
             && {(_row select 1) isEqualType ""} && {count (_row select 1) > 0 && {count (_row select 1) <= 256}}
             && {[2,3,4] findIf {!((_row select _x) isEqualType 0) || {!finite (_row select _x)} || {(_row select _x) < 0}} < 0}
     };
@@ -68,7 +74,8 @@ _result=call {
     private _same={params ["_key","_a","_b"];if (_key == "STANCE") then {_a isEqualTo _b} else {abs (_a-_b) <= 0.00001}};
     private _write={params ["_key","_value"];if (_key == "STANCE") then {_actor setUnitPos _value} else {_actor forceSpeed _value}};
     private _lease=_actor getVariable ["CBE_ActorSettings",[]];
-    if !(_lease isEqualType [] && {count _lease in [0,3]}) exitWith {"REFUSED"};
+    if !(_lease isEqualType [] && {count _lease in [0,3]}
+        && {_lease isEqualTo [] || {[0,1,2] findIf {isNil {_lease select _x}} < 0}}) exitWith {"REFUSED"};
     private _owned=createHashMap;
     private _oldContext=[];
     private _releaseAt=0;
@@ -84,6 +91,7 @@ _result=call {
         || {keys _owned findIf {
             private _pair=_owned get _x;
             !(_x in ["STANCE","SPEED"]) || {!(_pair isEqualType [])} || {count _pair != 2}
+                || {[0,1] findIf {isNil {_pair select _x}} >= 0}
                 || {!([_x,_pair select 0] call _valueValid)} || {!([_x,_pair select 1] call _valueValid)}
         } >= 0}
     }) exitWith {"REFUSED"};
@@ -120,6 +128,18 @@ _result=call {
     // must not require cancelling or waiting for the native task.
     if (_releaseAt > 0 || {fleeing _actor}
         || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {"REFUSED"};
+    if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"REFUSED"};
+    // Inspect before successor admission, while its operation does not exist yet. This
+    // branch cannot reach any metadata/native writer and never supplies task authority.
+    if (_mode == "INSPECT") exitWith {
+        if (_scope != "OPERATION" || {serverTime >= _deadline}) exitWith {"REFUSED"};
+        if (_lease isEqualTo []) exitWith {"ABSENT"};
+        if ((_oldContext select 2) != _generation
+            || {keys _requested findIf {!(_x in _owned)} >= 0}) exitWith {"REFUSED"};
+        if (keys _owned findIf {
+            !([_x,[_x] call _read,(_owned get _x) select 1] call _same)
+        } >= 0) then {"CHANGED"} else {"ADOPTABLE"}
+    };
     private _taskOwned=false;
     if (_scope == "GARRISON") then {
         // Persistent explicit post holding is order-scoped, not an expired approach route.
@@ -149,12 +169,12 @@ _result=call {
             && {keys _requested findIf {_x != "SPEED"} < 0};
     };
     if (!_taskOwned) exitWith {"REFUSED"};
-    if (currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]) exitWith {"REFUSED"};
     if (_lease isNotEqualTo [] && {keys _owned findIf {
         !([_x,[_x] call _read,(_owned get _x) select 1] call _same)
     } >= 0}) exitWith {"CHANGED"};
     if (_mode == "ADOPT") exitWith {
         if (_lease isEqualTo []) exitWith {"ABSENT"};
+        if (keys _requested findIf {!(_x in _owned)} >= 0) exitWith {"REFUSED"};
         private _next=[+_context,createHashMapFromArray (keys _owned apply {[_x,+(_owned get _x)]}),0];
         if (_next isNotEqualTo _lease) then {_actor setVariable ["CBE_ActorSettings",_next,true]};
         "ADOPTED"

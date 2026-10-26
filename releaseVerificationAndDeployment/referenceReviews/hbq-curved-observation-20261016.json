@@ -125,5 +125,9 @@
     },
     "physical": false,
     "scoresChanged": false
+  },
+  "forwardMetreFrameFollowup20261026": {
+    "review": "hbq-forward-metre-frame-20261026.json",
+    "meaning": "Forward probing and both curvature producers now use body-oriented world metres. Earlier source hashes remain historical. No physical/source-parity credit."
   }
 }

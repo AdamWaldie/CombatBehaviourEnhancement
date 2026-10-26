@@ -148,3 +148,7 @@ User decision: HBQ-style crew recall must be an optional CBA setting, off by def
 ## Audit pause and implementation scope
 
 An audit pause blocks installed-game staging and in-engine validation, not source implementation. Continue concrete foundation/FSM and registered-source build gaps while audits are held. Do not mark the entire goal blocked merely because physical acceptance cannot run while substantive implementation remains possible. Do not substitute repeated unchanged builds, speculative guard changes or status restatements for the remaining behaviour work. Retain build-out and physical acceptance as separate evidence.
+
+## Current continuation after PR17
+
+PR17 merged at `2dba3da92af80513e816e1f8fa45dfd6387d9df2` following the user's explicit instruction on26 October2026. Follow-on work is on `Adam/cbe-foundations-followup-20261026`, created from merged origin/main. Determine its current PR from the branch; never append new implementation to closed PR17. All prior source protection, exact checkout checks, audit pause and first-release namespace requirements remain. The current build-out percentage ledger fails its evidence check; reassess changed capability evidence before quoting an updated aggregate. Missing physical acceptance is separate from build-out. No Release/Steam publication is authorised by the checkpoint merge.

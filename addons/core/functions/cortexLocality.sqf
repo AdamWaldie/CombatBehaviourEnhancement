@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Coordinated recovery snapshots retain generic and per-server-bound refresh budgets; commands are not replayed.
+ * Locality cleanup passes each original private actor brain so retirement cannot bypass
+ * its identity checks. Journal-only cleanup requires no installed local controller.
  * Individual indoor work is cancelled on transfer; only an exact journal-owned native leg may
  * return to formation on the new owner. No indoor movement or deadline is replayed.
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
@@ -39,6 +41,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_gained", false, [true]], ["_resumeArtilleryScoot",true,[true]]];
 if (isNull _group) exitWith {};
+private _clearEdgeIncomingOwner=groupOwner _group;
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 // Capture the previous published driving identity at the actual group locality edge,
 // before retirement can overwrite it. This local proposal alone grants no commands.
@@ -122,6 +125,30 @@ if (count _passWatch == 6) then {
         call CBE_fnc_DrivingPassCommandWatch;
 };
 // Retire the exact previous driving receipt before changing its owner epoch.
+// Keep the exact original handles before pointer cleanup; flags alone do not prove FSM exit.
+private _clearRetireSource=_group getVariable ["CBE_BuildingBrain",createHashMap];
+private _clearRetireWriters=[];
+if (!_gained && {!local _group} && {count _clearRetireSource > 0}) then {
+    private _collectClearWriter={
+        params ["_object","_brainVariable","_handleVariable"];
+        private _writerBrain=_object getVariable [_brainVariable,createHashMap];
+        private _writerHandle=_object getVariable [_handleVariable,-1];
+        if (count _writerBrain > 0) then {_clearRetireWriters pushBack [_object,_brainVariable,_writerHandle,_writerBrain]};
+    };
+    {[_group,_x select 0,_x select 1] call _collectClearWriter} forEach [
+        ["CBE_BuildingBrain","CBE_BuildingBrain_FSM"],["CBE_GroupBrain","CBE_GroupBrain_FSM"],
+        ["CBE_Driving_Brain","CBE_Driving_FSM"]];
+    private _writerActors=+((_clearRetireSource getOrDefault ["job",createHashMap]) getOrDefault ["team",[]]);
+    {_writerActors pushBackUnique _x} forEach units _group;
+    if (count _writerActors <= 64) then {
+        {
+            if (!isNull _x) then {
+                [_x,"CBE_PointActor_Brain","CBE_PointActor_FSM"] call _collectClearWriter;
+                [_x,"CBE_IndoorActor_Brain","CBE_IndoorActor_FSM"] call _collectClearWriter;
+            };
+        } forEach _writerActors;
+    } else {_clearRetireWriters=[]};
+};
 private _drivingBrain=_group getVariable ["CBE_Driving_Brain",createHashMap];
 if (count _drivingBrain > 0) then {[_drivingBrain,"LOCALITY_CHANGE"] call CBE_fnc_DrivingOperationFinish};
 _group setVariable ["CBE_Driving_Brain",nil];
@@ -164,10 +191,11 @@ isNil {
                     private _early=if (count _follow == 5 && {count (_follow select 4) == 2}) then {["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal} else {[]};
                     private _relief=if (count _early == 6) then {[_clearJob] call CBE_fnc_BuildingReliefJournal} else {[]};
                     private _admission=if (count _relief == 2) then {["CAPTURE",_clearJob] call CBE_fnc_BuildingAdmissionJournal} else {[]};
-                    if (count _admission == 3) then {
-                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[11,clientOwner,
+                    private _actors=if (count _admission == 3) then {[_clearJob] call CBE_fnc_BuildingActorJournal} else {[]};
+                    if (count _actors == 7) then {
+                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[12,clientOwner,
                             _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
-                            serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission]];
+                            serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission,_actors]];
                     };
                 };
             };
@@ -180,7 +208,7 @@ isNil {
         private _unit = _x;
         private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_unit getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
-            ["TRANSFER",_unit,createHashMap] call CBE_fnc_PointActorOperation;
+            ["TRANSFER",_unit,_point] call CBE_fnc_PointActorOperation;
             if ((_unit getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _point) then {
                 _unit setVariable ["CBE_PointActor_Brain",nil];_unit setVariable ["CBE_PointActor_FSM",nil];
             };
@@ -189,7 +217,7 @@ isNil {
         if (count _indoor > 0 || {(_unit getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
             || {!isNil {_unit getVariable "CBE_IndoorActor_FSM"}}) then {
             if (count _indoor > 0) then {_indoor set ["finished",true]};
-            ["TRANSFER",_unit,createHashMap] call CBE_fnc_IndoorActorOperation;
+            ["TRANSFER",_unit,_indoor] call CBE_fnc_IndoorActorOperation;
             // Public cancellation may already have completed elsewhere. Retire this machine's
             // exact old pointer regardless; otherwise returning ownership blocks the next START.
             if ((_unit getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _indoor) then {
@@ -197,6 +225,10 @@ isNil {
                 _unit setVariable ["CBE_IndoorActor_FSM",nil];
             };
         };
+        // Invalidate queued throw retries before retiring their observational listeners.
+        _unit setVariable ["CBE_Cortex_ThrowGeneration",(_unit getVariable ["CBE_Cortex_ThrowGeneration",0])+1];
+        _unit setVariable ["CBE_Cortex_ThrowOwner",nil];
+        _unit setVariable ["CBE_Cortex_FragFlightGeneration",nil];
         // Event-handler IDs are machine-local. Retire this owner's listener on both
         // loss and gain; the old drill is cancelled, never replayed on the new owner.
         private _fragHandler = _unit getVariable ["CBE_Cortex_FragHandler",-1];
@@ -212,6 +244,61 @@ isNil {
         _unit setVariable ["CBE_AIPass_DuckUntil", nil];
         _unit setVariable ["CBE_Cortex_ActorMove",nil];
 } forEach units _group;
+// Observe the exact old FSMs only after this edge retired their original pointers.
+// No native command authority is placed in the observer's scheduler state.
+if (_gained && {local _group}) then {
+    _group setVariable ["CBE_Cortex_ClearRetireLocal",nil];
+    _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];
+};
+private _clearRetireCapture=_group getVariable ["CBE_Cortex_ClearLaneCaptureLocal",[]];
+if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
+    && {count _clearRetireWriters > 0} && {count _clearRetireWriters <= 131}
+    && {(_clearRetireCapture select [1,4]) isEqualTo [clientOwner,
+        _clearRetireSource get "generation",_clearRetireSource get "ownerEpoch",
+        (_clearRetireSource get "job") get "operationGeneration"]}) then {
+    private _retireExisting=_group getVariable ["CBE_Cortex_ClearRetireLocal",createHashMap];
+    if ((_retireExisting getOrDefault ["capture",[]]) isEqualTo _clearRetireCapture) exitWith {};
+    private _clearRetireDeadline=if ((_clearRetireCapture select 10) == "EGRESS") then {
+        (_clearRetireCapture select 11) select 7
+    } else {_clearRetireCapture select 6};
+    // This baseline follows intentional Local-edge marker retirement. Preserve it
+    // independently: later old-FSM exits must not silently alter the watched records.
+    private _copyClearRetireValue={
+        params ["_value"];
+        if (_value isEqualType []) exitWith {_value apply {[_x] call _copyClearRetireValue}};
+        if (_value isEqualType createHashMap) exitWith {
+            private _pairs=[];
+            {_pairs pushBack [_x,[_y] call _copyClearRetireValue]} forEach _value;
+            createHashMapFromArray _pairs
+        };
+        _value
+    };
+    private _clearRetireRecords=[];
+    {
+        private _recordActor=_x select 1;
+        {
+            private _present=!isNil {_recordActor getVariable _x};
+            private _value=if (_present) then {[_recordActor getVariable _x] call _copyClearRetireValue} else {[]};
+            _clearRetireRecords pushBack [_recordActor,_x,_present,_value];
+        } forEach ["CBE_ActorSettings","CBE_Cortex_ClearMotion","CBE_Cortex_ClearStance",
+            "CBE_Cortex_ClearForcedSpeed","CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearSettingToken",
+            "CBE_Cortex_ActorMove","CBE_Cortex_ClearEvasionReturn","CBE_Cortex_ClearSettingRetireUntil",
+            "CBE_Cortex_ClearEntryRecovery","CBE_Cortex_ClearEntryAlternative"];
+    } forEach ((_clearRetireCapture select 16) select 2);
+    {
+        private _present=!isNil {_group getVariable _x};
+        private _value=if (_present) then {[_group getVariable _x] call _copyClearRetireValue} else {[]};
+        _clearRetireRecords pushBack [_group,_x,_present,_value];
+    } forEach ["CBE_Cortex_ClearSettingsPending","CBE_Cortex_ClearSettingsResult"];
+    private _retire=createHashMapFromArray [["taskGroup",_group],["capture",_clearRetireCapture],
+        ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],
+        ["incomingOwner",_clearEdgeIncomingOwner],["attempts",0],["done",false],
+        ["until",((_clearRetireCapture select 5)+3) min _clearRetireDeadline]];
+    _group setVariable ["CBE_Cortex_ClearRetireLocal",_retire];
+    _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];
+    private _retireKey=format ["CBE_CLEAR_RETIRE_%1_%2_%3",netId _group,_clearRetireCapture select 2,_clearRetireCapture select 3];
+    [CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey] call CBE_fnc_CortexQueueJob;
+};
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
 _group setVariable ["CBE_DrivingAbort_Transfer",nil];
 _group setVariable ["CBE_DrivingNative_Transfer",nil];

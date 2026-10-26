@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "37ab49a4ee86a4c85daf26c1a8e0382052323ea1",
+  "status": "DELAYED_GRENADE_SOURCE_FENCE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "finding": "Delayed regroup protected doFollow with group/epoch/operation proof, but exact marker cleanup required only actor locality and marker equality. Split locality could therefore mutate source metadata after the original group moved.",
+  "implementation": [
+    "Regroup rows retain original source clientOwner. Both destination read/recall and exact marker cleanup now require that issuer, current local group/actor membership, actual groupOwner, original epoch and original common-operation generation.",
+    "A source transition or replacement operation exits before native destination observation or marker write. Exact marker alone no longer authorizes post-transfer mutation.",
+    "Same source episode still retires its exact marker when native/Zeus destination changes, while recall retains the original stricter route/destination/task gates.",
+    "No new timer/worker/query or replay. A valid expired marker may remain inert until current-owner cleanup; ordinary reservation predicate already treats valid expired markers as free."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/cortexGrenadeCheck.sqf": "e8b4b4fab4d1dc84a3e874ba56c745b508499176e2566ce65c32c9eb92f9770e",
+    "releaseVerificationAndDeployment/test_grenade_native_handover.py": "02415fc031d9a1e46fdeed73bf73beaad287697c2c770a7aa9fd7a3f0de4ac9c"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/grenade-source-fence-37ab49a4",
+    "fingerprint": "c35792837c23ee73623d235cad0444e4098b9e25d283595a20b0f0878d4bebbe",
+    "buildLog": ".qa/handovers/grenade-source-fence-build.log",
+    "independentLog": ".qa/handovers/grenade-source-fence-independent.log",
+    "runtimeUnchangedAfterBuild": true
+  },
+  "remaining": [
+    "Other non-FSM writers/native controller journals still require complete retirement proof.",
+    "Final all-writer seal, authenticated checkpoint delivery and actual incoming actor/settings/native reconciliation remain unfinished.",
+    "Audits paused: split-locality timing, normal/HC transfer/repeat/physical CQB and performance unverified."
+  ],
+  "completeHandover": false,
+  "physicalAcceptance": false
+}

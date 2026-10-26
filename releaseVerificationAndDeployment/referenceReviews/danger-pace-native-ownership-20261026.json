@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "6d744b60",
+  "status": "DANGER_PACE_NATIVE_OWNERSHIP_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Native ATTACK pacing continuation and exact expired metadata retirement. Selected LAMBS branch comparison, not full danger or descendant parity.",
+  "reference": {
+    "path": ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf",
+    "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    "readScope": "Complete brainForced function; doAssaultSpeed descendant not rereviewed here.",
+    "intent": "Native ATTACK invokes assault pace and weak posture. CBE retains one finite settings owner, original deadlines and native target/destination checks. Source target deletion/watch reset is not imported. Protected source unchanged."
+  },
+  "findings": [
+    "CHECK previously matched response/generation/native target and destination but did not inspect the canonical settings lease or actual forced-speed property. Missing, pending, replaced or natively changed settings could still appear owned.",
+    "RELEASE previously refused after the original expiry+30 window even when the native property had already changed. Exact stale metadata could continue blocking later operation admission. Unknown ownership is not sufficient to remove it."
+  ],
+  "implementation": [
+    "CHECK now requires a complete typed original context and exact canonical speed-only lease with no pending release, valid baseline/applied values and actual getForcedSpeed matching the applied value within the existing ActorSettings0.00001 tolerance. Original response/epoch/generation/command checks fail before native property sampling; original target/destination matching remains.",
+    "Engine condition path remains read-only and bounded: one actor-local lease read/property sample, fixed field checks, no full ActorSettings eligibility/squad/config scan, queue or mutation. Existing CanContinue/Setup/Posture consumers route refusal through existing release paths.",
+    "After original expiry+30, an unscheduled current-actor/group transaction may remove only unchanged original pace proof plus its exact old canonical speed-only lease when the actual forced-speed property demonstrably differs. No native command, deadline extension or new cleanup worker. Missing/foreign/malformed/still-applied values remain unresolved."
+  ],
+  "cost": "CHECK is used in actual engine FSM conditions, including danger.fsm waiting-state links. It adds bounded scalar/tuple/map reads and one getForcedSpeed only after cheap original metadata checks. No actor search, config query, new callback or timer. Expired metadata retirement is release-only and atomic. Runtime cost remains unmeasured.",
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/danger-pace-native-6d744b60",
+    "fingerprint": "8013151b3d4c34256e1777ed82ea95e783c824a29b3794c84284e6291f46f915",
+    "build": ".qa/handovers/danger-pace-native-combined-build.log",
+    "independent": ".qa/handovers/danger-pace-native-independent.log",
+    "provenance": "Initial CHECK-only full pipeline passed, then source expanded for the related late metadata gap. Combined first run caught a test slice incorrectly including the new RELEASE branch in the read-only CHECK region. Slice corrected to the actual branch boundary; forbidden-write checks retained. Final complete pipeline and independent verification passed. Preliminary one existing focused case passed; final full suite covers final source.",
+    "limits": "Static/numerical/source evidence only. Runtime unchanged after final build; review/handover metadata postdates unsigned development package."
+  },
+  "remaining": [
+    "Actual native property confirmation timing, repeated FSM cleanup, mission-cap edits, owner migration and physical movement need fresh engine evidence; audits paused.",
+    "Exact old still-applied caps and missing/foreign canonical receipts remain unresolved after the finite restore window. Full incoming readiness and broader retirement contracts remain unfinished.",
+    "Whole LAMBS parity, tactical balance and5percent median/10percent p95 cost remain unverified. No new source-count or test-count percentage."
+  ],
+  "sourceSHA256": {
+    "addons/infantry/functions/dangerAttackPace.sqf": "1a3e59c20b575f5eeb4abfae0d5facce5c9bdc2939f096675caf03a1731c65d3",
+    "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
+    "addons/danger/danger.fsm": "c945ca64ace19246d107566ee6edb8952fefc291efb38b0295ed160f78a59c56",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "7f8db9661bc1e970def142ccf923168844d9982b272fe21ea27df1704fe0e997"
+  }
+}

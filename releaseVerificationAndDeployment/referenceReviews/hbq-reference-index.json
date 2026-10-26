@@ -342,6 +342,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-lead-native-grade-20261026.json",
+      "sha256": "1dd8f0b6adc7ab108109f248b3a53797f325652d24b8c6500e868a272d3592fe",
+      "scope": "Selected terrain-anticipation reference and CBE lead/follower integration correction; no whole-HBQ parity or renewed whole-controller review.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-convoy-native-planning-evidence-20261018.json",
       "sha256": "168920c966e14a077ab306a76bbf2e7da2b39473378511f1d5d3409dc72396de",
       "scope": "Mixed convoy native follower destination refresh issue evidence; not steering/recovery/lead command coverage",
@@ -413,7 +422,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "sha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e",
+      "sha256": "116ae4b68ce849e56e3ae5d986d312a50901a26c059aea31304a3b04ee62368f",
       "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -447,9 +456,18 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-dense-traffic-admission-20261025.json",
-      "sha256": "a03302fe96fcc2b903cf199dbec60b593f0078cc278b2f4cf44718d56d5dd05c",
+      "sha256": "8ffd503e039bc28328cb859ed5f054d58911c975c557d70ffb8e1cf1bd230911",
       "scope": "Bounded dense-traffic admission within the current following observer; not full HBQ traffic or gameplay acceptance.",
       "sourceFileMentions": [],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-dense-traffic-course-20261026.json",
+      "sha256": "87c5968f9a4e34080f5dbc99b7e763b1879cdf7bd084daa01e19b1da057c9d04",
+      "scope": "Selective TrafficCap reference and current dense-observer admission; no renewed whole-controller or whole-HBQ parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
@@ -504,6 +522,15 @@
         "functions/fn_driveAssist.sqf",
         "functions/fn_refreshRoute.sqf",
         "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-forward-metre-frame-20261026.json",
+      "sha256": "c7509fe70516c6f96573d774a72dc81a59c683bfd245a5b36c880d1570ca823a",
+      "scope": "CBE forward geometry and both curvature producers; selected HBQ arc/track intent. Not a complete controller review or parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -599,6 +626,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-backing-observation-20261026.json",
+      "sha256": "c4b8b4500d4f28e75407b7130cf030101f0bc1d5d91b2f4cb8af36d8121582df",
+      "scope": "Ordinary native reverse traffic and solid observation; no new movement controller or whole-HBQ parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-implementation-current-20261025.json",
       "sha256": "e0b6f9c44d67538ccd327578ee5bfdd7113897be3f1482a105947827906d5f73",
       "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
@@ -646,6 +682,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-pedestrian-world-frame-20261026.json",
+      "sha256": "0bcb23abc0cb61c0a82631a0c0b174659bafe9aeec02471413df76b3f341162e",
+      "scope": "CBE pedestrian safety geometry and shared hull foundation; selected HBQ source comparison only, not whole-source parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-performance-precision-20261016.json",
       "sha256": "198a0ff61beb886bd374e856b2ca69d30d66c9b7b2d651d9d59e09c21845018a",
       "scope": "Complete monitor/precision/player-proximity helpers and selected driving cadence consumers",
@@ -680,6 +725,24 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-gate-20261026.json",
+      "sha256": "8fca0cf782d7f9521a0b89141c4a0f00330e2f4d9308a4484600989f2b4ec115",
+      "scope": "Ordinary native reverse opening through existing finite owner challenge and server geometry. Not whole HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-metre-frame-20261026.json",
+      "sha256": "7470afe3f6e61af3614b9f7177a20170ec7e8cfa7e622c58a50772640eb910bb",
+      "scope": "CBE reverse-clearance geometry foundation and selected HBQ nearby-space observation intent. No whole-HBQ parity or physical acceptance.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261018.json",
       "sha256": "0c0f9532a7cc0e6b24ad2b3a58085b66d00411423a8a1b27733b660e782acb60",
       "scope": "HBQ jam cascade/rear observation versus CBE sampled rear support",
@@ -706,6 +769,16 @@
       "sourceFileMentions": [
         "functions/fn_routeWaiting.sqf",
         "functions/fn_vehicleUnstuck.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-reverse-track-20261026.json",
+      "sha256": "ae6d774d53a30e12a2c32b8aed2b5737b143216b9e34f77953782d07cb2e0093",
+      "scope": "Existing measured track extended to ordinary rear travel; explicit cadence comparison, no observation LOD claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_precision.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -1226,7 +1299,7 @@
       "recordedSha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96",
       "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "currentSha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e"
+      "currentSha256": "116ae4b68ce849e56e3ae5d986d312a50901a26c059aea31304a3b04ee62368f"
     },
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",

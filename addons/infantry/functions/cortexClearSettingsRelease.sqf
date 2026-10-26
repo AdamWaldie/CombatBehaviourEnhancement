@@ -5,6 +5,8 @@
  * Player, remote, mounted, reserved and specialist actors retain their settings/baselines.
  * Repeat/JIP: Captured metadata is consumed only after a safe restore or observed setting change.
  * Refused work may request one original30second retry window on the shared restoration-only scheduler.
+ * The shared job covers the latest admitted original actor expiry. Joining later actors
+ * does not renew any earlier actor window or reset the current scan cursor.
  * Its actor issuer/deadline survives group generation/epoch changes; expired or malformed
  * nonempty windows cannot authorize further automatic restoration or be reset by re-admission.
  * One keyed cleanup callback survives tactical shutdown; no native movement, target or formation command.
@@ -82,6 +84,19 @@ isNil {
             && {(_pending select 0) != _generation || {(_pending select 1) != _epoch}};
         if (_pending isEqualTo [] || {_retiredEpisode}) then {
             _group setVariable ["CBE_Cortex_ClearSettingsPending",[_generation,_epoch,_until,0],true];
+        } else {
+            // The service covers the union of independently admitted actor windows.
+            // A later participant may have a later ORIGINAL expiry; never turn that
+            // into another30s for actors already waiting, or reset the scan cursor.
+            if (_pending isEqualType [] && {count _pending == 4}
+                && {(_pending select 0) isEqualTo _generation} && {(_pending select 1) isEqualTo _epoch}
+                && {(_pending select 2) isEqualType 0} && {finite (_pending select 2)}
+                && {(_window select 0) isEqualTo _issuer}
+                && {serverTime < _until} && {_until > (_pending select 2)}) then {
+                private _combined=+_pending;
+                _combined set [2,_until];
+                _group setVariable ["CBE_Cortex_ClearSettingsPending",_combined,true];
+            };
         };
         private _cleanup=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
         if (_cleanup isEqualType [] && {count _cleanup == 4}

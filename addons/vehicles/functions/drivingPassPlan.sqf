@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pull-out offset and duration use projected world-metre hulls, including scale/tilt.
  * Purpose: Proposes a finite road-pass corridor and relative-motion budget from current observations.
  * Locality/authority: Read-only on passing vehicle owner. A proposal grants no driving authority.
  * Repeat/JIP: Fresh observations only; no state, commands, handlers, claims or replay.
@@ -40,11 +41,14 @@ if (abs (((getDir _front-_heading+540) mod 360)-180) > 25) exitWith {["NOT_ALIGN
 private _delta=(getPosASL _front) vectorDiff (getPosASL _vehicle);
 private _gap=_delta vectorDotProduct [sin _heading,cos _heading,0];
 if (_gap <= 0 || {_gap > 60} || {abs (_delta select 2) > 2}) exitWith {["NOT_FORWARD_PEER"] call _fail};
-private _ownBounds=boundingBoxReal _vehicle;private _frontBounds=boundingBoxReal _front;
-private _ownHalfLength=(abs ((_ownBounds select 0) select 1)) max (abs ((_ownBounds select 1) select 1));
-private _frontHalfLength=(abs ((_frontBounds select 0) select 1)) max (abs ((_frontBounds select 1) select 1));
-private _ownHalfWidth=(abs ((_ownBounds select 0) select 0)) max (abs ((_ownBounds select 1) select 0));
-private _frontHalfWidth=(abs ((_frontBounds select 0) select 0)) max (abs ((_frontBounds select 1) select 0));
+private _hullAxis=[sin _heading,cos _heading,0];private _hullRight=[cos _heading,-sin _heading,0];
+private _ownBounds=[_vehicle,getPosASL _vehicle,_hullRight,_hullAxis] call CBE_fnc_DrivingHullInterval;
+private _frontBounds=[_front,getPosASL _front,_hullRight,_hullAxis] call CBE_fnc_DrivingHullInterval;
+if (count _ownBounds != 4 || {count _frontBounds != 4}) exitWith {["HULL_UNAVAILABLE"] call _fail};
+private _ownHalfLength=(abs (_ownBounds select 2)) max (abs (_ownBounds select 3));
+private _frontHalfLength=(abs (_frontBounds select 2)) max (abs (_frontBounds select 3));
+private _ownHalfWidth=(abs (_ownBounds select 0)) max (abs (_ownBounds select 1));
+private _frontHalfWidth=(abs (_frontBounds select 0)) max (abs (_frontBounds select 1));
 private _seconds=(_gap+_ownHalfLength+_frontHalfLength+7)/(_relative*0.8)+2.5;
 private _passTravel=(_speedKmh/3.6)*_seconds;
 private _needed=_passTravel+30;

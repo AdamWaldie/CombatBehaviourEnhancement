@@ -27,10 +27,41 @@ class PedestrianSpeedTests(unittest.TestCase):
         self.assertIn('if (!_queueNativeActive && {_recoveryStage != 2} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',s)
     def test_hull_geometry_and_bounded_read_only_observation(self):
         s=(ROOT/'addons/infantry/functions/cortexInfantrySpeed.sqf').read_text(encoding='utf-8')
-        for marker in ('count _people > 32','min 250','_person modelToWorld',
-                       '_vehicle worldToModel','_maxZ >=','_minZ <=','-_low','_minY-_edge-3'):
-            if marker=='-_low': marker='-(_low select 1)'
+        for marker in ('count _people > 32','min 250','_maxZ >=','_minZ <=',
+                       '_minY-_edge-3','_along=_heading vectorMultiply _sign',
+                       '_right=[_heading select 1,-(_heading select 0),0]',
+                       '[_vehicle,_origin,_right,_along,[0,0,1]]',
+                       '[_person,_origin,_right,_along,[0,0,1]]',
+                       'if (count _hull != 6) exitWith {_limit=0}'):
             self.assertIn(marker,s)
+        self.assertNotIn('worldToModel',s)
+        self.assertNotIn(' modelToWorld ',s)
+        span=(ROOT/'addons/vehicles/functions/drivingHullInterval.sqf').read_text(encoding='utf-8')
+        self.assertIn('_span append [_thirdMinimum-0.05,_thirdMaximum+0.05]',span)
+        self.assertIn('!_dual || {count _thirdAxis != 3}',span)
+        self.assertIn('if (_span findIf {!finite _x} >= 0) exitWith {[]}',span)
+        self.assertEqual(span.count('modelToWorldWorld'),2) # one corner plus the three-edge loop
+        # Independent corner geometry exposes the old unit/frame mismatch.
+        from itertools import product
+        low=(-1,-4,-1);high=(1,2,2)
+        for scale in (.5,1,2):
+            forward_gap=9.7-high[1]*scale
+            old_model_gap=9.7/scale-high[1]
+            self.assertAlmostEqual(old_model_gap*scale,forward_gap)
+            if scale!=1:self.assertNotAlmostEqual(old_model_gap,forward_gap)
+            reverse_gap=9.7+low[1]*scale
+            self.assertLess(reverse_gap,forward_gap)
+        angle=math.radians(30);c=math.cos(angle);t=math.sin(angle)
+        world=[(x,c*y-t*z,t*y+c*z) for x,y,z in product(*zip(low,high))]
+        own_z=(min(p[2] for p in world),max(p[2] for p in world))
+        for level in (0,8):
+            people=[(x,y,z+level) for x,y,z in product((-.3,.3),(9.7,10.3),(0,1.8))]
+            pedestrian_z=(min(p[2] for p in people),max(p[2] for p in people))
+            overlap=pedestrian_z[1]>=own_z[0]-.3 and pedestrian_z[0]<=own_z[1]+.3
+            old_z=[-t*y+c*z for x,y,z in people]
+            old_overlap=max(old_z)>=low[2]-.3 and min(old_z)<=high[2]+.3
+            self.assertEqual(overlap,level==0)
+            self.assertEqual(old_overlap,level==8)
         executable=s.split('params [[',1)[1]
         for forbidden in ('forceSpeed','doMove','spawn','setVariable','waitUntil'):
             self.assertNotIn(forbidden,executable)

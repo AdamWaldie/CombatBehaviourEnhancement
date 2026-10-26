@@ -30,7 +30,7 @@
  *
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
  * At most 16 nearby actors are considered. Recovery matches exact expiry, operation generation and
- * owner epoch; stale callbacks cannot clear a newer evasion or issue follow over native/specialist tasks.
+ * owner epoch and source machine; stale callbacks cannot clear a transferred/newer evasion or issue follow over native/specialist tasks.
  * Admission preserves unknown/malformed actor reservations; delayed cleanup requires the exact
  * issued evasion lease, including its destination, so a replacement marker is never retired.
  * Legacy regroup records without a route receipt only retire their exact-owned marker.
@@ -52,11 +52,18 @@ private _regroup = _job getOrDefault ["regroup", []];
 if (_regroup isNotEqualTo []) exitWith {
     {
         _x params ["_unit","_group","_spot","_hold",
-            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]]];
+            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]],["_issuer",-1,[0]]];
         private _actorMove = _unit getVariable ["CBE_Cortex_ActorMove",[]];
         private _ownsEvasion = _expires >= 0
             && {_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]};
         if (_ownsEvasion && {local _unit}) then {
+            // Split locality can leave the actor here after its group moved. Even
+            // exact marker cleanup must not mutate a checkpoint inherited by another owner.
+            private _sourceCurrent=_issuer == clientOwner && {local _group}
+                && {group _unit == _group} && {groupOwner _group == clientOwner}
+                && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _epoch}
+                && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation};
+            if (!_sourceCurrent) exitWith {};
             private _destination=(expectedDestination _unit) param [0,[],[[]]];
             private _stillOurs=local _group && {group _unit == _group} && {vehicle _unit == _unit}
                 && {!isPlayer _unit} && {isNull remoteControlled _unit}
@@ -90,7 +97,7 @@ if (_regroup isNotEqualTo []) exitWith {
                 };
             };
             // The six-second marker is CBE bookkeeping, not engine ownership. Clear it even when
-            // native AI or Zeus changed the destination; only the exact-destination branch above
+            // native AI or Zeus changed the destination under this unchanged source episode; only the exact-destination branch above
             // may issue a follow command over the expiring evasion.
             _unit setVariable ["CBE_Cortex_ActorMove",nil];
         };
@@ -185,7 +192,7 @@ private _clearHoldOwned={
             _unit setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION",+_spot,_expires]];
             _reacted = _reacted + 1;
             _regroupActors pushBack [_unit,_group,+_spot,+(_group getVariable ["CBE_AIPass_ZeusHold",[]]),
-                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute];
+                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner];
         };
     };
 } forEach ((_grenade nearEntities ["CAManBase", 12]) select [0,16]);

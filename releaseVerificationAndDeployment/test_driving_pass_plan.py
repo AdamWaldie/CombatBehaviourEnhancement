@@ -85,6 +85,29 @@ class DrivingPassPlanTests(unittest.TestCase):
         self.assertIn('TRAFFIC_OBSERVATION',code)
         self.assertIn('OCCUPIED_CORRIDOR',code)
         self.assertIn('APPROACHING_TRAFFIC',code)
+        self.assertNotIn('boundingBoxReal',code)
+        for name in ('drivingPassAdmission','drivingPassPlan','drivingPassGeometry'):
+            consumer=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertNotIn('boundingBoxReal',consumer)
+            self.assertIn('call CBE_fnc_DrivingHullInterval',consumer)
+
+        self.assertEqual(code.count('call CBE_fnc_DrivingHullInterval'),2)
+        for guard in ('count _ownHull != 6','count _otherHull != 6','TRAFFIC_HULL_UNAVAILABLE',
+                      '(_ownHull select 4)-(_otherHull select 5)-1',
+                      '(_ownHull select 5)-(_otherHull select 4)+1'):
+            self.assertIn(guard,code)
+        # World dimensions differ from model dimensions under scale. Vertical
+        # overlap is asymmetric when origins are near hull bases, not box centres.
+        import math
+        for scale in (0.5,1,2.5):
+            self.assertAlmostEqual(math.hypot(2*scale,5*scale),math.hypot(2,5)*scale)
+        own_low,own_high=-0.5,4
+        peer_low,peer_high=-1,1
+        minimum,maximum=own_low-peer_high-1,own_high-peer_low+1
+        self.assertTrue(minimum<=5<=maximum)
+        self.assertFalse(abs(5)<=(own_high-own_low+peer_high-peer_low)/2+1)
+        self.assertFalse(minimum<=7<=maximum)
+
         self.assertIn('_offset vectorDotProduct _right',code)
         self.assertIn('_enter=_enter max (_first min _last)',code)
         self.assertIn('_leave=_leave min (_first max _last)',code)

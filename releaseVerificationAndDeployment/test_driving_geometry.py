@@ -6,6 +6,62 @@ class DrivingGeometryTests(unittest.TestCase):
     def test_geometry_is_one_bounded_live_observation_without_helpers(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text().split('params [[',1)[1]
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
+        self.assertIn('call CBE_fnc_DrivingHullInterval',s)
+        self.assertEqual(s.count('modelToWorldWorld'),1)  # origin; body span uses shared four transforms
+        self.assertNotIn('worldToModel',s)
+        self.assertIn('["_travelDirection",1,[0]]',s)
+        self.assertIn('private _standOff=[6,2] select (_travelDirection < 0)',s)
+        self.assertIn('private _room=(_gap-_standOff) max 0',s)
+        self.assertIn('vectorDir _vehicle) vectorMultiply _travelDirection',s)
+        self.assertIn('if (!(_travelDirection in [-1,1])) exitWith {_unavailable}',s)
+        # Reversing both horizontal body axes keeps the frame right-handed and
+        # places the probe beyond the true asymmetric rear, never the front bumper.
+        own_y=(-5,3)
+        rear_edge=max(-own_y[0],-own_y[1])
+        self.assertEqual(rear_edge,5)
+        rear_world=-(rear_edge+.2+8)
+        self.assertAlmostEqual(rear_world,-13.2)
+        self.assertLess(rear_world,own_y[0])
+        self.assertIn('(_modelPoints select 0) call _pointWorld',s)
+        self.assertIn('[_edge+_side*_reach,_toY,_z] call _pointWorld',s)
+        self.assertIn('_supportEnd call _pointBody',s)
+        self.assertIn('if (count _ownHull != 6) exitWith {_unavailable}',s)
+        self.assertIn('if (!finite _bodySpeed) exitWith {_unavailable}',s)
+        self.assertIn('[0,objNull,0,time,0,"UNAVAILABLE",[],[],[]]',s)
+        # Independent rigid-frame oracle: a metre horizon must remain that length
+        # under native scale, pitch and roll; only the original body extents scale.
+        import math
+        def basis(pitch,roll):
+            p,r=map(math.radians,(pitch,roll));c,t=math.cos(p),math.sin(p)
+            f=(0,c,t); side=(math.cos(r),math.sin(r)*t,-math.sin(r)*c)
+            up=(-math.sin(r),math.cos(r)*t,-math.cos(r)*c)
+            # Select up so side = forward cross up, preserving a right-handed frame.
+            up=tuple(-x for x in up)
+            return side,f,up
+        def point(v,axes,origin):
+            return tuple(origin[i]+sum(v[j]*axes[j][i] for j in range(3)) for i in range(3))
+        def distance(a,b):return math.sqrt(sum((x-y)**2 for x,y in zip(a,b)))
+        for scale in (.5,1,2):
+            for pitch,roll in ((0,0),(25,0),(-20,15)):
+                axes=basis(pitch,roll);origin=(500,1000,40)
+                front=5*scale+0.25; width=1.5*scale+0.25; height=.5*scale+.45
+                start=point((width,front,height),axes,origin)
+                end=point((width,front+40,height),axes,origin)
+                self.assertAlmostEqual(distance(start,end),40)
+                self.assertAlmostEqual(distance(start,point((width,front+.7,height),axes,origin)),.7)
+                relative=tuple(end[i]-origin[i] for i in range(3))
+                body=tuple(sum(relative[i]*axis[i] for i in range(3)) for axis in axes)
+                self.assertAlmostEqual(body[1],front+40)
+                # Old modelToWorld application multiplied the horizon and contact margin too.
+                self.assertAlmostEqual(distance(start,end)*scale,40*scale)
+                k=.02; length=6; angle=k*length
+                station=((1-math.cos(angle))/k,math.sin(angle)/k,0)
+                arc_start=point((0,0,0),axes,origin); arc_end=point(station,axes,origin)
+                self.assertAlmostEqual(distance(arc_start,arc_end),2*math.sin(angle/2)/k)
+                # The support-profile 0.3m threshold is a physical body-axis value.
+                raised=point((0,6,.4),axes,origin)
+                delta=tuple(raised[i]-origin[i] for i in range(3))
+                self.assertAlmostEqual(sum(delta[i]*axes[2][i] for i in range(3)),.4)
         for required in ('true,4,"GEOM","NONE"','[_left,(_left+_right)*0.5,_right]',
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
                          '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
@@ -82,7 +138,7 @@ class DrivingGeometryTests(unittest.TestCase):
                          'CBE_DrivingPass_Work','CBE_DrivingCorridor_Work',
                          'CBE_DrivingBypass_Work','call _mayRecoverOrdinaryRoute'):
             self.assertIn(required,qualification)
-        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe]',ordinary)
+        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe,_travelDirection]',ordinary)
         self.assertNotIn('_cornerProbe',convoy)
         self.assertEqual(ordinary.count('call CBE_fnc_DrivingGeometryCap'),1)
         self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
@@ -111,8 +167,37 @@ class DrivingGeometryTests(unittest.TestCase):
                        '_forward <= 1','_previous select 0) isNotEqualTo _identity',
                        'time-(_previous select 2) > 6','_distanceSquared >= 9',
                        'time-(_previous select 2) >= 1.5','abs _curvature < 0.004',
-                       'worldToModel','ASLToAGL'):
+                       'vectorDotProduct _bodySide','vectorDotProduct _bodyForward','"BODY_METRES"'):
             self.assertIn(marker,s)
+        self.assertNotIn('worldToModel',s)
+        self.assertIn('["_travelDirection",1,[0]]',s)
+        self.assertIn('!(_travelDirection in [-1,1])',s)
+        self.assertIn('clientOwner,"BODY_METRES",_travelDirection]',s)
+        self.assertIn('(vectorNormalized vectorDir _vehicle) vectorMultiply _travelDirection',s)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('ownerEpoch",-1]],_travelDirection] call CBE_fnc_DrivingTurnTrack',assist)
+        self.assertIn('if (_nativeReverse || {count _nativeHint != 4}) then {[_turn select 0]}',assist)
+        # Rotating both planar axes by pi reverses signed chord curvature,
+        # without changing its physical radius or displacement sampling threshold.
+        for side,along in ((2,-5),(-2,-5),(0,-4),(0.5,-3)):
+            forward=2*side/(side*side+along*along)
+            rear_side,rear_along=-side,-along
+            rear=2*rear_side/(rear_side*rear_side+rear_along*rear_along)
+            self.assertAlmostEqual(rear,-forward)
+            self.assertAlmostEqual(rear_side**2+rear_along**2,side**2+along**2)
+        self.assertNotEqual(('route','BODY_METRES',1),('route','BODY_METRES',-1))
+        # A fixed physical chord has the same curvature for every object scale.
+        x,y=2.0,6.0
+        expected=2*x/(x*x+y*y)
+        for scale in (.5,1,2):
+            self.assertAlmostEqual(2*x/(x*x+y*y),expected)
+            old_x,old_y=x/scale,y/scale
+            old=2*old_x/(old_x*old_x+old_y*old_y)
+            self.assertAlmostEqual(old,expected*scale)
+            if scale!=1:self.assertNotAlmostEqual(old,expected)
+            # Old model-unit displacement could postpone or prematurely take a sample.
+            old_distance=(2.0/scale)**2
+            self.assertEqual(old_distance>=9,scale==.5)
         for forbidden in ('setVariable','spawn','waitUntil','doMove','forceSpeed','lineIntersectsSurfaces'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         for name in ('drivingAssistStart','convoyTick'):
@@ -147,7 +232,25 @@ class DrivingGeometryTests(unittest.TestCase):
                        '_floorLost','_distance >= 3','_distance <= 12'):
             self.assertIn(marker,s)
         self.assertNotIn('_nearIndex+3',selection)
-        self.assertLess(selection.index('_floorLost ||'),selection.index('worldToModel'))
+        self.assertNotIn('worldToModel',selection)
+        self.assertIn('_targetRelative vectorDotProduct _bodySide',selection)
+        self.assertIn('_targetRelative vectorDotProduct _bodyForward',selection)
+        for guard in ('private _directionOnly=_targetASL isEqualTo []','_walked < 0.5','_walked >= 3',
+                      '_distance < 0.5','_distance >= 3','(_target select 1) > 0.5',
+                      '[0,false,[],-1,1]'):
+            self.assertIn(guard,selection)
+        self.assertLess(selection.index('if (_directionOnly) exitWith'),selection.index('private _distanceSquared='))
+        # Short native legs can establish direction without manufacturing a bend.
+        def short_direction(walked,distance,forward,floor=True):
+            return floor and .5<=walked<3 and .5<=distance<3 and forward>.5
+        self.assertTrue(short_direction(2,2,2))
+        self.assertFalse(short_direction(.4,.4,.4))
+        self.assertFalse(short_direction(2,2,-2))
+        self.assertFalse(short_direction(2,2,2,False))
+        for name in ('drivingAssistStart','convoyTick'):
+            consumer=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            self.assertIn('count _nativeHint != 4',consumer)
+        self.assertLess(selection.index('_floorLost ||'),selection.index('private _targetRelative='))
         # Prior next-three-node admission rejects these valid half-metre forward samples.
         dense=[i*0.5 for i in range(1,64)]
         self.assertLess(max(dense[:3]),3)
@@ -167,6 +270,16 @@ class DrivingGeometryTests(unittest.TestCase):
             self.assertIn('_nativeGrade > 0.2',grade)
             self.assertIn('_nativeGrade > 0.12',grade)
             self.assertIn(variable+'='+variable+' min',grade)
+        convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        lead=convoy.split('private _leadNativeGrade=',1)[1].split('private _leadGeometry=',1)[0]
+        for proof in ('_leadNativeHint param [3,-1,[0]]','finite _leadNativeGrade',
+                      '_leadNativeGrade > 0.2','_leadLimit=_leadLimit min 18',
+                      '_leadNativeGrade > 0.12','_leadLimit=_leadLimit min 25',
+                      'pushBack ["nativeGrade",_leadLimit]'):
+            self.assertIn(proof,lead)
+        for forbidden in ('forceSpeed','limitSpeed','nearEntities','lineIntersects','setVariable'):
+            self.assertNotIn(forbidden,lead)
+        self.assertLess(convoy.index('private _leadNativeGrade='),convoy.index('private _leadGeometry='))
         geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('count _measured in [1,2,3,4]',geometry)
         # Existing road policy applies symmetrically to observed climbs/descents;

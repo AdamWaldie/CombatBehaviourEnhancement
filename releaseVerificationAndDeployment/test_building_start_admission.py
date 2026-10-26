@@ -32,6 +32,47 @@ class BuildingStartAdmissionTests(unittest.TestCase):
         self.assertNotIn('execFSM',duplicate)
         self.assertNotIn('_old set',duplicate)
         self.assertIn('!completedFSM _existingHandle',start)
+        registration=source('buildingProducerRegister')
+        self.assertIn('if (_started && {isNil {_job get "producerRegistrationRequested"}})',start)
+        self.assertLess(start.index('!completedFSM _handle'),start.index('private _registration='))
+        for guard in ('remoteExecutedOwner == 2','groupOwner _group != _sender',
+                      'CBE_fnc_BuildingProducerContext','isNil {','CBE_AIPass_Active',
+                      '_data findIf {isNil "_x"}', '[0,1,2,3] findIf {isNil {_visit select _x}}',
+                      'count _registry >= 512','serverTime >= (_visit select 2)',
+                      '(_existing select [0,6]) isNotEqualTo _identity',
+                      '_job set ["producerRegistration",+_data]'):
+            self.assertIn(guard,registration)
+        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM','CBA_fnc_waitAndExecute'):
+            self.assertNotIn(forbidden,registration)
+        capture=registration.split('if (_mode == "CAPTURE") exitWith {',1)[1].split('if (_mode != "REGISTER"',1)[0]
+        for guard in ('_original isNotEqualTo _registration','_sender != (_original select 1)',
+                      'count _capture != 17','groupOwner _group != _incomingOwner',
+                      '_incomingOwner == _sender','_nodes < 65536','_depth >= 16','count _value > 4096',
+                      'count _value > 512','CANDIDATE_UNSEALED','count _captures >= 512',
+                      'serverTime > (_capture select 5)+5','_retiredAt > (_capture select 5)+3',
+                      '(_actors param [3,[]]) isNotEqualTo _original',
+                      '_existing isEqualTo _candidate'):
+            self.assertIn(guard,capture)
+        self.assertNotIn('groupOwner _group != _sender',capture)  # Registered old owner, not successor.
+        self.assertLess(capture.index('_sender != (_original select 1)'),capture.index('private _stack='))
+        def may_submit(sender,registered=7,serial=1,original_serial=1,age=1,retire_age=1,incoming=8,current_owner=8):
+            return (sender==registered and incoming!=sender and incoming==current_owner
+                    and serial==original_serial and age<=5 and 0<=retire_age<=3)
+        self.assertTrue(may_submit(7))
+        self.assertFalse(may_submit(8))
+        self.assertFalse(may_submit(7,serial=2))
+        self.assertFalse(may_submit(7,age=6))
+        self.assertFalse(may_submit(7,retire_age=4))
+        self.assertFalse(may_submit(7,current_owner=9))
+        self.assertFalse(may_submit(7,incoming=7,current_owner=7))
+        # Exact duplicate retains original identity, deadline and serial; conflicting owner refuses.
+        identity=('group',7,'original visit',3,4,5)
+        existing=identity+(1,)
+        def register(proposal):
+            return existing if proposal==existing[:6] else None
+        self.assertEqual(register(identity),existing)
+        self.assertIsNone(register(('group',8,'original visit',3,4,5)))
+        self.assertIsNone(register(('group',7,'original visit',3,4,6)))
         step=source('buildingOperationStep')
         gate=step.split('private _executor=',1)[1].split('private _delay=call',1)[0]
         self.assertIn('CBE_BuildingBrain_FSM',gate)

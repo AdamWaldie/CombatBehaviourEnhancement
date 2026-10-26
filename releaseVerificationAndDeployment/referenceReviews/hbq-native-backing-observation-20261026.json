@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "c2e4aa1f3959739dbf3d05bd99df975db39e9c61",
+  "workshopId": "3812620045",
+  "status": "NATIVE_BACKING_OBSERVATIONS_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "Ordinary native reverse traffic and solid observation; no new movement controller or whole-HBQ parity claim.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesReviewed": [
+      "1197-1241 rear traffic rays",
+      "1375-1390 reverse hold and release",
+      "1536-1580 traffic hold direction"
+    ]
+  },
+  "implementation": [
+    "Following and solid observers project the actual rear hull in unit body metres for ordinary native backing; rear stand-off 2m, forward 6m unchanged. Reverse yields crossing traffic from both sides and cannot delegate forward spacing.",
+    "Physical longitudinal motion selects observation direction. Exact owner, seat, route and normalized native-task observation retains rear sensing during its own cap stop. New forward motion, native forward evidence or changed context ends retention; this is not native gear acknowledgement or movement authority.",
+    "A qualified current native forward path of 0.5 to under 3m supplies direction-only evidence. Its five-field packet cannot supply curvature/support; both curvature consumers require the original four-field packet. Unusable stopped path timestamps remain unconsumed.",
+    "Direction observation publishes only after cap acknowledgement and retires with the owned cap. Scheduled callers recheck task snapshots. Existing independent-command admission remains unchanged.",
+    "Rear observation suppresses new forward-only gate/pass/corridor/bypass/recovery admission. Pedestrian intent uses rear direction. No new worker, timer, setting or movement writer."
+  ],
+  "boundedCost": "Existing constrained one-second observation cadence is used during backing. No extra query or ray per observation; aggregate work may increase and runtime cost is unmeasured.",
+  "productHashes": {
+    "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "ed02827751852002588605894ca47160b98ec73e0c272d45ff457f35ac589b5b",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "303e98c6df023b84575544573783b26b06490382bdb5cece6e6f630d6d85a947",
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "39ce8281f2d8f55ffab3e84237b20009af95364940b77bbb74bf62e55f3b0378",
+    "addons/vehicles/functions/drivingGeometryCap.sqf": "a39156e923b84706e49f632a5db7a27195fc885ee1909aeaf63073d90b34fc79",
+    "addons/vehicles/functions/drivingNativePathWatch.sqf": "b7235bc37e65e1deeba9da8b942de5ccb01bbfc5dee68cdb4e8da1d8d306179f"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "fullPipeline": "PASS",
+    "buildLog": ".qa/handovers/native-backing-short-build.log",
+    "independentLog": ".qa/handovers/native-backing-short-independent.log",
+    "candidate": ".qa/candidates/native-backing-short-path-c2e4aa1f",
+    "fingerprint": "d61915c826348dd73d17282066e9861daf422761e348517eb2487cf4b97e09cc",
+    "runtimeUnchangedAfterBuild": true,
+    "unsignedDevelopmentSnapshot": true,
+    "retainedIntermediateFailures": [
+      "native-backing-focused-initial.log: old argument and forward-delegation expectations",
+      "native-backing-build.log: cadence and pedestrian-intent string expectations",
+      "native-backing-rear-buffer-build.log: forward gate margin literal expectation"
+    ],
+    "supersededCandidate": ".qa/candidates/native-backing-final-c2e4aa1f"
+  },
+  "remaining": [
+    "Native planning and rotation ambiguity requires physical evidence; observation receipt is not gear authority.",
+    "Rear gates constrain backing but are not automatically opened.",
+    "Full HBQ controller handovers, source integration and physical braking/flow remain unfinished.",
+    "Audits paused. Normal and HC repeats and median/p95 performance remain unverified."
+  ],
+  "wholeHBQParity": false,
+  "physicalAcceptance": false,
+  "followup": "hbq-rear-gate-20261026.json implements authenticated ordinary rear opening; original no-rear-opening limitation above is historical. Physical and performance proof remain pending."
+}

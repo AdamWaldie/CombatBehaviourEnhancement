@@ -1,5 +1,31 @@
 # CBE completion status
 
+## Implementation checkpoint: 26 October 2026
+
+PR [17](https://github.com/AdamWaldie/CombatBehaviourEnhancement/pull/17) merged at `2dba3da92af80513e816e1f8fa45dfd6387d9df2`. The final implementation commit is `4f8bbbab93a0672b8bb5fd6d32d47c5dc56c6158`.
+
+The local pipeline passed 1,497 tests, compiled 440 SQF files and packaged 11 PBOs. Independent verification matched candidate `.qa/candidates/clear-baseline-readiness-d31e4d07`, fingerprint `66603f3a629c755e11805925e07e88973d3917cc044dfa211a2172b55c017236`. GitHub validation also passed. The candidate is an unsigned development build. Physical audits remain paused. Production readiness and the 5% median / 10% p95 performance budget remain unverified.
+
+| Area | Implemented code | Remaining work |
+| --- | --- | --- |
+| Foundations and FSM lifecycle | Owner-local danger and operation FSMs, finite jobs, current-order checks and guarded cleanup. | Complete authenticated handover, original-writer retirement and incoming native readiness. |
+| Infantry and squads | Contact reactions, suppression, assault, advance and buddy-role integration. | Repeatable tactical flow, casualty handling, balance and physical verification. |
+| CQB, garrison and defence | Dynamic building discovery, buddy lanes, physical visit recording, exterior post roles and finite egress. | Coherent repeated entry/exit, isolation and full incoming locality adoption. |
+| Driving and convoys | Hull-aware traffic, bounded recovery, native-path retention, spacing and lead pacing. | Real controller handovers, mixed-convoy tuning and measured traffic/recovery behaviour. |
+| Coordination and combined arms | Coordinated bounds, role receipts and selected-platform fire/movement paths. | Same-group concurrent platform work and reliable broader combined operations. |
+| Aircraft and naval insertion | Finite flight leases, insertion/egress paths and scoped landed-element assault/advance. | Repeated insertion, sustained ground continuation and actual provider handback. |
+| Artillery, armour and AA | Selected-crew movement; observed main-cannon shot repositioning; scoped AA relocation and default-off interception work. | Wider platform/weapon support, layered defence, concurrency and physical results. |
+| Zeus and settings | Behaviour task modules, CBA configuration and authority checks. | End-to-end behaviour, interruption and multiplayer validation. |
+| Compatibility | Ownership detection and scoped safeguards. | Required external-controller handovers; compatibility expansion remains last. |
+
+Core AI behaviours run without requiring another AI addon. Full reference-source parity and improvement remain unproven. Controlled rappelling still needs a finite provider-owned executor and handover. Specialist melee and creature integrations remain compatibility-only.
+
+Current build-out percentages require reassessment. The ledger's source-evidence check fails at `addons/infantry/functions/cortexSelectAvenue.sqf`. Its historical index cannot supply a current whole-mod percentage. Build-out and physical acceptance remain separate measures.
+
+Continue from foundations and FSM lifecycle through complete driving and danger behaviour, then compose squad and combined-arms tasks. Preserve source intent, mission authority and finite execution. Physical validation remains required when audits resume.
+
+## Earlier acceptance record: 19 October 2026
+
 Checked against the feature registry and local build evidence on 19 October 2026.
 CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
 This is an acceptance count, not an implementation percentage. Track capability build-out separately in
@@ -7,15 +33,15 @@ This is an acceptance count, not an implementation percentage. Track capability 
 Physical acceptance does not reduce build-out to zero. Unassessed build scope stays unknown; source file,
 setting and test counts do not supply implementation or Workshop-parity percentages.
 
-## Current build-out estimate
+## Historical build-out estimate: 19 October 2026
 
-The current registered product-plan build-out index is **approximately 80%**, with explicit subsystem weights and capability denominators in [Build-out progress](BUILDOUT-PROGRESS.md). All 64 product families have provisional assessments; the equal-force battle scenario is acceptance-only and earns no build credit. Most broad-survey estimates are low-confidence and require deeper review. This index does not include a fully reconciled denominator for every remaining Workshop contribution, does not measure remaining effort and is not readiness. Physical acceptance and source parity stay separate.
+The 19 October registered product-plan build-out index was **approximately 80%**, with explicit subsystem weights and capability denominators in [Build-out progress](BUILDOUT-PROGRESS.md). All 64 product families have provisional assessments; the equal-force battle scenario is acceptance-only and earns no build credit. Most broad-survey estimates are low-confidence and require deeper review. This index does not include a fully reconciled denominator for every remaining Workshop contribution, does not measure remaining effort and is not readiness. Physical acceptance and source parity stay separate.
 
-## Current evidence boundary
+## Earlier evidence boundary
 
 - Subsequent CQB egress working candidate based on `0db65e6d` passed **1,444 tests,334 production SQF,nine PBOs** in `.qa/cbe-clear-egress-allocation-build.log`. Independent verification passed for unsigned fingerprint `edd711c70886af990e9ed2c944f51438f6f67029cd22c0deb7a90c1d94273709`; manifest dirty=true includes the pending source change and preserved unrelated deletions. Source hashes are recorded in `clear-egress-allocation-20261019.json`. This adds bounded allocation retries with adopted original budgets, not physical acceptance or a build-out score increase.
 
-- Latest sealed full offline build records commit `8fa63881e466bb6599a6aff5a6b35815069e0e44`, with **1,443 tests,334 compiled production SQF,nine PBOs**. Log: `.qa/cbe-pushed-8fa63881-build.log`; unsigned fingerprint `6798b1f0a06eb12a5a9a7e10561ba7a9f2273d7c7e6697130438400152f7d959`. Independent verification passed. The manifest records dirty=true because seven unrelated tracked deletions were preserved outside the commits. This is not a clean release artifact. Later tracker/documentation changes do not establish new production or physical acceptance.
+- The earlier sealed full offline build records commit `8fa63881e466bb6599a6aff5a6b35815069e0e44`, with **1,443 tests,334 compiled production SQF,nine PBOs**. Log: `.qa/cbe-pushed-8fa63881-build.log`; unsigned fingerprint `6798b1f0a06eb12a5a9a7e10561ba7a9f2273d7c7e6697130438400152f7d959`. Independent verification passed. The manifest records dirty=true because seven unrelated tracked deletions were preserved outside the commits. This is not a clean release artifact. Later tracker/documentation changes do not establish new production or physical acceptance.
 - Recent implementation covers mounted support/report discovery, mutual radio eligibility, original observation age, personal native observer selection, ignored-target handling in natural indoor/ground/air work, exact support reservation binding/expiry, ASL ground arrival and indexed gate detection/opening. Gate phase sampling is bounded8; ambiguous barrier metadata checks can rise8to32 per class. Physical effects and aggregate cost remain unverified.
 - Latest changes add bounded gate-unlock reconsideration, shared CQB request observation across recovery/alternate/pair retries, unchanged lane clocks while yielding, explicit driver replacement role priority and reduced rear-clearance native queries. The302-case affine hull oracle proves the mathematical model only; native precision, actual flow, gunnery retention and measured overhead remain unverified.
 - The user explicitly keeps audits paused and asks implementation to continue. Negotiated queue movement remains unimplemented despite owner consent; native execution and physical handback are still required. No new completion percentage or parity credit is assigned.
