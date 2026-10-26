@@ -862,5 +862,171 @@
         "physicalAcceptance": false
       }
     }
+  },
+  "controllerNavigationAndRouteMemory20261026": {
+    "source": "functions/fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "completeReadableRegions": [
+      "2295-2378 route memory branch",
+      "2380-2469 navigable area branch"
+    ],
+    "scope": "Complete selected HBQ main-loop branches. CBE register, Eden module and corridor proposal bodies plus selected corridor execution/admission/arrival paths and current driving route/operation-step bodies. Not whole controller or native pathfinding acceptance.",
+    "findings": [
+      {
+        "source": "Route memory retains the final authored waypoint position/type/radius and statements, behaviour, combat mode, speed, formation and timeout. After no open route and ten seconds stationary far from final MOVE, it can reactivate that index or recreate a waypoint and replay its properties/statements, then refreshRoute. Up to six attempts per ten minutes, twenty seconds apart; two without progress may mark RouteLost for unstuck escalation.",
+        "intent": "Avoid abandoning a journey when the engine reportedly completes unreachable waypoints early.",
+        "cbe": "DrivingRouteReceipt reads current authored identity or owner-local native MOVE. DrivingOperationStep rejects a changed receipt as ORDER_CHANGED instead of restoring an old route. Corridor tasks retain their own explicit revision/transform/route and finite lifecycle.",
+        "disposition": "Reject inferring replay authority from distance, reactivating deleted/completed mission waypoints, replaying statements and physical RouteLost escalation. Source comments claim an engine failure; they are not independent proof that every distant route completion is erroneous. Required journey continuity must use explicit surviving task intent and owner-local finite recovery. Ambiguous native completion remains unresolved; no blanket route-memory controller is added."
+      },
+      {
+        "source": "Navigable-area discovery every two seconds chooses an opposite-side area within400m when total path is below1.5*direct+100m. It flattens all positions, approaches15m before the area for120s, then uses four fixed-path points, with crossing budget half-length+45s. Beyond far plane+10m or timeout it refreshes the original route and cools the area120s.",
+        "intent": "Use explicitly marked bridge/ford alternatives when native routing cannot find a useful connection.",
+        "cbe": "Existing server-authenticated registry bounds32 revisioned areas; Eden activation/deactivation changes passive definitions. CorridorStep selects by the same broad approach/detour intent, binds real controller/crew/route, samples one bounded support proposal and shares existing safety writers. Geometry retains selected elevation/grade and measured hull width; CROSS checks ordered entry, lateral hull limits, tail clearance and approved support height.",
+        "disposition": "Adapt useful corridor intent in existing owner, not an independent loop. Retain real support/height/width and live obstacles; timeout is failure, never clearance. Native MOVE corridors require the existing finite recovery parent and shared alternate-path budget. Physical crossing, owner transfer and processing cost still require validation."
+      },
+      {
+        "source": "Navigation target first reads current waypoint whenever its index is below waypoint count, including index0; only an empty result falls back to driver expectedDestination, with a nonzero-X filter. The registry stores flat centre/axis/half-length, with no live area identity/revision in this branch.",
+        "intent": "Choose a corridor relevant to the current actual journey and avoid stale areas.",
+        "cbe": "DrivingRouteReceipt distinguishes owner-local native MOVE from authored metadata. Registry definitions and live area transforms must still match during execution; edits/removal terminate old work without recreating the area.",
+        "disposition": "Do not copy index0 home-waypoint selection or reject valid world-X-zero destinations. Preserve exact native order identity and explicit behaviour-module parameters. No settings module is introduced."
+      },
+      {
+        "source": "Source navigation comments include shallow fords; active path generation supplies flattened points without a vehicle-specific water-depth/mobility admission contract.",
+        "intent": "Make suitable shallow crossings usable without damage or physics shortcuts.",
+        "cbe": "Current corridor geometry deliberately requires dry terrain or solid deck support; its guide is not permission to ford water.",
+        "disposition": "Ford support remains a capability gap. Rejecting unsafe flattened water traversal does not earn implementation credit. A future implementation needs vehicle-specific admissible depth/support and engine movement evidence, with no repair or water-damage bypass."
+      }
+    ],
+    "cbeSourceHashes": {
+      "addons/vehicles/functions/drivingCorridorRegister.sqf": "368b99afed31a4d2831f0b0b15684230645f82666a6bf349e7b05fc9155fbff9",
+      "addons/vehicles/functions/moduleDrivingCorridorMission.sqf": "4965a783f9f1d986d71041f29958598abeddcddc5eeaf3aadfd1ddc68bde3b48",
+      "addons/vehicles/functions/drivingCorridorGeometry.sqf": "f9ce326069040def241908c8824c7168c626fceb02bd254141e6291a022915c9",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "a173c9929e70fa1b68a20e8d96fca0971e3dbb7fe17e6968ecbe31159b742ef5",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingOperationStep.sqf": "c8e1c98de4d6d0cedfb8d90d77eb31df69d8bd3564ab967d3460f4df3dcaef73"
+    },
+    "nextConcreteWork": "Continue the remaining HBQ main-controller obstacle/grinding/route-watchdog execution branches against the existing CBE geometry and finite recovery owner. Retain explicit journey-continuity and shallow-ford gaps rather than count rejected source mechanisms as delivered functionality.",
+    "runtimeChanges": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
+  },
+  "controllerObstaclesGrindingWatchdog20261026": {
+    "source": "functions/fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "completeReadableRegions": [
+      "587-830 MarkObstacle",
+      "836-868 RoadAhead",
+      "1786-1901 GrindHit, SideClear and Grinding",
+      "2521-2594 measured curvature and route watchdog",
+      "2709-2896 standing/obstacle cadence, obstacle confirmation, second gate-opening branch, marker admission and road caps"
+    ],
+    "scope": "Selected complete HBQ helper bodies and main-loop regions. CBE comparison is the existing near-contact observation and selected ordinary native-recovery admission/issue paths. Not whole main-controller, native avoidance or physical performance equivalence.",
+    "findings": [
+      {
+        "source": "MarkObstacle puts local simulated marker objects around a sufficiently still obstacle. Helpers are invulnerable, mass2000 and collision-disabled against their parent; hidden textures conceal them outside debug. Four inset corners plus facing-side points are filtered around gates, neighbours and other helpers. Repeated observations extend a per-object lifetime; a spawned worker checks every five seconds before deletion.",
+        "intent": "Make native planning notice placed objects, wrecks and barriers without blocking a genuinely drivable gap.",
+        "cbe": "Current geometry observes real hull/support/gate surfaces; finite bypass and rear recovery remain within the existing driving owner rather than introducing physical planner obstacles.",
+        "disposition": "Reject simulated invisible heavy helpers, damage/collision policy changes and per-obstacle lifetime workers. The usefulness of helping native routing around dynamically placed obstacles remains required; CBE native detour reliability is not proved by having geometry functions. Source helper positions do not follow later parent transforms during a renewed MarkUntil lifetime. Point spacing and neighbour queries also have no fixed per-object output budget; do not copy their cost assumptions."
+      },
+      {
+        "source": "MarkObstacle attempts to retain all corners while leaving a gate opening or one side of a vehicle-width gap usable. It checks nine samples against the own outline and applies special handling to wire. Its geometry is flattened to terrain; scalar model bounds and helper spacing stand in for native path clearance.",
+        "intent": "Avoid teaching the planner an obstacle layout that closes a usable passage or leaves a dangerous corner unrepresented.",
+        "cbe": "DrivingGeometryCap observes forward and selected near-contact side surfaces. It keeps known gate versus solid roles distinct, and unknown or exhausted metadata remains a solid obstruction. Native rear-plan admission uses a fresh body-width envelope.",
+        "disposition": "Retain measured passage/hull intent without hidden obstacle fabrication. Sampled clearance remains a proposal, not swept-volume proof. Dynamic narrow-passage quality and modded geometry still require physical evidence."
+      },
+      {
+        "source": "RoadAhead follows at most twelve connected road segments up to45m, choosing the next most heading-aligned link; turn is measured from the vehicle toward future road positions. Main obstacle confirmation may disregard a wall when this heuristic finds a bend over30degrees. Road caps apply45kmh for crossing traffic,38 above45degree turn and27 above75degrees.",
+        "intent": "Do not brake for a roadside wall that the real route bends away from; anticipate difficult turns and intersections.",
+        "cbe": "Existing driving observations combine measured turn/native path hints with hull/traffic caps through the sole speed writer. The selected review does not establish whole route-choice equivalence.",
+        "disposition": "Keep bounded short-horizon route anticipation, but a heading-selected road branch is not the actual authored/native route. Do not discard physical wall protection or impose source fixed speed thresholds as universal vehicle calibration. Source has only previous-link exclusion, not full visited-road tracking."
+      },
+      {
+        "source": "Grinding checks front/diagonal/side contacts at two low rows, ignores people and active crewed traffic in GrindHit, and waits for persistent contact. It first invokes physics back-off, then may side-push after a recent back-off, side-room tests and player-visibility policy; ReplanSoon runs after the push.",
+        "intent": "Detect low corner/wheel contact and create enough room to let native steering escape instead of repeatedly retrying the same blocked line.",
+        "cbe": "Existing near-contact probes are admitted only in the owned REFRESH episode after three seconds, calm/rest checks and no competing queue/pass/corridor work. One-sided contact becomes a solid observation, not lateral clearance. The native rear-plan path uses measured body width, pose, damage and exact command/owner rechecks before issue; longer corner room consumes the existing alternate-path budget.",
+        "disposition": "Adapt contact diagnosis and finite back-off through existing native recovery. Reject model-velocity side/back pushes and delayed unscoped route refresh. Pedestrian safety stays in its actual observer, not ignored because GrindHit excludes people. Physical extraction quality and cost remain unverified."
+      },
+      {
+        "source": "Main-loop Spd is signed. StandSince resets only at forward speed>=2kmh, so sustained reverse can remain classified as standing for watchdog and curvature-reset rules. Watchdog waits twenty seconds for a new order, then may refresh after no planning, recent release or eight seconds standing; subsequent planning intervals15/30s and three failures within90s can mark RouteLost.",
+        "intent": "Give native planning time, distinguish intentional waits and avoid permanent freezing after a hold.",
+        "cbe": "Selected ordinary recovery uses native planning observation, staged original budgets, actual stationary/reverse-leg conditions, current intent and safety ownership. A pending reverse has its own deadline and STOP acknowledgement path.",
+        "disposition": "Retain bounded planning/retry and intentional-wait vetoes. Do not import signed-speed standstill, repeated route reconstruction or physical RouteLost escalation. No changed native destination alone may renew a recovery budget."
+      },
+      {
+        "source": "Moving obstacle response confirms the same closing object across two samples. A second gate path holds/opens, waits up to eight seconds, records responsibility for closure regardless of original state, ignores the gate thirty seconds and releases. Standing/reversing branch runs traffic and grinding separately; moving observation and traffic use independent clocks.",
+        "intent": "Avoid transient roadside detections, keep blocked vehicles observable and spend more sensing work near relevant hazards.",
+        "cbe": "CBE already combines fresh traffic, gate, solid and pedestrian observations under one cap owner and existing adaptive callback cadence. Gate classification is separate from server opening authority and physical passage.",
+        "disposition": "Keep coalesced relevant observation and bounded cadence; do not suppress immediate physical protection merely to get a second confirmation. Reject gate timeout/animation ignore and ownership of an already-open gate. Both HBQ gate-opening call sites must be considered in whole-controller review."
+      }
+    ],
+    "cbeSourceHashes": {
+      "addons/vehicles/functions/drivingGeometryCap.sqf": "a1cc03c89db17244314bb745f2fd6be25fa27e01222f62d58eec958d25d8c762",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a649054401d5de4e39e77770fd8e0fcfb4d108d2b2786dfb6ed360a4df9fd5f2"
+    },
+    "nextConcreteWork": "Finish remaining HBQ controller startup/crew-return/diagnostic and main-loop authority/cadence connections, then reconcile branch coverage against the existing index. Keep actual driving, placed-obstacle detour and native recovery quality explicitly unverified until audits resume.",
+    "runtimeChanges": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
+  },
+  "controllerStartupCrewCadence20261026": {
+    "source": "functions/fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "completeReadableRegions": [
+      "1-109 controller admission/settings state",
+      "360-393 sensor dimensions and comments",
+      "554-586 debug clear/helper-class declarations",
+      "1691-1785 IsDownUnit and CrewBack",
+      "1904-1972 DbgObs and overtaking declarations",
+      "2158-2294 cadence/performance declarations and main owner/feature/crew/proximity admission",
+      "2470-2520 overtaking phases and measured progress",
+      "2897-end cap composition/cadence and detached gate closure/termination"
+    ],
+    "scope": "Selected complete remaining branches, supplementing prior settings, gate, traffic, navigation, obstacle and overtaking reviews. Named branch evidence is now broad; end-to-end whole-controller writer/callback/cleanup reconciliation and CBE functionality remain incomplete. Do not replace integration or physical verification with readable-body coverage.",
+    "findings": [
+      {
+        "source": "Admission uses live/local vehicle and a machine-local Running boolean. Main loop follows vehicle locality; player driver pauses active parts, but player commander/group leader can retain obstacle/gate/traffic assistance. Inactivity releases speed/holds, clears overtaking and still closes gates. Navigation state is not reset in that inactive branch.",
+        "intent": "Run assistance where native AI is owned and yield when a player drives or the feature is paused.",
+        "disposition": "Use CBE actual group/vehicle/crew ownership and finite operation identity. Running/Pause is not acknowledgement that every native path, detached gate job, crew worker or callback has stopped. Navigation and overtaking are separate issued movement domains; their pending native work must be included in handover, not inferred quiescent from the main loop."
+      },
+      {
+        "source": "Follower detection uses a leader seated in another vehicle and suppresses shared route repair. Order key keeps group, current waypoint index and position within1m; it omits waypoint statements, condition, attached target, synchronization and other authored properties.",
+        "intent": "Prevent convoy followers rewriting the leader route and give a genuinely new order time to plan.",
+        "cbe": "Existing full authored/native route receipts and current owner/generation separate newer intent from retained task budgets. Current convoy lead/follower controllers share one speed policy per platform.",
+        "disposition": "Retain follower/order-planning intent without a reduced route key. Matching index/position is not permission to restore or refresh changed mission intent."
+      },
+      {
+        "source": "CrewBack records occupied non-cargo/non-FFV seats; it respects current assignment and incapacitation, then requests normal reboarding after20s within150m. At60/90s it may force-seat out of player view, and after120s near players can split the operator into a new group. Normal already-aboard cleanup clears OutSince but does not clear GetInOrdered, so a later ordinary recall may remain suppressed.",
+        "intent": "Avoid a vehicle being constrained by an accidentally separated operating crew member while respecting intentional unassignment.",
+        "cbe": "DrivingCrewBoarding has a separate explicit default-off CBA recall policy. It observes original physical seat occupancy, requests orderGetIn once within the finite episode without assignment mutation and rearms from physical occupancy. New commands/care/ownership/unassignment retire the episode; no force-seat or automatic crew group split.",
+        "disposition": "Keep the user-approved optional normal recall and repeat-use intent. Reject forced seating and timeout-based group changes. Do not copy the sticky GetInOrdered lifecycle. Ordinary recall, native boarding wait and driver-casualty replacement remain distinct capabilities; their physical reliability is unverified."
+      },
+      {
+        "source": "Proximity uses nearestThreat out to1000m to enable obstacle/traffic sensing; activation is max100m or six seconds of travel and next scan is clamped1..12s. Independent obstacle and traffic clocks retain prior caps, with shorter observation when alert/passing. Some helpers and closure jobs have independent lifetimes.",
+        "intent": "Spend more work near relevant hazards without continuous expensive sensing everywhere.",
+        "cbe": "Existing finite driving FSM/adaptive callbacks combine actual safety observations under the sole cap writer. Current traffic hints can shorten existing cadence without granting movement.",
+        "disposition": "Retain bounded relevant sensing and coalescing. Do not import nearestThreat persistent world-grid discovery or independent permanent worker sets. Direction changes, new/moved objects and fast approach remain material observation limits; cache absence is not clearance."
+      },
+      {
+        "source": "PerfAdd accumulates loop processing time with gate waits excluded; main increments/decrements active vehicle counts. The explicit ray statistic does not cover every observed ray call: GrindHit and SideClear execute lineIntersectsSurfaces without incrementing that counter. Detached helper/closure work is outside the main-loop sample.",
+        "intent": "Expose actual cost and identify expensive driving phases.",
+        "disposition": "Treat source counters as partial diagnostics, not complete addon overhead. CBE5%median/10%p95 budget needs controlled whole-runtime measurement, including deferred work and native queries. No performance acceptance is inferred or new permanent monitor added."
+      },
+      {
+        "source": "Overtake OUT/BACK/END uses a one-point return path and refresh retries; cap composition takes gate/obstacle/traffic minima. Shutdown spawns up to180s of detached gate closure and resets local Running/Busy state; OvtClear and native paths have their own effects.",
+        "intent": "Complete or abort a manoeuvre and restore ordinary travel while finishing owned gate cleanup.",
+        "disposition": "Retain explicit finish/cancel/return phases, original gate ownership and bounded callbacks. Do not infer route restoration from timeout or let a finished main loop hide live writers. Existing CBE request retirement and STOP-once fixes address concrete lifecycle defects, not whole HBQ handover parity."
+      }
+    ],
+    "cbeEvidence": [
+      {
+        "path": "addons/vehicles/functions/drivingCrewBoarding.sqf",
+        "sha256": "b5840b4ea8a99c6e4250870e2cdebf915b1843ae2ebf16874684f85c501634b7",
+        "readScope": "Header/admission and recall loop through next boarding selection; no whole-file execution claim"
+      }
+    ],
+    "remainingWholeControllerWork": "Reconcile all reviewed current bodies with their actual mutation/callback lifetimes and required CBE capability dispositions. Preserve missing historic review pointers as missing. Raw body review does not establish SQFC equivalence, installed freshness beyond the preserved hash, physical quality or complete integration.",
+    "runtimeChanges": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }
