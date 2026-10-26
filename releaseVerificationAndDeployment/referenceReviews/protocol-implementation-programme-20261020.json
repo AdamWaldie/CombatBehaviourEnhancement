@@ -101,6 +101,10 @@
       "originalFSMRetirement20261026": {
         "review": "clear-fsm-retirement-20261026.json",
         "scope": "Finite actual original-FSM completion check after pointer retirement. Not all-writer seal, transport/readiness or physical migration acceptance."
+      },
+      "delayedGrenadeWriterFence20261026": {
+        "review": "clear-grenade-source-fence-20261026.json",
+        "scope": "Delayed exact marker cleanup now retains original source group/owner/epoch/operation authority. Not complete all-writer seal or physical handover proof."
       }
     },
     {
