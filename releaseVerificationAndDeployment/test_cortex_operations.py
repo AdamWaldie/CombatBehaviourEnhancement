@@ -12175,6 +12175,15 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(text.index('[true,"BUILDING_MOVED"] call _finish'),text.index('== "EGRESS"'))
         self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',text)
         self.assertIn('["buildingTransform",+_admissionTransform]',source('cortexClearBuilding'))
+        self.assertLess(text.index('[true,"BUILDING_HIDDEN"] call _finish'),text.index('== "EGRESS"'))
+        admission=source('cortexClearBuilding')
+        self.assertLess(admission.index('["TARGET_HIDDEN"] call _refuse'),admission.index('_building buildingPos -1'))
+        self.assertIn('!isNull _building && {alive _building} && {!isObjectHidden _building}',admission)
+        actor=source('indoorActorOperation')
+        live=actor.split('private _building=_brain get "building";',1)[1].split('private _contact=',1)[0]
+        self.assertIn('isObjectHidden _building',live)
+        self.assertLess(live.index('isObjectHidden _building'),live.index('["BUILDING_CHANGED"] call _finish'))
+
 
     def test_clearance_building_transform_audit_requires_real_cancel_and_entry(self):
         text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()

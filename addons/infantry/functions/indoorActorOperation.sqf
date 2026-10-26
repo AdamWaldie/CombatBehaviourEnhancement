@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Mission-hidden target buildings refuse admission and retire live work through existing cleanup.
  * Late FINISH binds original actor/group/operation/deadline/route/target/lease and rejects
  * a different installed brain; generation/epoch alone cannot identify a cross-owner task.
  * Public-journal-only cleanup refuses while any private local controller remains installed.
@@ -332,7 +333,7 @@ if (_mode == "START") exitWith {
         || {(_clue select 2) > (_clue select 1)+20}
         || {(_clue select 4) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
     if (!(_contact isEqualType objNull) || {!(_building isEqualType objNull)} || {isNull _building}
-        || {!alive _building} || {!(_belief isEqualType [])} || {count _belief != 2}
+        || {!alive _building} || {isObjectHidden _building} || {!(_belief isEqualType [])} || {count _belief != 2}
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
         || {!finite (_belief select 1)} || {serverTime-(_belief select 1) < 0}
         || {serverTime-(_belief select 1) > 5 && {!(call _searchMemoryValid)}}) exitWith {false};
@@ -489,7 +490,7 @@ if (!(call _available) || {(_group getVariable ["CBE_OperationGeneration",0]) !=
     ["PREEMPTED"] call _finish
 };
 private _building=_brain get "building";
-if (isNull _building || {!alive _building}
+if (isNull _building || {!alive _building} || {isObjectHidden _building}
     || {[getPosWorld _building,vectorDir _building,vectorUp _building] isNotEqualTo (_brain get "transform")}) exitWith {
     ["BUILDING_CHANGED"] call _finish
 };

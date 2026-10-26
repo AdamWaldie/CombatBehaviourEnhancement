@@ -901,6 +901,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         _result
     };
     private _building=_job get "building";
+    if (isObjectHidden _building) exitWith {[true,"BUILDING_HIDDEN"] call _finish};
     private _buildingTransform=_job getOrDefault ["buildingTransform",[]];
     if (_buildingTransform isNotEqualTo []
         && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) exitWith {

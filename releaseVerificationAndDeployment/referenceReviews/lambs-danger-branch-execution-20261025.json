@@ -201,5 +201,30 @@
     },
     "runtimeHash": "e7fdfe0a2317878362bfa50b214f3b0f66460b9062ade3a2dfb83900e9250040",
     "limits": "Does not cancel an already issued path when a building is hidden later. Live operation invalidation and dynamic visibility require separate caller trace/physical verification; no wholeCQB or concealment parity."
+  },
+  "hiddenBuildingLifecycle20261026": {
+    "finding": "Previous node-selector admission guard did not retire already-active individual/group clearance when a mission hid the target building.",
+    "implementation": [
+      "Individual indoor START refuses hidden target; live STEP routes hidden building through existing BUILDING_CHANGED finish.",
+      "Group CLEAR refuses TARGET_HIDDEN and retires only matching stale resume snapshot; admissionStable also rechecks hidden state.",
+      "Live building operation finishes cancelled with BUILDING_HIDDEN before room/egress work, using existing cleanup and no new recovery."
+    ],
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "candidate": ".qa/candidates/building-hidden-lifecycle-318e36c6",
+      "fingerprint": "b2f77d7443f9a2cf036cfbf9c24e6e810889fff329c1928456f4f427dfea9d66",
+      "buildLog": ".qa/handovers/building-hidden-lifecycle-final-build.log",
+      "independentLog": ".qa/handovers/building-hidden-lifecycle-independent.log",
+      "retainedFailure": ".qa/handovers/building-hidden-lifecycle-build.log: existing target-refusal test expected2 branches. Updated to require3 and explicitly require hidden-target refusal; exact epoch/snapshot restoration checks retained.",
+      "physicalAcceptance": false
+    },
+    "hashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "c3becd7afe1c4f2b71ccac14746fcf1584b5a0f31eaa534f48bcfe99250cbf06",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "b95fbeea927ef902c14ea19f0c7c8d019e0ea9183d4718364fffa579383972e9",
+      "addons/infantry/functions/buildingOperationStep.sqf": "1b281a5eaed142247308c7578f1fb08259ce5ae2eb9b6ff96d9b3e82e280d52b"
+    },
+    "limits": "Cancellation occurs on existing owner callbacks, not synchronously with hideObject. Native STOP/cleanup and ordinary order restoration remain physically unverified. No visibility mutation, teleport or reachability/clearance credit."
   }
 }

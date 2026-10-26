@@ -180,6 +180,10 @@ if (!alive _building) exitWith {
     [] call _retireResume;
     ["TARGET_DESTROYED"] call _refuse
 };
+if (isObjectHidden _building) exitWith {
+    [] call _retireResume;
+    ["TARGET_HIDDEN"] call _refuse
+};
 if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
     diag_log format ["[CBE] %1 clear building refused: the Smart AI Pass is not running on this machine.", _group];
     false
@@ -206,7 +210,7 @@ if (_resumeRequested && {!(_resumeRosterContext isEqualType [])
 }) exitWith {["RESUME_CONTEXT_PENDING"] call _refuse};
 if (_resumeRosterContext isEqualType []) then {_resumeRosterContext=+_resumeRosterContext};
 private _admissionStable={
-    !isNull _building && {alive _building}
+    !isNull _building && {alive _building} && {!isObjectHidden _building}
         && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
 };
 private _allPositions = _building buildingPos -1;
