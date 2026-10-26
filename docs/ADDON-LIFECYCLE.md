@@ -1956,3 +1956,12 @@ The read-only ActorSettings INSPECT mode checks the original issuer, generation 
 BuildingActorMotion OBSERVE shares the existing native MOVE, settled WAIT and HOLD checks before startup. It accepts only the bounded proposed interior roster under current owner, visit, route and original deadlines. This result grants no operation or movement authority. Actual CHECK/ADOPT retains the live common-operation checks. A changed destination can therefore defer the attempt before cleanup consumes the order.
 
 Actual adoption still runs through the existing operation and actor authority checks. Missing state remains distinct from a coherent original-producer delivery receipt. This change prevents known settings and motion failures from consuming an order; it does not complete authenticated transfer, all-writer retirement or exterior readiness. Physical migration, repeated flow and the added bounded startup cost remain unverified while audits are paused.
+
+
+### Forward geometry and curvature in metres
+
+Forward gate and solid-obstacle probes now express body extents, straight/curved travel stations, contact offsets and support-height comparisons in world metres. A unit body basis retains the vehicle's pitch and roll. Object scale affects its real hull dimensions once, without multiplying the requested travel horizon or inverse-metre curvature. Native-path and travelled-position hints use the same unit convention; the travelled hint's local identity distinguishes the new metre receipt.
+
+The existing shared hull helper supplies all three body spans with its four model transforms and outward 0.05 m padding. One origin transform plus basis arithmetic replaces native forward/inverse transforms at individual probe points. Ray counts, hit bounds, curvature limits, gate classification, support ambiguity checks and the original braking model remain. Unavailable pose, hull or motion supplies a zero solid constraint, without inventing a gate or a bypass target. Existing owner-local writers retain command authority.
+
+No worker, query, ray, setting or timer is added. Actual probe accuracy, slopes, tight corners, supported scaling, braking and measured runtime cost remain unverified while audits are paused. Ordinary autonomous reversing still needs a coherent rear-traffic/intent treatment; this forward-unit correction does not provide it.

@@ -422,7 +422,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "sha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e",
+      "sha256": "116ae4b68ce849e56e3ae5d986d312a50901a26c059aea31304a3b04ee62368f",
       "scope": "ArcPts, SegN, ClampK and RaySegments helpers plus travelled-curvature main branch; remaining geometry consumers remain separately scoped",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -522,6 +522,15 @@
         "functions/fn_driveAssist.sqf",
         "functions/fn_refreshRoute.sqf",
         "functions/fn_routeWaiting.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-forward-metre-frame-20261026.json",
+      "sha256": "b00fed55f70e66ef51c13ea3fe4eed80df483ffd7deae53a53f57dd9805e850d",
+      "scope": "CBE forward geometry and both curvature producers; selected HBQ arc/track intent. Not a complete controller review or parity claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -1262,7 +1271,7 @@
       "recordedSha256": "aa55c22ed42482d992e92ccc7f3c9a5e1d18ffb8ed4b268780a72c096537ac96",
       "status": "readable-revised-text",
       "currentPath": "releaseVerificationAndDeployment/referenceReviews/hbq-curved-observation-20261016.json",
-      "currentSha256": "fc5e6ae2e54bcd05bc83eff806a0ce2b296b011269be934077294010747daf9e"
+      "currentSha256": "116ae4b68ce849e56e3ae5d986d312a50901a26c059aea31304a3b04ee62368f"
     },
     {
       "recordedPath": "../../releaseVerificationAndDeployment/referenceReviews/hbq-follower-order-20261016.json",

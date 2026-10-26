@@ -6,6 +6,49 @@ class DrivingGeometryTests(unittest.TestCase):
     def test_geometry_is_one_bounded_live_observation_without_helpers(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text().split('params [[',1)[1]
         self.assertEqual(s.count('lineIntersectsSurfaces'),2)
+        self.assertIn('call CBE_fnc_DrivingHullInterval',s)
+        self.assertEqual(s.count('modelToWorldWorld'),1)  # origin; body span uses shared four transforms
+        self.assertNotIn('worldToModel',s)
+        self.assertIn('(_modelPoints select 0) call _pointWorld',s)
+        self.assertIn('[_edge+_side*_reach,_toY,_z] call _pointWorld',s)
+        self.assertIn('_supportEnd call _pointBody',s)
+        self.assertIn('if (count _ownHull != 6) exitWith {_unavailable}',s)
+        self.assertIn('if (!finite _bodySpeed) exitWith {_unavailable}',s)
+        self.assertIn('[0,objNull,0,time,0,"UNAVAILABLE",[],[],[]]',s)
+        # Independent rigid-frame oracle: a metre horizon must remain that length
+        # under native scale, pitch and roll; only the original body extents scale.
+        import math
+        def basis(pitch,roll):
+            p,r=map(math.radians,(pitch,roll));c,t=math.cos(p),math.sin(p)
+            f=(0,c,t); side=(math.cos(r),math.sin(r)*t,-math.sin(r)*c)
+            up=(-math.sin(r),math.cos(r)*t,-math.cos(r)*c)
+            # Select up so side = forward cross up, preserving a right-handed frame.
+            up=tuple(-x for x in up)
+            return side,f,up
+        def point(v,axes,origin):
+            return tuple(origin[i]+sum(v[j]*axes[j][i] for j in range(3)) for i in range(3))
+        def distance(a,b):return math.sqrt(sum((x-y)**2 for x,y in zip(a,b)))
+        for scale in (.5,1,2):
+            for pitch,roll in ((0,0),(25,0),(-20,15)):
+                axes=basis(pitch,roll);origin=(500,1000,40)
+                front=5*scale+0.25; width=1.5*scale+0.25; height=.5*scale+.45
+                start=point((width,front,height),axes,origin)
+                end=point((width,front+40,height),axes,origin)
+                self.assertAlmostEqual(distance(start,end),40)
+                self.assertAlmostEqual(distance(start,point((width,front+.7,height),axes,origin)),.7)
+                relative=tuple(end[i]-origin[i] for i in range(3))
+                body=tuple(sum(relative[i]*axis[i] for i in range(3)) for axis in axes)
+                self.assertAlmostEqual(body[1],front+40)
+                # Old modelToWorld application multiplied the horizon and contact margin too.
+                self.assertAlmostEqual(distance(start,end)*scale,40*scale)
+                k=.02; length=6; angle=k*length
+                station=((1-math.cos(angle))/k,math.sin(angle)/k,0)
+                arc_start=point((0,0,0),axes,origin); arc_end=point(station,axes,origin)
+                self.assertAlmostEqual(distance(arc_start,arc_end),2*math.sin(angle/2)/k)
+                # The support-profile 0.3m threshold is a physical body-axis value.
+                raised=point((0,6,.4),axes,origin)
+                delta=tuple(raised[i]-origin[i] for i in range(3))
+                self.assertAlmostEqual(sum(delta[i]*axes[2][i] for i in range(3)),.4)
         for required in ('true,4,"GEOM","NONE"','[_left,(_left+_right)*0.5,_right]',
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
                          '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
@@ -111,8 +154,21 @@ class DrivingGeometryTests(unittest.TestCase):
                        '_forward <= 1','_previous select 0) isNotEqualTo _identity',
                        'time-(_previous select 2) > 6','_distanceSquared >= 9',
                        'time-(_previous select 2) >= 1.5','abs _curvature < 0.004',
-                       'worldToModel','ASLToAGL'):
+                       'vectorDotProduct _bodySide','vectorDotProduct _bodyForward','"BODY_METRES"'):
             self.assertIn(marker,s)
+        self.assertNotIn('worldToModel',s)
+        # A fixed physical chord has the same curvature for every object scale.
+        x,y=2.0,6.0
+        expected=2*x/(x*x+y*y)
+        for scale in (.5,1,2):
+            self.assertAlmostEqual(2*x/(x*x+y*y),expected)
+            old_x,old_y=x/scale,y/scale
+            old=2*old_x/(old_x*old_x+old_y*old_y)
+            self.assertAlmostEqual(old,expected*scale)
+            if scale!=1:self.assertNotAlmostEqual(old,expected)
+            # Old model-unit displacement could postpone or prematurely take a sample.
+            old_distance=(2.0/scale)**2
+            self.assertEqual(old_distance>=9,scale==.5)
         for forbidden in ('setVariable','spawn','waitUntil','doMove','forceSpeed','lineIntersectsSurfaces'):
             self.assertNotIn(forbidden,s.split('params [[',1)[1])
         for name in ('drivingAssistStart','convoyTick'):
@@ -147,7 +203,10 @@ class DrivingGeometryTests(unittest.TestCase):
                        '_floorLost','_distance >= 3','_distance <= 12'):
             self.assertIn(marker,s)
         self.assertNotIn('_nearIndex+3',selection)
-        self.assertLess(selection.index('_floorLost ||'),selection.index('worldToModel'))
+        self.assertNotIn('worldToModel',selection)
+        self.assertIn('_targetRelative vectorDotProduct _bodySide',selection)
+        self.assertIn('_targetRelative vectorDotProduct _bodyForward',selection)
+        self.assertLess(selection.index('_floorLost ||'),selection.index('private _targetRelative='))
         # Prior next-three-node admission rejects these valid half-metre forward samples.
         dense=[i*0.5 for i in range(1,64)]
         self.assertLess(max(dense[:3]),3)

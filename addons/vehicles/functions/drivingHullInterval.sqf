@@ -8,9 +8,10 @@
  * 3 optional second unit world axis <ARRAY, []>. Empty retains the original two-value result.
  * 4 optional third unit world axis <ARRAY, []>; requires a nonempty second axis.
  * Return: ARRAY [minimum,maximum], optionally followed by second and third min/max pairs,
- * in metres padded outwards by0.05m; [] unavailable. Invalid optional geometry refuses both axes.
+ * in metres padded outwards by0.05m; [] unavailable. Invalid optional geometry refuses the projection.
  * Current callers: DrivingPassStep, DrivingQueueProposal, DrivingQueueProposalCurrent,
- * DrivingRearPlan, DrivingGateOpenServer, DrivingGateCloseServer and CortexInfantrySpeed.
+ * DrivingRearPlan, DrivingRearClear, DrivingGeometryCap, DrivingGateOpenServer,
+ * DrivingGateCloseServer and CortexInfantrySpeed.
  * Cost: Four native model transforms for one, two or three axes; affine edge projection represents
  * all eight corners. Dual-axis callers reuse one box/pose sample instead of repeating transforms.
  * Example: private _span=[truck1,getPosWorld truck2,[0,1,0]] call CBE_fnc_DrivingHullInterval;

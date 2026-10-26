@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "ec5ccc3dde1d5913730c284d55917b74d62bbb40",
+  "workshopId": "3812620045",
+  "status": "FORWARD_METRE_CHAIN_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "scope": "CBE forward geometry and both curvature producers; selected HBQ arc/track intent. Not a complete controller review or parity claim.",
+  "reference": {
+    "path": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesReviewed": [
+      "394-453 ArcPts/SegN/ClampK/RaySegments",
+      "2525-2553 measured chord curvature and direction reset",
+      "1197-1241 reverse traffic ray selection, separate remaining work"
+    ],
+    "intent": "Predict a bounded measured bend then continue tangentially. Native forward/reverse traffic direction is a separate branch. Source model-space point conversion is not a licence to mix metre-based distances with scaled coordinates. Protected source unchanged."
+  },
+  "finding": "Forward probes passed metre horizons/contact margins through a native model transform that includes scale. Support-height thresholds and both curvature producers also used scaled inverse model coordinates. For a fixed physical chord, old inverse-model curvature changes by scale and its displacement threshold is no longer three metres. Fixing only the final probe would leave its two hints inconsistent.",
+  "implementation": [
+    "DrivingGeometryCap projects the actual hull once into unit body side/forward/up axes using DrivingHullInterval. Straight and curved stations, contact probes and support-height comparisons use rigid metre arithmetic. Pitch/roll remain body-oriented; real hull size scales once. Shared 0.05 m outward padding remains.",
+    "DrivingTurnTrack projects the actual travelled chord onto unit body axes and reads actual velocity in that frame. Existing 3 m/1.5 s/6 s thresholds, reversal/standing reset and straightness policy remain. Its private measurement identity adds BODY_METRES so an older scaled hint cannot be retained across a live source reload; four-field receipt and caller authority remain.",
+    "DrivingNativePathWatch projects the final fresh nearby target into the same unit body axes before its forward threshold and inverse-metre curvature. Existing path subscription, route/seat/owner binding, 64 nodes, floor checks, 3..12 m range, six-metre walk and evidence ages remain.",
+    "Unavailable pose, hull or motion returns a zero solid UNAVAILABLE constraint with no gate/target. Ordinary and convoy consumers preserve their existing zero-cap sentinel handling. Bypass PLAN requires a nonnull STATIC object, so this observation cannot propose a bypass.",
+    "No native movement writer, setting, helper prop, world query, ray, worker, timer or restoration policy added. No source original edited."
+  ],
+  "boundedCost": "Geometry uses one origin plus the shared four native hull transforms, then basis arithmetic rather than native transforms at each straight/curved/contact point and inverse support comparison. The two hint producers add unit-basis arithmetic and remove scaled inverse conversion. Existing ray/hit counts and owner callbacks remain. Runtime median/p95 is unmeasured; fewer native transforms is not an FPS claim.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingGeometryCap.sqf": "38d048eed7cc5dde161902c74a521633b79b5d7355126719a41b5be75d617a6e",
+    "addons/vehicles/functions/drivingTurnTrack.sqf": "9daeacc83e43aa5e13e5aabefe1d20d3665caffd9a5dc1595051578499fab4dc",
+    "addons/vehicles/functions/drivingNativePathWatch.sqf": "31e63f9308d0ea5ffa3ee39456cdd391f4348378bf4234ce7759cfe41c4e762d",
+    "addons/vehicles/functions/drivingHullInterval.sqf": "a1f0c12e94083d2ed9af7e93f4feb270ef9e537a2bc983932799f96ff1f0d420",
+    "releaseVerificationAndDeployment/test_driving_geometry.py": "1ea52ef2dd28d6ce562ff7e26005a90d31a19ca96d724a49d1c03a9fe0f95534"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 440,
+    "PBOs": 11,
+    "fullPipeline": "PASS first complete attempt",
+    "newTestCases": 0,
+    "existingRegressionExtension": "Independent rigid-frame oracle for scale 0.5/1/2, pitch/roll, fixed horizon/contact distance, support threshold and arc chord; scale-dependent old curvature and original observation/authority bounds remain covered.",
+    "buildLog": ".qa/handovers/forward-metre-frame-build.log",
+    "independentLog": ".qa/handovers/forward-metre-frame-independent.log",
+    "candidate": ".qa/candidates/forward-metre-frame-ec5ccc3d",
+    "fingerprint": "6e2912e675bb6c3fb6ffab81f351aee574f97c047d09a69f39579bcb41e7233e",
+    "runtimeUnchangedAfterBuild": true,
+    "referenceMetadataAfterPackage": true,
+    "unsignedDevelopmentSnapshot": true
+  },
+  "remaining": [
+    "Ordinary autonomous reversing currently enters forward-only traffic/geometry observation unless CBE owns a dedicated reverse leg. The pedestrian observer already has direction handling. A coherent rear-traffic intent/hold treatment remains required; blindly retaining an old reverse flag cannot authorise movement after a changed native order.",
+    "HBQ precision/player-distance observation LOD, complete controller handovers and wider source integration remain unfinished.",
+    "Physical slopes, corners, decks, supported scaling, actual braking/flow, normal-HC repeats and 5 percent median/10 percent p95 performance require runtime evidence. Audits remain paused."
+  ],
+  "engineReferencesForSeparateReverseGap": [
+    "https://community.bistudio.com/wiki/vehicleMoveInfo",
+    "https://community.bistudio.com/wiki/speed",
+    "https://community.bistudio.com/wiki/forceSpeed"
+  ],
+  "wholeHBQParity": false,
+  "physicalAcceptance": false
+}

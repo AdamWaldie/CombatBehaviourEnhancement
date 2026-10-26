@@ -18,6 +18,8 @@
  * equal-distance ties within one stretch retain the first segment rather than jumping ahead.
  * Maximum grade uses only the existing six-metre native path walk; no support or clearance proof.
  * Consumers may lower a speed ceiling with the existing road-grade policy. No extra scan or timer.
+ * The final nearby target projects into unit body axes in metres. Object scale cannot
+ * multiply inverse-metre curvature or distort the one-metre forward admission threshold.
  * A captured path grants neither movement nor physical completion.
  * Current callers: DrivingAssistStart, ConvoyTick, DrivingAssistRelease and ConvoyReleaseLocal.
  * Example: private _hint=[truck1,_group,["ORDINARY",_route,_epoch]] call CBE_fnc_DrivingNativePathWatch;
@@ -161,7 +163,14 @@ for "_i" from (_nearIndex+1) to (count _nodes-1) do {
 if (_floorLost || {_targetASL isEqualTo []}) exitWith {[]};
 private _distance=_origin distance2D _targetASL;
 if !(_distance >= 3 && {_distance <= 12}) exitWith {[]};
-private _target=_vehicle worldToModel (ASLToAGL _targetASL);
+private _bodyForward=vectorNormalized vectorDir _vehicle;
+private _bodyUp=vectorNormalized vectorUp _vehicle;
+private _bodySide=vectorNormalized (_bodyForward vectorCrossProduct _bodyUp);
+if (abs (_bodyForward vectorDotProduct _bodyUp) > 0.01
+    || {abs ((vectorMagnitude _bodySide)-1) > 0.01}) exitWith {[]};
+private _targetRelative=_targetASL vectorDiff (_vehicle modelToWorldWorld [0,0,0]);
+private _target=[_targetRelative vectorDotProduct _bodySide,_targetRelative vectorDotProduct _bodyForward];
+if (_target findIf {!finite _x} >= 0) exitWith {[]};
 if !((_target select 1) > 1) exitWith {[]};
 private _distanceSquared=(_target select 0)^2+(_target select 1)^2;
 if (_walked >= 6 && {count _supportPath == 2}) then {_supportPath pushBack (+_targetASL)} else {_supportPath=[]};

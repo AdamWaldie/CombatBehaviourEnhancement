@@ -1,6 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Samples live forward body geometry once for both gates and other solid obstructions.
+ * Hulls, travel horizons, arc stations, support thresholds and contact probes use body-oriented
+ * world metres. A unit basis preserves pitch/roll without scaling metre travel a second time.
+ * The shared four-transform hull projection replaces per-probe native model transforms;
+ * unavailable body pose, hull or velocity yields a zero solid cap, not clearance or a gate.
  * Locality / Authority: Read-only on vehicle owner; trusted server may recheck a remote vehicle.
  * Existing driving/convoy callbacks own all speed/movement commands. No helper props or physics.
  * Repeat/JIP: No handlers/cache/clearance leases. Current transforms and GEOM surfaces are sampled
@@ -18,7 +22,8 @@
  * Return Value: ARRAY [gate observation ARRAY, solid observation ARRAY]. Gate observation retains
  * [cap m/s, gate OBJECT, gap metres, time, rays]. Solid is empty without a sampled blocker, else
  * [cap m/s, object (objNull for terrain), gap, time, rays, kind, hit ASL, normal, transform].
- * Work: nine straight or at most27 turning rays, plus at most12 qualified near-contact rays;
+ * Work: one origin transform plus the shared four-transform hull projection,
+ * then pure basis arithmetic for points/inverse support comparisons. Nine straight or at most27 turning rays, plus at most12 qualified near-contact rays;
  * a fresh native grade transition adds at most9 support casts and6 low forward casts within6m.
  * each returns <=4hits. Nominal braking horizon <=600m. No new discovery query or timer.
  * Gate classification is cached only within this call: up to180 hit objects/up to32 config checks
@@ -45,14 +50,36 @@ params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",fal
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 35;
 if (isNull _vehicle || {!local _vehicle && {!(_serverCheck && {isServer})}} || {!alive _vehicle}) exitWith {[[_requested,objNull,-1,time,0],[]]};
-private _box=boundingBoxReal _vehicle;
-private _low=_box select 0;private _high=_box select 1;
+// A model transform includes object scale. Never send metre-valued travel or
+// margins through that transform again; project the real body once into a unit basis.
+private _unavailable=[[_requested,objNull,-1,time,0],[0,objNull,0,time,0,"UNAVAILABLE",[],[],[]]];
+private _frameOrigin=_vehicle modelToWorldWorld [0,0,0];
+private _bodyForward=vectorNormalized vectorDir _vehicle;
+private _bodyUp=vectorNormalized vectorUp _vehicle;
+private _bodySide=vectorNormalized (_bodyForward vectorCrossProduct _bodyUp);
+if (abs (_bodyForward vectorDotProduct _bodyUp) > 0.01) exitWith {_unavailable};
+private _ownHull=[_vehicle,_frameOrigin,_bodySide,_bodyForward,_bodyUp] call CBE_fnc_DrivingHullInterval;
+if (count _ownHull != 6) exitWith {_unavailable};
+private _low=[_ownHull select 0,_ownHull select 2,_ownHull select 4];
+private _high=[_ownHull select 1,_ownHull select 3,_ownHull select 5];
+private _pointWorld={
+    params ["_metreX","_metreY","_metreZ"];
+    _frameOrigin vectorAdd (_bodySide vectorMultiply _metreX)
+        vectorAdd (_bodyForward vectorMultiply _metreY) vectorAdd (_bodyUp vectorMultiply _metreZ)
+};
+private _pointBody={
+    private _relative=_this vectorDiff _frameOrigin;
+    [_relative vectorDotProduct _bodySide,_relative vectorDotProduct _bodyForward,
+        _relative vectorDotProduct _bodyUp]
+};
 private _front=(_high select 1)+0.2;
 private _left=(_low select 0)-0.2;private _right=(_high select 0)+0.2;
 private _massFactor=((1+(((getMass _vehicle)-3000)/7000)) max 1) min 2.5;
 private _deceleration=4/_massFactor;
 private _reaction=4;
-private _velocity=((velocity _vehicle) vectorDotProduct (vectorDir _vehicle)) max 0;
+private _bodySpeed=(velocity _vehicle) vectorDotProduct _bodyForward;
+if (!finite _bodySpeed) exitWith {_unavailable};
+private _velocity=_bodySpeed max 0;
 private _speed=_velocity max _requested;
 private _horizon=((_speed*_reaction)+((_speed*_speed)/(2*_deceleration))+6) max 25 min 600;
 // Read-only native yaw needs no per-vehicle history, publication or extra callback.
@@ -98,8 +125,8 @@ private _samples=[];
             [_centreX+_width*cos _angle+_front*sin _angle,
                 _centreY-_width*sin _angle+_front*cos _angle,_height]
         };
-        private _from=_vehicle modelToWorldWorld (_modelPoints select 0);
-        private _to=_vehicle modelToWorldWorld (_modelPoints select 1);
+        private _from=(_modelPoints select 0) call _pointWorld;
+        private _to=(_modelPoints select 1) call _pointWorld;
         _samples pushBack [_from,_to,(_stations select (_segment-1)) select 3,(_stations select _segment) select 3,0];
         };
     } forEach [_left,(_left+_right)*0.5,_right];
@@ -110,8 +137,8 @@ private _supportPath=_measured param [2,[],[[]]];
 if (count _supportPath == 3 && {_supportPath findIf {!(_x isEqualType []) || {count _x != 3}
     || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0}) then {
     private _supportEnd=_supportPath select 2;
-    private _modelEnd=_vehicle worldToModel (ASLToAGL _supportEnd);
-    private _modelStart=_vehicle worldToModel (ASLToAGL (_supportPath select 0));
+    private _modelEnd=_supportEnd call _pointBody;
+    private _modelStart=(_supportPath select 0) call _pointBody;
     if (abs ((_modelEnd select 2)-(_modelStart select 2)) > 0.3
         && {(_modelEnd select 1) > 1} && {(_supportPath select 0) distance2D getPosASL _vehicle <= 3}
         && {(_supportPath select 0) distance2D _supportEnd <= 7}) then {
@@ -164,8 +191,8 @@ if (_nearContact) then {
                 private _z=(_low select 2)+_x;
                 {
                     _x params ["_fromY","_toY","_reach"];
-                    private _from=_vehicle modelToWorldWorld [_edge,_fromY,_z];
-                    private _to=_vehicle modelToWorldWorld [_edge+_side*_reach,_toY,_z];
+                    private _from=[_edge,_fromY,_z] call _pointWorld;
+                    private _to=[_edge+_side*_reach,_toY,_z] call _pointWorld;
                     _samples pushBack [_from,_to,0,0,_side];
                 } forEach [[_frontY-0.1,_frontY+0.55,0.7],[_quarter,_quarter,0.6],[0,0,0.6]];
             } forEach [0.3,0.6];
