@@ -4,6 +4,8 @@
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
  * Native fleeing retires matching metadata without a native recall command.
+ * Failed-approach return retains the original subformation anchor. Changed, missing or
+ * unavailable anchors grant no follow command; arrival still leaves the soldier in cover.
  * Cross-observer cleanup checks the leased soldier itself for combat effectiveness and
  * flight; the incoming observer cannot grant recall authority over the previous actor.
  * It runs on the actor and group owner and yields
@@ -68,7 +70,8 @@ private _readOrderContext={
 };
 private _entryContext=call _readOrderContext;
 private _lease=_group getVariable ["CBE_Danger_CoverLease",[]];
-private _leaseContextCurrent=count _lease == 6 && {(_lease select 5) isEqualTo _entryContext};
+private _leaseContextCurrent=count _lease == 7 && {(_lease select 6) isEqualType objNull}
+    && {(_lease select 5) isEqualTo _entryContext};
 private _moveProof=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 // A fresh observation is not automatically a new movement intent. Adopt a still-live screened
 // route only when the nearby new hazard passes its recorded COVER/CONCEALMENT screening at
@@ -133,6 +136,7 @@ private _timedOut=false;
 private _orderChanged=count _lease >= 4 && {!_leaseContextCurrent};
 if (count _lease >= 4) then {
     _lease params ["_leasedActor","_leasedGeneration","_expires","_leasedSpot"];
+    private _returnAnchor=_lease param [6,objNull,[objNull]];
     private _distance=if (isNull _leasedActor) then {-1} else {_leasedActor distance2D _leasedSpot};
     private _height=if (isNull _leasedActor) then {-1} else {abs (((getPosASL _leasedActor) select 2)-((AGLToASL _leasedSpot) select 2))};
     private _endReason=if (_orderChanged) then {"ORDER_CHANGED"} else {if (_releaseOnly) then {"RELEASED"} else {
@@ -155,6 +159,10 @@ if (count _lease >= 4) then {
                 && {[_leasedActor] call CBE_fnc_CortexCombatEffective} && {!fleeing _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
                 && {([_leasedActor] call CBE_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
                 && {isNull objectParent _leasedActor} && {_leasedActor != leader _group}
+                && {!isNull _returnAnchor} && {_returnAnchor != _leasedActor}
+                && {group _returnAnchor == _group}
+                && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
+                && {formLeader _leasedActor isEqualTo _returnAnchor}
                 // Successful arrival is useful cover, not a reason to run back across exposure.
                 // Only a failed owned approach needs this bounded return-to-formation recovery.
                 && {_distance > 2 || {_height > 1.5}}
@@ -168,7 +176,7 @@ if (count _lease >= 4) then {
                 && {simulationEnabled _leasedActor} && {!isObjectHidden _leasedActor}
                 && {(_leasedActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {currentCommand _leasedActor in ["","MOVE"]}) then {
-                _leasedActor doFollow (leader _group);
+                _leasedActor doFollow _returnAnchor;
             };
         };
     };
@@ -290,9 +298,10 @@ _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generat
 // The observation may end before native pathing reaches cover. Retain the committed move
 // independently, with a bounded travel allowance rather than a four-second universal cutoff.
 private _deadline=time+((2+(_origin distance2D _spot)/2) max 4 min 12);
+private _coverAnchor=formLeader _actor;
 _actor doMove _spot;
 _actor setVariable ["CBE_Cortex_ActorMove",["DANGER_COVER",+_spot,_deadline]];
-_group setVariable ["CBE_Danger_CoverLease",[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext]];
+_group setVariable ["CBE_Danger_CoverLease",[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext,_coverAnchor]];
 private _stats=_group getVariable ["CBE_Danger_EngineStats",createHashMap];
 _stats set ["coverMoves",((_stats getOrDefault ["coverMoves",0])+1) min 100000];
 _stats set ["lastCoverActor",_actor];

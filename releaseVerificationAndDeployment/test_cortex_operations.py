@@ -11731,7 +11731,7 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('count _threat',retention)
         self.assertIn('max 4 min 12',text)
         self.assertIn('["DANGER_COVER",+_spot,_deadline]',text)
-        self.assertIn('[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext]',text)
+        self.assertIn('[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext,_coverAnchor]',text)
         adoption=text.split('// A fresh observation',1)[1].split('if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4}',1)[0]
         self.assertIn('_lease set [1,_generation]',adoption)
         self.assertIn('if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5}',adoption)

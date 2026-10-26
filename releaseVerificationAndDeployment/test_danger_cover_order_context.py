@@ -6,10 +6,29 @@ class CoverOrderContextTests(unittest.TestCase):
     def test_cover_adoption_continuation_and_recovery_require_original_orders(self):
         source=(ROOT/'addons/infantry/functions/dangerCoverStep.sqf').read_text(encoding='utf-8')
         context=source.split('private _readOrderContext=',1)[1].split('private _moveProof=',1)[0]
-        for marker in ('CBE_AIPass_Epoch','CBE_OperationGeneration','CBE_fnc_NativeOrderReceipt','count _lease == 6','(_lease select 5) isEqualTo _entryContext'):
+        for marker in ('CBE_AIPass_Epoch','CBE_OperationGeneration','CBE_fnc_NativeOrderReceipt','count _lease == 7','(_lease select 5) isEqualTo _entryContext'):
             self.assertIn(marker,context)
         self.assertEqual(source.count('if (!_releaseOnly && {_leaseContextCurrent}'),3)
-        self.assertIn('[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext]',source)
+        self.assertLess(source.index('private _coverAnchor=formLeader _actor'),source.index('_actor doMove _spot'))
+        cleanup=source.split('private _returnAnchor=_lease param',1)[1].split('_group setVariable ["CBE_Danger_CoverLease",nil]',1)[0]
+        follow=cleanup.index('_leasedActor doFollow _returnAnchor')
+        for proof in ('!isNull _returnAnchor','group _returnAnchor == _group',
+                      '[_returnAnchor] call CBE_fnc_CortexCombatEffective',
+                      'formLeader _leasedActor isEqualTo _returnAnchor',
+                      '_distance > 2 || {_height > 1.5}'):
+            self.assertLess(cleanup.index(proof),follow)
+        self.assertNotIn('_leasedActor doFollow (leader _group)',source)
+        self.assertNotIn('_lease set [6,',source)
+        def can_return(saved,current,available=True,same_group=True,arrived=False):
+            return saved is not None and saved==current and available and same_group and not arrived
+        self.assertTrue(can_return('team-lead','team-lead'))
+        self.assertFalse(can_return('team-lead','new-team-lead'))
+        self.assertFalse(can_return(None,'group-lead'))
+        self.assertFalse(can_return('team-lead','team-lead',available=False))
+        self.assertFalse(can_return('team-lead','team-lead',same_group=False))
+        self.assertFalse(can_return('team-lead','team-lead',arrived=True))
+
+        self.assertIn('[_actor,_generation,_deadline,+_spot,+_threat,+_entryContext,_coverAnchor]',source)
         self.assertIn('if (_orderChanged) exitWith {["ORDER_CHANGED"] call _clearLease}',source)
         final=source.rsplit('if (_entryContext isNotEqualTo (call _readOrderContext)',1)[1]
         self.assertLess(final.index('exitWith'),final.index('_actor doMove _spot'))
