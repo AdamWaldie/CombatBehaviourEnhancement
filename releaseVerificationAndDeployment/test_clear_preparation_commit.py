@@ -181,11 +181,24 @@ class ClearPreparationCommitTests(unittest.TestCase):
         def may_capture(*,gained=False,local=False,owner=4,client=4,cancelled=False,
                         finished=False,phase='ENTRY',epoch=7,current_epoch=7):
             return (not gained and not local and owner==client and not cancelled
-                    and not finished and phase in ('ENTRY','SWEEP','EGRESS') and epoch==current_epoch)
+                    and not finished and phase in ('ENTRY','SWEEP','REPLAN','EGRESS') and epoch==current_epoch)
         self.assertTrue(may_capture())
         self.assertTrue(may_capture(phase='EGRESS'))
+        self.assertTrue(may_capture(phase='REPLAN'))
+        self.assertEqual(journal.count('["ENTRY","SWEEP","REPLAN"]'),2)
+        fsm=(ROOT/'addons/main/fsm/buildingOperation.fsm').read_text(encoding='utf-8')
+        step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('_job set ["phase","REPLAN"]',step)
+        self.assertIn('class Replan',fsm)
+        self.assertIn('"ENTRY","SWEEP","REPLAN","EGRESS"',producer)
+        # REPLAN remains an admitted existing lane phase, not a request to rebuild routes.
+        adoption=journal.split('if (_mode == "ADOPT") exitWith {',1)[1].split('// Export must',1)[0]
+        self.assertIn('_job set ["phase",_phase]',adoption)
+        self.assertIn('_job set ["pairRoutes",_copyRoutes]',adoption)
+        self.assertNotIn('serverTime+',adoption)
+
         for changed in ({'gained':True},{'local':True},{'owner':5},{'cancelled':True},
-                        {'finished':True},{'phase':'REPLAN'},{'current_epoch':8}):
+                        {'finished':True},{'phase':'FINISHED'},{'current_epoch':8}):
             self.assertFalse(may_capture(**changed))
         tail=journal.split('private _journal=',1)[1]
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))

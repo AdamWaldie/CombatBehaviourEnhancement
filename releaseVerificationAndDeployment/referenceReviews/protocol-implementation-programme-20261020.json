@@ -49,6 +49,10 @@
       "egressProducerSnapshot20261026": {
         "review": "clear-egress-producer-capture-20261026.json",
         "scope": "Shared original source predicate and pure14-field final-egress serializer now support outgoing EGRESS capture with unchanged original exit clocks. No native replay, final seal, incoming readiness, REPLAN completeness, full-source parity or physical acceptance."
+      },
+      "replanJournal20261026": {
+        "review": "clear-replan-journal-phase-20261026.json",
+        "scope": "Existing clearance REPLAN FSM phase now saves/checks/adopts exact lane metadata and may export its original producer state. No new route, retry credit, deadline, consumer or physical parity claim."
       }
     },
     {

@@ -50,5 +50,9 @@
     "earlierChecks": "Initial focused invocation lacked the local checker import path and retained two moved source assertions; corrected path/source boundaries passed619 existing cases. First full run found another moved source assertion; preserved field/clock checks moved to the strict serializer. No tests removed or new cases added.",
     "sourceNote": "Full1497 tests/all offline gates passed final functional source with terminal guard. One room header then renamed its authority helper; documentation contract rechecked and HEMTT/package verification rerun without repeating unchanged static tests. No functional changes after full gates. Metadata followed package.",
     "packageLog": ".qa/handovers/clear-egress-producer-package.log"
+  },
+  "replanFollowup": {
+    "review": "clear-replan-journal-phase-20261026.json",
+    "scope": "Existing REPLAN phase now shares lane serialization/check/adoption and the source predicate; the historical REPLAN unsupported item is resolved in source. Full ordered transfer/native readiness and other named component limits remain."
   }
 }

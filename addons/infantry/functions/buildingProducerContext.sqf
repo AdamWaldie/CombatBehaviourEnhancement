@@ -24,7 +24,7 @@ isNil {
         if (!(_group isEqualType grpNull) || {isNull _group}
             || {if (_frozen) then {local _group} else {!local _group}}
             || {!(_building isEqualType objNull)} || {isNull _building} || {!alive _building}
-            || {!(_phase in ["ENTRY","SWEEP","EGRESS"])}
+            || {!(_phase in ["ENTRY","SWEEP","REPLAN","EGRESS"])}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""}
             || {_context isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}

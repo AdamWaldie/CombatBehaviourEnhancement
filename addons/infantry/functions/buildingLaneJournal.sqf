@@ -7,6 +7,7 @@
  * current-owner-only. FROZEN is read-only after actual locality loss, before private pointer
  * retirement: the same local producer must be fenced by LOCALITY_CHANGE. Neither is a
  * complete transfer seal or network/replay interface.
+ * ENTRY, SWEEP and the existing REPLAN FSM phase share this same lane schema.
  * Adoption retains lane-bound buddy destination proposals as well as request ages and progress.
  * It changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
@@ -38,7 +39,7 @@ private _group=_job getOrDefault ["group",grpNull];
 private _ownerContext={if (_frozen) then {!local _group} else {local _group}};
 if (isNull _group || {!(call _ownerContext)}) exitWith {_refused};
 private _phase=_job getOrDefault ["phase","ENTRY"];
-if (!(_phase in ["ENTRY","SWEEP"])) exitWith {if (_export) then {[]} else {_mode == "ADOPT"}};
+if (!(_phase in ["ENTRY","SWEEP","REPLAN"])) exitWith {if (_export) then {[]} else {_mode == "ADOPT"}};
 if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}
     && {_phase isEqualTo (_job getOrDefault ["laneJournalPhase",""])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
 private _result=false;
@@ -86,7 +87,7 @@ _result=call {
             || {(_snapshot select 2) isNotEqualTo _context}
             || {(_snapshot select 3) isNotEqualTo _positions}
             || {(_snapshot select 4) isNotEqualTo _pairs}
-            || {!((_snapshot select 8) in ["ENTRY","SWEEP"])}) exitWith {_routes=[]};
+            || {!((_snapshot select 8) in ["ENTRY","SWEEP","REPLAN"])}) exitWith {_routes=[]};
         _routes=_snapshot select 5;_states=_snapshot select 6;_pending=_snapshot select 7;
         _phase=_snapshot select 8;
         _entryNodes=_snapshot select 9;_entryGoal=_snapshot select 10;
