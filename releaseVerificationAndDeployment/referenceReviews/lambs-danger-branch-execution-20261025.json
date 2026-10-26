@@ -1290,5 +1290,37 @@
     "buildLog": ".qa/handovers/reactive-mortar-smoke-9951c12d.log",
     "independentLog": ".qa/handovers/reactive-mortar-smoke-independent.log",
     "remaining": "Illumination classification/selection and broader contextual mortar smoke planning remain gaps. Actual screen placement/effects, pressure threshold balance, HC execution/cancellation and measured cost remain unverified. No whole-source parity or acceptance increase. Audits paused. Unsigned development candidate from9951c12d plus working runtime; engineering notes postdate packaging."
+  },
+  "informationSharingAndOverwatch20261026": {
+    "status": "ALLIED_AREA_REPORTING_IMPLEMENTED_OFFLINE_PHYSICAL_UNVERIFIED",
+    "scope": "Complete readable bodies of six named main helpers, selected tacticsAssault/Flank caller edges and current CBE sender/server/receiver communication paths. Does not complete main/wp descendants or compiled-source parity.",
+    "sourceHashes": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findOverwatch.sqf": "c5fac803c0e6f3902dc48e703f524857c2ab8a3cc7995c5ea646011ed013d23f",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_doShareInformation.sqf": "6337ab762fad4404b983c33248fcbdedca6e629caf32b802ad93a3f0b7846282",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_addShareInformationHandler.sqf": "0a727ee53522d6ba4165eb39692418c5140ccd73161ca3616a0c3b5f8dacbcde",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_eventCallback.sqf": "a8ce319223c200e06ce81722f2f902456465ebc6c54ee154db4ebc6bab9392d8",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findClosestTarget.sqf": "93e42145ebc9bc9ec771efaf77703f354ec93f5a52a050bc0a14ba12729da363",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_getShareInformationParams.sqf": "b1e72d28f8c016af79ffe8e34b1f824fd14a359c73dc855ec18b825bb5d8f272"
+    },
+    "informationSharing": [
+      "doShareInformation selects a current native nearest enemy when none supplied, derives radio operator/range, invokes cancellation hooks, scans allGroups for friendly recipients and remotely reveals the object within combatShareRange. The shared event receives the wider recipient list. Source permits receiver-to-sender friendship>0.6 rather than same-side only.",
+      "getShareInformationParams chooses faction radio ranges unless overridden, then a nearby nonplayer viable group radio operator within150m. A stored dangerRadio flag, radio-backpack naming or TFAR config can extend range. CBE deliberately retains inventory-independent communications and its documented generic jamming hook; no LAMBS API adapter or backpack dependency added.",
+      "addShareInformationHandler appends CODE with no returned removable identity; eventCallback executes a local CBA event through directCall. CBE generic jamming support is not equivalent to this full callback API. Do not add a repeated-install handler list merely for source parity.",
+      "findClosestTarget selects nearest playable/switchable hostile by default (or allUnits), optional area and altitude, without native knowledge checks. Selected danger/main snapshot contains no executable caller outside the helper itself; wider wp/task caller scope remains unreviewed. Do not import this as autonomous enemy discovery or equate an explicit hunting module with ordinary contact knowledge."
+    ],
+    "overwatch": "findOverwatch samples at most16 findSafePos proposals, uses terrain intersection only and takes height from worldToModel of a nearest arbitrary reference object. It can return a no-minimum-height fallback or the search centre itself. Assault/Flank call it with the original unit position as target reference and hostile area as search centre; Assault may subsequently choose a road without repeating sightline/height checks. Adapt useful terrain/vantage intent, not arbitrary reference-height or unchecked fallback. Existing CBE avenue and elevated firing-endpoint validation are not a general support-overwatch selector; that capability remains open.",
+    "cbeDefect": "Contact reports documented friendly recipients but server/receiver admitted same-side groups only. A naive allied extension also risks passing a threat report about a side the receiver itself considers friendly in a non-transitive alliance.",
+    "change": "Existing report server and owner delivery now require both live mission friendship directions>=0.6. Payload rows become[position,confidence,originalObservedServerTime,observedContactSide], still at most3 and without object identity. Both authoritative sender admission and owner receipt validate side type west/east/resistance and refuse a reported side currently friendly to that endpoint. Original report age/cooldown/duplicate protection, eligibility/exclusions, radio/jamming,3D voice and8-receiver delivery steps remain. Area storage stays the same4-field estimate; no cross-side support/movement authority or target reveal is granted.",
+    "cost": "Two small side-relationship observations per candidate/receiver boundary and at most3 contact-side checks per payload. Existing spatial discovery and delivery worker reused; no new world query, worker, timer, setting or target-object publication. Costs remain unmeasured.",
+    "checks": [
+      "67 existing communication/payload/modularity checks passed",
+      "1497 full offline tests passed;446 SQF compiled/11PBOs built",
+      "Independent package verification passed"
+    ],
+    "candidate": ".qa/candidates/allied-area-reports-7e0ed3d5",
+    "fingerprint": "a479d6adef197e0363c0dd107a01d8eb0bf9da9a3d3c2680a5c7bd69ea1fb804",
+    "buildLog": ".qa/handovers/allied-area-reports-7e0ed3d5.log",
+    "independentLog": ".qa/handovers/allied-area-reports-independent.log",
+    "limits": "Physical coalition/one-way/non-transitive alliance changes, locality delivery, voice/jamming and resulting investigation remain unverified. Observation-side metadata is a finite snapshot, not ongoing identity tracking. Area reports are not native object reveal equivalence. General support-overwatch selection and full main/wp review remain incomplete. Audits paused. Unsigned development candidate from7e0ed3d5 plus working runtime; notes postdate packaging."
   }
 }
