@@ -8953,7 +8953,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(callback.index('CBE_AIPass_Assault_Enable'),callback.index('forceWeaponFire'))
         locality=source('cortexLocality')
         self.assertIn('removeEventHandler ["FiredMan",_fragHandler]',locality)
-        self.assertLess(locality.index('CBE_Cortex_FragHandler'),locality.index('if (!_gained'))
+        self.assertLess(locality.index('CBE_Cortex_FragHandler'),locality.index('if (!_gained || {!local _group}) exitWith {}'))
 
     def test_reaction_qa_keeps_previous_cancellations_and_adds_assault_disable(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runReactions.sqf').read_text()

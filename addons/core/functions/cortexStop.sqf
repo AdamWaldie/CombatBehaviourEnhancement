@@ -281,6 +281,8 @@ if (!isNil "_civilianCreated") then {
     private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     private _postureOldEpoch=_stoppingGroup getVariable ["CBE_AIPass_Epoch",0];
     _x setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil];
+    _x setVariable ["CBE_Cortex_ClearRetireLocal",nil];
+    _x setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];
     _x setVariable ["CBE_AIPass_Epoch", (_x getVariable ["CBE_AIPass_Epoch", 0]) + 1];
     // Rebind retirement only AFTER the controlled epoch edge. No outward leg resumes.
     private _crewReference=_stoppingGroup getVariable ["CBE_ArtilleryCrew_Reference",[]];

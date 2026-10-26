@@ -97,6 +97,10 @@
       "interruptionCapture20261026": {
         "review": "clear-interruption-capture-20261026.json",
         "scope": "Original reservation/evasion expiry and settings-retirement budgets captured; not a final all-writer seal, incoming-ready state or physical migration claim."
+      },
+      "originalFSMRetirement20261026": {
+        "review": "clear-fsm-retirement-20261026.json",
+        "scope": "Finite actual original-FSM completion check after pointer retirement. Not all-writer seal, transport/readiness or physical migration acceptance."
       }
     },
     {

@@ -248,6 +248,29 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)
         self.assertIn('private _egressing=_phase == "EGRESS"',capture)
+        retire=(ROOT/'addons/infantry/functions/buildingProducerRetire.sqf').read_text(encoding='utf-8')
+        for guard in ('!completedFSM _handle','_attempts >= 8','serverTime >= _until',
+                      'count _writers > 131','CBE_Cortex_ClearRetireLocal',
+                      'isEqualTo _brain','_brain getOrDefault ["cancelled",false]',
+                      'ORIGINAL_FSMS_RETIRED'):
+            self.assertIn(guard,retire)
+        for forbidden in ('forceSpeed','doMove','doFollow','setPos','execFSM','remoteExec'):
+            self.assertNotIn(forbidden,retire)
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
+        self.assertLess(locality.index('private _clearRetireSource='),locality.index('private _drivingBrain='))
+        self.assertLess(locality.index('} forEach units _group;',locality.index('private _buildingBrain=')),
+                        locality.index('private _clearRetireCapture='))
+        self.assertIn('((_clearRetireCapture select 5)+3) min _clearRetireDeadline',locality)
+        self.assertIn('(_clearRetireCapture select 11) select 7',locality)
+        self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
+        self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
+        self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
+        def retired(cancelled,completed,pointer_replaced,expired=False):
+            return cancelled and completed and pointer_replaced and not expired
+        self.assertFalse(retired(True,False,True))
+        self.assertFalse(retired(True,True,False))
+        self.assertFalse(retired(True,True,True,True))
+        self.assertTrue(retired(True,True,True))
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
         self.assertIn('count _actors == 5',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
