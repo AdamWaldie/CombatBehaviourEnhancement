@@ -1357,5 +1357,39 @@
     "wholeSourceParity": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "combinedGroundFiringAreas20261026": {
+    "status": "FRESH_MANOEUVRE_ENDPOINT_SCREEN_IMPLEMENTED_PHYSICAL_PENDING",
+    "intent": "Choose a useful supporting firing area rather than a route-safe destination with no observed firing lane. Implements a specific mounted-support planning gap, not a new generic overwatch controller or whole-source parity.",
+    "reviewScope": "Complete readable findOverwatch body rechecked, selected tacticsAssault vehicle placement block and CBE combined-ground fresh planning/arrival fire regions traced. Broader main/wp descendants remain incomplete.",
+    "sourceDisposition": "Retain useful standoff/elevation/clear-view intent. Do not import16 random safePos probes, nearest-object-relative height, terrain-only endpoint qualification, centre fallback, unchecked road substitution or direct unowned vehicle doMove/doWatch. Evolve existing finite CBE operation.",
+    "change": "Filter the six existing fresh ground-manoeuvre destinations using translated current gunner-eye height above vehicle origin, terrain and FIRE/GEOM ray to the authenticated recorded belief. Reject invalid/implausible height, preserve original destination on resumed roles, and pass actual asset to existing vehicle avenue-envelope scoring. Existing actor/ammo admission precedes planning; arrival-local weapon/target/native-route/ROE/friendly-fire checks remain authoritative.",
+    "cost": "At most6 terrain/object endpoint ray pairs per fresh plan. Actual asset bounds now inform existing selector probes; no new candidates, movement owner, worker, setting or world scan. Engine ray and metadata cost unmeasured.",
+    "limits": [
+      "Translated eye height assumes approximate current vehicle attitude/occupied station height; it is not a predicted muzzle, turret traverse or posture proof.",
+      "Fixed-belief endpoint screening cannot guarantee future visibility, actual hull/path clearance, penetration or successful fire.",
+      "Existing55m approach completion envelope can stop away from the exact sampled endpoint; actual lane is rechecked at arrival and may refuse.",
+      "General support-overwatch allocation, other source descendants and physical effects/performance remain incomplete."
+    ],
+    "hashes": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findOverwatch.sqf": "c5fac803c0e6f3902dc48e703f524857c2ab8a3cc7995c5ea646011ed013d23f",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsAssault.sqf": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
+      "addons/infantry/functions/cortexCombinedArmsLocal.sqf": "1f87977c03a164bce239bb722132f6725058d549dad1b9d93ca84b8e242d1f91",
+      "addons/infantry/functions/cortexCombinedGroundStep.sqf": "c09a67383c23c74e3e83f436798f53aaf826ecee0e1453ff28ea23970d55a3a8",
+      "addons/infantry/functions/cortexSelectAvenue.sqf": "9a754c00f8d86196227062fce7072fe64374f0e666c0e7e59be48c9ce9c20988"
+    },
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 446,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/combined-firing-endpoints-b2b4e16b",
+      "fingerprint": "6008c08da23038c6092d153b2398f8f8e5bcbe3fd4f748100c44fcc55f28ab99",
+      "buildLog": ".qa/handovers/combined-firing-endpoints-b2b4e16b.log",
+      "independentLog": ".qa/handovers/combined-firing-endpoints-independent.log",
+      "sourceNote": "Baseb2b4e16b plus this runtime change, unsigned dirty development candidate; engineering notes postdate packaging."
+    },
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

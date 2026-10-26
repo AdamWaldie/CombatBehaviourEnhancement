@@ -6205,6 +6205,16 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('reveal',admission)
         self.assertLess(manoeuvre.index('if (_capabilityRefusal != "") exitWith'),manoeuvre.index('CBE_fnc_CortexSelectAvenue'))
         self.assertLess(manoeuvre.index('NO_TARGET_AMMO'),manoeuvre.index('CBE_fnc_CortexOwnershipLease'))
+        plan=manoeuvre.split('private _targetPosition=+_position;',1)[1].split('if (_selected isEqualTo [])',1)[0]
+        for proof in ('eyePos _gunner','getPosASL _asset','!finite _gunnerHeight',
+                      '_gunnerHeight < 0.25','_gunnerHeight > 12',
+                      'AGLToASL _targetPosition','terrainIntersectASL','"FIRE","GEOM"',
+                      '"VEHICLE",_asset]'):
+            self.assertIn(proof,plan)
+        self.assertLess(plan.index('lineIntersectsSurfaces'),plan.index('call CBE_fnc_CortexSelectAvenue'))
+        self.assertNotIn('getPosATL _target',plan)
+        self.assertNotIn('getPosASL _target',plan)
+        self.assertIn('if (_resumeGround) then {_selected=[+(_progress select 5)]}',manoeuvre)
 
     def test_combined_executor_suppresses_exact_owner_epoch_duplicates_before_effects(self):
         text=source('cortexCombinedArmsLocal')

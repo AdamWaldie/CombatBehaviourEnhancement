@@ -9,7 +9,10 @@
  * operation owns later target and weapon commands after movement/release geometry is valid. A second
  * ground vehicle receives a finite safe-side manoeuvre destination selected once from a bounded set
  * which keeps the support fire lane clear and avoids water, cliff-like slopes and unnecessarily rough
- * ground. Engine pathfinding remains responsible for the actual route. Airborne aircraft receive the
+ * ground. Six fresh firing-area candidates must also have a terrain/FIRE-clear ray from a
+ * translated current gunner eye height to the recorded belief; asset bounds inform avenue scoring.
+ * Resumed roles retain their original destination. Actual firing admission remains arrival-local.
+ * Engine pathfinding remains responsible for the actual route. Airborne aircraft receive the
  * same target and may start their existing finite attack-run job;
  * its controller, rather than a single instantaneous speed sample, proves progress or handles a stall.
  * Scripted ground-fire safety geometry uses native believed position, not hidden transforms.
@@ -358,7 +361,22 @@ if (_role == "GROUND_MANOEUVRE") exitWith {
                 _candidates pushBack [_destination];
             } forEach [260,320,380];
         } forEach [180,240];
-        _selected=[_start,_candidates,_targetPosition,[_supportPosition],_target,"VEHICLE"]
+        // A safe approach is not a usable firing area. Translate this occupied gunner's
+        // current eye height above the vehicle origin onto each candidate terrain point.
+        // This is a sparse hypothetical ray, not turret/muzzle/stance or ballistic proof.
+        // The authenticated belief remains fixed; never read the hidden target's live pose.
+        private _gunnerHeight=((eyePos _gunner) select 2)-((getPosASL _asset) select 2);
+        private _fireTargetASL=(AGLToASL _targetPosition) vectorAdd [0,0,1.6];
+        if (!finite _gunnerHeight || {_gunnerHeight < 0.25} || {_gunnerHeight > 12}) then {
+            _candidates=[];
+        } else {
+            _candidates=_candidates select {
+                private _fireOriginASL=(AGLToASL (_x select 0)) vectorAdd [0,0,_gunnerHeight];
+                !terrainIntersectASL [_fireOriginASL,_fireTargetASL]
+                    && {(lineIntersectsSurfaces [_fireOriginASL,_fireTargetASL,_asset,_target,true,1,"FIRE","GEOM"]) isEqualTo []}
+            };
+        };
+        _selected=[_start,_candidates,_targetPosition,[_supportPosition],_target,"VEHICLE",_asset]
             call CBE_fnc_CortexSelectAvenue;
     };
     if (_selected isEqualTo []) exitWith {
