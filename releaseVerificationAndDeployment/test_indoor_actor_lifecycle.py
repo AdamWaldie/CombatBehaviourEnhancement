@@ -116,15 +116,25 @@ class IndoorActorLifecycleTests(unittest.TestCase):
             for field in ('actor','group','operationGeneration','deadline','route','target','lease'):
                 self.assertIn(f'_brain getOrDefault ["{field}",',finish)
             self.assertIn('_installed isNotEqualTo _brain',finish)
+            self.assertIn('count _installed > 0 && {count _brain == 0 ||',finish)
             self.assertLess(finish.index('_installed isNotEqualTo _brain'),finish.index('expectedDestination _actor'))
         # Generations/epochs may coincide across ownership. Neither equal counters nor
         # equal context authorise an old callback to retire a different installed brain.
+        locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
+        for channel,brain in [('PointActor','_point'),('IndoorActor','_indoor')]:
+            self.assertIn(f'["TRANSFER",_unit,{brain}] call CBE_fnc_{channel}Operation;',locality)
+            self.assertNotIn(f'["TRANSFER",_unit,createHashMap] call CBE_fnc_{channel}Operation;',locality)
         original=('actorA','groupA',4,99,('routeA',),(1,2,0),('leaseA',))
-        def owns_cleanup(journal,installed):
-            return journal==original and installed in (None,'original')
+        def owns_cleanup(journal,installed,supplied='original'):
+            if installed is not None and (supplied is None or installed!=supplied):
+                return False
+            return journal==original
         self.assertTrue(owns_cleanup(original,'original'))
         self.assertTrue(owns_cleanup(original,None))
         self.assertFalse(owns_cleanup(original,'successor'))
+        self.assertFalse(owns_cleanup(original,'original',None))
+        self.assertFalse(owns_cleanup(original,'successor',None))
+        self.assertTrue(owns_cleanup(original,None,None))
         for field in range(len(original)):
             changed=list(original);changed[field]='new'
             self.assertFalse(owns_cleanup(tuple(changed),None))

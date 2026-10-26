@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: Locality TRANSFER passes the original private point/indoor brains rather than an empty map, preserving identity checks and immediately marking the outgoing point brain finished. Journal-only cleanup refuses any installed local controller; discovery already uses this path only when the pointer is absent. Existing32 focused/1497 full tests,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/actor-transfer-identity-5448ce46`, fingerprint `9dd0b90655b4b004bf324b810c77e884c179ff08e601925e891c4672875ad92a`. Review `actor-transfer-identity-20261026.json`. Audits paused; full handover and runtime/performance acceptance remain unfinished.
+
+
 Latest: indoor/point FINISH now refuses a different installed brain and matches the supplied original actor/group/operation/deadline/route/target/lease before any native observation or public cleanup. This closes a cross-owner/group generation-counter collision. Public-journal-only transfer remains supported. Existing32 focused and1497 full tests pass,443 SQF/11 PBOs; independent verification PASS. Candidate `.qa/candidates/actor-finish-identity-cdd9e55b`, fingerprint `61bebe5d838f7429b164b07dee79abfa3146fb1766615b7cf98c0eded03d5765`. Review `actor-finish-identity-20261026.json`. Audits paused; complete source seal/incoming reconciliation and physical/performance acceptance remain unfinished.
 
 

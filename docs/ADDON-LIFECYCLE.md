@@ -2020,3 +2020,5 @@ After the original FSM/metadata checks, the source submits one CAPTURE message t
 
 
 Individual indoor and point-investigation cleanup matches the original actor, group, operation generation, deadline, route, target and lease when an executor brain is supplied. A different installed local brain refuses cleanup even when generation and epoch counters coincide. Journal-only transfer cleanup retains its existing native-order, formation and finite-deadline checks; this does not restart investigation or establish whole-operation handover readiness.
+
+Locality transfer supplies each original private indoor/point brain to its cleanup function. A journal-only call requires the local private brain to be absent, preventing the transfer path from bypassing original executor identity checks. Original brain retirement happens even when actor or group locality has already been lost; native movement and public cleanup still require current ownership.

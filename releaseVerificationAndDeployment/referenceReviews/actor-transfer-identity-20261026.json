@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "5448ce46",
+  "status": "ACTOR_TRANSFER_ORIGINAL_CONTEXT_OFFLINE_VERIFIED",
+  "finding": "Locality TRANSFER supplied an empty brain even when an original private brain existed. This bypassed original-context matching and left the outgoing point brain unretired until its later FSM callback.",
+  "implementation": [
+    "Locality supplies exact point/indoor private brains; their existing FINISH marks those original brains finished even on nonlocal exit.",
+    "Journal-only cleanup refuses any installed private controller. Discovery retains journal-only cleanup only when its private controller is absent.",
+    "No new timer, worker, movement command or changed deadline. Existing native-order/formation checks and legitimate public transfer cleanup remain."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "ea5e13f6f60e324a5c44a6e5773232b1ca54a9ae571742e813041cb3fbb2a63d",
+    "addons/infantry/functions/indoorActorOperation.sqf": "23c8077facecdba575f6ad59ca44a407a00ab6e3e644db96b50488e2433301be",
+    "addons/infantry/functions/pointActorOperation.sqf": "00155dcfa23d7111612a89cee13cdce4df4ca10e0cb537e28fb872be4efd6f8b",
+    "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "cd9def18a9257d130dc68f411f3fcff55207282c8ee3166f973f015ccee51396"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 32,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/actor-transfer-identity-5448ce46",
+    "fingerprint": "9dd0b90655b4b004bf324b810c77e884c179ff08e601925e891c4672875ad92a",
+    "buildLog": ".qa/handovers/actor-transfer-identity-build.log",
+    "independentLog": ".qa/handovers/actor-transfer-identity-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "Actual normal/HC locality transfer ordering remains unverified; audits paused.",
+    "Complete all-writer seal and incoming actual native/settings/phase reconciliation."
+  ]
+}

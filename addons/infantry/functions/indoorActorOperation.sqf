@@ -2,6 +2,7 @@
  * Author: WaldoTheWarfighter
  * Late FINISH binds original actor/group/operation/deadline/route/target/lease and rejects
  * a different installed brain; generation/epoch alone cannot identify a cross-owner task.
+ * Public-journal-only cleanup refuses while any private local controller remains installed.
  * Native planner data waits and delayed search retain ownership; no deadline is renewed.
  * Native fleeing preempts investigation and forbids return-to-formation cleanup commands.
  * One stalled CBE-issued ISSUE leg may select an alternative node under the same deadline/probe budget.
@@ -179,7 +180,7 @@ if (_mode == "FINISH") exitWith {
     // A machine-local generation/epoch can collide with another owner's task.
     // Only this installed controller (or an absent pointer during transfer) may clean up.
     private _installed=_actor getVariable ["CBE_IndoorActor_Brain",createHashMap];
-    if (count _brain > 0 && {count _installed > 0 && {_installed isNotEqualTo _brain}}) exitWith {false};
+    if (count _installed > 0 && {count _brain == 0 || {_installed isNotEqualTo _brain}}) exitWith {false};
     private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
     if (count _journal != 10) exitWith {
         if (count _brain > 0 && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {

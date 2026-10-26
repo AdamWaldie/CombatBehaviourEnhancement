@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Coordinated recovery snapshots retain generic and per-server-bound refresh budgets; commands are not replayed.
+ * Locality cleanup passes each original private actor brain so retirement cannot bypass
+ * its identity checks. Journal-only cleanup requires no installed local controller.
  * Individual indoor work is cancelled on transfer; only an exact journal-owned native leg may
  * return to formation on the new owner. No indoor movement or deadline is replayed.
  * Passenger, naval landing, pending calm remount, active coordinated-support, post-contact movement
@@ -206,7 +208,7 @@ isNil {
         private _unit = _x;
         private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_unit getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
-            ["TRANSFER",_unit,createHashMap] call CBE_fnc_PointActorOperation;
+            ["TRANSFER",_unit,_point] call CBE_fnc_PointActorOperation;
             if ((_unit getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _point) then {
                 _unit setVariable ["CBE_PointActor_Brain",nil];_unit setVariable ["CBE_PointActor_FSM",nil];
             };
@@ -215,7 +217,7 @@ isNil {
         if (count _indoor > 0 || {(_unit getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}
             || {!isNil {_unit getVariable "CBE_IndoorActor_FSM"}}) then {
             if (count _indoor > 0) then {_indoor set ["finished",true]};
-            ["TRANSFER",_unit,createHashMap] call CBE_fnc_IndoorActorOperation;
+            ["TRANSFER",_unit,_indoor] call CBE_fnc_IndoorActorOperation;
             // Public cancellation may already have completed elsewhere. Retire this machine's
             // exact old pointer regardless; otherwise returning ownership blocks the next START.
             if ((_unit getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _indoor) then {
