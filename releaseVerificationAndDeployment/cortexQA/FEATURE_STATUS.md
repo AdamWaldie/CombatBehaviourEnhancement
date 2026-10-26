@@ -26,7 +26,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | MORALE - Morale and withdrawal | 3 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
 | SURRENDER - Surrender | 1 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
 | GRENADE - Grenade avoidance | 1 | 0 | 2 | `runReactions.sqf` | 2 | implemented_partial |
-| CIVILIAN - Civilian danger response and external ownership | 4 | 0 | 4 | `runReactions.sqf` | 0 | implemented_partial |
+| CIVILIAN - Civilian danger response and external ownership | 4 | 0 | 5 | `runReactions.sqf` | 0 | implemented_partial |
 | AT - Anti-armour and ammunition roles | 2 | 0 | 2 | `runFireControl.sqf` | 0 | implemented_partial |
 | VEH - Vehicle engagement | 4 | 0 | 17 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
 | DISMOUNT - Contact passenger dismount | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |

@@ -109,12 +109,10 @@ private _until=serverTime+(_cooldown max 2);
 _unit setVariable ["CBE_Cortex_CivilianGeneration",_generation,true];
 _unit setVariable ["CBE_Cortex_CivilianReactionUntil",_until,true];
 _unit setVariable ["CBE_Cortex_CivilianReaction",[_until,_priority,_generation,toUpperANSI _cause,_destination,+_orderBefore,_group],true];
+// Publish the original retry allowance before movement and observation admission.
+_unit setVariable ["CBE_Cortex_CivilianRetrySpent",[_generation,_until,_group,false],true];
 _unit doMove _destination;
-[CBE_fnc_CortexCivilianStep,createHashMapFromArray [
-    ["group",group _unit],["unit",_unit],["generation",_generation],["destination",_destination],
-    ["until",_until],["nativeOrder",+_orderBefore],["lastPosition",_origin],["lastProgressAt",serverTime],
-    ["reissued",false],["subsystem","TACTICS"]
-],2,"CBE_CIVILIAN_"+netId _unit] call CBE_fnc_CortexQueueJob;
+[_unit] call CBE_fnc_CortexCivilianAdopt;
 _issued=true;
 };
 _issued

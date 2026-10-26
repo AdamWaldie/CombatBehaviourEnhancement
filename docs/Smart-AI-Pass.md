@@ -3108,4 +3108,13 @@ Native late replies, identical repeated native intent, transfer delivery, physic
 
 Civilian escape receipts retain the original group as well as generation, destination and authored route. If observation reaches its deadline or exhausts its one retry while the native escape MOVE still matches, CBE reports that outcome and retains the receipt. A later fresh danger event can then redirect that same escape after its original cooldown instead of mistaking it for an unrelated mission MOVE. A different group, route, command or destination cannot borrow the receipt. Arrival and superseding native tasks retire it normally.
 
-This does not renew the old deadline, restart an expired job, add retries or cancel the native route. No new settings, movement commands, scans or workers are introduced. Civilian owner-migration observation, body/scream awareness and context-appropriate shelter remain incomplete. Physical repeat-use and performance remain unverified. Audits remain paused.
+This does not renew the old deadline, restart an expired job, add retries or cancel the native route. No new settings, movement commands, scans or workers are introduced. Civilian body/scream awareness and context-appropriate shelter remain incomplete. Physical repeat-use, owner-transfer delivery and performance remain unverified. Audits remain paused.
+
+
+### Civilian observation after ownership changes
+
+The shared all-machine actor init/Local hook and a group locality event can reconstruct the existing escape observer on the new owner. A separate civilian actor-local handler is not required. Adoption reads the original group, generation, destination, authored order and server-time expiry; it never reissues the initial move or renews that expiry. Current native tasks and destination are checked by the existing step before any recovery. One public retry allowance is published with the response and consumed before its sole recovery move, so migration cannot grant another retry. Missing or mismatched budget data grants no recovery.
+
+A machine-local observer serial and the existing keyed scheduler suppress duplicate or returning stale callbacks. Split ownership or delayed receipt delivery can be checked for at most two seconds after a native locality event. These checks perform no movement and create no permanent polling loop. Native group events inspect only that group's roster. Disabling cancels the local observer, delivery checks and group handler, and retires old retry permission; re-enabling can observe the native leg but cannot replay its recovery.
+
+Progress on a new owner is sampled afresh within the remaining original time; total lifetime and retry count are preserved. Actual transfer ordering, long delivery delays, repeated migrations and measured overhead still require in-game verification.

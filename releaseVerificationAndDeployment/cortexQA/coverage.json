@@ -609,7 +609,8 @@
         "addons/infantry/functions/cortexCivilianReact.sqf",
         "addons/infantry/functions/cortexCivilianSetup.sqf",
         "addons/infantry/functions/cortexCivilianStep.sqf",
-        "addons/compatibility/functions/cortexExternalOwner.sqf"
+        "addons/compatibility/functions/cortexExternalOwner.sqf",
+        "addons/infantry/functions/cortexCivilianAdopt.sqf"
       ]
     },
     {

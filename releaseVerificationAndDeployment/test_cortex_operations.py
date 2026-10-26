@@ -5926,7 +5926,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('doMove _destination',react)
         self.assertIn('_priority <= (_active param [1,0,[0]])',react)
         self.assertIn('CBE_Cortex_CivilianGeneration',react)
-        self.assertIn('CBE_fnc_CortexCivilianStep',react)
+        adopt=source('cortexCivilianAdopt')
+        self.assertIn('CBE_fnc_CortexCivilianAdopt',react)
+        self.assertIn('CBE_fnc_CortexCivilianStep',adopt)
         self.assertIn('_active param [5,[],[[]]]',react)
         self.assertNotIn('switchMove',react)
         step=source('cortexCivilianStep')
@@ -5952,7 +5954,7 @@ class CortexOperations(unittest.TestCase):
                       '(_receipt select 5) isEqualTo _nativeOrder','if (!_retain) then',
                       'currentCommand _unit == "MOVE"','_currentGoal distance _destination <= 6'):
             self.assertIn(proof,step)
-        self.assertIn('["nativeOrder",+_orderBefore]',react)
+        self.assertIn('["nativeOrder",+(_receipt select 5)]',adopt)
         self.assertIn('if (!_taskOwned) exitWith',step)
         self.assertLess(step.index('if (!_taskOwned) exitWith'),step.index('_unit doMove _destination'))
         for write in ('setBehaviour','setCombatBehaviour','setSpeedMode','setUnitPos','forceSpeed'):
@@ -5961,6 +5963,37 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('["restore",',react+step)
         self.assertIn('CBE_Cortex_CivilianReaction",[],true',step)
         self.assertIn('CBE_Cortex_CivilianResult',step)
+        for proof in ('CBE_Cortex_CivilianObserverSerial','observerOwner','observerSerial',
+                      'CBE_Cortex_CivilianRetrySpent','(_receipt select 6) == _group',
+                      'serverTime >= (_receipt select 0)','CBE_Cortex_CivilianAdoptTicket',
+                      'serverTime+2','CBA_fnc_waitAndExecute',
+                      '(_actor getVariable ["CBE_Cortex_CivilianAdoptTicket",[]]) isEqualTo _expected'):
+            self.assertIn(proof,adopt)
+        self.assertNotIn('doMove',adopt)
+        self.assertNotIn('addMissionEventHandler',adopt)
+        self.assertNotIn('allUnits',adopt)
+        post=(ROOT/'addons/main/XEH_postInit.sqf').read_text(encoding='utf-8')
+        self.assertIn('[_this select 0,false,true] call CBE_fnc_CortexCivilianSetup',post)
+        self.assertIn('[_actor] call CBE_fnc_CortexCivilianSetup',post)
+        self.assertNotIn('CBE_Cortex_CivilianLocalHandler',setup)
+        self.assertIn('CBE_AIPass_Active',setup)
+        self.assertIn('CBE_Cortex_CivilianGroupLocalHandler',setup)
+        self.assertIn('forEach units _taskGroup',setup)
+        group_edge=setup.split('params ["_taskGroup","_isLocal"]',1)[1]
+        self.assertIn('if (!_isLocal) then',group_edge)
+        self.assertLess(group_edge.index('if (!_isLocal) then'),group_edge.index('if (_isLocal &&'))
+        self.assertIn('CBE_Cortex_CivilianObserver",nil',group_edge)
+        self.assertIn('CBE_Cortex_CivilianAdoptQueued",nil',group_edge)
+        self.assertIn('removeEventHandler ["Local",_groupLocal]',setup)
+        self.assertIn('CBE_Cortex_CivilianAdoptTicket",nil',setup)
+        self.assertIn('CBE_Cortex_CivilianObserver",nil',setup)
+        self.assertIn('(_observer select 3) != (_state getOrDefault ["observerSerial",-1])',step)
+        self.assertIn('call _completeObserver',step)
+        self.assertIn('CBE_Cortex_CivilianRetrySpent',step)
+        retry=step.split('if (_stalled) then {',1)[1]
+        self.assertLess(retry.index('setVariable ["CBE_Cortex_CivilianRetrySpent"'),retry.index('_unit doMove'))
+        self.assertNotIn('CBE_Cortex_CivilianRetrySpent",nil',adopt+react)
+
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runReactions.sqf').read_text()
         self.assertIn('private _civilianPeer=',qa)
         self.assertIn('private _civilianSettingsPreserved=',qa)

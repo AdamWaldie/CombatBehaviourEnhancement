@@ -209,9 +209,7 @@ if (!isNil "_civilianCreated") then {
 };
 {
     [_x,true] call CBE_fnc_CortexCivilianSetup;
-    private _local=_x getVariable ["CBE_Cortex_CivilianLocalHandler",-1];
-    if (_local >= 0) then {_x removeEventHandler ["Local",_local]};
-    _x setVariable ["CBE_Cortex_CivilianLocalHandler",nil];
+    // Shared class/Local watcher stays passive; Setup removed owned reaction/group handlers.
 } forEach (allUnits select {side group _x == civilian});
 {
     {

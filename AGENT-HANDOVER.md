@@ -1,3 +1,19 @@
+## Current checkpoint: civilian observer ownership adoption (26 October 2026)
+
+Current branch HEAD implements finite civilian observation adoption after base59639b0d. Revalidate live Git/PR19 before further changes. Full production goal remains active/incomplete; AUDITS PAUSED. Follow IMPLEMENTATION-GOAL.md/source register and move upward from finite foundation defects; do not turn one checkpoint into endless optional refinements.
+
+CortexCivilianAdopt reconstructs the existing keyed progress observer from original seven-field escape and four-field retry receipts. No movement replay or original expiry renewal. The shared all-machine CAManBase init/Local hook covers incoming actor ownership without another actor handler. One group Local hook handles split ordering and cancels private observation on group-only loss/return. Native locality events permit one coalesced two-second/0.5s receipt-delivery check; it grants no commands. Missing budget remains unknown. The original retry is consumed publicly before issue, so adoption cannot mint another one. Private owner/serial identity retires old callbacks, including QueueJob payload-map coalescing. Disable cancels local observations/delivery/group handlers and retires old retry permission.
+
+Full1497 tests/446 compiled SQF/11 PBOs and independent verification passed. Exact candidate .qa/candidates/civilian-adoption-59639b0d; fingerprint43bec2b1c0dd40afc6f226f7aa8e3aba2a84aeb02f062ec42842b45bd17b3f3c. Build .qa/handovers/civilian-adoption-owner-edges-59639b0d.log; independent civilian-adoption-independent.log. Two earlier passing logs are intermediate versions, superseded by incoming-hook and group-only edge fixes; no unchanged rebuild is needed. Candidate is59639b0d plus runtime changes, unsigned development evidence, not clean release; engineering notes postdate package. No running build remains.
+
+Reference lambs-danger-branch-execution-20261025.json#civilianObservationAdoption20261026. Physical delivery/creation order, repeated transfers, identical native orders and cost remain unverified. Incoming local progress is sampled fresh within original total expiry; no claim of progress-timestamp transfer. Delivery unavailable after the two-second check grants no retry. Civilian body/scream and contextual shelter plus remaining LAMBS main/wp and HBQ end-to-end capability dispositions remain open. Next substantive registered gap should follow those existing owners/sources; do not repeatedly extend this serial/receipt without a specific failed requirement.
+
+Workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-recovery-followup-20261026; draft PR19. No WMP writes, installed-game staging, Arma launches, merge, release or Steam upload. Preserve unrelated workflow/branding deletions and docs/PERFORMANCE-VALIDATION.md edits. Protect Workshop originals E:/SteamLibrary/steamapps/workshop/content/107410, all .qa snapshots, Pinned Down archive C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708 and permanent signing keys. Master source-review map, danger queue, HBQ index and Protocol programme remain the work/register entry points.
+
+Earlier checkpoints below are historical and superseded where this section differs.
+
+---
+
 ## Current checkpoint: repeated civilian escape identity (26 October 2026)
 
 Current branch HEAD fixes civilian escape repeat-use after source-review basea8771aef. Verify live HEAD/PR19/remote before further work. The production goal is active/incomplete; AUDITS PAUSED. Follow IMPLEMENTATION-GOAL.md and the source-review map: finite foundation defects before dependent behaviour, no competing controllers or speculative guard programme.

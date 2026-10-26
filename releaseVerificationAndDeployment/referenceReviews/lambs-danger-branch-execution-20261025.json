@@ -1186,10 +1186,55 @@
         "fingerprint": "b5fa46ad35d954b1bfcda6b966872034290e43ab10b970e7f8c769d7969ae70d",
         "retainedInitialFailure": ".qa/handovers/civilian-repeat-a8771aef.log: upstream name in product guide; corrected guide and reran full gates without weakening boundary.",
         "provenance": "a8771aef plus working runtime changes; unsigned development candidate, not clean release. Engineering verification/handover notes postdate package."
-      }
+      },
+      "migrationFollowup": "civilianObservationAdoption20261026 implements finite source/owner wiring and retry handoff; physical delivery and cost still pending. Earlier missing-adoption finding is historical against base59639b0d."
     },
     "audits": "paused",
     "wholeLAMBSParity": false,
+    "physicalAcceptance": false,
+    "buildoutPercentageChange": false
+  },
+  "civilianObservationAdoption20261026": {
+    "base": "59639b0d",
+    "scope": "Finite civilian progress-observer adoption and original retry allowance across actor/group locality; no new reaction type or shelter/body-investigation behaviour.",
+    "sourceHashes": {
+      "addons/infantry/functions/cortexCivilianAdopt.sqf": "7e8e35fd81bd45a95d2271d924fd6db8c3dd3306c02e3e5686f4d916a8ed9dfb",
+      "addons/infantry/functions/cortexCivilianReact.sqf": "c13047b85b9d12a019e830ff7c0947a8f6431c6172b2be683bd94404260e4125",
+      "addons/infantry/functions/cortexCivilianStep.sqf": "6a12f90637401fdb163dec0bbe71f31521c52f4bdcc820a6113296a24a34c717",
+      "addons/infantry/functions/cortexCivilianSetup.sqf": "81aa3fd079aba290f04156e44aa2181d588e2f5ae29d97a2b654ca4e90696ced",
+      "addons/main/XEH_postInit.sqf": "68bc60a66315011dfd3a80a94114292bcf0e8b90cc16da61794ff0ac92ee5ba9",
+      "addons/core/functions/cortexStop.sqf": "d4c70f5e08bbf6b09f89f04440253103cac4578315faae301491cae5351d9a72",
+      "addons/main/CfgFunctions.hpp": "c202bd6e3ca4e6aca8b59c3aa3a12ea5a0bb2b07391b9d9771bcb83425f438a9"
+    },
+    "implementation": [
+      "Fresh reaction publishes original retry allowance before movement, then delegates observation admission to registered CortexCivilianAdopt. Adoption itself issues no movement.",
+      "Adopt validates the seven-field original receipt/group/generation/destination/route/server expiry and four-field retry allowance. Missing or mismatched budget is unknown, never a fresh retry. Current owner samples progress under the remaining original deadline.",
+      "Existing all-machine CAManBase init/Local hook routes civilian setup, including destination machines that have never owned the actor. No extra actor Local handler. A single group Local handler covers split group/actor ordering and invalidates private observers on group-only loss/return.",
+      "A native Local edge may open one coalesced two-second delivery check at0.5s intervals. It grants no movement permission or expiry renewal; private owner/serial tickets suppress old checks.",
+      "Private observer owner/serial and existing keyed queue prevent stale/duplicate callback commands. Completion retires private identity by serial rather than assuming the installer map is still the actual scheduler map after QueueJob coalescing.",
+      "The existing step consumes public retry allowance before its sole recovery doMove. Incoming observers cannot restore an already consumed retry. Disable cancels private observers/delivery checks and group handler, and retires old retry permission; the shared passive class Local hook remains available for native recovery systems."
+    ],
+    "verification": {
+      "fullTests": 1497,
+      "compiledSQF": 446,
+      "PBOs": 11,
+      "buildLog": ".qa/handovers/civilian-adoption-owner-edges-59639b0d.log",
+      "independentLog": ".qa/handovers/civilian-adoption-independent.log",
+      "candidate": ".qa/candidates/civilian-adoption-59639b0d",
+      "fingerprint": "43bec2b1c0dd40afc6f226f7aa8e3aba2a84aeb02f062ec42842b45bd17b3f3c",
+      "intermediateLogs": [
+        ".qa/handovers/civilian-adoption-59639b0d.log: passed before all-machine incoming hook correction.",
+        ".qa/handovers/civilian-adoption-final-59639b0d.log: passed before group-only loss/return invalidation."
+      ],
+      "provenance": "59639b0d plus working runtime changes; unsigned development candidate, not a clean release. Engineering notes postdate package."
+    },
+    "limits": [
+      "Physical/native transfer ordering, repeated owner changes, creation/receipt delivery and overhead remain unverified while audits are paused.",
+      "Delivery checks stop after two seconds; unavailable or mismatched state does not authorise continuation/retry. No claim of guaranteed delivery beyond that finite window.",
+      "Incoming progress baseline is a fresh local observation; the original total expiry and consumed retry remain authoritative. Identical repeated native commands are observationally ambiguous.",
+      "Body/scream awareness and context-appropriate shelter remain unimplemented at the civilian-FSM scope. This does not establish whole LAMBS parity or physical acceptance."
+    ],
+    "audits": "paused",
     "physicalAcceptance": false,
     "buildoutPercentageChange": false
   }

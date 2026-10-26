@@ -248,6 +248,7 @@ class CfgFunctions {
             class CortexIsEligible {file = "\z\cbe\addons\infantry\functions\cortexIsEligible.sqf";};
             class CortexExternalOwner {file = "\z\cbe\addons\compatibility\functions\cortexExternalOwner.sqf";};
             class CortexExternalTakeover {file = "\z\cbe\addons\compatibility\functions\cortexExternalTakeover.sqf";};
+            class CortexCivilianAdopt {file = "\z\cbe\addons\infantry\functions\cortexCivilianAdopt.sqf";};
             class CortexCivilianReact {file = "\z\cbe\addons\infantry\functions\cortexCivilianReact.sqf";};
             class CortexCivilianSetup {file = "\z\cbe\addons\infantry\functions\cortexCivilianSetup.sqf";};
             class CortexCivilianStep {file = "\z\cbe\addons\infantry\functions\cortexCivilianStep.sqf";};

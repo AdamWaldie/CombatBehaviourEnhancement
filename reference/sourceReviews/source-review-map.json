@@ -16,7 +16,7 @@
       "priority": "0 Foundations",
       "candidateContribution": "Standalone danger FSM, reactions, assault and task lifecycle",
       "reviewStatus": "All41 readable danger-addon SQF body dispositions and civilian FSM runtime branches reviewed; selected main helpers reviewed; whole-source descendants remain incomplete",
-      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capability gaps with existing owners. Civilian body/scream/shelter and migration observation remain incomplete; settings modules are not a parity target.",
+      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian body/scream/shelter remain incomplete; finite migration-observation wiring is implemented but physically unverified. Settings modules are not a parity target.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity and remaining execution branches incomplete; physical reliability and performance separate.",
       "implementationAssessmentCommit": "ca778db2",
@@ -38,7 +38,8 @@
         "scope": "Installed danger-addon snapshot:41 readable SQF body dispositions recorded. Configuration/context entry paths reviewed. No wholeLAMBS, descendant or compiled behavioural equivalence claim.",
         "functionQueue": "reference/sourceReviews/lambs-danger-source-queue.json",
         "latestReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#startupConfigurationReview20261026",
-        "civilianFSMReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianFSMReview20261026"
+        "civilianFSMReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianFSMReview20261026",
+        "civilianObservationFollowup": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianObservationAdoption20261026"
       }
     },
     {

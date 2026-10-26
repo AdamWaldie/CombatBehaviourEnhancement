@@ -21,6 +21,7 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
     params ["_actor"];
     if (isNil {_actor getVariable "CBE_AirPilotFeatureLocalEH"}) then {
         _actor setVariable ["CBE_AirPilotFeatureLocalEH",_actor addEventHandler ["Local",{
+            [_this select 0,false,true] call CBE_fnc_CortexCivilianSetup;
             _this call CBE_fnc_CortexAirPilotFeatureAdopt;
             _this call CBE_fnc_DrivingRecoveryCrewAdopt;
             [_this select 0] call CBE_fnc_CortexParachuteProtectionRelease;
@@ -28,6 +29,9 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
             [_this select 0] call CBE_fnc_CortexParachuteObserve;
         }]];
     };
+    // This passive class/Local hook exists on every machine, including a future owner.
+    // Civilian setup remains gated by actual locality and the active feature.
+    [_actor] call CBE_fnc_CortexCivilianSetup;
     [_actor,local _actor] call CBE_fnc_CortexAirPilotFeatureAdopt;
     [_actor,local _actor] call CBE_fnc_DrivingRecoveryCrewAdopt;
     [_actor] call CBE_fnc_CortexParachuteProtectionRelease;
